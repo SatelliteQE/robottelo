@@ -1,0 +1,34 @@
+*** Settings ***
+
+Documentation   A test suite with a single test for valid login.
+
+Resource        ../resources/global.txt
+
+*** Test Cases ***
+
+Valid Login
+    Open Browser to Login Page
+    Input Username  admin
+    Input Password  admin
+    Submit Credentials
+
+*** Keywords ***
+
+Open Browser To Login Page
+    Open Browser  ${LOGIN_URL}  ${BROWSER}
+    Maximize Browser Window
+    Set Selenium Speed  ${DELAY}
+    Title Should Be  CloudForms System Engine - Systems Management
+
+Go To Login Page
+    Go To  ${LOGIN_URL}
+    Title Should Be  CloudForms System Engine - Systems Management
+
+Input Username  [Arguments]  ${username}
+    Input Text  username  ${username}
+
+Input Password  [Arguments]  ${password}
+    Input Text  password  ${password}
+
+Submit Credentials
+    Click Button  Log In

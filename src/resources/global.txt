@@ -1,0 +1,15 @@
+*** Settings ***
+
+Documentation   A resource file containing the application specific keywords
+...             that create our own domain specific language. This resource
+...             implements keywords for testing HTML version of the test
+...             application.
+
+Library         Selenium2Library
+
+*** Variables ***
+
+${SERVER}   www.example.com
+${BROWSER}  firefox
+${LOGIN_URL}    https://${SERVER}/katello
+${DELAY}    0
