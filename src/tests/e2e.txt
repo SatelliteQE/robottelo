@@ -1,0 +1,26 @@
+*** Settings ***
+
+Documentation   End to end test suite.
+
+Resource        ../resources/global.txt
+Resource        ../resources/users.txt
+
+Resource         ../tests/test_login.txt
+
+*** Test Case ***
+
+Admin User Valid Login
+    Open Browser to Login Page
+    Input Username  ${admin_user}
+    Input Password  ${admin_passwd}
+    Submit Credentials
+    Successful Login
+    [Teardown]  Close Browser
+
+Admin User Invalid Login
+    Open Browser to Login Page
+    Input Username  ${admin_user}
+    Input Password  bad_password
+    Submit Credentials
+    Failed Login
+    [Teardown]  Close Browser

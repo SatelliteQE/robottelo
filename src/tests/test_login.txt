@@ -1,16 +1,6 @@
 *** Settings ***
 
-Documentation   A test suite with a single test for valid login.
-
-Resource        ../resources/global.txt
-
-*** Test Cases ***
-
-Valid Login
-    Open Browser to Login Page
-    Input Username  admin
-    Input Password  admin
-    Submit Credentials
+Documentation   A test suite with tests for valid/invalid login.
 
 *** Keywords ***
 
@@ -32,3 +22,12 @@ Input Password  [Arguments]  ${password}
 
 Submit Credentials
     Click Button  Log In
+
+Successful Login
+    Wait Until Page Contains Element    css=div.jnotify-notification.jnotify-notification-success
+    Wait Until Page Contains Element    css=strong
+    Page Should Contain     admin
+
+Failed Login
+    Wait Until Page Contains Element    css=div.jnotify-notification.jnotify-notification-error
+    Page Should Contain     username
