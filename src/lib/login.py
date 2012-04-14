@@ -2,12 +2,12 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+from common import find_element, wait_until_element
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait # available since 2.4.0
-
+from selenium.webdriver.common.by import By
+from robot.api import logger
 from robot.utils import asserts
-import time
+
 
 class login(object):
 
@@ -24,28 +24,35 @@ class login(object):
             # Create a new instance of the Chrome driver
             self.driver = webdriver.Chrome()
 
-        # go to the google home page
+        # TODO: verify the url was successfully loaded.
+        # go to the url
         self.driver.get(login_url)
 
 
     def stop_browser(self):
         # Quit the browser.
-        self.driver.quit()
+        self.driver.close()
 
     def login_user(self, username, password):
         # find the element that's name attribute is 'username'
-        usernameElement = self.driver.find_element_by_name("username")
+        usernameElement = find_element(self.driver, "username", By.NAME)
         # type in the username
         usernameElement.send_keys(username)
         # find the element that's name attribute is 'password'
-        passwordElement = self.driver.find_element_by_name("password")
+        passwordElement = find_element(self.driver, "password", By.NAME)
         # type in the password
         passwordElement.send_keys(password)
         # find the submit button
-        inputElement = self.driver.find_element_by_name("commit")
+        inputElement = find_element(self.driver, "commit", By.NAME)
         # submit the form
         inputElement.click()
 
     def success_login(self):
-        success = self.driver.find_element_by_css("div.jnotify-notification.jnotify-notification-success")
 
+        success = wait_until_element(self.driver, "div.jnotify-notification.jnotify-notification-success", By.CSS_SELECTOR)
+        asserts.assert_true(success.is_displayed(), "Failed to login with valid credentials!")
+
+    def failed_login(self):
+
+        failed = wait_until_element(self.driver, "div.jnotify-notification.jnotify-notification-error", By.CSS_SELECTOR)
+        asserts.assert_true(failed.is_displayed(), "Was able to login with invalid credentials!")
