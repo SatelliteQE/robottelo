@@ -31,18 +31,13 @@ def find_element(drv, element, method=By.NAME):
     """
 
     try:
-        if method == By.CSS_SELECTOR:
-            return _find_element_by_css_selector(drv, element)
-        elif method == By.ID:
-            return _find_element_by_id(drv, element)
-        elif method == By.NAME:
-            return _find_element_by_name(drv, element)
-        elif method == By.XPATH:
-            return _find_element_by_xpath(drv, element)
+        return drv.find_element(method, element)
     except NoSuchElementException, e:
         logger.warn("Could not locate element '%s'." % element)
+        raise
     except Exception, e:
-        logger.warn("Failed to locate element '%s'. ERROR: %s" % (item, str(e)))
+        logger.warn("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
+        raise
 
 
 def wait_until_element(drv, element, method=By.NAME, delay=10):
@@ -69,54 +64,13 @@ def wait_until_element(drv, element, method=By.NAME, delay=10):
     """
 
     try:
-        if method == By.CSS_SELECTOR:
-            return _wait_until_element_by_css_selector(drv, element, delay)
-        elif method == By.ID:
-            return _wait_until_element_by_id(drv, element, delay)
-        elif method == By.NAME:
-            return _wait_until_element_by_name(drv, element, delay)
-        elif method == By.XPATH:
-            return _wait_until_element_by_xpath(drv, element, delay)
+        return WebDriverWait(drv, delay).until(lambda driver : find_element(driver, element, method))
     except TimeoutException, e:
         logger.warn("Timed out waiting for element '%s' to display." % element)
+        raise
     except NoSuchElementException, e:
         logger.warn("Could not locate element '%s'." % element)
+        raise
     except Exception, e:
         logger.warn("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
-
-
-def _find_element_by_css_selector(drv, element):
-
-    return drv.find_element_by_css_selector(element)
-
-
-def _find_element_by_id(drv, element):
-
-    return drv.find_element_by_id(element)
-
-
-def _find_element_by_name(drv, element):
-
-    return drv.find_element_by_name(element)
-
-
-def _find_element_by_xpath(drv, element):
-
-    return drv.find_element_by_xpath(element)
-
-
-def _wait_until_element_by_css_selector(drv, element, delay):
-
-    return WebDriverWait(drv, delay).until(lambda driver : _find_element_by_css_selector(driver, element))
-
-def _wait_until_element_by_id(drv, element, delay):
-
-    return WebDriverWait(drv, delay).until(lambda driver : _find_element_by_id(driver, element))
-
-def _wait_until_element_by_name(drv, element, delay):
-
-    return WebDriverWait(drv, delay).until(lambda driver : _find_element_by_name(driver, element))
-
-def _wait_until_element_by_xpath(drv, element, delay):
-
-    return WebDriverWait(drv, delay).until(lambda driver : _find_element_by_xpath(driver, element))
+        raise
