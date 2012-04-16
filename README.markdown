@@ -13,9 +13,9 @@ Usage:
 ======
 
 * To run a single test file:
-  pybot --variable BROWSER:firefox --variable HOST:www.example.com/katello src/tests/e2e.txt
+  pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/e2e.txt
 
 * To run a specific test:
-  pybot --variable BROWSER:firefox --variable HOST:www.example.com/katello src/tests/e2e.txt
+  pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/e2e.txt
 
 [Og Maciel](http://ogmaciel.tumblr.com)
