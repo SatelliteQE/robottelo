@@ -34,13 +34,13 @@ def find_element(drv, element, method=By.NAME):
         return drv.find_element(method, element)
     except NoSuchElementException, e:
         logger.warn("Could not locate element '%s'." % element)
-        raise
+        return None
     except Exception, e:
         logger.warn("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
-        raise
+        return None
 
 
-def wait_until_element(drv, element, method=By.NAME, delay=10):
+def wait_until_element(drv, element, method=By.NAME, delay=20):
 
     """
     Wrapper around Selenium's WebDriver that allows you to pause your test until
@@ -67,10 +67,10 @@ def wait_until_element(drv, element, method=By.NAME, delay=10):
         return WebDriverWait(drv, delay).until(lambda driver : find_element(driver, element, method))
     except TimeoutException, e:
         logger.warn("Timed out waiting for element '%s' to display." % element)
-        raise
+        return None
     except NoSuchElementException, e:
         logger.warn("Could not locate element '%s'." % element)
-        raise
+        return None
     except Exception, e:
         logger.warn("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
-        raise
+        return None
