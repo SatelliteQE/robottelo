@@ -31,15 +31,18 @@ class login(object):
 
     def stop_browser(self):
         # Quit the browser.
-        self.driver.close()
+        self.driver.quit()
 
     def login_user(self, username, password):
         # find the element that's name attribute is 'username'
-        usernameElement = find_element(self.driver, "username", By.NAME)
+        usernameElement = wait_until_element(self.driver, "username", By.ID)
+        asserts.assert_true(usernameElement.is_displayed())
         # type in the username
+        usernameElement.clear()
         usernameElement.send_keys(username)
         # find the element that's name attribute is 'password'
-        passwordElement = find_element(self.driver, "password", By.NAME)
+        passwordElement = find_element(self.driver, "password", By.ID)
+        asserts.assert_true(passwordElement.is_displayed())
         # type in the password
         passwordElement.send_keys(password)
         # find the submit button
@@ -47,12 +50,29 @@ class login(object):
         # submit the form
         inputElement.click()
 
-    def success_login(self):
 
-        success = wait_until_element(self.driver, "div.jnotify-notification.jnotify-notification-success", By.CSS_SELECTOR)
-        asserts.assert_true(success.is_displayed(), "Failed to login with valid credentials!")
+    def logout_user(self):
+        logout_link = wait_until_element(self.driver, "Logout", By.LINK_TEXT)
+        asserts.fail_if_none(logout_link)
+        asserts.assert_true(logout_link.is_enabled())
+        asserts.assert_true(logout_link.is_displayed())
+        # Log out
+        logout_link.click()
 
-    def failed_login(self):
+        # find the 'username' field in the login form.
+        usernameElement = wait_until_element(self.driver, "username", By.NAME)
+        asserts.fail_if_none(usernameElement)
+        asserts.assert_true(usernameElement.is_displayed())
 
-        failed = wait_until_element(self.driver, "div.jnotify-notification.jnotify-notification-error", By.CSS_SELECTOR)
-        asserts.assert_true(failed.is_displayed(), "Was able to login with invalid credentials!")
+
+    def user_logged_in(self):
+
+        is_logged = wait_until_element(self.driver, "li.hello", By.CSS_SELECTOR)
+
+        asserts.fail_if_none(is_logged)
+        asserts.assert_true(is_logged.is_displayed(), "Failed to login with valid credentials!")
+
+    def user_not_logged_in(self):
+
+        not_logged = wait_until_element(self.driver, "li.hello", By.CSS_SELECTOR)
+        asserts.fail_unless_none(not_logged, "Was able to login with invalid credentials!")
