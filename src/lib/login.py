@@ -15,14 +15,28 @@ class login(object):
     __version__ = '0.1'
 
 
-    def start_browser(self, login_url, browser):
+    # Locators
+    _LOGIN_USERNAME = ("//form[@id='login_form']/fieldset/label")
+    _LOGIN_PASSWORD = ("//form[@id='login_form']/fieldset[2]/label")
+    _LOGIN_SUBMIT = ("//form[@id='login_form']/input")
+    _HEADER_USERNAME = ("//div[@id='head']/header/div[2]/ul/li/a/strong")
+    _HEADER_LOGOUT = ("//a[contains(text(),'Logout')]")
+
+
+    def start_browser(self, login_url, browser=None):
+        """
+        Creates an instance of a web browser driver.
+        """
 
         if browser == "firefox":
             # Create a new instance of the Firefox driver
             self.driver = webdriver.Firefox()
-        else:
+        elif browser == "remote":
             # Create a new instance of the Chrome driver
-            self.driver = webdriver.Chrome()
+            self.driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.HTMLUNITWITHJS)
+        else:
+            # Sorry, we can't help you right now.
+            asserts.fail("Support for Firefox or Remote only!")
 
         # TODO: verify the url was successfully loaded.
         # go to the url
@@ -30,49 +44,68 @@ class login(object):
 
 
     def stop_browser(self):
+        """
+        Closes the web browser window (if any) and quits.
+        """
+
         # Quit the browser.
         self.driver.quit()
 
+
     def login_user(self, username, password):
+        """
+        Login as user with provided credentials.
+        """
+
         # find the element that's name attribute is 'username'
-        usernameElement = wait_until_element(self.driver, "username", By.ID)
+        usernameElement = wait_until_element(self.driver, self._LOGIN_USERNAME, By.XPATH)
         asserts.assert_true(usernameElement.is_displayed())
         # type in the username
-        usernameElement.clear()
         usernameElement.send_keys(username)
         # find the element that's name attribute is 'password'
-        passwordElement = find_element(self.driver, "password", By.ID)
+        passwordElement = find_element(self.driver, self._LOGIN_PASSWORD, By.XPATH)
         asserts.assert_true(passwordElement.is_displayed())
         # type in the password
         passwordElement.send_keys(password)
         # find the submit button
-        inputElement = find_element(self.driver, "commit", By.NAME)
+        inputElement = find_element(self.driver, self._LOGIN_SUBMIT, By.XPATH)
         # submit the form
         inputElement.click()
 
 
     def logout_user(self):
-        logout_link = wait_until_element(self.driver, "Logout", By.LINK_TEXT)
+        """
+        Logs out the user.
+        """
+
+        #TODO: WebDriver is not honoring the click event for the URL!
+        logout_link = wait_until_element(self.driver, self._HEADER_LOGOUT, By.XPATH)
         asserts.fail_if_none(logout_link)
-        asserts.assert_true(logout_link.is_enabled())
         asserts.assert_true(logout_link.is_displayed())
         # Log out
         logout_link.click()
 
         # find the 'username' field in the login form.
-        usernameElement = wait_until_element(self.driver, "username", By.NAME)
+        usernameElement = wait_until_element(self.driver, self._LOGIN_USERNAME, By.XPATH)
         asserts.fail_if_none(usernameElement)
         asserts.assert_true(usernameElement.is_displayed())
 
 
     def user_logged_in(self):
+        """
+        Checks if the user is logged.
+        """
 
-        is_logged = wait_until_element(self.driver, "li.hello", By.CSS_SELECTOR)
+        is_logged = wait_until_element(self.driver, self._HEADER_USERNAME, By.XPATH)
 
         asserts.fail_if_none(is_logged)
         asserts.assert_true(is_logged.is_displayed(), "Failed to login with valid credentials!")
 
-    def user_not_logged_in(self):
 
-        not_logged = wait_until_element(self.driver, "li.hello", By.CSS_SELECTOR)
-        asserts.fail_unless_none(not_logged, "Was able to login with invalid credentials!")
+    def user_not_logged_in(self):
+        """
+        Checks if the user is not logged.
+        """
+
+        not_logged = wait_until_element(self.driver, self._HEADER_USERNAME, By.XPATH)
+        asserts.fail_unless_none(not_logged, "Should not be able to login with invalid credentials!")
