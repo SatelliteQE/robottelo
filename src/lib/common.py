@@ -31,12 +31,16 @@ def find_element(drv, element, method=By.NAME):
     """
 
     try:
-        return drv.find_element(method, element)
+        _webelement = drv.find_element(method, element)
+        if _webelement.is_displayed():
+            return _webelement
+        else:
+            return None
     except NoSuchElementException, e:
-        logger.warn("Could not locate element '%s'." % element)
+        logger.debug("Could not locate element '%s'." % element)
         return None
     except Exception, e:
-        logger.warn("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
+        logger.debug("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
         return None
 
 
@@ -66,10 +70,10 @@ def wait_until_element(drv, element, method=By.NAME, delay=20):
     try:
         return WebDriverWait(drv, delay).until(lambda driver : find_element(driver, element, method))
     except TimeoutException, e:
-        logger.warn("Timed out waiting for element '%s' to display." % element)
+        logger.debug("Timed out waiting for element '%s' to display." % element)
         return None
     except NoSuchElementException, e:
-        logger.warn("Could not locate element '%s'." % element)
+        logger.debug("Could not locate element '%s'." % element)
         return None
     except Exception, e:
         logger.warn("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
