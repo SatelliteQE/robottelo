@@ -11,7 +11,7 @@ from robot.utils import asserts
 
 class login(object):
 
-    ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
+    #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
     __version__ = '0.1'
 
 
@@ -23,10 +23,9 @@ class login(object):
     _HEADER_LOGOUT = ("//a[contains(text(),'Logout')]")
 
 
-    def start_browser(self, login_url, browser=None):
-        """
-        Creates an instance of a web browser driver.
-        """
+    def __init__(self, base_url, browser=None):
+
+        self.base_url = base_url
 
         if browser == "firefox":
             # Create a new instance of the Firefox driver
@@ -38,24 +37,15 @@ class login(object):
             # Sorry, we can't help you right now.
             asserts.fail("Support for Firefox or Remote only!")
 
-        # TODO: verify the url was successfully loaded.
-        # go to the url
-        self.driver.get(login_url)
-
-
-    def stop_browser(self):
-        """
-        Closes the web browser window (if any) and quits.
-        """
-
-        # Quit the browser.
-        self.driver.quit()
 
 
     def login_user(self, username, password):
         """
         Login as user with provided credentials.
         """
+
+        # go to the url
+        self.driver.get(self.base_url)
 
         # find the element that's name attribute is 'username'
         usernameElement = wait_until_element(self.driver, self._LOGIN_USERNAME, By.XPATH)
@@ -109,3 +99,11 @@ class login(object):
 
         not_logged = wait_until_element(self.driver, self._HEADER_USERNAME, By.XPATH)
         asserts.fail_unless_none(not_logged, "Should not be able to login with invalid credentials!")
+
+    def stop_browser(self):
+        """
+        Closes the web browser window (if any) and quits.
+        """
+
+        # Quit the browser.
+        self.driver.quit()

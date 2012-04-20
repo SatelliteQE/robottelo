@@ -10,5 +10,5 @@ Library         Selenium2Library
 *** Variables ***
 
 ${BROWSER}  remote
-${LOGIN_URL}    https://${HOST}/${APP}
+${BASE_URL}    https://${HOST}/${APP}
 ${DELAY}    0

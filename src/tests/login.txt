@@ -5,9 +5,8 @@ Documentation   Suite using WebDriver API.
 Resource        ../resources/global.txt
 Resource        ../resources/users.txt
 
-Library         ../lib/login.py
+Library         ../lib/login.py     ${BASE_URL}    ${BROWSER}
 
-Test Setup      Start Browser   ${LOGIN_URL}    ${BROWSER}
 Test Teardown   Stop Browser
 
 *** Test Case ***
