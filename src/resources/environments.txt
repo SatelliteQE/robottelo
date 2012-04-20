@@ -1,0 +1,8 @@
+*** Variables ***
+
+${library_dev1}     Dev1
+${dev1_qa1}         QA1
+${qa1_ga1}          GA1
+${library_pt1}      Começo
+${pt1_pt2}          Meio
+${pt2_pt3}          Fim

@@ -11,7 +11,7 @@ from robot.utils import asserts
 
 class login(object):
 
-    #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
+    ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
     __version__ = '0.1'
 
 

@@ -12,7 +12,7 @@ from robot.utils import asserts
 
 class org(login):
 
-    ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
+    #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
     __version__ = '0.1'
 
 
@@ -21,7 +21,7 @@ class org(login):
     _NEW_ORG_LINK = "//div[@id='list-title']/header/a"
     _ORG_NAME = "//form[@id='new_organization']/fieldset/div[2]/input"
     _ORG_SUBMIT = "//form[@id='new_organization']/div[2]/div/input"
-    _NEW_ORG = "//div[@id='organization_Seattle']/div"
+    _NEW_ORG = "//div[@id='organization_%s']/div"
 
 
     def __init__(self, base_url, browser=None):
@@ -36,6 +36,23 @@ class org(login):
         # go to the url
         self.driver.get(self.base_url)
 
+        # Organizations tab
         organizations_tab = wait_until_element(self.driver, self._HEADER_ORGANIZATIONS, By.XPATH)
         asserts.fail_if_none(organizations_tab, "Could not find the Organizations tab.")
         organizations_tab.click()
+
+        # New Organization link
+        new_org_link = wait_until_element(self.driver, self._NEW_ORG_LINK, By.XPATH)
+        asserts.fail_if_none(new_org_link, "could not find the new organization link.")
+        new_org_link.click()
+
+        # New org form
+        org_name = wait_until_element(self.driver, self._ORG_NAME, By.XPATH)
+        asserts.fail_if_none(org_name, "Could not enter the organization name.")
+        org_name.send_keys(name)
+
+        submit_button = wait_until_element(self.driver, self._ORG_SUBMIT, By.XPATH)
+        submit_button.click()
+
+        # New org in orgs list
+        new_org = wait_until_element(self.driver, self._NEW_ORG % name, By.XPATH)

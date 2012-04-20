@@ -1,0 +1,11 @@
+*** Variables ***
+
+${asia_org_1}       Tokyo
+${asia_org_1}       Tokyo
+${americas_org_1}   New York
+${americas_org_1}   Montreal
+${americas_org_1}   São Paulo
+${europe_org_1}     London
+${europe_org_1}     Berlin
+${europe_org_1}     Budapeste
+
