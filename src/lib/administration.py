@@ -43,6 +43,10 @@ class administration(login):
         asserts.fail_if_none(roles_link, "Could not find the Roles menu.")
         roles_link.click()
 
+        # Check if new Role exists in list
+        role = wait_until_element(self.driver, "//span[contains(., '%s')]" % role_name, By.XPATH)
+        asserts.fail_unless_none(role, "A role with this name already exists.")
+
         # New Role link
         new_role_link = wait_until_element(self.driver, "//div[@id='list-title']/header/a", By.XPATH)
         asserts.fail_if_none(new_role_link, "Could not find the New Role link.")
@@ -51,7 +55,7 @@ class administration(login):
         # Role name field
         role_name_field = wait_until_element(self.driver, "//form[@id='new_role']/fieldset/div[2]/input", By.XPATH)
         asserts.fail_if_none(role_name_field, "Could not find the role name field.")
-        role_name.send_keys(role_name)
+        role_name_field.send_keys(role_name)
 
         # Submit button
         submit_button = wait_until_element(self.driver, "//form[@id='new_role']/div[2]/div/input", By.XPATH)
@@ -61,6 +65,47 @@ class administration(login):
         # Check if new Role exists in list
         role = wait_until_element(self.driver, "//span[contains(., '%s')]" % role_name, By.XPATH)
         asserts.fail_if_none(role, "Was not able to locate the newly created role.")
+
+
+    def delete_role(self, role_name):
+        """
+        Deletes an existing Role.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Administration tab
+        self.go_to_administration_tab()
+
+        # Roles submenu
+        roles_link = wait_until_element(self.driver, "//li[@id='roles']/a", By.XPATH)
+        asserts.fail_if_none(roles_link, "Could not find the Roles menu.")
+        roles_link.click()
+
+        # Find the role
+        role = wait_until_element(self.driver, "//span[contains(., '%s')]" % role_name, By.XPATH)
+        asserts.fail_if_none(role, "Could not find existing role with name '%s'." % role_name)
+        role.click()
+
+        # Find the remove button
+        remove_button = wait_until_element(self.driver, "//div[@id='remove_role']/span[2]", By.XPATH)
+        asserts.fail_if_none(remove_button, "Did not find the remove role button.")
+        remove_button.click()
+
+        # Find the Yes button
+        yes_button = wait_until_element(self.driver, "//button[@type='button']", By.XPATH)
+        asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
+        yes_button.click()
+
+        # Roles submenu
+        roles_link = wait_until_element(self.driver, "//li[@id='roles']/a", By.XPATH)
+        asserts.fail_if_none(roles_link, "Could not find the Roles menu.")
+        roles_link.click()
+
+        # Look for the role again
+        role = wait_until_element(self.driver, "//span[contains(., '%s')]" % role_name, By.XPATH)
+        asserts.fail_unless_none(role, "Could not remove existing role with name '%s'." % role_name)
 
 
     def add_permission_to_role(self, role_name, permission_level, permission_type, verb, permission_name):
@@ -105,6 +150,7 @@ class administration(login):
 
         # All Verbs
         verbs = wait_until_element(self.driver, "//select[@id='verbs']", By.XPATH)
+        asserts.fail_if_none(verbs, "Could not find a list of the available verbs.")
 
         # Add provided verb
         Select(verbs).select_by_visible_text("%s" % verb)
@@ -113,8 +159,8 @@ class administration(login):
         next_button.click()
 
         # New permission name
-        permission_name = wait_until_element(self.driver, "//div[@id='details_container']/input", By.XPATH)
-        permission_name.send_keys("%s" % permission_name)
+        permission_name_field = wait_until_element(self.driver, "//div[@id='details_container']/input", By.XPATH)
+        permission_name_field.send_keys("%s" % permission_name)
 
         # Save
         save_button = wait_until_element(self.driver, "//div[@id='permission_button_bar']/div[3]", By.XPATH)
