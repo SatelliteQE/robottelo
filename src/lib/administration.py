@@ -6,6 +6,7 @@ from login import login
 from common import find_element, wait_until_element
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 from robot.api import logger
 from robot.utils import asserts
 
@@ -19,6 +20,13 @@ class administration(login):
     def __init__(self, base_url, browser=None):
         login.__init__(self, base_url, browser)
 
+    def go_to_administration_tab(self):
+        # Administration tab
+        admin_tab = wait_until_element(drv, "//li[@id='admin']/a", By.XPATH)
+        asserts.fail_if_none(admin_tab, "Could not fine the Administration tab.")
+        admin_tab.click()
+
+
     def create_role(self, role_name):
         """
         Creates a new role.
@@ -27,10 +35,8 @@ class administration(login):
         # go to the url
         self.driver.get(self.base_url)
 
-        # Administration tab
-        admin_tab = wait_until_element(drv, "//li[@id='admin']/a", By.XPATH)
-        asserts.fail_if_none(admin_tab, "Could not fine the Administration tab.")
-        admin_tab.click()
+        # Select the Administration tab
+        self.go_to_administration_tab()
 
         # Roles submenu
         roles_link = wait_until_element(drv, "//li[@id='roles']/a", By.XPATH)
@@ -55,3 +61,60 @@ class administration(login):
         # Check if new Role exists in list
         role = wait_until_element(drv, "//span[contains(., '%s')]" % role_name, By.XPATH)
         asserts.fail_if_none(role, "Was not able to locate the newly created role.")
+
+
+    def add_permission_to_role(self, role_name, permission_level, permission_type, verb, permission_name):
+        """
+        Adds a permission to an existing role.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Administration tab
+        self.go_to_administration_tab()
+
+        # Roles submenu
+        roles_link = wait_until_element(drv, "//li[@id='roles']/a", By.XPATH)
+        asserts.fail_if_none(roles_link, "Could not find the Roles menu.")
+        roles_link.click()
+
+        role = wait_until_element(drv, "//span[contains(., '%s')]" % role_name, By.XPATH)
+        asserts.fail_if_none(role, "Could not find existing role with name '%s'." % role_name)
+        role.click()
+
+        # Permissions section
+        permissions = wait_until_element(drv, "//div[@id='role_permissions']/span", By.XPATH)
+        permissions.click()
+
+        # Select the permission type
+        selected_permission = wait_until_element(drv, "//div[@id='%s']/span" % permission_level, By.XPATH)
+        selected_permission.click()
+
+        # Add new permission button
+        add_button = wait_until_element(drv, "//div[@id='add_permission']/span[2]", By.XPATH)
+        add_button.click()
+
+        # Select the permission type
+        permissions_list = wait_until_element(drv, "//div[@id='resource_type_container']/select", By.XPATH)
+        Select(permissions_list).select_by_visible_text("%s" % permission_type)
+
+        next_button = wait_until_element(drv, "//div[@id='permission_button_bar']/div[2]", By.XPATH)
+        next_button.click()
+
+        # All Verbs
+        verbs = wait_until_element(drv, "//select[@id='verbs']", By.XPATH)
+
+        # Add provided verb
+        Select(verbs).select_by_visible_text("%s" % verb)
+
+        next_button = wait_until_element(drv, "//div[@id='permission_button_bar']/div[2]", By.XPATH)
+        next_button.click()
+
+        # New permission name
+        permission_name = wait_until_element(drv, "//div[@id='details_container']/input", By.XPATH)
+        permission_name.send_keys("%s" % permission_name)
+
+        # Save
+        save_button = wait_until_element(drv, "//div[@id='permission_button_bar']/div[3]", By.XPATH)
+        save_button.click()
