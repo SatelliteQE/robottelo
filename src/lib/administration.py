@@ -22,7 +22,7 @@ class administration(login):
 
     def go_to_administration_tab(self):
         # Administration tab
-        admin_tab = wait_until_element(drv, "//li[@id='admin']/a", By.XPATH)
+        admin_tab = wait_until_element(self.driver, "//li[@id='admin']/a", By.XPATH)
         asserts.fail_if_none(admin_tab, "Could not fine the Administration tab.")
         admin_tab.click()
 
@@ -39,27 +39,27 @@ class administration(login):
         self.go_to_administration_tab()
 
         # Roles submenu
-        roles_link = wait_until_element(drv, "//li[@id='roles']/a", By.XPATH)
+        roles_link = wait_until_element(self.driver, "//li[@id='roles']/a", By.XPATH)
         asserts.fail_if_none(roles_link, "Could not find the Roles menu.")
         roles_link.click()
 
         # New Role link
-        new_role_link = wait_until_element(drv, "//div[@id='list-title']/header/a", By.XPATH)
+        new_role_link = wait_until_element(self.driver, "//div[@id='list-title']/header/a", By.XPATH)
         asserts.fail_if_none(new_role_link, "Could not find the New Role link.")
         new_role_link.click()
 
         # Role name field
-        role_name_field = wait_until_element(drv, "//form[@id='new_role']/fieldset/div[2]/input", By.XPATH)
+        role_name_field = wait_until_element(self.driver, "//form[@id='new_role']/fieldset/div[2]/input", By.XPATH)
         asserts.fail_if_none(role_name_field, "Could not find the role name field.")
         role_name.send_keys(role_name)
 
         # Submit button
-        submit_button = wait_until_element(drv, "//form[@id='new_role']/div[2]/div/input", By.XPATH)
+        submit_button = wait_until_element(self.driver, "//form[@id='new_role']/div[2]/div/input", By.XPATH)
         asserts.fail_if_none(submit_button, "Could not find submiot button")
         submit_button.click()
 
         # Check if new Role exists in list
-        role = wait_until_element(drv, "//span[contains(., '%s')]" % role_name, By.XPATH)
+        role = wait_until_element(self.driver, "//span[contains(., '%s')]" % role_name, By.XPATH)
         asserts.fail_if_none(role, "Was not able to locate the newly created role.")
 
 
@@ -75,46 +75,52 @@ class administration(login):
         self.go_to_administration_tab()
 
         # Roles submenu
-        roles_link = wait_until_element(drv, "//li[@id='roles']/a", By.XPATH)
+        roles_link = wait_until_element(self.driver, "//li[@id='roles']/a", By.XPATH)
         asserts.fail_if_none(roles_link, "Could not find the Roles menu.")
         roles_link.click()
 
-        role = wait_until_element(drv, "//span[contains(., '%s')]" % role_name, By.XPATH)
+        # Find the role
+        role = wait_until_element(self.driver, "//span[contains(., '%s')]" % role_name, By.XPATH)
         asserts.fail_if_none(role, "Could not find existing role with name '%s'." % role_name)
         role.click()
 
         # Permissions section
-        permissions = wait_until_element(drv, "//div[@id='role_permissions']/span", By.XPATH)
+        permissions = wait_until_element(self.driver, "//div[@id='role_permissions']/span", By.XPATH)
         permissions.click()
 
         # Select the permission type
-        selected_permission = wait_until_element(drv, "//div[@id='%s']/span" % permission_level, By.XPATH)
+        selected_permission = wait_until_element(self.driver, "//div[@id='%s']/span" % permission_level, By.XPATH)
         selected_permission.click()
 
         # Add new permission button
-        add_button = wait_until_element(drv, "//div[@id='add_permission']/span[2]", By.XPATH)
+        add_button = wait_until_element(self.driver, "//div[@id='add_permission']/span[2]", By.XPATH)
         add_button.click()
 
         # Select the permission type
-        permissions_list = wait_until_element(drv, "//div[@id='resource_type_container']/select", By.XPATH)
+        permissions_list = wait_until_element(self.driver, "//div[@id='resource_type_container']/select", By.XPATH)
         Select(permissions_list).select_by_visible_text("%s" % permission_type)
 
-        next_button = wait_until_element(drv, "//div[@id='permission_button_bar']/div[2]", By.XPATH)
+        next_button = wait_until_element(self.driver, "//div[@id='permission_button_bar']/div[2]", By.XPATH)
         next_button.click()
 
         # All Verbs
-        verbs = wait_until_element(drv, "//select[@id='verbs']", By.XPATH)
+        verbs = wait_until_element(self.driver, "//select[@id='verbs']", By.XPATH)
 
         # Add provided verb
         Select(verbs).select_by_visible_text("%s" % verb)
 
-        next_button = wait_until_element(drv, "//div[@id='permission_button_bar']/div[2]", By.XPATH)
+        next_button = wait_until_element(self.driver, "//div[@id='permission_button_bar']/div[2]", By.XPATH)
         next_button.click()
 
         # New permission name
-        permission_name = wait_until_element(drv, "//div[@id='details_container']/input", By.XPATH)
+        permission_name = wait_until_element(self.driver, "//div[@id='details_container']/input", By.XPATH)
         permission_name.send_keys("%s" % permission_name)
 
         # Save
-        save_button = wait_until_element(drv, "//div[@id='permission_button_bar']/div[3]", By.XPATH)
+        save_button = wait_until_element(self.driver, "//div[@id='permission_button_bar']/div[3]", By.XPATH)
         save_button.click()
+
+        # Check that the newly created permission shows up
+        new_permission = wait_until_element(self.driver, "//span[contains(., '%s')]" % permission_name, By.XPATH)
+        asserts.fail_if_none(new_permission, "Permission '%s' was not created." % permission_name)
+
