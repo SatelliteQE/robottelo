@@ -1,0 +1,19 @@
+*** Variables ***
+
+# Roles:
+${america_admin_role_0}   Americas Admin
+${america_admin_role_1}   Americas ReadOnly Admin
+${africa_admin_role_0}   Africa Admin
+${africa_admin_role_1}   Africa ReadOnly Admin
+${asia_admin_role_0}   Asia Admin
+${asia_admin_role_1}   Asia ReadOnly Admin
+${europe_admin_role_0}   Europe Admin
+${europe_admin_role_1}   Europe ReadOnly Admin
+
+# Permissions:
+${scope_global}   global
+
+${permissions_organizations}    Organizations
+
+${verb_read_organizations}      Read Organization
+${verb_delete_systems}          Delete Systems
