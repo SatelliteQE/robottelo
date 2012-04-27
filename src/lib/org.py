@@ -28,6 +28,17 @@ class org(login):
         login.__init__(self, base_url, browser)
 
 
+    def go_to_organizations_tab(self):
+        """
+        Takes user to the Organizations tab in the ui.
+        """
+
+        # Organizations tab
+        organizations_tab = wait_until_element(self.driver, self._HEADER_ORGANIZATIONS, By.XPATH)
+        asserts.fail_if_none(organizations_tab, "Could not find the Organizations tab.")
+        organizations_tab.click()
+
+
     def create_org(self, name):
         """
         Creates a new organization with the provided name.
@@ -36,10 +47,17 @@ class org(login):
         # go to the url
         self.driver.get(self.base_url)
 
-        # Organizations tab
-        organizations_tab = wait_until_element(self.driver, self._HEADER_ORGANIZATIONS, By.XPATH)
-        asserts.fail_if_none(organizations_tab, "Could not find the Organizations tab.")
-        organizations_tab.click()
+        # Select the Organizations tab
+        self.go_to_organizations_tab()
+
+        # Orgs List link
+        org_list_link = wait_until_element(self.driver, "//li[@id='org_list']/a", By.XPATH)
+        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
+        org_list_link.click()
+
+        # Verify that org doesn't exist
+        org = wait_until_element(self.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        asserts.fail_unless_none(org, "An organization named '%s' already exists." % name)
 
         # New Organization link
         new_org_link = wait_until_element(self.driver, self._NEW_ORG_LINK, By.XPATH)
@@ -54,5 +72,52 @@ class org(login):
         submit_button = wait_until_element(self.driver, self._ORG_SUBMIT, By.XPATH)
         submit_button.click()
 
-        # New org in orgs list
-        new_org = wait_until_element(self.driver, self._NEW_ORG % name, By.XPATH)
+        # Orgs List link
+        org_list_link = wait_until_element(self.driver, "//li[@id='org_list']/a", By.XPATH)
+        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
+        org_list_link.click()
+
+        # Verify that new org exists
+        org = wait_until_element(self.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        asserts.fail_if_none(org, "Could not locate the newly created organization named '%s'." % name)
+
+
+    def delete_org(self, name):
+        """
+        Creates a new organization with the provided name.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Organizations tab
+        self.go_to_organizations_tab()
+
+        # Orgs List link
+        org_list_link = wait_until_element(self.driver, "//li[@id='org_list']/a", By.XPATH)
+        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
+        org_list_link.click()
+
+        # Verify that org doesn't exist
+        org = wait_until_element(self.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        asserts.fail_if_none(org, "Could not locate an organization named '%s'." % name)
+        org.click()
+
+        # Remove Org link
+        remove_org_link = wait_until_element(self.driver, "//div[@id='panel']/div/div[2]/div/a", By.XPATH)
+        asserts.fail_if_none(remove_org_link, "Could not find the Remove Org link.")
+        remove_org_link.click()
+
+        # Find the Yes button
+        yes_button = wait_until_element(self.driver, "//button[@type='button']", By.XPATH)
+        asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
+        yes_button.click()
+
+        # Orgs List link
+        org_list_link = wait_until_element(self.driver, "//li[@id='org_list']/a", By.XPATH)
+        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
+        org_list_link.click()
+
+        # Verify that org doesn't exist
+        org = wait_until_element(self.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        asserts.fail_unless_none(org, "Could not delete organization named '%s'." % name)
