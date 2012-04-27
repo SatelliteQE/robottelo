@@ -131,6 +131,88 @@ class administration(login):
         asserts.fail_unless_none(user, "Was not able to locate the newly created user.")
 
 
+    def add_role_to_user(self, role_name, username):
+        """
+        Adds an existing role to an existing user.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Administration tab
+        self.go_to_administration_tab()
+
+        # Users submenu
+        users_link = wait_until_element(self.driver, "//li[@id='users']/a", By.XPATH)
+        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        users_link.click()
+
+        # Check if User exists in list
+        user = wait_until_element(self.driver, "//div[contains(@title, '%s')]" % username, By.XPATH)
+        asserts.fail_if_none(user, "Was not able to locate the user.")
+        user.click()
+
+        # Select the user's Role section
+        roles_link = wait_until_element(self.driver, "//div/div[2]/nav/ul/li[2]/a", By.XPATH)
+        asserts.fail_if_none(roles_link, "Could not find the Roles link for user.")
+        roles_link.click()
+
+
+        # Add role to user
+        role = wait_until_element(self.driver, "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-plus')]" % role_name, By.XPATH)
+        asserts.fail_if_none(role, "Could not locate the '%s' role. Maybe it was already added to the user." % role_name)
+        role.click()
+
+        # Save
+        submit_button = wait_until_element(self.driver, "//form[@id='update_roles']/div[3]/div/input[2]", By.XPATH)
+        asserts.fail_if_none(submit_button, "Could not locate the Submit button.")
+        submit_button.click()
+
+        # Role should not be available to add anymore
+        #role = wait_until_element(self.driver, "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-minus')]" % role_name, By.XPATH)
+        #asserts.fail_unless_none(role, "Role '%s' should not be available for adding anymore." % role_name)
+
+
+    def remove_role_from_user(self, role_name, username):
+        """
+        Removes an existing role from an existing user.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Administration tab
+        self.go_to_administration_tab()
+
+        # Users submenu
+        users_link = wait_until_element(self.driver, "//li[@id='users']/a", By.XPATH)
+        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        users_link.click()
+
+        # Check if User exists in list
+        user = wait_until_element(self.driver, "//div[contains(@title, '%s')]" % username, By.XPATH)
+        asserts.fail_if_none(user, "Was not able to locate the user.")
+        user.click()
+
+        # Select the user's Role section
+        roles_link = wait_until_element(self.driver, "//div/div[2]/nav/ul/li[2]/a", By.XPATH)
+        asserts.fail_if_none(roles_link, "Could not find the Roles link for user.")
+        roles_link.click()
+
+        # Remove role from user
+        role = wait_until_element(self.driver, "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-minus')]" % role_name, By.XPATH)
+        asserts.fail_if_none(role, "Could not locate the '%s' role. Maybe it was already removed from the user." % role_name)
+        role.click()
+
+        # Save
+        submit_button = wait_until_element(self.driver, "//form[@id='update_roles']/div[3]/div/input[2]", By.XPATH)
+        asserts.fail_if_none(submit_button, "Could not locate the Submit button.")
+        submit_button.click()
+
+        # Role should not be available to add anymore
+        #role = wait_until_element(self.driver, "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-plus')]" % role_name, By.XPATH)
+        #asserts.fail_unless_none(role, "Role '%s' should not be available for removal anymore." % role_name)
+
 
     def create_role(self, role_name):
         """
