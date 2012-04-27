@@ -44,7 +44,7 @@ class administration(login):
         users_link.click()
 
         # Check if new User exists in list
-        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        user = wait_until_element(self.driver, "//div[contains(@title, '%s')]" % username, By.XPATH)
         asserts.fail_unless_none(user, "A user with this name already exists.")
 
         # New User link
@@ -86,7 +86,7 @@ class administration(login):
         users_link.click()
 
         # Check if new User exists in list
-        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        user = wait_until_element(self.driver, "//div[contains(@title, '%s')]" % username, By.XPATH)
         asserts.fail_if_none(user, "Was not able to locate the newly created user.")
 
 
@@ -107,14 +107,14 @@ class administration(login):
         users_link.click()
 
         # Check if User exists in list
-        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        user = wait_until_element(self.driver, "//div[contains(@title, '%s')]" % username, By.XPATH)
         asserts.fail_if_none(user, "Was not able to locate the user.")
         user.click()
 
         # Remove user link
         remove_user_link = wait_until_element(self.driver, "//div[@id='panel']/div/div[2]/div/a", By.XPATH)
         asserts.fail_if_none(remove_user_link, "Could not find the Remove User link.")
-        remove_user.click()
+        remove_user_link.click()
 
         # Find the Yes button
         yes_button = wait_until_element(self.driver, "//button[@type='button']", By.XPATH)
@@ -127,7 +127,7 @@ class administration(login):
         users_link.click()
 
         # Check if new User exists in list
-        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        user = wait_until_element(self.driver, "//div[contains(@title., '%s')]" % username, By.XPATH)
         asserts.fail_unless_none(user, "Was not able to locate the newly created user.")
 
 
