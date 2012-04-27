@@ -128,7 +128,7 @@ class administration(login):
 
         # Check if new User exists in list
         user = wait_until_element(self.driver, "//div[contains(@title., '%s')]" % username, By.XPATH)
-        asserts.fail_unless_none(user, "Was not able to locate the newly created user.")
+        asserts.fail_unless_none(user, "Could not delete user named '%s'." % username)
 
 
     def add_role_to_user(self, role_name, username):
