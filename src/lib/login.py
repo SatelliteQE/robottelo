@@ -26,23 +26,23 @@ class login(object):
     def __init__(self, base_url, browser=None):
 
         self.base_url = base_url
-
-        if browser == "firefox":
-            # Create a new instance of the Firefox driver
-            self.driver = webdriver.Firefox()
-        elif browser == "remote":
-            # Create a new instance of the Chrome driver
-            self.driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.HTMLUNITWITHJS)
-        else:
-            # Sorry, we can't help you right now.
-            asserts.fail("Support for Firefox or Remote only!")
-
+        self.browser = browser
 
 
     def login_user(self, username, password):
         """
         Login as user with provided credentials.
         """
+
+        if self.browser == "firefox":
+            # Create a new instance of the Firefox driver
+            self.driver = webdriver.Firefox()
+        elif self.browser == "remote":
+            # Create a new instance of the Chrome driver
+            self.driver = webdriver.Remote("http://localhost:4444/wd/hub", webdriver.DesiredCapabilities.HTMLUNITWITHJS)
+        else:
+            # Sorry, we can't help you right now.
+            asserts.fail("Support for Firefox or Remote only!")
 
         # go to the url
         self.driver.get(self.base_url)
