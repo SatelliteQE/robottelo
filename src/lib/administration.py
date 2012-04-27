@@ -27,6 +27,111 @@ class administration(login):
         admin_tab.click()
 
 
+    def create_user(self, username, password, email, org=None):
+        """
+        Creates a new user.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Administration tab
+        self.go_to_administration_tab()
+
+        # Users submenu
+        users_link = wait_until_element(self.driver, "//li[@id='users']/a", By.XPATH)
+        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        users_link.click()
+
+        # Check if new User exists in list
+        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        asserts.fail_unless_none(user, "A user with this name already exists.")
+
+        # New User link
+        new_user_link = wait_until_element(self.driver, "//div[@id='list-title']/header/a", By.XPATH)
+        asserts.fail_if_none(new_user_link, "Could not find the New User link.")
+        new_user_link.click()
+
+        # Fill out the form
+        # Username
+        user_name_field = wait_until_element(self.driver, "//form[@id='new_user']/fieldset/div[2]/input", By.XPATH)
+        asserts.fail_if_none(user_name_field, "Could not find the username field.")
+        user_name_field.send_keys(username)
+        # Password
+        password_field = wait_until_element(self.driver, "//form[@id='new_user']/fieldset[2]/div[2]/input", By.XPATH)
+        asserts.fail_if_none(password_field, "Could not find the password field.")
+        password_field.send_keys(password)
+        # Password confirmation
+        password_confirmation_field = wait_until_element(self.driver, "//form[@id='new_user']/fieldset[3]/div[2]/input", By.XPATH)
+        asserts.fail_if_none(password_confirmation_field, "Could not find the password confirmation field.")
+        password_confirmation_field.send_keys(password)
+        # Email
+        email_field = wait_until_element(self.driver, "//form[@id='new_user']/fieldset[4]/div[2]/input", By.XPATH)
+        asserts.fail_if_none(email_field, "Could not find the email field.")
+        email_field.send_keys(email)
+
+        if org:
+            orgs_list = wait_until_element(self.driver, "//form[@id='new_user']/fieldset[5]/div[2]/select", By.XPATH)
+            asserts.fail_if_none(orgs_list, "Could not the Organizations list.")
+            Select(orgs_list).select_by_visible_text(org)
+
+        # Submit
+        submit_button = wait_until_element(self.driver, "//form[@id='new_user']/div[4]/div/input", By.XPATH)
+        asserts.fail_if_none(submit_button, "Could not find the Submit button.")
+        submit_button.click()
+
+        # Users submenu again
+        users_link = wait_until_element(self.driver, "//li[@id='users']/a", By.XPATH)
+        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        users_link.click()
+
+        # Check if new User exists in list
+        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        asserts.fail_if_none(user, "Was not able to locate the newly created user.")
+
+
+    def delete_user(self, username):
+        """
+        Deletes an existing user.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Select the Administration tab
+        self.go_to_administration_tab()
+
+        # Users submenu
+        users_link = wait_until_element(self.driver, "//li[@id='users']/a", By.XPATH)
+        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        users_link.click()
+
+        # Check if User exists in list
+        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        asserts.fail_if_none(user, "Was not able to locate the user.")
+        user.click()
+
+        # Remove user link
+        remove_user_link = wait_until_element(self.driver, "//div[@id='panel']/div/div[2]/div/a", By.XPATH)
+        asserts.fail_if_none(remove_user_link, "Could not find the Remove User link.")
+        remove_user.click()
+
+        # Find the Yes button
+        yes_button = wait_until_element(self.driver, "//button[@type='button']", By.XPATH)
+        asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
+        yes_button.click()
+
+        # Users submenu again
+        users_link = wait_until_element(self.driver, "//li[@id='users']/a", By.XPATH)
+        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        users_link.click()
+
+        # Check if new User exists in list
+        user = wait_until_element(self.driver, "//span[contains(., '%s')]" % username, By.XPATH)
+        asserts.fail_unless_none(user, "Was not able to locate the newly created user.")
+
+
+
     def create_role(self, role_name):
         """
         Creates a new role.
