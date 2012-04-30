@@ -2,9 +2,9 @@
 
 Documentation   Suite using WebDriver API.
 
+Resource        ../resources/environments.txt
 Resource        ../resources/global.txt
 Resource        ../resources/organizations.txt
-Resource        ../resources/environments.txt
 Resource        ../resources/users.txt
 
 Library         ../lib/org.py       ${BASE_URL}    ${BROWSER}
@@ -17,6 +17,9 @@ Test Teardown   Stop Browser
 Create Org 1 As Admin
     Login User      @{admin_user}[0]    @{admin_user}[1]
     Create Org      ${asia_org_0}
+    Add Env To Org  ${asia_org_0}   ${library}      ${dev1}
+    Add Env To Org  ${asia_org_0}   ${dev1}     ${qa1}
+    Add Env To Org  ${asia_org_0}   ${qa1}      ${ga1}
 Create Org 2 As Admin
     Login User      @{admin_user}[0]    @{admin_user}[1]
     Create Org      ${asia_org_1}
@@ -26,6 +29,8 @@ Create Org 3 As Admin
 Create Org 4 As Admin
     Login User      @{admin_user}[0]    @{admin_user}[1]
     Create Org      ${americas_org_1}
+    Add Env To Org  ${americas_org_1}   ${library}  ${pt1}
+    Add Env To Org  ${americas_org_1}   ${library}  ${pt2}
 Create Org 5 As Admin
     Login User      @{admin_user}[0]    @{admin_user}[1]
     Create Org      ${americas_org_2}
