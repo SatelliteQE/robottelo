@@ -16,8 +16,8 @@ class login(object):
 
 
     # Locators
-    _LOGIN_USERNAME = ("//form[@id='login_form']/fieldset/label")
-    _LOGIN_PASSWORD = ("//form[@id='login_form']/fieldset[2]/label")
+    _LOGIN_USERNAME = ("//form[@id='login_form']/fieldset/input")
+    _LOGIN_PASSWORD = ("//form[@id='login_form']/fieldset[2]/input")
     _LOGIN_SUBMIT = ("//form[@id='login_form']/input")
     _HEADER_USERNAME = ("//div[@id='head']/header/div[2]/ul/li/a/strong")
     _HEADER_LOGOUT = ("//a[contains(text(),'Logout')]")
@@ -49,16 +49,17 @@ class login(object):
 
         # find the element that's name attribute is 'username'
         usernameElement = wait_until_element(self.driver, self._LOGIN_USERNAME, By.XPATH)
-        asserts.assert_true(usernameElement.is_displayed())
+        asserts.fail_if_none(usernameElement, "Failed to locate the Username field")
         # type in the username
         usernameElement.send_keys(username)
         # find the element that's name attribute is 'password'
-        passwordElement = find_element(self.driver, self._LOGIN_PASSWORD, By.XPATH)
-        asserts.assert_true(passwordElement.is_displayed())
+        passwordElement = wait_until_element(self.driver, self._LOGIN_PASSWORD, By.XPATH)
+        asserts.fail_if_none(passwordElement, "Failed to locate the Password field")
         # type in the password
         passwordElement.send_keys(password)
         # find the submit button
         inputElement = find_element(self.driver, self._LOGIN_SUBMIT, By.XPATH)
+        asserts.fail_if_none(inputElement, "Failed to locate the Login button")
         # submit the form
         inputElement.click()
 
