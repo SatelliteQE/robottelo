@@ -40,6 +40,30 @@ class org(login):
         organizations_tab.click()
 
 
+    def select_org(self, org_name):
+        """
+        Switch the ui context to the provided org name.
+        """
+
+        # go to the url
+        self.driver.get(self.base_url)
+
+        # Check for the Organizations selector
+        orgbox = wait_until_element(self.driver, "//a[@id='switcherButton']/div", By.XPATH)
+        asserts.fail_if_none(orgbox, "Could not locate the Organizations selector.")
+        orgbox.click()
+
+        # Select the organization
+        org = wait_until_element(self.driver, "//a[contains(., '%s')]" % org_name.replace(" ", "_"), By.XPATH)
+        asserts.fail_if_none(org, "Could not locate the '%s' organization." % org_name)
+        org.click()
+
+        # Validate organization changed
+        orgbox = wait_until_element(self.driver, "//a[@id='switcherButton']/div", By.XPATH)
+        asserts.fail_if_none(orgbox, "Could not locate the Organizations selector.")
+        asserts.assert_equal(orgbox.text, org_name, "Failed to swith to the '%s' organization." % org_name)
+
+
     def create_org(self, name):
         """
         Creates a new organization with the provided name.
