@@ -2,11 +2,42 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+
+import os
+import tempfile
+
+from urllib import urlopen
+
 from robot.api import logger
+from robot.utils import asserts
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
+
+
+def get_manifest_file(manifest_url):
+    """
+    Downloads a manifest file locally to the file system.
+
+    @type manifest_file: string
+    @param manifest_file: The url to a valid manifest file.
+
+    @rtype: string
+    @return: The absolute path to the downloaded file.
+    """
+
+    try:
+        remote_file = urlopen(manifest_url)
+    except Exception, e:
+        asserts.assert_fail("Failed to download the manifest file at %s." % manifest_url)
+
+    (fd, filename) = tempfile.mkstemp()
+    for line in remote_file.readlines():
+        f.write(line)
+    f.close()
+
+    return filename
 
 
 def find_element(drv, element, method=By.NAME):
