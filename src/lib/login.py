@@ -63,10 +63,6 @@ class login(object):
         # submit the form
         inputElement.click()
 
-        # Verify that the username is displayed in the web page
-        user = wait_until_element(self.driver, "//li[@class='hello']/a[contains(., 'admin')]", By.XPATH)
-        asserts.fail_if_none(user, "Could not login user '%s'." % username)
-
 
     def logout_user(self):
         """
@@ -86,23 +82,23 @@ class login(object):
         asserts.assert_true(usernameElement.is_displayed())
 
 
-    def user_logged_in(self):
+    def user_logged_in(self, username):
         """
         Checks if the user is logged.
         """
 
-        is_logged = wait_until_element(self.driver, self._HEADER_USERNAME, By.XPATH)
-
+        # Verify that the username is displayed in the web page
+        is_logged = wait_until_element(self.driver, "//li[@class='hello']/a[contains(., '%s')]" % username, By.XPATH)
         asserts.fail_if_none(is_logged)
         asserts.assert_true(is_logged.is_displayed(), "Failed to login with valid credentials!")
 
 
-    def user_not_logged_in(self):
+    def user_not_logged_in(self, username):
         """
         Checks if the user is not logged.
         """
 
-        not_logged = wait_until_element(self.driver, self._HEADER_USERNAME, By.XPATH)
+        not_logged = wait_until_element(self.driver, "//li[@class='hello']/a[contains(., '%s')]" % username, By.XPATH)
         asserts.fail_unless_none(not_logged, "Should not be able to login with invalid credentials!")
 
     def stop_browser(self):

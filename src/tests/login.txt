@@ -13,8 +13,8 @@ Test Teardown   Stop Browser
 
 Admin User Valid Login
     Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
-    User Logged In
+    User Logged In  ${ADMIN_USER}
 
 Admin User Invalid Login
     Login User      ${ADMIN_USER}    "asdfasdf"
-    User Not Logged In
+    User Not Logged In  ${ADMIN_USER}
