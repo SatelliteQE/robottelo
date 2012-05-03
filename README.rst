@@ -14,15 +14,15 @@ Usage:
 ------
 
 Tests can be invoked by using the standard RobotFramework format of running **pybot** and arguments:
-
+::
     pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/login.txt
 
 You can also provide a python **variables** file as an argument, which allows you to have sensitive information outside the source code:
-
+::
     pybot --variablefile /path/to/variables.py src/tests/e2e.txt
 
 The file **variables.py** would then contain:
-
+::
     #!/usr/bin/env python
     # -*- encoding: utf-8 -*-
     # vim: ts=4 sw=4 expandtab ai
