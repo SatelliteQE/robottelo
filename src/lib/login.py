@@ -63,6 +63,10 @@ class login(object):
         # submit the form
         inputElement.click()
 
+        # Verify that the username is displayed in the web page
+        user = wait_until_element(self.driver, "//li[@class='hello']/a[contains(., 'admin')]", By.XPATH)
+        asserts.fail_if_none(user, "Could not login user '%s'." % username)
+
 
     def logout_user(self):
         """
