@@ -6,16 +6,33 @@ This is an automation test suite for the [*Katello*](http://katello.org/) projec
 My goal is to design a [*keyword*](http://en.wikipedia.org/wiki/Keyword-driven_testing), [*data*](Data-driven testing) driven suite that can be used in a continuous integration environment.
 
 Requirements:
-=============
+-------------
 
+Run **pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
 Usage:
-======
+------
 
-* To run a single test file:
-  pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/e2e.txt
+Tests can be invoked by using the standard RobotFramework format of running **pybot** and arguments:
 
-* To run a specific test:
-  pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/e2e.txt
+    pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/login.txt
 
-[Og Maciel](http://ogmaciel.tumblr.com)
+You can also provide a python **variables** file as an argument, which allows you to have sensitive information outside the source code:
+
+    pybot --variablefile /path/to/variables.py src/tests/e2e.txt
+
+The file **variables.py** would then contain:
+
+    #!/usr/bin/env python
+    # -*- encoding: utf-8 -*-
+    # vim: ts=4 sw=4 expandtab ai
+
+    BROWSER = 'firefox'
+    HOST = 'www.example.com'
+    APP = 'katello'
+
+Author
+------
+
+This software is developed by: 
+`Og Maciel <http://ogmaciel.tumblr.com>`_.
