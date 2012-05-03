@@ -34,5 +34,5 @@ The file **variables.py** would then contain:
 Author
 ------
 
-This software is developed by: 
+This software is developed by:
 `Og Maciel <http://ogmaciel.tumblr.com>`_.
