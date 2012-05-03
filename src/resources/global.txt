@@ -9,6 +9,8 @@ Library         Selenium2Library
 
 *** Variables ***
 
-${BROWSER}  remote
+${ADMIN_USER}   admin
+${ADMIN_PASSWD}     admin
+${BROWSER}  firefox
 ${BASE_URL}    https://${HOST}/${APP}
 ${DELAY}    0

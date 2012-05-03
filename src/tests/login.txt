@@ -12,9 +12,9 @@ Test Teardown   Stop Browser
 *** Test Case ***
 
 Admin User Valid Login
-    Login User      @{admin_user}[0]    @{admin_user}[1]
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     User Logged In
 
 Admin User Invalid Login
-    Login User      @{admin_user}[0]    "asdfasdf"
+    Login User      ${ADMIN_USER}    "asdfasdf"
     User Not Logged In

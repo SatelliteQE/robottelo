@@ -17,6 +17,10 @@ Tests can be invoked by using the standard RobotFramework format of running **py
 ::
     pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello src/tests/login.txt
 
+Many global variables are provided in the **resources/global.txt** file and should work for a default installation of Katello, but you can overide them by providing new values via the command line:
+::
+    pybot --variable ADMIN_USER:my_admin --variable ADMIN_PASSWD:my_passwd --variable APP:katello src/tests/login.txt
+
 You can also provide a python **variables** file as an argument, which allows you to have sensitive information outside the source code:
 ::
     pybot --variablefile /path/to/variables.py src/tests/e2e.txt
@@ -30,6 +34,8 @@ The file **variables.py** would then contain:
     BROWSER = 'firefox'
     HOST = 'www.example.com'
     APP = 'katello'
+    ADMIN_USER = admin
+    ADMIN_PASSWD = passwd
 
 Author
 ------

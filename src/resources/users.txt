@@ -1,5 +1,4 @@
 *** Variables ***
-@{admin_user}   admin   admin   admin@somecorp.com
 @{brazil_user_1}     Dilma_Rousseff      redhat      dilma@somecorp.com
 @{japan_user_1}     Akihito             redhat      akihito@somecorp.com
 @{russia_user_1}    Dmitry_Medvedev     redhat      dmitry@somecorp.com
