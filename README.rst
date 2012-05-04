@@ -1,9 +1,9 @@
 Robottelo:
 ==========
 
-This is an automation test suite for the [*Katello*](http://katello.org/) project based in the [*Robot*](https://code.google.com/p/robotframework/) testing framework.
+This is an automation test suite for the `Katello <http://katello.org/>`_ project based in the `Robot <https://code.google.com/p/robotframework/>`_ testing framework.
 
-My goal is to design a [*keyword*](http://en.wikipedia.org/wiki/Keyword-driven_testing), [*data*](Data-driven testing) driven suite that can be used in a continuous integration environment.
+My goal is to design a `keyword <http://en.wikipedia.org/wiki/Keyword-driven_testing>`_, `data <http://en.wikipedia.org/wiki/Data-driven_testing>`_ driven suite that can be used in a continuous integration environment.
 
 Requirements:
 -------------
