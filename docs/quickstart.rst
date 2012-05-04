@@ -85,12 +85,15 @@ to new or existing users
 ::
     Create User 1
         Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-        Create User     @{brazil_user_1}[0]     @{brazil_user_1}[1]    @{brazil_user_1}[2]
+        Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
     Create Role Role1
         Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-        Create Role      ${america_admin_role_1}
-        Add Permission To Role  ${america_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_read_organizations}   acme_read_orgs
-        Add Permission To Role  ${america_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_delete_systems}   acme_delete_systems
+        Create Role      ${springfield_admin_role_1}
+        Add Permission To Role  ${springfield_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_read_organizations}   acme_read_orgs
+        Add Permission To Role  ${springfield_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_delete_systems}   acme_delete_systems
+    Add Role To User 1
+        Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+        Add Role To User    ${springfield_admin_role_1}    @{cartoon_user_0}[0]
 
 Many global variables are provided in the **resources/global.txt** file and should work for a default installation of Katello, but you can overide them by providing new values via the command line:
 ::
