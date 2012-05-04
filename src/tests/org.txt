@@ -15,57 +15,57 @@ Test Teardown   Stop Browser
 
 # Create Orgs
 Create Org 1 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${asia_org_0}
     Add Env To Org  ${asia_org_0}   ${library}      ${dev1}
     Add Env To Org  ${asia_org_0}   ${dev1}     ${qa1}
     Add Env To Org  ${asia_org_0}   ${qa1}      ${ga1}
 Create Org 2 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${asia_org_1}
 Create Org 3 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${americas_org_0}
 Create Org 4 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${americas_org_1}
     Add Env To Org  ${americas_org_1}   ${library}  ${pt1}
     Add Env To Org  ${americas_org_1}   ${library}  ${pt2}
 Create Org 5 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${americas_org_2}
 Create Org 6 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${europe_org_0}
 Create Org 7 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${europe_org_1}
 Create Org 8 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Create Org      ${europe_org_2}
 
 # Delete Orgs
 Delete Org 1 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${asia_org_0}
 Delete Org 2 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${asia_org_1}
 Delete Org 3 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${americas_org_0}
 Delete Org 4 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${americas_org_1}
 Delete Org 5 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${americas_org_2}
 Delete Org 6 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${europe_org_0}
 Delete Org 7 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${europe_org_1}
 Delete Org 8 As Admin
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
     Delete Org      ${europe_org_2}
