@@ -8,7 +8,7 @@ If you haven't cloned the source code yet, then make sure to do it now:
 
 Now, let's get started with some simple tests.
 
-Createing new users
+Creating new users
 -------------------
 
 Adding new users to a Katello system is pretty simple. First, add the ``username``,
@@ -20,7 +20,7 @@ file. Assuming you created a new ``cartoon_users.txt`` file
     @{cartoon_user_0}   Homer Simpson   dohh        sprinfieldguy@example.com
     @{cartoon_user_1}   Fred Flinstone  yabba       bedrock4ever@example.com
 
-Now let's add a test file to create these users
+Now let's create a test file ``create_users.txt`` to create these users
 ::
     *** settings ***    *** Value ***
 
@@ -69,6 +69,16 @@ to perform the action of login into the web ui using the administrator account.
 This next line passes the user's personal information to the ``Create User`` method which,
 as you may have guessed, will create the user account using the web ui.
 
+Running the test:
+----------------
+
+Tests can be invoked by using the standard RobotFramework format of running **pybot** and arguments:
+::
+    pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello create_users.txt
+
+Advanced Use:
+-------------
+
 By taking advantage of the modules imported into the ``Library`` and data from ``resource``
 files, we could then create a more complex test, such as creating roles and assignining them
 to new or existing users
@@ -82,3 +92,22 @@ to new or existing users
         Add Permission To Role  ${america_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_read_organizations}   acme_read_orgs
         Add Permission To Role  ${america_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_delete_systems}   acme_delete_systems
 
+Many global variables are provided in the **resources/global.txt** file and should work for a default installation of Katello, but you can overide them by providing new values via the command line:
+::
+    pybot --variable ADMIN_USER:my_admin --variable ADMIN_PASSWD:my_passwd --variable APP:katello create_users.txt
+
+You can also provide a python **variables** file as an argument, which allows you to have sensitive information outside the source code:
+::
+    pybot --variablefile /path/to/variables.py create_users.txt
+
+The file **variables.py** would then contain:
+::
+    #!/usr/bin/env python
+    # -*- encoding: utf-8 -*-
+    # vim: ts=4 sw=4 expandtab ai
+
+    BROWSER = 'firefox'
+    HOST = 'www.example.com'
+    APP = 'katello'
+    ADMIN_USER = admin
+    ADMIN_PASSWD = passwd
