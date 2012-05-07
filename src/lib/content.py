@@ -72,6 +72,138 @@ class content(object):
             asserts.fail("Could not select the '%s' content type" % content_provider_type)
 
 
+    def _get_provider_by_name(self, name):
+        return wait_until_element(self.base.driver, "//div[@title='%s']" % name, By.XPATH)
+
+
+    def _get_product_by_name(self, name):
+        return wait_until_element(self.base.driver, "//div[@class='multiline'][contains(., '%s')]" % name, By.XPATH)
+
+
+    def add_custom_provider(self, provider_type, provider_name):
+        """
+        Adds a custom provider.
+        """
+
+        # Select Contents tab
+        self.go_to_content_tab()
+
+        # Select custom provider type
+        self.select_content_provider(provider_type)
+
+        provider = self._get_provider_by_name(provider_name)
+        asserts.fail_unless_none(provider, "Found a provider with that name already.")
+
+        new_provider_link = wait_until_element(self.base.driver, "//a[@id='new']", By.XPATH)
+        asserts.fail_if_none(new_provider_link, "Failed to locate the New Provider link.")
+        new_provider_link.click()
+
+        provider_name = wait_until_element(self.base.driver, "//input[@id='provider_name']", By.XPATH)
+        asserts.fail_if_none(provider_name, "Failed to locate the provider Name field.")
+        provider_name.send_keys(provider_name)
+
+        provider_description = wait_until_element(self.base.driver, "//input[@id='provider_description']", By.XPATH)
+        asserts.fail_if_none(provider_description, "Failed to locate the provider Description field.")
+        provider_description.send_keys("Automatically created by Robottelo.")
+
+        provider_save = wait_until_element(self.base.driver, "//input[@id='provider_save']", By.XPATH)
+        asserts.fail_if_none(provider_save, "Could not locate the Save button.")
+        provider_save.click()
+
+        provider = self._get_provider_by_name(provider_name)
+        asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
+
+
+    def delete_custom_provider(self, provider_type, provider_name):
+
+        # Select Contents tab
+        self.go_to_content_tab()
+
+        # Select custom provider type
+        self.select_content_provider(provider_type)
+
+        provider = self._get_provider_by_name(provider_name)
+        asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
+        provider.click()
+
+        # Provider_id
+        provider_id = self.base.driver.current_url.split('_')[-1]
+        remove_link = wait_until_element(self.base.driver, "//a[contains(@href, 'providers/%s')]" % provider_id, By.XPATH)
+        remove_link.click()
+
+        # Find the Yes button
+        yes_button = wait_until_element(self.base.driver, "//button[@type='button']", By.XPATH)
+        asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
+        yes_button.click()
+
+        # Visit providers again
+        self.select_content_provider(provider_type)
+        provider = self._get_provider_by_name(provider_name)
+        asserts.fail_unless_none(provider, "Found a provider with that name already.")
+
+
+    def add_product_to_provider(self, provider_type, provider_name, product_name):
+        """
+        Adds a product to an existing provider.
+        """
+
+        # Select Contents tab
+        self.go_to_content_tab()
+
+        # Select custom provider type
+        self.select_content_provider(provider_type)
+
+        provider = self._get_provider_by_name(provider_name)
+        asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
+        provider.click()
+
+        product = self._get_product_by_name(product_name)
+        asserts.fail_unless_none(product, "Found a provider with that name already.")
+
+        add_product_button = wait_until_element(self.base.driver, "//div[@class='button subpanel_element']", By.XPATH)
+        asserts.fail_if_none(add_product_button, "Could not locate the Add Product button.")
+        add_product_button.click()
+
+        product_name_field = wait_until_element(self.base.driver, "//input[@id='product_name_field']", By.XPATH)
+        product_name_field.send_keys("Wild Africa")
+
+        product_description_field = wait_until_element(self.base.driver, "//input[@id='product_description_field']", By.XPATH)
+        product_description_field.send_keys("Automatically created by Robottelo.")
+
+        create_button = wait_until_element(self.base.driver, "//input[@class='fr subpanel_create']", By.XPATH)
+        create_button.click()
+
+        product = self._get_product_by_name(product_name)
+        asserts.fail_if_none(product, "Could not locate the '%s' product." % product_name)
+
+
+    def delete_product_from_provider(self, provider_type, provider_name, product_name):
+
+        # Select Contents tab
+        self.go_to_content_tab()
+
+        # Select custom provider type
+        self.select_content_provider(provider_type)
+
+        provider = self._get_provider_by_name(provider_name)
+        asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
+        provider.click()
+
+        product = self._get_product_by_name(product_name)
+        asserts.fail_if_none(product, "Could not locate the '%s' product." % product_name)
+        product.click()
+
+        # TODO Need to get the unique url for the product in order to delete it.
+        remove_link = wait_until_element(self.base.driver, "//a[@class='remove_item']", By.XPATH)
+        remove_link.click()
+
+        # Find the Yes button
+        yes_button = wait_until_element(self.base.driver, "//button[@type='button']", By.XPATH)
+        asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
+        yes_button.click()
+
+
+
     def red_hat_provider(self, manifest, provider_type, force=True):
         """
         Uploads a Red Hat manifest file.
