@@ -33,6 +33,8 @@ def get_manifest_file(manifest_url):
         asserts.assert_fail("Failed to download the manifest file at %s." % manifest_url)
 
     (fd, filename) = tempfile.mkstemp()
+    f = os.fdopen(fd, "w")
+
     for line in remote_file.readlines():
         f.write(line)
     f.close()

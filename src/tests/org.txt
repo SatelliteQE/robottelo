@@ -7,7 +7,8 @@ Resource        ../resources/global.txt
 Resource        ../resources/organizations.txt
 Resource        ../resources/users.txt
 
-Library         ../lib/org.py       ${BASE_URL}    ${BROWSER}
+Library         ../lib/login.py     ${BASE_URL}    ${BROWSER}
+Library         ../lib/org.py
 
 Test Teardown   Stop Browser
 

@@ -8,7 +8,8 @@ Resource        ../resources/organizations.txt
 Resource        ../resources/roles.txt
 Resource        ../resources/users.txt
 
-Library         ../lib/administration.py       ${BASE_URL}    ${BROWSER}
+Library         ../lib/administration.py
+Library         ../lib/login.py     ${BASE_URL}    ${BROWSER}
 
 Test Teardown   Stop Browser
 
