@@ -19,10 +19,10 @@ Test Teardown   Stop Browser
 
 *** Test Case ***
 
-Create RHEL Content
-    Login User      ${ADMIN_USER}   ${ADMIN_PASSWD}
-    #Create Org      ${asia_org_0}
-    #Add Env To Org  ${asia_org_0}   ${library}  ${dev1}
-    Select Org      ${asia_org_0}
-    Red Hat Provider    ${manifest_1}   ${redhat_provider}
-    #Enable Repository   ${redhat_provider}  ${rhel_server}  ${6server}  ${64-bit}   ${component_1}
+#Create RHEL Content
+#    Login User      ${ADMIN_USER}   ${ADMIN_PASSWD}
+#    Create Org      ${asia_org_0}
+#    Add Env To Org  ${asia_org_0}   ${library}  ${dev1}
+#    Select Org      ${asia_org_0}
+#    Red Hat Provider    ${manifest_1}   ${redhat_provider}
+#    Enable Repository   ${redhat_provider}  ${rhel_server}  ${6server}  ${64-bit}   ${component_1}
