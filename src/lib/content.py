@@ -64,12 +64,18 @@ class content(login):
             asserts.fail("Could not select the '%s' content type" % content_provider_type)
 
 
-    def red_hat_provider(self, manifest_url, force=True):
+    def red_hat_provider(self, manifest, provider_type, force=True):
         """
         Uploads a Red Hat manifest file.
         """
 
-        manifest_file = get_manifest_file(manifest_url)
+        # Select Contents tab
+        self.go_to_content_tab()
+
+        # Select Red Hat content type
+        self.select_content_provider(provider_type)
+
+        manifest_file = get_manifest_file(manifest)
 
         # Check for the manifest field
         manifest_field = wait_until_element(self.driver, "//form[@id='upload_manifest']/div[2]/input", By.XPATH)
@@ -93,10 +99,16 @@ class content(login):
         asserts.fail_if_none(subscriptions, "Could not find a subscription.")
 
 
-    def enabled_repository(self, product, version, arch, component):
+    def enabled_repository(self, provider_type, product, version, arch, component):
         """
         Enables the repository specified.
         """
+
+        # Select Contents tab
+        self.go_to_content_tab()
+
+        # Select Red Hat content type
+        self.select_content_provider(provider_type)
 
         # Locate the Enable Repo tab
         enable_repos_tab = wait_until_element(self.driver, "//div[@id='tabs']/nav/ul/li[2]/a", By.XPATH)
