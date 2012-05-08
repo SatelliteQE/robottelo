@@ -11,6 +11,12 @@ from robot.api import logger
 from robot.utils import asserts
 
 
+CUSTOM_PROVIDERS = 'custom_providers'
+REDHAT_PROVIDERS = 'redhat_providers'
+FILTERS = 'filters'
+GPG = 'gpg'
+
+
 class content(object):
 
     #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
@@ -73,14 +79,43 @@ class content(object):
 
 
     def _get_provider_by_name(self, name):
-        return wait_until_element(self.base.driver, "//div[@title='%s']" % name, By.XPATH)
+
+        _prod = None
+        _id = None
+
+        providers = self.base.driver.find_elements_by_xpath("//div[@id='list']/section/div")
+
+        for provider in providers:
+            we = provider.find_element_by_xpath("//div[@title='%s']" % name)
+            if name in we.text:
+                _prod = we
+                # provider id is derived from: id=provider_39
+                _id = provider.get_attribute('id').split('_')[-1]
+                break
+
+        return (_prod, _id)
 
 
     def _get_product_by_name(self, name):
-        return wait_until_element(self.base.driver, "//div[@class='multiline'][contains(., '%s')]" % name, By.XPATH)
+
+        _prod = None
+        _id = None
+
+        products = self.base.driver.find_elements_by_xpath( "//div[@id='products']/ul[contains(@class, 'clear fl')]")
+
+        for product in products:
+            we = product.find_element_by_xpath(".//li/div/div")
+            if name in we.text:
+                _prod = we
+                we_id = product.find_element_by_xpath(".//li/div[@class='grid_7 editable subpanel_element']")
+                # product id is derived from: data-url=/cfse/providers/39/products/13/edit
+                _id = we_id.get_attribute('data-url').split('/')[5]
+                break
+
+        return (_prod, _id)
 
 
-    def add_custom_provider(self, provider_type, provider_name):
+    def add_custom_provider(self, provider_name):
         """
         Adds a custom provider.
         """
@@ -89,9 +124,9 @@ class content(object):
         self.go_to_content_tab()
 
         # Select custom provider type
-        self.select_content_provider(provider_type)
+        self.select_content_provider(CUSTOM_PROVIDERS)
 
-        provider = self._get_provider_by_name(provider_name)
+        (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_unless_none(provider, "Found a provider with that name already.")
 
         new_provider_link = wait_until_element(self.base.driver, "//a[@id='new']", By.XPATH)
@@ -110,24 +145,22 @@ class content(object):
         asserts.fail_if_none(provider_save, "Could not locate the Save button.")
         provider_save.click()
 
-        provider = self._get_provider_by_name(provider_name)
+        (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
 
 
-    def delete_custom_provider(self, provider_type, provider_name):
+    def delete_custom_provider(self, provider_name):
 
         # Select Contents tab
         self.go_to_content_tab()
 
         # Select custom provider type
-        self.select_content_provider(provider_type)
+        self.select_content_provider(CUSTOM_PROVIDERS)
 
-        provider = self._get_provider_by_name(provider_name)
+        (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
         provider.click()
 
-        # Provider_id
-        provider_id = self.base.driver.current_url.split('_')[-1]
         remove_link = wait_until_element(self.base.driver, "//a[contains(@href, 'providers/%s')]" % provider_id, By.XPATH)
         remove_link.click()
 
@@ -138,11 +171,11 @@ class content(object):
 
         # Visit providers again
         self.select_content_provider(provider_type)
-        provider = self._get_provider_by_name(provider_name)
+        (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_unless_none(provider, "Found a provider with that name already.")
 
 
-    def add_product_to_provider(self, provider_type, provider_name, product_name):
+    def add_product_to_provider(self, provider_name, product_name):
         """
         Adds a product to an existing provider.
         """
@@ -151,13 +184,13 @@ class content(object):
         self.go_to_content_tab()
 
         # Select custom provider type
-        self.select_content_provider(provider_type)
+        self.select_content_provider(CUSTOM_PROVIDERS)
 
-        provider = self._get_provider_by_name(provider_name)
+        (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
         provider.click()
 
-        product = self._get_product_by_name(product_name)
+        (product, product_id) = self._get_product_by_name(product_name)
         asserts.fail_unless_none(product, "Found a provider with that name already.")
 
         add_product_button = wait_until_element(self.base.driver, "//div[@class='button subpanel_element']", By.XPATH)
@@ -173,28 +206,28 @@ class content(object):
         create_button = wait_until_element(self.base.driver, "//input[@class='fr subpanel_create']", By.XPATH)
         create_button.click()
 
-        product = self._get_product_by_name(product_name)
+        (product, product_id) = self._get_product_by_name(product_name)
         asserts.fail_if_none(product, "Could not locate the '%s' product." % product_name)
 
 
-    def delete_product_from_provider(self, provider_type, provider_name, product_name):
+    def delete_product_from_provider(self, provider_name, product_name):
 
         # Select Contents tab
         self.go_to_content_tab()
 
         # Select custom provider type
-        self.select_content_provider(provider_type)
+        self.select_content_provider(CUSTOM_PROVIDERS)
 
-        provider = self._get_provider_by_name(provider_name)
+        (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
         provider.click()
 
-        product = self._get_product_by_name(product_name)
+        (product, product_id) = self._get_product_by_name(product_name)
         asserts.fail_if_none(product, "Could not locate the '%s' product." % product_name)
         product.click()
 
-        # TODO Need to get the unique url for the product in order to delete it.
-        remove_link = wait_until_element(self.base.driver, "//a[@class='remove_item']", By.XPATH)
+        remove_link = wait_until_element(self.base.driver, "//a[@class='remove_item'][contains(@href, 'products/%s')]" % provider_id, By.XPATH)
+        asserts.fail_if_none(remove_link, "Failed to locate the Remove Product link.")
         remove_link.click()
 
         # Find the Yes button
@@ -202,9 +235,11 @@ class content(object):
         asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
         yes_button.click()
 
+        (product, product_id) = self._get_product_by_name(product_name)
+        asserts.fail_unless_none(product, "Found a provider with that name already.")
 
 
-    def red_hat_provider(self, manifest, provider_type, force=True):
+    def red_hat_provider(self, manifest, force=True):
         """
         Uploads a Red Hat manifest file.
         """
@@ -213,7 +248,7 @@ class content(object):
         self.go_to_content_tab()
 
         # Select Red Hat content type
-        self.select_content_provider(provider_type)
+        self.select_content_provider(REDHAT_PROVIDERS)
 
         manifest_file = get_manifest_file(manifest)
 
