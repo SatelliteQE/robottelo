@@ -11,8 +11,11 @@ from robot.utils import asserts
 
 
 class org(object):
+    """
+    Handles all actions related to an Organization, such as creating,
+    editing, and deleting organizations and environments.
+    """
 
-    #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
     __version__ = '0.1'
 
 
@@ -33,10 +36,18 @@ class org(object):
         Takes user to the Organizations tab in the ui.
         """
 
+        can_access = False
+
         # Organizations tab
         organizations_tab = wait_until_element(self.base.driver, self._HEADER_ORGANIZATIONS, By.XPATH)
-        asserts.fail_if_none(organizations_tab, "Could not find the Organizations tab.")
-        organizations_tab.click()
+
+        if organizations_tab is None:
+            logger.warn("Could not find the Organizations tab. Perhaps this user does not have permissions to view it.")
+        else:
+            can_access = True
+            organizations_tab.click()
+
+        return can_access
 
 
     def select_org(self, org_name):
@@ -72,7 +83,7 @@ class org(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Organizations tab
-        self.go_to_organizations_tab()
+        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
 
         # Orgs List link
         org_list_link = wait_until_element(self.base.driver, "//li[@id='org_list']/a", By.XPATH)
@@ -115,7 +126,7 @@ class org(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Organizations tab
-        self.go_to_organizations_tab()
+        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
 
         # Orgs List link
         org_list_link = wait_until_element(self.base.driver, "//li[@id='org_list']/a", By.XPATH)
@@ -156,7 +167,7 @@ class org(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Organizations tab
-        self.go_to_organizations_tab()
+        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
 
         # Orgs List link
         org_list_link = wait_until_element(self.base.driver, "//li[@id='org_list']/a", By.XPATH)
@@ -204,7 +215,7 @@ class org(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Organizations tab
-        self.go_to_organizations_tab()
+        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
 
         # Orgs List link
         org_list_link = wait_until_element(self.base.driver, "//li[@id='org_list']/a", By.XPATH)

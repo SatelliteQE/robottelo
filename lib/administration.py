@@ -11,7 +11,10 @@ from robot.utils import asserts
 
 
 class administration(object):
-
+    """
+    Perform administrative tasks, such as creating/editing/maintaining users,
+    roles, organizations, etc.
+    """
     __version__ = '0.1'
 
     # Locators
@@ -20,10 +23,22 @@ class administration(object):
         self.base = Base()
 
     def go_to_administration_tab(self):
+        """
+        Takes user to the Administration tab.
+        """
+
+        can_access = False
+
         # Administration tab
         admin_tab = wait_until_element(self.base.driver, "//li[@id='admin']/a", By.XPATH)
-        asserts.fail_if_none(admin_tab, "Could not fine the Administration tab.")
-        admin_tab.click()
+
+        if admin_tab is None:
+            logger.warn("Could not find the Administration tab. Perhaps this user does not have permissions to view it.")
+        else:
+            can_access = True
+            admin_tab.click()
+
+        return can_access
 
 
     def create_user(self, username, password, email, org=None):
@@ -35,7 +50,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Users submenu
         users_link = wait_until_element(self.base.driver, "//li[@id='users']/a", By.XPATH)
@@ -98,7 +113,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Users submenu
         users_link = wait_until_element(self.base.driver, "//li[@id='users']/a", By.XPATH)
@@ -139,7 +154,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Users submenu
         users_link = wait_until_element(self.base.driver, "//li[@id='users']/a", By.XPATH)
@@ -181,7 +196,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Users submenu
         users_link = wait_until_element(self.base.driver, "//li[@id='users']/a", By.XPATH)
@@ -222,7 +237,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Roles submenu
         roles_link = wait_until_element(self.base.driver, "//li[@id='roles']/a", By.XPATH)
@@ -262,7 +277,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Roles submenu
         roles_link = wait_until_element(self.base.driver, "//li[@id='roles']/a", By.XPATH)
@@ -303,7 +318,7 @@ class administration(object):
         self.base.driver.get(self.base.base_url)
 
         # Select the Administration tab
-        self.go_to_administration_tab()
+        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Roles submenu
         roles_link = wait_until_element(self.base.driver, "//li[@id='roles']/a", By.XPATH)
@@ -355,4 +370,3 @@ class administration(object):
         # Check that the newly created permission shows up
         new_permission = wait_until_element(self.base.driver, "//span[contains(., '%s')]" % permission_name, By.XPATH)
         asserts.fail_if_none(new_permission, "Permission '%s' was not created." % permission_name)
-

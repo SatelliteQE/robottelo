@@ -18,6 +18,10 @@ GPG = 'gpg'
 
 
 class content(object):
+    """
+    Performs actions related creating, adding, editing and deleting
+    content to an existing organization.
+    """
 
     #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
     __version__ = '0.1'
@@ -41,10 +45,18 @@ class content(object):
         Takes user to the Content Management tab in the ui.
         """
 
+        can_access = False
+
         # Organizations tab
         content_tab = wait_until_element(self.base.driver, self._HEADER_CONTENT_MANAGEMENT, By.XPATH)
-        asserts.fail_if_none(content_tab, "Could not find the Organizations tab.")
-        content_tab.click()
+
+        if content_tab is None:
+            logger.warn("Could not find the Organizations tab.")
+        else:
+            can_access = True
+            content_tab.click()
+
+        return can_access
 
 
     def select_content_provider(self, content_provider_type):
@@ -79,6 +91,9 @@ class content(object):
 
 
     def _get_provider_by_name(self, name):
+        """
+        Returns the Provider and ID that matches the name provided.
+        """
 
         _prod = None
         _id = None
@@ -97,6 +112,9 @@ class content(object):
 
 
     def _get_product_by_name(self, name):
+        """
+        Returns the Product and ID that matches the name provided.
+        """
 
         _prod = None
         _id = None
@@ -150,6 +168,9 @@ class content(object):
 
 
     def delete_custom_provider(self, provider_name):
+        """
+        Deletes the specified provider from an organization.
+        """
 
         # Select Contents tab
         self.go_to_content_tab()
@@ -170,7 +191,7 @@ class content(object):
         yes_button.click()
 
         # Visit providers again
-        self.select_content_provider(provider_type)
+        self.select_content_provider(CUSTOM_PROVIDERS)
         (provider, provider_id) = self._get_provider_by_name(provider_name)
         asserts.fail_unless_none(provider, "Found a provider with that name already.")
 
@@ -211,6 +232,9 @@ class content(object):
 
 
     def delete_product_from_provider(self, provider_name, product_name):
+        """
+        Deletes the specified product from a provider.
+        """
 
         # Select Contents tab
         self.go_to_content_tab()
@@ -275,7 +299,7 @@ class content(object):
         asserts.fail_if_none(subscriptions, "Could not find a subscription.")
 
 
-    def enabled_repository(self, provider_type, product, version, arch, component):
+    def enable_repository(self, product, version, arch, component):
         """
         Enables the repository specified.
         """
@@ -284,7 +308,7 @@ class content(object):
         self.go_to_content_tab()
 
         # Select Red Hat content type
-        self.select_content_provider(provider_type)
+        self.select_content_provider(REDHAT_PROVIDERS)
 
         # Locate the Enable Repo tab
         enable_repos_tab = wait_until_element(self.base.driver, "//div[@id='tabs']/nav/ul/li[2]/a", By.XPATH)
