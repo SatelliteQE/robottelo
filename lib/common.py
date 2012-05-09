@@ -19,6 +19,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 def get_manifest_file(manifest_url):
     """
     Downloads a manifest file locally to the file system.
+
+    Exemples:
+        get_manifest_file('http://example.com/manifest.zip')
     """
 
     try:
@@ -41,6 +44,11 @@ def find_element(drv, element, method=By.NAME):
     """
     Wrapper around Selenium's WebDriver that allows you to search for an element in
     the web page.
+
+    Exemples:
+        find_element(driver, "submit", By.NAME)
+        find_element(driver, "div.error_message", By.CSS_SELECTOR)
+        find_element(driver, "//button[@id='search_button']", By.XPATH)
     """
 
     try:
@@ -62,6 +70,11 @@ def wait_until_element(drv, element, method=By.NAME, delay=20):
     """
     Wrapper around Selenium's WebDriver that allows you to pause your test until
     an element in the web page is present.
+
+    Examples:
+        wait_until_element(driver, "submit", By.NAME)
+        wait_until_element(driver, "div.error_message", By.CSS_SELECTOR)
+        wait_until_element(driver, "//button[@id='search_button']", By.XPATH)
     """
 
     try:
