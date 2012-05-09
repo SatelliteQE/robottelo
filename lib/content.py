@@ -3,18 +3,15 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
-from common import get_manifest_file, wait_until_element
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
+from common import *
+from locators import *
+
 from robot.api import logger
 from robot.utils import asserts
 
-
-CUSTOM_PROVIDERS = 'custom_providers'
-REDHAT_PROVIDERS = 'redhat_providers'
-FILTERS = 'filters'
-GPG = 'gpg'
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 
 
 class content(object):
@@ -35,18 +32,7 @@ class content(object):
         Takes user to the Content Management tab in the ui.
         """
 
-        can_access = False
-
-        # Organizations tab
-        content_tab = wait_until_element(self.base.driver, self.HEADER_CONTENT_MANAGEMENT, By.XPATH)
-
-        if content_tab is None:
-            logger.warn("Could not find the Organizations tab.")
-        else:
-            can_access = True
-            content_tab.click()
-
-        return can_access
+        return select_tab(self.base.driver, HEADER_CONTENT_MANAGEMENT)
 
 
     def select_content_provider(self, content_provider_type):
@@ -55,7 +41,7 @@ class content(object):
         """
 
         # Hover over the Content Provider link
-        content_provider_link = wait_until_element(self.base.driver, self.SUB_HEADER_CONTENT_PROVIDER, By.XPATH)
+        content_provider_link = wait_until_element(self.base.driver, SUB_HEADER_CONTENT_PROVIDER, By.XPATH)
         try:
             hover = ActionChains(self.base.driver).move_to_element(content_provider_link)
             asserts.fail_if_none(hover, "Failed to move the mouse over the Contant Providers link.")
@@ -129,7 +115,7 @@ class content(object):
         """
 
         # Select Contents tab
-        self.go_to_content_tab()
+        asserts.assert_true(self.go_to_content_tab(), "Could not access the Content Management tab.")
 
         # Select custom provider type
         self.select_content_provider(CUSTOM_PROVIDERS)
@@ -163,7 +149,7 @@ class content(object):
         """
 
         # Select Contents tab
-        self.go_to_content_tab()
+        asserts.assert_true(self.go_to_content_tab(), "Could not access the Content Management tab.")
 
         # Select custom provider type
         self.select_content_provider(CUSTOM_PROVIDERS)
@@ -192,7 +178,7 @@ class content(object):
         """
 
         # Select Contents tab
-        self.go_to_content_tab()
+        asserts.assert_true(self.go_to_content_tab(), "Could not access the Content Management tab.")
 
         # Select custom provider type
         self.select_content_provider(CUSTOM_PROVIDERS)
@@ -227,7 +213,7 @@ class content(object):
         """
 
         # Select Contents tab
-        self.go_to_content_tab()
+        asserts.assert_true(self.go_to_content_tab(), "Could not access the Content Management tab.")
 
         # Select custom provider type
         self.select_content_provider(CUSTOM_PROVIDERS)
@@ -259,7 +245,7 @@ class content(object):
         """
 
         # Select Contents tab
-        self.go_to_content_tab()
+        asserts.assert_true(self.go_to_content_tab(), "Could not access the Content Management tab.")
 
         # Select Red Hat content type
         self.select_content_provider(REDHAT_PROVIDERS)
@@ -295,7 +281,7 @@ class content(object):
         """
 
         # Select Contents tab
-        self.go_to_content_tab()
+        asserts.assert_true(self.go_to_content_tab(), "Could not access the Content Management tab.")
 
         # Select Red Hat content type
         self.select_content_provider(REDHAT_PROVIDERS)

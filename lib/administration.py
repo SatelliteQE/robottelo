@@ -3,11 +3,14 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
-from common import wait_until_element
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
+from common import *
+from locators import *
+
 from robot.api import logger
 from robot.utils import asserts
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 
 
 class administration(object):
@@ -17,7 +20,6 @@ class administration(object):
     """
     __version__ = '0.1'
 
-    # Locators
 
     def __init__(self):
         self.base = Base()
@@ -27,18 +29,7 @@ class administration(object):
         Takes user to the Administration tab.
         """
 
-        can_access = False
-
-        # Administration tab
-        admin_tab = wait_until_element(self.base.driver, "//li[@id='admin']/a", By.XPATH)
-
-        if admin_tab is None:
-            logger.warn("Could not find the Administration tab. Perhaps this user does not have permissions to view it.")
-        else:
-            can_access = True
-            admin_tab.click()
-
-        return can_access
+        return select_tab(self.base.driver, ADMIN_TAB)
 
 
     def create_user(self, username, password, email, org=None):

@@ -65,7 +65,7 @@ def get_manifest_file(manifest_url):
     return filename
 
 
-def select_tab(drv):
+def select_tab(drv, element, method=By.XPATH):
     """
     Takes the user to a section of the ui by clicking on the given tab.
     """
