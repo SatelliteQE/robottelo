@@ -58,6 +58,8 @@
 <dt id="lib.administration.administration">
 <em class="property">class </em><tt class="descclassname">lib.administration.</tt><tt class="descname">administration</tt><a class="reference internal" href="_modules/lib/administration.html#administration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Perform administrative tasks, such as creating/editing/maintaining users,
+roles, organizations, etc.</p>
 <dl class="method">
 <dt id="lib.administration.administration.add_permission_to_role">
 <tt class="descname">add_permission_to_role</tt><big>(</big><em>role_name</em>, <em>permission_level</em>, <em>permission_type</em>, <em>verb</em>, <em>permission_name</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.add_permission_to_role"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.add_permission_to_role" title="Permalink to this definition">¶</a></dt>
@@ -97,7 +99,8 @@
 <dl class="method">
 <dt id="lib.administration.administration.go_to_administration_tab">
 <tt class="descname">go_to_administration_tab</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.go_to_administration_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.go_to_administration_tab" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Takes user to the Administration tab.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="lib.administration.administration.remove_role_from_user">
@@ -131,12 +134,22 @@ making up a unique test case.</p>
 <tt class="descclassname">lib.common.</tt><tt class="descname">find_element</tt><big>(</big><em>drv</em>, <em>element</em>, <em>method='name'</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#find_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.find_element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper around Selenium&#8217;s WebDriver that allows you to search for an element in
 the web page.</p>
+<dl class="docutils">
+<dt>Exemples:</dt>
+<dd>find_element(driver, &#8220;submit&#8221;, By.NAME)
+find_element(driver, &#8220;div.error_message&#8221;, By.CSS_SELECTOR)
+find_element(driver, &#8220;//button[&#64;id=&#8217;search_button&#8217;]&#8221;, By.XPATH)</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="lib.common.get_manifest_file">
 <tt class="descclassname">lib.common.</tt><tt class="descname">get_manifest_file</tt><big>(</big><em>manifest_url</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#get_manifest_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_manifest_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downloads a manifest file locally to the file system.</p>
+<dl class="docutils">
+<dt>Exemples:</dt>
+<dd>get_manifest_file(&#8216;<a class="reference external" href="http://example.com/manifest.zip">http://example.com/manifest.zip</a>&#8216;)</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -144,6 +157,12 @@ the web page.</p>
 <tt class="descclassname">lib.common.</tt><tt class="descname">wait_until_element</tt><big>(</big><em>drv</em>, <em>element</em>, <em>method='name'</em>, <em>delay=20</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#wait_until_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.wait_until_element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper around Selenium&#8217;s WebDriver that allows you to pause your test until
 an element in the web page is present.</p>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd>wait_until_element(driver, &#8220;submit&#8221;, By.NAME)
+wait_until_element(driver, &#8220;div.error_message&#8221;, By.CSS_SELECTOR)
+wait_until_element(driver, &#8220;//button[&#64;id=&#8217;search_button&#8217;]&#8221;, By.XPATH)</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -153,6 +172,8 @@ an element in the web page is present.</p>
 <dt id="lib.content.content">
 <em class="property">class </em><tt class="descclassname">lib.content.</tt><tt class="descname">content</tt><a class="reference internal" href="_modules/lib/content.html#content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Performs actions related creating, adding, editing and deleting
+content to an existing organization.</p>
 <dl class="method">
 <dt id="lib.content.content.add_custom_provider">
 <tt class="descname">add_custom_provider</tt><big>(</big><em>provider_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.add_custom_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.add_custom_provider" title="Permalink to this definition">¶</a></dt>
@@ -168,16 +189,18 @@ an element in the web page is present.</p>
 <dl class="method">
 <dt id="lib.content.content.delete_custom_provider">
 <tt class="descname">delete_custom_provider</tt><big>(</big><em>provider_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.delete_custom_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.delete_custom_provider" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Deletes the specified provider from an organization.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="lib.content.content.delete_product_from_provider">
 <tt class="descname">delete_product_from_provider</tt><big>(</big><em>provider_name</em>, <em>product_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.delete_product_from_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.delete_product_from_provider" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Deletes the specified product from a provider.</p>
+</dd></dl>
 
 <dl class="method">
-<dt id="lib.content.content.enabled_repository">
-<tt class="descname">enabled_repository</tt><big>(</big><em>provider_type</em>, <em>product</em>, <em>version</em>, <em>arch</em>, <em>component</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.enabled_repository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.enabled_repository" title="Permalink to this definition">¶</a></dt>
+<dt id="lib.content.content.enable_repository">
+<tt class="descname">enable_repository</tt><big>(</big><em>product</em>, <em>version</em>, <em>arch</em>, <em>component</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.enable_repository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.enable_repository" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enables the repository specified.</p>
 </dd></dl>
 
@@ -252,6 +275,8 @@ an element in the web page is present.</p>
 <dt id="lib.org.org">
 <em class="property">class </em><tt class="descclassname">lib.org.</tt><tt class="descname">org</tt><a class="reference internal" href="_modules/lib/org.html#org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Handles all actions related to an Organization, such as creating,
+editing, and deleting organizations and environments.</p>
 <dl class="method">
 <dt id="lib.org.org.add_env_to_org">
 <tt class="descname">add_env_to_org</tt><big>(</big><em>org_name</em>, <em>prior_env_name</em>, <em>new_env_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.add_env_to_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.add_env_to_org" title="Permalink to this definition">¶</a></dt>

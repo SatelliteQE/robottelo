@@ -62,8 +62,11 @@
 
 
 <div class="viewcode-block" id="org"><a class="viewcode-back" href="../../lib.html#lib.org.org">[docs]</a><span class="k">class</span> <span class="nc">org</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles all actions related to an Organization, such as creating,</span>
+<span class="sd">    editing, and deleting organizations and environments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c">#ROBOT_LIBRARY_SCOPE = &#39;TEST_CASE&#39;</span>
     <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
 
 
@@ -84,10 +87,18 @@
 <span class="sd">        Takes user to the Organizations tab in the ui.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">can_access</span> <span class="o">=</span> <span class="bp">False</span>
+
         <span class="c"># Organizations tab</span>
         <span class="n">organizations_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HEADER_ORGANIZATIONS</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
-        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">organizations_tab</span><span class="p">,</span> <span class="s">&quot;Could not find the Organizations tab.&quot;</span><span class="p">)</span>
-        <span class="n">organizations_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">organizations_tab</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Could not find the Organizations tab. Perhaps this user does not have permissions to view it.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">can_access</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">organizations_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">can_access</span>
 
 </div>
 <div class="viewcode-block" id="org.select_org"><a class="viewcode-back" href="../../lib.html#lib.org.org.select_org">[docs]</a>    <span class="k">def</span> <span class="nf">select_org</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_name</span><span class="p">):</span>
@@ -123,7 +134,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Organizations tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Organizations tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Orgs List link</span>
         <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -166,7 +177,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Organizations tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Organizations tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Orgs List link</span>
         <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -207,7 +218,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Organizations tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Organizations tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Orgs List link</span>
         <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -255,7 +266,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Organizations tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Organizations tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Orgs List link</span>
         <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>

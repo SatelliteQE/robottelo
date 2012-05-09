@@ -62,7 +62,10 @@
 
 
 <div class="viewcode-block" id="administration"><a class="viewcode-back" href="../../lib.html#lib.administration.administration">[docs]</a><span class="k">class</span> <span class="nc">administration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform administrative tasks, such as creating/editing/maintaining users,</span>
+<span class="sd">    roles, organizations, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
 
     <span class="c"># Locators</span>
@@ -71,10 +74,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">Base</span><span class="p">()</span>
 
 <div class="viewcode-block" id="administration.go_to_administration_tab"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.go_to_administration_tab">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_administration_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes user to the Administration tab.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">can_access</span> <span class="o">=</span> <span class="bp">False</span>
+
         <span class="c"># Administration tab</span>
         <span class="n">admin_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;admin&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
-        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">admin_tab</span><span class="p">,</span> <span class="s">&quot;Could not fine the Administration tab.&quot;</span><span class="p">)</span>
-        <span class="n">admin_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">admin_tab</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Could not find the Administration tab. Perhaps this user does not have permissions to view it.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">can_access</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">admin_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">can_access</span>
 
 </div>
 <div class="viewcode-block" id="administration.create_user"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.create_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">org</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -86,7 +101,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Users submenu</span>
         <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -149,7 +164,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Users submenu</span>
         <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -190,7 +205,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Users submenu</span>
         <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -232,7 +247,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Users submenu</span>
         <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -273,7 +288,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Roles submenu</span>
         <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -313,7 +328,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Roles submenu</span>
         <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -354,7 +369,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
 
         <span class="c"># Select the Administration tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">(),</span> <span class="s">&quot;Could not select the Administration tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Roles submenu</span>
         <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
@@ -405,8 +420,8 @@
 
         <span class="c"># Check that the newly created permission shows up</span>
         <span class="n">new_permission</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">permission_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
-        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_permission</span><span class="p">,</span> <span class="s">&quot;Permission &#39;</span><span class="si">%s</span><span class="s">&#39; was not created.&quot;</span> <span class="o">%</span> <span class="n">permission_name</span><span class="p">)</span>
-</pre></div></div></div>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_permission</span><span class="p">,</span> <span class="s">&quot;Permission &#39;</span><span class="si">%s</span><span class="s">&#39; was not created.&quot;</span> <span class="o">%</span> <span class="n">permission_name</span><span class="p">)</span></div></div>
+</pre></div>
 
           </div>
         </div>

@@ -69,6 +69,10 @@
 
 
 <div class="viewcode-block" id="content"><a class="viewcode-back" href="../../lib.html#lib.content.content">[docs]</a><span class="k">class</span> <span class="nc">content</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs actions related creating, adding, editing and deleting</span>
+<span class="sd">    content to an existing organization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c">#ROBOT_LIBRARY_SCOPE = &#39;TEST_CASE&#39;</span>
     <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
@@ -92,10 +96,18 @@
 <span class="sd">        Takes user to the Content Management tab in the ui.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">can_access</span> <span class="o">=</span> <span class="bp">False</span>
+
         <span class="c"># Organizations tab</span>
         <span class="n">content_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HEADER_CONTENT_MANAGEMENT</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
-        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">content_tab</span><span class="p">,</span> <span class="s">&quot;Could not find the Organizations tab.&quot;</span><span class="p">)</span>
-        <span class="n">content_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">content_tab</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Could not find the Organizations tab.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">can_access</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">content_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">can_access</span>
 
 </div>
 <div class="viewcode-block" id="content.select_content_provider"><a class="viewcode-back" href="../../lib.html#lib.content.content.select_content_provider">[docs]</a>    <span class="k">def</span> <span class="nf">select_content_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content_provider_type</span><span class="p">):</span>
@@ -130,6 +142,9 @@
 
 </div>
     <span class="k">def</span> <span class="nf">_get_provider_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Provider and ID that matches the name provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">_prod</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">_id</span> <span class="o">=</span> <span class="bp">None</span>
@@ -148,6 +163,9 @@
 
 
     <span class="k">def</span> <span class="nf">_get_product_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Product and ID that matches the name provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">_prod</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">_id</span> <span class="o">=</span> <span class="bp">None</span>
@@ -201,6 +219,9 @@
 
 </div>
 <div class="viewcode-block" id="content.delete_custom_provider"><a class="viewcode-back" href="../../lib.html#lib.content.content.delete_custom_provider">[docs]</a>    <span class="k">def</span> <span class="nf">delete_custom_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes the specified provider from an organization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
@@ -221,7 +242,7 @@
         <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Visit providers again</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">provider_type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">CUSTOM_PROVIDERS</span><span class="p">)</span>
         <span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">provider_id</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_provider_by_name</span><span class="p">(</span><span class="n">provider_name</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s">&quot;Found a provider with that name already.&quot;</span><span class="p">)</span>
 
@@ -262,6 +283,9 @@
 
 </div>
 <div class="viewcode-block" id="content.delete_product_from_provider"><a class="viewcode-back" href="../../lib.html#lib.content.content.delete_product_from_provider">[docs]</a>    <span class="k">def</span> <span class="nf">delete_product_from_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider_name</span><span class="p">,</span> <span class="n">product_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes the specified product from a provider.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
@@ -326,7 +350,7 @@
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">,</span> <span class="s">&quot;Could not find a subscription.&quot;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="content.enabled_repository"><a class="viewcode-back" href="../../lib.html#lib.content.content.enabled_repository">[docs]</a>    <span class="k">def</span> <span class="nf">enabled_repository</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider_type</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">arch</span><span class="p">,</span> <span class="n">component</span><span class="p">):</span>
+<div class="viewcode-block" id="content.enable_repository"><a class="viewcode-back" href="../../lib.html#lib.content.content.enable_repository">[docs]</a>    <span class="k">def</span> <span class="nf">enable_repository</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">arch</span><span class="p">,</span> <span class="n">component</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enables the repository specified.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -335,7 +359,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
 
         <span class="c"># Select Red Hat content type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">provider_type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">REDHAT_PROVIDERS</span><span class="p">)</span>
 
         <span class="c"># Locate the Enable Repo tab</span>
         <span class="n">enable_repos_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;tabs&#39;]/nav/ul/li[2]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
