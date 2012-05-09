@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lib.administration &mdash; Robottelo 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Robottelo 0.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Robottelo 0.0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for lib.administration</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- encoding: utf-8 -*-</span>
+<span class="c"># vim: ts=4 sw=4 expandtab ai</span>
+
+<span class="kn">from</span> <span class="nn">base</span> <span class="kn">import</span> <span class="n">Base</span>
+<span class="kn">from</span> <span class="nn">common</span> <span class="kn">import</span> <span class="n">wait_until_element</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.common.by</span> <span class="kn">import</span> <span class="n">By</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.support.ui</span> <span class="kn">import</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">robot.api</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">robot.utils</span> <span class="kn">import</span> <span class="n">asserts</span>
+
+
+<div class="viewcode-block" id="administration"><a class="viewcode-back" href="../../lib.html#lib.administration.administration">[docs]</a><span class="k">class</span> <span class="nc">administration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
+
+    <span class="c"># Locators</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">Base</span><span class="p">()</span>
+
+<div class="viewcode-block" id="administration.go_to_administration_tab"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.go_to_administration_tab">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_administration_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Administration tab</span>
+        <span class="n">admin_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;admin&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">admin_tab</span><span class="p">,</span> <span class="s">&quot;Could not fine the Administration tab.&quot;</span><span class="p">)</span>
+        <span class="n">admin_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="administration.create_user"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.create_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">org</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Users submenu</span>
+        <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">users_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Users menu.&quot;</span><span class="p">)</span>
+        <span class="n">users_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if new User exists in list</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;A user with this name already exists.&quot;</span><span class="p">)</span>
+
+        <span class="c"># New User link</span>
+        <span class="n">new_user_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;list-title&#39;]/header/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_user_link</span><span class="p">,</span> <span class="s">&quot;Could not find the New User link.&quot;</span><span class="p">)</span>
+        <span class="n">new_user_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Fill out the form</span>
+        <span class="c"># Username</span>
+        <span class="n">user_name_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_user&#39;]/fieldset/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">user_name_field</span><span class="p">,</span> <span class="s">&quot;Could not find the username field.&quot;</span><span class="p">)</span>
+        <span class="n">user_name_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+        <span class="c"># Password</span>
+        <span class="n">password_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_user&#39;]/fieldset[2]/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">password_field</span><span class="p">,</span> <span class="s">&quot;Could not find the password field.&quot;</span><span class="p">)</span>
+        <span class="n">password_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+        <span class="c"># Password confirmation</span>
+        <span class="n">password_confirmation_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_user&#39;]/fieldset[3]/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">password_confirmation_field</span><span class="p">,</span> <span class="s">&quot;Could not find the password confirmation field.&quot;</span><span class="p">)</span>
+        <span class="n">password_confirmation_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+        <span class="c"># Email</span>
+        <span class="n">email_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_user&#39;]/fieldset[4]/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">email_field</span><span class="p">,</span> <span class="s">&quot;Could not find the email field.&quot;</span><span class="p">)</span>
+        <span class="n">email_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">org</span><span class="p">:</span>
+            <span class="n">orgs_list</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_user&#39;]/fieldset[5]/div[2]/select&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+            <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">orgs_list</span><span class="p">,</span> <span class="s">&quot;Could not the Organizations list.&quot;</span><span class="p">)</span>
+            <span class="n">Select</span><span class="p">(</span><span class="n">orgs_list</span><span class="p">)</span><span class="o">.</span><span class="n">select_by_visible_text</span><span class="p">(</span><span class="n">org</span><span class="p">)</span>
+
+        <span class="c"># Submit</span>
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_user&#39;]/div[4]/div/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">submit_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Submit button.&quot;</span><span class="p">)</span>
+        <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Users submenu again</span>
+        <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">users_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Users menu.&quot;</span><span class="p">)</span>
+        <span class="n">users_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if new User exists in list</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;Was not able to locate the newly created user.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="administration.delete_user"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.delete_user">[docs]</a>    <span class="k">def</span> <span class="nf">delete_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes an existing user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Users submenu</span>
+        <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">users_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Users menu.&quot;</span><span class="p">)</span>
+        <span class="n">users_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if User exists in list</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;Was not able to locate the user.&quot;</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Remove user link</span>
+        <span class="n">remove_user_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;panel&#39;]/div/div[2]/div/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">remove_user_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Remove User link.&quot;</span><span class="p">)</span>
+        <span class="n">remove_user_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the Yes button</span>
+        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//button[@type=&#39;button&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">yes_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Yes button to remove role.&quot;</span><span class="p">)</span>
+        <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Users submenu again</span>
+        <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">users_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Users menu.&quot;</span><span class="p">)</span>
+        <span class="n">users_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if new User exists in list</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@title., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;Could not delete user named &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="administration.add_role_to_user"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.add_role_to_user">[docs]</a>    <span class="k">def</span> <span class="nf">add_role_to_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds an existing role to an existing user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Users submenu</span>
+        <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">users_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Users menu.&quot;</span><span class="p">)</span>
+        <span class="n">users_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if User exists in list</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;Was not able to locate the user.&quot;</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Select the user&#39;s Role section</span>
+        <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div/div[2]/nav/ul/li[2]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">roles_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Roles link for user.&quot;</span><span class="p">)</span>
+        <span class="n">roles_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+
+        <span class="c"># Add role to user</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]/a/span[contains(@class, &#39;ui-icon-plus&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; role. Maybe it was already added to the user.&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">)</span>
+        <span class="n">role</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Save</span>
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;update_roles&#39;]/div[3]/div/input[2]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">submit_button</span><span class="p">,</span> <span class="s">&quot;Could not locate the Submit button.&quot;</span><span class="p">)</span>
+        <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Role should not be available to add anymore</span>
+        <span class="c">#role = wait_until_element(self.base.driver, &quot;//li[contains(@title, &#39;%s&#39;)]/a/span[contains(@class, &#39;ui-icon-minus&#39;)]&quot; % role_name, By.XPATH)</span>
+        <span class="c">#asserts.fail_unless_none(role, &quot;Role &#39;%s&#39; should not be available for adding anymore.&quot; % role_name)</span>
+
+</div>
+<div class="viewcode-block" id="administration.remove_role_from_user"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.remove_role_from_user">[docs]</a>    <span class="k">def</span> <span class="nf">remove_role_from_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes an existing role from an existing user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Users submenu</span>
+        <span class="n">users_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;users&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">users_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Users menu.&quot;</span><span class="p">)</span>
+        <span class="n">users_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if User exists in list</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;Was not able to locate the user.&quot;</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Select the user&#39;s Role section</span>
+        <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div/div[2]/nav/ul/li[2]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">roles_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Roles link for user.&quot;</span><span class="p">)</span>
+        <span class="n">roles_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Remove role from user</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[contains(@title, &#39;</span><span class="si">%s</span><span class="s">&#39;)]/a/span[contains(@class, &#39;ui-icon-minus&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; role. Maybe it was already removed from the user.&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">)</span>
+        <span class="n">role</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Save</span>
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;update_roles&#39;]/div[3]/div/input[2]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">submit_button</span><span class="p">,</span> <span class="s">&quot;Could not locate the Submit button.&quot;</span><span class="p">)</span>
+        <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Role should not be available to add anymore</span>
+        <span class="c">#role = wait_until_element(self.base.driver, &quot;//li[contains(@title, &#39;%s&#39;)]/a/span[contains(@class, &#39;ui-icon-plus&#39;)]&quot; % role_name, By.XPATH)</span>
+        <span class="c">#asserts.fail_unless_none(role, &quot;Role &#39;%s&#39; should not be available for removal anymore.&quot; % role_name)</span>
+
+</div>
+<div class="viewcode-block" id="administration.create_role"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.create_role">[docs]</a>    <span class="k">def</span> <span class="nf">create_role</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new role.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Roles submenu</span>
+        <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">roles_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Roles menu.&quot;</span><span class="p">)</span>
+        <span class="n">roles_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if new Role exists in list</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;A role with this name already exists.&quot;</span><span class="p">)</span>
+
+        <span class="c"># New Role link</span>
+        <span class="n">new_role_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;list-title&#39;]/header/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_role_link</span><span class="p">,</span> <span class="s">&quot;Could not find the New Role link.&quot;</span><span class="p">)</span>
+        <span class="n">new_role_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Role name field</span>
+        <span class="n">role_name_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_role&#39;]/fieldset/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">role_name_field</span><span class="p">,</span> <span class="s">&quot;Could not find the role name field.&quot;</span><span class="p">)</span>
+        <span class="n">role_name_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">role_name</span><span class="p">)</span>
+
+        <span class="c"># Submit button</span>
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_role&#39;]/div[2]/div/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">submit_button</span><span class="p">,</span> <span class="s">&quot;Could not find submiot button&quot;</span><span class="p">)</span>
+        <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check if new Role exists in list</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;Was not able to locate the newly created role.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="administration.delete_role"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.delete_role">[docs]</a>    <span class="k">def</span> <span class="nf">delete_role</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes an existing Role.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Roles submenu</span>
+        <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">roles_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Roles menu.&quot;</span><span class="p">)</span>
+        <span class="n">roles_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the role</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;Could not find existing role with name &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">)</span>
+        <span class="n">role</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the remove button</span>
+        <span class="n">remove_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;remove_role&#39;]/span[2]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">remove_button</span><span class="p">,</span> <span class="s">&quot;Did not find the remove role button.&quot;</span><span class="p">)</span>
+        <span class="n">remove_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the Yes button</span>
+        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//button[@type=&#39;button&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">yes_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Yes button to remove role.&quot;</span><span class="p">)</span>
+        <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Roles submenu</span>
+        <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">roles_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Roles menu.&quot;</span><span class="p">)</span>
+        <span class="n">roles_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Look for the role again</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;Could not remove existing role with name &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="administration.add_permission_to_role"><a class="viewcode-back" href="../../lib.html#lib.administration.administration.add_permission_to_role">[docs]</a>    <span class="k">def</span> <span class="nf">add_permission_to_role</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">permission_level</span><span class="p">,</span> <span class="n">permission_type</span><span class="p">,</span> <span class="n">verb</span><span class="p">,</span> <span class="n">permission_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a permission to an existing role.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Administration tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_administration_tab</span><span class="p">()</span>
+
+        <span class="c"># Roles submenu</span>
+        <span class="n">roles_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;roles&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">roles_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Roles menu.&quot;</span><span class="p">)</span>
+        <span class="n">roles_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the role</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="s">&quot;Could not find existing role with name &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">role_name</span><span class="p">)</span>
+        <span class="n">role</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Permissions section</span>
+        <span class="n">permissions</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;role_permissions&#39;]/span&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">permissions</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Select the permission type</span>
+        <span class="n">selected_permission</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;</span><span class="si">%s</span><span class="s">&#39;]/span&quot;</span> <span class="o">%</span> <span class="n">permission_level</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">selected_permission</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Add new permission button</span>
+        <span class="n">add_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;add_permission&#39;]/span[2]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">add_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Select the permission type</span>
+        <span class="n">permissions_list</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;resource_type_container&#39;]/select&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">Select</span><span class="p">(</span><span class="n">permissions_list</span><span class="p">)</span><span class="o">.</span><span class="n">select_by_visible_text</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">permission_type</span><span class="p">)</span>
+
+        <span class="n">next_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;permission_button_bar&#39;]/div[2]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">next_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># All Verbs</span>
+        <span class="n">verbs</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//select[@id=&#39;verbs&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">verbs</span><span class="p">,</span> <span class="s">&quot;Could not find a list of the available verbs.&quot;</span><span class="p">)</span>
+
+        <span class="c"># Add provided verb</span>
+        <span class="n">Select</span><span class="p">(</span><span class="n">verbs</span><span class="p">)</span><span class="o">.</span><span class="n">select_by_visible_text</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">verb</span><span class="p">)</span>
+
+        <span class="n">next_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;permission_button_bar&#39;]/div[2]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">next_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># New permission name</span>
+        <span class="n">permission_name_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;details_container&#39;]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">permission_name_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">permission_name</span><span class="p">)</span>
+
+        <span class="c"># Save</span>
+        <span class="n">save_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;permission_button_bar&#39;]/div[3]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">save_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Check that the newly created permission shows up</span>
+        <span class="n">new_permission</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//span[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">permission_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_permission</span><span class="p">,</span> <span class="s">&quot;Permission &#39;</span><span class="si">%s</span><span class="s">&#39; was not created.&quot;</span> <span class="o">%</span> <span class="n">permission_name</span><span class="p">)</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Robottelo 0.0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Og Maciel &lt;omaciel@redhat.com&gt;.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

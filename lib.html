@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lib Package &mdash; Robottelo 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Robottelo 0.0.1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to Robottelo’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Robottelo’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Robottelo 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lib-package">
+<h1>lib Package<a class="headerlink" href="#lib-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-lib.administration">
+<span id="administration-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">administration</span></tt> Module<a class="headerlink" href="#module-lib.administration" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lib.administration.administration">
+<em class="property">class </em><tt class="descclassname">lib.administration.</tt><tt class="descname">administration</tt><a class="reference internal" href="_modules/lib/administration.html#administration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="lib.administration.administration.add_permission_to_role">
+<tt class="descname">add_permission_to_role</tt><big>(</big><em>role_name</em>, <em>permission_level</em>, <em>permission_type</em>, <em>verb</em>, <em>permission_name</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.add_permission_to_role"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.add_permission_to_role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a permission to an existing role.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.add_role_to_user">
+<tt class="descname">add_role_to_user</tt><big>(</big><em>role_name</em>, <em>username</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.add_role_to_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.add_role_to_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an existing role to an existing user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.create_role">
+<tt class="descname">create_role</tt><big>(</big><em>role_name</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.create_role"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.create_role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new role.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.create_user">
+<tt class="descname">create_user</tt><big>(</big><em>username</em>, <em>password</em>, <em>email</em>, <em>org=None</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.create_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.create_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.delete_role">
+<tt class="descname">delete_role</tt><big>(</big><em>role_name</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.delete_role"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.delete_role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an existing Role.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.delete_user">
+<tt class="descname">delete_user</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.delete_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.delete_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an existing user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.go_to_administration_tab">
+<tt class="descname">go_to_administration_tab</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.go_to_administration_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.go_to_administration_tab" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="lib.administration.administration.remove_role_from_user">
+<tt class="descname">remove_role_from_user</tt><big>(</big><em>role_name</em>, <em>username</em><big>)</big><a class="reference internal" href="_modules/lib/administration.html#administration.remove_role_from_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.administration.administration.remove_role_from_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an existing role from an existing user.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lib.base">
+<span id="base-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">base</span></tt> Module<a class="headerlink" href="#module-lib.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lib.base.Base">
+<em class="property">class </em><tt class="descclassname">lib.base.</tt><tt class="descname">Base</tt><a class="reference internal" href="_modules/lib/base.html#Base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.base.Base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Singleton used to pass a WedDriver instance to several test modules
+making up a unique test case.</p>
+<dl class="attribute">
+<dt id="lib.base.Base.instance">
+<tt class="descname">instance</tt><em class="property"> = None</em><a class="headerlink" href="#lib.base.Base.instance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lib.common">
+<span id="common-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">common</span></tt> Module<a class="headerlink" href="#module-lib.common" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lib.common.find_element">
+<tt class="descclassname">lib.common.</tt><tt class="descname">find_element</tt><big>(</big><em>drv</em>, <em>element</em>, <em>method='name'</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#find_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.find_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around Selenium&#8217;s WebDriver that allows you to search for an element in
+the web page.</p>
+<p>&#64;type drv: object
+&#64;param drv: A Selenium WebDriver instance.
+&#64;type element: string
+&#64;param element: The string representation of the element.
+Exemples:</p>
+<blockquote>
+<div>&#8220;submit&#8221;
+&#8220;div.error_message&#8221;
+&#8220;//button[&#64;id=&#8217;search_button&#8217;]&#8221;</div></blockquote>
+<p>&#64;type method: object
+&#64;param method: One of the following: By.CSS_SELECTOR, By.ID, By.NAME, By.XPATH.</p>
+<p>&#64;rtype: object
+&#64;return: A Selenium WebElement object or None if not found.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lib.common.get_manifest_file">
+<tt class="descclassname">lib.common.</tt><tt class="descname">get_manifest_file</tt><big>(</big><em>manifest_url</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#get_manifest_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_manifest_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads a manifest file locally to the file system.</p>
+<p>&#64;type manifest_file: string
+&#64;param manifest_file: The url to a valid manifest file.</p>
+<p>&#64;rtype: string
+&#64;return: The absolute path to the downloaded file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lib.common.wait_until_element">
+<tt class="descclassname">lib.common.</tt><tt class="descname">wait_until_element</tt><big>(</big><em>drv</em>, <em>element</em>, <em>method='name'</em>, <em>delay=20</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#wait_until_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.wait_until_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around Selenium&#8217;s WebDriver that allows you to pause your test until
+an element in the web page is present.</p>
+<p>&#64;type drv: object
+&#64;param drv: A Selenium WebDriver instance.
+&#64;type element: string
+&#64;param element: The string representation of the element.
+Exemples:</p>
+<blockquote>
+<div>&#8220;submit&#8221;
+&#8220;div.error_message&#8221;
+&#8220;//button[&#64;id=&#8217;search_button&#8217;]&#8221;</div></blockquote>
+<p>&#64;type method: object
+&#64;param method: One of the following: By.CSS_SELECTOR, By.ID, By.NAME, By.XPATH.
+&#64;type delay: integer
+&#64;param delay: The time to wait in seconds. Default is 10 seconds.</p>
+<p>&#64;rtype: object
+&#64;return: A Selenium WebElement object or None if not found.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lib.content">
+<span id="content-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">content</span></tt> Module<a class="headerlink" href="#module-lib.content" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lib.content.content">
+<em class="property">class </em><tt class="descclassname">lib.content.</tt><tt class="descname">content</tt><a class="reference internal" href="_modules/lib/content.html#content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="lib.content.content.add_custom_provider">
+<tt class="descname">add_custom_provider</tt><big>(</big><em>provider_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.add_custom_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.add_custom_provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a custom provider.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.add_product_to_provider">
+<tt class="descname">add_product_to_provider</tt><big>(</big><em>provider_name</em>, <em>product_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.add_product_to_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.add_product_to_provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a product to an existing provider.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.delete_custom_provider">
+<tt class="descname">delete_custom_provider</tt><big>(</big><em>provider_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.delete_custom_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.delete_custom_provider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.delete_product_from_provider">
+<tt class="descname">delete_product_from_provider</tt><big>(</big><em>provider_name</em>, <em>product_name</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.delete_product_from_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.delete_product_from_provider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.enabled_repository">
+<tt class="descname">enabled_repository</tt><big>(</big><em>provider_type</em>, <em>product</em>, <em>version</em>, <em>arch</em>, <em>component</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.enabled_repository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.enabled_repository" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the repository specified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.go_to_content_tab">
+<tt class="descname">go_to_content_tab</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.go_to_content_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.go_to_content_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes user to the Content Management tab in the ui.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.red_hat_provider">
+<tt class="descname">red_hat_provider</tt><big>(</big><em>manifest</em>, <em>force=True</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.red_hat_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.red_hat_provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads a Red Hat manifest file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.content.content.select_content_provider">
+<tt class="descname">select_content_provider</tt><big>(</big><em>content_provider_type</em><big>)</big><a class="reference internal" href="_modules/lib/content.html#content.select_content_provider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.content.content.select_content_provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects the content provider type</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lib.login">
+<span id="login-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">login</span></tt> Module<a class="headerlink" href="#module-lib.login" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lib.login.login">
+<em class="property">class </em><tt class="descclassname">lib.login.</tt><tt class="descname">login</tt><big>(</big><em>base_url</em>, <em>browser=None</em><big>)</big><a class="reference internal" href="_modules/lib/login.html#login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.login.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="lib.login.login.ROBOT_LIBRARY_SCOPE">
+<tt class="descname">ROBOT_LIBRARY_SCOPE</tt><em class="property"> = 'TEST_CASE'</em><a class="headerlink" href="#lib.login.login.ROBOT_LIBRARY_SCOPE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="lib.login.login.login_user">
+<tt class="descname">login_user</tt><big>(</big><em>username</em>, <em>password</em><big>)</big><a class="reference internal" href="_modules/lib/login.html#login.login_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.login.login.login_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Login as user with provided credentials.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.login.login.logout_user">
+<tt class="descname">logout_user</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lib/login.html#login.logout_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.login.login.logout_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs out the user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.login.login.stop_browser">
+<tt class="descname">stop_browser</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lib/login.html#login.stop_browser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.login.login.stop_browser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the web browser window (if any) and quits.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.login.login.user_logged_in">
+<tt class="descname">user_logged_in</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/lib/login.html#login.user_logged_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.login.login.user_logged_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the user is logged.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.login.login.user_not_logged_in">
+<tt class="descname">user_not_logged_in</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/lib/login.html#login.user_not_logged_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.login.login.user_not_logged_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the user is not logged.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lib.org">
+<span id="org-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">org</span></tt> Module<a class="headerlink" href="#module-lib.org" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lib.org.org">
+<em class="property">class </em><tt class="descclassname">lib.org.</tt><tt class="descname">org</tt><a class="reference internal" href="_modules/lib/org.html#org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="lib.org.org.add_env_to_org">
+<tt class="descname">add_env_to_org</tt><big>(</big><em>org_name</em>, <em>prior_env_name</em>, <em>new_env_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.add_env_to_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.add_env_to_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new environment to an existing organization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.org.org.create_org">
+<tt class="descname">create_org</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.create_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.create_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new organization with the provided name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.org.org.delete_env_from_org">
+<tt class="descname">delete_env_from_org</tt><big>(</big><em>org_name</em>, <em>env_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.delete_env_from_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.delete_env_from_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new environment to an existing organization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.org.org.delete_org">
+<tt class="descname">delete_org</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.delete_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.delete_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new organization with the provided name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.org.org.go_to_organizations_tab">
+<tt class="descname">go_to_organizations_tab</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.go_to_organizations_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.go_to_organizations_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes user to the Organizations tab in the ui.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.org.org.select_org">
+<tt class="descname">select_org</tt><big>(</big><em>org_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.select_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.select_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch the ui context to the provided org name.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">lib Package</a><ul>
+<li><a class="reference internal" href="#module-lib.administration"><tt class="docutils literal"><span class="pre">administration</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-lib.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-lib.common"><tt class="docutils literal"><span class="pre">common</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-lib.content"><tt class="docutils literal"><span class="pre">content</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-lib.login"><tt class="docutils literal"><span class="pre">login</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-lib.org"><tt class="docutils literal"><span class="pre">org</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to Robottelo&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lib.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Robottelo’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">Robottelo 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Og Maciel &lt;omaciel@redhat.com&gt;.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

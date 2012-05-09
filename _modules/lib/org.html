@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lib.org &mdash; Robottelo 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Robottelo 0.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Robottelo 0.0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for lib.org</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- encoding: utf-8 -*-</span>
+<span class="c"># vim: ts=4 sw=4 expandtab ai</span>
+
+<span class="kn">from</span> <span class="nn">base</span> <span class="kn">import</span> <span class="n">Base</span>
+<span class="kn">from</span> <span class="nn">common</span> <span class="kn">import</span> <span class="n">wait_until_element</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.common.by</span> <span class="kn">import</span> <span class="n">By</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.support.ui</span> <span class="kn">import</span> <span class="n">Select</span>
+<span class="kn">from</span> <span class="nn">robot.api</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">robot.utils</span> <span class="kn">import</span> <span class="n">asserts</span>
+
+
+<div class="viewcode-block" id="org"><a class="viewcode-back" href="../../lib.html#lib.org.org">[docs]</a><span class="k">class</span> <span class="nc">org</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="c">#ROBOT_LIBRARY_SCOPE = &#39;TEST_CASE&#39;</span>
+    <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
+
+
+    <span class="c"># Locators</span>
+    <span class="n">_HEADER_ORGANIZATIONS</span> <span class="o">=</span> <span class="s">&quot;//li[@id=&#39;organizations&#39;]/a&quot;</span>
+    <span class="n">_NEW_ORG_LINK</span> <span class="o">=</span> <span class="s">&quot;//div[@id=&#39;list-title&#39;]/header/a&quot;</span>
+    <span class="n">_ORG_NAME</span> <span class="o">=</span> <span class="s">&quot;//form[@id=&#39;new_organization&#39;]/fieldset/div[2]/input&quot;</span>
+    <span class="n">_ORG_SUBMIT</span> <span class="o">=</span> <span class="s">&quot;//form[@id=&#39;new_organization&#39;]/div[2]/div/input&quot;</span>
+    <span class="n">_NEW_ORG</span> <span class="o">=</span> <span class="s">&quot;//div[@id=&#39;organization_</span><span class="si">%s</span><span class="s">&#39;]/div&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">Base</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="org.go_to_organizations_tab"><a class="viewcode-back" href="../../lib.html#lib.org.org.go_to_organizations_tab">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_organizations_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes user to the Organizations tab in the ui.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Organizations tab</span>
+        <span class="n">organizations_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HEADER_ORGANIZATIONS</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">organizations_tab</span><span class="p">,</span> <span class="s">&quot;Could not find the Organizations tab.&quot;</span><span class="p">)</span>
+        <span class="n">organizations_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="org.select_org"><a class="viewcode-back" href="../../lib.html#lib.org.org.select_org">[docs]</a>    <span class="k">def</span> <span class="nf">select_org</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch the ui context to the provided org name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Check for the Organizations selector</span>
+        <span class="n">orgbox</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[@id=&#39;switcherButton&#39;]/div&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">orgbox</span><span class="p">,</span> <span class="s">&quot;Could not locate the Organizations selector.&quot;</span><span class="p">)</span>
+        <span class="n">orgbox</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Select the organization</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">org_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; organization.&quot;</span> <span class="o">%</span> <span class="n">org_name</span><span class="p">)</span>
+        <span class="n">org</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Validate organization changed</span>
+        <span class="n">orgbox</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[@id=&#39;switcherButton&#39;]/div&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">orgbox</span><span class="p">,</span> <span class="s">&quot;Could not locate the Organizations selector.&quot;</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">orgbox</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">org_name</span><span class="p">,</span> <span class="s">&quot;Failed to swith to the &#39;</span><span class="si">%s</span><span class="s">&#39; organization.&quot;</span> <span class="o">%</span> <span class="n">org_name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="org.create_org"><a class="viewcode-back" href="../../lib.html#lib.org.org.create_org">[docs]</a>    <span class="k">def</span> <span class="nf">create_org</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new organization with the provided name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Organizations tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+
+        <span class="c"># Orgs List link</span>
+        <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_list_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Orgs List link.&quot;</span><span class="p">)</span>
+        <span class="n">org_list_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Verify that org doesn&#39;t exist</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG</span> <span class="o">%</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;An organization named &#39;</span><span class="si">%s</span><span class="s">&#39; already exists.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># New Organization link</span>
+        <span class="n">new_org_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG_LINK</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_org_link</span><span class="p">,</span> <span class="s">&quot;could not find the new organization link.&quot;</span><span class="p">)</span>
+        <span class="n">new_org_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># New org form</span>
+        <span class="n">org_name</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ORG_NAME</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_name</span><span class="p">,</span> <span class="s">&quot;Could not enter the organization name.&quot;</span><span class="p">)</span>
+        <span class="n">org_name</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ORG_SUBMIT</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Orgs List link</span>
+        <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_list_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Orgs List link.&quot;</span><span class="p">)</span>
+        <span class="n">org_list_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Verify that new org exists</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG</span> <span class="o">%</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;Could not locate the newly created organization named &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="org.delete_org"><a class="viewcode-back" href="../../lib.html#lib.org.org.delete_org">[docs]</a>    <span class="k">def</span> <span class="nf">delete_org</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new organization with the provided name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Organizations tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+
+        <span class="c"># Orgs List link</span>
+        <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_list_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Orgs List link.&quot;</span><span class="p">)</span>
+        <span class="n">org_list_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Verify that org exists</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG</span> <span class="o">%</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;Could not locate an organization named &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">org</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Remove Org link</span>
+        <span class="n">remove_org_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;panel&#39;]/div/div[2]/div/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">remove_org_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Remove Org link.&quot;</span><span class="p">)</span>
+        <span class="n">remove_org_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the Yes button</span>
+        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//button[@type=&#39;button&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">yes_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Yes button to remove role.&quot;</span><span class="p">)</span>
+        <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Orgs List link</span>
+        <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_list_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Orgs List link.&quot;</span><span class="p">)</span>
+        <span class="n">org_list_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Verify that org doesn&#39;t exist</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG</span> <span class="o">%</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;Could not delete organization named &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="org.add_env_to_org"><a class="viewcode-back" href="../../lib.html#lib.org.org.add_env_to_org">[docs]</a>    <span class="k">def</span> <span class="nf">add_env_to_org</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_name</span><span class="p">,</span> <span class="n">prior_env_name</span><span class="p">,</span> <span class="n">new_env_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new environment to an existing organization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Organizations tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+
+        <span class="c"># Orgs List link</span>
+        <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_list_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Orgs List link.&quot;</span><span class="p">)</span>
+        <span class="n">org_list_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Verify that org exists</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG</span> <span class="o">%</span> <span class="n">org_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;Could not locate an organization named &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">org_name</span><span class="p">)</span>
+        <span class="n">org</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># New env should not be found yet</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[contains(@class, &#39;subpanel_element&#39;)]/div[contains(.,&#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">new_env_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s">&quot;There is an environment with this name already.&quot;</span><span class="p">)</span>
+
+        <span class="c"># Locate the New Environment button</span>
+        <span class="n">new_env_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[contains(@class, &#39;button subpanel_element&#39;)]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_env_button</span><span class="p">,</span> <span class="s">&quot;Could not find the New Env button.&quot;</span><span class="p">)</span>
+        <span class="n">new_env_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Locate the Environment Name field</span>
+        <span class="n">env_name_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_subpanel&#39;]/fieldset/div/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">env_name_field</span><span class="p">,</span> <span class="s">&quot;Could not locate the Environment Name field.&quot;</span><span class="p">)</span>
+        <span class="n">env_name_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">new_env_name</span><span class="p">)</span>
+
+        <span class="n">prior_env_list</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_subpanel&#39;]/fieldset[3]/div/select&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">prior_env_list</span><span class="p">,</span> <span class="s">&quot;Could not locate the Previous Environment dropdown.&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Select</span><span class="p">(</span><span class="n">prior_env_list</span><span class="p">)</span><span class="o">.</span><span class="n">select_by_visible_text</span><span class="p">(</span><span class="n">prior_env_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">NoSuchElementException</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">asserts</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s">&quot;Could not locate prior environment named &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">prior_env_name</span><span class="p">)</span>
+
+        <span class="c"># Locate the Submit button</span>
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;new_subpanel&#39;]/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">submit_button</span><span class="p">,</span> <span class="s">&quot;Could not locate the Submit button&quot;</span><span class="p">)</span>
+        <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="org.delete_env_from_org"><a class="viewcode-back" href="../../lib.html#lib.org.org.delete_env_from_org">[docs]</a>    <span class="k">def</span> <span class="nf">delete_env_from_org</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">org_name</span><span class="p">,</span> <span class="n">env_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new environment to an existing organization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># go to the url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span>
+
+        <span class="c"># Select the Organizations tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_organizations_tab</span><span class="p">()</span>
+
+        <span class="c"># Orgs List link</span>
+        <span class="n">org_list_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;org_list&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org_list_link</span><span class="p">,</span> <span class="s">&quot;Could not find the Orgs List link.&quot;</span><span class="p">)</span>
+        <span class="n">org_list_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Verify that org exists</span>
+        <span class="n">org</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NEW_ORG</span> <span class="o">%</span> <span class="n">org_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="s">&quot;Could not locate an organization named &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">org_name</span><span class="p">)</span>
+        <span class="n">org</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Locate existing env</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[contains(@class, &#39;subpanel_element&#39;)]/div[contains(.,&#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">env_name</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s">&quot;There is an environment with this name already.&quot;</span><span class="p">)</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Locate the Remove Environment link</span>
+        <span class="n">remove_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;subpanel&#39;]/div/div[2]/div/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">remove_link</span><span class="p">,</span> <span class="s">&quot;Could not locate the Remove Environment link&quot;</span><span class="p">)</span>
+        <span class="n">remove_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c"># Find the Yes button</span>
+        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//button[@type=&#39;button&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">yes_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Yes button to remove role.&quot;</span><span class="p">)</span>
+        <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Robottelo 0.0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Og Maciel &lt;omaciel@redhat.com&gt;.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
