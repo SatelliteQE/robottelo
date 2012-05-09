@@ -70,12 +70,6 @@
 <div class="viewcode-block" id="get_manifest_file"><a class="viewcode-back" href="../../lib.html#lib.common.get_manifest_file">[docs]</a><span class="k">def</span> <span class="nf">get_manifest_file</span><span class="p">(</span><span class="n">manifest_url</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads a manifest file locally to the file system.</span>
-
-<span class="sd">    @type manifest_file: string</span>
-<span class="sd">    @param manifest_file: The url to a valid manifest file.</span>
-
-<span class="sd">    @rtype: string</span>
-<span class="sd">    @return: The absolute path to the downloaded file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -98,20 +92,6 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper around Selenium&#39;s WebDriver that allows you to search for an element in</span>
 <span class="sd">    the web page.</span>
-
-<span class="sd">    @type drv: object</span>
-<span class="sd">    @param drv: A Selenium WebDriver instance.</span>
-<span class="sd">    @type element: string</span>
-<span class="sd">    @param element: The string representation of the element.</span>
-<span class="sd">    Exemples:</span>
-<span class="sd">        &quot;submit&quot;</span>
-<span class="sd">        &quot;div.error_message&quot;</span>
-<span class="sd">        &quot;//button[@id=&#39;search_button&#39;]&quot;</span>
-<span class="sd">    @type method: object</span>
-<span class="sd">    @param method: One of the following: By.CSS_SELECTOR, By.ID, By.NAME, By.XPATH.</span>
-
-<span class="sd">    @rtype: object</span>
-<span class="sd">    @return: A Selenium WebElement object or None if not found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -133,22 +113,6 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper around Selenium&#39;s WebDriver that allows you to pause your test until</span>
 <span class="sd">    an element in the web page is present.</span>
-
-<span class="sd">    @type drv: object</span>
-<span class="sd">    @param drv: A Selenium WebDriver instance.</span>
-<span class="sd">    @type element: string</span>
-<span class="sd">    @param element: The string representation of the element.</span>
-<span class="sd">    Exemples:</span>
-<span class="sd">        &quot;submit&quot;</span>
-<span class="sd">        &quot;div.error_message&quot;</span>
-<span class="sd">        &quot;//button[@id=&#39;search_button&#39;]&quot;</span>
-<span class="sd">    @type method: object</span>
-<span class="sd">    @param method: One of the following: By.CSS_SELECTOR, By.ID, By.NAME, By.XPATH.</span>
-<span class="sd">    @type delay: integer</span>
-<span class="sd">    @param delay: The time to wait in seconds. Default is 10 seconds.</span>
-
-<span class="sd">    @rtype: object</span>
-<span class="sd">    @return: A Selenium WebElement object or None if not found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
