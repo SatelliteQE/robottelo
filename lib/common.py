@@ -16,29 +16,6 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def get_manifest_file(manifest_url):
-    """
-    Downloads a manifest file locally to the file system.
-
-    Exemples:
-        get_manifest_file('http://example.com/manifest.zip')
-    """
-
-    try:
-        remote_file = urlopen(manifest_url)
-    except Exception, e:
-        asserts.assert_fail("Failed to download the manifest file at %s." % manifest_url)
-
-    (fd, filename) = tempfile.mkstemp()
-    f = os.fdopen(fd, "w")
-
-    for line in remote_file.readlines():
-        f.write(line)
-    f.close()
-
-    return filename
-
-
 def find_element(drv, element, method=By.NAME):
 
     """
@@ -63,6 +40,47 @@ def find_element(drv, element, method=By.NAME):
     except Exception, e:
         logger.debug("Failed to locate element '%s'. ERROR: %s" % (element, str(e)))
         return None
+
+
+def get_manifest_file(manifest_url):
+    """
+    Downloads a manifest file locally to the file system.
+
+    Exemples:
+        get_manifest_file('http://example.com/manifest.zip')
+    """
+
+    try:
+        remote_file = urlopen(manifest_url)
+    except Exception, e:
+        asserts.assert_fail("Failed to download the manifest file at %s." % manifest_url)
+
+    (fd, filename) = tempfile.mkstemp()
+    f = os.fdopen(fd, "w")
+
+    for line in remote_file.readlines():
+        f.write(line)
+    f.close()
+
+    return filename
+
+
+def select_tab(drv):
+    """
+    Takes the user to a section of the ui by clicking on the given tab.
+    """
+
+    can_access = False
+
+    tab = wait_until_element(drv, element, method)
+
+    if tab is None:
+        logger.warn("Was not able to locate the tab corresponding to '%s'" % elment)
+    else:
+        can_access = True
+        tab.click()
+
+    return can_access
 
 
 def wait_until_element(drv, element, method=By.NAME, delay=20):

@@ -23,17 +23,7 @@ class content(object):
     content to an existing organization.
     """
 
-    #ROBOT_LIBRARY_SCOPE = 'TEST_CASE'
     __version__ = '0.1'
-
-
-    # Locators
-    _HEADER_CONTENT_MANAGEMENT = "//li[@id='content']/a"
-    _SUB_HEADER_CONTENT_PROVIDER = "//li[@id='providers']/a"
-    _NEW_ORG_LINK = "//div[@id='list-title']/header/a"
-    _ORG_NAME = "//form[@id='new_organization']/fieldset/div[2]/input"
-    _ORG_SUBMIT = "//form[@id='new_organization']/div[2]/div/input"
-    _NEW_ORG = "//div[@id='organization_%s']/div"
 
 
     def __init__(self):
@@ -48,7 +38,7 @@ class content(object):
         can_access = False
 
         # Organizations tab
-        content_tab = wait_until_element(self.base.driver, self._HEADER_CONTENT_MANAGEMENT, By.XPATH)
+        content_tab = wait_until_element(self.base.driver, self.HEADER_CONTENT_MANAGEMENT, By.XPATH)
 
         if content_tab is None:
             logger.warn("Could not find the Organizations tab.")
@@ -65,12 +55,12 @@ class content(object):
         """
 
         # Hover over the Content Provider link
-        content_provider_link = wait_until_element(self.base.driver, self._SUB_HEADER_CONTENT_PROVIDER, By.XPATH)
+        content_provider_link = wait_until_element(self.base.driver, self.SUB_HEADER_CONTENT_PROVIDER, By.XPATH)
         try:
             hover = ActionChains(self.base.driver).move_to_element(content_provider_link)
             asserts.fail_if_none(hover, "Failed to move the mouse over the Contant Providers link.")
             hover.perform()
-            provider = wait_until_element(self.base.driver, "//li[@id='%s']/a" % content_provider_type, By.XPATH)
+            provider = wait_until_element(self.base.driver, PROVIDER % content_provider_type, By.XPATH)
             asserts.fail_if_none(provider, "Could not locate the content provider type.")
             provider.click()
         except WebDriverException, e:
@@ -98,10 +88,10 @@ class content(object):
         _prod = None
         _id = None
 
-        providers = self.base.driver.find_elements_by_xpath("//div[@id='list']/section/div")
+        providers = self.base.driver.find_elements_by_xpath(PROVIDERS)
 
         for provider in providers:
-            we = provider.find_element_by_xpath("//div[@title='%s']" % name)
+            we = provider.find_element_by_xpath(PROVIDER_BY_TITLE % name)
             if name in we.text:
                 _prod = we
                 # provider id is derived from: id=provider_39
@@ -119,13 +109,13 @@ class content(object):
         _prod = None
         _id = None
 
-        products = self.base.driver.find_elements_by_xpath( "//div[@id='products']/ul[contains(@class, 'clear fl')]")
+        products = self.base.driver.find_elements_by_xpath(PRODUCTS)
 
         for product in products:
-            we = product.find_element_by_xpath(".//li/div/div")
+            we = product.find_element_by_xpath(PRODUCT)
             if name in we.text:
                 _prod = we
-                we_id = product.find_element_by_xpath(".//li/div[@class='grid_7 editable subpanel_element']")
+                we_id = product.find_element_by_xpath(PRODUCT_ID)
                 # product id is derived from: data-url=/cfse/providers/39/products/13/edit
                 _id = we_id.get_attribute('data-url').split('/')[5]
                 break
@@ -151,15 +141,15 @@ class content(object):
         asserts.fail_if_none(new_provider_link, "Failed to locate the New Provider link.")
         new_provider_link.click()
 
-        provider_name = wait_until_element(self.base.driver, "//input[@id='provider_name']", By.XPATH)
+        provider_name = wait_until_element(self.base.driver, PROVIDER_NAME_FIELD, By.XPATH)
         asserts.fail_if_none(provider_name, "Failed to locate the provider Name field.")
         provider_name.send_keys(provider_name)
 
-        provider_description = wait_until_element(self.base.driver, "//input[@id='provider_description']", By.XPATH)
+        provider_description = wait_until_element(self.base.driver, PROVIDER_DESCRIPTION_FIELD, By.XPATH)
         asserts.fail_if_none(provider_description, "Failed to locate the provider Description field.")
         provider_description.send_keys("Automatically created by Robottelo.")
 
-        provider_save = wait_until_element(self.base.driver, "//input[@id='provider_save']", By.XPATH)
+        provider_save = wait_until_element(self.base.driver, PROVIDER_SAVE_BUTTON, By.XPATH)
         asserts.fail_if_none(provider_save, "Could not locate the Save button.")
         provider_save.click()
 
@@ -182,11 +172,11 @@ class content(object):
         asserts.fail_if_none(provider, "Could not locate the '%s' provider." % provider_name)
         provider.click()
 
-        remove_link = wait_until_element(self.base.driver, "//a[contains(@href, 'providers/%s')]" % provider_id, By.XPATH)
+        remove_link = wait_until_element(self.base.driver, PROVIDER_REMOVE_LINK % provider_id, By.XPATH)
         remove_link.click()
 
         # Find the Yes button
-        yes_button = wait_until_element(self.base.driver, "//button[@type='button']", By.XPATH)
+        yes_button = wait_until_element(self.base.driver, YES_BUTTON, By.XPATH)
         asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
         yes_button.click()
 
@@ -214,17 +204,17 @@ class content(object):
         (product, product_id) = self._get_product_by_name(product_name)
         asserts.fail_unless_none(product, "Found a provider with that name already.")
 
-        add_product_button = wait_until_element(self.base.driver, "//div[@class='button subpanel_element']", By.XPATH)
+        add_product_button = wait_until_element(self.base.driver, NEW_PRODUCT_BUTTON, By.XPATH)
         asserts.fail_if_none(add_product_button, "Could not locate the Add Product button.")
         add_product_button.click()
 
-        product_name_field = wait_until_element(self.base.driver, "//input[@id='product_name_field']", By.XPATH)
-        product_name_field.send_keys("Wild Africa")
+        product_name_field = wait_until_element(self.base.driver, PRODUCT_NAME_FIELD, By.XPATH)
+        product_name_field.send_keys(product_name)
 
-        product_description_field = wait_until_element(self.base.driver, "//input[@id='product_description_field']", By.XPATH)
+        product_description_field = wait_until_element(self.base.driver, PRODUCT_DESCRIPTION_FIELD, By.XPATH)
         product_description_field.send_keys("Automatically created by Robottelo.")
 
-        create_button = wait_until_element(self.base.driver, "//input[@class='fr subpanel_create']", By.XPATH)
+        create_button = wait_until_element(self.base.driver, PRODUCT_SAVE_BUTTON, By.XPATH)
         create_button.click()
 
         (product, product_id) = self._get_product_by_name(product_name)
@@ -250,12 +240,12 @@ class content(object):
         asserts.fail_if_none(product, "Could not locate the '%s' product." % product_name)
         product.click()
 
-        remove_link = wait_until_element(self.base.driver, "//a[@class='remove_item'][contains(@href, 'products/%s')]" % provider_id, By.XPATH)
+        remove_link = wait_until_element(self.base.driver, PRODUCT_REMOVE_LINK % provider_id, By.XPATH)
         asserts.fail_if_none(remove_link, "Failed to locate the Remove Product link.")
         remove_link.click()
 
         # Find the Yes button
-        yes_button = wait_until_element(self.base.driver, "//button[@type='button']", By.XPATH)
+        yes_button = wait_until_element(self.base.driver, YES_BUTTON, By.XPATH)
         asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
         yes_button.click()
 
@@ -277,7 +267,7 @@ class content(object):
         manifest_file = get_manifest_file(manifest)
 
         # Check for the manifest field
-        manifest_field = wait_until_element(self.base.driver, "//form[@id='upload_manifest']/div[2]/input", By.XPATH)
+        manifest_field = wait_until_element(self.base.driver, MANIFEST_FILE_FIELD, By.XPATH)
         asserts.fail_if_none(manifest_field, "Could not locate the manifest field.")
         # This is the path to the manifest file
         logger.debug(manifest_file)
@@ -286,16 +276,16 @@ class content(object):
         # Force it?
         if force:
             # Locate the Force checkbox
-            force_checkbox = wait_until_element(self.base.driver, "//div[@id='force_checkbox']/input", By.XPATH)
+            force_checkbox = wait_until_element(self.base.driver, MANIFEST_FORCE_CHECKBOX, By.XPATH)
             asserts.fail_if_none(force_checkbox, "Could not locate the Force checkbox.")
             force_checkbox.click()
 
         # Find the import link
-        submit_button = wait_until_element(self.base.driver, "//div[@id='upload_button']/a", By.XPATH)
+        submit_button = wait_until_element(self.base.driver, MANIFEST_SAVE_BUTTON, By.XPATH)
         submit_button.click()
 
         # TODO: Find a way to improve validation. count("//table[@id='redhatSubscriptionTable']/tbody/tr")?
-        subscriptions = wait_until_element(self.base.driver, "//table[@id='redhatSubscriptionTable']/tbody/tr", By.XPATH)
+        subscriptions = wait_until_element(self.base.driver, SUBSCRIPTIONS, By.XPATH)
         asserts.fail_if_none(subscriptions, "Could not find a subscription.")
 
 
@@ -311,28 +301,28 @@ class content(object):
         self.select_content_provider(REDHAT_PROVIDERS)
 
         # Locate the Enable Repo tab
-        enable_repos_tab = wait_until_element(self.base.driver, "//div[@id='tabs']/nav/ul/li[2]/a", By.XPATH)
+        enable_repos_tab = wait_until_element(self.base.driver, ENABLE_REPOS_TAB, By.XPATH)
         asserts.fail_if_none(enable_repos_tab, "Could not locate the Enable Repo tab.")
         enable_repos_tab.click()
 
         # Select the product
-        product_span= wait_until_element(self.base.driver, "//tr/td[contains(., '%s')]" % product, By.XPATH)
+        product_span= wait_until_element(self.base.driver, RHEL_PRODUCT % product, By.XPATH)
         asserts.fail_if_none(product_span, "Could not locate the '%s' product." % product)
-        product_node = wait_until_element(self.base.driver, "//tr[contains(., '%s')]" % product, By.XPATH)
+        product_node = wait_until_element(self.base.driver, RHEL_PRODUCT_ID % product, By.XPATH)
         product_id = product_node.get_attribute("id")
         product_span.click()
 
         # Select the version
-        version_span = wait_until_element(self.base.driver, "//tr[@id='%s-%s']/td/span" % (product_id, version), By.XPATH)
+        version_span = wait_until_element(self.base.driver, RHEL_PRODUCT_VERSION % (product_id, version), By.XPATH)
         asserts.fail_if_none(version_span, "Could not locate the '%s' version." % version)
         version_span.click()
 
         # Select the arch
-        arch_span = wait_until_element(self.base.driver, "//tr[@id='%s-%s-%s']/td/span" % (product_id, version, arch), By.XPATH)
+        arch_span = wait_until_element(self.base.driver, RHEL_PRODUCT_ARCH % (product_id, version, arch), By.XPATH)
         asserts.fail_if_none(arch_span, "Could not locate the '%s' arch." % arch)
         arch_span.click()
 
         # Select the component
-        repo = wait_until_element(self.base.driver, "//tr[contains(@class, 'child-of-%s-%s-%s')]/td[contains(., '%s')]/input" % (product_id, version, arch, component), By.XPATH)
+        repo = wait_until_element(self.base.driver, RHEL_PRODUCT_REPO % (product_id, version, arch, component), By.XPATH)
         asserts.fail_if_none(repo, "Could not locate the repository '%s'." % component)
         repo.click()

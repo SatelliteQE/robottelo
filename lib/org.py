@@ -4,10 +4,13 @@
 
 from base import Base
 from common import wait_until_element
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
+from locations import *
+
 from robot.api import logger
 from robot.utils import asserts
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 
 
 class org(object):
@@ -17,14 +20,6 @@ class org(object):
     """
 
     __version__ = '0.1'
-
-
-    # Locators
-    _HEADER_ORGANIZATIONS = "//li[@id='organizations']/a"
-    _NEW_ORG_LINK = "//div[@id='list-title']/header/a"
-    _ORG_NAME = "//form[@id='new_organization']/fieldset/div[2]/input"
-    _ORG_SUBMIT = "//form[@id='new_organization']/div[2]/div/input"
-    _NEW_ORG = "//div[@id='organization_%s']/div"
 
 
     def __init__(self):
@@ -39,7 +34,7 @@ class org(object):
         can_access = False
 
         # Organizations tab
-        organizations_tab = wait_until_element(self.base.driver, self._HEADER_ORGANIZATIONS, By.XPATH)
+        organizations_tab = wait_until_element(self.base.driver, self.HEADER_ORGANIZATIONS, By.XPATH)
 
         if organizations_tab is None:
             logger.warn("Could not find the Organizations tab. Perhaps this user does not have permissions to view it.")
@@ -91,20 +86,20 @@ class org(object):
         org_list_link.click()
 
         # Verify that org doesn't exist
-        org = wait_until_element(self.base.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, self.NEW_ORG % name.replace(" ", "_"), By.XPATH)
         asserts.fail_unless_none(org, "An organization named '%s' already exists." % name)
 
         # New Organization link
-        new_org_link = wait_until_element(self.base.driver, self._NEW_ORG_LINK, By.XPATH)
+        new_org_link = wait_until_element(self.base.driver, self.NEW_ORG_LINK, By.XPATH)
         asserts.fail_if_none(new_org_link, "could not find the new organization link.")
         new_org_link.click()
 
         # New org form
-        org_name = wait_until_element(self.base.driver, self._ORG_NAME, By.XPATH)
+        org_name = wait_until_element(self.base.driver, self.ORG_NAME, By.XPATH)
         asserts.fail_if_none(org_name, "Could not enter the organization name.")
         org_name.send_keys(name)
 
-        submit_button = wait_until_element(self.base.driver, self._ORG_SUBMIT, By.XPATH)
+        submit_button = wait_until_element(self.base.driver, self.ORG_SUBMIT, By.XPATH)
         submit_button.click()
 
         # Orgs List link
@@ -113,7 +108,7 @@ class org(object):
         org_list_link.click()
 
         # Verify that new org exists
-        org = wait_until_element(self.base.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, self.NEW_ORG % name.replace(" ", "_"), By.XPATH)
         asserts.fail_if_none(org, "Could not locate the newly created organization named '%s'." % name)
 
 
@@ -134,7 +129,7 @@ class org(object):
         org_list_link.click()
 
         # Verify that org exists
-        org = wait_until_element(self.base.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, self.NEW_ORG % name.replace(" ", "_"), By.XPATH)
         asserts.fail_if_none(org, "Could not locate an organization named '%s'." % name)
         org.click()
 
@@ -154,7 +149,7 @@ class org(object):
         org_list_link.click()
 
         # Verify that org doesn't exist
-        org = wait_until_element(self.base.driver, self._NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, self.NEW_ORG % name.replace(" ", "_"), By.XPATH)
         asserts.fail_unless_none(org, "Could not delete organization named '%s'." % name)
 
 
@@ -175,7 +170,7 @@ class org(object):
         org_list_link.click()
 
         # Verify that org exists
-        org = wait_until_element(self.base.driver, self._NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, self.NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
         asserts.fail_if_none(org, "Could not locate an organization named '%s'." % org_name)
         org.click()
 
@@ -223,7 +218,7 @@ class org(object):
         org_list_link.click()
 
         # Verify that org exists
-        org = wait_until_element(self.base.driver, self._NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, self.NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
         asserts.fail_if_none(org, "Could not locate an organization named '%s'." % org_name)
         org.click()
 
