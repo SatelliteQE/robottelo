@@ -19,12 +19,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 def get_manifest_file(manifest_url):
     """
     Downloads a manifest file locally to the file system.
-
-    @type manifest_file: string
-    @param manifest_file: The url to a valid manifest file.
-
-    @rtype: string
-    @return: The absolute path to the downloaded file.
     """
 
     try:
@@ -47,20 +41,6 @@ def find_element(drv, element, method=By.NAME):
     """
     Wrapper around Selenium's WebDriver that allows you to search for an element in
     the web page.
-
-    @type drv: object
-    @param drv: A Selenium WebDriver instance.
-    @type element: string
-    @param element: The string representation of the element.
-    Exemples:
-        "submit"
-        "div.error_message"
-        "//button[@id='search_button']"
-    @type method: object
-    @param method: One of the following: By.CSS_SELECTOR, By.ID, By.NAME, By.XPATH.
-
-    @rtype: object
-    @return: A Selenium WebElement object or None if not found.
     """
 
     try:
@@ -82,22 +62,6 @@ def wait_until_element(drv, element, method=By.NAME, delay=20):
     """
     Wrapper around Selenium's WebDriver that allows you to pause your test until
     an element in the web page is present.
-
-    @type drv: object
-    @param drv: A Selenium WebDriver instance.
-    @type element: string
-    @param element: The string representation of the element.
-    Exemples:
-        "submit"
-        "div.error_message"
-        "//button[@id='search_button']"
-    @type method: object
-    @param method: One of the following: By.CSS_SELECTOR, By.ID, By.NAME, By.XPATH.
-    @type delay: integer
-    @param delay: The time to wait in seconds. Default is 10 seconds.
-
-    @rtype: object
-    @return: A Selenium WebElement object or None if not found.
     """
 
     try:
