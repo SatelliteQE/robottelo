@@ -4,7 +4,7 @@
 
 from base import Base
 from common import *
-from locations import *
+from locators import *
 
 from robot.api import logger
 from robot.utils import asserts
@@ -138,7 +138,7 @@ class org(object):
         org_list_link.click()
 
         # Verify that org doesn't exist
-        org = wait_until_element(self.base.driver, self.NEW_ORG % name.replace(" ", "_"), By.XPATH)
+        org = wait_until_element(self.base.driver, NEW_ORG % name.replace(" ", "_"), By.XPATH)
         asserts.fail_unless_none(org, "Could not delete organization named '%s'." % name)
 
 
