@@ -54,18 +54,15 @@
 <span class="c"># vim: ts=4 sw=4 expandtab ai</span>
 
 <span class="kn">from</span> <span class="nn">base</span> <span class="kn">import</span> <span class="n">Base</span>
-<span class="kn">from</span> <span class="nn">common</span> <span class="kn">import</span> <span class="n">get_manifest_file</span><span class="p">,</span> <span class="n">wait_until_element</span>
-<span class="kn">from</span> <span class="nn">selenium.webdriver.common.by</span> <span class="kn">import</span> <span class="n">By</span>
-<span class="kn">from</span> <span class="nn">selenium.webdriver.common.action_chains</span> <span class="kn">import</span> <span class="n">ActionChains</span>
-<span class="kn">from</span> <span class="nn">selenium.common.exceptions</span> <span class="kn">import</span> <span class="n">NoSuchElementException</span><span class="p">,</span> <span class="n">TimeoutException</span><span class="p">,</span> <span class="n">WebDriverException</span>
+<span class="kn">from</span> <span class="nn">common</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">locators</span> <span class="kn">import</span> <span class="o">*</span>
+
 <span class="kn">from</span> <span class="nn">robot.api</span> <span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">robot.utils</span> <span class="kn">import</span> <span class="n">asserts</span>
 
-
-<span class="n">CUSTOM_PROVIDERS</span> <span class="o">=</span> <span class="s">&#39;custom_providers&#39;</span>
-<span class="n">REDHAT_PROVIDERS</span> <span class="o">=</span> <span class="s">&#39;redhat_providers&#39;</span>
-<span class="n">FILTERS</span> <span class="o">=</span> <span class="s">&#39;filters&#39;</span>
-<span class="n">GPG</span> <span class="o">=</span> <span class="s">&#39;gpg&#39;</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.common.by</span> <span class="kn">import</span> <span class="n">By</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.common.action_chains</span> <span class="kn">import</span> <span class="n">ActionChains</span>
+<span class="kn">from</span> <span class="nn">selenium.common.exceptions</span> <span class="kn">import</span> <span class="n">NoSuchElementException</span><span class="p">,</span> <span class="n">TimeoutException</span><span class="p">,</span> <span class="n">WebDriverException</span>
 
 
 <div class="viewcode-block" id="content"><a class="viewcode-back" href="../../lib.html#lib.content.content">[docs]</a><span class="k">class</span> <span class="nc">content</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -74,17 +71,7 @@
 <span class="sd">    content to an existing organization.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c">#ROBOT_LIBRARY_SCOPE = &#39;TEST_CASE&#39;</span>
     <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span>
-
-
-    <span class="c"># Locators</span>
-    <span class="n">_HEADER_CONTENT_MANAGEMENT</span> <span class="o">=</span> <span class="s">&quot;//li[@id=&#39;content&#39;]/a&quot;</span>
-    <span class="n">_SUB_HEADER_CONTENT_PROVIDER</span> <span class="o">=</span> <span class="s">&quot;//li[@id=&#39;providers&#39;]/a&quot;</span>
-    <span class="n">_NEW_ORG_LINK</span> <span class="o">=</span> <span class="s">&quot;//div[@id=&#39;list-title&#39;]/header/a&quot;</span>
-    <span class="n">_ORG_NAME</span> <span class="o">=</span> <span class="s">&quot;//form[@id=&#39;new_organization&#39;]/fieldset/div[2]/input&quot;</span>
-    <span class="n">_ORG_SUBMIT</span> <span class="o">=</span> <span class="s">&quot;//form[@id=&#39;new_organization&#39;]/div[2]/div/input&quot;</span>
-    <span class="n">_NEW_ORG</span> <span class="o">=</span> <span class="s">&quot;//div[@id=&#39;organization_</span><span class="si">%s</span><span class="s">&#39;]/div&quot;</span>
 
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -96,18 +83,7 @@
 <span class="sd">        Takes user to the Content Management tab in the ui.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">can_access</span> <span class="o">=</span> <span class="bp">False</span>
-
-        <span class="c"># Organizations tab</span>
-        <span class="n">content_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HEADER_CONTENT_MANAGEMENT</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">content_tab</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Could not find the Organizations tab.&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">can_access</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="n">content_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="n">can_access</span>
+        <span class="k">return</span> <span class="n">select_tab</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">HEADER_CONTENT_MANAGEMENT</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="content.select_content_provider"><a class="viewcode-back" href="../../lib.html#lib.content.content.select_content_provider">[docs]</a>    <span class="k">def</span> <span class="nf">select_content_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content_provider_type</span><span class="p">):</span>
@@ -116,12 +92,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Hover over the Content Provider link</span>
-        <span class="n">content_provider_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SUB_HEADER_CONTENT_PROVIDER</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">content_provider_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">SUB_HEADER_CONTENT_PROVIDER</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">hover</span> <span class="o">=</span> <span class="n">ActionChains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">)</span><span class="o">.</span><span class="n">move_to_element</span><span class="p">(</span><span class="n">content_provider_link</span><span class="p">)</span>
             <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">hover</span><span class="p">,</span> <span class="s">&quot;Failed to move the mouse over the Contant Providers link.&quot;</span><span class="p">)</span>
             <span class="n">hover</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
-            <span class="n">provider</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//li[@id=&#39;</span><span class="si">%s</span><span class="s">&#39;]/a&quot;</span> <span class="o">%</span> <span class="n">content_provider_type</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+            <span class="n">provider</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PROVIDER</span> <span class="o">%</span> <span class="n">content_provider_type</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
             <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s">&quot;Could not locate the content provider type.&quot;</span><span class="p">)</span>
             <span class="n">provider</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">WebDriverException</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
@@ -149,10 +125,10 @@
         <span class="n">_prod</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">_id</span> <span class="o">=</span> <span class="bp">None</span>
 
-        <span class="n">providers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span><span class="s">&quot;//div[@id=&#39;list&#39;]/section/div&quot;</span><span class="p">)</span>
+        <span class="n">providers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span><span class="n">PROVIDERS</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">provider</span> <span class="ow">in</span> <span class="n">providers</span><span class="p">:</span>
-            <span class="n">we</span> <span class="o">=</span> <span class="n">provider</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="s">&quot;//div[@title=&#39;</span><span class="si">%s</span><span class="s">&#39;]&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">we</span> <span class="o">=</span> <span class="n">provider</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">PROVIDER_BY_TITLE</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">we</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
                 <span class="n">_prod</span> <span class="o">=</span> <span class="n">we</span>
                 <span class="c"># provider id is derived from: id=provider_39</span>
@@ -170,13 +146,13 @@
         <span class="n">_prod</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">_id</span> <span class="o">=</span> <span class="bp">None</span>
 
-        <span class="n">products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span> <span class="s">&quot;//div[@id=&#39;products&#39;]/ul[contains(@class, &#39;clear fl&#39;)]&quot;</span><span class="p">)</span>
+        <span class="n">products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_elements_by_xpath</span><span class="p">(</span><span class="n">PRODUCTS</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
-            <span class="n">we</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="s">&quot;.//li/div/div&quot;</span><span class="p">)</span>
+            <span class="n">we</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">PRODUCT</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">we</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
                 <span class="n">_prod</span> <span class="o">=</span> <span class="n">we</span>
-                <span class="n">we_id</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="s">&quot;.//li/div[@class=&#39;grid_7 editable subpanel_element&#39;]&quot;</span><span class="p">)</span>
+                <span class="n">we_id</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">PRODUCT_ID</span><span class="p">)</span>
                 <span class="c"># product id is derived from: data-url=/cfse/providers/39/products/13/edit</span>
                 <span class="n">_id</span> <span class="o">=</span> <span class="n">we_id</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s">&#39;data-url&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">5</span><span class="p">]</span>
                 <span class="k">break</span>
@@ -190,7 +166,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">(),</span> <span class="s">&quot;Could not access the Content Management tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Select custom provider type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">CUSTOM_PROVIDERS</span><span class="p">)</span>
@@ -202,15 +178,15 @@
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">new_provider_link</span><span class="p">,</span> <span class="s">&quot;Failed to locate the New Provider link.&quot;</span><span class="p">)</span>
         <span class="n">new_provider_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
-        <span class="n">provider_name</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//input[@id=&#39;provider_name&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">provider_name</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PROVIDER_NAME_FIELD</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">provider_name</span><span class="p">,</span> <span class="s">&quot;Failed to locate the provider Name field.&quot;</span><span class="p">)</span>
         <span class="n">provider_name</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">provider_name</span><span class="p">)</span>
 
-        <span class="n">provider_description</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//input[@id=&#39;provider_description&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">provider_description</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PROVIDER_DESCRIPTION_FIELD</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">provider_description</span><span class="p">,</span> <span class="s">&quot;Failed to locate the provider Description field.&quot;</span><span class="p">)</span>
         <span class="n">provider_description</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&quot;Automatically created by Robottelo.&quot;</span><span class="p">)</span>
 
-        <span class="n">provider_save</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//input[@id=&#39;provider_save&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">provider_save</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PROVIDER_SAVE_BUTTON</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">provider_save</span><span class="p">,</span> <span class="s">&quot;Could not locate the Save button.&quot;</span><span class="p">)</span>
         <span class="n">provider_save</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
@@ -224,7 +200,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">(),</span> <span class="s">&quot;Could not access the Content Management tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Select custom provider type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">CUSTOM_PROVIDERS</span><span class="p">)</span>
@@ -233,11 +209,11 @@
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; provider.&quot;</span> <span class="o">%</span> <span class="n">provider_name</span><span class="p">)</span>
         <span class="n">provider</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
-        <span class="n">remove_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[contains(@href, &#39;providers/</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">provider_id</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">remove_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PROVIDER_REMOVE_LINK</span> <span class="o">%</span> <span class="n">provider_id</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">remove_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Find the Yes button</span>
-        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//button[@type=&#39;button&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">YES_BUTTON</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">yes_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Yes button to remove role.&quot;</span><span class="p">)</span>
         <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
@@ -253,7 +229,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">(),</span> <span class="s">&quot;Could not access the Content Management tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Select custom provider type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">CUSTOM_PROVIDERS</span><span class="p">)</span>
@@ -265,17 +241,17 @@
         <span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">product_id</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_product_by_name</span><span class="p">(</span><span class="n">product_name</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_unless_none</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="s">&quot;Found a provider with that name already.&quot;</span><span class="p">)</span>
 
-        <span class="n">add_product_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@class=&#39;button subpanel_element&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">add_product_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">NEW_PRODUCT_BUTTON</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">add_product_button</span><span class="p">,</span> <span class="s">&quot;Could not locate the Add Product button.&quot;</span><span class="p">)</span>
         <span class="n">add_product_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
-        <span class="n">product_name_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//input[@id=&#39;product_name_field&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
-        <span class="n">product_name_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&quot;Wild Africa&quot;</span><span class="p">)</span>
+        <span class="n">product_name_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PRODUCT_NAME_FIELD</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">product_name_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">product_name</span><span class="p">)</span>
 
-        <span class="n">product_description_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//input[@id=&#39;product_description_field&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">product_description_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PRODUCT_DESCRIPTION_FIELD</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">product_description_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&quot;Automatically created by Robottelo.&quot;</span><span class="p">)</span>
 
-        <span class="n">create_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//input[@class=&#39;fr subpanel_create&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">create_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PRODUCT_SAVE_BUTTON</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">create_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">product_id</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_product_by_name</span><span class="p">(</span><span class="n">product_name</span><span class="p">)</span>
@@ -288,7 +264,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">(),</span> <span class="s">&quot;Could not access the Content Management tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Select custom provider type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">CUSTOM_PROVIDERS</span><span class="p">)</span>
@@ -301,12 +277,12 @@
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; product.&quot;</span> <span class="o">%</span> <span class="n">product_name</span><span class="p">)</span>
         <span class="n">product</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
-        <span class="n">remove_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//a[@class=&#39;remove_item&#39;][contains(@href, &#39;products/</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">provider_id</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">remove_link</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">PRODUCT_REMOVE_LINK</span> <span class="o">%</span> <span class="n">provider_id</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">remove_link</span><span class="p">,</span> <span class="s">&quot;Failed to locate the Remove Product link.&quot;</span><span class="p">)</span>
         <span class="n">remove_link</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Find the Yes button</span>
-        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//button[@type=&#39;button&#39;]&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">yes_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">YES_BUTTON</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">yes_button</span><span class="p">,</span> <span class="s">&quot;Could not find the Yes button to remove role.&quot;</span><span class="p">)</span>
         <span class="n">yes_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
@@ -320,7 +296,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">(),</span> <span class="s">&quot;Could not access the Content Management tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Select Red Hat content type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">REDHAT_PROVIDERS</span><span class="p">)</span>
@@ -328,7 +304,7 @@
         <span class="n">manifest_file</span> <span class="o">=</span> <span class="n">get_manifest_file</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
 
         <span class="c"># Check for the manifest field</span>
-        <span class="n">manifest_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//form[@id=&#39;upload_manifest&#39;]/div[2]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">manifest_field</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">MANIFEST_FILE_FIELD</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">manifest_field</span><span class="p">,</span> <span class="s">&quot;Could not locate the manifest field.&quot;</span><span class="p">)</span>
         <span class="c"># This is the path to the manifest file</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span>
@@ -337,16 +313,16 @@
         <span class="c"># Force it?</span>
         <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
             <span class="c"># Locate the Force checkbox</span>
-            <span class="n">force_checkbox</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;force_checkbox&#39;]/input&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+            <span class="n">force_checkbox</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">MANIFEST_FORCE_CHECKBOX</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
             <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">force_checkbox</span><span class="p">,</span> <span class="s">&quot;Could not locate the Force checkbox.&quot;</span><span class="p">)</span>
             <span class="n">force_checkbox</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Find the import link</span>
-        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;upload_button&#39;]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">submit_button</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">MANIFEST_SAVE_BUTTON</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">submit_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># TODO: Find a way to improve validation. count(&quot;//table[@id=&#39;redhatSubscriptionTable&#39;]/tbody/tr&quot;)?</span>
-        <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//table[@id=&#39;redhatSubscriptionTable&#39;]/tbody/tr&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">SUBSCRIPTIONS</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">,</span> <span class="s">&quot;Could not find a subscription.&quot;</span><span class="p">)</span>
 
 </div>
@@ -356,35 +332,35 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Select Contents tab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">()</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_true</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">go_to_content_tab</span><span class="p">(),</span> <span class="s">&quot;Could not access the Content Management tab.&quot;</span><span class="p">)</span>
 
         <span class="c"># Select Red Hat content type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_content_provider</span><span class="p">(</span><span class="n">REDHAT_PROVIDERS</span><span class="p">)</span>
 
         <span class="c"># Locate the Enable Repo tab</span>
-        <span class="n">enable_repos_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//div[@id=&#39;tabs&#39;]/nav/ul/li[2]/a&quot;</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">enable_repos_tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">ENABLE_REPOS_TAB</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">enable_repos_tab</span><span class="p">,</span> <span class="s">&quot;Could not locate the Enable Repo tab.&quot;</span><span class="p">)</span>
         <span class="n">enable_repos_tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Select the product</span>
-        <span class="n">product_span</span><span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//tr/td[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">product</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">product_span</span><span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">RHEL_PRODUCT</span> <span class="o">%</span> <span class="n">product</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">product_span</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; product.&quot;</span> <span class="o">%</span> <span class="n">product</span><span class="p">)</span>
-        <span class="n">product_node</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//tr[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]&quot;</span> <span class="o">%</span> <span class="n">product</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">product_node</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">RHEL_PRODUCT_ID</span> <span class="o">%</span> <span class="n">product</span><span class="p">,</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">product_id</span> <span class="o">=</span> <span class="n">product_node</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">)</span>
         <span class="n">product_span</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Select the version</span>
-        <span class="n">version_span</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//tr[@id=&#39;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;]/td/span&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">version</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">version_span</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">RHEL_PRODUCT_VERSION</span> <span class="o">%</span> <span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">version</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">version_span</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; version.&quot;</span> <span class="o">%</span> <span class="n">version</span><span class="p">)</span>
         <span class="n">version_span</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Select the arch</span>
-        <span class="n">arch_span</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//tr[@id=&#39;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;]/td/span&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">arch</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">arch_span</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">RHEL_PRODUCT_ARCH</span> <span class="o">%</span> <span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">arch</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">arch_span</span><span class="p">,</span> <span class="s">&quot;Could not locate the &#39;</span><span class="si">%s</span><span class="s">&#39; arch.&quot;</span> <span class="o">%</span> <span class="n">arch</span><span class="p">)</span>
         <span class="n">arch_span</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
         <span class="c"># Select the component</span>
-        <span class="n">repo</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="s">&quot;//tr[contains(@class, &#39;child-of-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;)]/td[contains(., &#39;</span><span class="si">%s</span><span class="s">&#39;)]/input&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">arch</span><span class="p">,</span> <span class="n">component</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">driver</span><span class="p">,</span> <span class="n">RHEL_PRODUCT_REPO</span> <span class="o">%</span> <span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">arch</span><span class="p">,</span> <span class="n">component</span><span class="p">),</span> <span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">)</span>
         <span class="n">asserts</span><span class="o">.</span><span class="n">fail_if_none</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="s">&quot;Could not locate the repository &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> <span class="o">%</span> <span class="n">component</span><span class="p">)</span>
         <span class="n">repo</span><span class="o">.</span><span class="n">click</span><span class="p">()</span></div></div>
 </pre></div>

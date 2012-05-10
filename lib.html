@@ -153,6 +153,12 @@ find_element(driver, &#8220;//button[&#64;id=&#8217;search_button&#8217;]&#8221;
 </dd></dl>
 
 <dl class="function">
+<dt id="lib.common.select_tab">
+<tt class="descclassname">lib.common.</tt><tt class="descname">select_tab</tt><big>(</big><em>drv</em>, <em>element</em>, <em>method='xpath'</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#select_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.select_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the user to a section of the ui by clicking on the given tab.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="lib.common.wait_until_element">
 <tt class="descclassname">lib.common.</tt><tt class="descname">wait_until_element</tt><big>(</big><em>drv</em>, <em>element</em>, <em>method='name'</em>, <em>delay=20</em><big>)</big><a class="reference internal" href="_modules/lib/common.html#wait_until_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.wait_until_element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper around Selenium&#8217;s WebDriver that allows you to pause your test until
@@ -285,7 +291,7 @@ editing, and deleting organizations and environments.</p>
 
 <dl class="method">
 <dt id="lib.org.org.create_org">
-<tt class="descname">create_org</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.create_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.create_org" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">create_org</tt><big>(</big><em>org_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.create_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.create_org" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new organization with the provided name.</p>
 </dd></dl>
 
@@ -297,7 +303,7 @@ editing, and deleting organizations and environments.</p>
 
 <dl class="method">
 <dt id="lib.org.org.delete_org">
-<tt class="descname">delete_org</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.delete_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.delete_org" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">delete_org</tt><big>(</big><em>org_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.delete_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.delete_org" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new organization with the provided name.</p>
 </dd></dl>
 
@@ -310,6 +316,12 @@ editing, and deleting organizations and environments.</p>
 <dl class="method">
 <dt id="lib.org.org.select_org">
 <tt class="descname">select_org</tt><big>(</big><em>org_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.select_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.select_org" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects the specified organization from the ones available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lib.org.org.switch_to_org">
+<tt class="descname">switch_to_org</tt><big>(</big><em>org_name</em><big>)</big><a class="reference internal" href="_modules/lib/org.html#org.switch_to_org"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.org.org.switch_to_org" title="Permalink to this definition">¶</a></dt>
 <dd><p>Switch the ui context to the provided org name.</p>
 </dd></dl>
 

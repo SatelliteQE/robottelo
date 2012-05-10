@@ -67,29 +67,6 @@
 <span class="kn">from</span> <span class="nn">selenium.webdriver.support.ui</span> <span class="kn">import</span> <span class="n">WebDriverWait</span>
 
 
-<div class="viewcode-block" id="get_manifest_file"><a class="viewcode-back" href="../../lib.html#lib.common.get_manifest_file">[docs]</a><span class="k">def</span> <span class="nf">get_manifest_file</span><span class="p">(</span><span class="n">manifest_url</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Downloads a manifest file locally to the file system.</span>
-
-<span class="sd">    Exemples:</span>
-<span class="sd">        get_manifest_file(&#39;http://example.com/manifest.zip&#39;)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">remote_file</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">manifest_url</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_fail</span><span class="p">(</span><span class="s">&quot;Failed to download the manifest file at </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="n">manifest_url</span><span class="p">)</span>
-
-    <span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">()</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">remote_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-    <span class="k">return</span> <span class="n">filename</span>
-
-</div>
 <div class="viewcode-block" id="find_element"><a class="viewcode-back" href="../../lib.html#lib.common.find_element">[docs]</a><span class="k">def</span> <span class="nf">find_element</span><span class="p">(</span><span class="n">drv</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
@@ -114,6 +91,47 @@
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Failed to locate element &#39;</span><span class="si">%s</span><span class="s">&#39;. ERROR: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
         <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="get_manifest_file"><a class="viewcode-back" href="../../lib.html#lib.common.get_manifest_file">[docs]</a><span class="k">def</span> <span class="nf">get_manifest_file</span><span class="p">(</span><span class="n">manifest_url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downloads a manifest file locally to the file system.</span>
+
+<span class="sd">    Exemples:</span>
+<span class="sd">        get_manifest_file(&#39;http://example.com/manifest.zip&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">remote_file</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">manifest_url</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">asserts</span><span class="o">.</span><span class="n">assert_fail</span><span class="p">(</span><span class="s">&quot;Failed to download the manifest file at </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="n">manifest_url</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">()</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">remote_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">filename</span>
+
+</div>
+<div class="viewcode-block" id="select_tab"><a class="viewcode-back" href="../../lib.html#lib.common.select_tab">[docs]</a><span class="k">def</span> <span class="nf">select_tab</span><span class="p">(</span><span class="n">drv</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">By</span><span class="o">.</span><span class="n">XPATH</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes the user to a section of the ui by clicking on the given tab.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">can_access</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">tab</span> <span class="o">=</span> <span class="n">wait_until_element</span><span class="p">(</span><span class="n">drv</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tab</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Was not able to locate the tab corresponding to &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">element</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">can_access</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">tab</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">can_access</span>
 
 </div>
 <div class="viewcode-block" id="wait_until_element"><a class="viewcode-back" href="../../lib.html#lib.common.wait_until_element">[docs]</a><span class="k">def</span> <span class="nf">wait_until_element</span><span class="p">(</span><span class="n">drv</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
