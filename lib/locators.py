@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-# Administration
+# List of page locators.
 
 ADMIN_TAB = "//li[@id='admin']/a"
 CUSTOM_PROVIDERS = 'custom_providers'
@@ -28,9 +28,9 @@ ORG = "//a[contains(., '%s')]"
 ORGANIZATIONS_SELECTOR = "//a[@id='switcherButton']/div"
 ORGS_LIST = "//form[@id='new_user']/fieldset[5]/div[2]/select"
 ORGS_LIST_LINK = "//li[@id='org_list']/a"
-ORG_NAME = "//form[@id='new_organization']/fieldset/div[2]/input"
+ORG_NAME_FIELD = "//form[@id='new_organization']/fieldset/div[2]/input"
 ORG_REMOVE_LINK = "//div[@id='panel']/div/div[2]/div/a"
-ORG_SUBMIT = "//form[@id='new_organization']/div[2]/div/input"
+ORG_SAVE_BUTTON = "//form[@id='new_organization']/div[2]/div/input"
 PERMISSION = "//span[contains(., '%s')]"
 PERMISSION_NAME_FIELD = "//div[@id='details_container']/input"
 PERMISSION_SAVE_BUTTON = "//div[@id='permission_button_bar']/div[3]"
@@ -70,12 +70,12 @@ SUBSCRIPTIONS = "//table[@id='redhatSubscriptionTable']/tbody/tr"
 SUB_HEADER_CONTENT_PROVIDER = "//li[@id='providers']/a"
 USER = "//div[contains(@title, '%s')]"
 USERS_LINK = "//li[@id='users']/a"
+USER_ADD_ROLE = "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-plus')]"
 USER_EMAIL_FIELD = "//form[@id='new_user']/fieldset[4]/div[2]/input"
 USER_NAME_FIELD = "//form[@id='new_user']/fieldset/div[2]/input"
 USER_PASSWORD_CONFIRMATION_FIELD = "//form[@id='new_user']/fieldset[3]/div[2]/input"
 USER_PASSWORD_FIELD = "//form[@id='new_user']/fieldset[2]/div[2]/input"
 USER_REMOVE_LINK = "//div[@id='panel']/div/div[2]/div/a"
-USER_ADD_ROLE = "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-plus')]"
 USER_REMOVE_ROLE = "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-minus')]"
 USER_ROLES_LINK = "//div/div[2]/nav/ul/li[2]/a"
 USER_ROLE_SAVE_BUTTON = "//form[@id='update_roles']/div[3]/div/input[2]"
