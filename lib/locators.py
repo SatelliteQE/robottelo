@@ -5,36 +5,39 @@
 # Administration
 
 ADMIN_TAB = "//li[@id='admin']/a"
-
-# Organizations
-
+CUSTOM_PROVIDERS = 'custom_providers'
+ENABLE_REPOS_TAB = "//div[@id='tabs']/nav/ul/li[2]/a"
 ENV = "//a[contains(@class, 'subpanel_element')]/div[contains(.,'%s')]"
 ENV_NAME_FIELD = "//form[@id='new_subpanel']/fieldset/div/input"
 ENV_REMOVE_LINK = "//div[@id='subpanel']/div/div[2]/div/a"
 ENV_SAVE_BUTTON = "//form[@id='new_subpanel']/div[2]/input"
+FILTERS = 'filters'
+GPG = 'gpg'
+HEADER_CONTENT_MANAGEMENT = "//li[@id='content']/a"
 HEADER_ORGANIZATIONS = "//li[@id='organizations']/a"
+MANIFEST_FILE_FIELD = "//form[@id='upload_manifest']/div[2]/input"
+MANIFEST_FORCE_CHECKBOX = "//div[@id='force_checkbox']/input"
+MANIFEST_SAVE_BUTTON = "//div[@id='upload_button']/a"
 NEW_ENV_BUTTON = "//div[contains(@class, 'button subpanel_element')]"
 NEW_ORG = "//div[@id='organization_%s']/div"
 NEW_ORG_LINK = "//div[@id='list-title']/header/a"
+NEW_PRODUCT_BUTTON = "//div[@class='button subpanel_element']"
+NEW_ROLE_LINK = "//div[@id='list-title']/header/a"
+NEW_USER_LINK = "//div[@id='list-title']/header/a"
 ORG = "//a[contains(., '%s')]"
 ORGANIZATIONS_SELECTOR = "//a[@id='switcherButton']/div"
+ORGS_LIST = "//form[@id='new_user']/fieldset[5]/div[2]/select"
 ORGS_LIST_LINK = "//li[@id='org_list']/a"
 ORG_NAME = "//form[@id='new_organization']/fieldset/div[2]/input"
 ORG_REMOVE_LINK = "//div[@id='panel']/div/div[2]/div/a"
 ORG_SUBMIT = "//form[@id='new_organization']/div[2]/div/input"
+PERMISSION = "//span[contains(., '%s')]"
+PERMISSION_NAME_FIELD = "//div[@id='details_container']/input"
+PERMISSION_SAVE_BUTTON = "//div[@id='permission_button_bar']/div[3]"
+PERMISSION_TYPES_LIST = "//div[@id='resource_type_container']/select"
+PERMISSION_TYPES_NEXT_BUTTON = "//div[@id='permission_button_bar']/div[2]"
+PERMISSION_VERBS_LIST = "//select[@id='verbs']"
 PRIOR_ENV_LIST = "//form[@id='new_subpanel']/fieldset[3]/div/select"
-
-# Content
-
-CUSTOM_PROVIDERS = 'custom_providers'
-ENABLE_REPOS_TAB = "//div[@id='tabs']/nav/ul/li[2]/a"
-FILTERS = 'filters'
-GPG = 'gpg'
-HEADER_CONTENT_MANAGEMENT = "//li[@id='content']/a"
-MANIFEST_FILE_FIELD = "//form[@id='upload_manifest']/div[2]/input"
-MANIFEST_FORCE_CHECKBOX = "//div[@id='force_checkbox']/input"
-MANIFEST_SAVE_BUTTON = "//div[@id='upload_button']/a"
-NEW_PRODUCT_BUTTON = "//div[@class='button subpanel_element']"
 PRODUCT = ".//li/div/div"
 PRODUCTS = "//div[@id='products']/ul[contains(@class, 'clear fl')]"
 PRODUCT_DESCRIPTION_FIELD = "//input[@id='product_description_field']"
@@ -55,9 +58,26 @@ RHEL_PRODUCT_ARCH = "//tr[@id='%s-%s-%s']/td/span"
 RHEL_PRODUCT_ID = "//tr[contains(., '%s')]"
 RHEL_PRODUCT_REPO = "//tr[contains(@class, 'child-of-%s-%s-%s')]/td[contains(., '%s')]/input"
 RHEL_PRODUCT_VERSION = "//tr[@id='%s-%s']/td/span"
+ROLE = "//span[contains(., '%s')]"
+ROLES_LINK = "//li[@id='roles']/a"
+ROLE_NAME_FIELD = "//form[@id='new_role']/fieldset/div[2]/input"
+ROLE_PERMISSIONS = "//div[@id='role_permissions']/span"
+ROLE_PERMISSION_SAVE_BUTTON = "//span[@id='add_permission_icon']"
+ROLE_PERMISSION_TYPE = "//div[@id='%s']/span"
+ROLE_REMOVE_BUTTON = "//div[@id='remove_role']/span[2]"
+ROLE_SAVE_BUTTON = "//form[@id='new_role']/div[2]/div/input"
 SUBSCRIPTIONS = "//table[@id='redhatSubscriptionTable']/tbody/tr"
 SUB_HEADER_CONTENT_PROVIDER = "//li[@id='providers']/a"
-
-
-# Dialogs
+USER = "//div[contains(@title, '%s')]"
+USERS_LINK = "//li[@id='users']/a"
+USER_EMAIL_FIELD = "//form[@id='new_user']/fieldset[4]/div[2]/input"
+USER_NAME_FIELD = "//form[@id='new_user']/fieldset/div[2]/input"
+USER_PASSWORD_CONFIRMATION_FIELD = "//form[@id='new_user']/fieldset[3]/div[2]/input"
+USER_PASSWORD_FIELD = "//form[@id='new_user']/fieldset[2]/div[2]/input"
+USER_REMOVE_LINK = "//div[@id='panel']/div/div[2]/div/a"
+USER_ADD_ROLE = "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-plus')]"
+USER_REMOVE_ROLE = "//li[contains(@title, '%s')]/a/span[contains(@class, 'ui-icon-minus')]"
+USER_ROLES_LINK = "//div/div[2]/nav/ul/li[2]/a"
+USER_ROLE_SAVE_BUTTON = "//form[@id='update_roles']/div[3]/div/input[2]"
+USER_SAVE_BUTTON = "//form[@id='new_user']/div[4]/div/input"
 YES_BUTTON = "//button[@type='button']"
