@@ -95,8 +95,8 @@ to perform the action of login into the web ui using the administrator account.
 This next line passes the user's personal information to the ``Create User`` method which,
 as you may have guessed, will create the user account using the web ui.
 
-Running the test:
------------------
+Running the test
+----------------
 
 Tests can be invoked by using the standard RobotFramework format of running **pybot** and arguments:
 
@@ -104,8 +104,8 @@ Tests can be invoked by using the standard RobotFramework format of running **py
 
     pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello create_users.txt
 
-Advanced Use:
--------------
+Advanced
+========
 
 By taking advantage of the modules imported into the ``Library`` and data from ``resource``
 files, we could then create a more complex test, such as creating roles and assignining them
@@ -151,15 +151,22 @@ The file **variables.py** would then contain:
     ADMIN_USER = admin
     ADMIN_PASSWD = passwd
 
+Known Issues
+============
+
+* ``KB #1``:  ``pyBot`` fails to start Selenium with an error message complaining about ``libX11.so.6``:  This is related to ``python`` invoking 32-bit X11 lib files instead of 64-bit when using Selenium web (see `this <http://bit.ly/J1cDG0>`_ for more information). Here's how to work around it though:
+
+::
+
+    sudo rm /usr/lib/libX11.so.6
+    sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6
 
 Contents:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
-   knownissues
    lib
-
 
 Indices and tables
 ==================

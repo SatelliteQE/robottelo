@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Robottelo 0.0.1 documentation" href="#" />
-    <link rel="next" title="Known Issues" href="knownissues.html" /> 
+    <link rel="next" title="lib Package" href="lib.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,7 +39,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="knownissues.html" title="Known Issues"
+          <a href="lib.html" title="lib Package"
              accesskey="N">next</a> |</li>
         <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -122,13 +122,14 @@ to perform the action of login into the web ui using the administrator account.<
 as you may have guessed, will create the user account using the web ui.</p>
 </div>
 <div class="section" id="running-the-test">
-<h2>Running the test:<a class="headerlink" href="#running-the-test" title="Permalink to this headline">¶</a></h2>
+<h2>Running the test<a class="headerlink" href="#running-the-test" title="Permalink to this headline">¶</a></h2>
 <p>Tests can be invoked by using the standard RobotFramework format of running <strong>pybot</strong> and arguments:</p>
 <div class="highlight-python"><pre>pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello create_users.txt</pre>
 </div>
 </div>
-<div class="section" id="advanced-use">
-<h2>Advanced Use:<a class="headerlink" href="#advanced-use" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="advanced">
+<h1>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h1>
 <p>By taking advantage of the modules imported into the <tt class="docutils literal"><span class="pre">Library</span></tt> and data from <tt class="docutils literal"><span class="pre">resource</span></tt>
 files, we could then create a more complex test, such as creating roles and assignining them
 to new or existing users</p>
@@ -162,10 +163,18 @@ Add Role To User 1
 <span class="n">ADMIN_PASSWD</span> <span class="o">=</span> <span class="n">passwd</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="known-issues">
+<h1>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">KB</span> <span class="pre">#1</span></tt>:  <tt class="docutils literal"><span class="pre">pyBot</span></tt> fails to start Selenium with an error message complaining about <tt class="docutils literal"><span class="pre">libX11.so.6</span></tt>:  This is related to <tt class="docutils literal"><span class="pre">python</span></tt> invoking 32-bit X11 lib files instead of 64-bit when using Selenium web (see <a class="reference external" href="http://bit.ly/J1cDG0">this</a> for more information). Here&#8217;s how to work around it though:</li>
+</ul>
+<div class="highlight-python"><pre>sudo rm /usr/lib/libX11.so.6
+sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
+</div>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="knownissues.html">Known Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lib.html">lib Package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.administration"><tt class="docutils literal"><span class="pre">administration</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
@@ -176,7 +185,6 @@ Add Role To User 1
 </ul>
 </li>
 </ul>
-</div>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -202,18 +210,19 @@ Add Role To User 1
 <li><a class="reference internal" href="#creating-new-users">Creating new users</a></li>
 <li><a class="reference internal" href="#settings-section">Settings Section</a></li>
 <li><a class="reference internal" href="#test-case-section">Test Case Section</a></li>
-<li><a class="reference internal" href="#running-the-test">Running the test:</a></li>
-<li><a class="reference internal" href="#advanced-use">Advanced Use:</a><ul>
+<li><a class="reference internal" href="#running-the-test">Running the test</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#advanced">Advanced</a></li>
+<li><a class="reference internal" href="#known-issues">Known Issues</a><ul>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="knownissues.html"
-                        title="next chapter">Known Issues</a></p>
+  <p class="topless"><a href="lib.html"
+                        title="next chapter">lib Package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -246,7 +255,7 @@ Add Role To User 1
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="knownissues.html" title="Known Issues"
+          <a href="lib.html" title="lib Package"
              >next</a> |</li>
         <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
       </ul>
