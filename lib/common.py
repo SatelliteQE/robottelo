@@ -75,7 +75,7 @@ def select_tab(drv, element, method=By.XPATH):
     tab = wait_until_element(drv, element, method)
 
     if tab is None:
-        logger.warn("Was not able to locate the tab corresponding to '%s'" % elment)
+        logger.warn("Was not able to locate the tab corresponding to '%s'" % element)
     else:
         can_access = True
         tab.click()
