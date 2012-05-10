@@ -1,22 +1,23 @@
-Robottelo:
-==========
-
+Robottelo
+=========
 This is an automation test suite for the `Katello <http://katello.org/>`_ project based in the `Robot <https://code.google.com/p/robotframework/>`_ testing framework.
 
 My goal is to design a `keyword <http://en.wikipedia.org/wiki/Keyword-driven_testing>`_, `data <http://en.wikipedia.org/wiki/Data-driven_testing>`_ driven suite that can be used in a continuous integration environment.
-
-Requirements:
--------------
-
-Run **pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
 Quickstart
 ==========
 
 This page gives you a good introduction in how to get started with ``Robottelo``.
+
+Requirements:
+-------------
 If you haven't cloned the source code yet, then make sure to do it now:
+
 ::
+
     git clone git://github.com/omaciel/robottelo.git
+
+Then, run **pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
 Now, let's get started with some simple tests.
 
@@ -26,14 +27,18 @@ Creating new users
 Adding new users to a Katello system is pretty simple. First, add the ``username``,
 ``password`` and ``email`` address for the users you want to add into a ``resource``
 file. Assuming you created a new ``cartoon_users.txt`` file
+
 ::
+
     *** Variables ***
     # Variable name     # Username      #Password   # Email
     @{cartoon_user_0}   Homer Simpson   dohh        sprinfieldguy@example.com
     @{cartoon_user_1}   Fred Flinstone  yabba       bedrock4ever@example.com
 
 Now let's create a test file ``create_users.txt`` to create these users
+
 ::
+
     *** settings ***    *** Value ***
 
     Resource        resources/global.txt
@@ -70,31 +75,39 @@ Test Case Section
 -----------------
 This is where we create our tests by using the individual methods provided by the ``Library``
 modules to custom build an action.
+
 ::
+
     Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
 
 This individual test makes use of the ``Login User`` method provided by the ``Library`` modules
 to perform the action of login into the web ui using the administrator account.
+
 ::
+
     Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
 
 This next line passes the user's personal information to the ``Create User`` method which,
 as you may have guessed, will create the user account using the web ui.
 
 Running the test:
-----------------
+-----------------
 
 Tests can be invoked by using the standard RobotFramework format of running **pybot** and arguments:
+
 ::
+
     pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello create_users.txt
 
 Advanced Use:
-------------
+-------------
 
 By taking advantage of the modules imported into the ``Library`` and data from ``resource``
 files, we could then create a more complex test, such as creating roles and assignining them
 to new or existing users
+
 ::
+
     Create User 1
         Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
         Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
@@ -108,15 +121,21 @@ to new or existing users
         Add Role To User    ${springfield_admin_role_1}    @{cartoon_user_0}[0]
 
 Many global variables are provided in the **resources/global.txt** file and should work for a default installation of Katello, but you can overide them by providing new values via the command line:
+
 ::
+
     pybot --variable ADMIN_USER:my_admin --variable ADMIN_PASSWD:my_passwd --variable APP:katello create_users.txt
 
 You can also provide a python **variables** file as an argument, which allows you to have sensitive information outside the source code:
+
 ::
+
     pybot --variablefile /path/to/variables.py create_users.txt
 
 The file **variables.py** would then contain:
+
 ::
+
     #!/usr/bin/env python
     # -*- encoding: utf-8 -*-
     # vim: ts=4 sw=4 expandtab ai

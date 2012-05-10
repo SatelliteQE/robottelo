@@ -9,20 +9,20 @@ This is an automation test suite for the `Katello <http://katello.org/>`_ projec
 
 My goal is to design a `keyword <http://en.wikipedia.org/wiki/Keyword-driven_testing>`_, `data <http://en.wikipedia.org/wiki/Data-driven_testing>`_ driven suite that can be used in a continuous integration environment.
 
-Requirements:
--------------
-
-Run **pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
-
 Quickstart
 ==========
 
 This page gives you a good introduction in how to get started with ``Robottelo``.
+
+Requirements:
+-------------
 If you haven't cloned the source code yet, then make sure to do it now:
 
 ::
 
     git clone git://github.com/omaciel/robottelo.git
+
+Then, run **pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
 Now, let's get started with some simple tests.
 
