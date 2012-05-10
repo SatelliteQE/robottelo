@@ -4,6 +4,10 @@ This is an automation test suite for the `Katello <http://katello.org/>`_ projec
 
 My goal is to design a `keyword <http://en.wikipedia.org/wiki/Keyword-driven_testing>`_, `data <http://en.wikipedia.org/wiki/Data-driven_testing>`_ driven suite that can be used in a continuous integration environment.
 
+Documentation
+-------------
+See the ever growing `documentation <http://omaciel.github.com/robottelo/>`_ page and feel free to send feedback.
+
 Quickstart
 ==========
 
