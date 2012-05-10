@@ -157,6 +157,7 @@ Contents:
 .. toctree::
    :maxdepth: 4
 
+   knownissues
    lib
 
 
