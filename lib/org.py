@@ -36,6 +36,38 @@ class org(object):
 
     def select_org(self, org_name):
         """
+        Selects the specified organization from the ones available.
+        """
+
+        can_access = False
+
+        # go to the url
+        self.base.driver.get(self.base.base_url)
+
+        # Select the Organizations tab
+        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
+
+        # Orgs List link
+        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
+
+        if org_list_link is None:
+            logger.warn("Could not find the Orgs List link.")
+        else:
+            org_list_link.click()
+
+            # Verify that org exists
+            org = wait_until_element(self.base.driver, NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
+            if org is None:
+                logger.warn("Could not locate an organization named '%s'." % org_name)
+            else:
+                can_access = True
+                org.click()
+
+        return can_access
+
+
+    def switch_to_org(self, org_name):
+        """
         Switch the ui context to the provided org name.
         """
 
@@ -58,25 +90,13 @@ class org(object):
         asserts.assert_equal(orgbox.text, org_name, "Failed to swith to the '%s' organization." % org_name)
 
 
-    def create_org(self, name):
+    def create_org(self, org_name):
         """
         Creates a new organization with the provided name.
         """
 
-        # go to the url
-        self.base.driver.get(self.base.base_url)
-
-        # Select the Organizations tab
-        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
-
-        # Orgs List link
-        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
-        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
-        org_list_link.click()
-
-        # Verify that org doesn't exist
-        org = wait_until_element(self.base.driver, NEW_ORG % name.replace(" ", "_"), By.XPATH)
-        asserts.fail_unless_none(org, "An organization named '%s' already exists." % name)
+        org = self.select_org(org_name)
+        asserts.assert_false(org, "Organization '%s' already exists in the system." % org_name)
 
         # New Organization link
         new_org_link = wait_until_element(self.base.driver, NEW_ORG_LINK, By.XPATH)
@@ -84,43 +104,24 @@ class org(object):
         new_org_link.click()
 
         # New org form
-        org_name = wait_until_element(self.base.driver, ORG_NAME, By.XPATH)
-        asserts.fail_if_none(org_name, "Could not enter the organization name.")
-        org_name.send_keys(name)
+        org_name_field = wait_until_element(self.base.driver, ORG_NAME_FIELD, By.XPATH)
+        asserts.fail_if_none(org_name_field, "Could not enter the organization name.")
+        org_name_field.send_keys(org_name)
 
-        submit_button = wait_until_element(self.base.driver, ORG_SUBMIT, By.XPATH)
+        submit_button = wait_until_element(self.base.driver, ORG_SAVE_BUTTON, By.XPATH)
         submit_button.click()
 
-        # Orgs List link
-        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
-        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
-        org_list_link.click()
-
-        # Verify that new org exists
-        org = wait_until_element(self.base.driver, NEW_ORG % name.replace(" ", "_"), By.XPATH)
-        asserts.fail_if_none(org, "Could not locate the newly created organization named '%s'." % name)
+        org = self.select_org(org_name)
+        asserts.assert_true(org, "Organization '%s' could not be located." % org_name)
 
 
-    def delete_org(self, name):
+    def delete_org(self, org_name):
         """
         Creates a new organization with the provided name.
         """
 
-        # go to the url
-        self.base.driver.get(self.base.base_url)
-
-        # Select the Organizations tab
-        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
-
-        # Orgs List link
-        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
-        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
-        org_list_link.click()
-
-        # Verify that org exists
-        org = wait_until_element(self.base.driver, NEW_ORG % name.replace(" ", "_"), By.XPATH)
-        asserts.fail_if_none(org, "Could not locate an organization named '%s'." % name)
-        org.click()
+        org = self.select_org(org_name)
+        asserts.assert_true(org, "Organization '%s' could not be located." % org_name)
 
         # Remove Org link
         remove_org_link = wait_until_element(self.base.driver, ORG_REMOVE_LINK, By.XPATH)
@@ -132,14 +133,8 @@ class org(object):
         asserts.fail_if_none(yes_button, "Could not find the Yes button to remove role.")
         yes_button.click()
 
-        # Orgs List link
-        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
-        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
-        org_list_link.click()
-
-        # Verify that org doesn't exist
-        org = wait_until_element(self.base.driver, NEW_ORG % name.replace(" ", "_"), By.XPATH)
-        asserts.fail_unless_none(org, "Could not delete organization named '%s'." % name)
+        org = self.select_org(org_name)
+        asserts.assert_false(org, "Organization '%s' is still present in the system." % org_name)
 
 
     def add_env_to_org(self, org_name, prior_env_name, new_env_name):
@@ -147,21 +142,8 @@ class org(object):
         Adds a new environment to an existing organization.
         """
 
-        # go to the url
-        self.base.driver.get(self.base.base_url)
-
-        # Select the Organizations tab
-        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
-
-        # Orgs List link
-        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
-        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
-        org_list_link.click()
-
-        # Verify that org exists
-        org = wait_until_element(self.base.driver, NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
-        asserts.fail_if_none(org, "Could not locate an organization named '%s'." % org_name)
-        org.click()
+        org = self.select_org(org_name)
+        asserts.assert_true(org, "Organization '%s' could not be located." % org_name)
 
         # New env should not be found yet
         env = wait_until_element(self.base.driver, ENV % new_env_name, By.XPATH)
@@ -195,21 +177,8 @@ class org(object):
         Adds a new environment to an existing organization.
         """
 
-        # go to the url
-        self.base.driver.get(self.base.base_url)
-
-        # Select the Organizations tab
-        asserts.assert_true(self.go_to_organizations_tab(), "Could not select the Organizations tab.")
-
-        # Orgs List link
-        org_list_link = wait_until_element(self.base.driver, ORGS_LIST_LINK, By.XPATH)
-        asserts.fail_if_none(org_list_link, "Could not find the Orgs List link.")
-        org_list_link.click()
-
-        # Verify that org exists
-        org = wait_until_element(self.base.driver, NEW_ORG % org_name.replace(" ", "_"), By.XPATH)
-        asserts.fail_if_none(org, "Could not locate an organization named '%s'." % org_name)
-        org.click()
+        org = self.select_org(org_name)
+        asserts.assert_true(org, "Organization '%s' could not be located." % org_name)
 
         # Locate existing env
         env = wait_until_element(self.base.driver, ENV % env_name, By.XPATH)
