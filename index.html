@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Robottelo 0.0.1 documentation" href="#" />
-    <link rel="next" title="lib Package" href="lib.html" /> 
+    <link rel="next" title="Creating A New Test Case" href="createtest.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,7 +39,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="lib.html" title="lib Package"
+          <a href="createtest.html" title="Creating A New Test Case"
              accesskey="N">next</a> |</li>
         <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -73,8 +73,8 @@
 file. Assuming you created a new <tt class="docutils literal"><span class="pre">cartoon_users.txt</span></tt> file</p>
 <div class="highlight-python"><pre>*** Variables ***
 # Variable name     # Username      #Password   # Email
-@{cartoon_user_0}   Homer Simpson   dohh        sprinfieldguy@example.com
-@{cartoon_user_1}   Fred Flinstone  yabba       bedrock4ever@example.com</pre>
+@{cartoon_user_0}   Homer_Simpson   dohh        sprinfieldguy@example.com
+@{cartoon_user_1}   Fred_Flinstone  yabba       bedrock4ever@example.com</pre>
 </div>
 <p>Now let&#8217;s create a test file <tt class="docutils literal"><span class="pre">create_users.txt</span></tt> to create these users</p>
 <div class="highlight-python"><pre>*** settings ***    *** Value ***
@@ -82,7 +82,8 @@ file. Assuming you created a new <tt class="docutils literal"><span class="pre">
 Resource        resources/global.txt
 Resource        cartoon_users.txt
 
-Library         lib/administration.py       ${BASE_URL}    ${BROWSER}
+Library         lib/administration.py
+Library         lib/login.py       ${BASE_URL}    ${BROWSER}
 
 Test Teardown   Stop Browser
 
@@ -175,6 +176,13 @@ sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="createtest.html">Creating A New Test Case</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="createtest.html#before-proceeding">Before Proceeding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="createtest.html#importing-resources">Importing Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="createtest.html#importing-library-modules">Importing Library Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="createtest.html#writing-test-cases">Writing Test Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lib.html">lib Package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.administration"><tt class="docutils literal"><span class="pre">administration</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
@@ -221,8 +229,8 @@ sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="lib.html"
-                        title="next chapter">lib Package</a></p>
+  <p class="topless"><a href="createtest.html"
+                        title="next chapter">Creating A New Test Case</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -255,7 +263,7 @@ sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="lib.html" title="lib Package"
+          <a href="createtest.html" title="Creating A New Test Case"
              >next</a> |</li>
         <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
       </ul>
