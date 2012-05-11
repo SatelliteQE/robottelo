@@ -36,8 +36,8 @@ file. Assuming you created a new ``cartoon_users.txt`` file
 
     *** Variables ***
     # Variable name     # Username      #Password   # Email
-    @{cartoon_user_0}   Homer Simpson   dohh        sprinfieldguy@example.com
-    @{cartoon_user_1}   Fred Flinstone  yabba       bedrock4ever@example.com
+    @{cartoon_user_0}   Homer_Simpson   dohh        sprinfieldguy@example.com
+    @{cartoon_user_1}   Fred_Flinstone  yabba       bedrock4ever@example.com
 
 Now let's create a test file ``create_users.txt`` to create these users
 
@@ -48,7 +48,8 @@ Now let's create a test file ``create_users.txt`` to create these users
     Resource        resources/global.txt
     Resource        cartoon_users.txt
 
-    Library         lib/administration.py       ${BASE_URL}    ${BROWSER}
+    Library         lib/administration.py
+    Library         lib/login.py       ${BASE_URL}    ${BROWSER}
 
     Test Teardown   Stop Browser
 
