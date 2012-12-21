@@ -44,9 +44,9 @@ class administration(object):
         asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
 
         # Users submenu
-        users_link = wait_until_element(self.base.driver, USERS_LINK, By.XPATH)
-        asserts.fail_if_none(users_link, "Could not find the Users menu.")
-        users_link.click()
+        #users_link = wait_until_element(self.base.driver, USERS_LINK, By.XPATH)
+        #asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        #users_link.click()
 
         # Check if new User exists in list
         user = wait_until_element(self.base.driver, USER % username, By.XPATH)
@@ -62,6 +62,10 @@ class administration(object):
         user_name_field = wait_until_element(self.base.driver, USER_NAME_FIELD, By.XPATH)
         asserts.fail_if_none(user_name_field, "Could not find the username field.")
         user_name_field.send_keys(username)
+        # Email
+        email_field = wait_until_element(self.base.driver, USER_EMAIL_FIELD, By.XPATH)
+        asserts.fail_if_none(email_field, "Could not find the email field.")
+        email_field.send_keys(email)
         # Password
         password_field = wait_until_element(self.base.driver, USER_PASSWORD_FIELD, By.XPATH)
         asserts.fail_if_none(password_field, "Could not find the password field.")
@@ -70,10 +74,6 @@ class administration(object):
         password_confirmation_field = wait_until_element(self.base.driver, USER_PASSWORD_CONFIRMATION_FIELD, By.XPATH)
         asserts.fail_if_none(password_confirmation_field, "Could not find the password confirmation field.")
         password_confirmation_field.send_keys(password)
-        # Email
-        email_field = wait_until_element(self.base.driver, USER_EMAIL_FIELD, By.XPATH)
-        asserts.fail_if_none(email_field, "Could not find the email field.")
-        email_field.send_keys(email)
 
         if org:
             orgs_list = wait_until_element(self.base.driver, ORGS_LIST, By.XPATH)
@@ -81,7 +81,7 @@ class administration(object):
             Select(orgs_list).select_by_visible_text(org)
 
         # Submit
-        submit_button = wait_until_element(self.base.driver, "//form[@id='new_user']/div[4]/div/input", By.XPATH)
+        submit_button = wait_until_element(self.base.driver, USER_SAVE_BUTTON, By.XPATH)
         asserts.fail_if_none(submit_button, "Could not find the Submit button.")
         submit_button.click()
 
