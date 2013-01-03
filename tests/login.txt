@@ -12,7 +12,7 @@ Test Teardown   Stop Browser
 *** Test Case ***
 
 Admin User Valid Login
-    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}    ACME_Corporation
     User Logged In  ${ADMIN_USER}
 
 Admin User Invalid Login

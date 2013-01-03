@@ -31,7 +31,7 @@ class login(object):
         self.base.base_url = base_url
 
 
-    def login_user(self, username, password):
+    def login_user(self, username, password, org=None):
         """
         Login as user with provided credentials.
         """
@@ -65,6 +65,27 @@ class login(object):
         # submit the form
         inputElement.click()
 
+        # If an organization was passed, try to select it
+        if org is not None:
+            #org_filter =  wait_until_element(self.base.driver, ("//div[@id='orgbox']/div"), By.XPATH)
+            org_filter =  wait_until_element(self.base.driver, ("//div[@id='orgbox']/div/div[@class='jspPane']"), By.XPATH)
+            asserts.fail_if_none(org_filter, "Organization filter was not specified.")
+
+            # Type the org name into filter box
+            filter_box = wait_until_element(self.base.driver, ("//input[@id='orgfilter_input']"), By.XPATH)
+            asserts.fail_if_none(filter_box, "Could not locate the filter box field.")
+            filter_box.send_keys(org)
+
+            # Select the organization from list and click it
+            filtered_org = wait_until_element(self.base.driver, ("//a[contains(text(),'%s')]" % org), By.XPATH)
+            asserts.fail_if_none(filtered_org, "Could not select organization %s." % org)
+            filtered_org.click()
+
+            # Assert that we've landed in the org dashboard page
+            selected_org = wait_until_element(self.base.driver, ("//a[@id='switcherButton']"), By.XPATH)
+            asserts.fail_if_none(selected_org, "Could not find the org selector widget.")
+            asserts.assert_equals(org, selected_org.text, "Could not open the dashboard for organization %s" % org)
+
 
     def logout_user(self):
         """
@@ -90,8 +111,8 @@ class login(object):
         """
 
         # Verify that the username is displayed in the web page
-        is_logged = wait_until_element(self.base.driver, "//li[@class='hello']/a[contains(., '%s')]" % username, By.XPATH)
-        asserts.fail_if_none(is_logged)
+        is_logged = wait_until_element(self.base.driver, "//a[contains(., '%s')]" % username, By.XPATH)
+        asserts.fail_if_none(is_logged, "User is not logged in.")
         asserts.assert_true(is_logged.is_displayed(), "Failed to login with valid credentials!")
 
 
@@ -100,7 +121,7 @@ class login(object):
         Checks if the user is not logged.
         """
 
-        not_logged = wait_until_element(self.base.driver, "//li[@class='hello']/a[contains(., '%s')]" % username, By.XPATH)
+        not_logged = wait_until_element(self.base.driver, "//a[contains(., '%s')]" % username, By.XPATH)
         asserts.fail_unless_none(not_logged, "Should not be able to login with invalid credentials!")
 
     def stop_browser(self):
