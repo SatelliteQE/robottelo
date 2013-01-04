@@ -11,7 +11,7 @@ from robot.utils import asserts
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-
+from selenium.webdriver.common.action_chains import ActionChains
 
 class administration(object):
     """
@@ -38,19 +38,22 @@ class administration(object):
         """
 
         # go to the url
-        self.base.driver.get(self.base.base_url)
+        #self.base.driver.get(self.base.base_url)
 
-        # Select the Administration tab
-        asserts.assert_true(self.go_to_administration_tab(), "Could not select the Administration tab.")
-
-        # Users submenu
-        #users_link = wait_until_element(self.base.driver, USERS_LINK, By.XPATH)
-        #asserts.fail_if_none(users_link, "Could not find the Users menu.")
-        #users_link.click()
+        # Select the Administer button
+        admin_button = wait_until_element(self.base.driver, (ADMIN_TAB), By.XPATH)
+        asserts.fail_if_none(admin_button, "User has no access to administration page.")
+        # Hover over the button
+        hover = ActionChains(self.base.driver).move_to_element(admin_button)
+        hover.perform()
+        # Select the Users submenu entry
+        users_link = wait_until_element(self.base.driver, ("//li[@id='users']/a"), By.XPATH)
+        asserts.fail_if_none(users_link, "Could not locate Users link")
+        users_link.click()
 
         # Check if new User exists in list
-        user = wait_until_element(self.base.driver, USER % username, By.XPATH)
-        asserts.fail_unless_none(user, "A user with this name already exists.")
+        #user = wait_until_element(self.base.driver, USER % username, By.XPATH)
+        #asserts.fail_unless_none(user, "A user with this name already exists.")
 
         # New User link
         new_user_link = wait_until_element(self.base.driver, NEW_USER_LINK, By.XPATH)
@@ -58,14 +61,6 @@ class administration(object):
         new_user_link.click()
 
         # Fill out the form
-        # Username
-        user_name_field = wait_until_element(self.base.driver, USER_NAME_FIELD, By.XPATH)
-        asserts.fail_if_none(user_name_field, "Could not find the username field.")
-        user_name_field.send_keys(username)
-        # Email
-        email_field = wait_until_element(self.base.driver, USER_EMAIL_FIELD, By.XPATH)
-        asserts.fail_if_none(email_field, "Could not find the email field.")
-        email_field.send_keys(email)
         # Password
         password_field = wait_until_element(self.base.driver, USER_PASSWORD_FIELD, By.XPATH)
         asserts.fail_if_none(password_field, "Could not find the password field.")
@@ -74,7 +69,21 @@ class administration(object):
         password_confirmation_field = wait_until_element(self.base.driver, USER_PASSWORD_CONFIRMATION_FIELD, By.XPATH)
         asserts.fail_if_none(password_confirmation_field, "Could not find the password confirmation field.")
         password_confirmation_field.send_keys(password)
+        # Username
+        user_name_field = wait_until_element(self.base.driver, USER_NAME_FIELD, By.XPATH)
+        asserts.fail_if_none(user_name_field, "Could not find the username field.")
+        user_name_field.send_keys(username)
+        # Email
+        email_field = wait_until_element(self.base.driver, USER_EMAIL_FIELD, By.XPATH)
+        asserts.fail_if_none(email_field, "Could not find the email field.")
+        email_field.send_keys(email)
 
+        # Password mismatch?
+        mismatched_pwd = wait_until_element(self.base.driver, ("//div[@id='password_conflict']"), By.XPATH)
+        print "The password is %s" % mismatched_pwd.text
+        #asserts.fail_if(mismatched_pwd.text == "", "Password mismatch during user creation")
+
+        # Assign default org?
         if org:
             orgs_list = wait_until_element(self.base.driver, ORGS_LIST, By.XPATH)
             asserts.fail_if_none(orgs_list, "Could not the Organizations list.")
@@ -85,9 +94,19 @@ class administration(object):
         asserts.fail_if_none(submit_button, "Could not find the Submit button.")
         submit_button.click()
 
-        # Users submenu again
-        users_link = wait_until_element(self.base.driver, USERS_LINK, By.XPATH)
-        asserts.fail_if_none(users_link, "Could not find the Users menu.")
+        # Check for error notifications
+        error_note = wait_until_element(self.base.driver, ("//div[@class='jnotify-notification jnotify-notification-error']"), By.XPATH)
+        asserts.fail_unless_none(error_note, "There was an issue creating the new user.")
+        
+        # Select the Administer button again
+        admin_button = wait_until_element(self.base.driver, (ADMIN_TAB), By.XPATH)
+        asserts.fail_if_none(admin_button, "User has no access to administration page.")
+        # Hover over the button
+        hover = ActionChains(self.base.driver).move_to_element(admin_button)
+        hover.Perform()
+        # Select the Users submenu entry
+        users_link = wait_until_element(self.base.driver, ("//li[@id='users']/a"), By.XPATH)
+        asserts.fail_if_none(users_link, "Could not locate Users link")
         users_link.click()
 
         # Check if new User exists in list

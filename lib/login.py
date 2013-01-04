@@ -17,9 +17,9 @@ class login(object):
 
 
     # Locators
-    _LOGIN_USERNAME = ("//form[@id='login_form']/fieldset/input")
-    _LOGIN_PASSWORD = ("//form[@id='login_form']/fieldset[2]/input")
-    _LOGIN_SUBMIT = ("//form[@id='login_form']/input")
+    _LOGIN_USERNAME = ("//input[@id='username']")
+    _LOGIN_PASSWORD = ("//input[@id='password-input']")
+    _LOGIN_SUBMIT = ("//input[@id='login_btn']")
     _HEADER_USERNAME = ("//div[@id='head']/header/div[2]/ul/li/a/strong")
     _HEADER_LOGOUT = ("//a[contains(text(),'Logout')]")
 
@@ -69,17 +69,19 @@ class login(object):
         if org is not None:
             #org_filter =  wait_until_element(self.base.driver, ("//div[@id='orgbox']/div"), By.XPATH)
             org_filter =  wait_until_element(self.base.driver, ("//div[@id='orgbox']/div/div[@class='jspPane']"), By.XPATH)
-            asserts.fail_if_none(org_filter, "Organization filter was not specified.")
+            # If the user has a default org or if there's only 1 org,
+            # there is no organization filter upon login
+            if org_filter is not None:
 
-            # Type the org name into filter box
-            filter_box = wait_until_element(self.base.driver, ("//input[@id='orgfilter_input']"), By.XPATH)
-            asserts.fail_if_none(filter_box, "Could not locate the filter box field.")
-            filter_box.send_keys(org)
+                # Type the org name into filter box
+                filter_box = wait_until_element(self.base.driver, ("//input[@id='orgfilter_input']"), By.XPATH)
+                asserts.fail_if_none(filter_box, "Could not locate the filter box field.")
+                filter_box.send_keys(org)
 
-            # Select the organization from list and click it
-            filtered_org = wait_until_element(self.base.driver, ("//a[contains(text(),'%s')]" % org), By.XPATH)
-            asserts.fail_if_none(filtered_org, "Could not select organization %s." % org)
-            filtered_org.click()
+                # Select the organization from list and click it
+                filtered_org = wait_until_element(self.base.driver, ("//a[contains(text(),'%s')]" % org), By.XPATH)
+                asserts.fail_if_none(filtered_org, "Could not select organization %s." % org)
+                filtered_org.click()
 
             # Assert that we've landed in the org dashboard page
             selected_org = wait_until_element(self.base.driver, ("//a[@id='switcherButton']"), By.XPATH)

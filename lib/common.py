@@ -78,7 +78,7 @@ def select_tab(drv, element, method=By.XPATH):
         logger.warn("Was not able to locate the tab corresponding to '%s'" % element)
     else:
         can_access = True
-        tab.click()
+        #tab.click()
 
     return can_access
 
