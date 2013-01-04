@@ -56,10 +56,10 @@ Now let's create a test file ``create_users.txt`` to create these users
     *** Test Case ***
 
     Create User Homer Simpson
-        Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+        Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
         Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
     Create User Fred Flinstone
-        Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+        Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
         Create User     @{cartoon_user_1}[0]     @{cartoon_user_1}[1]    @{cartoon_user_1}[2]
 
 Your test file contains a couple of sections: ``settings`` and ``test case``.
@@ -83,7 +83,7 @@ modules to custom build an action.
 
 ::
 
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+    Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
 
 This individual test makes use of the ``Login User`` method provided by the ``Library`` modules
 to perform the action of login into the web ui using the administrator account.
@@ -114,15 +114,15 @@ to new or existing users
 ::
 
     Create User 1
-        Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+        Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
         Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
     Create Role Role1
-        Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+        Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
         Create Role      ${springfield_admin_role_1}
         Add Permission To Role  ${springfield_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_read_organizations}   acme_read_orgs
         Add Permission To Role  ${springfield_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_delete_systems}   acme_delete_systems
     Add Role To User 1
-        Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
+        Login User      ${ADMIN_USER}    ${ADMIN_PASSWD}
         Add Role To User    ${springfield_admin_role_1}    @{cartoon_user_0}[0]
 
 Many global variables are provided in the **resources/global.txt** file and should work for a default installation of Katello, but you can overide them by providing new values via the command line:
