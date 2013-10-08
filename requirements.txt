@@ -1,2 +1,1 @@
-robotframework
-robotframework-selenium2library
+splinter

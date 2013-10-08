@@ -1,2 +1,0 @@
-*** Variables ***
-${manifest_1}   ${MANIFEST_URL}/manifest_1.zip
