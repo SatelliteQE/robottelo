@@ -29,6 +29,7 @@ class BaseUI(unittest.TestCase):
         self.logger.setLevel(self.verbosity * 10)
 
         self.browser = Browser(driver_name=self.driver_name)
+        self.browser.driver.maximize_window()
         self.browser.visit("%s/%s" % (self.host, self.project))
 
         # Library methods
