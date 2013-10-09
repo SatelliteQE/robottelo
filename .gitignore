@@ -15,3 +15,5 @@
 *.xml
 *.png
 *.swp
+_build
+doctrees
