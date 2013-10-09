@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Robottelo 0.0.1 documentation" href="#" />
-    <link rel="next" title="Creating A New Test Case" href="createtest.html" /> 
+    <link rel="next" title="Modules" href="lib.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,7 +39,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="createtest.html" title="Creating A New Test Case"
+          <a href="lib.html" title="Modules"
              accesskey="N">next</a> |</li>
         <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -52,7 +52,7 @@
             
   <div class="section" id="robottelo">
 <h1>Robottelo<a class="headerlink" href="#robottelo" title="Permalink to this headline">¶</a></h1>
-<p>This is an automation test suite for the <a class="reference external" href="http://katello.org/">Katello</a> project based in the <a class="reference external" href="https://code.google.com/p/robotframework/">Robot</a> testing framework.</p>
+<p>This is an automation test suite for the <a class="reference external" href="http://katello.org/">Katello</a> project based in the <a class="reference external" href="https://github.com/cobrateam/splinter">Splinter</a> testing framework.</p>
 <p>My goal is to design a <a class="reference external" href="http://en.wikipedia.org/wiki/Keyword-driven_testing">keyword</a>, <a class="reference external" href="http://en.wikipedia.org/wiki/Data-driven_testing">data</a> driven suite that can be used in a continuous integration environment.</p>
 </div>
 <div class="section" id="quickstart">
@@ -64,132 +64,33 @@
 <div class="highlight-python"><pre>git clone git://github.com/omaciel/robottelo.git</pre>
 </div>
 <p>Then, run <strong>pip install -r ./requirements.txt</strong> from the root of the project to have all dependencies automatically installed.</p>
-<p>Now, let&#8217;s get started with some simple tests.</p>
-</div>
-<div class="section" id="creating-new-users">
-<h2>Creating new users<a class="headerlink" href="#creating-new-users" title="Permalink to this headline">¶</a></h2>
-<p>Adding new users to a Katello system is pretty simple. First, add the <tt class="docutils literal"><span class="pre">username</span></tt>,
-<tt class="docutils literal"><span class="pre">password</span></tt> and <tt class="docutils literal"><span class="pre">email</span></tt> address for the users you want to add into a <tt class="docutils literal"><span class="pre">resource</span></tt>
-file. Assuming you created a new <tt class="docutils literal"><span class="pre">cartoon_users.txt</span></tt> file</p>
-<div class="highlight-python"><pre>*** Variables ***
-# Variable name     # Username      #Password   # Email
-@{cartoon_user_0}   Homer_Simpson   dohh        sprinfieldguy@example.com
-@{cartoon_user_1}   Fred_Flinstone  yabba       bedrock4ever@example.com</pre>
-</div>
-<p>Now let&#8217;s create a test file <tt class="docutils literal"><span class="pre">create_users.txt</span></tt> to create these users</p>
-<div class="highlight-python"><pre>*** settings ***    *** Value ***
-
-Resource        resources/global.txt
-Resource        cartoon_users.txt
-
-Library         lib/administration.py
-Library         lib/login.py       ${BASE_URL}    ${BROWSER}
-
-Test Teardown   Stop Browser
-
-*** Test Case ***
-
-Create User Homer Simpson
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-    Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
-Create User Fred Flinstone
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-    Create User     @{cartoon_user_1}[0]     @{cartoon_user_1}[1]    @{cartoon_user_1}[2]</pre>
-</div>
-<p>Your test file contains a couple of sections: <tt class="docutils literal"><span class="pre">settings</span></tt> and <tt class="docutils literal"><span class="pre">test</span> <span class="pre">case</span></tt>.</p>
-</div>
-<div class="section" id="settings-section">
-<h2>Settings Section<a class="headerlink" href="#settings-section" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">settings</span></tt> section is where we import our resources and data files to be used by our tests.
-You can see the <tt class="docutils literal"><span class="pre">global.txt</span></tt> file which contains data related to where our <tt class="docutils literal"><span class="pre">Katello</span></tt> server
-is located, the password for the administrator account, and other useful pieces of information
-that will be used by the test runner itself.</p>
-<p>This is also where we import supporting modules that will perform the actions we want to execute,
-as can be seen by the line <tt class="docutils literal"><span class="pre">Library</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">lib/administration.py</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">${BASE_URL}</span>&nbsp;&nbsp;&nbsp; <span class="pre">${BROWSER}</span></tt>.
-The file <tt class="docutils literal"><span class="pre">administration.py</span></tt> is a <tt class="docutils literal"><span class="pre">python</span></tt> class with methods that map to actions the user
-can perform in the web ui. For this example, we&#8217;ll be using the <tt class="docutils literal"><span class="pre">Create</span> <span class="pre">User</span></tt> method.</p>
-</div>
-<div class="section" id="test-case-section">
-<h2>Test Case Section<a class="headerlink" href="#test-case-section" title="Permalink to this headline">¶</a></h2>
-<p>This is where we create our tests by using the individual methods provided by the <tt class="docutils literal"><span class="pre">Library</span></tt>
-modules to custom build an action.</p>
-<div class="highlight-python"><pre>Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}</pre>
-</div>
-<p>This individual test makes use of the <tt class="docutils literal"><span class="pre">Login</span> <span class="pre">User</span></tt> method provided by the <tt class="docutils literal"><span class="pre">Library</span></tt> modules
-to perform the action of login into the web ui using the administrator account.</p>
-<div class="highlight-python"><pre>Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]</pre>
-</div>
-<p>This next line passes the user&#8217;s personal information to the <tt class="docutils literal"><span class="pre">Create</span> <span class="pre">User</span></tt> method which,
-as you may have guessed, will create the user account using the web ui.</p>
 </div>
 <div class="section" id="running-the-test">
 <h2>Running the test<a class="headerlink" href="#running-the-test" title="Permalink to this headline">¶</a></h2>
-<p>Tests can be invoked by using the standard RobotFramework format of running <strong>pybot</strong> and arguments:</p>
-<div class="highlight-python"><pre>pybot --variable BROWSER:firefox --variable HOST:www.example.com --variable APP:katello create_users.txt</pre>
+<p>Single tests can be invoked by using the included <strong>robottelo_runner</strong> script:</p>
+<div class="highlight-python"><pre>python robottello_runner.py --driver firefox --host www.example.com --project katello --tests tests.ui.test_Login</pre>
 </div>
+<p>Multiple tests can also be invoked:</p>
+<div class="highlight-python"><pre>python robottello_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login --tests tests.ui.test_Organization</pre>
 </div>
+<p>Running individual tests from a test suite from the command line:</p>
+<div class="highlight-python"><pre>python robottello_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login.test_successful_login</pre>
 </div>
-<div class="section" id="advanced">
-<h1>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h1>
-<p>By taking advantage of the modules imported into the <tt class="docutils literal"><span class="pre">Library</span></tt> and data from <tt class="docutils literal"><span class="pre">resource</span></tt>
-files, we could then create a more complex test, such as creating roles and assignining them
-to new or existing users</p>
-<div class="highlight-python"><pre>Create User 1
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-    Create User     @{cartoon_user_0}[0]     @{cartoon_user_0}[1]    @{cartoon_user_0}[2]
-Create Role Role1
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-    Create Role      ${springfield_admin_role_1}
-    Add Permission To Role  ${springfield_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_read_organizations}   acme_read_orgs
-    Add Permission To Role  ${springfield_admin_role_1}    ${scope_global}   ${permissions_organizations}   ${verb_delete_systems}   acme_delete_systems
-Add Role To User 1
-    Login User      @{ADMIN_USER}    @{ADMIN_PASSWD}
-    Add Role To User    ${springfield_admin_role_1}    @{cartoon_user_0}[0]</pre>
+<p>You can also run tests directly using either <strong>unittest</strong> or <strong>nosetests</strong> provided you pass all the expected arguments:</p>
+<div class="highlight-python"><pre>KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox python -m unittest tests.ui.test_Login.test_successful_login</pre>
 </div>
-<p>Many global variables are provided in the <strong>resources/global.txt</strong> file and should work for a default installation of Katello, but you can overide them by providing new values via the command line:</p>
-<div class="highlight-python"><pre>pybot --variable ADMIN_USER:my_admin --variable ADMIN_PASSWD:my_passwd --variable APP:katello create_users.txt</pre>
+<p>or</p>
+<div class="highlight-python"><pre>KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox nosetests tests.ui.test_Login.test_successful_login</pre>
 </div>
-<p>You can also provide a python <strong>variables</strong> file as an argument, which allows you to have sensitive information outside the source code:</p>
-<div class="highlight-python"><pre>pybot --variablefile /path/to/variables.py create_users.txt</pre>
-</div>
-<p>The file <strong>variables.py</strong> would then contain:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
-<span class="c"># -*- encoding: utf-8 -*-</span>
-<span class="c"># vim: ts=4 sw=4 expandtab ai</span>
-
-<span class="n">BROWSER</span> <span class="o">=</span> <span class="s">&#39;firefox&#39;</span>
-<span class="n">HOST</span> <span class="o">=</span> <span class="s">&#39;www.example.com&#39;</span>
-<span class="n">APP</span> <span class="o">=</span> <span class="s">&#39;katello&#39;</span>
-<span class="n">ADMIN_USER</span> <span class="o">=</span> <span class="n">admin</span>
-<span class="n">ADMIN_PASSWD</span> <span class="o">=</span> <span class="n">passwd</span>
-</pre></div>
 </div>
 </div>
 <div class="section" id="known-issues">
 <h1>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">KB</span> <span class="pre">#1</span></tt>:  <tt class="docutils literal"><span class="pre">pyBot</span></tt> fails to start Selenium with an error message complaining about <tt class="docutils literal"><span class="pre">libX11.so.6</span></tt>:  This is related to <tt class="docutils literal"><span class="pre">python</span></tt> invoking 32-bit X11 lib files instead of 64-bit when using Selenium web (see <a class="reference external" href="http://bit.ly/J1cDG0">this</a> for more information). Here&#8217;s how to work around it though:</li>
-</ul>
-<div class="highlight-python"><pre>sudo rm /usr/lib/libX11.so.6
-sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
-</div>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="createtest.html">Creating A New Test Case</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="createtest.html#before-proceeding">Before Proceeding</a></li>
-<li class="toctree-l2"><a class="reference internal" href="createtest.html#importing-resources">Importing Resources</a></li>
-<li class="toctree-l2"><a class="reference internal" href="createtest.html#importing-library-modules">Importing Library Modules</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="createtest.html#writing-test-cases">Writing Test Cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lib.html">lib Package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.administration"><tt class="docutils literal"><span class="pre">administration</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.common"><tt class="docutils literal"><span class="pre">common</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.content"><tt class="docutils literal"><span class="pre">content</span></tt> Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lib.html">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.login"><tt class="docutils literal"><span class="pre">login</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.org"><tt class="docutils literal"><span class="pre">org</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -215,13 +116,9 @@ sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
 <li><a class="reference internal" href="#">Robottelo</a></li>
 <li><a class="reference internal" href="#quickstart">Quickstart</a><ul>
 <li><a class="reference internal" href="#requirements">Requirements:</a></li>
-<li><a class="reference internal" href="#creating-new-users">Creating new users</a></li>
-<li><a class="reference internal" href="#settings-section">Settings Section</a></li>
-<li><a class="reference internal" href="#test-case-section">Test Case Section</a></li>
 <li><a class="reference internal" href="#running-the-test">Running the test</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#advanced">Advanced</a></li>
 <li><a class="reference internal" href="#known-issues">Known Issues</a><ul>
 </ul>
 </li>
@@ -229,8 +126,8 @@ sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="createtest.html"
-                        title="next chapter">Creating A New Test Case</a></p>
+  <p class="topless"><a href="lib.html"
+                        title="next chapter">Modules</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -263,7 +160,7 @@ sudo ln -s /usr/lib64/libX11.so.6.3.0 /usr/lib/libX11.so.6</pre>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="createtest.html" title="Creating A New Test Case"
+          <a href="lib.html" title="Modules"
              >next</a> |</li>
         <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
       </ul>
