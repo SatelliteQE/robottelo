@@ -9,6 +9,7 @@ class Login():
         "login.password": "password",
         "login.submit": "commit",
         "login.gravatar": "span.gravatar-span",
+        "login.user": "span.ng-binding",
         "login.error": "div.jnotify-message",
         "login.interstitial": "interstitial",
         "login.logout": "logout",
@@ -39,4 +40,11 @@ class Login():
             self.browser.find_link_by_partial_href(self.locators["login.logout"]).click()
 
     def is_logged(self, username):
-        return self.browser.is_element_present_by_css(self.locators["login.gravatar"])
+        # Headpin?
+        if self.browser.is_element_present_by_css(self.locators["login.gravatar"]):
+            return True
+        # Katello?
+        elif self.browser.is_element_present_by_css(self.locators["login.user"]):
+            return True
+        else:
+            return False
