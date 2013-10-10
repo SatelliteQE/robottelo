@@ -4,6 +4,10 @@
 
 locators = {
 
+    # Dialogs
+    "dialog.yes": "//div[@class='ui-dialog-buttonset']/button[1]/span",
+    "dialog.no": "//div[@class='ui-dialog-buttonset']/button[2]/span",
+
     # Login
     "login.username": "username",
     "login.password": "password",
@@ -13,6 +17,16 @@ locators = {
     "login.error": "div.jnotify-message",
     "login.interstitial": "interstitial",
     "login.logout": "logout",
+
+    # Users
+    "users.new": "new",
+    "users.username": "user_username",
+    "users.email": "user_email",
+    "users.password1": "password_field",
+    "users.password2": "confirm_field",
+    "users.save": "save_user",
+    "users.user": "//div[@title='%s']",
+    "users.remove": "//a[@class='remove_item']",
 
     # Menus
 
