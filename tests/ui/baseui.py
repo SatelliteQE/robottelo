@@ -10,7 +10,7 @@ import os
 import selenium
 import unittest
 
-from robottelo.lib.login import Login
+from robottelo.lib.ui.login import Login
 from splinter import Browser
 
 class BaseUI(unittest.TestCase):
