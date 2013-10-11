@@ -11,6 +11,9 @@ import selenium
 import unittest
 
 from robottelo.lib.ui.login import Login
+from robottelo.lib.ui.navigator import Navigator
+from robottelo.lib.ui.user import User
+
 from splinter import Browser
 
 class BaseUI(unittest.TestCase):
@@ -34,6 +37,8 @@ class BaseUI(unittest.TestCase):
 
         # Library methods
         self.login = Login(self.browser)
+        self.navigator = Navigator(self.browser)
+        self.user = User(self.browser)
 
     # Borrowed from the following article:
     #  http://engineeringquality.blogspot.com/2012/12/python-selenium-capturing-screenshot-on.html

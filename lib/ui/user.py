@@ -9,7 +9,7 @@ class User():
     def __init__(self, browser):
         self.browser = browser
 
-    def new_users(self, username, email=None, password1=None, password2=None):
+    def new_user(self, username, email=None, password1=None, password2=None):
         self.browser.find_by_id(locators["users.new"]).click()
 
         if self.browser.is_element_present_by_id(locators["users.username"]):
@@ -18,7 +18,7 @@ class User():
             if self.browser.is_element_present_by_id(locators["users.email"]):
                 self.browser.find_by_id(locators["users.email"]).fill(email)
                 self.browser.find_by_id(locators["users.password1"]).fill(password1)
-                self.browser.find_by_id(locators["users.password2"]}.fill(password2)
+                self.browser.find_by_id(locators["users.password2"]).fill(password2)
             self.browser.find_by_id(locators["users.save"]).click()
 
     def find_user(self, username):
