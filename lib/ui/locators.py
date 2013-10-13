@@ -8,13 +8,18 @@ locators = {
     "dialog.yes": "//div[@class='ui-dialog-buttonset']/button[1]/span",
     "dialog.no": "//div[@class='ui-dialog-buttonset']/button[2]/span",
 
+    # Notifications
+    "notif.error": "div.jnotify-notification-error",
+    "notif.warn": "div.jnotify-notification-warning",
+    "notif.success": "div.jnotify-notification-success",
+    "notif.close": "a.jnotify-close",
+
     # Login
     "login.username": "username",
     "login.password": "password",
     "login.submit": "commit",
     "login.gravatar": "//span[@class='gravatar-span']",
     "login.user": "span.ng-binding",
-    "login.error": "div.jnotify-message",
     "login.interstitial": "interstitial",
     "login.logout": "logout",
 
@@ -27,6 +32,7 @@ locators = {
     "users.save": "save_user",
     "users.user": "//div[@title='%s']",
     "users.remove": "//a[@class='remove_item']",
+    "users.locale": "locale[locale]"
 
     # Menus
 

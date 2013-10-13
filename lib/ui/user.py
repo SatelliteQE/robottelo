@@ -30,6 +30,10 @@ class User():
         if user:
             self.browser.find_by_xpath(locators["users.remove"]).click()
             if really:
-                self.browser.find_by_xpath(locators["dialog.yes"])
+                self.browser.find_by_xpath(locators["dialog.yes"]).click()
             else:
-                self.browser.find_by_xpath(locators["dialog.no"])
+                self.browser.find_by_xpath(locators["dialog.no"]).click()
+
+    def update_locale(self, lang='pt-BR'):
+        self.browser.select(locators["users.locale"], lang)
+
