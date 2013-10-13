@@ -62,7 +62,7 @@ class BaseUI(unittest.TestCase):
     def run(self, result=None):
         super(BaseUI, self).run(result)
 
-        if result.failures:
+        if result.failures or result.errors:
             fname = str(self).replace("(", "").replace(")", "").replace(" ", "_")
             fmt='%y-%m-%d_%H.%M.%S'
             fdate = datetime.datetime.now().strftime(fmt)
