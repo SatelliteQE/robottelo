@@ -18,7 +18,7 @@ class Login():
             self.browser.fill(locators["login.password"], password)
             self.browser.find_by_name(locators["login.submit"]).click()
 
-            if self.browser.is_element_present_by_css(locators["login.error"]):
+            if self.browser.is_element_present_by_css(locators["notif.error"]):
                 return
 
             if self.browser.is_element_present_by_id(locators["login.interstitial"]):
