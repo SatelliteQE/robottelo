@@ -32,7 +32,7 @@ locators = {
     "users.save": "save_user",
     "users.user": "//div[@title='%s']",
     "users.remove": "//a[@class='remove_item']",
-    "users.locale": "locale[locale]"
+    "users.locale": "locale[locale]",
 
     # Menus
 
