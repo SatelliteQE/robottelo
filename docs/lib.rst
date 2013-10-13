@@ -1,19 +1,16 @@
 Modules
 =======
 
-:mod:`Common` Module
---------------------
+:mod:`Common`
+-------------
 
 .. automodule:: lib.common.helpers
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`CLI` Module
------------------
-
-:mod:`UI` Module
-----------------
+:mod:`UI`
+---------
 
 .. automodule:: lib.ui.login
     :members:
