@@ -5,6 +5,9 @@
 from locators import *
 
 class Navigator():
+    """
+    Quickly navigate through menus and tabs.
+    """
 
     def __init__(self, browser):
         self.browser = browser

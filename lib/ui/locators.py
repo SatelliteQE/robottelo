@@ -2,6 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+from selenium.webdriver.common.by import By
+
 locators = {
 
     # Dialogs
@@ -9,19 +11,19 @@ locators = {
     "dialog.no": "//div[@class='ui-dialog-buttonset']/button[2]/span",
 
     # Notifications
-    "notif.error": "div.jnotify-notification-error",
-    "notif.warn": "div.jnotify-notification-warning",
-    "notif.success": "div.jnotify-notification-success",
-    "notif.close": "a.jnotify-close",
+    "notif.error": (By.XPATH, "//ul[@class='error']"),
+    "notif.warn": (By.XPATH, "//ul[@class='warning']"),
+    "notif.success": (By.XPATH, "//ul[@class='success']"),
+    "notif.close": (By.XPATH, "//div[@class='control']"),
 
     # Login
-    "login.username": "username",
-    "login.password": "password",
-    "login.submit": "commit",
-    "login.gravatar": "//span[@class='gravatar-span']",
-    "login.user": "span.ng-binding",
-    "login.interstitial": "interstitial",
-    "login.logout": "logout",
+    "login.username": (By.CLASS_NAME, "username"),
+    "login.password": (By.CLASS_NAME, "password"),
+    "login.submit": (By.NAME, "commit"),
+    "login.gravatar": (By.XPATH, "//span[@class='gravatar-span']"),
+    "login.user": (By.XPATH, "//span[@class='ng-binding']"),
+    "login.interstitial": (By.ID, "interstitial"),
+    "login.logout": (By.XPATH, "//a[contains(@href, 'logout')]"),
 
     # Users
     "users.new": "new",

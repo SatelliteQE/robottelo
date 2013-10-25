@@ -13,8 +13,7 @@ import unittest
 from robottelo.lib.ui.login import Login
 from robottelo.lib.ui.navigator import Navigator
 from robottelo.lib.ui.user import User
-
-from splinter import Browser
+from selenium import webdriver
 
 class BaseUI(unittest.TestCase):
 
@@ -31,9 +30,17 @@ class BaseUI(unittest.TestCase):
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
 
-        self.browser = Browser(driver_name=self.driver_name)
-        self.browser.driver.maximize_window()
-        self.browser.visit("%s/%s" % (self.host, self.project))
+        if self.driver_name.lower() == 'firefox':
+            self.browser = webdriver.Firefox()
+        elif self.driver_name.lower() == 'chrome':
+            self.browser = webdriver.Chrome()
+        elif self.driver_name.lower() == 'ie':
+            self.browser = webdriver.Ie()
+        else:
+            self.browser = webdriver.Remote()
+
+        self.browser.maximize_window()
+        self.browser.get("%s/%s" % (self.host, self.project))
 
         # Library methods
         self.login = Login(self.browser)
@@ -42,22 +49,20 @@ class BaseUI(unittest.TestCase):
 
     # Borrowed from the following article:
     #  http://engineeringquality.blogspot.com/2012/12/python-selenium-capturing-screenshot-on.html
-    def take_screenshot(self, webdriver, file_name="error.png"):
+    def take_screenshot(self, file_name="error.png"):
             """
-            @param webdriver: WebDriver.
-            @type webdriver: WebDriver
             @param file_name: Name to label this screenshot.
             @type file_name: str
             """
-            if isinstance(webdriver, selenium.webdriver.remote.webdriver.WebDriver):
+            if isinstance(self.browser, selenium.webdriver.remote.webdriver.WebDriver):
                 # Get Screenshot over the wire as base64
-                base64_data = webdriver.get_screenshot_as_base64()
+                base64_data = self.browser.get_screenshot_as_base64()
                 screenshot_data = base64.decodestring(base64_data)
                 screenshot_file = open(file_name, "w")
                 screenshot_file.write(screenshot_data)
                 screenshot_file.close()
             else:
-                webdriver.save_screenshot(filename)
+                self.browser.save_screenshot(filename)
 
     def run(self, result=None):
         super(BaseUI, self).run(result)
@@ -67,10 +72,9 @@ class BaseUI(unittest.TestCase):
             fmt='%y-%m-%d_%H.%M.%S'
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
-            self.take_screenshot(self.browser.driver, filename)
+            self.take_screenshot(filename)
 
         self.browser.quit()
         self.browser = None
 
         return result
-
