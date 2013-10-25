@@ -25,19 +25,19 @@ Single tests can be invoked by using the included **robottelo_runner** script:
 
 ::
 
-    python robottello_runner.py --driver firefox --host www.example.com --project katello --tests tests.ui.test_Login
+    python robottelo_runner.py --driver firefox --host www.example.com --project katello --tests tests.ui.test_Login
 
 Multiple tests can also be invoked:
 
 ::
 
-    python robottello_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login --tests tests.ui.test_Organization
+    python robottelo_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login --tests tests.ui.test_Organization
 
 Running individual tests from a test suite from the command line:
 
 ::
 
-    python robottello_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login.test_successful_login
+    python robottelo_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login.test_successful_login
 
 You can also run tests directly using either **unittest** or **nosetests** provided you pass all the expected arguments:
 
