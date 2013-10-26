@@ -43,7 +43,7 @@ class User(BaseUI):
         # Revisit Users page
         self.navigator.go_to_users()
         self.user.new_user(name, email, password, password)
-        self.assertTrue(self.browser.is_element_present_by_css(locators["notif.error"]))
+        self.assertTrue(self.user.wait_until_element(locators["notif.error"]))
 
     def test_edit_user_1(self):
         "Create then edit new user's password"
@@ -53,10 +53,10 @@ class User(BaseUI):
         self._create_user(None, None, password, password)
 
         new_password = generate_name()
-        self.browser.find_by_id(locators["users.password1"]).fill(new_password)
-        self.browser.find_by_id(locators["users.password2"]).fill(new_password)
-        self.browser.find_by_id(locators["users.save"]).click()
-        self.assertTrue(self.browser.is_element_present_by_css(locators["notif.success"]))
+        self.find_element(locators["users.password1"]).send_keys(new_password)
+        self.find_element(locators["users.password2"]).send_keys(new_password)
+        self.find_element(locators["users.save"]).click()
+        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
 
     def test_edit_user_2(self):
         "Create then edit new user's locale"
@@ -66,10 +66,10 @@ class User(BaseUI):
         self._create_user(None, None, password, password)
         # Change locale to pt_BR (default)
         self.user.update_locale()
-        self.assertTrue(self.browser.is_element_present_by_css(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
         # Change locale to ja
         self.user.update_locale('ja')
-        self.assertTrue(self.browser.is_element_present_by_css(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
 
     def test_delete_user_1(self):
         "Creates and immediately deletes a user"
