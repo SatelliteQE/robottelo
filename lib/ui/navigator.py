@@ -2,9 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+from base import Base
 from locators import *
 
-class Navigator():
+class Navigator(Base):
     """
     Quickly navigate through menus and tabs.
     """
@@ -13,17 +14,17 @@ class Navigator():
         self.browser = browser
 
     def go_to_organizations(self):
-        self.browser.find_by_xpath(locators["menu.administer"]).click()
-        self.browser.find_by_xpath(locators["submenu.organizations"]).click()
+        self.find_element(locators["menu.administer"]).click()
+        self.find_element(locators["submenu.organizations"]).click()
 
     def go_to_users(self):
-        self.browser.find_by_xpath(locators["menu.administer"]).click()
-        self.browser.find_by_xpath(locators["submenu.users"]).click()
+        self.find_element(locators["menu.administer"]).click()
+        self.find_element(locators["submenu.users"]).click()
 
     def go_to_roles(self):
-        self.browser.find_by_xpath(locators["menu.administer"]).click()
-        self.browser.find_by_xpath(locators["submenu.roles"]).click()
+        self.find_element(locators["menu.administer"]).click()
+        self.find_element(locators["submenu.roles"]).click()
 
     def go_to_about(self):
-        self.browser.find_by_xpath(locators["menu.administer"]).click()
-        self.browser.find_by_xpath(locators["submenu.about"]).click()
+        self.find_element(locators["menu.administer"]).click()
+        self.find_element(locators["submenu.about"]).click()
