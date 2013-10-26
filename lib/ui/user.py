@@ -2,29 +2,36 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+from base import Base
 from locators import *
 
-class User():
+class User(Base):
 
     def __init__(self, browser):
         self.browser = browser
 
     def new_user(self, username, email=None, password1=None, password2=None):
-        self.browser.find_by_id(locators["users.new"]).click()
+        self.wait_until_element(locators["users.new"]).click()
 
-        if self.browser.is_element_present_by_id(locators["users.username"], 10):
-            self.browser.find_by_id(locators["users.username"]).fill(username)
+        if self.wait_until_element(locators["users.username"]):
+            self.find_element(locators["users.username"]).send_keys(username)
             # The following fields are not available via LDAP auth
-            if self.browser.is_element_present_by_id(locators["users.email"], 10):
-                self.browser.find_by_id(locators["users.email"]).fill(email)
-            if self.browser.is_element_present_by_id(locators["users.password1"], 10):
-                self.browser.find_by_id(locators["users.password1"]).fill(password1)
-            if self.browser.is_element_present_by_id(locators["users.password2"], 10):
-                self.browser.find_by_id(locators["users.password2"]).fill(password2)
-            self.browser.find_by_id(locators["users.save"]).click()
+            if self.wait_until_element(locators["users.email"]):
+                self.find_element(locators["users.email"]).send_keys(email)
+            if self.wait_until_element(locators["users.password1"]):
+                self.find_element(locators["users.password1"]).send_keys(password1)
+            if self.wait_until_element(locators["users.password2"]):
+                self.find_element(locators["users.password2"]).send_keys(password2)
+            self.find_element(locators["users.save"]).click()
 
     def find_user(self, username):
-        return self.browser.find_by_xpath(locators["users.user"] % username, 10)
+        # Make sure the user is present
+
+        user = self.wait_until_element((locators["users.user"][0], locators["users.user"][1] % username))
+        if not user:
+            print "No users were found."
+
+        return user
 
     def remove_user(self, username, really=False):
         user = self.find_user(username)
@@ -33,7 +40,8 @@ class User():
             user.click()
             #TODO: Need to wait until the edit panel is visible so we
             #can interact with it.
-            if self.browser.is_element_present_by_xpath(locators["users.remove"], 10):
+            element = self.find_and_wait(self.browser.find_by_xpath, locators["users.remove"])
+            if element:
                 self.browser.find_by_xpath(locators["users.remove"]).click()
                 if really:
                     self.browser.find_by_xpath(locators["dialog.yes"]).click()

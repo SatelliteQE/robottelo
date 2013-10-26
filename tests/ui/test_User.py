@@ -18,9 +18,11 @@ class User(BaseUI):
         email = email or "%s@example.com" % name
 
         self.user.new_user(name, email, passwd1, passwd2)
-        self.assertTrue(self.browser.is_element_present_by_css(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
         user = self.user.find_user(name)
         self.assertEqual(user.text, name)
+
+        return user
 
     def test_create_user_1(self):
         "Successfully creates a new user"
@@ -78,8 +80,6 @@ class User(BaseUI):
         self._create_user(name, None, password, password)
 
         # Attempt to remove a user but change mind
-        # Revisit Users page
-        self.navigator.go_to_users()
         self.user.remove_user(name, False)
         user = self.user.find_user(name)
         self.assertEqual(user.text, name)
@@ -88,6 +88,7 @@ class User(BaseUI):
         # Revisit Users page
         self.navigator.go_to_users()
         self.user.remove_user(name, True)
+        self.navigator.go_to_users()
         user = self.user.find_user(name)
         self.assertEqual(user, [])
 
