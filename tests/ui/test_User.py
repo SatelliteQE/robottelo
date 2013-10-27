@@ -52,10 +52,12 @@ class User(BaseUI):
         password = generate_name(6)
         self._create_user(None, None, password, password)
 
+        # Wait until the edit form is visible
+        self.user.wait_until_element(locators["users.password1"])
         new_password = generate_name()
-        self.find_element(locators["users.password1"]).send_keys(new_password)
-        self.find_element(locators["users.password2"]).send_keys(new_password)
-        self.find_element(locators["users.save"]).click()
+        self.user.find_element(locators["users.password1"]).send_keys(new_password)
+        self.user.find_element(locators["users.password2"]).send_keys(new_password)
+        self.user.find_element(locators["users.save_password"]).click()
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
 
     def test_edit_user_2(self):

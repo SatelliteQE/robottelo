@@ -32,6 +32,7 @@ locators = {
     "users.password1": (By.ID, "password_field"),
     "users.password2": (By.ID, "confirm_field"),
     "users.save": (By.ID, "save_user"),
+    "users.save_password": (By.ID, "save_password"),
     "users.user": (By.XPATH, "//div[@title='%s']"),
     "users.remove": (By.XPATH, "//a[@class='remove_item']"),
     "users.locale": (By.ID, "locale_locale"),
