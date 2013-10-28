@@ -19,10 +19,7 @@ class User(BaseUI):
 
         self.user.new_user(name, email, passwd1, passwd2)
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
-        user = self.user.find_user(name)
-        self.assertEqual(user.text, name)
-
-        return user
+        self.user.find_element(locators["notif.close"]).click()
 
     def test_create_user_1(self):
         "Successfully creates a new user"
@@ -49,7 +46,7 @@ class User(BaseUI):
         "Create then edit new user's password"
         self.users_page()
 
-        password = generate_name(6)
+        password = generate_name(7)
         self._create_user(None, None, password, password)
 
         # Wait until the edit form is visible
@@ -66,11 +63,11 @@ class User(BaseUI):
 
         password = generate_name(6)
         self._create_user(None, None, password, password)
+
+        # Wait until the edit form is visible
+        self.user.wait_until_element(locators["users.password1"])
         # Change locale to pt_BR (default)
         self.user.update_locale()
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
-        # Change locale to ja
-        self.user.update_locale('ja')
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
 
     def test_delete_user_1(self):
@@ -83,14 +80,16 @@ class User(BaseUI):
 
         # Attempt to remove a user but change mind
         self.user.remove_user(name, False)
+        # Revisit Users page
+        self.navigator.go_to_users()
         user = self.user.find_user(name)
+        self.assertIsNotNone(user)
         self.assertEqual(user.text, name)
 
         # Now delete it for real
+        self.user.remove_user(name, True)
         # Revisit Users page
         self.navigator.go_to_users()
-        self.user.remove_user(name, True)
-        self.navigator.go_to_users()
         user = self.user.find_user(name)
-        self.assertEqual(user, [])
+        self.assertIsNone(user)
 

@@ -7,8 +7,8 @@ from selenium.webdriver.common.by import By
 locators = {
 
     # Dialogs
-    "dialog.yes": "//div[@class='ui-dialog-buttonset']/button[1]/span",
-    "dialog.no": "//div[@class='ui-dialog-buttonset']/button[2]/span",
+    "dialog.yes": (By.XPATH, "//div[@class='ui-dialog-buttonset']/button[1]/span"),
+    "dialog.no": (By.XPATH, "//div[@class='ui-dialog-buttonset']/button[2]/span"),
 
     # Notifications
     "notif.error": (By.XPATH, "//div[contains(@class, 'jnotify-notification-error')]"),
@@ -26,6 +26,7 @@ locators = {
     "login.logout": (By.XPATH, "//a[contains(@href, 'logout')]"),
 
     # Users
+    "users.search": (By.ID, "search"),
     "users.new": (By.ID, "new"),
     "users.username": (By.ID, "user_username"),
     "users.email": (By.ID, "user_email"),

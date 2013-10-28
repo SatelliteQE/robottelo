@@ -4,6 +4,7 @@
 
 from base import Base
 from locators import *
+from selenium.webdriver.common.keys import Keys
 
 class User(Base):
 
@@ -27,27 +28,36 @@ class User(Base):
     def find_user(self, username):
         # Make sure the user is present
 
-        user = self.wait_until_element((locators["users.user"][0], locators["users.user"][1] % username))
-        if not user:
-            print "No users were found."
+        #TODO: switch to using the search field to find user
+        searchbox = self.wait_until_element(locators["users.search"])
+        if searchbox:
+            searchbox.clear()
+            searchbox.send_keys(username)
+            searchbox.send_keys(Keys.RETURN)
+            user = self.wait_until_element((locators["users.user"][0], locators["users.user"][1] % username))
+            if not user:
+                print "No users were found."
+            else:
+                user.click()
 
-        return user
+            return user
 
     def remove_user(self, username, really=False):
-        user = self.find_user(username)
-
-        if user:
-            user.click()
-            #TODO: Need to wait until the edit panel is visible so we
-            #can interact with it.
-            element = self.find_and_wait(self.browser.find_by_xpath, locators["users.remove"])
-            if element:
-                self.browser.find_by_xpath(locators["users.remove"]).click()
-                if really:
-                    self.browser.find_by_xpath(locators["dialog.yes"]).click()
-                else:
-                    self.browser.find_by_xpath(locators["dialog.no"]).click()
+        element = self.wait_until_element(locators["users.remove"])
+        if element:
+            self.find_element(locators["users.remove"]).click()
+            if really:
+                self.find_element(locators["dialog.yes"]).click()
+            else:
+                self.find_element(locators["dialog.no"]).click()
 
     def update_locale(self, lang='pt-BR'):
-        self.browser.select(locators["users.locale"], lang)
+
+        self.wait_until_element(locators["users.locale"])
+        select = self.browser.find_element_by_tag_name("select")
+        allOptions = select.find_elements_by_tag_name("option")
+        for option in allOptions:
+            if option.get_attribute("value") == lang:
+                option.click()
+                break
 
