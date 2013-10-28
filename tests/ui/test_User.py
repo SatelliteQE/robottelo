@@ -86,7 +86,10 @@ class User(BaseUI):
         self.assertIsNotNone(user)
         self.assertEqual(user.text, name)
 
+        # Revisit Users page
+        self.navigator.go_to_users()
         # Now delete it for real
+        self.user.find_user(name)
         self.user.remove_user(name, True)
         # Revisit Users page
         self.navigator.go_to_users()

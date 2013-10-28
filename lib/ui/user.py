@@ -28,7 +28,8 @@ class User(Base):
     def find_user(self, username):
         # Make sure the user is present
 
-        #TODO: switch to using the search field to find user
+        user = None
+
         searchbox = self.wait_until_element(locators["users.search"])
         if searchbox:
             searchbox.clear()
@@ -39,8 +40,10 @@ class User(Base):
                 print "No users were found."
             else:
                 user.click()
+        else:
+            print "Could not locate the search box."
 
-            return user
+        return user
 
     def remove_user(self, username, really=False):
         element = self.wait_until_element(locators["users.remove"])
