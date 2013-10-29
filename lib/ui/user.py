@@ -36,12 +36,8 @@ class User(Base):
             searchbox.send_keys(username)
             searchbox.send_keys(Keys.RETURN)
             user = self.wait_until_element((locators["users.user"][0], locators["users.user"][1] % username))
-            if not user:
-                print "No users were found."
-            else:
+            if user:
                 user.click()
-        else:
-            print "Could not locate the search box."
 
         return user
 

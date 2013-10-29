@@ -4,6 +4,7 @@
 
 import logging
 import logging.config
+import os
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,6 +14,7 @@ class Base():
 
     logging.config.fileConfig("logging.conf")
     logger = logging.getLogger("robottelo")
+    logger.setLevel(int(os.getenv('VERBOSITY', 2)))
 
     def find_element(self, locator):
         """
@@ -50,5 +52,5 @@ class Base():
             self.logger.debug("Element '%s' was never found." % locator[1])
             return None
         except Exception, e:
-            self.logger.warn("Failed to locate element. ERROR: %s" % str(e))
+            self.logger.debug("Failed to locate element. ERROR: %s" % str(e))
             return None

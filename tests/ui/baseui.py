@@ -63,7 +63,7 @@ class BaseUI(unittest.TestCase):
                     file_name = os.path.join(SCREENSHOTS_DIR, file_name)
                 except Exception, e:
                     self.logger.debug("Could not create screenshots directory: %s" % str(e))
-                    continue
+                    pass
 
             if isinstance(self.browser, selenium.webdriver.remote.webdriver.WebDriver):
                 # Get Screenshot over the wire as base64
