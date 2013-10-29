@@ -15,6 +15,8 @@ from robottelo.lib.ui.navigator import Navigator
 from robottelo.lib.ui.user import User
 from selenium import webdriver
 
+SCREENSHOTS_DIR = os.path.exists(os.path.join(os.path.abspath(os.path.curdir), 'screenshots'))
+
 class BaseUI(unittest.TestCase):
 
     def setUp(self):
@@ -54,6 +56,14 @@ class BaseUI(unittest.TestCase):
             @param file_name: Name to label this screenshot.
             @type file_name: str
             """
+
+            if not SCREENSHOTS_DIR:
+                try:
+                    os.mkdir(SCREENSHOTS_DIR)
+                    file_name = os.path.join(SCREENSHOTS_DIR, file_name)
+                except Exception, e:
+                    self.logger.debug("Could not create screenshots directory: %s" % str(e))
+
             if isinstance(self.browser, selenium.webdriver.remote.webdriver.WebDriver):
                 # Get Screenshot over the wire as base64
                 base64_data = self.browser.get_screenshot_as_base64()
