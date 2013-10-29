@@ -2,11 +2,17 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+import logging
+import logging.config
+
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class Base():
+
+    logging.config.fileConfig("logging.conf")
+    logger = logging.getLogger("robottelo")
 
     def find_element(self, locator):
         """
@@ -21,10 +27,10 @@ class Base():
             else:
                 return None
         except NoSuchElementException, e:
-            #self.logger.debug("Could not locate element.")
+            self.logger.debug("Could not locate element '%s'." % locator[1])
             return None
         except Exception, e:
-            #self.logger.debug("Failed to locate element. ERROR: %s" % str(e))
+            self.logger.debug("Failed to locate element. ERROR: %s" % str(e))
             return None
 
     def wait_until_element(self, locator, delay=20):
@@ -38,11 +44,11 @@ class Base():
             element = WebDriverWait(self.browser, delay).until(EC.visibility_of_element_located((locator)))
             return element
         except TimeoutException, e:
-            #self.logger.debug("Timed out waiting for element to display.")
+            self.logger.debug("Timed out waiting for element '%s' to display." % locator[1])
             return None
         except NoSuchElementException, e:
-            #self.logger.debug("Could not locate element.")
+            self.logger.debug("Element '%s' was never found." % locator[1])
             return None
         except Exception, e:
-            #self.logger.warn("Failed to locate element. ERROR: %s" % str(e))
+            self.logger.warn("Failed to locate element. ERROR: %s" % str(e))
             return None
