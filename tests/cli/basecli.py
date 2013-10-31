@@ -5,16 +5,15 @@
 import logging
 import logging.config
 import os
-import paramiko
 import sys
 import unittest
 
 from robottelo.lib.cli.user import User
 
 try:
-    import patchwork
+    import paramiko
 except Exception, e:
-    print "Please install python-patchwork: https://github.com/RedHatQE/python-patchwork"
+    print "Please install paramiko."
     sys.exit(-1)
 
 class BaseCLI(unittest.TestCase):
