@@ -12,7 +12,10 @@ class User(BaseCLI):
         name = name or generate_name()
         email = email or "%s@example.com" % name
 
-        self.assertTrue(self.user.create(name, passwd1, email))
+        self.user.create(name, passwd1, email)
+
+        user = self.user.info(name)
+        self.assertEqual(name, user['username'])
 
     def test_create_user_1(self):
         "Successfully creates a new user"

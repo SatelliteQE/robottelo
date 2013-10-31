@@ -14,8 +14,14 @@ class Base():
 
     def execute(self, command, user='admin', password='admin'):
 
-        shell_cmd = "katello -u %s -p %s %s" % (user, password, command)
+        shell_cmd = "katello -u %s -p %s %s -g --noheading"
 
-        stdin, stdout, stderr = self.conn.exec_command(shell_cmd)
+        stdin, stdout, stderr = self.conn.exec_command(shell_cmd % (user, password, command))
 
-        return stdout.readlines(), stderr.readlines()
+        output = stdout.readlines()
+        errors = stderr.readlines()
+
+        self.logger.debug("".join(output))
+        self.logger.debug("".join(errors))
+
+        return output, errors
