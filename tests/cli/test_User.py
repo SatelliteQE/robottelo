@@ -22,3 +22,13 @@ class User(BaseCLI):
 
         password = generate_name(6)
         self._create_user(None, None, password)
+
+    def test_delete_user_1(self):
+        "Creates and immediately deletes user."
+
+        password = generate_name(6)
+        name = generate_name()
+        self._create_user(name, None, password)
+
+        self.user.delete(name)
+        self.assertEqual({}, self.user.info(name))
