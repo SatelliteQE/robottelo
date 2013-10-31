@@ -22,6 +22,9 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--tests', type=str, action='append', help='The name of the tests to be run.')
     parser.add_argument('--verbose', type=int,  choices=range(1, 6), default=1, help='Debug verbosity level')
 
+    parser.add_argument('--sshkey', type=str, dest='sshkey', default=os.path.expanduser('~/.ssh/id_rsa'), help='Path to ssh key to connect to server.')
+    parser.add_argument('--root', type=str, dest='root', default='root', help='User name to connect to server via ssh. Most of the time the default "root" will work.')
+
     [options, ignored_options] = parser.parse_known_args()
 
     # Validation
@@ -34,6 +37,8 @@ if __name__ == "__main__":
         os.environ['KATELLO_PORT'] = options.port
         os.environ['DRIVER_NAME'] = options.driver
         os.environ['VERBOSITY'] = str(options.verbose)
+        os.environ['SSH_KEY'] = options.sshkey
+        os.environ['ROOT'] = options.root
 
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
