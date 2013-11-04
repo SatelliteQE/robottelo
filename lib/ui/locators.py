@@ -24,6 +24,7 @@ locators = {
     "login.user": (By.XPATH, "//span[@class='ng-binding']"),
     "login.interstitial": (By.ID, "interstitial"),
     "login.logout": (By.XPATH, "//a[contains(@href, 'logout')]"),
+    "login.selectOrg": (By.XPATH, "//a[@class='org-link' and contains(., '%s')]"),
 
     # Users
     "users.search": (By.ID, "search"),
@@ -64,7 +65,7 @@ locators = {
     # Organization Distributor Default Info
     "org.distributor_default_link": (By.XPATH, "//li[@id='org_distributor_default_info']/a"),
 
-    "org.default_keyname_field": (By.ID "new_default_info_keyname"),
+    "org.default_keyname_field": (By.ID, "new_default_info_keyname"),
     "org.default_keyname_save": (By.ID, "add_default_info_button"),
     "org.default_keyname_apply": (By.ID, "apply_default_info_button"),
     "org.default_keyname_remove": (By.XPATH, "//input[@data-id='default_info_%s']"),

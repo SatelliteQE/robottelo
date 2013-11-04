@@ -28,7 +28,7 @@ class Login(Base):
                 return
 
             if self.find_element(locators["login.interstitial"]):
-                self.find_element_by_partial_link_text(organization).click()
+                self.find_element((locators["login.selectOrg"][0],locators["login.selectOrg"][1] % organization)).click()
 
     def logout(self):
 
