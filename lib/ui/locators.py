@@ -25,6 +25,10 @@ locators = {
     "login.interstitial": (By.ID, "interstitial"),
     "login.logout": (By.XPATH, "//a[contains(@href, 'logout')]"),
     "login.selectOrg": (By.XPATH, "//a[@class='org-link' and contains(., '%s')]"),
+    "login.forgotUserName": (By.ID, "username_link"),
+    "login.forgotUserNameEmail": (By.ID, "email"),
+    "login.forgotUserNameSubmit": (By.XPATH, "//input[@class='button primary'][@value='Send Login']"),
+    "login.forgotPassword": (By.ID, "password_reset"),
 
     # Users
     "users.search": (By.ID, "search"),
@@ -78,7 +82,7 @@ locators = {
     ## Administer
     "menu.administer": (By.XPATH, "//nav[@class='nav admin_menu right']/ul/li/a/span[@class='ng-binding']"),
     "submenu.organizations": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[1]/a"),
-    "submenu.users": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[2]/a"),
+    "submenu.users": (By.LINK_TEXT, "Users"),
     "submenu.roles": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[3]/a"),
     "submenu.about": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[4]/a"),
 

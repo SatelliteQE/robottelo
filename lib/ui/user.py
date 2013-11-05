@@ -5,6 +5,7 @@
 from base import Base
 from locators import *
 from selenium.webdriver.common.keys import Keys
+from robottelo.lib.common.helpers import generate_name
 
 class User(Base):
 
@@ -24,6 +25,7 @@ class User(Base):
             if self.wait_until_element(locators["users.password2"]):
                 self.find_element(locators["users.password2"]).send_keys(password2)
             self.find_element(locators["users.save"]).click()
+
 
     def find_user(self, username):
         # Make sure the user is present
