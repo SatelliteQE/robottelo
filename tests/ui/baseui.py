@@ -15,7 +15,9 @@ from robottelo.lib.ui.navigator import Navigator
 from robottelo.lib.ui.user import User
 from selenium import webdriver
 
-SCREENSHOTS_DIR = os.path.exists(os.path.join(os.path.abspath(os.path.curdir), 'screenshots'))
+SCREENSHOTS_DIR = os.path.exists(os.path.join(
+    os.path.abspath(os.path.curdir), 'screenshots'))
+
 
 class BaseUI(unittest.TestCase):
 
@@ -62,10 +64,13 @@ class BaseUI(unittest.TestCase):
                     os.mkdir(SCREENSHOTS_DIR)
                     file_name = os.path.join(SCREENSHOTS_DIR, file_name)
                 except Exception, e:
-                    self.logger.debug("Could not create screenshots directory: %s" % str(e))
+                    self.logger.debug(
+                        "Could not create screenshots directory: %s" % str(e))
                     pass
 
-            if isinstance(self.browser, selenium.webdriver.remote.webdriver.WebDriver):
+            if isinstance(
+                    self.browser,
+                    selenium.webdriver.remote.webdriver.WebDriver):
                 # Get Screenshot over the wire as base64
                 base64_data = self.browser.get_screenshot_as_base64()
                 screenshot_data = base64.decodestring(base64_data)
@@ -73,14 +78,15 @@ class BaseUI(unittest.TestCase):
                 screenshot_file.write(screenshot_data)
                 screenshot_file.close()
             else:
-                self.browser.save_screenshot(filename)
+                self.browser.save_screenshot(file_name)
 
     def run(self, result=None):
         super(BaseUI, self).run(result)
 
         if result.failures or result.errors:
-            fname = str(self).replace("(", "").replace(")", "").replace(" ", "_")
-            fmt='%y-%m-%d_%H.%M.%S'
+            fname = str(self).replace(
+                "(", "").replace(")", "").replace(" ", "_")
+            fmt = '%y-%m-%d_%H.%M.%S'
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
