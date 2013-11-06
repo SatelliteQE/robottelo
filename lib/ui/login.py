@@ -31,10 +31,13 @@ class Login(Base):
                 self.find_element((locators["login.selectOrg"][0],locators["login.selectOrg"][1] % organization)).click()
 
     def logout(self):
-
-        if self.find_element(locators["login.user"]):
+        # Headpin ?
+        if self.find_element(locators["login.gravatar"]):
+            self.find_element(locators["login.gravatar"]).click()
+        # Katello ?
+        elif self.find_element(locators["login.user"]):
             self.find_element(locators["login.user"]).click()
-            self.find_element(locators["login.logout"]).click()
+        self.find_element(locators["login.logout"]).click()
 
     def is_logged(self, username):
         # Headpin?
@@ -45,3 +48,15 @@ class Login(Base):
             return True
         else:
             return False
+
+    def forgot_username(self, email):
+        email = email or "test@test.com"
+        if self.wait_until_element(locators["login.forgotUserName"]):
+            self.find_element(locators["login.forgotUserName"]).click()
+            if self.wait_until_element(locators["login.forgotUserNameEmail"]):
+                txt_field = self.find_element(locators["login.forgotUserNameEmail"])
+                txt_field.clear()
+                txt_field.send_keys(email)
+                if self.wait_until_element(locators["login.forgotUserNameSubmit"]):
+                    self.find_element(locators["login.forgotUserNameSubmit"]).click()
+
