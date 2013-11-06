@@ -10,6 +10,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 class Base():
 
     logging.config.fileConfig("logging.conf")
@@ -18,8 +19,8 @@ class Base():
 
     def find_element(self, locator):
         """
-        Wrapper around Selenium's WebDriver that allows you to search for an element in
-        the web page.
+        Wrapper around Selenium's WebDriver that allows you to search for an
+        element in the web page.
         """
 
         try:
@@ -38,15 +39,18 @@ class Base():
     def wait_until_element(self, locator, delay=20):
 
         """
-        Wrapper around Selenium's WebDriver that allows you to pause your test until
-        an element in the web page is present.
+        Wrapper around Selenium's WebDriver that allows you to pause your test
+        until an element in the web page is present.
         """
 
         try:
-            element = WebDriverWait(self.browser, delay).until(EC.visibility_of_element_located((locator)))
+            element = WebDriverWait(
+                self.browser, delay
+            ).until(EC.visibility_of_element_located((locator)))
             return element
         except TimeoutException, e:
-            self.logger.debug("Timed out waiting for element '%s' to display." % locator[1])
+            self.logger.debug(
+                "Timed out waiting for element '%s' to display." % locator[1])
             return None
         except NoSuchElementException, e:
             self.logger.debug("Element '%s' was never found." % locator[1])
