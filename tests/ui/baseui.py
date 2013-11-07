@@ -9,6 +9,7 @@ import logging.config
 import os
 import selenium
 import unittest
+import sauceclient
 
 from robottelo.lib.ui.login import Login
 from robottelo.lib.ui.navigator import Navigator
@@ -17,6 +18,7 @@ from selenium import webdriver
 
 SCREENSHOTS_DIR = os.path.exists(os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots'))
+
 
 
 class BaseUI(unittest.TestCase):
@@ -93,6 +95,10 @@ class BaseUI(unittest.TestCase):
 
     def run(self, result=None):
         super(BaseUI, self).run(result)
+        # create a sauceclient object to report pass/fail results
+        sc = sauceclient.SauceClient(
+            self.sauce_user,
+            self.sauce_key)
 
         if result.failures or result.errors:
             fname = str(self).replace(
@@ -101,6 +107,15 @@ class BaseUI(unittest.TestCase):
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
+            if isinstance(
+                    self.browser,
+                    selenium.webdriver.remote.webdriver.WebDriver):
+                sc.jobs.update_job(self.browser.session_id,name=str(self),passed=False)
+        else:
+            if isinstance(
+                    self.browser,
+                    selenium.webdriver.remote.webdriver.WebDriver):
+                sc.jobs.update_job(self.browser.session_id,name=str(self),passed=True)
 
         self.browser.quit()
         self.browser = None
