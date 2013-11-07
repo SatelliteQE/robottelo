@@ -26,22 +26,33 @@ class BaseUI(unittest.TestCase):
         self.port = os.getenv('KATELLO_PORT', '443')
         self.project = os.getenv('PROJECT', 'katello')
         self.driver_name = os.getenv('DRIVER_NAME', 'firefox')
-
+        self.sauce_user = os.getenv('SAUCE_USER','')
+        self.sauce_key = os.getenv('SAUCE_KEY')
+        self.sauce_os = os.getenv('SAUCE_OS')
+        self.sauce_version = os.getenv('SAUCE_VERSION')
         self.verbosity = int(os.getenv('VERBOSITY', 2))
 
         logging.config.fileConfig("logging.conf")
 
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
-
-        if self.driver_name.lower() == 'firefox':
-            self.browser = webdriver.Firefox()
-        elif self.driver_name.lower() == 'chrome':
-            self.browser = webdriver.Chrome()
-        elif self.driver_name.lower() == 'ie':
-            self.browser = webdriver.Ie()
+        if len(self.sauce_user) == 0:
+            if self.driver_name.lower() == 'firefox':
+                self.browser = webdriver.Firefox()
+            elif self.driver_name.lower() == 'chrome':
+                self.browser = webdriver.Chrome()
+            elif self.driver_name.lower() == 'ie':
+                self.browser = webdriver.Ie()
+            else:
+                self.browser = webdriver.Remote()
         else:
-            self.browser = webdriver.Remote()
+            desired_capabilities = getattr(webdriver.DesiredCapabilities, self.driver_name.upper())
+            desired_capabilities['version'] = self.sauce_version
+            desired_capabilities['platform'] = self.sauce_os
+            self.browser = webdriver.Remote(
+                desired_capabilities=desired_capabilities,
+                command_executor="http://"+self.sauce_user+":"+self.sauce_key+"@ondemand.saucelabs.com:80/wd/hub")
+            self.browser.implicitly_wait(1)
 
         self.browser.maximize_window()
         self.browser.get("%s/%s" % (self.host, self.project))
