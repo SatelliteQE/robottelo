@@ -25,6 +25,10 @@ locators = {
     "login.interstitial": (By.ID, "interstitial"),
     "login.logout": (By.XPATH, "//a[contains(@href, 'logout')]"),
     "login.selectOrg": (By.XPATH, "//a[@class='org-link' and contains(., '%s')]"),
+    "login.forgotUserName": (By.ID, "username_link"),
+    "login.forgotUserNameEmail": (By.ID, "email"),
+    "login.forgotUserNameSubmit": (By.XPATH, "//input[@class='button primary'][@value='Send Login']"),
+    "login.forgotPassword": (By.ID, "password_reset"),
 
     # Users
     "users.search": (By.ID, "search"),

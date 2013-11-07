@@ -16,8 +16,8 @@ from robottelo.lib.ui.navigator import Navigator
 from robottelo.lib.ui.user import User
 from selenium import webdriver
 
-SCREENSHOTS_DIR = os.path.exists(os.path.join(
-    os.path.abspath(os.path.curdir), 'screenshots'))
+SCREENSHOTS_DIR = os.path.join(
+    os.path.abspath(os.path.curdir), 'screenshots')
 
 
 
@@ -72,7 +72,7 @@ class BaseUI(unittest.TestCase):
             @type file_name: str
             """
 
-            if not SCREENSHOTS_DIR:
+            if not os.path.exists(SCREENSHOTS_DIR):
                 try:
                     os.mkdir(SCREENSHOTS_DIR)
                     file_name = os.path.join(SCREENSHOTS_DIR, file_name)
