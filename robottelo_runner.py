@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument('--driver', type=str, dest='driver', default='firefox', help='Which WebDriver to use')
     parser.add_argument('-t', '--tests', type=str, action='append', help='The name of the tests to be run.')
     parser.add_argument('--verbose', type=int,  choices=range(1, 6), default=1, help='Debug verbosity level')
-    parser.add_argument('--sauce-user', type=str, dest='sauce_user', default='', help='User name for Sauce Labs')
+    parser.add_argument('--sauce-user', type=str, dest='sauce_user', help='User name for Sauce Labs')
     parser.add_argument('--sauce-key', type=str, dest='sauce_key', default='', help='API key for Sauce Labs')
     parser.add_argument('--sauce-os', type=str, dest='sauce_os', default='LINUX', help='OS to use when running tests on Sauce Labs. Options are: LINUX, WIN8, VISTA, MAC')
     parser.add_argument('--sauce-version', type=str, dest='sauce_version', default='21', help='Browser version to use on Sauce Labs. See available versions here: https://saucelabs.com/docs/platforms')
@@ -42,7 +42,8 @@ if __name__ == "__main__":
         os.environ['VERBOSITY'] = str(options.verbose)
         os.environ['SSH_KEY'] = options.sshkey
         os.environ['ROOT'] = options.root
-        os.environ['SAUCE_USER'] = options.sauce_user
+        if options.sauce_user != None:
+            os.environ['SAUCE_USER'] = options.sauce_user
         os.environ['SAUCE_KEY'] = options.sauce_key
         os.environ['SAUCE_OS'] = options.sauce_os
         os.environ['SAUCE_VERSION'] = options.sauce_version

@@ -19,7 +19,7 @@ from selenium import webdriver
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')
 
-
+SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
 class BaseUI(unittest.TestCase):
 
@@ -28,7 +28,7 @@ class BaseUI(unittest.TestCase):
         self.port = os.getenv('KATELLO_PORT', '443')
         self.project = os.getenv('PROJECT', 'katello')
         self.driver_name = os.getenv('DRIVER_NAME', 'firefox')
-        self.sauce_user = os.getenv('SAUCE_USER','')
+        self.sauce_user = os.getenv('SAUCE_USER')
         self.sauce_key = os.getenv('SAUCE_KEY')
         self.sauce_os = os.getenv('SAUCE_OS')
         self.sauce_version = os.getenv('SAUCE_VERSION')
@@ -38,7 +38,7 @@ class BaseUI(unittest.TestCase):
 
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
-        if len(self.sauce_user) == 0:
+        if self.sauce_user == None:
             if self.driver_name.lower() == 'firefox':
                 self.browser = webdriver.Firefox()
             elif self.driver_name.lower() == 'chrome':
@@ -52,8 +52,8 @@ class BaseUI(unittest.TestCase):
             desired_capabilities['version'] = self.sauce_version
             desired_capabilities['platform'] = self.sauce_os
             self.browser = webdriver.Remote(
-                desired_capabilities=desired_capabilities,
-                command_executor="http://"+self.sauce_user+":"+self.sauce_key+"@ondemand.saucelabs.com:80/wd/hub")
+                desired_capabilities = desired_capabilities,
+                command_executor = SAUCE_URL % (self.sauce_user, self.sauce_key))
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
@@ -93,14 +93,11 @@ class BaseUI(unittest.TestCase):
             else:
                 self.browser.save_screenshot(file_name)
 
-    def isremote(self):
-        "remote" in str(type(self.browser))
-
 
     def run(self, result=None):
         super(BaseUI, self).run(result)
         # create a sauceclient object to report pass/fail results
-        if self.isremote():
+        if "remote" in str(type(self.browser)):
             sc = sauceclient.SauceClient(
                 self.sauce_user,
                 self.sauce_key)
@@ -112,10 +109,10 @@ class BaseUI(unittest.TestCase):
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
-            if self.isremote():
+            if "remote" in str(type(self.browser)):
                 sc.jobs.update_job(self.browser.session_id,name=str(self),passed=False)
         else:
-            if self.isremote():
+            if "remote" in str(type(self.browser)):
                 sc.jobs.update_job(self.browser.session_id,name=str(self),passed=True)
 
         self.browser.quit()
