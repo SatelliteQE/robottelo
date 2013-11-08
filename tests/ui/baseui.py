@@ -93,12 +93,17 @@ class BaseUI(unittest.TestCase):
             else:
                 self.browser.save_screenshot(file_name)
 
+    def isremote(self):
+        "remote" in str(type(self.browser))
+
+
     def run(self, result=None):
         super(BaseUI, self).run(result)
         # create a sauceclient object to report pass/fail results
-        sc = sauceclient.SauceClient(
-            self.sauce_user,
-            self.sauce_key)
+        if self.isremote():
+            sc = sauceclient.SauceClient(
+                self.sauce_user,
+                self.sauce_key)
 
         if result.failures or result.errors:
             fname = str(self).replace(
@@ -107,11 +112,10 @@ class BaseUI(unittest.TestCase):
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
-            if "remote" in str(type(self.browser)):
-                print self.browser
+            if self.isremote():
                 sc.jobs.update_job(self.browser.session_id,name=str(self),passed=False)
         else:
-            if "remote" in str(type(self.browser)):
+            if self.isremote():
                 sc.jobs.update_job(self.browser.session_id,name=str(self),passed=True)
 
         self.browser.quit()
