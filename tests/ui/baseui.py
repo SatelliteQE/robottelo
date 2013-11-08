@@ -31,6 +31,7 @@ class BaseUI(unittest.TestCase):
         self.sauce_user = os.getenv('SAUCE_USER')
         self.sauce_key = os.getenv('SAUCE_KEY')
         self.sauce_os = os.getenv('SAUCE_OS')
+        self.sauce_tunnel = os.getenv('SAUCE_TUNNEL')
         self.sauce_version = os.getenv('SAUCE_VERSION')
         self.verbosity = int(os.getenv('VERBOSITY', 2))
 
@@ -51,6 +52,8 @@ class BaseUI(unittest.TestCase):
             desired_capabilities = getattr(webdriver.DesiredCapabilities, self.driver_name.upper())
             desired_capabilities['version'] = self.sauce_version
             desired_capabilities['platform'] = self.sauce_os
+            if self.sauce_tunnel != None:
+                desired_capabilities['parent-tunnel'] = self.sauce_tunnel
             self.browser = webdriver.Remote(
                 desired_capabilities = desired_capabilities,
                 command_executor = SAUCE_URL % (self.sauce_user, self.sauce_key))
