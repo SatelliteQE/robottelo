@@ -21,6 +21,7 @@ SCREENSHOTS_DIR = os.path.join(
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
+
 class BaseUI(unittest.TestCase):
 
     def setUp(self):
@@ -39,7 +40,8 @@ class BaseUI(unittest.TestCase):
 
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
-        if self.sauce_user == None:
+
+        if self.sauce_user is None:
             if self.driver_name.lower() == 'firefox':
                 self.browser = webdriver.Firefox()
             elif self.driver_name.lower() == 'chrome':
@@ -49,14 +51,16 @@ class BaseUI(unittest.TestCase):
             else:
                 self.browser = webdriver.Remote()
         else:
-            desired_capabilities = getattr(webdriver.DesiredCapabilities, self.driver_name.upper())
+            desired_capabilities = getattr(
+                webdriver.DesiredCapabilities, self.driver_name.upper())
             desired_capabilities['version'] = self.sauce_version
             desired_capabilities['platform'] = self.sauce_os
-            if self.sauce_tunnel != None:
+            if self.sauce_tunnel is not None:
                 desired_capabilities['parent-tunnel'] = self.sauce_tunnel
             self.browser = webdriver.Remote(
-                desired_capabilities = desired_capabilities,
-                command_executor = SAUCE_URL % (self.sauce_user, self.sauce_key))
+                desired_capabilities=desired_capabilities,
+                command_executor=SAUCE_URL % (
+                    self.sauce_user, self.sauce_key))
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
@@ -96,7 +100,6 @@ class BaseUI(unittest.TestCase):
             else:
                 self.browser.save_screenshot(file_name)
 
-
     def run(self, result=None):
         super(BaseUI, self).run(result)
         # create a sauceclient object to report pass/fail results
@@ -113,10 +116,12 @@ class BaseUI(unittest.TestCase):
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
             if "remote" in str(type(self.browser)):
-                sc.jobs.update_job(self.browser.session_id,name=str(self),passed=False)
+                sc.jobs.update_job(
+                    self.browser.session_id, name=str(self), passed=False)
         else:
             if "remote" in str(type(self.browser)):
-                sc.jobs.update_job(self.browser.session_id,name=str(self),passed=True)
+                sc.jobs.update_job(
+                    self.browser.session_id, name=str(self), passed=True)
 
         self.browser.quit()
         self.browser = None
