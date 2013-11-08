@@ -54,7 +54,7 @@ class BaseUI(unittest.TestCase):
             self.browser = webdriver.Remote(
                 desired_capabilities=desired_capabilities,
                 command_executor="http://"+self.sauce_user+":"+self.sauce_key+"@ondemand.saucelabs.com:80/wd/hub")
-            self.browser.implicitly_wait(1)
+            self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
         self.browser.get("%s/%s" % (self.host, self.project))
@@ -107,14 +107,11 @@ class BaseUI(unittest.TestCase):
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
-            if isinstance(
-                    self.browser,
-                    selenium.webdriver.remote.webdriver.WebDriver):
+            if "remote" in str(type(self.browser)):
+                print self.browser
                 sc.jobs.update_job(self.browser.session_id,name=str(self),passed=False)
         else:
-            if isinstance(
-                    self.browser,
-                    selenium.webdriver.remote.webdriver.WebDriver):
+            if "remote" in str(type(self.browser)):
                 sc.jobs.update_job(self.browser.session_id,name=str(self),passed=True)
 
         self.browser.quit()
