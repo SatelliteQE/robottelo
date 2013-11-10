@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser.add_argument('--project', type=str, dest='project', default='/katello', help='Project can be either "katello" or "headpin"')
     parser.add_argument('--port', type=str, dest='port', default='443', help='Server port, defaults to 443')
     parser.add_argument('--driver', type=str, dest='driver', default='firefox', help='Which WebDriver to use')
+    parser.add_argument('--locale', type=str, dest='locale', default='en_US', help='Run tests using specified locale')
     parser.add_argument('-t', '--tests', type=str, action='append', help='The name of the tests to be run.')
     parser.add_argument('--verbose', type=int,  choices=range(1, 6), default=1, help='Debug verbosity level')
     parser.add_argument('--sauce-user', type=str, dest='sauce_user', help='User name for Sauce Labs')
@@ -43,9 +44,10 @@ if __name__ == "__main__":
         os.environ['VERBOSITY'] = str(options.verbose)
         os.environ['SSH_KEY'] = options.sshkey
         os.environ['ROOT'] = options.root
-        if options.sauce_user != None:
+        os.environ['LOCALE'] = options.locale
+        if options.sauce_user is not None:
             os.environ['SAUCE_USER'] = options.sauce_user
-        if options.sauce_tunnel != None:
+        if options.sauce_tunnel is not None:
             os.environ['SAUCE_TUNNEL'] = options.sauce_tunnel
         os.environ['SAUCE_KEY'] = options.sauce_key
         os.environ['SAUCE_OS'] = options.sauce_os

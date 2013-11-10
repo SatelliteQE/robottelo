@@ -5,6 +5,7 @@
 from basecli import BaseCLI
 from robottelo.lib.common.helpers import generate_name
 
+
 class User(BaseCLI):
 
     def _create_user(self, name=None, email=None, passwd1=None):

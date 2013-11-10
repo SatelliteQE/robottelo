@@ -16,12 +16,14 @@ except Exception, e:
     print "Please install paramiko."
     sys.exit(-1)
 
+
 class BaseCLI(unittest.TestCase):
 
     def setUp(self):
         self.host = os.getenv('KATELLO_HOST')
         self.key_filename = os.getenv('SSH_KEY')
         self.root = os.getenv('ROOT')
+        self.locale = os.getenv('LOCALE', 'en_US')
         self.verbosity = int(os.getenv('VERBOSITY', 2))
 
         logging.config.fileConfig("logging.conf")

@@ -34,6 +34,7 @@ class BaseUI(unittest.TestCase):
         self.sauce_os = os.getenv('SAUCE_OS')
         self.sauce_tunnel = os.getenv('SAUCE_TUNNEL')
         self.sauce_version = os.getenv('SAUCE_VERSION')
+        self.locale = os.getenv('LOCALE', 'en_US')
         self.verbosity = int(os.getenv('VERBOSITY', 2))
 
         logging.config.fileConfig("logging.conf")
