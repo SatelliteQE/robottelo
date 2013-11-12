@@ -81,9 +81,10 @@ locators = {
 
     ## Administer
     "menu.administer": (By.XPATH, "//nav[@class='nav admin_menu right']/ul/li/a/span[@class='ng-binding']"),
-    "submenu.organizations": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[1]/a"),
-    "submenu.users": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[2]/a"),
-    "submenu.roles": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[3]/a"),
-    "submenu.about": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li[4]/a"),
+    "submenu.organizations": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/organizations')]"),
+    "submenu.users": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/users')]"),
+    "submenu.roles": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/roles')]"),
+    "submenu.about": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/about')]"),
+    "submenu.reports": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/filters')]")
 
 }
