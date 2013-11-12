@@ -5,6 +5,7 @@
 import random
 import string
 
+
 def generate_name(min=4, max=8):
 
     if min <= 0:
@@ -15,12 +16,15 @@ def generate_name(min=4, max=8):
     r = random.SystemRandom()
     pool1 = string.ascii_lowercase + string.digits
 
-    return "%s" % str().join(r.choice(pool1) for x in range(random.randint(min, max)))
+    name = str().join(r.choice(pool1) for x in range(random.randint(min, max)))
+
+    return name
+
 
 def valid_names_list():
 
     VALID_NAMES = [
-        generate_name(5,5),
+        generate_name(5, 5),
         generate_name(255),
         "%s-%s" % (generate_name(4), generate_name(4)),
         "%s.%s" % (generate_name(4), generate_name(4)),
@@ -36,6 +40,7 @@ def valid_names_list():
     ]
 
     return VALID_NAMES
+
 
 def invalid_names_list():
 

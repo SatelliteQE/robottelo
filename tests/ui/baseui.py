@@ -2,7 +2,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import base64
 import datetime
 import logging
 import logging.config
@@ -100,6 +99,15 @@ class BaseUI(unittest.TestCase):
 
     def run(self, result=None):
         super(BaseUI, self).run(result)
+
+        if result.skipped:
+            try:
+                self.browser.quit()
+            except Exception, e:
+                pass
+
+            return result
+
         # create a sauceclient object to report pass/fail results
         if "remote" in str(type(self.browser)):
             sc = sauceclient.SauceClient(
@@ -107,12 +115,16 @@ class BaseUI(unittest.TestCase):
                 self.sauce_key)
 
         if result.failures or result.errors:
+
+            # Take screenshot
             fname = str(self).replace(
                 "(", "").replace(")", "").replace(" ", "_")
             fmt = '%y-%m-%d_%H.%M.%S'
             fdate = datetime.datetime.now().strftime(fmt)
             filename = "%s_%s.png" % (fdate, fname)
             self.take_screenshot(filename)
+
+            # Mark test as passed remotely
             if "remote" in str(type(self.browser)):
                 sc.jobs.update_job(
                     self.browser.session_id, name=str(self), passed=False)

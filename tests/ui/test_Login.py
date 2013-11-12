@@ -4,6 +4,7 @@
 
 from baseui import BaseUI
 from robottelo.lib.common.helpers import generate_name
+from robottelo.lib.common.decorators import runIf
 from robottelo.lib.ui.locators import *
 
 
@@ -24,6 +25,7 @@ class Login(BaseUI):
         self.login.login("", "")
         self.assertFalse(self.login.is_logged("admin"))
 
+    @runIf('sam')
     def test_successful_forgot_username_1(self):
         """
         Forgot Username - Successfully sends out the username after
@@ -42,6 +44,7 @@ class Login(BaseUI):
         self.login.forgot_username(user_email)
         self.assertTrue(self.login.wait_until_element(locators["notif.success"]))
 
+    @runIf('sam')
     def test_failed_forgot_username_1(self):
         "Forgot Username - Errors out when given an invalid email"
         user_name = generate_name(4, 8)
@@ -50,6 +53,7 @@ class Login(BaseUI):
         #TODO: For now there is no email validation
         self.assertTrue(self.login.wait_until_element(locators["notif.success"]))
 
+    @runIf('sam')
     def test_failed_forgot_username_2(self):
         "Forgot Username - Errors out when given an empty email"
         self.login.forgot_username("")
