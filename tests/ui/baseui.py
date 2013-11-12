@@ -56,12 +56,12 @@ class BaseUI(unittest.TestCase):
                 webdriver.DesiredCapabilities, self.driver_name.upper())
             desired_capabilities['version'] = self.sauce_version
             desired_capabilities['platform'] = self.sauce_os
+
             if self.sauce_tunnel is not None:
                 desired_capabilities['parent-tunnel'] = self.sauce_tunnel
             self.browser = webdriver.Remote(
                 desired_capabilities=desired_capabilities,
-                command_executor=SAUCE_URL % (
-                    self.sauce_user, self.sauce_key))
+                command_executor = SAUCE_URL % (self.sauce_user, self.sauce_key))
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
@@ -72,33 +72,28 @@ class BaseUI(unittest.TestCase):
         self.navigator = Navigator(self.browser)
         self.user = User(self.browser)
 
-    # Borrowed from the following article:
-    #  http://engineeringquality.blogspot.com/2012/12/python-selenium-capturing-screenshot-on.html
     def take_screenshot(self, file_name="error.png"):
             """
+            Takes screenshot of the UI if running locally.
+
             @param file_name: Name to label this screenshot.
             @type file_name: str
             """
 
+            # Create screenshot directory if it doesn't exist
             if not os.path.exists(SCREENSHOTS_DIR):
                 try:
                     os.mkdir(SCREENSHOTS_DIR)
-                    file_name = os.path.join(SCREENSHOTS_DIR, file_name)
                 except Exception, e:
                     self.logger.debug(
                         "Could not create screenshots directory: %s" % str(e))
                     pass
+            else:
+                file_name = os.path.join(SCREENSHOTS_DIR, file_name)
 
-            if isinstance(
+            if not isinstance(
                     self.browser,
                     selenium.webdriver.remote.webdriver.WebDriver):
-                # Get Screenshot over the wire as base64
-                base64_data = self.browser.get_screenshot_as_base64()
-                screenshot_data = base64.decodestring(base64_data)
-                screenshot_file = open(file_name, "w")
-                screenshot_file.write(screenshot_data)
-                screenshot_file.close()
-            else:
                 self.browser.save_screenshot(file_name)
 
     def run(self, result=None):
