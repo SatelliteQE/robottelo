@@ -30,5 +30,5 @@ class Navigator(Base):
         self.find_element(locators["submenu.about"]).click()
 
     def go_to_foreman(self):
-        self.browser.find_element_by_link_text('Provisioning').click()
-#        self.browser.find_element_by_xpath("/html/body/article/section/header[2]/div/ul[2]/li/a/span").click()
+#        self.browser.find_element_by_link_text('Provisioning').click()
+        self.browser.find_element_by_xpath("//img[@class='link_icon icon']").click()
