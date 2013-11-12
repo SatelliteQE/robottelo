@@ -28,3 +28,7 @@ class Navigator(Base):
     def go_to_about(self):
         self.find_element(locators["menu.administer"]).click()
         self.find_element(locators["submenu.about"]).click()
+
+    def go_to_foreman(self):
+        self.browser.find_element_by_link_text('Provisioning').click()
+#        self.browser.find_element_by_xpath("/html/body/article/section/header[2]/div/ul[2]/li/a/span").click()
