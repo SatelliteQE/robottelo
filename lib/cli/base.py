@@ -15,7 +15,12 @@ class Base():
 
     locale = os.getenv('LOCALE')
 
-    def execute(self, command, user='admin', password='admin'):
+    def execute(self, command, user=None, password=None):
+
+        if user is None:
+            user = self.katello_user
+        if password is None:
+            password = self.katello_passwd
 
         shell_cmd = "LANG=%s katello --user=%s --password=%s %s -g --noheading"
 

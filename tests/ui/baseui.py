@@ -28,6 +28,8 @@ class BaseUI(unittest.TestCase):
         self.host = os.getenv('KATELLO_HOST')
         self.port = os.getenv('KATELLO_PORT', '443')
         self.project = os.getenv('PROJECT', 'katello')
+        self.katello_user = os.getenv('KATELLO_USER')
+        self.katello_passwd = os.getenv('KATELLO_PASSWD')
         self.driver_name = os.getenv('DRIVER_NAME', 'firefox')
         self.sauce_user = os.getenv('SAUCE_USER')
         self.sauce_key = os.getenv('SAUCE_KEY')
@@ -35,7 +37,7 @@ class BaseUI(unittest.TestCase):
         self.sauce_tunnel = os.getenv('SAUCE_TUNNEL')
         self.sauce_version = os.getenv('SAUCE_VERSION')
         self.locale = os.getenv('LOCALE', 'en_US')
-        self.verbosity = int(os.getenv('VERBOSITY', 2))
+        self.verbosity = int(os.getenv('VERBOSITY'))
 
         logging.config.fileConfig("logging.conf")
 

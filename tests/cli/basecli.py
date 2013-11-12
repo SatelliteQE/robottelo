@@ -21,6 +21,8 @@ class BaseCLI(unittest.TestCase):
 
     def setUp(self):
         self.host = os.getenv('KATELLO_HOST')
+        self.katello_user = os.getenv('KATELLO_USER')
+        self.katello_passwd = os.getenv('KATELLO_PASSWD')
         self.key_filename = os.getenv('SSH_KEY')
         self.root = os.getenv('ROOT')
         self.locale = os.getenv('LOCALE', 'en_US')
