@@ -12,5 +12,5 @@ class ForemanView(BaseUI):
         "Switches to foreman view"
         self.login.login("admin","admin")
         self.navigator.go_to_foreman()
-        self.assertTrue(self.user.wait_until_element(locators["menu.foreman_dropdown1"]))
+        self.assertTrue(self.user.wait_until_element(locators["menu.foreman_menu_tab"]))
 #        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
