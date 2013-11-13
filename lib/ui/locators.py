@@ -78,6 +78,7 @@ locators = {
     "orgs.history_section": (By.XPATH, "//li[@id='organization_history']/a"),
 
     # Menus
+    "menu.foreman_menu_tab": (By.XPATH, "//li[@class='dropdown menu_tab_settings']"),
 
     ## Administer
     "menu.administer": (By.XPATH, "//nav[@class='nav admin_menu right']/ul/li/a/span[@class='ng-binding']"),
@@ -87,4 +88,5 @@ locators = {
     "submenu.about": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/about')]"),
     "submenu.reports": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/filters')]")
 
+    
 }
