@@ -97,8 +97,9 @@ class BaseUI(unittest.TestCase):
                     selenium.webdriver.remote.webdriver.WebDriver):
                 self.browser.save_screenshot(file_name)
 
-    def tearDown(self):
- 
+    def run(self, result=None):
+        super(BaseUI, self).run(result)
+
         if result.skipped:
             try:
                 self.browser.quit()
