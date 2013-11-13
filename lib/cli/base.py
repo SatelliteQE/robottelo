@@ -14,6 +14,8 @@ class Base():
     logger.setLevel(int(os.getenv('VERBOSITY', 2)))
 
     locale = os.getenv('LOCALE')
+    katello_user = os.getenv('KATELLO_USER')
+    katello_passwd = os.getenv('KATELLO_PASSWD')
 
     def execute(self, command, user=None, password=None):
 
