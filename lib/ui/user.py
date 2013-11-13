@@ -3,8 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
-from locators import *
+from locators import locators
 from selenium.webdriver.common.keys import Keys
+
 
 class User(Base):
 
