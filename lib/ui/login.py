@@ -4,6 +4,7 @@
 
 from base import Base
 from locators import *
+from selenium.webdriver.support.ui import WebDriverWait
 
 class Login(Base):
 
@@ -50,13 +51,27 @@ class Login(Base):
             return False
 
     def forgot_username(self, email):
-        email = email or "test@test.com"
-        if self.wait_until_element(locators["login.forgotUserName"]):
-            self.find_element(locators["login.forgotUserName"]).click()
-            if self.wait_until_element(locators["login.forgotUserNameEmail"]):
-                txt_field = self.find_element(locators["login.forgotUserNameEmail"])
+        if self.wait_until_element(locators["login.forgot_username"]):
+            self.find_element(locators["login.forgot_username"]).click()
+            if self.wait_until_element(locators["login.forgot_username_email"]):
+                txt_field = self.find_element(locators["login.forgot_username_email"])
                 txt_field.clear()
                 txt_field.send_keys(email)
-                if self.wait_until_element(locators["login.forgotUserNameSubmit"]):
-                    self.find_element(locators["login.forgotUserNameSubmit"]).click()
+                if self.wait_until_element(locators["login.forgot_username_submit"]):
+                    self.find_element(locators["login.forgot_username_submit"]).click()
+
+    def forgot_password(self, username, email):
+        if self.wait_until_element(locators["login.forgot_password"]):
+            self.find_element(locators["login.forgot_password"]).click()
+        if self.wait_until_element(locators["login.forgot_password_username"]):
+            username_field = self.find_element(locators["login.forgot_password_username"])
+            username_field.clear()
+            username_field.send_keys(username)
+        if self.wait_until_element(locators["login.forgot_password_email"]):
+            email_field = self.find_element(locators["login.forgot_password_email"])
+            email_field.clear()
+            email_field.send_keys(email)
+        if self.wait_until_element(locators["login.forgot_password_submit"]):
+            self.find_element(locators["login.forgot_password_submit"]).click()
+        WebDriverWait(self.browser, 20)
 
