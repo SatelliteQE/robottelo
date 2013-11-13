@@ -93,3 +93,4 @@ class Login(BaseUI):
         self.login.forgot_password("", "")
         #TODO: For now there is no username/email validation
         self.assertTrue(self.login.wait_until_element(locators["notif.success"]))
+
