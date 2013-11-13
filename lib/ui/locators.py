@@ -44,6 +44,8 @@ locators = {
     "users.locale": (By.ID, "locale_locale"),
 
     # Organizations
+    "org.selected": (By.XPATH, "//a[@class='org-link' and contains(., '%s')]"),
+
     "orgs.search": (By.ID, "search"),
     "orgs.new": (By.ID, "new"),
     "orgs.name": (By.ID, "organization_name"),
@@ -81,6 +83,8 @@ locators = {
 
     #TODO: Get DEV to add UNIQUE IDS to these menus
 
+    # Org Selector
+    "menu.orgselector": (By.XPATH, "//nav[@id='orgSwitcherNav']/ul/li"),
     # Dashboard
     "menu.dashboard": (By.XPATH, "//nav[@class='nav left']/ul/li[1]/a/span"),
     # Content

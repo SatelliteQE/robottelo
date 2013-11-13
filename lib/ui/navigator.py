@@ -14,6 +14,11 @@ class Navigator(Base):
     def __init__(self, browser):
         self.browser = browser
 
+    def go_to_organization(self, org_name='ACME_Corporation'):
+        #TODO: most likely will have to handle scrolling down of list
+        self.find_element(locators["menu.orgselector"]).click()
+        self.wait_until_element((locators["org.selected"][0], locators["org.selected"][1] % org_name)).click()
+
     def go_to_dashboard(self):
         self.find_element(locators["menu.dashboard"]).click()
 
