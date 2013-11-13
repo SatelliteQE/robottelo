@@ -79,12 +79,65 @@ locators = {
 
     # Menus
 
+    #TODO: Get DEV to add UNIQUE IDS to these menus
+
+    # Dashboard
+    "menu.dashboard": (By.XPATH, "//nav[@class='nav left']/ul/li[1]/a/span"),
+    # Content
+    "menu.content": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/a/span"),
+    ## Subscriptions
+    "menu.subscriptions": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[1]/a/span"),
+    ### Red Hat Subscriptions
+    "menu.redhatsubs": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[1]/ul/li[1]/a"),
+    ### Subscription Management Applications
+    "menu.distributors": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[1]/ul/li[2]/a"),
+    ### Activation Keys
+    "menu.actkeys": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[1]/ul/li[3]/a"),
+    ### Import History
+    "menu.importhistory": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[1]/ul/li[4]/a"),
+    ## Repositories
+    "menu.repos": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[2]/a/span"),
+    ## Red Hat Repos
+    "menu.redhatrepos": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[2]/ul/li[1]/a"),
+    ## Products
+    "menu.products": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[2]/ul/li[2]/a"),
+    ## GPG Keys
+    "menu.gpgkeys": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[2]/ul/li[3]/a"),
+    ## Synchronization
+    "menu.sync": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[3]/a/span"),
+    ### Sync Status
+    "menu.syncstatus": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[3]/ul/li[1]/a"),
+    ### Sync Plans
+    "menu.syncplans": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[3]/ul/li[2]/a"),
+    ### Sync Schedule
+    "menu.syncschedule": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[3]/ul/li[3]/a"),
+    ## Content View Definitions
+    "menu.contentview": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[4]/a/span"),
+    ## Content Search
+    "menu.contentsearch": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[5]/a/span"),
+    ## Changesets
+    "menu.changesets": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[6]/a/span"),
+    ### Changeset Management
+    "menu.changesetmanage": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[6]/ul/li[1]/a"),
+    ### Changeset History
+    "menu.changesethistory": (By.XPATH, "//nav[@class='nav left']/ul/li[2]/ul/li[6]/ul/li[2]/a"),
+    ## Systems
+    "menu.systems": (By.XPATH, "//nav[@class='nav left']/ul/li[3]/a/span"),
+    ### All Systems
+    "menu.systemsall": (By.XPATH, "//nav[@class='nav left']/ul/li[3]/ul/li[1]/a"),
+    ### System Groups
+    "menu.systemgroups": (By.XPATH, "//nav[@class='nav left']/ul/li[3]/ul/li[2]/a"),
     ## Administer
-    "menu.administer": (By.XPATH, "//nav[@class='nav admin_menu right']/ul/li/a/span[@class='ng-binding']"),
-    "submenu.organizations": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/organizations')]"),
-    "submenu.users": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/users')]"),
-    "submenu.roles": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/roles')]"),
-    "submenu.about": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/about')]"),
-    "submenu.reports": (By.XPATH, "//ul[@class='dropdown dropdown-right dropdown-active']/li/a[contains(@href,'/filters')]")
+    "menu.administer": (By.XPATH, "//nav[@class='nav admin_menu right']/ul/li/a/span"),
+    ### Organizations
+    "menu.organizations": (By.XPATH, "//ul/li/a[contains(@href,'/organizations')]"),
+    ### Users
+    "menu.users": (By.XPATH, "//ul/li/a[contains(@href,'/users')]"),
+    ### Roles
+    "menu.roles": (By.XPATH, "//ul/li/a[contains(@href,'/roles')]"),
+    ### About
+    "menu.about": (By.XPATH, "//ul/li/a[contains(@href,'/about')]"),
+    ### Reports
+    "menu.reports": (By.XPATH, "//ul/li/a[contains(@href,'/filters')]")
 
 }
