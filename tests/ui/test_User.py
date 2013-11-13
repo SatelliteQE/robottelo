@@ -4,7 +4,8 @@
 
 from baseui import BaseUI
 from robottelo.lib.common.helpers import generate_name
-from robottelo.lib.ui.locators import *
+from robottelo.lib.ui.locators import locators
+
 
 class User(BaseUI):
 
