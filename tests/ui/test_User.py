@@ -10,7 +10,7 @@ from robottelo.lib.ui.locators import locators
 class User(BaseUI):
 
     def users_page(self):
-        self.login.login("admin", "admin")
+        self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_users()
 
     def _create_user(self, name=None, email=None, passwd1=None, passwd2=None):
