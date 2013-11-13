@@ -61,8 +61,8 @@ def i18n_join (range_begin, range_end, length):
 
 def generate_string (str_type, length):
     '''
-    This function will allow creation of unicode or latin-1 strings of
-    arbitrary length.  Presently the unicode strings are CJK-only but
+    This function will allow creation of a wide variety of string types,
+    of arbitrary length.  Presently the unicode strings are CJK-only but
     should suffice for the purposes of most multibyte testing.
     '''
     # approximate range of CJK Unified Ideographs
