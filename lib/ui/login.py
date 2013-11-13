@@ -4,7 +4,6 @@
 
 from base import Base
 from locators import *
-from selenium.webdriver.support.ui import WebDriverWait
 
 class Login(Base):
 
