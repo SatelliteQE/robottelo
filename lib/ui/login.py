@@ -72,5 +72,4 @@ class Login(Base):
             email_field.send_keys(email)
         if self.wait_until_element(locators["login.forgot_password_submit"]):
             self.find_element(locators["login.forgot_password_submit"]).click()
-        WebDriverWait(self.browser, 20)
 
