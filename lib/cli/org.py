@@ -3,8 +3,11 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
+from itertools import izip
+from robottelo.lib.common.helpers import generate_name
 
 FIELDS = ['id', 'name', 'description', 'default service level', 'available service levels', 'default system info keys']
+
 
 class Org(Base):
 
@@ -46,8 +49,8 @@ class Org(Base):
         stdout, stderr = self.execute(cmd % name)
 
         if stdout:
-            for key, value in zip(FIELDS, "".join(stdout).split()):
-                org[key] = value
+            org = dict(izip(FIELDS, "".join(stdout).split()))
+
         return org
 
     def list(self):
@@ -59,10 +62,8 @@ class Org(Base):
 
         if stdout:
             for entry in stdout:
-                org = {}
-                for key, value in zip(FIELDS, "".join(entry).split()):
-                    org[key] = value
-                orgs.append(user)
+                orgs.append(dict(izip(FIELDS, "".join(entry).split())))
+
         return orgs
 
     def subscriptions(self):

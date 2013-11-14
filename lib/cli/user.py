@@ -3,8 +3,10 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
+from itertools import izip
 
 FIELDS = ['id', 'username', 'email', 'disabled', 'org', 'env', 'locale']
+
 
 class User(Base):
 
@@ -23,7 +25,7 @@ class User(Base):
         cmd = cmd % (name, password, email, disabled)
 
         if org:
-            cmd =+ " --default_organization='%s'" % org
+            cmd += " --default_organization='%s'" % org
         if env:
             cmd += " --default_environment='%s'" % env
         if locale:
@@ -48,8 +50,8 @@ class User(Base):
         stdout, stderr = self.execute(cmd % username)
 
         if stdout:
-            for key, value in zip(FIELDS, "".join(stdout).split()):
-                user[key] = value
+            user = dict(izip(FIELDS, "".join(stdout).split()))
+
         return user
 
     def list(self):
@@ -61,10 +63,8 @@ class User(Base):
 
         if stdout:
             for entry in stdout:
-                user = {}
-                for key, value in zip(FIELDS, "".join(entry).split()):
-                    user[key] = value
-                users.append(user)
+                users.append(dict(izip(FIELDS, "".join(stdout).split())))
+
         return users
 
     def list_roles(self, username):
@@ -76,10 +76,7 @@ class User(Base):
 
         if stdout:
             for entry in stdout:
-                role = {}
-                for key, value in zip(['id', 'name'], "".join(entry).split()):
-                    role[key] = value
-                roles.append(role)
+                roles.append(dict(izip(['id', 'name'], "".join(entry).split())))
         return roles
 
     def report(self):
