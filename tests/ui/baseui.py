@@ -12,6 +12,7 @@ import sauceclient
 
 from robottelo.lib.ui.login import Login
 from robottelo.lib.ui.navigator import Navigator
+from robottelo.lib.ui.product import Product
 from robottelo.lib.ui.user import User
 from selenium import webdriver
 
@@ -71,6 +72,7 @@ class BaseUI(unittest.TestCase):
         # Library methods
         self.login = Login(self.browser)
         self.navigator = Navigator(self.browser)
+        self.product = Product(self.browser)
         self.user = User(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
