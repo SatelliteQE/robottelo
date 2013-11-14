@@ -17,18 +17,21 @@ locators = {
     "notif.close": (By.XPATH, "//a[@class='jnotify-close']"),
 
     # Login
-    "login.username": (By.CLASS_NAME, "username"),
-    "login.password": (By.CLASS_NAME, "password"),
-    "login.submit": (By.NAME, "commit"),
+    "login.username": (By.XPATH, "//form[@id='login_form']/div/div/input[@id='username']"),
+    "login.password": (By.XPATH, "//form[@id='login_form']/div/div/input[@id='password-input']"),
+    "login.submit": (By.ID, "login_btn"),
     "login.gravatar": (By.XPATH, "//span[@class='gravatar-span']"),
     "login.user": (By.XPATH, "//span[@class='ng-binding']"),
     "login.interstitial": (By.ID, "interstitial"),
     "login.logout": (By.XPATH, "//a[contains(@href, 'logout')]"),
     "login.selectOrg": (By.XPATH, "//a[@class='org-link' and contains(., '%s')]"),
-    "login.forgotUserName": (By.ID, "username_link"),
-    "login.forgotUserNameEmail": (By.ID, "email"),
-    "login.forgotUserNameSubmit": (By.XPATH, "//input[@class='button primary'][@value='Send Login']"),
-    "login.forgotPassword": (By.ID, "password_reset"),
+    "login.forgot_username": (By.ID, "username_link"),
+    "login.forgot_password": (By.ID, "password_link"),
+    "login.forgot_username_email": (By.XPATH, "//form[@id='username_recovery_form']/div/div/input[@id='email']"),
+    "login.forgot_username_submit": (By.XPATH, "//form[@id='username_recovery_form']/div/div/input[@name='commit']"),
+    "login.forgot_password_username": (By.XPATH, "//form[@id='password_reset_form']/div/div//input[@id='username']"),
+    "login.forgot_password_email": (By.XPATH, "//form[@id='password_reset_form']/div/div/input[@id='email']"),
+    "login.forgot_password_submit": (By.XPATH, "//form[@id='password_reset_form']/div/div/input[@name='commit']"),
 
     # Users
     "users.search": (By.ID, "search"),
