@@ -17,3 +17,7 @@ class Product(BaseUI):
     def test_create_user_1(self):
         "Successfully creates a new product"
         self.products_page()
+
+        name = generate_name(10)
+        provider_name = generate_name(6)
+        self.product.create(name=name, provider_name=provider_name)

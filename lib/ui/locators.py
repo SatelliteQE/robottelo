@@ -79,6 +79,20 @@ locators = {
     # Organization History
     "orgs.history_section": (By.XPATH, "//li[@id='organization_history']/a"),
 
+    # Products
+    "product.new": (By.XPATH, "//button[@ng-click='transitionToNewProduct()']"),
+    "product.name": (By.XPATH, "//input[@ng-model='product.name']"),
+    "product.label": (By.XPATH, "//input[@ng-model='product.label']"),
+    "product.providerselector": (By.XPATH, "//input[@ng-model='product.provider_id']"),
+    "provider.new": (By.XPATH, "//a[contains(@ng-click, 'products.new.provider')]"),
+    "provider.name": (By.XPATH, "//input[@ng-model='provider.name']"),
+    "provider.save": (By.XPATH, "//button[contains(@ng-click, 'save')]"),
+    "provider.cancel": (By.XPATH, "//button[contains(@ng-click, 'products.new.form')]"),
+    "product.gpgselector": (By.XPATH, "//input[@ng-model='product.gpg_key_id']"),
+    "product.description": (By.XPATH, "//textarea[@ng-model='product.description']"),
+    "product.save": (By.XPATH, "//button[contains(@ng-click, 'save')]"),
+    "product.cancel": (By.XPATH, "//button[@ng-click='table.closeItem()']"),
+
     # Menus
 
     #TODO: Get DEV to add UNIQUE IDS to these menus
