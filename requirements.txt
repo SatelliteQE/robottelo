@@ -1,3 +1,4 @@
 paramiko
 selenium
 sauceclient
+python-bugzilla
