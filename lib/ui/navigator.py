@@ -100,16 +100,16 @@ class Navigator(Base):
 
     def go_to_organizations(self):
         self.find_element(locators["menu.administer"]).click()
-        self.find_element(locators["submenu.organizations"]).click()
+        self.find_element(locators["menu.organizations"]).click()
 
     def go_to_users(self):
         self.find_element(locators["menu.administer"]).click()
-        self.find_element(locators["submenu.users"]).click()
+        self.find_element(locators["menu.users"]).click()
 
     def go_to_roles(self):
         self.find_element(locators["menu.administer"]).click()
-        self.find_element(locators["submenu.roles"]).click()
+        self.find_element(locators["menu.roles"]).click()
 
     def go_to_about(self):
         self.find_element(locators["menu.administer"]).click()
-        self.find_element(locators["submenu.about"]).click()
+        self.find_element(locators["menu.about"]).click()
