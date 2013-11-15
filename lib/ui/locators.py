@@ -59,10 +59,11 @@ locators = {
     "orgs.env_description": (By.ID, "environment_description"),
     "orgs.save": (By.NAME, "commit"),
     "orgs.remove": (By.XPATH, "//a[@class='remove_item']"),
+    "org.new_org_save_button": (By.XPATH, "//form[@id='new_organization']/div/input[@class='create_button']"),
     "orgs.org": (By.XPATH, "//div[@title='%s']"),
 
     # Organization Details
-    "orgs.details_secion": (By.XPATH, "//li[@id='organization_details']/a"),
+    "orgs.details_section": (By.XPATH, "//li[@id='organization_details']/a"),
     "org.name": (By.NAME, "organization[name]"),
     "org.description": (By.NAME, "organization[description]"),
     "org.sla": (By.NAME, "organization[service_level]"),

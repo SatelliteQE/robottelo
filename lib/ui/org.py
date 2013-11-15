@@ -4,8 +4,6 @@
 
 from base import Base
 from locators import *
-from selenium.webdriver.support.ui import WebDriverWait
-
 
 class Org(Base):
 
@@ -26,13 +24,6 @@ class Org(Base):
             label_field.clear()
             label_field.send_keys(org_label)
             self.find_element(locators["org.new_org_save_button"]).click()
-        print 'done'
 
-    def update_org(self, org_name, email):
-        print 'TBD'
 
-    def delete_org(self, username, email):
-        print 'TBD'
 
-    def search_org(self, username, email):
-        print 'TBD'

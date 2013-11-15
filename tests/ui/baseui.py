@@ -14,6 +14,7 @@ from robottelo.lib.ui.login import Login
 from robottelo.lib.ui.navigator import Navigator
 from robottelo.lib.ui.product import Product
 from robottelo.lib.ui.user import User
+from robottelo.lib.ui.org import Org
 from selenium import webdriver
 
 SCREENSHOTS_DIR = os.path.join(
@@ -74,6 +75,7 @@ class BaseUI(unittest.TestCase):
         self.navigator = Navigator(self.browser)
         self.product = Product(self.browser)
         self.user = User(self.browser)
+        self.org = Org(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
             """
