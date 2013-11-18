@@ -67,7 +67,7 @@ class BaseUI(unittest.TestCase):
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
-        self.browser.get("%s/%s" % (self.host, self.project))
+        self.browser.get(self.host)
 
         # Library methods
         self.login = Login(self.browser)

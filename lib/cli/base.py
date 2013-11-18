@@ -9,7 +9,12 @@ import os
 
 class Base():
 
-    logging.config.fileConfig("logging.conf")
+    try:
+        logging.config.fileConfig("logging.conf")
+    except Exception:
+        log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
+        logging.basicConfig(format=log_format)
+
     logger = logging.getLogger("robottelo")
     logger.setLevel(int(os.getenv('VERBOSITY', 2)))
 
