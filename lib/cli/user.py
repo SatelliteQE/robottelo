@@ -44,7 +44,7 @@ class User(Base):
         Deletes an existing user.
         """
 
-        cmd = "user delete --id='%d'"
+        cmd = "user delete --id='%s'"
 
         stdout, stderr = self.execute(cmd % user_id)
 
@@ -88,7 +88,7 @@ class User(Base):
         Updates existing users.
         """
 
-        cmd = "user update --id='%d'" % user_id
+        cmd = "user update --id='%s'" % user_id
 
         if login:
             cmd += " --login='%s'" % login
