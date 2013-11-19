@@ -29,16 +29,9 @@ class User(Base):
         Creates a new user.
         """
 
-        cmd = """
-        user create
-         --login='%s'
-         --fname = '%s'
-         --lname = '%s'
-         --mail = '%s'
-         --admin = '%s'
-         --password='%s'
-         --auth-source-id = '%d'
-        """
+        cmd = "user create --login='%s' --firstname='%s' --lastname='%s'" \
+              " --mail='%s' --admin='%s' --password='%s'" \
+              " --auth-source-id='%d'"
 
         cmd = cmd % (login, fname, lname, email, admin, password, auth_id)
 
