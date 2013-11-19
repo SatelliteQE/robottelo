@@ -38,7 +38,8 @@ class BaseCLI(unittest.TestCase):
         self.conn = paramiko.SSHClient()
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         #key = paramiko.RSAKey.from_private_key_file(self.key_filename)
-        self.conn.connect(self.host, username=self.root, key_filename=self.key_filename)
+        self.conn.connect(self.host, username=self.root,
+                          key_filename=self.key_filename)
 
         # Library methods
         self.user = User(self.conn)
