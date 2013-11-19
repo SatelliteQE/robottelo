@@ -5,6 +5,8 @@
 import random
 import string
 
+from itertools import izip
+
 
 def generate_name(min=4, max=8):
 
@@ -54,7 +56,7 @@ def invalid_names_list():
     return INVALID_NAMES
 
 
-def i18n_join (range_begin, range_end, length):
+def i18n_join(range_begin, range_end, length):
     '''
     This function is primarily for use with the generate_string()
     function, for use with manipulating i18n strings.
@@ -62,10 +64,13 @@ def i18n_join (range_begin, range_end, length):
     output_array = []
     for i in range(int(range_begin, 16), int(range_end, 16)):
         output_array.append(i)
-    i18n_output = ''.join(unichr(random.choice(output_array)) for x in xrange(length))
+    i18n_output = ''.join(
+        unichr(random.choice(output_array)) for x in xrange(length)
+    )
     return i18n_output
 
-def generate_string (str_type, length):
+
+def generate_string(str_type, length):
     '''
     This function will allow creation of a wide variety of string types,
     of arbitrary length.  Presently the unicode strings are CJK-only but
@@ -79,16 +84,42 @@ def generate_string (str_type, length):
     # It does not include unicode Latin Extensions.
     latin1_begin = '00C0'
     latin1_end = '00F0'
-    if  str_type == "alphanumeric":
-        output_string = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(length))
+    if str_type == "alphanumeric":
+        output_string = ''.join(
+            random.choice(
+                string.ascii_letters + string.digits
+            ) for i in range(length))
     elif str_type == "alpha":
-        output_string = ''.join(random.choice(string.ascii_letters) for i in range(length))
+        output_string = ''.join(
+            random.choice(string.ascii_letters) for i in range(length)
+        )
     elif str_type == "numeric":
-        output_string = ''.join(random.choice(string.digits) for i in range(length))
+        output_string = ''.join(
+            random.choice(string.digits) for i in range(length)
+        )
     elif str_type == "latin1":
-        output_string = i18n_join(latin1_begin, latin1_end, length) 
+        output_string = i18n_join(latin1_begin, latin1_end, length)
     elif str_type == "utf8":
         output_string = i18n_join(utf8_begin, utf8_end, length)
     else:
-        raise Exception('Unexpected output type, valid types are "alphanumeric", "alpha", "numeric", "latin1", "utf8"')
+        raise Exception(
+            'Unexpected output type, valid types are "alphanumeric", \
+            "alpha", "numeric", "latin1", "utf8"')
     return output_string
+
+
+def csv_to_dictionary(data):
+    """
+    Converts CSV data from Hammer CLI and returns a python dictionary.
+    """
+
+    records = []
+
+    items = "".join(data).split('\n')
+    headers = items.pop(0)
+    entries = [item.split(',') for item in items if len(item) > 0]
+
+    for entry in entries:
+        records.append(dict(izip(headers.split(','), entry)))
+
+    return records

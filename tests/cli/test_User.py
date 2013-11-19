@@ -8,15 +8,20 @@ from robottelo.lib.common.helpers import generate_name
 
 class User(BaseCLI):
 
-    def _create_user(self, name=None, email=None, passwd1=None):
+    def _create_user(self, login=None, fname=None, lname=None,
+                     email=None, admin=None, passwd1=None):
 
-        name = name or generate_name()
-        email = email or "%s@example.com" % name
+        login = login or generate_name(6)
+        fname = fname or generate_name()
+        lname = lname or generate_name()
+        email = email or "%s@example.com" % login
+        admin = admin
+        passwd1 = passwd1 or generate_name()
 
-        self.user.create(name, passwd1, email)
+        self.user.create(
+            login, fname, lname, email, admin, passwd1)
 
-        user = self.user.info(name)
-        self.assertEqual(name, user['username'])
+        self.assertTrue(self.user.exists(login))
 
     def test_create_user_1(self):
         "Successfully creates a new user"
@@ -28,8 +33,9 @@ class User(BaseCLI):
         "Creates and immediately deletes user."
 
         password = generate_name(6)
-        name = generate_name()
-        self._create_user(name, None, password)
+        login = generate_name(6)
+        self._create_user(login=login, passwd1=password)
 
-        self.user.delete(name)
-        self.assertEqual({}, self.user.info(name))
+        user = self.user.user(login)
+        self.user.delete(user['Id'])
+        self.assertFalse(self.user.exists(login))

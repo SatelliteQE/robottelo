@@ -3,9 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
-from itertools import izip
-
-FIELDS = ['id', 'username', 'email', 'disabled', 'org', 'env', 'locale']
+from lib.common.helpers import csv_to_dictionary
 
 
 class User(Base):
@@ -13,48 +11,73 @@ class User(Base):
     def __init__(self, conn):
         self.conn = conn
 
-    def assign_role(self, username, rolename):
-        cmd = "user assign_role --username='%s' --role='%s'"
+    def user(self, user_name):
+        """
+        Search for a user by login.
+        """
 
-        stdout, stderr = self.execute(cmd % (username, rolename))
+        users = self.list()
+        match = [user for user in users if user_name in user['Login']]
 
-        return False if stderr else True
+        if match:
+            match = match[0]
 
-    def create(self, name, password, email, disabled='false', org=None, env=None, locale=None):
-        cmd = "user create --username='%s' --password='%s' --email='%s' --disabled='%s'"
-        cmd = cmd % (name, password, email, disabled)
+        return match
 
-        if org:
-            cmd += " --default_organization='%s'" % org
-        if env:
-            cmd += " --default_environment='%s'" % env
-        if locale:
-            cmd += " --default_locale='%s'" % locale
+    def create(self, login, fname, lname, email, admin, password, auth_id=1):
+        """
+        Creates a new user.
+        """
+
+        cmd = """
+        user create
+         --login='%s'
+         --fname = '%s'
+         --lname = '%s'
+         --mail = '%s'
+         --admin = '%s'
+         --password='%s'
+         --auth-source-id = '%d'
+        """
+
+        cmd = cmd % (login, fname, lname, email, admin, password, auth_id)
 
         stdout, stderr = self.execute(cmd)
 
         return False if stderr else True
 
-    def delete(self, username):
-        cmd = "user delete --username='%s'"
+    def delete(self, user_id):
+        """
+        Deletes an existing user.
+        """
 
-        stdout, stderr = self.execute(cmd % username)
+        cmd = "user delete --id='%d'"
+
+        stdout, stderr = self.execute(cmd % user_id)
 
         return False if stderr else True
 
-    def info(self, username):
-        cmd = "user info --username='%s'"
+    def info(self, user_id):
+        """
+        Gets information about existing user.
+        """
+
+        cmd = "user info --id='%s'"
 
         user = {}
 
-        stdout, stderr = self.execute(cmd % username)
+        stdout, stderr = self.execute(cmd % user_id)
 
         if stdout:
-            user = dict(izip(FIELDS, "".join(stdout).split()))
+            user = csv_to_dictionary(stdout)
 
         return user
 
     def list(self):
+        """
+        Lists all existing users.
+        """
+
         cmd = "user list"
 
         users = []
@@ -62,53 +85,42 @@ class User(Base):
         stdout, stderr = self.execute(cmd)
 
         if stdout:
-            for entry in stdout:
-                users.append(dict(izip(FIELDS, "".join(stdout).split())))
+            users = csv_to_dictionary(stdout)
 
         return users
 
-    def list_roles(self, username):
-        cmd = "user list_roles --username='%s'"
+    def update(self, user_id, login=None, fname=None, lname=None,
+               email=None, admin=None, password=None):
+        """
+        Updates existing users.
+        """
 
-        roles = []
+        cmd = "user update --id='%d'" % user_id
 
-        stdout, stderr = self.execute(cmd % username)
-
-        if stdout:
-            for entry in stdout:
-                roles.append(dict(izip(['id', 'name'], "".join(entry).split())))
-        return roles
-
-    def report(self):
-        pass
-
-    def sync_ldap_roles(self):
-        pass
-
-    def unassign_role(self, username, rolename):
-        cmd = "user unassign_role --username='%s' --role='%s'"
-
-        stdout, stderr = self.execute(cmd % (username, rolename))
-
-        return False if stderr else True
-
-    def update(self, username, password=None, email=None, disabled=None, org=None, env=None, locale=None):
-        cmd = "user update --username='%s'" % username
-
+        if login:
+            cmd += " --login='%s'" % login
+        if fname:
+            cmd += " --fname='%s'" % fname
+        if lname:
+            cmd += " --lname='%s'" % lname
+        if email:
+            cmd += " --mail='%s'" % email
+        if admin:
+            cmd += " --admin='%s'" % admin
         if password:
             cmd += " --password='%s'" % password
-        if email:
-            cmd += " --email='%s'" % email
-        if disabled:
-            cmd += " --disabled='%s'" % disabled
-        if org:
-            cmd += " --default_organization='%s'" % org
-        if env:
-            cmd += " --default_environment='%s'" % env
-        if locale:
-            cmd += " --default_locale='%s'" % locale
 
         stdout, stderr = self.execute(cmd)
 
         return False if stderr else True
 
+    def exists(self, user_name):
+        """
+        Returns True or False depending whether a user exists
+        in the system or not.
+        """
+
+        users = self.list()
+        return user_name in [
+            user['Login'] for user in users
+        ]
