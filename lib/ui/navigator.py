@@ -15,22 +15,21 @@ class Navigator(Base):
         self.browser = browser
 
     def more_menu_move_to(self, menu_name):
-        menu_element = self.browser.find_element_by_xpath("//div[contains(@class,'navbar') and contains(@style,'static')]//ul[@id='menu2']//a[normalize-space(.)='{0}']".format(menu_name))
+        menu_element = self.browser.find_element_by_xpath("//div[contains(@style,'static')]//ul[@id='menu2']//a[normalize-space(.)='{0}']".format(menu_name))
         ActionChains(self.browser).move_to_element(menu_element).perform()
         return menu_element
 
     def more_menu_click(self, menu_name):
-        menu_element = self.browser.find_element_by_xpath("//div[contains(@class,'navbar') and contains(@style,'static')]//ul[@id='menu2']//a[normalize-space(.)='{0}']".format(menu_name))
+        menu_element = self.browser.find_element_by_xpath("//div[contains(@style,'static')]//ul[@id='menu2']//a[normalize-space(.)='{0}']".format(menu_name))
         ActionChains(self.browser).move_to_element(menu_element).perform()
         menu_element.click()
 
     def click_menu(self, menu_name):
-        menu_element = self.browser.find_element_by_xpath("//div[contains(@class,'navbar') and contains(@style,'static')]//a[normalize-space(.)='{0}']".format(menu_name)).click()
+        menu_element = self.browser.find_element_by_xpath("//div[contains(@style,'static')]//a[normalize-space(.)='{0}']".format(menu_name)).click()
         return menu_element
 
     def go_to_more(self):
-        menu_element = self.browser.find_element_by_xpath("//div[contains(@class,'navbar') and contains(@style,'static')]//ul[@id='menu2']")
-        menu_element.click()
+        self.find_element(locators["menu.more"]).click()
         self.wait_for_ajax()
 
     def go_to_dashboard(self):
@@ -131,7 +130,6 @@ class Navigator(Base):
     def go_to_users_menu(self):
         self.go_to_more()
         self.more_menu_move_to('Users')
-        self.wait_for_ajax()
         self.more_menu_move_to('LDAP Authentication')
         self.wait_for_ajax()
 

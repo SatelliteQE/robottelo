@@ -46,5 +46,5 @@ locators = {
     # Trends
     "menu.trends": (By.XPATH, "//a[contains(@href='/trends')]"),
     # More
-    "menu.more": (By.XPATH, "//div[contains(@class,'navbar') and contains(@style,'static')]//ul[@id='menu2']"),
+    "menu.more": (By.XPATH, "//div[contains(@style,'static')]//ul[@id='menu2']/li/a"),
 }
