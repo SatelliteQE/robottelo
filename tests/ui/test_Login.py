@@ -3,9 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from baseui import BaseUI
-from robottelo.lib.common.helpers import generate_name
-from robottelo.lib.common.decorators import runIf
-from robottelo.lib.ui.locators import *
+from lib.common.helpers import generate_name
+from lib.common.decorators import runIf
+from lib.ui.locators import *
 
 
 class Login(BaseUI):

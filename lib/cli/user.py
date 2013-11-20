@@ -3,7 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
-from robottelo.lib.common.helpers import csv_to_dictionary
+from lib.common.helpers import csv_to_dictionary
 
 
 class User(Base):
