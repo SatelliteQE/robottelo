@@ -17,7 +17,7 @@ If you haven't cloned the source code yet, then make sure to do it now:
 
     git clone git://github.com/omaciel/robottelo.git
 
-Then, run **pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
+Then, run **sudo pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
 Running the test
 ----------------

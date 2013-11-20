@@ -6,6 +6,16 @@ from selenium.webdriver.common.by import By
 
 locators = {
 
+    # Notifications
+    "notif.error": (
+        By.XPATH, "//div[contains(@class, 'jnotify-notification-error')]"),
+    "notif.warning": (
+        By.XPATH, "//div[contains(@class, 'jnotify-notification-warning')]"),
+    "notif.success": (
+        By.XPATH, "//div[contains(@class, 'jnotify-notification-success')]"),
+    "notif.close": (
+        By.XPATH, "//a[@class='jnotify-close']"),
+
     # Login
     "login.username": (By.ID, "login_login"),
     "login.password": (By.ID, "login_password"),

@@ -2,13 +2,12 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging
 import logging.config
 import os
 import sys
 import unittest
 
-from robottelo.lib.cli.user import User
+from lib.cli.user import User
 
 try:
     import paramiko

@@ -5,6 +5,10 @@ import os
 import sys
 import unittest
 
+PROJECT_DIR = os.path.abspath(os.path.curdir)
+if PROJECT_DIR not in sys.path:
+    sys.path.append(PROJECT_DIR)
+
 if __name__ == "__main__":
 
     prog = "Robottelo"
@@ -56,7 +60,7 @@ if __name__ == "__main__":
         '--katello_passwd',
         type=str,
         dest='katello_passwd',
-        default='admin')
+        default='changeme')
 
     parser.add_argument(
         '-t',

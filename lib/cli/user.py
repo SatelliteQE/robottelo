@@ -3,7 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from base import Base
-from robottelo.lib.common.helpers import csv_to_dictionary
+from lib.common.helpers import csv_to_dictionary
 
 
 class User(Base):
@@ -29,16 +29,9 @@ class User(Base):
         Creates a new user.
         """
 
-        cmd = """
-        user create
-         --login='%s'
-         --fname = '%s'
-         --lname = '%s'
-         --mail = '%s'
-         --admin = '%s'
-         --password='%s'
-         --auth-source-id = '%d'
-        """
+        cmd = "user create --login='%s' --firstname='%s' --lastname='%s'" \
+              " --mail='%s' --admin='%s' --password='%s'" \
+              " --auth-source-id='%d'"
 
         cmd = cmd % (login, fname, lname, email, admin, password, auth_id)
 
@@ -51,7 +44,7 @@ class User(Base):
         Deletes an existing user.
         """
 
-        cmd = "user delete --id='%d'"
+        cmd = "user delete --id='%s'"
 
         stdout, stderr = self.execute(cmd % user_id)
 
@@ -95,7 +88,7 @@ class User(Base):
         Updates existing users.
         """
 
-        cmd = "user update --id='%d'" % user_id
+        cmd = "user update --id='%s'" % user_id
 
         if login:
             cmd += " --login='%s'" % login

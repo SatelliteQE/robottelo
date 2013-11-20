@@ -4,7 +4,7 @@
 
 from base import Base
 from itertools import izip
-from robottelo.lib.common.helpers import generate_name
+from lib.common.helpers import generate_name
 
 FIELDS = ['id', 'name', 'description', 'default service level', 'available service levels', 'default system info keys']
 

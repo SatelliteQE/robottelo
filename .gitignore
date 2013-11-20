@@ -18,3 +18,6 @@
 _build
 doctrees
 screenshots*
+.project
+.pydevproject
+.settings/

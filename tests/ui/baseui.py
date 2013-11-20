@@ -10,10 +10,10 @@ import selenium
 import unittest
 import sauceclient
 
-from robottelo.lib.ui.login import Login
-from robottelo.lib.ui.navigator import Navigator
-from robottelo.lib.ui.product import Product
-from robottelo.lib.ui.user import User
+from lib.ui.login import Login
+from lib.ui.navigator import Navigator
+from lib.ui.product import Product
+from lib.ui.user import User
 from selenium import webdriver
 
 SCREENSHOTS_DIR = os.path.join(
@@ -27,7 +27,6 @@ class BaseUI(unittest.TestCase):
     def setUp(self):
         self.host = os.getenv('KATELLO_HOST')
         self.port = os.getenv('KATELLO_PORT', '443')
-        self.project = os.getenv('PROJECT', 'katello')
         self.katello_user = os.getenv('KATELLO_USER')
         self.katello_passwd = os.getenv('KATELLO_PASSWD')
         self.driver_name = os.getenv('DRIVER_NAME', 'firefox')

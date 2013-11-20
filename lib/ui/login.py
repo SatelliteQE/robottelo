@@ -27,9 +27,6 @@ class Login(Base):
             if self.find_element(locators["notif.error"]):
                 return
 
-            if self.find_element(locators["login.interstitial"]):
-                self.find_element((locators["login.selectOrg"][0],locators["login.selectOrg"][1] % organization)).click()
-
     def logout(self):
         # Headpin ?
         if self.find_element(locators["login.gravatar"]):
