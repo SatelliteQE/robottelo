@@ -11,6 +11,8 @@ import sys
 # Borrowed from https://github.com/pulp/pulp/blob/master/run-tests.py
 # Find and eradicate any existing .pyc files, so they do not eradicate us!
 PROJECT_DIR = os.path.abspath(os.path.curdir)
+if PROJECT_DIR not in sys.path:
+    sys.path.append(PROJECT_DIR)
 
 subprocess.call(['find', PROJECT_DIR, '-name', '*.pyc', '-delete'])
 
