@@ -27,7 +27,6 @@ class BaseUI(unittest.TestCase):
     def setUp(self):
         self.host = os.getenv('KATELLO_HOST')
         self.port = os.getenv('KATELLO_PORT', '443')
-        self.project = os.getenv('PROJECT', 'katello')
         self.katello_user = os.getenv('KATELLO_USER')
         self.katello_passwd = os.getenv('KATELLO_PASSWD')
         self.driver_name = os.getenv('DRIVER_NAME', 'firefox')

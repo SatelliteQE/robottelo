@@ -24,12 +24,6 @@ parser.add_argument('-s',
                     dest='host',
                     help='Server url')
 parser.add_argument(
-    '--project',
-    type=str,
-    dest='project',
-    default='/katello',
-    help='Project can be either "katello" or "headpin"')
-parser.add_argument(
     '--driver',
     type=str,
     dest='driver',
@@ -116,7 +110,6 @@ parser.add_argument(
 [options, ignored_options] = parser.parse_known_args()
 
 os.environ['KATELLO_HOST'] = options.host
-os.environ['PROJECT'] = options.project
 os.environ['KATELLO_USER'] = options.katello_user
 os.environ['KATELLO_PASSWD'] = options.katello_passwd
 os.environ['DRIVER_NAME'] = options.driver
