@@ -60,7 +60,7 @@ if __name__ == "__main__":
         '--katello_passwd',
         type=str,
         dest='katello_passwd',
-        default='admin')
+        default='changeme')
 
     parser.add_argument(
         '-t',
@@ -122,6 +122,7 @@ if __name__ == "__main__":
         help='User name to connect to server via ssh. Most of the time \
         the default "root" will work.')
 
+    import epdb; epdb.st()
     [options, ignored_options] = parser.parse_known_args()
 
     # Validation

@@ -51,7 +51,7 @@ parser.add_argument(
     '--katello_passwd',
     type=str,
     dest='katello_passwd',
-    default='admin')
+    default='changeme')
 
 parser.add_argument(
     '-t',
