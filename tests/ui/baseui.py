@@ -10,10 +10,10 @@ import selenium
 import unittest
 import sauceclient
 
-from robottelo.lib.ui.login import Login
-from robottelo.lib.ui.navigator import Navigator
-from robottelo.lib.ui.product import Product
-from robottelo.lib.ui.user import User
+from lib.ui.login import Login
+from lib.ui.navigator import Navigator
+from lib.ui.product import Product
+from lib.ui.user import User
 from selenium import webdriver
 
 SCREENSHOTS_DIR = os.path.join(
