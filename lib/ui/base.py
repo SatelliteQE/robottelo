@@ -6,10 +6,9 @@ import logging
 import logging.config
 import os
 
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 
 class Base():
 
@@ -58,3 +57,12 @@ class Base():
         except Exception, e:
             self.logger.debug("Failed to locate element. ERROR: %s" % str(e))
             return None
+
+    def ajax_complete(self, driver):
+        try:
+            return 0 == driver.execute_script("return jQuery.active")
+        except WebDriverException:
+            pass
+
+    def wait_for_ajax(self):
+        WebDriverWait(self.browser, 30).until(self.ajax_complete,  "Timeout waiting for page to load")
