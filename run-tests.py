@@ -119,7 +119,7 @@ os.environ['KATELLO_USER'] = options.katello_user
 os.environ['KATELLO_PASSWD'] = options.katello_passwd
 os.environ['DRIVER_NAME'] = options.driver
 os.environ['VERBOSITY'] = str(options.verbosity)
-os.environ['SERVER_SSH_KEY'] = options.sshkey
+os.environ['SSH_KEY'] = options.sshkey
 os.environ['ROOT'] = options.root
 os.environ['LOCALE'] = options.locale
 if options.sauce_user is not None:
