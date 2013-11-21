@@ -3,7 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from robottelo.lib.common.helpers import generate_name
+from robottelo.lib.common.helpers import generate_name, generate_string
 
 
 class User(BaseCLI):
@@ -33,3 +33,22 @@ class User(BaseCLI):
 
         self.user.delete(name)
         self.assertEqual({}, self.user.info(name))
+
+    def test_create_user_utf8(self):
+        "Create utf8 user"
+
+        password = generate_string('alpha', 6)
+        name = generate_string('utf8', 6)
+        email_name = generate_string('alpha', 6)
+        email = "%s@example.com" % email_name
+        self._create_user(None, None, password)
+
+    def test_create_user_latin1(self):
+        "Create latin1 user"
+
+        password = generate_string('alpha', 6)
+        name = generate_string('latin1', 6)
+        email_name = generate_string('alpha', 6)
+        email = "%s@example.com" % email_name
+        self._create_user(None, None, password)
+
