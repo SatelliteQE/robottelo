@@ -16,6 +16,7 @@ from lib.ui.product import Product
 from lib.ui.user import User
 from selenium import webdriver
 
+
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')
 
@@ -93,9 +94,7 @@ class BaseUI(unittest.TestCase):
             else:
                 file_name = os.path.join(SCREENSHOTS_DIR, file_name)
 
-            if not isinstance(
-                    self.browser,
-                    selenium.webdriver.remote.webdriver.WebDriver):
+            if not isinstance(self.browser, webdriver.Remote):
                 self.browser.save_screenshot(file_name)
 
     def run(self, result=None):
