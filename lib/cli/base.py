@@ -5,6 +5,7 @@
 import logging.config
 from lib.common import conf
 
+
 class Base():
 
     try:
@@ -35,6 +36,7 @@ class Base():
         output = stdout.readlines()
         errors = stderr.readlines()
 
+        self.logger.debug(shell_cmd % (self.locale, user, password, command))
         self.logger.debug("".join(output))
         self.logger.debug("".join(errors))
 

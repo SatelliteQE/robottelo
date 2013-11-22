@@ -36,13 +36,14 @@ class BaseUI(unittest.TestCase):
         self.sauce_version = conf.properties['saucelabs.browser.version']
         self.locale = conf.properties['main.locale']
         self.verbosity = int(conf.properties['main.verbosity'])
+        self.remote = int(conf.properties['main.remote'])
 
         logging.config.fileConfig("logging.conf")
 
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
 
-        if self.sauce_user is None:
+        if not self.remote:
             if self.driver_name.lower() == 'firefox':
                 self.browser = webdriver.Firefox()
             elif self.driver_name.lower() == 'chrome':
@@ -65,7 +66,7 @@ class BaseUI(unittest.TestCase):
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
-        self.browser.get(self.host)
+        self.browser.get("https://" + self.host)
 
         # Library methods
         self.login = Login(self.browser)

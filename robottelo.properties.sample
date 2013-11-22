@@ -1,3 +1,5 @@
+# Copy this file and rename it to robottelo.properties
+
 [main]
 server.hostname=awesome.server.com
 server.port=443
@@ -6,6 +8,7 @@ server.ssh.username=root
 project=foreman
 verbosity=2
 locale=en_US
+remote=0
 
 [foreman]
 admin.username=admin

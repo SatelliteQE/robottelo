@@ -71,7 +71,8 @@ class User(Base):
         Lists all existing users.
         """
 
-        cmd = "user list"
+        # Returns up to 10000 hits to avoid pagination.
+        cmd = "user list --per-page 10000"
 
         users = []
 
