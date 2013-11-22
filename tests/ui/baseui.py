@@ -43,7 +43,7 @@ class BaseUI(unittest.TestCase):
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
 
-        if self.remote == False:
+        if not self.remote:
             if self.driver_name.lower() == 'firefox':
                 self.browser = webdriver.Firefox()
             elif self.driver_name.lower() == 'chrome':
@@ -66,7 +66,7 @@ class BaseUI(unittest.TestCase):
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
-        self.browser.get("http://" + self.host)
+        self.browser.get("https://" + self.host)
 
         # Library methods
         self.login = Login(self.browser)
