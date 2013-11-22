@@ -4,6 +4,7 @@
 
 import logging.config
 import os
+from lib.common import conf
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
