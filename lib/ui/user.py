@@ -60,4 +60,3 @@ class User(Base):
             if option.get_attribute("value") == lang:
                 option.click()
                 break
-

@@ -3,7 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from lib.common.helpers import generate_name
+from lib.common.helpers import generate_name, generate_string
 
 
 class User(BaseCLI):
@@ -57,4 +57,3 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         self._create_user(name, email, password)
-

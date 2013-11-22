@@ -10,11 +10,15 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 class Base():
 
     logging.config.fileConfig("logging.conf")
     logger = logging.getLogger("robottelo")
     logger.setLevel(int(conf.properties['main.verbosity']))
+
+    def __init__(self, browser):
+        self.browser = browser
 
     def find_element(self, locator):
         """
@@ -43,9 +47,7 @@ class Base():
         """
 
         try:
-            element = WebDriverWait(
-                self.browser, delay
-            ).until(EC.visibility_of_element_located((locator)))
+            element = WebDriverWait(self.browser, delay).until(EC.visibility_of_element_located((locator)))
             return element
         except TimeoutException, e:
             self.logger.debug(

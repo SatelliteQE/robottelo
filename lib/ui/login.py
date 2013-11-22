@@ -5,6 +5,7 @@
 from base import Base
 from locators import *
 
+
 class Login(Base):
 
     def __init__(self, browser):
