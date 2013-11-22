@@ -39,3 +39,22 @@ class User(BaseCLI):
         user = self.user.user(login)
         self.user.delete(user['Id'])
         self.assertFalse(self.user.exists(login))
+
+    def test_create_user_utf8(self):
+        "Create utf8 user"
+
+        password = generate_string('alpha', 6)
+        name = generate_string('utf8', 6).encode('utf-8')
+        email_name = generate_string('alpha', 6)
+        email = "%s@example.com" % email_name
+        self._create_user(name, email, password)
+
+    def test_create_user_latin1(self):
+        "Create latin1 user"
+
+        password = generate_string('alpha', 6)
+        name = generate_string('latin1', 6).encode('utf-8')
+        email_name = generate_string('alpha', 6)
+        email = "%s@example.com" % email_name
+        self._create_user(name, email, password)
+
