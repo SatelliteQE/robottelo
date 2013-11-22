@@ -17,9 +17,6 @@ class Base():
     logger = logging.getLogger("robottelo")
     logger.setLevel(int(conf.properties['main.verbosity']))
 
-    def __init__(self, browser):
-        self.browser = browser
-
     def find_element(self, locator):
         """
         Wrapper around Selenium's WebDriver that allows you to search for an

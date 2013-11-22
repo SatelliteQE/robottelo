@@ -55,6 +55,7 @@ class Navigator(Base):
         self.click_menu("Trends")
 
     def go_to_configuration(self):
+        menu = self.go_to_more()
         self.more_menu_move_to('Configuration')
         self.more_menu_move_to('Environments')
         self.wait_for_ajax()
@@ -84,6 +85,7 @@ class Navigator(Base):
         self.more_menu_click('Smart Proxies')
 
     def go_to_provisioning(self):
+        menu = self.go_to_more()
         self.more_menu_move_to('Provisioning')
         self.wait_for_ajax()
         self.more_menu_move_to('Architectures')
