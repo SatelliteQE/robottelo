@@ -44,6 +44,8 @@ params = [
     'nosetests',
     '--verbosity=%s' % conf.properties.get("main.verbosity"),
     "--tests",
+    "--nocapture",
+    "--no-path-adjustment",
     ",".join("tests.%s" % test_name[:-3] for test_name in TESTS),
 ]
 
