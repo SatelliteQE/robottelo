@@ -26,10 +26,16 @@ if __name__ == "__main__":
         '-t',
         '--tests',
         type=str,
+        dest='tests',
         action='append',
         help='The name of the tests to be run.')
 
     [options, ignored_options] = parser.parse_known_args()
+
+    # Validation
+    if options.tests is None:
+        parser.print_usage()
+        sys.exit(-1)
 
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()

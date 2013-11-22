@@ -22,11 +22,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '-t',
     '--tests',
+    dest='tests',
     choices=['cli', 'ui', '*'],
     default='cli',
     help='The type of the tests to be run. Options are CLI, UI, Both')
 
 [options, ignored_options] = parser.parse_known_args()
+
+# Validation
+if options.tests is None:
+    parser.print_usage()
+    sys.exit(-1)
 
 TESTS = [".".join(
     x.split('/')[-2:]
