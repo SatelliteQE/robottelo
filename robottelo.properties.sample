@@ -1,3 +1,5 @@
+# Copy this file and rename it to robottelo.properties
+
 [main]
 server.hostname=awesome.server.com
 server.port=443
