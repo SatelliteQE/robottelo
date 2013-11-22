@@ -38,17 +38,17 @@ class User(BaseCLI):
         "Create utf8 user"
 
         password = generate_string('alpha', 6)
-        name = generate_string('utf8', 6)
+        name = generate_string('utf8', 6).encode('utf-8')
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
-        self._create_user(None, None, password)
+        self._create_user(name, email, password)
 
     def test_create_user_latin1(self):
         "Create latin1 user"
 
         password = generate_string('alpha', 6)
-        name = generate_string('latin1', 6)
+        name = generate_string('latin1', 6).encode('utf-8')
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
-        self._create_user(None, None, password)
+        self._create_user(name, email, password)
 
