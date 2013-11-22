@@ -2,7 +2,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging
 import logging.config
 import os
 
@@ -14,7 +13,7 @@ class Base():
 
     logging.config.fileConfig("logging.conf")
     logger = logging.getLogger("robottelo")
-    logger.setLevel(int(os.getenv('VERBOSITY', 2)))
+    logger.setLevel(int(conf.properties['main.verbosity']))
 
     def find_element(self, locator):
         """

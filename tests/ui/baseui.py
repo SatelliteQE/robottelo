@@ -3,7 +3,6 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import datetime
-import logging
 import logging.config
 import os
 import selenium
@@ -15,7 +14,7 @@ from lib.ui.navigator import Navigator
 from lib.ui.product import Product
 from lib.ui.user import User
 from selenium import webdriver
-
+from lib.common import conf
 
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')
@@ -26,18 +25,17 @@ SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 class BaseUI(unittest.TestCase):
 
     def setUp(self):
-        self.host = os.getenv('KATELLO_HOST')
-        self.port = os.getenv('KATELLO_PORT', '443')
-        self.katello_user = os.getenv('KATELLO_USER')
-        self.katello_passwd = os.getenv('KATELLO_PASSWD')
-        self.driver_name = os.getenv('DRIVER_NAME', 'firefox')
-        self.sauce_user = os.getenv('SAUCE_USER')
-        self.sauce_key = os.getenv('SAUCE_KEY')
-        self.sauce_os = os.getenv('SAUCE_OS')
-        self.sauce_tunnel = os.getenv('SAUCE_TUNNEL')
-        self.sauce_version = os.getenv('SAUCE_VERSION')
-        self.locale = os.getenv('LOCALE', 'en_US')
-        self.verbosity = int(os.getenv('VERBOSITY'))
+        self.host = conf.properties['main.server.hostname']
+        self.katello_user = conf.properties['foreman.admin.username']
+        self.katello_passwd = conf.properties['foreman.admin.password']
+        self.driver_name = conf.properties['saucelabs.driver']
+        self.sauce_user = conf.properties['saucelabs.username']
+        self.sauce_key = conf.properties['saucelabs.key']
+        self.sauce_os = conf.properties['saucelabs.os']
+        self.sauce_tunnel = conf.properties['saucelabs.tunnel']
+        self.sauce_version = conf.properties['saucelabs.browser.version']
+        self.locale = conf.properties['main.locale']
+        self.verbosity = int(conf.properties['main.verbosity'])
 
         logging.config.fileConfig("logging.conf")
 

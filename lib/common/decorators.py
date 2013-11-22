@@ -6,7 +6,7 @@ import os
 import unittest
 import bugzilla
 import logging
-
+from lib.common import conf
 bugzilla_log = logging.getLogger("bugzilla")
 bugzilla_log.setLevel(logging.WARNING)
 
@@ -14,7 +14,7 @@ BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 
 def runIf(project):
     "Decorator to skip tests based on server mode"
-    mode = os.getenv('PROJECT').replace('/', '')
+    mode = conf.properties['main.project'].replace('/', '')
 
     if project == mode:
         return lambda func: func
