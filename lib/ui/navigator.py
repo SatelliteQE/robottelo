@@ -132,6 +132,6 @@ class Navigator(Base):
         #self.browser.find_element_by_xpath("//a[@href='/subnets']").click()
 
     def go_to_users(self):
-        self.go_to_configuration()
+        menu = self.go_to_more()
         submenu = menu.find_elements_by_xpath("//ul/li[@class='dropdown-submenu']/a")[5]
         ActionChains(self.browser).move_to_element(submenu).perform()
