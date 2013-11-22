@@ -14,6 +14,7 @@ except Exception, e:
     print "Please install paramiko."
     sys.exit(-1)
 
+
 class BaseCLI(unittest.TestCase):
 
     def setUp(self):
