@@ -8,6 +8,7 @@ server.ssh.username=root
 project=foreman
 verbosity=2
 locale=en_US
+remote=0
 
 [foreman]
 admin.username=admin
