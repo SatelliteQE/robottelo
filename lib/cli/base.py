@@ -2,10 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging
 import logging.config
-import os
-
+from lib.common import conf
 
 class Base():
 
@@ -16,11 +14,11 @@ class Base():
         logging.basicConfig(format=log_format)
 
     logger = logging.getLogger("robottelo")
-    logger.setLevel(int(os.getenv('VERBOSITY', 2)))
+    logger.setLevel(int(conf.properties['main.verbosity']))
 
-    locale = os.getenv('LOCALE', os.environ['LANG'])
-    katello_user = os.getenv('KATELLO_USER', 'admin')
-    katello_passwd = os.getenv('KATELLO_PASSWD', 'changeme')
+    locale = conf.properties['main.locale']
+    katello_user = conf.properties['foreman.admin.username']
+    katello_passwd = conf.properties['foreman.admin.password']
 
     def execute(self, command, user=None, password=None):
 

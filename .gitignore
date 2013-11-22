@@ -21,3 +21,4 @@ screenshots*
 .project
 .pydevproject
 .settings/
+robottelo.properties
