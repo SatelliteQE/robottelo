@@ -6,6 +6,7 @@ from base import Base
 from locators import locators
 from selenium.webdriver.common.action_chains import ActionChains
 
+
 class Navigator(Base):
     """
     Quickly navigate through menus and tabs.
@@ -148,4 +149,3 @@ class Navigator(Base):
     def go_to_roles(self):
         self.go_to_users_menu()
         self.more_menu_click('Roles')
-
