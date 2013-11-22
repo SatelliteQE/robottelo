@@ -44,7 +44,9 @@ class Base():
         """
 
         try:
-            element = WebDriverWait(self.browser, delay).until(EC.visibility_of_element_located((locator)))
+            element = WebDriverWait(
+                self.browser, delay
+            ).until(EC.visibility_of_element_located((locator)))
             return element
         except TimeoutException, e:
             self.logger.debug(
