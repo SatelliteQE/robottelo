@@ -4,6 +4,7 @@
 
 from base import Base
 from locators import *
+from navigator import Navigator
 
 
 class Login(Base):
@@ -29,45 +30,12 @@ class Login(Base):
                 return
 
     def logout(self):
-        # Headpin ?
         if self.find_element(locators["login.gravatar"]):
-            self.find_element(locators["login.gravatar"]).click()
-        # Katello ?
-        elif self.find_element(locators["login.user"]):
-            self.find_element(locators["login.user"]).click()
-        self.find_element(locators["login.logout"]).click()
+            nav = Navigator(self.browser)
+            nav.go_to_sign_out()
 
     def is_logged(self, username):
-        # Headpin?
         if self.find_element(locators["login.gravatar"]):
-            return True
-        # Katello?
-        elif self.find_element(locators["login.user"]):
             return True
         else:
             return False
-
-    def forgot_username(self, email):
-        if self.wait_until_element(locators["login.forgot_username"]):
-            self.find_element(locators["login.forgot_username"]).click()
-            if self.wait_until_element(locators["login.forgot_username_email"]):
-                txt_field = self.find_element(locators["login.forgot_username_email"])
-                txt_field.clear()
-                txt_field.send_keys(email)
-                if self.wait_until_element(locators["login.forgot_username_submit"]):
-                    self.find_element(locators["login.forgot_username_submit"]).click()
-
-    def forgot_password(self, username, email):
-        if self.wait_until_element(locators["login.forgot_password"]):
-            self.find_element(locators["login.forgot_password"]).click()
-        if self.wait_until_element(locators["login.forgot_password_username"]):
-            username_field = self.find_element(locators["login.forgot_password_username"])
-            username_field.clear()
-            username_field.send_keys(username)
-        if self.wait_until_element(locators["login.forgot_password_email"]):
-            email_field = self.find_element(locators["login.forgot_password_email"])
-            email_field.clear()
-            email_field.send_keys(email)
-        if self.wait_until_element(locators["login.forgot_password_submit"]):
-            self.find_element(locators["login.forgot_password_submit"]).click()
-
