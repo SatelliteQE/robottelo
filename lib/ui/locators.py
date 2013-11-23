@@ -20,7 +20,7 @@ locators = {
     "login.username": (By.ID, "login_login"),
     "login.password": (By.ID, "login_password"),
     "login.submit": (By.NAME, "commit"),
-    "login.gravatar": (By.XPATH, "//a[contains(@id, 'gravatar')]"),
+    "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
 
     # Menus
 

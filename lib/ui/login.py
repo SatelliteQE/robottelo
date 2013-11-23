@@ -34,7 +34,7 @@ class Login(Base):
             nav = Navigator(self.browser)
             nav.go_to_sign_out()
 
-    def is_logged(self, username):
+    def is_logged(self):
         if self.find_element(locators["login.gravatar"]):
             return True
         else:

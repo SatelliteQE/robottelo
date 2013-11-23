@@ -10,7 +10,7 @@ class Login(BaseUI):
     def test_successful_login(self):
         "Successfully logs in as admin user"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.assertTrue(self.login.is_logged(self.katello_user))
+        self.assertTrue(self.login.is_logged())
 
     def test_failed_login_1(self):
         "Fails to log in as admin user with incorrect credentials"
