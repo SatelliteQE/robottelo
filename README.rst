@@ -1,13 +1,13 @@
 Robottelo
 =========
-This is an automation test suite for the `Katello <http://katello.org/>`_ project.
+This is an automation test suite for `The Foreman <http://theforeman.org/>`_ project.
 
 My goal is to design a `keyword <http://en.wikipedia.org/wiki/Keyword-driven_testing>`_, `data <http://en.wikipedia.org/wiki/Data-driven_testing>`_ driven suite that can be used in a continuous integration environment.
 
 Quickstart
 ==========
 
-This page gives you a good introduction in how to get started with ``Robottelo``.
+This page gives you a good introduction in how to get started with ``Robottelo``. For more information, please read the `documentation <http://robottelo.readthedocs.org/en/latest/>`_.
 
 Requirements:
 -------------
@@ -21,23 +21,23 @@ Then, run **sudo pip install -r ./requirements.txt** from the root of the projec
 
 Running the test
 ----------------
-Single tests can be invoked by using the included **robottelo_runner** script:
+Assuming you have already installed and configured **The Foreman**, the simplest way to execute tests is to use the included **robottelo_runner** script. First, make sure to copy the **robottelo.properties.sample** file and save it as **robottelo.properties**. Next, edit the file and update the attributes to match your existing configuration, and run your tests:
 
 ::
 
-    python robottelo_runner.py --driver firefox --host www.example.com --project katello --tests tests.ui.test_Login
+    python robottelo_runner.py --tests tests.ui.test_Login
 
 Multiple tests can also be invoked:
 
 ::
 
-    python robottelo_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login --tests tests.ui.test_Organization
+    python robottelo_runner.py --tests tests.ui.test_Login --tests tests.ui.test_Organization
 
 Running individual tests from a test suite from the command line:
 
 ::
 
-    python robottelo_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login.test_successful_login
+    python robottelo_runner.py --tests tests.ui.test_Login.test_successful_login
 
 You can also run tests directly using either **unittest** or **nosetests** provided you pass all the expected arguments:
 
