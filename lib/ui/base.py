@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 class Base():
 
-    logging.config.fileConfig("%s/logging.conf" % conf.getRootPath())
+    logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
     logger = logging.getLogger("robottelo")
     logger.setLevel(int(conf.properties['main.verbosity']))
 

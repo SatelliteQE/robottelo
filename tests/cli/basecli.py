@@ -26,7 +26,7 @@ class BaseCLI(unittest.TestCase):
         self.locale = conf.properties['main.locale']
         self.verbosity = int(conf.properties['main.verbosity'])
 
-        logging.config.fileConfig("%s/logging.conf" % conf.getRootPath())
+        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
         # Hide base logger from paramiko
         logging.getLogger("paramiko").setLevel(logging.ERROR)
 

@@ -8,10 +8,10 @@ from constants import ROBOTTELO_PROPERTIES
 class Configs():
 
     def __init__(self):
-        logging.config.fileConfig("%s/logging.conf" % self.getRootPath())
+        logging.config.fileConfig("%s/logging.conf" % self.get_root_path())
         self.log_root = logging.getLogger("root")
         prop = ConfigParser.RawConfigParser()
-        propFile = "%s/%s" % (self.getRootPath(), ROBOTTELO_PROPERTIES)
+        propFile = "%s/%s" % (self.get_root_path(), ROBOTTELO_PROPERTIES)
         if prop.read(propFile):
             self.properties = {}
             for section in prop.sections():
@@ -30,7 +30,7 @@ class Configs():
         for key in keylist:
             self.log_root.debug("property %s=%s" % (key, self.properties[key]))
 
-    def getRootPath(self):
+    def get_root_path(self):
         return os.path.realpath(os.path.join(os.path.dirname(__file__), \
             os.pardir, os.pardir))
 
