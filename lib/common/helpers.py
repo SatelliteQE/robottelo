@@ -55,21 +55,6 @@ def invalid_names_list():
 
     return INVALID_NAMES
 
-
-#def i18n_join(range_begin, range_end, length):
-#    '''
-#    This function is primarily for use with the generate_string()
-#    function, for use with manipulating i18n strings.
-#    '''
-#    output_array = []
-#    for i in range(int(range_begin, 16), int(range_end, 16)):
-#        output_array.append(i)
-#    i18n_output = ''.join(
-#        unichr(random.choice(output_array)) for x in xrange(length)
-#    )
-#    return i18n_output
-
-
 def generate_string(str_type, length):
     '''
     This function will allow creation of a wide variety of string types,
