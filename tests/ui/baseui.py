@@ -38,7 +38,7 @@ class BaseUI(unittest.TestCase):
         self.verbosity = int(conf.properties['main.verbosity'])
         self.remote = int(conf.properties['main.remote'])
 
-        logging.config.fileConfig("logging.conf")
+        logging.config.fileConfig("%s/logging.conf" % conf.getRootPath())
 
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)

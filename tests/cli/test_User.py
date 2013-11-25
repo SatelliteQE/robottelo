@@ -58,4 +58,3 @@ class User(BaseCLI):
         email = "%s@example.com" % email_name
         login = generate_string('latin1', 6).encode('utf-8')
         self._create_user(login=login, email=email, passwd1=password)
-
