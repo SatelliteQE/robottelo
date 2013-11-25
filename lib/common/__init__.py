@@ -1,17 +1,18 @@
 import ConfigParser
 import logging.config
 import sys
-
+import os
 from constants import ROBOTTELO_PROPERTIES
 
 
 class Configs():
 
     def __init__(self):
-        logging.config.fileConfig("logging.conf")
+        logging.config.fileConfig("%s/logging.conf" % self.get_root_path())
         self.log_root = logging.getLogger("root")
         prop = ConfigParser.RawConfigParser()
-        if prop.read(ROBOTTELO_PROPERTIES):
+        propFile = "%s/%s" % (self.get_root_path(), ROBOTTELO_PROPERTIES)
+        if prop.read(propFile):
             self.properties = {}
             for section in prop.sections():
                 for option in prop.options(section):
@@ -29,8 +30,12 @@ class Configs():
         for key in keylist:
             self.log_root.debug("property %s=%s" % (key, self.properties[key]))
 
+    def get_root_path(self):
+        return os.path.realpath(os.path.join(os.path.dirname(__file__), \
+            os.pardir, os.pardir))
+
 conf = Configs()
 conf.log_root.debug("")
 conf.log_root.debug("# ** ** ** list properties ** ** **")
-conf.log_root.debug(conf.dumpProperties())
+conf.dumpProperties()
 conf.log_root.debug("")
