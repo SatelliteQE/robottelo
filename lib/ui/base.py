@@ -3,17 +3,18 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import logging.config
-import os
-from lib.common import conf
 
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
+from lib.common import conf
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
 class Base():
 
-    logging.config.fileConfig("logging.conf")
+    logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
     logger = logging.getLogger("robottelo")
     logger.setLevel(int(conf.properties['main.verbosity']))
 
@@ -66,4 +67,8 @@ class Base():
             pass
 
     def wait_for_ajax(self):
-        WebDriverWait(self.browser, 30).until(self.ajax_complete,  "Timeout waiting for page to load")
+        WebDriverWait(
+            self.browser, 30
+        ).until(
+            self.ajax_complete, "Timeout waiting for page to load"
+        )

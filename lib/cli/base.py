@@ -9,7 +9,7 @@ from lib.common import conf
 class Base():
 
     try:
-        logging.config.fileConfig("logging.conf")
+        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
     except Exception:
         log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
         logging.basicConfig(format=log_format)
