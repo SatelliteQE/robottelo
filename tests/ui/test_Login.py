@@ -15,9 +15,9 @@ class Login(BaseUI):
     def test_failed_login_1(self):
         "Fails to log in as admin user with incorrect credentials"
         self.login.login("admin", "")
-        self.assertFalse(self.login.is_logged("admin"))
+        self.assertFalse(self.login.is_logged())
 
     def test_failed_login_2(self):
         "Fails to log in when no credentials are entered"
         self.login.login("", "")
-        self.assertFalse(self.login.is_logged("admin"))
+        self.assertFalse(self.login.is_logged())
