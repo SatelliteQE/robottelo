@@ -13,11 +13,11 @@ class OperatingSys(Base):
     def __init__(self, browser):
         self.browser = browser
         
-    def create(self, osname, major_version=None, minor_version=None, os_family=None):
+    def create(self, name, major_version=None, minor_version=None, os_family=None):
         self.wait_until_element(locators["operatingsys.new"]).click()
         
         if self.wait_until_element(locators["operatingsys.name"]):
-            self.find_element(locators["operatingsys.name"]).send_keys(osname)
+            self.find_element(locators["operatingsys.name"]).send_keys(name)
         
             if self.wait_until_element(locators["operatingsys.major_version"]):
                 self.find_element(locators["operatingsys.major_version"]).send_keys(major_version)     
