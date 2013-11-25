@@ -24,7 +24,7 @@ class BaseCLI(unittest.TestCase):
         self.key_filename = conf.properties['main.server.ssh.key_private']
         self.root = conf.properties['main.server.ssh.username']
         self.locale = conf.properties['main.locale']
-        self.verbosity = int(conf.properties['main.verbosity'])
+        self.verbosity = int(conf.properties['nosetests.verbosity'])
 
         logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
         # Hide base logger from paramiko

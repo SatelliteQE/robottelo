@@ -35,7 +35,7 @@ class BaseUI(unittest.TestCase):
         self.sauce_tunnel = conf.properties['saucelabs.tunnel']
         self.sauce_version = conf.properties['saucelabs.browser.version']
         self.locale = conf.properties['main.locale']
-        self.verbosity = int(conf.properties['main.verbosity'])
+        self.verbosity = int(conf.properties['nosetests.verbosity'])
         self.remote = int(conf.properties['main.remote'])
 
         logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())

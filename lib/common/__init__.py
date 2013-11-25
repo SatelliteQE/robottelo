@@ -19,23 +19,25 @@ class Configs():
                     self.properties[
                         "%s.%s" % (section, option)
                     ] = prop.get(section, option)
-            self.log_root.setLevel(int(self.properties.get("main.verbosity")))
+            self.log_root.setLevel(
+                int(self.properties.get("nosetests.verbosity")))
+
+#             self.log_properties()
         else:
             print "Please make sure that you have a robottelo.properties file."
             sys.exit(-1)
 
-    def dumpProperties(self):
+    def log_properties(self):
         keylist = self.properties.keys()
         keylist.sort()
+        self.log_root.debug("")
+        self.log_root.debug("# ** ** ** list properties ** ** **")
         for key in keylist:
             self.log_root.debug("property %s=%s" % (key, self.properties[key]))
+        self.log_root.debug("")
 
     def get_root_path(self):
         return os.path.realpath(os.path.join(os.path.dirname(__file__), \
             os.pardir, os.pardir))
 
 conf = Configs()
-conf.log_root.debug("")
-conf.log_root.debug("# ** ** ** list properties ** ** **")
-conf.dumpProperties()
-conf.log_root.debug("")

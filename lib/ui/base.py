@@ -16,7 +16,7 @@ class Base():
 
     logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
     logger = logging.getLogger("robottelo")
-    logger.setLevel(int(conf.properties['main.verbosity']))
+    logger.setLevel(int(conf.properties['nosetests.verbosity']))
 
     def find_element(self, locator):
         """
