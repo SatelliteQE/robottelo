@@ -5,6 +5,7 @@
 import logging.config
 import sys
 import unittest
+from lib.cli.architecture import Architecture
 from lib.cli.user import User
 from lib.common import conf
 
@@ -40,4 +41,5 @@ class BaseCLI(unittest.TestCase):
                           key_filename=self.key_filename)
 
         # Library methods
+        self.arch = Architecture(self.conn)
         self.user = User(self.conn)
