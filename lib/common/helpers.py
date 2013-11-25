@@ -56,18 +56,18 @@ def invalid_names_list():
     return INVALID_NAMES
 
 
-def i18n_join(range_begin, range_end, length):
-    '''
-    This function is primarily for use with the generate_string()
-    function, for use with manipulating i18n strings.
-    '''
-    output_array = []
-    for i in range(int(range_begin, 16), int(range_end, 16)):
-        output_array.append(i)
-    i18n_output = ''.join(
-        unichr(random.choice(output_array)) for x in xrange(length)
-    )
-    return i18n_output
+#def i18n_join(range_begin, range_end, length):
+#    '''
+#    This function is primarily for use with the generate_string()
+#    function, for use with manipulating i18n strings.
+#    '''
+#    output_array = []
+#    for i in range(int(range_begin, 16), int(range_end, 16)):
+#        output_array.append(i)
+#    i18n_output = ''.join(
+#        unichr(random.choice(output_array)) for x in xrange(length)
+#    )
+#    return i18n_output
 
 
 def generate_string(str_type, length):
@@ -78,12 +78,13 @@ def generate_string(str_type, length):
     '''
     # approximate range of CJK Unified Ideographs
     # It does not include extensions.
-    utf8_begin = '4E00'
-    utf8_end = '9FFF'
-    # Range of latin-1 characters/letters (ISO 8859-1)
-    # It does not include unicode Latin Extensions.
-    latin1_begin = '00C0'
-    latin1_end = '00F0'
+    # utf8_begin = '4E00'
+    # utf8_end = '9FFF'
+    # Latin 1 (note: includes some mathematical symbols
+    # which sort of wreaks havoc with using full range.  See
+    # range broken outto avoid these, below)
+    # latin1_begin = '00C0'
+    # latin1_end = '00F0'
     if str_type == "alphanumeric":
         output_string = ''.join(
             random.choice(
@@ -98,9 +99,29 @@ def generate_string(str_type, length):
             random.choice(string.digits) for i in range(length)
         )
     elif str_type == "latin1":
-        output_string = i18n_join(latin1_begin, latin1_end, length)
+        range0 = range1 = range2 = []
+        range0 = ['00C0', '00D6']
+        range1 = ['00D8', '00F6']
+        range2 = ['00F8', '00FF']
+        output_array =[]
+        for i in range(int(range0[0], 16), int(range0[1], 16)):
+            output_array.append(i)
+        for i in range(int(range1[0], 16), int(range1[1], 16)):
+            output_array.append(i)
+        for i in range(int(range2[0], 16), int(range2[1], 16)):
+            output_array.append(i)
+        output_string = ''.join(unichr(random.choice(output_array)) for x in xrange(length))
+        output_string.encode('utf-8')
+        # print output_string
     elif str_type == "utf8":
-        output_string = i18n_join(utf8_begin, utf8_end, length)
+        cjk_range = []
+        cjk_range =['4E00', '9FFF']
+        output_array = []
+        for i in range(int(cjk_range[0], 16), int(cjk_range[1], 16)):
+            output_array.append(i)
+        output_string = ''.join(unichr(random.choice(output_array)) for x in xrange(length))   
+        output_string.encode('utf-8')
+        # print output_string
     else:
         raise Exception(
             'Unexpected output type, valid types are "alphanumeric", \
