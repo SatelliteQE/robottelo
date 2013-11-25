@@ -22,6 +22,16 @@ locators = {
     "login.submit": (By.NAME, "commit"),
     "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
 
+    # Organizations
+    
+    #Operating system (OS)
+    "operatingsys.new": (By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
+    "operatingsys.name": (By.ID, "operatingsystem_name"),
+    "operatingsys.major_version": (By.ID, "operatingsystem_major"),
+    "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
+    "operatingsys.family": (By.ID, "operatingsystem_family"),
+    "operatingsys.submit": (By.NAME, "commit"),
+
     # Menus
 
     # Monitor Menu
@@ -146,5 +156,6 @@ locators = {
     "menu.my_account": (
         By.XPATH,
         "//a[@id='menu_item_my_account']"),
+>>>>>>> master
 
 }
