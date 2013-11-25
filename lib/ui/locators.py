@@ -156,6 +156,5 @@ locators = {
     "menu.my_account": (
         By.XPATH,
         "//a[@id='menu_item_my_account']"),
->>>>>>> master
 
 }
