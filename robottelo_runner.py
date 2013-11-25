@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
 import argparse
-import os
 import sys
 import unittest
 from lib.common import conf
 
-PROJECT_DIR = os.path.abspath(os.path.curdir)
+PROJECT_DIR = conf.get_root_path()
 if PROJECT_DIR not in sys.path:
     sys.path.append(PROJECT_DIR)
 
 if __name__ == "__main__":
+
+    conf.log_properties()  # for standalone launch of: robottelo_runner.py
 
     prog = "Robottelo"
     description = "Runs unittest against a Katello instance."
@@ -44,5 +45,5 @@ if __name__ == "__main__":
         suite.addTests(loader.loadTestsFromName(test_name))
 
     runner = unittest.TextTestRunner(verbosity = \
-        int(conf.properties.get("main.verbosity")))
+        int(conf.properties.get("nosetests.verbosity")))
     result = runner.run(suite)

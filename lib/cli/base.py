@@ -15,7 +15,7 @@ class Base():
         logging.basicConfig(format=log_format)
 
     logger = logging.getLogger("robottelo")
-    logger.setLevel(int(conf.properties['main.verbosity']))
+    logger.setLevel(int(conf.properties['nosetests.verbosity']))
 
     locale = conf.properties['main.locale']
     katello_user = conf.properties['foreman.admin.username']
