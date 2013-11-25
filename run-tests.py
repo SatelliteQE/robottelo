@@ -11,7 +11,7 @@ from lib.common import conf
 
 # Borrowed from https://github.com/pulp/pulp/blob/master/run-tests.py
 # Find and eradicate any existing .pyc files, so they do not eradicate us!
-PROJECT_DIR=conf.get_root_path()
+PROJECT_DIR = conf.get_root_path()
 if PROJECT_DIR not in sys.path:
     sys.path.append(PROJECT_DIR)
 
