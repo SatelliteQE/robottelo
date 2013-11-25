@@ -6,6 +6,7 @@ import logging.config
 import sys
 import unittest
 from lib.cli.architecture import Architecture
+from lib.cli.medium import Medium
 from lib.cli.user import User
 from lib.common import conf
 
@@ -42,4 +43,5 @@ class BaseCLI(unittest.TestCase):
 
         # Library methods
         self.arch = Architecture(self.conn)
+        self.medium = Medium(self.conn)
         self.user = User(self.conn)
