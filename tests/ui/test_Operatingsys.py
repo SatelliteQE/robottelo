@@ -5,11 +5,12 @@
 from baseui import BaseUI
 from lib.ui.locators import *
 
-class Operatingsys(BaseUI):
+class OperatingSys(BaseUI):
     
     def test_create_os(self):
         "create new OS"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems() #go to operating system page
-        self.operatingsys.new_os("testOS", "6", "2", "Redhat")
+        self.operatingsys.create("testOS", "6", "2", "Redhat")
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        

@@ -31,8 +31,8 @@ locators = {
     #Operating system (OS)
     "operatingsys.new": (By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
     "operatingsys.name": (By.ID, "operatingsystem_name"),
-    "operatingsys.majorversion": (By.ID, "operatingsystem_major"),
-    "operatingsys.minorversion": (By.ID, "operatingsystem_minor"),
+    "operatingsys.major_version": (By.ID, "operatingsystem_major"),
+    "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
     "operatingsys.family": (By.ID, "operatingsystem_family"),
     "operatingsys.submit": (By.NAME, "commit"),
     

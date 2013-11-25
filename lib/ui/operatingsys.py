@@ -8,12 +8,12 @@ from locators import *
 from selenium.webdriver.common.alert import Alert
 
 
-class Operatingsys(Base):
+class OperatingSys(Base):
     
     def __init__(self, browser):
         self.browser = browser
         
-    def new_os(self, osname, major_version=None, minor_version=None, os_family=None):
+    def create(self, osname, major_version=None, minor_version=None, os_family=None):
         self.wait_until_element(locators["operatingsys.new"]).click()
         
         if self.wait_until_element(locators["operatingsys.name"]):
@@ -35,3 +35,4 @@ class Operatingsys(Base):
                             option.click()
                             break
             self.find_element(locators["operatingsys.submit"]).click()
+            
