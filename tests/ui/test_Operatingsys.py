@@ -12,5 +12,14 @@ class OperatingSys(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems() #go to operating system page
         self.operatingsys.create("testOS", "6", "2", "Redhat")
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        #self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
         
+        
+    def test_remove_os(self):
+        "Delete OS    "
+        name = "testOS"
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.navigator.go_to_operating_systems() #go to operating system page
+        self.operatingsys.create(name, "6", "2", "Redhat")
+        self.operatingsys.delete(name, really=True)
+        #self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
