@@ -6,8 +6,8 @@ from base import Base
 from itertools import izip
 from lib.common.helpers import generate_name
 
-FIELDS = ['id', 'name', 'description', 'default service level', 'available service levels', 'default system info keys']
-
+#FIELDS = ['id', 'name', 'description', 'default service level', 'available service levels', 'default system info keys']
+FIELDS = ['name', 'id']
 
 class Org(Base):
 
@@ -18,15 +18,13 @@ class Org(Base):
         pass
 
     def create(self, name=None, label=None, description=None):
-        cmd = "org create --name='%s' --label='%s'"
-
+        cmd = "organization create --name='%s'"
         if name is None:
             name = generate_name()
         if description is None:
             description = "Automatically generated"
 
-        cmd = cmd % (name, label, description)
-
+        cmd = cmd % (name)
         stdout, stderr = self.execute(cmd)
 
         return False if stderr else True
@@ -35,14 +33,14 @@ class Org(Base):
         pass
 
     def delete(self, name):
-        cmd = "org delete --name='%s'"
+        cmd = "organization delete --name='%s'"
 
         stdout, stderr = self.execute(cmd % name)
 
         return False if stderr else True
 
     def info(self, name):
-        cmd = "org info --name='%s'"
+        cmd = "organization info --name='%s'"
 
         org = {}
 
@@ -54,7 +52,7 @@ class Org(Base):
         return org
 
     def list(self):
-        cmd = "org list"
+        cmd = "organization list"
 
         orgs = []
 
@@ -66,14 +64,41 @@ class Org(Base):
 
         return orgs
 
+    def info(self, org_name):
+        """
+        gets info about an organization
+        """
+        cmd = "organization info --name='%s'"
+
+        org = {}
+
+        stdout, stderr = self.execute(cmd % org_name)
+
+        if stdout:
+            org = csv_to_dictionary(stdout)
+
+        return org
+
+    def exists(self, org_name):
+        """
+        Returns whether or not org exists.
+        """
+        org_data = []
+        organizations = self.list()
+        for org in organizations:
+            for val in org.values():
+                org_data.append(val.split(',')[-1])
+        return org_name in org_data
+ 
     def subscriptions(self):
         pass
 
     def uebercert(self):
         pass
 
+    # Is this deprecated (for now?)
     def update(self, name, description=None, service_level=None):
-        cmd = "org update --name='%s'" % name
+        cmd = "organization update --name='%s'" % name
 
         if description:
             cmd += " --description='%s'" % description
