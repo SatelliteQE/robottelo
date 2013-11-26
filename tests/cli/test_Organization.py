@@ -25,7 +25,7 @@ class Organization(BaseCLI):
         self._create_organization(org_name, None)
 
     def test_delete_organization_1(self):
-        "Creates and immediately deletes user."
+        "Creates and immediately deletes organization."
 
         org_name = generate_string('alpha', 6)
         self._create_organization(org_name)
@@ -34,13 +34,13 @@ class Organization(BaseCLI):
         self.assertFalse(self.organization.exists(org_name))
 
     def test_create_organization_utf8(self):
-        "Create utf8 user"
+        "Create utf8 organization"
 
         org_name = generate_string('utf8', 6).encode('utf-8')
         self._create_organization(org_name, None)
     
     def test_create_user_latin1(self):
-        "Create latin1 user"
+        "Create latin1 organization"
 
         org_name = generate_string('latin1', 6).encode('utf-8')
         self._create_organization(org_name, None)
