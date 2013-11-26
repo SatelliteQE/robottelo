@@ -16,12 +16,14 @@ class Architecture(Base):
         Adds existing OS to architecture.
         """
 
-        cmd = "architecture add_operatingsystem " \
-              " --id=%s " \
-              " --name='%s'" \
-              " --operatingsystem-id=%s"
+        cmd = "architecture add_operatingsystem"
 
-        cmd = cmd % (arch_id, name, operating_system_id)
+        if arch_id:
+            cmd += " --id=%s " % arch_id
+        if name:
+            cmd += " --name='%s'" % name
+
+        cmd += " --operatingsystem-id=%s" % operating_system_id
 
         stdout, stderr = self.execute(cmd)
 
@@ -124,12 +126,14 @@ class Architecture(Base):
         Removes OS from architecture.
         """
 
-        cmd = "architecture remove_operatingsystem " \
-              " --id=%s " \
-              " --name='%s'" \
-              " --operatingsystem-id=%s"
+        cmd = "architecture remove_operatingsystem"
 
-        cmd = cmd % (arch_id, name, operating_system_id)
+        if arch_id:
+            cmd += " --id=%s " % arch_id
+        if name:
+            cmd += " --name='%s'" % name
+
+        cmd += " --operatingsystem-id=%s" % operating_system_id
 
         stdout, stderr = self.execute(cmd)
 
@@ -145,7 +149,6 @@ class Architecture(Base):
 
         if arch_id:
             cmd += " --id='%s'" % arch_id
-
         if name:
             cmd += " --name='%s'" % name
         if new_name:
