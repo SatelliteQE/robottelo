@@ -16,12 +16,10 @@ class Org(Base):
     def attach_all_systems(self):
         pass
 
-    def create(self, name=None, label=None, description=None):
+    def create(self, name=None):
         cmd = "organization create --name='%s'"
         if name is None:
             name = generate_name()
-        if description is None:
-            description = "Automatically generated"
 
         cmd = cmd % (name)
         stdout, stderr = self.execute(cmd)
