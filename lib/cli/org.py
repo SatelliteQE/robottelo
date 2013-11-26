@@ -5,6 +5,7 @@
 from base import Base
 from itertools import izip
 from lib.common.helpers import generate_name
+from lib.common.helpers import csv_to_dictionary
 
 FIELDS = ['name', 'id']
 
@@ -13,8 +14,8 @@ class Org(Base):
     def __init__(self, conn):
         self.conn = conn
 
-    def attach_all_systems(self):
-        pass
+#    def attach_all_systems(self):
+#        pass
 
     def create(self, name=None):
         cmd = "organization create --name='%s'"
@@ -26,8 +27,8 @@ class Org(Base):
 
         return False if stderr else True
 
-    def default_info(self):
-        pass
+#    def default_info(self):
+#        pass
 
     def delete(self, name):
         cmd = "organization delete --name='%s'"
@@ -45,20 +46,20 @@ class Org(Base):
 
         if stdout:
             org = dict(izip(FIELDS, "".join(stdout).split()))
-
+#            org = csv_to_dictionary(stdout)
         return org
 
     def list(self):
         cmd = "organization list"
-
         orgs = []
-
         stdout, stderr = self.execute(cmd)
+        #org = {}
 
         if stdout:
             for entry in stdout:
                 orgs.append(dict(izip(FIELDS, "".join(entry).split())))
-
+                
+#                print orgs
         return orgs
 
     def info(self, org_name):
