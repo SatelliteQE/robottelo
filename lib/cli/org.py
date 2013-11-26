@@ -6,7 +6,6 @@ from base import Base
 from itertools import izip
 from lib.common.helpers import generate_name
 
-#FIELDS = ['id', 'name', 'description', 'default service level', 'available service levels', 'default system info keys']
 FIELDS = ['name', 'id']
 
 class Org(Base):
