@@ -94,7 +94,7 @@ class Base():
         Displays the content for existing partition table.
         """
 
-        self.command_sub = "delete"
+        self.command_sub = "dump"
 
         options = options or {}
 
