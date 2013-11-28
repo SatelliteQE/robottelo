@@ -15,11 +15,10 @@ class Architecture(BaseUI):
         major_version = major_version or generate_string('numeric', 1)
         self.navigator.go_to_operating_systems() #go to operating system page
         self.operatingsys.create(osname, major_version)
-        #self.assertTrue(self.user.wait_until_element(locators["notif.success"])) #Notifications are not working for create os
     
     
     def test_create_arch(self):
-        "create new Arch"
+        "Create new Arch"
         name = generate_name(4)
         osname = generate_name(6)
         major_version = generate_string('numeric', 1)
@@ -32,18 +31,19 @@ class Architecture(BaseUI):
          
         
     def test_remove_arch(self):
-        "Delete new Arch"
+        "Delete Arch"
         name = generate_name(4)
         osname = generate_name(6)
         major_version = generate_string('numeric',1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(osname, major_version)
+        sleep(5)
         self.navigator.go_to_architectures() #go to architecture page
         self.architecture.create(name, osname)
         self.architecture.remove(name, True)
         
     def test_update_arch(self):
-        "Update new Arch with new name and new OS"
+        "Update arch with new arch-name and new OS"
         oldname = generate_name(6)
         newname = generate_name(4)
         new_osname = generate_name(6)

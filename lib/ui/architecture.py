@@ -19,7 +19,7 @@ class Architecture(Base):
             txt_field.clear()
             txt_field.send_keys(name)
         if os_name:
-            element = self.wait_until_element(locators["arch.os_name"][0], locators["arch.os_name"][1] % os_name)
+            element = self.wait_until_element((locators["arch.os_name"][0], locators["arch.os_name"][1] % os_name))
             if element:
                 element.click()
 
@@ -27,7 +27,7 @@ class Architecture(Base):
         
         
     def remove(self, name, really):
-        element = self.wait_until_element(locators["arch.delete"][0], locators["arch.delete"][1] % name) 
+        element = self.wait_until_element((locators["arch.delete"][0], locators["arch.delete"][1] % name))
         #TODO: Need to fix issue related to delete button locator
         if element:
             element.click()
@@ -45,7 +45,7 @@ class Architecture(Base):
             searchbox.clear()
             searchbox.send_keys(name)
             searchbox.send_keys(Keys.RETURN)
-            arch = self.wait_until_element(locators["arch.arch_name"][0], locators["arch.arch_name"][1] % name)
+            arch = self.wait_until_element((locators["arch.arch_name"][0], locators["arch.arch_name"][1] % name))
             if arch:
                 arch.click()
 
@@ -53,7 +53,7 @@ class Architecture(Base):
 
     def update(self, oldname, newname, new_osname):
         
-        element = self.wait_until_element(locators["arch.arch_name"][0], locators["arch.arch_name"][1] % oldname)
+        element = self.wait_until_element((locators["arch.arch_name"][0], locators["arch.arch_name"][1] % oldname))
         if element:
             element.click()
         if self.wait_until_element(locators["arch.name"]):
@@ -61,7 +61,7 @@ class Architecture(Base):
             txt_field.clear()
             txt_field.send_keys(newname)
         if new_osname:
-            element = self.wait_until_element(locators["arch.os_name"][0], locators["arch.os_name"][1] % new_osname)
+            element = self.wait_until_element((locators["arch.os_name"][0], locators["arch.os_name"][1] % new_osname))
             if element:
                 element.click()
         
