@@ -31,6 +31,17 @@ locators = {
     "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
     "operatingsys.family": (By.ID, "operatingsystem_family"),
     "operatingsys.submit": (By.NAME, "commit"),
+    
+    #common locators
+    "search": (By.ID, "search"),
+ 
+    #Architecture
+    "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
+    "arch.name": (By.ID, "architecture_name"),
+    "arch.submit": (By.NAME, "commit"),
+    "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
+    "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "arch.os_name": (By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
 
     # Menus
 
