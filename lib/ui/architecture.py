@@ -28,7 +28,6 @@ class Architecture(Base):
         
     def remove(self, name, really):
         element = self.wait_until_element((locators["arch.delete"][0], locators["arch.delete"][1] % name))
-        #TODO: Need to fix issue related to delete button locator
         if element:
             element.click()
             if really:
