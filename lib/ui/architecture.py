@@ -6,13 +6,14 @@ from base import Base
 from locators import locators
 from selenium.webdriver.common.keys import Keys
 
+
 class Architecture(Base):
-    
+
     def __init__(self, browser):
         self.browser = browser
-        
+      
     def create(self, name, os_name=None):
-        self.wait_until_element(locators["arch.new"]).click()   
+        self.wait_until_element(locators["arch.new"]).click()
         if self.wait_until_element(locators["arch.name"]):
             txt_field = self.find_element(locators["arch.name"])
             txt_field.clear()
@@ -22,8 +23,7 @@ class Architecture(Base):
             if element:
                 element.click()
         self.find_element(locators["arch.submit"]).click()
-        
-        
+
     def remove(self, name, really):
         element = self.wait_until_element((locators["arch.delete"][0], locators["arch.delete"][1] % name))
         if element:
@@ -34,7 +34,7 @@ class Architecture(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
-                
+            
     def search(self, name):
         searchbox = self.wait_until_element(locators["search"])
         if searchbox:
@@ -57,6 +57,5 @@ class Architecture(Base):
         if new_osname:
             element = self.wait_until_element((locators["arch.os_name"][0], locators["arch.os_name"][1] % new_osname))
             if element:
-                element.click() 
+                element.click()
         self.find_element(locators["arch.submit"]).click()
-        
