@@ -80,11 +80,10 @@ class Base():
         @param name: ID (sometimes name works as well) to retrieve info.
         """
         self.command_sub = "info"
+        options = {}
+        options['id'] = name
 
-        cmd = "%s %s --id='%s'" % \
-            (self.command_base, self.command_sub, name)
-
-        stdout = self.execute(cmd)[0]
+        stdout = self.execute(self._construct_command(options))[0]
         return csv_to_dictionary(stdout) if stdout else {}
 
     def list(self, per_page=10000):
@@ -93,11 +92,10 @@ class Base():
         @param cmdID: ID (sometimes name works as well) to retrieve info.
         """
         self.command_sub = "list"
+        options = {}
+        options['per-page'] = per_page
 
-        cmd = "%s %s --per-page=%d" % \
-            (self.command_base, self.command_sub, per_page)
-
-        stdout = self.execute(cmd)[0]
+        stdout = self.execute(self._construct_command(options))[0]
         return csv_to_dictionary(stdout) if stdout else {}
 
     def _construct_command(self, options={}):
