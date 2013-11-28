@@ -4,22 +4,33 @@
 
 from baseui import BaseUI
 from lib.ui.locators import *
+from lib.common.helpers import generate_name
+from lib.common.helpers import generate_string
 
 class OperatingSys(BaseUI):
     
     def test_create_os(self):
         "create new OS"
+        name = generate_name(6)
+        major_version = generate_string('numeric',1)
+        minor_version = generate_string('numeric',1)
+        os_family = "Redhat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems() #go to operating system page
-        self.operatingsys.create("testOS", "6", "2", "Redhat")
+        self.operatingsys.create(name, major_version, minor_version, os_family)
+        #UI doesn't generate notification while OS creation - Bug and search raises PG error
         #self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
         
         
     def test_remove_os(self):
         "Delete OS    "
-        name = "testOS"
+        name = generate_name(6)
+        major_version = generate_string('numeric',1)
+        minor_version = generate_string('numeric',1)
+        os_family = "Redhat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems() #go to operating system page
-        self.operatingsys.create(name, "6", "2", "Redhat")
+        self.operatingsys.create(name, major_version, minor_version, os_family)
         self.operatingsys.delete(name, really=True)
-        #self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        
