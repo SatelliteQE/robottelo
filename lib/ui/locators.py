@@ -30,6 +30,7 @@ locators = {
     "operatingsys.major_version": (By.ID, "operatingsystem_major"),
     "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
     "operatingsys.family": (By.ID, "operatingsystem_family"),
+    "operatingsys.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
     
     #common locators
