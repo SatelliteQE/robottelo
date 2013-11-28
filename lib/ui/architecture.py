@@ -12,8 +12,7 @@ class Architecture(Base):
         self.browser = browser
         
     def create(self, name, os_name=None):
-        self.wait_until_element(locators["arch.new"]).click()
-        
+        self.wait_until_element(locators["arch.new"]).click()   
         if self.wait_until_element(locators["arch.name"]):
             txt_field = self.find_element(locators["arch.name"])
             txt_field.clear()
@@ -22,7 +21,6 @@ class Architecture(Base):
             element = self.wait_until_element((locators["arch.os_name"][0], locators["arch.os_name"][1] % os_name))
             if element:
                 element.click()
-
         self.find_element(locators["arch.submit"]).click()
         
         
@@ -37,8 +35,7 @@ class Architecture(Base):
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
                 
-    def search_arch(self, name):
-
+    def search(self, name):
         searchbox = self.wait_until_element(locators["search"])
         if searchbox:
             searchbox.clear()
@@ -47,11 +44,9 @@ class Architecture(Base):
             arch = self.wait_until_element((locators["arch.arch_name"][0], locators["arch.arch_name"][1] % name))
             if arch:
                 arch.click()
-
         return arch
 
     def update(self, oldname, newname, new_osname):
-        
         element = self.wait_until_element((locators["arch.arch_name"][0], locators["arch.arch_name"][1] % oldname))
         if element:
             element.click()
@@ -62,7 +57,6 @@ class Architecture(Base):
         if new_osname:
             element = self.wait_until_element((locators["arch.os_name"][0], locators["arch.os_name"][1] % new_osname))
             if element:
-                element.click()
-        
+                element.click() 
         self.find_element(locators["arch.submit"]).click()
         

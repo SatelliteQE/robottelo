@@ -35,6 +35,4 @@ class OperatingSys(Base):
                             option.click()
                             break
             self.find_element(locators["operatingsys.submit"]).click()
-            
-
-            
+                  

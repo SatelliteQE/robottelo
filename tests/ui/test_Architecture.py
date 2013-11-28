@@ -27,7 +27,7 @@ class Architecture(BaseUI):
         sleep(5)
         self.navigator.go_to_architectures() #go to architecture page
         self.architecture.create(name, osname)
-        self.assertTrue(self, self.architecture.search_arch(name)) #search the created arch
+        self.assertTrue(self, self.architecture.search(name)) #search the created arch
          
         
     def test_remove_arch(self):
@@ -55,5 +55,5 @@ class Architecture(BaseUI):
         self.architecture.create(oldname)
         sleep(5)
         self.architecture.update(oldname, newname, new_osname)
-        self.assertTrue(self, self.architecture.search_arch(newname))
+        self.assertTrue(self, self.architecture.search(newname))
         
