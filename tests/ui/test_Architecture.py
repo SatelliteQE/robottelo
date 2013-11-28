@@ -56,3 +56,4 @@ class Architecture(BaseUI):
         sleep(5)
         self.architecture.update(oldname, newname, new_osname)
         self.assertTrue(self, self.architecture.search_arch(newname))
+        
