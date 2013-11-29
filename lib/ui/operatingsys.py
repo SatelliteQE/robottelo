@@ -40,3 +40,4 @@ class OperatingSys(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
+
