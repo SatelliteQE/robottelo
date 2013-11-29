@@ -16,11 +16,11 @@ class OperatingSys(BaseUI):
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
         os_family = "Redhat"
-        self.login.login(self.katello_user, self.katello_passwd) # login
-        self.navigator.go_to_operating_systems() #go to operating system page
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version, minor_version, os_family)
-        #UI doesn't raise notification - Raise Bug
-        #self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        # UI doesn't raise notification - Raise Bug
+        # self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
         
     def test_remove_os(self):
         "Delete OS "
@@ -28,8 +28,8 @@ class OperatingSys(BaseUI):
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
         os_family = "Redhat"
-        self.login.login(self.katello_user, self.katello_passwd) # login
-        self.navigator.go_to_operating_systems() #go to operating system page
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version, minor_version, os_family)
         self.operatingsys.delete(name, really=True)
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
