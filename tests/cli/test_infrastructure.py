@@ -49,6 +49,6 @@ class TestSubnet(BaseCLI):
         TODO - FOR DEMO ONLY, NEEDS TO BE REWORKED [gkhachik].
         """
         subnet = Subnet(self.conn)
-        _ret = subnet.list()
+        _ret = subnet.list({'per-page': '10'})
         self.assertGreater(len(_ret), 0,
             "Subnet list - returns >0 records")
