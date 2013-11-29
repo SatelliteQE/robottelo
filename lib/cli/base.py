@@ -67,21 +67,22 @@ class Base():
 
         print ""  # helps for each command to be grouped with a new line.
         self.logger.debug(shell_cmd % (self.locale, user, password, command))
-        if len(output) > 0:
+        if output:
             self.logger.debug("".join(output))
-        if len(errors) > 0:
+        if errors:
             self.logger.error("".join(errors))
 
         return output, errors
 
-    def info(self, name):
+    def info(self, name_or_id):
         """
-        Gets information by provided: name.
-        @param name: ID (sometimes name works as well) to retrieve info.
+        Gets information by provided: name_or_id.
+        @param name_or_id: ID (sometimes name_or_id works as well)
+        to retrieve info.
         """
         self.command_sub = "info"
         options = {}
-        options['id'] = name
+        options['id'] = name_or_id
 
         stdout = self.execute(self._construct_command(options))[0]
         return csv_to_dictionary(stdout) if stdout else {}

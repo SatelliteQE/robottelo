@@ -5,10 +5,10 @@ task: https://github.com/omaciel/robottelo/issues/47
 task: <more to follow>
 """
 
-from tests.cli.basecli import BaseCLI
-from lib.common.helpers import generate_name
 from lib.cli.infrastructure import Subnet
+from lib.common.helpers import generate_name
 from nose.plugins.attrib import attr
+from tests.cli.basecli import BaseCLI
 
 
 class TestSubnet(BaseCLI):
@@ -17,14 +17,14 @@ class TestSubnet(BaseCLI):
     """
 
     @attr('cli', 'subnet')  # TODO makes nose to run group of tests
-    def test_create_minimalRequiredParams(self):
+    def test_create_minimal_required_params(self):
         """
         create basic operation of subnet with minimal parameters required.
         """
         subnet = Subnet(self.conn)
         options = {}
         options['name'] = generate_name(min=6)
-        options['network'] = '192.168.103.0'  # TODO - needs random unique
+        options['network'] = '192.168.104.0'  # TODO - needs random unique
         options['mask'] = '255.255.255.0'
         self.assertTrue(len(subnet.create(options)[1]) == 0, 'Subnet created')
 

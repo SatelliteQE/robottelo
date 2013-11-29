@@ -32,7 +32,7 @@ class Subnet(Base):
         self.conn = conn
         self.command_base = "subnet"
 
-    def create(self, options={}):
+    def create(self, options=None):
         '''
         Usage:
             hammer subnet create [OPTIONS]
@@ -56,5 +56,7 @@ class Subnet(Base):
             --dns-id DNS_ID               DNS Proxy to use within this subnet
             -h, --help                    print help
         '''
+        if options is None:
+            options = {}
         self.command_sub = "create"
         return self.execute(self._construct_command(options))
