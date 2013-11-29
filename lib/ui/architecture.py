@@ -59,3 +59,4 @@ class Architecture(Base):
             if element:
                 element.click()
         self.find_element(locators["arch.submit"]).click()
+
