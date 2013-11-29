@@ -74,15 +74,14 @@ class Base():
 
         return output, errors
 
-    def info(self, name_or_id):
+    def info(self, options=None):
         """
-        Gets information by provided: name_or_id.
-        @param name_or_id: ID (sometimes name_or_id works as well)
-        to retrieve info.
+        Gets information by provided: options dictionary.
+        @param options: ID (sometimes name or id).
         """
         self.command_sub = "info"
-        options = {}
-        options['id'] = name_or_id
+        if options is None:
+            options = {}
 
         stdout = self.execute(self._construct_command(options))[0]
         return csv_to_dictionary(stdout) if stdout else {}
