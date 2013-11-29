@@ -8,6 +8,7 @@ import unittest
 from lib.cli.architecture import Architecture
 from lib.cli.medium import Medium
 from lib.cli.user import User
+from lib.cli.org import Org
 from lib.common import conf
 
 try:
@@ -45,3 +46,4 @@ class BaseCLI(unittest.TestCase):
         self.arch = Architecture(self.conn)
         self.medium = Medium(self.conn)
         self.user = User(self.conn)
+        self.organization = Org(self.conn)
