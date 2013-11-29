@@ -6,7 +6,7 @@ task: <more to follow>
 """
 
 from lib.cli.infrastructure import Subnet
-from lib.common.helpers import generate_name
+from lib.common.helpers import generate_ip3, generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 
@@ -16,6 +16,9 @@ class TestSubnet(BaseCLI):
     Subnet related tests.
     """
 
+    subnet_name_1 = generate_name(8, 8)
+    subnet_network_1 = generate_ip3()
+
     @attr('cli', 'subnet')  # TODO makes nose to run group of tests
     def test_create_minimal_required_params(self):
         """
@@ -23,8 +26,8 @@ class TestSubnet(BaseCLI):
         """
         subnet = Subnet(self.conn)
         options = {}
-        options['name'] = generate_name(min=6)
-        options['network'] = '192.168.104.0'  # TODO - needs random unique
+        options['name'] = self.subnet_name1
+        options['network'] = self.subnet_network_1
         options['mask'] = '255.255.255.0'
         self.assertTrue(len(subnet.create(options)[1]) == 0, 'Subnet created')
 
@@ -34,12 +37,11 @@ class TestSubnet(BaseCLI):
         basic `info` operation test.
         TODO - FOR DEMO ONLY, NEEDS TO BE REWORKED [gkhachik].
         """
-        subnet_name = 'xnzwk4'
         subnet = Subnet(self.conn)
-        _ret = subnet.info(subnet_name)
+        _ret = subnet.info(self.subnet_name1)
         self.assertEquals(len(_ret), 1,
             "Subnet info - returns 1 record")
-        self.assertEquals(_ret[0]['Name'], subnet_name,
+        self.assertEquals(_ret[0]['Name'], self.subnet_name1,
             "Subnet info - check name")
 
     @attr('cli', 'subnet')
