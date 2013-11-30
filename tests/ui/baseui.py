@@ -12,6 +12,7 @@ import sauceclient
 from lib.ui.login import Login
 from lib.ui.operatingsys import OperatingSys
 from lib.ui.architecture import Architecture
+from lib.ui.medium import Medium
 from lib.ui.navigator import Navigator
 from lib.ui.product import Product
 from lib.ui.user import User
@@ -77,6 +78,7 @@ class BaseUI(unittest.TestCase):
         self.user = User(self.browser)
         self.operatingsys = OperatingSys(self.browser)
         self.architecture = Architecture(self.browser)
+        self.medium = Medium(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
             """
