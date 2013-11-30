@@ -190,7 +190,5 @@ class Hostgroup(Base):
 
         if match:
             match = match[0]
-        else:
-            match = None
 
         return match
