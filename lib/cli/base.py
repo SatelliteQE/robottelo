@@ -50,6 +50,58 @@ class Base():
     katello_user = conf.properties['foreman.admin.username']
     katello_passwd = conf.properties['foreman.admin.password']
 
+    def add_operating_system(self, options=None):
+        """
+        Adds OS to record.
+        """
+
+        self.command_sub = "add_operatingsystem"
+
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
+        return False if stderr else True
+
+    def create(self, options=None):
+        """
+        Creates a new record using the arguments passed via dictionary.
+        """
+
+        self.command_sub = "create"
+
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
+        return False if stderr else True
+
+    def delete(self, options=None):
+        """
+        Deletes existing record.
+        """
+
+        self.command_sub = "delete"
+
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
+        return False if stderr else True
+
+    def dump(self, options=None):
+        """
+        Displays the content for existing partition table.
+        """
+
+        self.command_sub = "delete"
+
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
+        return '' if stderr else stdout[0]
+
     def execute(self, command, user=None, password=None):
 
         if user is None:
@@ -65,14 +117,33 @@ class Base():
         output = stdout.readlines()
         errors = stderr.readlines()
 
-        print ""  # helps for each command to be grouped with a new line.
+        # helps for each command to be grouped with a new line.
+        print ""
+
         self.logger.debug(shell_cmd % (self.locale, user, password, command))
+
         if output:
             self.logger.debug("".join(output))
         if errors:
             self.logger.error("".join(errors))
 
         return output, errors
+
+    def exists(self, name):
+        """
+        Search for record by name.
+        """
+
+        options = {
+            "search": "name='%s'" % name,
+        }
+
+        _ret = self.list(options)
+
+        if _ret:
+            _ret = _ret[0]
+
+        return _ret
 
     def info(self, options=None):
         """
@@ -99,13 +170,40 @@ class Base():
         stdout = self.execute(self._construct_command(options))[0]
         return csv_to_dictionary(stdout) if stdout else {}
 
+    def remove_operating_system(self, options=None):
+        """
+        Removes OS from record.
+        """
+
+        self.command_sub = "remove_operatingsystem"
+
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
+        return False if stderr else True
+
+    def update(self, options=None):
+        """
+        Updates existing record.
+        """
+
+        self.command_sub = "update"
+
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
+        return False if stderr else True
+
     def _construct_command(self, options={}):
         tail = ""
-        for option in options.keys():
-            if option:
-                if options[option]:
-                    tail = tail + " --%s='%s'" % (option, options[option])
-                else:
-                    tail = tail + " --%s" % option
+
+        for key, val in options.items():
+            if val:
+                tail = tail + " --%s='%s'" % (key, val)
+            else:
+                tail = tail + " --%s" % key
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
+
         return cmd
