@@ -7,6 +7,7 @@ import sys
 import unittest
 from lib.cli.architecture import Architecture
 from lib.cli.medium import Medium
+from lib.cli.partitiontable import PartitionTable
 from lib.cli.user import User
 from lib.cli.hostgroup import Hostgroup
 from lib.common import conf
@@ -44,6 +45,19 @@ class BaseCLI(unittest.TestCase):
 
         # Library methods
         self.arch = Architecture(self.conn)
-        self.medium = Medium(self.conn)
-        self.user = User(self.conn)
         self.hostgroup = Hostgroup(self.conn)
+        self.medium = Medium(self.conn)
+        self.ptable = PartitionTable(self.conn)
+        self.user = User(self.conn)
+
+    def upload_file(self, local_file, remote_file=None):
+        """
+        Uploads a remote file to a server.
+        """
+
+        if not remote_file:
+            remote_file = local_file
+
+        sftp = self.conn.open_sftp()
+        sftp.put(local_file, remote_file)
+        sftp.close()
