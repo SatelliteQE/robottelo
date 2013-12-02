@@ -5,7 +5,7 @@ task: https://github.com/omaciel/robottelo/issues/47
 task: <more to follow>
 """
 
-from lib.cli.infrastructure import Subnet
+from lib.cli.subnet import Subnet
 from lib.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
@@ -23,7 +23,7 @@ class TestSubnet(BaseCLI):
         """
         subnet = Subnet(self.conn)
         options = {}
-        options['name'] = generate_name(min=6)
+        options['name'] = generate_name(8, 8)
         options['network'] = '192.168.104.0'  # TODO - needs random unique
         options['mask'] = '255.255.255.0'
         self.assertTrue(len(subnet.create(options)[1]) == 0, 'Subnet created')
@@ -36,7 +36,7 @@ class TestSubnet(BaseCLI):
         """
         subnet_name = 'xnzwk4'
         subnet = Subnet(self.conn)
-        _ret = subnet.info(subnet_name)
+        _ret = subnet.info({'name': subnet_name})
         self.assertEquals(len(_ret), 1,
             "Subnet info - returns 1 record")
         self.assertEquals(_ret[0]['Name'], subnet_name,
