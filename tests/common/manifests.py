@@ -48,9 +48,7 @@ class Manifests():
                          'quantity': int(self.quantity)}]
                 attach_subs = self.sp.distributor_attach_subscriptions(ds_uuid,
                                                                        subs)
-                if attach_subs == "<Response [200]>":
-                    continue
-                else:
+                if attach_subs != "<Response [200]>":
                     print "Attaching subscriptions failed."
             else:
                 print "Specified quantity is more than the available quantity"
