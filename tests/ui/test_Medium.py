@@ -38,4 +38,17 @@ class Medium(BaseUI):
         self.create_medium(name, path, os_family)
         self.medium.remove(name, True)
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
-        
+   
+    def test_update_medium(self):
+        "Create new Media and update its name, path and OS family"
+        name = generate_name(6)
+        newname = generate_name(4)
+        path = URL % generate_name(6)
+        newpath = URL % generate_name(6)
+        os_family = "Redhat"
+        new_os_family = "Fedora"
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.create_medium(name, path, os_family)
+        sleep(5)
+        self.medium.update(name, newname, newpath, new_os_family)  # update medium
+        self.assertTrue(self, self.medium.search(newname))
