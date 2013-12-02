@@ -155,6 +155,7 @@ class Base():
             options = {}
 
         stdout = self.execute(self._construct_command(options))[0]
+
         return csv_to_dictionary(stdout) if stdout else {}
 
     def list(self, options=None):

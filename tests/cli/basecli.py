@@ -9,6 +9,7 @@ from lib.cli.architecture import Architecture
 from lib.cli.hostgroup import Hostgroup
 from lib.cli.medium import Medium
 from lib.cli.partitiontable import PartitionTable
+from lib.cli.subnet import Subnet
 from lib.cli.template import Template
 from lib.cli.user import User
 from lib.common import conf
@@ -49,6 +50,7 @@ class BaseCLI(unittest.TestCase):
         self.hostgroup = Hostgroup(self.conn)
         self.medium = Medium(self.conn)
         self.ptable = PartitionTable(self.conn)
+        self.subnet = Subnet(self.conn)
         self.template = Template(self.conn)
         self.user = User(self.conn)
 
