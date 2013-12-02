@@ -30,3 +30,13 @@ no-path-adjustment=1
 with-xunit=1
 xunit-file=foreman-results.xml
 
+# NOTE: Candlepin url accepts just the hostname.
+
+[stageportal]
+api=http://api.server.com:port/svcrest
+candlepin=candlepin.server.com  
+customer.portal=https://access.server.com
+customer.username=username
+customer.password=password
+distributor.name=ds_name
+subs.quantity=5
