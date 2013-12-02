@@ -44,10 +44,16 @@ class Manifests():
         available_subs = self.sp.distributor_available_subscriptions(ds_uuid)
         for sub in available_subs:
             if sub['quantity'] >= int(self.quantity):
-                subscriptions = [{'id': sub['id'], 'quantity': int(self.quantity)}]
-                attach_subs = self.sp.distributor_attach_subscriptions(ds_uuid, subscriptions)
-                if attach_subs is not None:
+                subs = [{'id': sub['id'],
+                         'quantity': int(self.quantity)}]
+                attach_subs = self.sp.distributor_attach_subscriptions(ds_uuid,
+                                                                       subs)
+                if attach_subs == "<Response [200]>":
                     continue
+                else:
+                    print "Attaching subscriptions failed."
+            else:
+                print "Specified quantity is more than the available quantity"
         attached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
         return attached_subs
 
@@ -68,11 +74,12 @@ class Manifests():
         if ds_name is not None:
             self.distributor_name = ds_name
         ds_uuid = self.sp.distributor_get_uuid(self.distributor_name)
-        detach_subs = self.sp.distributor_available_subscriptions(ds_uuid)
+        detach_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
         detach_sub_ids = []
         for detach_sub in detach_subs:
             detach_sub_ids.append(detach_sub['id'])
-        detach_subs = self.sp.distributor_detach_subscriptions(ds_uuid, detach_sub_ids)
+        detach_subs = self.sp.distributor_detach_subscriptions(ds_uuid,
+                                                               detach_sub_ids)
         if detach_subs is not None:
             detached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
             return detached_subs
