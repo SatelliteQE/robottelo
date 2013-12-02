@@ -1,5 +1,5 @@
+ddt
 paramiko
 selenium
 sauceclient
 python-bugzilla
-ddt
