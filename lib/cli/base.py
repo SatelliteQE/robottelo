@@ -74,6 +74,17 @@ class Base():
 
         return output, errors
 
+    def create(self, options=None):
+        """
+        Creates the object by provided: options dictionary.
+        @param options: set of options (specific for each class).
+        """
+        self.command_sub = "create"
+        if options is None:
+            options = {}
+
+        return self.execute(self._construct_command(options))
+
     def info(self, options=None):
         """
         Gets information by provided: options dictionary.
@@ -89,7 +100,7 @@ class Base():
     def list(self, options=None):
         """
         List information.
-        @param cmdID: ID (sometimes name works as well) to retrieve info.
+        @param options: ID (sometimes name works as well) to retrieve info.
         """
         self.command_sub = "list"
         if options is None:
@@ -98,6 +109,30 @@ class Base():
 
         stdout = self.execute(self._construct_command(options))[0]
         return csv_to_dictionary(stdout) if stdout else {}
+
+    def update(self, options=None):
+        """
+        Updates information by provided: options dictionary.
+        @param options: ID (sometimes name or id).
+        """
+        self.command_sub = "update"
+        if options is None:
+            options = {}
+
+        return self.execute(self._construct_command(options))
+
+    def delete(self, options=None):
+        """
+        Delete the foreman object provided by options parameter.
+        @param options: ID (sometimes name works as well) identifying
+        the object to remove.
+        @return: (stdout, stderr)
+        """
+        self.command_sub = "delete"
+        if options is None:
+            options = {}
+
+        return self.execute(self._construct_command(options))
 
     def _construct_command(self, options={}):
         tail = ""

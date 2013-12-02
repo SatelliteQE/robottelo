@@ -9,6 +9,7 @@ Module for the following classes:
 - Domain
 '''
 from lib.cli.base import Base
+from lib.common.helpers import generate_ip3, generate_name
 
 
 class Subnet(Base):
@@ -28,35 +29,15 @@ class Subnet(Base):
         info                          Show a subnet.
     '''
 
+    OUT_SUBNET_DELETED = "Subnet deleted"
+
     def __init__(self, conn):
         self.conn = conn
         self.command_base = "subnet"
 
-    def create(self, options=None):
-        '''
-        Usage:
-            hammer subnet create [OPTIONS]
-
-        Options:
-            --name NAME                   Subnet name
-            --network NETWORK             Subnet network
-            --mask MASK                   Netmask for this subnet
-            --gateway GATEWAY             Primary DNS for this subnet
-            --dns-primary DNS_PRIMARY     Primary DNS for this subnet
-            --dns-secondary DNS_SECONDARY Secondary DNS for this subnet
-            --from FROM                   Starting IP Address for
-                IP auto suggestion
-            --to TO                       Ending IP Address for
-                IP auto suggestion
-            --vlanid VLANID               VLAN ID for this subnet
-            --domain-ids DOMAIN_IDS       Domains in which this subnet is part
-                                          Comma separated list of values.
-            --dhcp-id DHCP_ID             DHCP Proxy to use within this subnet
-            --tftp-id TFTP_ID             TFTP Proxy to use within this subnet
-            --dns-id DNS_ID               DNS Proxy to use within this subnet
-            -h, --help                    print help
-        '''
-        if options is None:
-            options = {}
-        self.command_sub = "create"
-        return self.execute(self._construct_command(options))
+    def create_minimal(self, name=generate_name(8, 8), network=generate_ip3()):
+        options = {}
+        options['name'] = name
+        options['network'] = network
+        options['mask'] = '255.255.255.0'
+        return self.create(options)
