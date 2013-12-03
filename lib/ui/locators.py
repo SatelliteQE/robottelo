@@ -32,7 +32,17 @@ locators = {
     "operatingsys.family": (By.ID, "operatingsystem_family"),
     "operatingsys.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
-    
+
+    "users.new": (By.XPATH, "//a[contains(@href, '/users/new')]"),
+    "users.username" : (By.ID, "user_login"),
+    "users.firstname" : (By.ID, "user_firstname"),
+    "users.lastname" : (By.ID, "user_lastname"),
+    "users.email" : (By.ID, "user_mail"),
+    "users.language" : (By.ID, "user_locale"),
+    "users.authorized_by" : (By.ID, "user_auth_source_id"),
+    "users.submit": (By.NAME, "commit"),
+    "users.password": (By.ID, "user_password"),
+    "users.password_confirmation": (By.ID, "user_password_confirmation"),
     #common locators
     "search": (By.ID, "search"),
  
