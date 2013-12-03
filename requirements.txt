@@ -1,3 +1,4 @@
+pylint
 paramiko
 selenium
 sauceclient
