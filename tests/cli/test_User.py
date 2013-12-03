@@ -10,19 +10,21 @@ from lib.common.helpers import generate_string
 class User(BaseCLI):
 
     def _create_user(self, login=None, fname=None, lname=None,
-                     email=None, admin=None, passwd1=None):
+                     email=None, admin=None, passwd1=None, auth_id=1):
 
-        login = login or generate_name(6)
-        fname = fname or generate_name()
-        lname = lname or generate_name()
-        email = email or "%s@example.com" % login
-        admin = admin
-        passwd1 = passwd1 or generate_name()
+        args = {
+            'login': login or generate_name(6),
+            'firstname': fname or generate_name(),
+            'lastname': lname or generate_name(),
+            'mail': email or "%s@example.com" % login,
+            'admin': admin,
+            'password': passwd1 or generate_name(),
+            'auth-source-id': auth_id,
+        }
 
-        self.user.create(
-            login, fname, lname, email, admin, passwd1)
+        self.user.create(args)
 
-        self.assertTrue(self.user.exists(login))
+        self.assertTrue(self.user.exists(args['login']))
 
     def test_create_user_1(self):
         "Successfully creates a new user"
@@ -37,8 +39,13 @@ class User(BaseCLI):
         login = generate_name(6)
         self._create_user(login=login, passwd1=password)
 
-        user = self.user.user(login)
-        self.user.delete(user['Id'])
+        user = self.user.exists(login)
+
+        args = {
+            'id': user['Id'],
+        }
+
+        self.user.delete(args)
         self.assertFalse(self.user.exists(login))
 
     def test_create_user_utf8(self):

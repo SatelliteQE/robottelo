@@ -5,8 +5,8 @@
 from base import Base
 
 
-class Architecture(Base):
+class PartitionTable(Base):
 
     def __init__(self, conn):
         self.conn = conn
-        self.command_base = "architecture"
+        self.command_base = "partition_table"

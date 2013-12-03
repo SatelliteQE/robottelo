@@ -55,6 +55,26 @@ def invalid_names_list():
 
     return INVALID_NAMES
 
+
+def generate_ipaddr(ip3=False):
+
+    rng = 3 if ip3 else 4
+    ipaddr = ".".join(str(random.randrange(0, 255, 1)) for x in range(rng))
+
+    return ipaddr if not ip3 else ipaddr + ".0"
+
+
+def generate_mac():
+    chars = ['a', 'b', 'c', 'd', 'e', 'f',
+             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+    mac = ":".join(
+        chars[random.randrange(0, len(chars), 1)]+chars[random.randrange(
+            0, len(chars), 1)] for x in range(6))
+
+    return mac
+
+
 def generate_string(str_type, length):
     '''
     This function will allow creation of a wide variety of string types,
@@ -64,8 +84,8 @@ def generate_string(str_type, length):
     # approximate range of CJK Unified Ideographs
     # It does not include extensions: '4E00- 9FFF'
     # Latin 1 range: '00C0-00F0'
-    # (note: includes some mathematical symbol, which sort of wreaks 
-    # havoc with using full range.  See range broken outto avoid these, 
+    # (note: includes some mathematical symbol, which sort of wreaks
+    # havoc with using full range.  See range broken outto avoid these,
     # below)
     if str_type == "alphanumeric":
         output_string = ''.join(
@@ -92,7 +112,8 @@ def generate_string(str_type, length):
             output_array.append(i)
         for i in range(int(range2[0], 16), int(range2[1], 16)):
             output_array.append(i)
-        output_string = ''.join(unichr(random.choice(output_array)) for x in xrange(length))
+        output_string = ''.join(
+            unichr(random.choice(output_array)) for x in xrange(length))
         output_string.encode('utf-8')
     elif str_type == "utf8":
         cjk_range = []
@@ -100,7 +121,8 @@ def generate_string(str_type, length):
         output_array = []
         for i in range(int(cjk_range[0], 16), int(cjk_range[1], 16)):
             output_array.append(i)
-        output_string = ''.join(unichr(random.choice(output_array)) for x in xrange(length))   
+        output_string = ''.join(
+            unichr(random.choice(output_array)) for x in xrange(length))
         output_string.encode('utf-8')
     else:
         raise Exception(

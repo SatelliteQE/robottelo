@@ -1,4 +1,9 @@
+pylint
+ddt
 paramiko
 selenium
 sauceclient
 python-bugzilla
+requests
+git+https://github.com/RedHatQE/python-stageportal.git#egg=stageportal
+iniparse

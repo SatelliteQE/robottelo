@@ -45,6 +45,7 @@ locators = {
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
     #common locators
     "search": (By.ID, "search"),
+    "submit": (By.NAME, "commit"),
  
     #Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
@@ -53,6 +54,14 @@ locators = {
     "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
     "arch.os_name": (By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
+    
+    #Medium
+    "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
+    "medium.name": (By.ID, "medium_name"),
+    "medium.path": (By.ID, "medium_path"),
+    "medium.os_family": (By.ID, "medium_os_family"),
+    "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
+    "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
 
     # Menus
 
