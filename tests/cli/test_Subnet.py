@@ -5,7 +5,6 @@
 from ddt import data
 from ddt import ddt
 from lib.common.helpers import generate_ipaddr
-from lib.common.helpers import generate_ip3
 from lib.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
@@ -18,7 +17,7 @@ class TestSubnet(BaseCLI):
     """
 
     subnet_update_ok_name = generate_name(8, 8)
-    subnet_update_ok_network = generate_ip3()
+    subnet_update_ok_network = generate_ipaddr(ip3=True)
 
     @attr('cli', 'subnet')  # TODO makes nose to run group of tests
     def test_create_minimal_required_params(self):
@@ -28,7 +27,7 @@ class TestSubnet(BaseCLI):
 
         options = {}
         options['name'] = generate_name(8, 8)
-        options['network'] = generate_ipaddr()
+        options['network'] = generate_ipaddr(ip3=True)
         options['mask'] = '255.255.255.0'
 
         self.assertTrue(self.subnet.create(options), 'Subnet created')
@@ -45,7 +44,7 @@ class TestSubnet(BaseCLI):
 
         options = {}
         options['name'] = generate_name(8, 8)
-        options['network'] = generate_ipaddr()
+        options['network'] = generate_ipaddr(ip3=True)
         options['mask'] = '255.255.255.0'
 
         self.subnet.create(options)
@@ -68,7 +67,7 @@ class TestSubnet(BaseCLI):
         self.assertGreater(len(_ret), 0,
                            "Subnet list - returns > 0 records")
 
-    @data(('network', generate_ip3()),
+    @data(('network', generate_ipaddr(ip3=True)),
           ('mask', '255.255.0.0'))
     @attr('cli', 'subnet')
     def test_update_success_ddt(self, option_and_value):
