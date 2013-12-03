@@ -1,4 +1,5 @@
 pylint
+ddt
 paramiko
 selenium
 sauceclient

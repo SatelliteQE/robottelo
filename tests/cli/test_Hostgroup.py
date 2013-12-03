@@ -10,6 +10,10 @@ class Hostgroup(BaseCLI):
 
     def test_hostgroup_create(self):
         "Create new hostgroup"
-        name = generate_name()
-        res = self.hostgroup.create(name)
+
+        args = {
+            'name': generate_name(),
+        }
+
+        res = self.hostgroup.create(args)
         self.assertTrue(res)
