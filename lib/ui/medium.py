@@ -21,8 +21,8 @@ class Medium(Base):
             if os_family:
                 if self.wait_until_element(locators["medium.os_family"]):
                     select = self.browser.find_element_by_tag_name("select")
-                    allOptions = select.find_elements_by_tag_name("option")
-                    for option in allOptions:
+                    all_options = select.find_elements_by_tag_name("option")
+                    for option in all_options:
                         if option.get_attribute("value") == os_family:
                             option.click()
                             break
@@ -66,8 +66,8 @@ class Medium(Base):
         if new_os_family:
             if self.wait_until_element(locators["medium.os_family"]):
                 select = self.browser.find_element_by_tag_name("select")
-                allOptions = select.find_elements_by_tag_name("option")
-                for option in allOptions:
+                all_options = select.find_elements_by_tag_name("option")
+                for option in all_options:
                     if option.get_attribute("value") == new_os_family:
                         option.click()
                         break
