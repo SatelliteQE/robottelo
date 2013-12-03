@@ -6,6 +6,7 @@ import logging.config
 import sys
 import unittest
 from lib.cli.architecture import Architecture
+from lib.cli.domain import Domain
 from lib.cli.hostgroup import Hostgroup
 from lib.cli.medium import Medium
 from lib.cli.partitiontable import PartitionTable
@@ -47,6 +48,7 @@ class BaseCLI(unittest.TestCase):
 
         # Library methods
         self.arch = Architecture(self.conn)
+        self.domain = Domain(self.conn)
         self.hostgroup = Hostgroup(self.conn)
         self.medium = Medium(self.conn)
         self.ptable = PartitionTable(self.conn)
