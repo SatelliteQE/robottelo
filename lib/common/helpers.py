@@ -145,3 +145,13 @@ def csv_to_dictionary(data):
         records.append(dict(izip(headers.split(','), entry)))
 
     return records
+
+
+def generate_ip3():
+    """
+    generates random IP in a form of [1-255].[0-255].[0-255].0
+    """
+    ip1 = str(int(generate_string('numeric', 7)) % 255 + 1)  # to be >0
+    ip2 = str(int(generate_string('numeric', 7)) % 256)
+    ip3 = str(int(generate_string('numeric', 7)) % 256)
+    return "%s.%s.%s.0" % (ip1, ip2, ip3)
