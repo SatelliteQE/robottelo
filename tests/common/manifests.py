@@ -3,6 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import stageportal
+import logging
 from lib.common import conf
 
 
@@ -16,12 +17,17 @@ class Manifests():
         self.login = conf.properties['stageportal.customer.username']
         self.password = conf.properties['stageportal.customer.password']
         self.distributor_name = conf.properties['stageportal.distributor.name']
-        self.quantity = conf.properties['stageportal.subs.quantity']
-        self.sp = stageportal.StagePortal(api_url=self.api_url,
+        self.quantity = int(conf.properties['stageportal.subs.quantity'])
+        self.verbosity = int(conf.properties['nosetests.verbosity'])
+        self.sp = stageportal.SMPortal(api_url=self.api_url,
                                  candlepin_url=self.candlepin_url,
                                  portal_url=self.portal_url,
                                  login=self.login,
                                  password=self.password)
+        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
+        logging.getLogger("python-stageportal").setLevel(logging.ERROR)
+        self.logger = logging.getLogger("robottelo")
+        self.logger.setLevel(self.verbosity * 10)
 
     def create_distributor(self, ds_name=None):
         """
@@ -39,19 +45,21 @@ class Manifests():
         if ds_name is not None:
             self.distributor_name = ds_name
         if quantity is not None:
-            self.quantity = quantity
+            self.quantity = int(quantity)
         ds_uuid = self.sp.distributor_get_uuid(self.distributor_name)
         available_subs = self.sp.distributor_available_subscriptions(ds_uuid)
         for sub in available_subs:
-            if sub['quantity'] >= int(self.quantity):
+            if sub['quantity'] >= self.quantity:
                 subs = [{'id': sub['id'],
-                         'quantity': int(self.quantity)}]
+                         'quantity': self.quantity}]
                 attach_subs = self.sp.distributor_attach_subscriptions(ds_uuid,
                                                                        subs)
                 if attach_subs != "<Response [200]>":
-                    print "Attaching subscriptions failed."
+                    self.logger.error("Attaching subscription %s failed." \
+                                      % sub['id'])
             else:
-                print "Specified quantity is more than the available quantity"
+                self.logger.debug("Specified quantity : %s, is more than the \
+                available quantity: %s" (self.quantity, sub['quantity']))
         attached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
         return attached_subs
 
