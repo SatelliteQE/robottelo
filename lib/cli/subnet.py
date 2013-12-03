@@ -13,9 +13,9 @@ class Subnet(Base):
         self.conn = conn
         self.command_base = "subnet"
 
-    def create_minimal(self, name=generate_name(8, 8), network=generate_ip3()):
+    def create_minimal(self, name=None, network=None):
         options = {}
-        options['name'] = name
-        options['network'] = network
+        options['name'] = name if name else generate_name(8, 8)
+        options['network'] = network if network else generate_ip3()
         options['mask'] = '255.255.255.0'
         return self.create(options)

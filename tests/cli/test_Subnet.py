@@ -2,10 +2,11 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from ddt import ddt, data
-from lib.cli.subnet import Subnet
+from ddt import data
+from ddt import ddt
 from lib.common.helpers import generate_ipaddr
-from lib.common.helpers import generate_ip3, generate_name
+from lib.common.helpers import generate_ip3
+from lib.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 
@@ -32,7 +33,7 @@ class TestSubnet(BaseCLI):
 
         self.assertTrue(self.subnet.create(options), 'Subnet created')
 
-        Subnet(self.conn).create_minimal(self.subnet_update_ok_name,
+        self.subnet.create_minimal(self.subnet_update_ok_name,
             self.subnet_update_ok_network)
 
     @attr('cli', 'subnet')
@@ -74,5 +75,4 @@ class TestSubnet(BaseCLI):
         options = {}
         options['name'] = self.subnet_update_ok_name
         options[option_and_value[0]] = option_and_value[1]
-        subnet = Subnet(self.conn)
-        subnet.update(options)
+        self.subnet.update(options)
