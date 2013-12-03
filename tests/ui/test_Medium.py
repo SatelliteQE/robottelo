@@ -52,4 +52,3 @@ class Medium(BaseUI):
         sleep(5)
         self.medium.update(name, newname, newpath, new_os_family)  # update medium
         self.assertTrue(self, self.medium.search(newname))
-
