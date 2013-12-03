@@ -72,3 +72,4 @@ class Medium(Base):
                         option.click()
                         break
         self.find_element(locators["submit"]).click()
+
