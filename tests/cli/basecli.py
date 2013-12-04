@@ -6,6 +6,7 @@ import logging.config
 import sys
 import unittest
 from lib.cli.architecture import Architecture
+from lib.cli.host import Host
 from lib.cli.hostgroup import Hostgroup
 from lib.cli.medium import Medium
 from lib.cli.operatingsys import OperatingSys
@@ -25,7 +26,7 @@ except Exception, e:
 class BaseCLI(unittest.TestCase):
 
     def setUp(self):
-        self.host = conf.properties['main.server.hostname']
+        self.hostname = conf.properties['main.server.hostname']
         self.katello_user = conf.properties['foreman.admin.username']
         self.katello_passwd = conf.properties['foreman.admin.password']
         self.key_filename = conf.properties['main.server.ssh.key_private']
@@ -43,11 +44,12 @@ class BaseCLI(unittest.TestCase):
         self.conn = paramiko.SSHClient()
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         #key = paramiko.RSAKey.from_private_key_file(self.key_filename)
-        self.conn.connect(self.host, username=self.root,
+        self.conn.connect(self.hostname, username=self.root,
                           key_filename=self.key_filename)
 
         # Library methods
         self.arch = Architecture(self.conn)
+        self.host = Host(self.conn)
         self.hostgroup = Hostgroup(self.conn)
         self.medium = Medium(self.conn)
         self.os = OperatingSys(self.conn)
