@@ -13,7 +13,7 @@ class User(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def field_update(self,loc_string,newtext):
+    def field_update(self, loc_string, newtext):
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
         txt_field.send_keys(newtext)
