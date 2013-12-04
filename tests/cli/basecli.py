@@ -8,6 +8,7 @@ import unittest
 from lib.cli.architecture import Architecture
 from lib.cli.hostgroup import Hostgroup
 from lib.cli.medium import Medium
+from lib.cli.operatingsys import OperatingSys
 from lib.cli.partitiontable import PartitionTable
 from lib.cli.subnet import Subnet
 from lib.cli.template import Template
@@ -49,6 +50,7 @@ class BaseCLI(unittest.TestCase):
         self.arch = Architecture(self.conn)
         self.hostgroup = Hostgroup(self.conn)
         self.medium = Medium(self.conn)
+        self.os = OperatingSys(self.conn)
         self.ptable = PartitionTable(self.conn)
         self.subnet = Subnet(self.conn)
         self.template = Template(self.conn)
