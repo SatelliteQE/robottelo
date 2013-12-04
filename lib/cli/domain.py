@@ -11,30 +11,28 @@ class Domain(Base):
         self.conn = conn
         self.command_base = "domain"
 
-    def delete_parameter(self, name, domain_name=None, domain_id=None):
+    def delete_parameter(self, options=None):
         """
         Delete parameter for a domain.
         """
-        cmd = "delete_parameter --name='%s'" % name
 
-        if domain_id:
-            cmd += " --domain-id='%s'" % domain_id
-        if domain_name:
-            cmd += " --domain-name='%s'" % domain_name
+        self.command_sub = "delete_parameter"
 
-        stdout, stderr = self.execute(cmd)
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
         return False if stderr else True
 
-    def set_parameter(self, name, value, domain_name=None, domain_id=None):
+    def set_parameter(self, options=None):
         """
         Create or update parameter for a domain.
         """
-        cmd = "set_parameter --name='%s' --value='%s'" % (name, value)
 
-        if domain_id:
-            cmd += " --domain-id='%s'" % domain_id
-        if domain_name:
-            cmd += " --domain-name='%s'" % domain_name
+        self.command_sub = "set_parameter"
 
-        stdout, stderr = self.execute(cmd)
+        options = options or {}
+
+        (stdout, stderr) = self.execute(self._construct_command(options))
+
         return False if stderr else True
