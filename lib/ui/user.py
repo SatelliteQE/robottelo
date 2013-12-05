@@ -2,8 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
-from locators import locators
+from lib.ui.base import Base
+from lib.ui.locators import locators
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
@@ -18,7 +18,8 @@ class User(Base):
         txt_field.clear()
         txt_field.send_keys(newtext)
 
-    def create(self, username, email=None, password1=None, password2=None, authorized_by="INTERNAL", locale=None):
+    def create(self, username, email=None, password1=None, password2=None, 
+               authorized_by="INTERNAL", locale=None):
         self.wait_until_element(locators["users.new"]).click()
 
         if self.wait_until_element(locators["users.username"]):
@@ -60,7 +61,8 @@ class User(Base):
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
 
-    def update(self, username, new_username=None, email=None, password=None, firstname=None, lastname=None, locale=None):
+    def update(self, username, new_username=None, email=None, password=None,
+               firstname=None, lastname=None, locale=None):
         element = self.search(username)
         if element:
             element.click()

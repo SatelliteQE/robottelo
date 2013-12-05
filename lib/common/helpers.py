@@ -22,8 +22,11 @@ def generate_name(min=4, max=8):
 
     return name
 
-def generate_email_address(name_length=8,domain_length=6):
-    return "%s@%s.com" % (generate_name(name_length), generate_name(domain_length))
+
+def generate_email_address(name_length=8, domain_length=6):
+    return "%s@%s.com" % (generate_name(name_length),
+                          generate_name(domain_length))
+
 
 def valid_names_list():
 

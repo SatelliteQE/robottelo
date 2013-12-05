@@ -2,14 +2,14 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from baseui import BaseUI
-from lib.ui.locators import *
+from tests.ui.baseui import BaseUI
+from lib.ui.locators import locators
 from lib.common.helpers import generate_name
 from lib.common.helpers import generate_string
 
 
 class OperatingSys(BaseUI):
- 
+
     def test_create_os(self):
         "create new OS"
         name = generate_name(6)
@@ -21,7 +21,7 @@ class OperatingSys(BaseUI):
         self.operatingsys.create(name, major_version, minor_version, os_family)
         # UI doesn't raise notification - Raise Bug
         # self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
-        
+
     def test_remove_os(self):
         "Delete OS "
         name = generate_name(6)

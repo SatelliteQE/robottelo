@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
+from lib.cli.base import Base
 from lib.common.helpers import csv_to_dictionary
 
 
@@ -25,8 +25,8 @@ class Host(Base):
         stdout, stderr = self.execute(cmd)
         return False if stderr else True
 
-    def facts(self, name=None, host_id=None, search=None, order=None, page=None,
-              per_page=None):
+    def facts(self, name=None, host_id=None, search=None, order=None,
+              page=None, per_page=None):
         """
         List all fact values.
         """
