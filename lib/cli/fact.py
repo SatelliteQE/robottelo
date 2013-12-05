@@ -5,7 +5,7 @@
 from base import Base
 
 
-class Medium(Base):
+class Fact(Base):
 
     def __init__(self):
-        self.command_base = "medium"
+        self.command_base = "fact"

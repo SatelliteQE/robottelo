@@ -6,6 +6,7 @@ import os
 import random
 
 from basecli import BaseCLI
+from lib.cli.base import Base
 from lib.common.helpers import generate_name
 from tempfile import mkstemp
 
@@ -39,7 +40,7 @@ class PartitionTable(BaseCLI):
         }
 
         # Upload file to server
-        self.upload_file(local_file=layout, remote_file=args['file'])
+        Base.upload_file(local_file=layout, remote_file=args['file'])
 
         self.ptable.create(args)
 

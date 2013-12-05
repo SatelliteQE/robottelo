@@ -8,8 +8,7 @@ from lib.common.helpers import csv_to_dictionary
 
 class Hostgroup(Base):
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
         self.command_base = "hostgroup"
 
     def delete_parameter(self, hostgroup_id, name):

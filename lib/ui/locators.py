@@ -75,6 +75,26 @@ locators = {
     "medium.os_family": (By.ID, "medium_os_family"),
     "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
+    
+    #Domain
+    "domain.new": (By.XPATH, "//a[contains(@href, '/domains/new')]"),
+    "domain.name": (By.ID, "domain_name"),
+    "domain.description": (By.ID, "domain_fullname"),
+    "domain.dns_proxy": (By.ID, "domain_dns_id"),
+    "domain.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
+    "domain.parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
+    "domain.add_parameter": (By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
+    "domain.parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
+    "domain.parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
+    "domain.parameter_remove": (By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
+    "domain.domain_description": (By.XPATH, "//a[contains(., '%s')]"),
+
+    #Environment
+    "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
+    "env.name": (By.ID, "environment_name"),
+    "env.delete": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Delete')]"),
+    "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
+    "env.dropdown": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
 
     # Menus
 

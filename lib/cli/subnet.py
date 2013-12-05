@@ -10,8 +10,7 @@ class Subnet(Base):
 
     OUT_SUBNET_DELETED = "Subnet deleted"
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
         self.command_base = "subnet"
 
     def create_minimal(self, name=None, network=None):
