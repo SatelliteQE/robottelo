@@ -5,6 +5,12 @@
 import logging.config
 from lib.common import conf
 from lib.common.helpers import csv_to_dictionary
+try:
+    import paramiko
+except Exception, e:
+    print "Please install paramiko."
+    import sys
+    sys.exit(-1)
 
 
 class Base():
@@ -49,6 +55,25 @@ class Base():
     locale = conf.properties['main.locale']
     katello_user = conf.properties['foreman.admin.username']
     katello_passwd = conf.properties['foreman.admin.password']
+
+    __connection = None
+
+    @classmethod
+    def get_connection(cls):
+        if not cls.__connection:
+            logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
+            # Hide base logger from paramiko
+            logging.getLogger("paramiko").setLevel(logging.ERROR)
+
+            conn = paramiko.SSHClient()
+            conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            host = conf.properties['main.server.hostname']
+            root = conf.properties['main.server.ssh.username']
+            key_filename = conf.properties['main.server.ssh.key_private']
+            conn.connect(host, username=root, key_filename=key_filename)
+            cls.__connection = conn
+            cls.logger.info("Paramico instance prepared (and would be reused)")
+        return cls.__connection
 
     def add_operating_system(self, options=None):
         """
@@ -111,7 +136,7 @@ class Base():
 
         shell_cmd = "LANG=%s hammer -u %s -p %s --csv %s"
 
-        stdout, stderr = self.conn.exec_command(
+        stdout, stderr = Base.get_connection().exec_command(
             shell_cmd % (self.locale, user, password, command))[-2:]
 
         output = stdout.readlines()

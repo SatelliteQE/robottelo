@@ -8,8 +8,7 @@ from lib.common.helpers import csv_to_dictionary
 
 class Template(Base):
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
         self.command_base = "template"
 
     def kinds(self):

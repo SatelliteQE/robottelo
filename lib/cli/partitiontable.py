@@ -7,6 +7,5 @@ from base import Base
 
 class PartitionTable(Base):
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
         self.command_base = "partition_table"

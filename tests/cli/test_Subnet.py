@@ -16,24 +16,24 @@ class TestSubnet(BaseCLI):
     Subnet related tests.
     """
 
-    subnet_update_ok_name = generate_name(8, 8)
-    subnet_update_ok_network = generate_ipaddr(ip3=True)
+    def _init_once(self):
+        """
+        a method invoked only once and setup some self.__class__.<properties>
+        """
+        self.__class__.subnet_update_ok_name = generate_name(8, 8)
+        self.__class__.subnet_update_ok_network = generate_ipaddr(ip3=True)
 
-    @attr('cli', 'subnet')  # TODO makes nose to run group of tests
-    def test_create_minimal_required_params(self):
+        self.subnet.create_minimal(self.subnet_update_ok_name,
+            self.subnet_update_ok_network)  # needs for update DDT tests.
+
+    @attr('cli', 'subnet')
+    def test_create(self):
         """
         create basic operation of subnet with minimal parameters required.
         """
 
-        options = {}
-        options['name'] = generate_name(8, 8)
-        options['network'] = generate_ipaddr(ip3=True)
-        options['mask'] = '255.255.255.0'
-
-        self.assertTrue(self.subnet.create(options), 'Subnet created')
-
-        self.subnet.create_minimal(self.subnet_update_ok_name,
-            self.subnet_update_ok_network)
+        self.assertTrue(self.subnet.create_minimal(),
+                        'Subnet created - no error')
 
     @attr('cli', 'subnet')
     def test_info(self):
@@ -67,11 +67,20 @@ class TestSubnet(BaseCLI):
         self.assertGreater(len(_ret), 0,
                            "Subnet list - returns > 0 records")
 
-    @data(('network', generate_ipaddr(ip3=True)),
-          ('mask', '255.255.0.0'))
+    @data(
+          {'network': generate_ipaddr(ip3=True)},
+          {'mask': '255.255.0.0'},
+          {'gateway': '192.168.101.54'},
+          {'dns-primary': '192.168.100.0'},
+          {'dns-secondary': '10.17.100.0'},
+          {'network': '192.168.100.0', 'from': '192.168.100.1',
+           'to': '192.168.100.255'},
+          {'vlanid': '1'},
+          )
     @attr('cli', 'subnet')
-    def test_update_success_ddt(self, option_and_value):
+    def test_update_success_ddt(self, option_dict):
         options = {}
         options['name'] = self.subnet_update_ok_name
-        options[option_and_value[0]] = option_and_value[1]
-        self.subnet.update(options)
+        for option in option_dict:
+            options[option] = option_dict[option]
+        self.assertTrue(self.subnet.update(options), "Subnet update - true")
