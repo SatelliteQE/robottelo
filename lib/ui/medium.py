@@ -5,6 +5,7 @@
 from base import Base
 from locators import locators
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.select import Select
 
 
 class Medium(Base):
@@ -19,13 +20,7 @@ class Medium(Base):
             if self.wait_until_element(locators["medium.path"]):
                 self.find_element(locators["medium.path"]).send_keys(path)
             if os_family:
-                if self.wait_until_element(locators["medium.os_family"]):
-                    select = self.browser.find_element_by_tag_name("select")
-                    all_options = select.find_elements_by_tag_name("option")
-                    for option in all_options:
-                        if option.get_attribute("value") == os_family:
-                            option.click()
-                            break
+                Select(self.find_element(locators["medium.os_family"])).select_by_visible_text(os_family)
             self.find_element(locators["submit"]).click()
      
     def remove(self, name, really):
@@ -64,11 +59,5 @@ class Medium(Base):
                 txt_field.clear()
                 txt_field.send_keys(newpath)
         if new_os_family:
-            if self.wait_until_element(locators["medium.os_family"]):
-                select = self.browser.find_element_by_tag_name("select")
-                all_options = select.find_elements_by_tag_name("option")
-                for option in all_options:
-                    if option.get_attribute("value") == new_os_family:
-                        option.click()
-                        break
+            Select(self.find_element(locators["medium.os_family"])).select_by_visible_text(new_os_family)
         self.find_element(locators["submit"]).click()

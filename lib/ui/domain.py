@@ -5,6 +5,7 @@
 from base import Base
 from locators import locators
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.select import Select    
 
 
 class Domain(Base):
@@ -22,13 +23,7 @@ class Domain(Base):
                                       ["domain.description"]
                                       ).send_keys(description)
             if dns_proxy:
-                if self.wait_until_element(locators["domain.dns_proxy"]):
-                    select = self.browser.find_element_by_tag_name("select")
-                    all_options = select.find_elements_by_tag_name("option")
-                    for option in all_options:
-                        if option.get_attribute("value") == dns_proxy:
-                            option.click()
-                            break
+                Select(self.find_element(locators["domain.dns_proxy"])).select_by_visible_text(dns_proxy)
             self.find_element(locators["submit"]).click()
 
     def delete(self, name, really):
@@ -80,13 +75,7 @@ class Domain(Base):
                 txt_field.clear()
                 txt_field.send_keys(new_description)
         if new_dns_proxy:
-            if self.wait_until_element(locators["domain.dns_proxy"]):
-                select = self.browser.find_element_by_tag_name("select")
-                all_options = select.find_elements_by_tag_name("option")
-                for option in all_options:
-                    if option.get_attribute("value") == new_dns_proxy:
-                        option.click()
-                        break
+            Select(self.find_element(locators["domain.dns_proxy"])).select_by_visible_text(new_dns_proxy)
         self.find_element(locators["submit"]).click()
 
     def set_parameter(self, domain_description, param_name, param_value):

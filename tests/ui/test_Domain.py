@@ -44,6 +44,8 @@ class Domain(BaseUI):
         self.create_domain(name, description)
         sleep(5)
         self.domain.update(name, new_name, new_description)
+        # UI throwing 'PGError' while performing search
+        # self.assertTrue(self, self.domain.search(new_description))
 
     def test_set_parameter(self):
         "Set domain parameter"
