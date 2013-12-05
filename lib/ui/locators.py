@@ -65,6 +65,13 @@ locators = {
     "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
 
+    #Environment
+    "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
+    "env.name": (By.ID, "environment_name"),
+    "env.delete": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Delete')]"),
+    "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
+    "env.dropdown": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
+
     # Menus
 
     # Monitor Menu
