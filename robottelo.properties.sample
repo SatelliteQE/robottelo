@@ -29,6 +29,8 @@ nologcapture=1
 no-path-adjustment=1
 with-xunit=1
 xunit-file=foreman-results.xml
+processes=1
+process-timeout=120
 
 # NOTE: Candlepin url accepts just the hostname.
 
