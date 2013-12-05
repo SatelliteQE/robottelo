@@ -45,10 +45,10 @@ class Medium(Base):
             searchbox.clear()
             searchbox.send_keys(name)
             searchbox.send_keys(Keys.RETURN)
-            arch = self.wait_until_element((locators["medium.medium_name"][0], locators["medium.medium_name"][1] % name))
-            if arch:
-                arch.click()
-        return arch
+            medium = self.wait_until_element((locators["medium.medium_name"][0], locators["medium.medium_name"][1] % name))
+            if medium:
+                medium.click()
+        return medium
  
     def update(self, oldname, newname=None, newpath=None, new_os_family=None):
         element = self.wait_until_element((locators["medium.medium_name"][0], locators["medium.medium_name"][1] % oldname))
