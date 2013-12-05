@@ -5,8 +5,11 @@
 import logging.config
 import unittest
 from lib.cli.architecture import Architecture
+from lib.cli.domain import Domain
+from lib.cli.host import Host
 from lib.cli.hostgroup import Hostgroup
 from lib.cli.medium import Medium
+from lib.cli.operatingsys import OperatingSys
 from lib.cli.partitiontable import PartitionTable
 from lib.cli.subnet import Subnet
 from lib.cli.template import Template
@@ -30,7 +33,7 @@ class BaseCLI(unittest.TestCase):
         """
         Local initialization - needed to be done once.
         """
-        self.__class__.host = conf.properties['main.server.hostname']
+        self.__class__.hostname = conf.properties['main.server.hostname']
         self.__class__.katello_user = \
             conf.properties['foreman.admin.username']
         self.__class__.katello_passwd = \
@@ -50,8 +53,11 @@ class BaseCLI(unittest.TestCase):
 
         # Library methods
         self.__class__.arch = Architecture()
+        self.__class__.domain = Domain()
+        self.__class__.host = Host()
         self.__class__.hostgroup = Hostgroup()
         self.__class__.medium = Medium()
+        self.__class__.os = OperatingSys()
         self.__class__.ptable = PartitionTable()
         self.__class__.subnet = Subnet()
         self.__class__.template = Template()
