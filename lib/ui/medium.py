@@ -2,8 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
-from locators import locators
+from lib.ui.base import Base
+from lib.ui.locators import locators
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
@@ -12,7 +12,7 @@ class Medium(Base):
 
     def __init__(self, browser):
         self.browser = browser
-   
+
     def create(self, name, path, os_family=None):
         self.wait_until_element(locators["medium.new"]).click()
         if self.wait_until_element(locators["medium.name"]):
@@ -22,7 +22,7 @@ class Medium(Base):
             if os_family:
                 Select(self.find_element(locators["medium.os_family"])).select_by_visible_text(os_family)
             self.find_element(locators["submit"]).click()
-     
+
     def remove(self, name, really):
         element = self.wait_until_element((locators["medium.delete"][0], locators["medium.delete"][1] % name))
         if element:
@@ -33,7 +33,7 @@ class Medium(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
-  
+
     def search(self, name):
         searchbox = self.wait_until_element(locators["search"])
         if searchbox:
@@ -44,7 +44,7 @@ class Medium(Base):
             if medium:
                 medium.click()
         return medium
- 
+
     def update(self, oldname, newname=None, newpath=None, new_os_family=None):
         element = self.wait_until_element((locators["medium.medium_name"][0], locators["medium.medium_name"][1] % oldname))
         if element:

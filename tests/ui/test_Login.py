@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from baseui import BaseUI
+from tests.ui.baseui import BaseUI
 
 
 class Login(BaseUI):

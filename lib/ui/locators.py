@@ -23,7 +23,7 @@ locators = {
     "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
 
     # Organizations
-    
+
     #Operating system (OS)
     "operatingsys.new": (By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
     "operatingsys.name": (By.ID, "operatingsystem_name"),
@@ -60,7 +60,7 @@ locators = {
     #common locators
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),
- 
+
     #Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
     "arch.name": (By.ID, "architecture_name"),
@@ -68,7 +68,7 @@ locators = {
     "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
     "arch.os_name": (By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
-    
+
     #Medium
     "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
     "medium.name": (By.ID, "medium_name"),
@@ -76,7 +76,7 @@ locators = {
     "medium.os_family": (By.ID, "medium_os_family"),
     "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
-    
+
     #Domain
     "domain.new": (By.XPATH, "//a[contains(@href, '/domains/new')]"),
     "domain.name": (By.ID, "domain_name"),
