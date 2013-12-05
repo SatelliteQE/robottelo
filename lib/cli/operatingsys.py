@@ -7,8 +7,7 @@ from base import Base
 
 class OperatingSys(Base):
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
         self.command_base = "os"
 
     def add_architecture(self, options=None):

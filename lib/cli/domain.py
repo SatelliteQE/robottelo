@@ -7,8 +7,7 @@ from base import Base
 
 class Domain(Base):
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
         self.command_base = "domain"
 
     def delete_parameter(self, options=None):
