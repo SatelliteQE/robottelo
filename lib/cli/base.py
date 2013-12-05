@@ -99,7 +99,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
@@ -112,7 +112,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
@@ -125,7 +125,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
@@ -138,7 +138,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return '' if stderr else stdout[0]
 
@@ -155,7 +155,7 @@ class Base():
         with lock:
             stdout, stderr = Base.get_connection().exec_command(
                 shell_cmd % (self.locale, user, password, command))[-2:]
-
+            errorcode = stdout.channel.recv_exit_status()
             output = stdout.readlines()
             errors = stderr.readlines()
 
@@ -169,7 +169,7 @@ class Base():
         if errors:
             self.logger.error("".join(errors))
 
-        return output, errors
+        return output, errors, errorcode
 
     def exists(self, name):
         """
@@ -222,7 +222,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
@@ -235,7 +235,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
