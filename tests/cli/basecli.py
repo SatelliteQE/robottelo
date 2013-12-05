@@ -15,7 +15,6 @@ from lib.cli.subnet import Subnet
 from lib.cli.template import Template
 from lib.cli.user import User
 from lib.common import conf
-from lib.cli.base import Base
 
 
 class BaseCLI(unittest.TestCase):
@@ -68,15 +67,3 @@ class BaseCLI(unittest.TestCase):
             self.__init_once_me()
             self._init_once()
             self.__class__.__initialized = True
-
-    def upload_file(self, local_file, remote_file=None):
-        """
-        Uploads a remote file to a server.
-        """
-
-        if not remote_file:
-            remote_file = local_file
-
-        sftp = Base.get_connection().open_sftp()
-        sftp.put(local_file, remote_file)
-        sftp.close()

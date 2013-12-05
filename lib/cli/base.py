@@ -77,6 +77,19 @@ class Base():
                 "(and would be reused): %s" % hex(id(cls.__connection)))
         return cls.__connection
 
+    @classmethod
+    def upload_file(cls, local_file, remote_file=None):
+        """
+        Uploads a remote file to a server.
+        """
+
+        if not remote_file:
+            remote_file = local_file
+
+        sftp = cls.get_connection().open_sftp()
+        sftp.put(local_file, remote_file)
+        sftp.close()
+
     def add_operating_system(self, options=None):
         """
         Adds OS to record.
