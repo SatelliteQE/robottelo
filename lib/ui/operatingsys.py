@@ -2,21 +2,22 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
-from locators import *
+from lib.ui.base import Base
+from lib.ui.locators import locators
 
 
 class OperatingSys(Base):
-  
+
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, major_version=None, minor_version=None, os_family=None):
-        self.wait_until_element(locators["operatingsys.new"]).click()        
+    def create(self, name, major_version=None,
+               minor_version=None, os_family=None):
+        self.wait_until_element(locators["operatingsys.new"]).click()
         if self.wait_until_element(locators["operatingsys.name"]):
             self.find_element(locators["operatingsys.name"]).send_keys(name)
             if self.wait_until_element(locators["operatingsys.major_version"]):
-                self.find_element(locators["operatingsys.major_version"]).send_keys(major_version)     
+                self.find_element(locators["operatingsys.major_version"]).send_keys(major_version)
             if minor_version:
                 if self.wait_until_element(locators["operatingsys.minor_version"]):
                     self.find_element(locators["operatingsys.minor_version"]).send_keys(minor_version)
@@ -40,4 +41,3 @@ class OperatingSys(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
-

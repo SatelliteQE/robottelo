@@ -2,10 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
-from locators import locators
+from lib.ui.base import Base
+from lib.ui.locators import locators
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.select import Select    
+from selenium.webdriver.support.select import Select
 
 
 class Domain(Base):

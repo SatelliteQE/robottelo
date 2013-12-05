@@ -2,10 +2,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from baseui import BaseUI
+from tests.ui.baseui import BaseUI
 from lib.common.helpers import generate_name
 from lib.common.helpers import generate_string
-from lib.ui.locators import *
 from time import sleep
 
 
@@ -55,4 +54,3 @@ class Architecture(BaseUI):
         sleep(5)
         self.architecture.update(oldname, newname, new_osname)
         self.assertTrue(self, self.architecture.search(newname))
-

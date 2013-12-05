@@ -2,8 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from baseui import BaseUI
-from lib.ui.locators import *
+from tests.ui.baseui import BaseUI
+from lib.ui.locators import locators
 from lib.common.helpers import generate_name
 from time import sleep
 
