@@ -73,7 +73,7 @@ class Base():
             key_filename = conf.properties['main.server.ssh.key_private']
             conn.connect(host, username=root, key_filename=key_filename)
             cls.__connection = conn
-            cls.logger.info("Paramico instance prepared" + \
+            cls.logger.info("Paramiko instance prepared" + \
                 "(and would be reused): %s" % hex(id(cls.__connection)))
         return cls.__connection
 
