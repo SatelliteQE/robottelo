@@ -6,8 +6,11 @@ import logging.config
 import sys
 import unittest
 from lib.cli.architecture import Architecture
+from lib.cli.domain import Domain
+from lib.cli.host import Host
 from lib.cli.hostgroup import Hostgroup
 from lib.cli.medium import Medium
+from lib.cli.operatingsys import OperatingSys
 from lib.cli.partitiontable import PartitionTable
 from lib.cli.subnet import Subnet
 from lib.cli.template import Template
@@ -24,7 +27,7 @@ except Exception, e:
 class BaseCLI(unittest.TestCase):
 
     def setUp(self):
-        self.host = conf.properties['main.server.hostname']
+        self.hostname = conf.properties['main.server.hostname']
         self.katello_user = conf.properties['foreman.admin.username']
         self.katello_passwd = conf.properties['foreman.admin.password']
         self.key_filename = conf.properties['main.server.ssh.key_private']
@@ -42,13 +45,16 @@ class BaseCLI(unittest.TestCase):
         self.conn = paramiko.SSHClient()
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         #key = paramiko.RSAKey.from_private_key_file(self.key_filename)
-        self.conn.connect(self.host, username=self.root,
+        self.conn.connect(self.hostname, username=self.root,
                           key_filename=self.key_filename)
 
         # Library methods
         self.arch = Architecture(self.conn)
+        self.domain = Domain(self.conn)
+        self.host = Host(self.conn)
         self.hostgroup = Hostgroup(self.conn)
         self.medium = Medium(self.conn)
+        self.os = OperatingSys(self.conn)
         self.ptable = PartitionTable(self.conn)
         self.subnet = Subnet(self.conn)
         self.template = Template(self.conn)
