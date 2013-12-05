@@ -5,6 +5,7 @@
 import logging.config
 from lib.common import conf
 from lib.common.helpers import csv_to_dictionary
+from threading import Lock
 try:
     import paramiko
 except Exception, e:
@@ -72,7 +73,8 @@ class Base():
             key_filename = conf.properties['main.server.ssh.key_private']
             conn.connect(host, username=root, key_filename=key_filename)
             cls.__connection = conn
-            cls.logger.info("Paramico instance prepared (and would be reused)")
+            cls.logger.info("Paramico instance prepared" + \
+                "(and would be reused): %s" % hex(id(cls.__connection)))
         return cls.__connection
 
     def add_operating_system(self, options=None):
@@ -136,11 +138,13 @@ class Base():
 
         shell_cmd = "LANG=%s hammer -u %s -p %s --csv %s"
 
-        stdout, stderr = Base.get_connection().exec_command(
-            shell_cmd % (self.locale, user, password, command))[-2:]
+        lock = Lock()
+        with lock:
+            stdout, stderr = Base.get_connection().exec_command(
+                shell_cmd % (self.locale, user, password, command))[-2:]
 
-        output = stdout.readlines()
-        errors = stderr.readlines()
+            output = stdout.readlines()
+            errors = stderr.readlines()
 
         # helps for each command to be grouped with a new line.
         print ""
