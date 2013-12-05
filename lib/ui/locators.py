@@ -33,6 +33,17 @@ locators = {
     "operatingsys.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
 
+    # Hostgroups
+
+    "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
+    "hostgroups.name": (By.ID, "hostgroup_name"),
+    "hostgroups.parent": (By.ID, "hostgroup_parent_id"),
+    "hostgroups.environment": (By.ID, "hostgroup_environment_id"),
+    "hostgroups.hostgroup": (By.XPATH, "//a[contains(., '%s')]"),
+    "hostgroups.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    # Users
+
     "users.new": (By.XPATH, "//a[contains(@href, '/users/new')]"),
     "users.username" : (By.ID, "user_login"),
     "users.firstname" : (By.ID, "user_firstname"),
