@@ -10,7 +10,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from lib.ui.locators import *
 
 class Base():
 
@@ -72,3 +72,8 @@ class Base():
         ).until(
             self.ajax_complete, "Timeout waiting for page to load"
         )
+
+    def field_update(self, loc_string, newtext):
+        txt_field = self.find_element(locators[loc_string])
+        txt_field.clear()
+        txt_field.send_keys(newtext)

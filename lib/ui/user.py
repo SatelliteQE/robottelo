@@ -13,11 +13,6 @@ class User(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def field_update(self, loc_string, newtext):
-        txt_field = self.find_element(locators[loc_string])
-        txt_field.clear()
-        txt_field.send_keys(newtext)
-
     def create(self, username, email=None, password1=None, password2=None, authorized_by="INTERNAL", locale=None):
         self.wait_until_element(locators["users.new"]).click()
 

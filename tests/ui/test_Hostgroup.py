@@ -15,3 +15,22 @@ class Hostgroup(BaseUI):
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)
         self.assertIsNotNone(self.hostgroup.search(name)) #confirm the Hostgroup appears in the UI
+
+    def test_delete_hostgroup(self):
+        name = generate_name(8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_host_groups()
+        self.hostgroup.create(name)
+        self.assertIsNotNone(self.hostgroup.search(name)) #confirm the Hostgroup appears in the UI
+        self.hostgroup.delete(name, really = True)
+        self.assertIsNone(self.hostgroup.search(name))
+
+    def test_update_hostgroup(self):
+        name = generate_name(7)
+        updated_name = generate_name(7)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_host_groups()
+        self.hostgroup.create(name)
+        self.assertIsNotNone(self.hostgroup.search(name)) #confirm the Hostgroup appears in the UI
+        self.hostgroup.update(name,new_name = updated_name)
+        self.assertIsNotNone(self.hostgroup.search(updated_name))

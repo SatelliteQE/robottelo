@@ -40,7 +40,8 @@ locators = {
     "hostgroups.parent": (By.ID, "hostgroup_parent_id"),
     "hostgroups.environment": (By.ID, "hostgroup_environment_id"),
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(., '%s')]"),
-    "hostgroups.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "hostgroups.dropdown": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Nest')]/../../a"),
+    "hostgroups.delete": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Delete')]"),
 
     # Users
 
