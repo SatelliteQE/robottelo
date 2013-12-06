@@ -75,18 +75,24 @@ locators = {
     "domain.dns_proxy": (By.ID, "domain_dns_id"),
     "domain.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "domain.parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
-    "domain.add_parameter": (By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
+    "domain.add_parameter": (
+        By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
     "domain.parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
     "domain.parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
-    "domain.parameter_remove": (By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
+    "domain.parameter_remove": (
+        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
     "domain.domain_description": (By.XPATH, "//a[contains(., '%s')]"),
 
     #Environment
     "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
     "env.name": (By.ID, "environment_name"),
-    "env.delete": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Delete')]"),
+    "env.delete": (
+        By.XPATH,
+        "//a[contains(@href,'%s') and contains(.,'Delete')]"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "env.dropdown": (By.XPATH, "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
+    "env.dropdown": (
+        By.XPATH,
+        "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
 
     # Menus
 
@@ -122,12 +128,10 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_hosts']"),
     "menu.operating_systems": (
         By.XPATH,
-        "//div[contains(@style,'static')]// \
-        a[@id='menu_item_operatingsystems']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),  # @IgnorePep8
     "menu.provisioning_templates": (
         By.XPATH,
-        "//div[contains(@style,'static')]// \
-        a[@id='menu_item_config_templates']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_config_templates']"),  # @IgnorePep8
     "menu.partition_tables": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_ptables']"),
@@ -150,8 +154,7 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_hostgroups']"),
     "menu.global_parameters": (
         By.XPATH,
-        "//div[contains(@style,'static')]// \
-        a[@id='menu_item_common_parameters']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_common_parameters']"),  # @IgnorePep8
     "menu.environments": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
@@ -171,8 +174,7 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
     "menu.compute_resources": (
         By.XPATH,
-        "//div[contains(@style,'static')]// \
-        a[@id='menu_item_compute_resources']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
     "menu.subnets": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),

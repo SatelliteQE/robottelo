@@ -83,6 +83,7 @@ class BaseUI(unittest.TestCase):
         self.architecture = Architecture(self.browser)
         self.medium = Medium(self.browser)
         self.domain = Domain(self.browser)
+        self.subnet = Subnet(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
         """

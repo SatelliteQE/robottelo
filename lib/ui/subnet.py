@@ -48,24 +48,21 @@ class Subnet(Base):
             searchbox.clear()
             searchbox.send_keys(subnet_name)
             searchbox.send_keys(Keys.RETURN)
-            subnet_object = self.find_element(( \
-                                locators["subnet.display_name"][0], \
-                                locators["subnet.display_name"][1] \
+            subnet_object = self.find_element((
+                                locators["subnet.display_name"][0],
+                                locators["subnet.display_name"][1]
                                 % subnet_name))
             if subnet_object:
                 subnet_object.click()
                 if self.wait_until_element(locators["subnet.name"]):
                     result = dict([('name', None), ('network', None),
                                    ('mask', None)])
-                    result['name'] = self.find_element(locators[ \
-                                        "subnet.name"]).\
-                                        get_attribute("value")
-                    result['network'] = self.find_element( \
-                                            locators["subnet.network"]).\
-                                            get_attribute("value")
-                    result['mask'] = self.find_element( \
-                                        locators["subnet.mask"]).\
-                                        get_attribute("value")
+                    result['name'] = self.find_element(
+                                        locators["subnet.name"]).get_attribute("value")  # @IgnorePep8
+                    result['network'] = self.find_element(
+                                            locators["subnet.network"]).get_attribute("value")  # @IgnorePep8
+                    result['mask'] = self.find_element(
+                                        locators["subnet.mask"]).get_attribute("value")  # @IgnorePep8
         return result
 
     def update(self, subnet_name, new_subnet_name=None,
@@ -73,9 +70,9 @@ class Subnet(Base):
         if self.wait_until_element((locators["subnet.display_name"][0],
                                     locators["subnet.display_name"][1]
                                     % subnet_name), delay=2):
-            subnet_object = self.find_element((\
-                                locators["subnet.display_name"][0],\
-                                locators["subnet.display_name"][1] \
+            subnet_object = self.find_element((
+                                locators["subnet.display_name"][0],
+                                locators["subnet.display_name"][1]
                                 % subnet_name))
         if subnet_object:
             subnet_object.click()
