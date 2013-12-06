@@ -114,7 +114,7 @@ class Base():
 
         (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if stderr else True, errorcode
 
     def delete(self, options=None):
         """
@@ -127,7 +127,7 @@ class Base():
 
         (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if stderr else True, errorcode
 
     def dump(self, options=None):
         """
@@ -141,6 +141,19 @@ class Base():
         (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return '' if stderr else stdout[0]
+
+    def error_code_zero(self, code):
+        """
+        Checks status of error code returned from command execution
+        * Run an AssertTrue against this if you expect a zero.
+        * Run an AssertFalse against this if you expect a non-zero
+          (i.e., a negative test).
+        """
+        if code == 0:
+            return True
+        else:
+            return False
+
 
     def execute(self, command, user=None, password=None):
 

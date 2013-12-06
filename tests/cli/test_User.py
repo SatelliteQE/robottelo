@@ -21,16 +21,16 @@ class User(BaseCLI):
             'password': passwd1 or generate_name(),
             'auth-source-id': auth_id,
         }
-
-        self.user.create(args)
-
+        status, errorcode = self.user.create(args)
         self.assertTrue(self.user.exists(args['login']))
+        return errorcode
 
     def test_create_user_1(self):
         "Successfully creates a new user"
 
         password = generate_name(6)
-        self._create_user(None, None, password)
+        errorcode = self._create_user(None, None, password)
+        self.assertTrue(self.user.error_code_zero(errorcode))
 
     def test_delete_user_1(self):
         "Creates and immediately deletes user."
@@ -45,8 +45,9 @@ class User(BaseCLI):
             'id': user['Id'],
         }
 
-        self.user.delete(args)
+        status, errorcode = self.user.delete(args)
         self.assertFalse(self.user.exists(login))
+        self.assertTrue(self.user.error_code_zero(errorcode))
 
     def test_create_user_utf8(self):
         "Create utf8 user"
@@ -55,7 +56,8 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('utf8', 6).encode('utf-8')
-        self._create_user(login=login, email=email, passwd1=password)
+        errorcode = self._create_user(login=login, email=email, passwd1=password)
+        self.assertTrue(self.user.error_code_zero(errorcode))
 
     def test_create_user_latin1(self):
         "Create latin1 user"
@@ -64,4 +66,5 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('latin1', 6).encode('utf-8')
-        self._create_user(login=login, email=email, passwd1=password)
+        errorcode = self._create_user(login=login, email=email, passwd1=password)
+        self.assertTrue(self.user.error_code_zero(errorcode))
