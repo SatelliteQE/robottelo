@@ -12,10 +12,14 @@ class OperatingSys(BaseCLI):
 
     def _create_os(self, name=None, major=None, minor=None):
 
+        name = name or generate_name()
+        major = major or random.randint(0, 10)
+        minor = minor or random.randint(0, 10)
+
         args = {
-            'name': name or generate_name(),
-            'major': major or random.randint(0, 10),
-            'minor': minor or random.randint(0, 10),
+            'name': name,
+            'major': major,
+            'minor': minor,
         }
 
         self.os.create(args)

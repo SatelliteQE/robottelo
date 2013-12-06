@@ -9,9 +9,10 @@ from lib.common.helpers import generate_name
 class Domain(BaseCLI):
 
     def test_create_domain(self):
-        "Create a new domain"
+        """Create a new domain"""
         args = {
             "name": generate_name(6)
         }
-        res = self.domain.create(args)
-        self.assertTrue(res)
+
+        self.domain.create(args)
+        self.assertTrue(self.domain.exists(args['name']))

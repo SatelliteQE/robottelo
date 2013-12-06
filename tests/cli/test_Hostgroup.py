@@ -15,5 +15,5 @@ class Hostgroup(BaseCLI):
             'name': generate_name(),
         }
 
-        res = self.hostgroup.create(args)
-        self.assertTrue(res)
+        self.hostgroup.create(args)
+        self.assertTrue(self.hostgroup.exists(args['name']))

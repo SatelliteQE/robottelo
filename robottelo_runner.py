@@ -45,5 +45,5 @@ if __name__ == "__main__":
         suite.addTests(loader.loadTestsFromName(test_name))
 
     runner = unittest.TextTestRunner(
-                verbosity=int(conf.properties.get("nosetests.verbosity")))
+        verbosity=int(conf.properties.get("nosetests.verbosity")))
     result = runner.run(suite)

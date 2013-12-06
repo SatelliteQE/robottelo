@@ -22,13 +22,13 @@ class Architecture(BaseCLI):
         self.assertTrue(self.arch.exists(name))
 
     def test_create_architecture_1(self):
-        "Successfully creates a new architecture"
+        """Successfully creates a new architecture"""
 
         name = generate_name(6)
         self._create_arch(name)
 
     def test_delete_architecture_1(self):
-        "Creates and immediately deletes architecture."
+        """Creates and immediately deletes architecture."""
 
         name = generate_name(6)
         self._create_arch(name)
