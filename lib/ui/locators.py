@@ -188,8 +188,7 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='administer_menu']"),
     "menu.ldap_auth": (
         By.XPATH,
-        "//div[contains(@style,'static')] \
-        //a[@id='menu_item_auth_source_ldaps']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_auth_source_ldaps']"),  # @IgnorePep8
     "menu.users": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_users']"),
