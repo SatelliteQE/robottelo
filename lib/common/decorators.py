@@ -12,6 +12,7 @@ bugzilla_log.setLevel(logging.WARNING)
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 
+
 def runIf(project):
     "Decorator to skip tests based on server mode"
     mode = conf.properties['main.project'].replace('/', '')
@@ -19,6 +20,7 @@ def runIf(project):
     if project == mode:
         return lambda func: func
     return unittest.skip("%s specific test." % project)
+
 
 def bzbug(bz_id):
     try:

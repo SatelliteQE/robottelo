@@ -5,7 +5,6 @@
 import datetime
 import logging.config
 import os
-import selenium
 import unittest
 import sauceclient
 
@@ -66,7 +65,7 @@ class BaseUI(unittest.TestCase):
                 desired_capabilities['parent-tunnel'] = self.sauce_tunnel
             self.browser = webdriver.Remote(
                 desired_capabilities=desired_capabilities,
-                command_executor = SAUCE_URL % (self.sauce_user, self.sauce_key))
+                command_executor=SAUCE_URL % (self.sauce_user, self.sauce_key))
             self.browser.implicitly_wait(3)
 
         self.browser.maximize_window()
@@ -144,4 +143,3 @@ class BaseUI(unittest.TestCase):
         self.browser = None
 
         return result
-
