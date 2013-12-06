@@ -5,7 +5,6 @@
 from tests.ui.baseui import BaseUI
 from lib.common.helpers import generate_name
 from lib.common.helpers import generate_ipaddr
-from time import sleep
 
 
 class Subnet(BaseUI):
@@ -28,7 +27,6 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        sleep(3)
         self.assertIsNotNone(self.search_subnet(subnet_name))
 
     def test_remove_subnet_1(self):
@@ -60,10 +58,8 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        sleep(3)
         new_subnet_name = generate_name(8, 8)
         self.subnet.update(subnet_name, new_subnet_name, None, None)
-        sleep(3)
         result_object = self.search_subnet(new_subnet_name)
         self.assertEqual(new_subnet_name, result_object['name'])
 
@@ -74,10 +70,8 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        sleep(3)
         new_subnet_network = generate_ipaddr(ip3=True)
         self.subnet.update(subnet_name, None, new_subnet_network, None)
-        sleep(3)
         result_object = self.search_subnet(subnet_name)
         self.assertEqual(new_subnet_network, result_object['network'])
 
@@ -88,10 +82,8 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        sleep(3)
         new_subnet_mask = "128.128.128.0"
         self.subnet.update(subnet_name, None, None, new_subnet_mask)
-        sleep(3)
         result_object = self.search_subnet(subnet_name)
         self.assertEqual(new_subnet_mask, result_object['mask'])
 
@@ -102,7 +94,6 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        sleep(3)
         result_object = self.search_subnet(subnet_name)
         self.assertEqual(subnet_name, result_object['name'])
         self.assertEqual(subnet_network, result_object['network'])

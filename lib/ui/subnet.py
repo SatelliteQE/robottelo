@@ -27,6 +27,7 @@ class Subnet(Base):
             mask_field.clear()
             mask_field.send_keys(subnet_mask)
         self.wait_until_element(locators["subnet.submit"]).click()
+        self.wait_for_ajax()
 
     def remove(self, subnet_name, really):
         element = self.wait_until_element((locators["subnet.delete"][0],
@@ -40,6 +41,7 @@ class Subnet(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
+        self.wait_for_ajax()
 
     def search(self, subnet_name):
         result = None
@@ -92,3 +94,4 @@ class Subnet(Base):
                 mask_field.clear()
                 mask_field.send_keys(new_subnet_mask)
         self.wait_until_element(locators["subnet.submit"]).click()
+        self.wait_for_ajax()
