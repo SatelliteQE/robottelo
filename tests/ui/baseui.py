@@ -16,6 +16,7 @@ from lib.ui.medium import Medium
 from lib.ui.navigator import Navigator
 from lib.ui.product import Product
 from lib.ui.user import User
+from lib.ui.subnet import Subnet
 from selenium import webdriver
 from lib.common import conf
 
@@ -79,6 +80,7 @@ class BaseUI(unittest.TestCase):
         self.operatingsys = OperatingSys(self.browser)
         self.architecture = Architecture(self.browser)
         self.medium = Medium(self.browser)
+        self.subnet = Subnet(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
             """
@@ -142,3 +144,4 @@ class BaseUI(unittest.TestCase):
         self.browser = None
 
         return result
+

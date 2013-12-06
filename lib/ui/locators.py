@@ -189,5 +189,15 @@ locators = {
     "menu.my_account": (
         By.XPATH,
         "//a[@id='menu_item_my_account']"),
+    
+    # Subnet Page
+     "subnet.new": (By.XPATH,"//a[@class='btn btn-success']"),
+     "subnet.name": (By.ID, "subnet_name"),
+     "subnet.network": (By.ID, "subnet_network"),
+     "subnet.mask": (By.ID, "subnet_mask"),
+     "subnet.submit": (By.XPATH, "//input[@class='btn btn-primary' and @name='commit']"),
+     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
+     "subnet.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
 }
+
