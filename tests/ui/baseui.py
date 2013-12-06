@@ -5,7 +5,6 @@
 import datetime
 import logging.config
 import os
-import selenium
 import unittest
 import sauceclient
 
