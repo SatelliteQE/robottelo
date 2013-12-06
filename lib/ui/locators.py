@@ -23,40 +23,44 @@ locators = {
     "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
 
     # Organizations
-    
+
     #Operating system (OS)
-    "operatingsys.new": (By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
+    "operatingsys.new": (
+        By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
     "operatingsys.name": (By.ID, "operatingsystem_name"),
     "operatingsys.major_version": (By.ID, "operatingsystem_major"),
     "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
     "operatingsys.family": (By.ID, "operatingsystem_family"),
-    "operatingsys.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "operatingsys.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
 
     "users.new": (By.XPATH, "//a[contains(@href, '/users/new')]"),
-    "users.username" : (By.ID, "user_login"),
-    "users.firstname" : (By.ID, "user_firstname"),
-    "users.lastname" : (By.ID, "user_lastname"),
-    "users.email" : (By.ID, "user_mail"),
-    "users.language" : (By.ID, "user_locale"),
-    "users.authorized_by" : (By.ID, "user_auth_source_id"),
-    "users.password" : (By.ID, "user_password"),
-    "users.password_confirmation" : (By.ID, "user_password_confirmation"),
-    "users.user" : (By.XPATH, "//a[contains(., '%s')]"),
-    "users.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "users.username": (By.ID, "user_login"),
+    "users.firstname": (By.ID, "user_firstname"),
+    "users.lastname": (By.ID, "user_lastname"),
+    "users.email": (By.ID, "user_mail"),
+    "users.language": (By.ID, "user_locale"),
+    "users.authorized_by": (By.ID, "user_auth_source_id"),
+    "users.password": (By.ID, "user_password"),
+    "users.password_confirmation": (By.ID, "user_password_confirmation"),
+    "users.user": (By.XPATH, "//a[contains(., '%s')]"),
+    "users.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     #common locators
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),
- 
+
     #Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
     "arch.name": (By.ID, "architecture_name"),
     "arch.submit": (By.NAME, "commit"),
     "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
-    "arch.os_name": (By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
-    
+    "arch.os_name": (
+        By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
+
     #Medium
     "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
     "medium.name": (By.ID, "medium_name"),
@@ -99,10 +103,12 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_hosts']"),
     "menu.operating_systems": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),
+        "//div[contains(@style,'static')]// \
+        a[@id='menu_item_operatingsystems']"),
     "menu.provisioning_templates": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_config_templates']"),
+        "//div[contains(@style,'static')]// \
+        a[@id='menu_item_config_templates']"),
     "menu.partition_tables": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_ptables']"),
@@ -125,7 +131,8 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_hostgroups']"),
     "menu.global_parameters": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_common_parameters']"),
+        "//div[contains(@style,'static')]// \
+        a[@id='menu_item_common_parameters']"),
     "menu.environments": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
@@ -145,7 +152,8 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
     "menu.compute_resources": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_compute_resources']"),
+        "//div[contains(@style,'static')]// \
+        a[@id='menu_item_compute_resources']"),
     "menu.subnets": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
@@ -159,7 +167,8 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='administer_menu']"),
     "menu.ldap_auth": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_auth_source_ldaps']"),
+        "//div[contains(@style,'static')] \
+        //a[@id='menu_item_auth_source_ldaps']"),
     "menu.users": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_users']"),
@@ -189,15 +198,15 @@ locators = {
     "menu.my_account": (
         By.XPATH,
         "//a[@id='menu_item_my_account']"),
-    
+
     # Subnet Page
-     "subnet.new": (By.XPATH,"//a[@class='btn btn-success']"),
+     "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
      "subnet.name": (By.ID, "subnet_name"),
      "subnet.network": (By.ID, "subnet_network"),
      "subnet.mask": (By.ID, "subnet_mask"),
-     "subnet.submit": (By.XPATH, "//input[@class='btn btn-primary' and @name='commit']"),
+     "subnet.submit":
+        (By.XPATH, "//input[@class='btn btn-primary' and @name='commit']"),
      "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
-     "subnet.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
-
+     "subnet.delete":
+        (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 }
-
