@@ -2,9 +2,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
-from locators import *
-from navigator import Navigator
+from lib.ui.base import Base
+from lib.ui.locators import locators
+from lib.ui.navigator import Navigator
 
 
 class Login(Base):

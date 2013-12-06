@@ -2,8 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
-from locators import locators
+from lib.ui.base import Base
+from lib.ui.locators import locators
 from time import sleep
 
 
@@ -12,7 +12,8 @@ class Product(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, label=None, provider=None, provider_name=None, gpg_key=None, description='Automated'):
+    def create(self, name, label=None, provider=None, provider_name=None,
+               gpg_key=None, description='Automated'):
         self.wait_until_element(locators["product.new"]).click()
 
         if self.wait_until_element(locators["product.name"]):

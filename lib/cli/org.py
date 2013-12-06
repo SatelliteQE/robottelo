@@ -2,17 +2,18 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
+from lib.cli.base import Base
 from itertools import izip
 from lib.common.helpers import generate_name
 
-FIELDS = ['id', 'name', 'description', 'default service level', 'available service levels', 'default system info keys']
+FIELDS = ['id', 'name', 'description', 'default service level',
+          'available service levels', 'default system info keys']
 
 
 class Org(Base):
 
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
+        self.command_base = "org"
 
     def attach_all_systems(self):
         pass
@@ -83,4 +84,3 @@ class Org(Base):
         stdout, stderr = self.execute(cmd)
 
         return False if stderr else True
-

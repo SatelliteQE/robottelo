@@ -5,7 +5,7 @@
 from lib.cli.base import Base
 
 
-class Architecture(Base):
+class Fact(Base):
 
     def __init__(self):
-        self.command_base = "architecture"
+        self.command_base = "fact"

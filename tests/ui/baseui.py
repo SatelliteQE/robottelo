@@ -10,8 +10,10 @@ import sauceclient
 
 from lib.ui.login import Login
 from lib.ui.operatingsys import OperatingSys
+from lib.ui.environment import Environment
 from lib.ui.architecture import Architecture
 from lib.ui.medium import Medium
+from lib.ui.domain import Domain
 from lib.ui.navigator import Navigator
 from lib.ui.product import Product
 from lib.ui.user import User
@@ -77,31 +79,29 @@ class BaseUI(unittest.TestCase):
         self.product = Product(self.browser)
         self.user = User(self.browser)
         self.operatingsys = OperatingSys(self.browser)
+        self.environment = Environment(self.browser)
         self.architecture = Architecture(self.browser)
         self.medium = Medium(self.browser)
-        self.subnet = Subnet(self.browser)
+        self.domain = Domain(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
-            """
-            Takes screenshot of the UI if running locally.
-
-            @param file_name: Name to label this screenshot.
-            @type file_name: str
-            """
-
-            # Create screenshot directory if it doesn't exist
-            if not os.path.exists(SCREENSHOTS_DIR):
-                try:
-                    os.mkdir(SCREENSHOTS_DIR)
-                except Exception, e:
-                    self.logger.debug(
-                        "Could not create screenshots directory: %s" % str(e))
-                    pass
-            else:
-                file_name = os.path.join(SCREENSHOTS_DIR, file_name)
-
-            if not isinstance(self.browser, webdriver.Remote):
-                self.browser.save_screenshot(file_name)
+        """
+        Takes screenshot of the UI if running locally.
+        @param file_name: Name to label this screenshot.
+        @type file_name: str
+        """
+        # Create screenshot directory if it doesn't exist
+        if not os.path.exists(SCREENSHOTS_DIR):
+            try:
+                os.mkdir(SCREENSHOTS_DIR)
+            except Exception, e:
+                self.logger.debug(
+                    "Could not create screenshots directory: %s" % str(e))
+                pass
+        else:
+            file_name = os.path.join(SCREENSHOTS_DIR, file_name)
+        if not isinstance(self.browser, webdriver.Remote):
+            self.browser.save_screenshot(file_name)
 
     def run(self, result=None):
         super(BaseUI, self).run(result)

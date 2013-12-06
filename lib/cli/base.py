@@ -5,6 +5,13 @@
 import logging.config
 from lib.common import conf
 from lib.common.helpers import csv_to_dictionary
+from threading import Lock
+try:
+    import paramiko
+except Exception, e:
+    print "Please install paramiko."
+    import sys
+    sys.exit(-1)
 
 
 class Base():
@@ -50,6 +57,39 @@ class Base():
     katello_user = conf.properties['foreman.admin.username']
     katello_passwd = conf.properties['foreman.admin.password']
 
+    __connection = None
+
+    @classmethod
+    def get_connection(cls):
+        if not cls.__connection:
+            logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
+            # Hide base logger from paramiko
+            logging.getLogger("paramiko").setLevel(logging.ERROR)
+
+            conn = paramiko.SSHClient()
+            conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            host = conf.properties['main.server.hostname']
+            root = conf.properties['main.server.ssh.username']
+            key_filename = conf.properties['main.server.ssh.key_private']
+            conn.connect(host, username=root, key_filename=key_filename)
+            cls.__connection = conn
+            cls.logger.info("Paramiko instance prepared" + \
+                "(and would be reused): %s" % hex(id(cls.__connection)))
+        return cls.__connection
+
+    @classmethod
+    def upload_file(cls, local_file, remote_file=None):
+        """
+        Uploads a remote file to a server.
+        """
+
+        if not remote_file:
+            remote_file = local_file
+
+        sftp = cls.get_connection().open_sftp()
+        sftp.put(local_file, remote_file)
+        sftp.close()
+
     def add_operating_system(self, options=None):
         """
         Adds OS to record.
@@ -59,7 +99,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
@@ -72,9 +112,9 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if stderr else True, errorcode
 
     def delete(self, options=None):
         """
@@ -85,9 +125,9 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if stderr else True, errorcode
 
     def dump(self, options=None):
         """
@@ -98,9 +138,22 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return '' if stderr else stdout[0]
+
+    def error_code_zero(self, code):
+        """
+        Checks status of error code returned from command execution
+        * Run an AssertTrue against this if you expect a zero.
+        * Run an AssertFalse against this if you expect a non-zero
+          (i.e., a negative test).
+        """
+        if code == 0:
+            return True
+        else:
+            return False
+
 
     def execute(self, command, user=None, password=None):
 
@@ -111,11 +164,13 @@ class Base():
 
         shell_cmd = "LANG=%s hammer -u %s -p %s --csv %s"
 
-        stdout, stderr = self.conn.exec_command(
-            shell_cmd % (self.locale, user, password, command))[-2:]
-
-        output = stdout.readlines()
-        errors = stderr.readlines()
+        lock = Lock()
+        with lock:
+            stdout, stderr = Base.get_connection().exec_command(
+                shell_cmd % (self.locale, user, password, command))[-2:]
+            errorcode = stdout.channel.recv_exit_status()
+            output = stdout.readlines()
+            errors = stderr.readlines()
 
         # helps for each command to be grouped with a new line.
         print ""
@@ -127,7 +182,7 @@ class Base():
         if errors:
             self.logger.error("".join(errors))
 
-        return output, errors
+        return output, errors, errorcode
 
     def exists(self, name):
         """
@@ -180,7 +235,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
@@ -193,7 +248,7 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
 
         return False if stderr else True
 
