@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from base import Base
+from lib.ui.base import Base
 from locators import locators
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
@@ -13,7 +13,7 @@ class Hostgroup(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, parent = None, environment = None):
+    def create(self, name, parent=None, environment=None):
         self.wait_until_element(locators["hostgroups.new"]).click()
 
         if self.wait_until_element(locators["hostgroups.name"]):
@@ -37,19 +37,20 @@ class Hostgroup(Base):
     def delete(self, name, really=False):
         dropdown = self.wait_until_element((locators["hostgroups.dropdown"][0],
                                            locators["hostgroups.dropdown"][1] % name))
-        dropdown.click()
-        element = self.wait_until_element((locators["hostgroups.delete"][0],
-                                           locators["hostgroups.delete"][1] % name))
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
+        if dropdown:
+            dropdown.click()
+            element = self.wait_until_element((locators["hostgroups.delete"][0],
+                                              locators["hostgroups.delete"][1] % name))
+            if element:
+                element.click()
+                if really:
+                    alert = self.browser.switch_to_alert()
+                    alert.accept()
+                else:
+                    alert = self.browser.switch_to_alert()
+                    alert.dismiss()
 
-    def update(self, name, new_name = None, parent = None, environment = None):
+    def update(self, name, new_name=None, parent=None, environment=None):
         element = self.search(name)
         if element:
             element.click()

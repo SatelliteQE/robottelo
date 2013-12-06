@@ -10,7 +10,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from lib.ui.locators import *
+from lib.ui.locators import locators
+
 
 class Base():
 
