@@ -31,7 +31,8 @@ class Hostgroup(Base):
             searchbox.clear()
             searchbox.send_keys(name)
             searchbox.send_keys(Keys.RETURN)
-            hostgroup = self.wait_until_element((locators["hostgroups.hostgroup"][0], locators["hostgroups.hostgroup"][1] % name))
+            hostgroup = self.wait_until_element((locators["hostgroups.hostgroup"][0],
+                                                 locators["hostgroups.hostgroup"][1] % name))
         return hostgroup
 
     def delete(self, name, really=False):
