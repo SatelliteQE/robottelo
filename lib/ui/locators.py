@@ -57,6 +57,7 @@ locators = {
     "arch.name": (By.ID, "architecture_name"),
     "arch.submit": (By.NAME, "commit"),
     "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
+    "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
     "arch.os_name": (
         By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
 
