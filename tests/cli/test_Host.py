@@ -3,12 +3,16 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
+from lib.cli.host import Host
 from lib.common.helpers import generate_name
 from lib.common.helpers import generate_mac
 
+import unittest
 
-class Host(BaseCLI):
 
+class TestHost(BaseCLI):
+
+    @unittest.skip("Test needs to create required objects.")
     def test_create_host(self):
         "Create new host"
         # TODO need to create env, architecture, domain etc.
@@ -23,4 +27,4 @@ class Host(BaseCLI):
             "mac": generate_mac()
         }
 
-        self.host.create(args)['stdout']
+        Host().create(args)

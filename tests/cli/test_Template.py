@@ -7,6 +7,7 @@ import random
 
 from basecli import BaseCLI
 from lib.cli.base import Base
+from lib.cli.template import Template
 from lib.common.helpers import generate_name
 from tempfile import mkstemp
 
@@ -22,7 +23,7 @@ TEMPLATE_TYPES = [
 ]
 
 
-class Template(BaseCLI):
+class TestTemplate(BaseCLI):
 
     def _create_template(self, template=None, template_type=None, name=None,
                          audit_comment=None, operatingsystem_ids=None,
@@ -46,9 +47,9 @@ class Template(BaseCLI):
         # Upload file to server
         Base.upload_file(local_file=layout, remote_file=args['file'])
 
-        self.template.create(args)
+        Template().create(args)
 
-        self.assertTrue(self.template.exists(args['name']))
+        self.assertTrue(Template().exists(args['name']))
 
     def test_create_template_1(self):
         "Successfully creates a new template"
@@ -64,13 +65,13 @@ class Template(BaseCLI):
         name = generate_name(6)
         self._create_template(name=name, content=content)
 
-        template = self.template.exists(name)
+        template = Template().exists(name)
 
         args = {
             'id': template['Id'],
         }
 
-        template_content = self.template.dump(args)
+        template_content = Template().dump(args)
         self.assertTrue(content in template_content)
 
     def test_delete_medium_1(self):
@@ -80,11 +81,11 @@ class Template(BaseCLI):
         name = generate_name(6)
         self._create_template(name=name, content=content)
 
-        template = self.template.exists(name)
+        template = Template().exists(name)
 
         args = {
             'id': template['Id'],
         }
 
-        self.template.delete(args)
-        self.assertFalse(self.template.exists(name))
+        Template().delete(args)
+        self.assertFalse(Template().exists(name))

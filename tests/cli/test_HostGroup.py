@@ -3,10 +3,11 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
+from lib.cli.hostgroup import HostGroup
 from lib.common.helpers import generate_name
 
 
-class Hostgroup(BaseCLI):
+class TestHostGroup(BaseCLI):
 
     def test_hostgroup_create(self):
         "Create new hostgroup"
@@ -15,5 +16,5 @@ class Hostgroup(BaseCLI):
             'name': generate_name(),
         }
 
-        self.hostgroup.create(args)
-        self.assertTrue(self.hostgroup.exists(args['name']))
+        HostGroup().create(args)
+        self.assertTrue(HostGroup().exists(args['name']))

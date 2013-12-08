@@ -45,4 +45,5 @@ class TestFact(BaseCLI):
         args = {
             'search': "fact='%s'" % fact,
         }
-        self.assertEqual(Fact().list(args), [], "No records should be returned")
+        self.assertEqual(
+            Fact().list(args), [], "No records should be returned")

@@ -3,11 +3,12 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
+from lib.cli.user import User
 from lib.common.helpers import generate_name
 from lib.common.helpers import generate_string
 
 
-class User(BaseCLI):
+class UserUser(BaseCLI):
 
     def _create_user(self, login=None, fname=None, lname=None,
                      email=None, admin=None, passwd1=None, auth_id=1):
@@ -22,8 +23,8 @@ class User(BaseCLI):
             'auth-source-id': auth_id,
         }
 
-        ret = self.user.create(args)
-        self.assertTrue(self.user.exists(args['login']))
+        ret = User().create(args)
+        self.assertTrue(User().exists(args['login']))
 
         return ret['retcode']
 
@@ -41,14 +42,14 @@ class User(BaseCLI):
         login = generate_name(6)
         self._create_user(login=login, passwd1=password)
 
-        user = self.user.exists(login)
+        user = User().exists(login)
 
         args = {
             'id': user['Id'],
         }
 
-        ret = self.user.delete(args)
-        self.assertFalse(self.user.exists(login))
+        ret = User().delete(args)
+        self.assertFalse(User().exists(login))
         self.assertEqual(ret['retcode'], 0)
 
     def test_create_user_utf8(self):
