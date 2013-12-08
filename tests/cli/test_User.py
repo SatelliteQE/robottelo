@@ -21,16 +21,18 @@ class User(BaseCLI):
             'password': passwd1 or generate_name(),
             'auth-source-id': auth_id,
         }
-        status, errorcode = self.user.create(args)
+
+        ret = self.user.create(args)
         self.assertTrue(self.user.exists(args['login']))
-        return errorcode
+
+        return ret['retcode']
 
     def test_create_user_1(self):
         "Successfully creates a new user"
 
         password = generate_name(6)
-        errorcode = self._create_user(None, None, password)
-        self.assertTrue(self.user.error_code_zero(errorcode))
+        return_code = self._create_user(None, None, password)
+        self.assertEqual(return_code, 0)
 
     def test_delete_user_1(self):
         "Creates and immediately deletes user."
@@ -45,9 +47,9 @@ class User(BaseCLI):
             'id': user['Id'],
         }
 
-        status, errorcode = self.user.delete(args)
+        ret = self.user.delete(args)
         self.assertFalse(self.user.exists(login))
-        self.assertTrue(self.user.error_code_zero(errorcode))
+        self.assertEqual(ret['retcode'], 0)
 
     def test_create_user_utf8(self):
         "Create utf8 user"
@@ -56,8 +58,9 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('utf8', 6).encode('utf-8')
-        errorcode = self._create_user(login=login, email=email, passwd1=password)
-        self.assertTrue(self.user.error_code_zero(errorcode))
+        return_code = self._create_user(
+            login=login, email=email, passwd1=password)
+        self.assertEqual(return_code, 0)
 
     def test_create_user_latin1(self):
         "Create latin1 user"
@@ -66,5 +69,6 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('latin1', 6).encode('utf-8')
-        errorcode = self._create_user(login=login, email=email, passwd1=password)
-        self.assertTrue(self.user.error_code_zero(errorcode))
+        return_code = self._create_user(
+            login=login, email=email, passwd1=password)
+        self.assertEqual(return_code, 0)

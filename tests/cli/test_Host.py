@@ -22,4 +22,5 @@ class Host(BaseCLI):
             "partition-table-id": 1,
             "mac": generate_mac()
         }
-        self.assertTrue(self.host.create(args))
+
+        self.host.create(args)['stdout']

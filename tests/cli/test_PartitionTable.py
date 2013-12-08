@@ -67,6 +67,7 @@ class PartitionTable(BaseCLI):
         }
 
         ptable_content = self.ptable.dump(args)
+
         self.assertTrue(content in ptable_content)
 
     def test_delete_medium_1(self):

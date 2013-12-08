@@ -3,14 +3,16 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import logging.config
+import sys
+
 from lib.common import conf
 from lib.common.helpers import csv_to_dictionary
 from threading import Lock
+
 try:
     import paramiko
-except Exception, e:
+except ImportError:
     print "Please install paramiko."
-    import sys
     sys.exit(-1)
 
 
@@ -59,6 +61,9 @@ class Base():
 
     __connection = None
 
+    def __init__(self):
+        pass
+
     @classmethod
     def get_connection(cls):
         if not cls.__connection:
@@ -73,8 +78,10 @@ class Base():
             key_filename = conf.properties['main.server.ssh.key_private']
             conn.connect(host, username=root, key_filename=key_filename)
             cls.__connection = conn
-            cls.logger.info("Paramiko instance prepared" + \
-                "(and would be reused): %s" % hex(id(cls.__connection)))
+            cls.logger.info(
+                "Paramiko instance prepared (and would be reused): %s"
+                % hex(id(cls.__connection))
+            )
         return cls.__connection
 
     @classmethod
@@ -99,9 +106,9 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return result
 
     def create(self, options=None):
         """
@@ -112,9 +119,9 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True, errorcode
+        return result
 
     def delete(self, options=None):
         """
@@ -125,9 +132,9 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True, errorcode
+        return result
 
     def dump(self, options=None):
         """
@@ -138,24 +145,18 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return '' if stderr else stdout[0]
-
-    def error_code_zero(self, code):
-        """
-        Checks status of error code returned from command execution
-        * Run an AssertTrue against this if you expect a zero.
-        * Run an AssertFalse against this if you expect a non-zero
-          (i.e., a negative test).
-        """
-        if code == 0:
-            return True
-        else:
-            return False
-
+        return '' if result['stderr'] else result['stdout'][0]
 
     def execute(self, command, user=None, password=None):
+
+        # Dictionary object to hold all artifacts from Paramiko.
+        result = {
+            'stdout': None,
+            'stderr': None,
+            'retcode': None,
+        }
 
         if user is None:
             user = self.katello_user
@@ -172,6 +173,11 @@ class Base():
             output = stdout.readlines()
             errors = stderr.readlines()
 
+            # Update results
+            result['stdout'] = output
+            result['stderr'] = errors
+            result['retcode'] = errorcode
+
         # helps for each command to be grouped with a new line.
         print ""
 
@@ -182,7 +188,7 @@ class Base():
         if errors:
             self.logger.error("".join(errors))
 
-        return output, errors, errorcode
+        return result
 
     def exists(self, name):
         """
@@ -209,21 +215,22 @@ class Base():
         if options is None:
             options = {}
 
-        stdout = self.execute(self._construct_command(options))[0]
+        result = self.execute(self._construct_command(options))
+        stdout = result['stdout']
 
         return csv_to_dictionary(stdout) if stdout else {}
 
     def list(self, options=None):
         """
         List information.
-        @param cmdID: ID (sometimes name works as well) to retrieve info.
+        @param options: ID (sometimes name works as well) to retrieve info.
         """
         self.command_sub = "list"
         if options is None:
             options = {}
             options['per-page'] = 10000
 
-        stdout = self.execute(self._construct_command(options))[0]
+        stdout = self.execute(self._construct_command(options))['stdout']
         return csv_to_dictionary(stdout) if stdout else {}
 
     def remove_operating_system(self, options=None):
@@ -235,9 +242,9 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return result
 
     def update(self, options=None):
         """
@@ -248,18 +255,18 @@ class Base():
 
         options = options or {}
 
-        (stdout, stderr, errorcode) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return result
 
     def _construct_command(self, options={}):
         tail = ""
 
         for key, val in options.items():
             if val:
-                tail = tail + " --%s='%s'" % (key, val)
+                tail += " --%s='%s'" % (key, val)
             else:
-                tail = tail + " --%s" % key
+                tail += " --%s" % key
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
 
         return cmd
