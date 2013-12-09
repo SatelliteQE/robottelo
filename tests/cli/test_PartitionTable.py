@@ -7,6 +7,7 @@ import random
 
 from basecli import BaseCLI
 from lib.cli.base import Base
+from lib.cli.partitiontable import PartitionTable
 from lib.common.helpers import generate_name
 from tempfile import mkstemp
 
@@ -22,7 +23,7 @@ OSES = [
 ]
 
 
-class PartitionTable(BaseCLI):
+class TestPartitionTable(BaseCLI):
 
     def _create_ptable(self, layout=None, name=None, os_family=None,
                        content=''):
@@ -42,9 +43,9 @@ class PartitionTable(BaseCLI):
         # Upload file to server
         Base.upload_file(local_file=layout, remote_file=args['file'])
 
-        self.ptable.create(args)
+        PartitionTable().create(args)
 
-        self.assertTrue(self.ptable.exists(args['name']))
+        self.assertTrue(PartitionTable().exists(args['name']))
 
     def test_create_ptable_1(self):
         "Successfully creates a new ptable"
@@ -60,13 +61,14 @@ class PartitionTable(BaseCLI):
         name = generate_name(6)
         self._create_ptable(name=name, content=content)
 
-        ptable = self.ptable.exists(name)
+        ptable = PartitionTable().exists(name)
 
         args = {
             'id': ptable['Id'],
         }
 
-        ptable_content = self.ptable.dump(args)
+        ptable_content = PartitionTable().dump(args)
+
         self.assertTrue(content in ptable_content)
 
     def test_delete_medium_1(self):
@@ -76,11 +78,11 @@ class PartitionTable(BaseCLI):
         name = generate_name(6)
         self._create_ptable(name=name, content=content)
 
-        ptable = self.ptable.exists(name)
+        ptable = PartitionTable().exists(name)
 
         args = {
             'id': ptable['Id'],
         }
 
-        self.ptable.delete(args)
-        self.assertFalse(self.ptable.exists(name))
+        PartitionTable().delete(args)
+        self.assertFalse(PartitionTable().exists(name))

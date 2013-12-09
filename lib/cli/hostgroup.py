@@ -6,7 +6,7 @@ from lib.cli.base import Base
 from lib.common.helpers import csv_to_dictionary
 
 
-class Hostgroup(Base):
+class HostGroup(Base):
 
     def __init__(self):
         self.command_base = "hostgroup"

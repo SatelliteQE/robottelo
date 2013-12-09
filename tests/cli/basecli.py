@@ -4,16 +4,7 @@
 
 import logging.config
 import unittest
-from lib.cli.architecture import Architecture
-from lib.cli.domain import Domain
-from lib.cli.host import Host
-from lib.cli.hostgroup import Hostgroup
-from lib.cli.medium import Medium
-from lib.cli.operatingsys import OperatingSys
-from lib.cli.partitiontable import PartitionTable
-from lib.cli.subnet import Subnet
-from lib.cli.template import Template
-from lib.cli.user import User
+
 from lib.common import conf
 
 
@@ -49,18 +40,6 @@ class BaseCLI(unittest.TestCase):
 
         self.__class__.logger = logging.getLogger("robottelo")
         self.__class__.logger.setLevel(self.verbosity * 10)
-
-        # Library methods
-        self.__class__.arch = Architecture()
-        self.__class__.domain = Domain()
-        self.__class__.host = Host()
-        self.__class__.hostgroup = Hostgroup()
-        self.__class__.medium = Medium()
-        self.__class__.os = OperatingSys()
-        self.__class__.ptable = PartitionTable()
-        self.__class__.subnet = Subnet()
-        self.__class__.template = Template()
-        self.__class__.user = User()
 
     def setUp(self):
         if not self.__initialized:

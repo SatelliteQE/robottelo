@@ -4,6 +4,7 @@
 
 from ddt import data
 from ddt import ddt
+from lib.cli.subnet import Subnet
 from lib.common.helpers import generate_ipaddr
 from lib.common.helpers import generate_name
 from nose.plugins.attrib import attr
@@ -23,8 +24,10 @@ class TestSubnet(BaseCLI):
         self.__class__.subnet_update_ok_name = generate_name(8, 8)
         self.__class__.subnet_update_ok_network = generate_ipaddr(ip3=True)
 
-        self.subnet.create_minimal(self.subnet_update_ok_name,
-            self.subnet_update_ok_network)  # needs for update DDT tests.
+        Subnet().create_minimal(
+            self.subnet_update_ok_name,
+            self.subnet_update_ok_network,
+        )  # needs for update DDT tests.
 
     @attr('cli', 'subnet')
     def test_create(self):
@@ -32,7 +35,7 @@ class TestSubnet(BaseCLI):
         create basic operation of subnet with minimal parameters required.
         """
 
-        self.assertTrue(self.subnet.create_minimal(),
+        self.assertTrue(Subnet().create_minimal(),
                         'Subnet created - no error')
 
     @attr('cli', 'subnet')
@@ -47,9 +50,9 @@ class TestSubnet(BaseCLI):
         options['network'] = generate_ipaddr(ip3=True)
         options['mask'] = '255.255.255.0'
 
-        self.subnet.create(options)
+        Subnet().create(options)
 
-        _ret = self.subnet.info({'name': options['name']})
+        _ret = Subnet().info({'name': options['name']})
 
         self.assertEquals(len(_ret), 1,
                           "Subnet info - returns 1 record")
@@ -63,24 +66,27 @@ class TestSubnet(BaseCLI):
         TODO - FOR DEMO ONLY, NEEDS TO BE REWORKED [gkhachik].
         """
 
-        _ret = self.subnet.list({'per-page': '10'})
+        _ret = Subnet().list({'per-page': '10'})
         self.assertGreater(len(_ret), 0,
                            "Subnet list - returns > 0 records")
 
     @data(
-          {'network': generate_ipaddr(ip3=True)},
-          {'mask': '255.255.0.0'},
-          {'gateway': '192.168.101.54'},
-          {'dns-primary': '192.168.100.0'},
-          {'dns-secondary': '10.17.100.0'},
-          {'network': '192.168.100.0', 'from': '192.168.100.1',
-           'to': '192.168.100.255'},
-          {'vlanid': '1'},
-          )
+        {'network': generate_ipaddr(ip3=True)},
+        {'mask': '255.255.0.0'},
+        {'gateway': '192.168.101.54'},
+        {'dns-primary': '192.168.100.0'},
+        {'dns-secondary': '10.17.100.0'},
+        {
+            'network': '192.168.100.0',
+            'from': '192.168.100.1',
+            'to': '192.168.100.255',
+        },
+        {'vlanid': '1'},
+    )
     @attr('cli', 'subnet')
     def test_update_success_ddt(self, option_dict):
         options = {}
         options['name'] = self.subnet_update_ok_name
         for option in option_dict:
             options[option] = option_dict[option]
-        self.assertTrue(self.subnet.update(options), "Subnet update - true")
+        self.assertTrue(Subnet().update(options), "Subnet update - true")
