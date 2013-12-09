@@ -69,7 +69,7 @@ class TestPartitionTable(BaseCLI):
 
         ptable_content = PartitionTable().dump(args)
 
-        self.assertTrue(content in ptable_content)
+        self.assertTrue(content in ptable_content['stdout'][0])
 
     def test_delete_medium_1(self):
         "Creates and immediately deletes medium."
