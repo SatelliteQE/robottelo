@@ -180,3 +180,4 @@ class Navigator(Base):
         self.menu_click(
             locators['menu.account'], locators['menu.my_account'],
         )
+
