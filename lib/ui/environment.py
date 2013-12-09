@@ -8,17 +8,26 @@ from selenium.webdriver.common.keys import Keys
 
 
 class Environment(Base):
+    """
+    Provides the CRUD functionality for Environment.
+    """
 
     def __init__(self, browser):
         self.browser = browser
 
     def create(self, name):
+        """
+        Creates the environment.
+        """
         self.wait_until_element(locators["env.new"]).click()
         if self.wait_until_element(locators["env.name"]):
             self.find_element(locators["env.name"]).send_keys(name)
         self.find_element(locators["submit"]).click()
 
     def delete(self, name, really):
+        """
+        Deletes the environment.
+        """
         dropdown = self.wait_until_element((locators["env.dropdown"][0],
                                            locators["env.dropdown"][1] % name))
         dropdown.click()
@@ -34,6 +43,9 @@ class Environment(Base):
                 alert.dismiss()
 
     def search(self, name):
+        """
+        Searches for the environment.
+        """
         searchbox = self.wait_until_element(locators["search"])
         if searchbox:
             searchbox.clear()
