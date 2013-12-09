@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
@@ -7,8 +8,6 @@ from lib.common.helpers import generate_name
 
 
 class Subnet(Base):
-
-    OUT_SUBNET_DELETED = "Subnet deleted"
 
     def __init__(self):
         self.command_base = "subnet"
