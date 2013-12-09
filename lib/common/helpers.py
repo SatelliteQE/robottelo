@@ -155,4 +155,8 @@ def csv_to_dictionary(data):
 
 
 def sleep_for_seconds(guaranteed_sleep=1):
+    """
+    Sleeps for provided seconds + random(0,1). Defaults to 1 sec.
+    @param guaranteed_sleep: Guaranteed sleep in seconds.
+    """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
