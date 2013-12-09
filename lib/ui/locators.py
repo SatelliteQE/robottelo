@@ -35,16 +35,69 @@ locators = {
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
 
+    #Host
+    #Third level UI
+
+    "host.tab_primary": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'primary')]"),
+    "host.tab_network": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'network')]"),
+    "host.tab_os": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'os')]"),
+    "host.tab_vm": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'vm')]"),
+    "host.tab_params": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'params')]"),
+    "host.tab_info": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'info')]"),
+
+    #host.primary
+    "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new')]"),
+    "host.name": (By.ID, "host_name"),
+    "host.group": (By.ID, "host_hostgroup_id"),
+    "host.deploy": (By.ID, "host_compute_resource_id"),
+    "host.environment": (By.ID, "host_environment_id"),
+
+    #host.network
+    "host.mac": (By.ID, "host_mac"),
+    "host.domain": (By.ID, "host_domain_id"),
+    "host.subnet": (By.ID, "host_subnet_id"),
+    "host.ip": (By.ID, "host_ip"),
+
+    #host.os
+    "host.arch": (By.ID, "host_architecture_id"),
+    "host.os": (By.ID, "host_operatingsystem_id"),
+    "host.provision": (By.ID, "host_build"),
+    "host.media": (By.ID, "host_medium_id"),
+    "host.ptable": (By.ID, "host_ptable_id"),
+    "host.custom_ptables": (By.ID, "host_disk"),
+    "host.root_pass": (By.ID, "host_root_pass"),
+    "host.provision_template": (
+        By.XPATH,
+        "//div[contains(.,'Provisioning Templates')]/../div/a[@class='btn']"),
+
+    #host.vm (NOTE:- visible only when selecting a compute resource)
+    "host.vm_cpus": (By.ID, "host_compute_attributes_cpus"),
+    "host.vm_memory": (By.ID, "host_compute_attributes_memory"),
+    "host.vm_start": (By.ID, "host_compute_attributes_start"),
+    "host.vm_addstorage": (
+        By.XPATH, "//fieldset[@id='storage_volumes']/a"),
+    "host.vm_addnic": (
+        By.XPATH, "//fieldset[@id='network_interfaces']/a"),
+
     # Hostgroups
 
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
     "hostgroups.name": (By.ID, "hostgroup_name"),
     "hostgroups.parent": (By.ID, "hostgroup_parent_id"),
     "hostgroups.environment": (By.ID, "hostgroup_environment_id"),
-    "hostgroups.hostgroup": (By.XPATH, "//a[contains(., '%s')]"),
-    "hostgroups.dropdown": (By.XPATH,
-                            "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"),
-    "hostgroups.delete": (By.XPATH, "//a[contains(@href,'%s') and contains(@class,'delete')]"),
+    "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
+    "hostgroups.dropdown": (
+        By.XPATH,
+        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"), # @IgnorePep8
+    "hostgroups.delete": (
+        By.XPATH,
+        "//a[contains(@href,'%s') and contains(@class,'delete')]"),
 
     # Users
 
