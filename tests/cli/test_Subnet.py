@@ -88,6 +88,7 @@ class TestSubnet(BaseCLI):
             options[option] = option_dict[option]
         self.assertTrue(Subnet().update(options), "Subnet update - true")
 
+    @attr('cli', 'subnet')
     def test_delete(self):
         name = generate_name()
         options = {}
