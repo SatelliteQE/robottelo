@@ -21,7 +21,9 @@ class User(Base):
 
         _ret = self.list(options)
 
-        if _ret:
-            _ret = _ret[0]
+        if _ret['stdout']:
+            _ret = _ret['stdout'][0]
+        else:
+            _ret = []
 
         return _ret

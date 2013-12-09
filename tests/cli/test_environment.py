@@ -35,15 +35,17 @@ class TestEnvironment(BaseCLI):
         Environment().create({'name': name})
         sleep_for_seconds(5)  # give time to appear in the list
         __ret = Environment().info({'name': name})
-        self.assertEquals(len(__ret), 1, "Environment info - return count")
-        self.assertEquals(__ret[0]['Name'], name,
+        self.assertEquals(
+            len(__ret['stdout']), 1, "Environment info - return count"
+        )
+        self.assertEquals(__ret['stdout'][0]['Name'], name,
                           "Environment info - stdout contains 'Name'")
 
     def test_list(self):
         name = generate_name()
         Environment().create({'name': name})
         __ret = Environment().list({'search': name})
-        self.assertTrue(len(__ret) == 1,
+        self.assertTrue(len(__ret['stdout']) == 1,
                         "Environment list - stdout contains 'Name'")
 
     def test_update(self):
@@ -54,7 +56,7 @@ class TestEnvironment(BaseCLI):
         self.assertTrue(__ret['retcode'] == 0,
                         "Environment update - retcode")
         __ret = Environment().list({'search': "updated_%s" % name})
-        self.assertTrue(len(__ret) == 1,
+        self.assertTrue(len(__ret['stdout']) == 1,
                         "Environment list - has updated name")
 
     def test_delete(self):
@@ -65,5 +67,5 @@ class TestEnvironment(BaseCLI):
                         "Environment delete - retcode")
         sleep_for_seconds(5)  # sleep for about 5 sec.
         __ret = Environment().list({'search': name})
-        self.assertTrue(len(__ret) == 0,
+        self.assertTrue(len(__ret['stdout']) == 0,
                         "Environment list - does not have deleted name")
