@@ -4,6 +4,7 @@
 
 import random
 import string
+import time
 
 from itertools import izip
 
@@ -151,3 +152,7 @@ def csv_to_dictionary(data):
         records.append(dict(izip(headers.split(','), entry)))
 
     return records
+
+
+def sleep_for_seconds(guaranteed_sleep=1):
+    time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
