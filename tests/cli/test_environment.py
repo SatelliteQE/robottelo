@@ -46,10 +46,7 @@ class TestEnvironment(BaseCLI):
     def test_create(self):
         __ret = Environment().create({'name': generate_name()})
         self.assertTrue(__ret['retcode'] == 0,
-            "Environment create - retcode")
-        self.assertEquals(__ret['stdout'][0].strip(),
-            Environment.OUT_ENV_CREATED,
-            "Environment create - stdout")
+                        "Environment create - retcode")
 
     def test_info(self):
         name = generate_name()
@@ -58,41 +55,35 @@ class TestEnvironment(BaseCLI):
         __ret = Environment().info({'name': name})
         self.assertEquals(len(__ret), 1, "Environment info - return count")
         self.assertEquals(__ret[0]['Name'], name,
-            "Environment info - stdout contains 'Name'")
+                          "Environment info - stdout contains 'Name'")
 
     def test_list(self):
         name = generate_name()
         Environment().create({'name': name})
         __ret = Environment().list()
         self.assertTrue(self.__contains_in_list({'Name': name}, __ret),
-            "Environment list - stdout contains 'Name'")
+                        "Environment list - stdout contains 'Name'")
 
     def test_update(self):
         name = generate_name(8, 8)
         Environment().create({'name': name})
         __ret = Environment().update({'name': name,
-            'new-name': "updated_%s" % name})
+                                      'new-name': "updated_%s" % name})
         self.assertTrue(__ret['retcode'] == 0,
-            "Environment update - retcode")
-        self.assertEquals(__ret['stdout'][0].strip(),
-            Environment.OUT_ENV_UPDATED,
-            "Environment update - stdout")
+                        "Environment update - retcode")
         __ret = Environment().list()
         self.assertTrue(self.__contains_in_list(
-            {'Name': "updated_%s" % name}, __ret),
-            "Environment list - stdout contains updated 'Name'")
+                                                {'Name': "updated_%s" % name}, __ret),
+                        "Environment list - stdout contains updated 'Name'")
 
     def test_delete(self):
         name = generate_name(8, 8)
         Environment().create({'name': name})
         __ret = Environment().delete({'name': name})
         self.assertTrue(__ret['retcode'] == 0,
-            "Environment delete - retcode")
-        self.assertEquals(__ret['stdout'][0].strip(),
-            Environment.OUT_ENV_DELETED,
-            "Environment delete - stdout")
+                        "Environment delete - retcode")
         sleep_for_seconds(5)  # sleep for about 5 sec.
         __ret = Environment().list()
         self.assertTrue(not self.__contains_in_list(
-            {'Name': name}, __ret),
-            "Environment list - stdout does not contain 'Name'")
+                                                    {'Name': name}, __ret),
+                        "Environment list - stdout does not contain 'Name'")

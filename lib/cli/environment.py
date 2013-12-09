@@ -19,9 +19,5 @@ from lib.cli.base import Base
 
 class Environment(Base):
 
-    OUT_ENV_CREATED = "Environment created"
-    OUT_ENV_UPDATED = "Environment updated"
-    OUT_ENV_DELETED = "Environment deleted"
-
     def __init__(self):
         self.command_base = "environment"
