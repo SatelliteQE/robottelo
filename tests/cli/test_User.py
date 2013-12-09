@@ -3,11 +3,12 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
+from lib.cli.user import User
 from lib.common.helpers import generate_name
 from lib.common.helpers import generate_string
 
 
-class User(BaseCLI):
+class UserUser(BaseCLI):
 
     def _create_user(self, login=None, fname=None, lname=None,
                      email=None, admin=None, passwd1=None, auth_id=1):
@@ -22,15 +23,17 @@ class User(BaseCLI):
             'auth-source-id': auth_id,
         }
 
-        self.user.create(args)
+        ret = User().create(args)
+        self.assertTrue(User().exists(args['login']))
 
-        self.assertTrue(self.user.exists(args['login']))
+        return ret['retcode']
 
     def test_create_user_1(self):
         "Successfully creates a new user"
 
         password = generate_name(6)
-        self._create_user(None, None, password)
+        return_code = self._create_user(None, None, password)
+        self.assertEqual(return_code, 0)
 
     def test_delete_user_1(self):
         "Creates and immediately deletes user."
@@ -39,14 +42,15 @@ class User(BaseCLI):
         login = generate_name(6)
         self._create_user(login=login, passwd1=password)
 
-        user = self.user.exists(login)
+        user = User().exists(login)
 
         args = {
             'id': user['Id'],
         }
 
-        self.user.delete(args)
-        self.assertFalse(self.user.exists(login))
+        ret = User().delete(args)
+        self.assertFalse(User().exists(login))
+        self.assertEqual(ret['retcode'], 0)
 
     def test_create_user_utf8(self):
         "Create utf8 user"
@@ -55,7 +59,9 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('utf8', 6).encode('utf-8')
-        self._create_user(login=login, email=email, passwd1=password)
+        return_code = self._create_user(
+            login=login, email=email, passwd1=password)
+        self.assertEqual(return_code, 0)
 
     def test_create_user_latin1(self):
         "Create latin1 user"
@@ -64,4 +70,6 @@ class User(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('latin1', 6).encode('utf-8')
-        self._create_user(login=login, email=email, passwd1=password)
+        return_code = self._create_user(
+            login=login, email=email, passwd1=password)
+        self.assertEqual(return_code, 0)

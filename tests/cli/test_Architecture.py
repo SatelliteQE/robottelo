@@ -3,10 +3,11 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
+from lib.cli.architecture import Architecture
 from lib.common.helpers import generate_name
 
 
-class Architecture(BaseCLI):
+class TestArchitecture(BaseCLI):
 
     def _create_arch(self, name=None, operating_system_id=None):
 
@@ -17,27 +18,27 @@ class Architecture(BaseCLI):
             'operatingsystem-ids': operating_system_id or "1",
         }
 
-        self.arch.create(args)
+        Architecture().create(args)
 
-        self.assertTrue(self.arch.exists(name))
+        self.assertTrue(Architecture().exists(args['name']))
 
     def test_create_architecture_1(self):
-        "Successfully creates a new architecture"
+        """Successfully creates a new architecture"""
 
         name = generate_name(6)
         self._create_arch(name)
 
     def test_delete_architecture_1(self):
-        "Creates and immediately deletes architecture."
+        """Creates and immediately deletes architecture."""
 
         name = generate_name(6)
         self._create_arch(name)
 
-        arch = self.arch.exists(name)
+        arch = Architecture().exists(name)
 
         args = {
             'id': arch['Id'],
         }
 
-        self.arch.delete(args)
-        self.assertFalse(self.arch.exists(name))
+        Architecture().delete(args)
+        self.assertFalse(Architecture().exists(name))

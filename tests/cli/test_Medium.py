@@ -5,6 +5,7 @@
 import random
 
 from basecli import BaseCLI
+from lib.cli.medium import Medium
 from lib.common.helpers import generate_name
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -19,7 +20,7 @@ OSES = [
 ]
 
 
-class Medium(BaseCLI):
+class TestMedium(BaseCLI):
 
     def _create_medium(self, name=None, path=None, os_family=None,
                        operating_system_id=None):
@@ -33,9 +34,9 @@ class Medium(BaseCLI):
             'operatingsystem-ids': operating_system_id or "1",
         }
 
-        self.medium.create(args)
+        Medium().create(args)
 
-        self.assertTrue(self.medium.exists(args['name']))
+        self.assertTrue(Medium().exists(args['name']))
 
     def test_create_medium_1(self):
         "Successfully creates a new medium"
@@ -49,11 +50,11 @@ class Medium(BaseCLI):
         name = generate_name(6)
         self._create_medium(name)
 
-        medium = self.medium.exists(name)
+        medium = Medium().exists(name)
 
         args = {
             'id': medium['Id'],
         }
 
-        self.medium.delete(args)
-        self.assertFalse(self.medium.exists(name))
+        Medium().delete(args)
+        self.assertFalse(Medium().exists(name))
