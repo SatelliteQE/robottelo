@@ -39,7 +39,6 @@ class TestSubnet(BaseCLI):
     def test_info(self):
         """
         basic `info` operation test.
-        TODO - FOR DEMO ONLY, NEEDS TO BE REWORKED [gkhachik].
         """
 
         options = {}
@@ -60,7 +59,6 @@ class TestSubnet(BaseCLI):
     def test_list(self):
         """
         basic `list` operation test.
-        TODO - FOR DEMO ONLY, NEEDS TO BE REWORKED [gkhachik].
         """
 
         _ret = Subnet().list({'per-page': '10'})
