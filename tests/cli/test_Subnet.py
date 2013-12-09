@@ -15,16 +15,15 @@ class TestSubnet(BaseCLI):
     """
     Subnet related tests.
     """
+    subnet_192_168_100 = "subnet-192168100"
 
     def _init_once(self):
         """
         a method invoked only once and setup some self.__class__.<properties>
         """
-        self.__class__.subnet_update_ok_name = generate_name(8, 8)
-        self.__class__.subnet_update_ok_network = generate_ipaddr(ip3=True)
-
-        self.subnet.create_minimal(self.subnet_update_ok_name,
-            self.subnet_update_ok_network)  # needs for update DDT tests.
+        # needs for update DDT tests.
+        self.subnet.delete({'name': self.subnet_192_168_100})
+        self.subnet.create_minimal(self.subnet_192_168_100)
 
     @attr('cli', 'subnet')
     def test_create(self):
@@ -80,7 +79,14 @@ class TestSubnet(BaseCLI):
     @attr('cli', 'subnet')
     def test_update_success_ddt(self, option_dict):
         options = {}
-        options['name'] = self.subnet_update_ok_name
+        options['name'] = self.subnet_192_168_100
         for option in option_dict:
             options[option] = option_dict[option]
         self.assertTrue(self.subnet.update(options), "Subnet update - true")
+
+    def test_delete(self):
+        name = generate_name()
+        options = {}
+        options['name'] = name
+        self.assertTrue(self.subnet.create_minimal(name))
+        self.assertTrue(self.subnet.delete(options), "Subnet delete - true")
