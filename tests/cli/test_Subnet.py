@@ -16,6 +16,7 @@ class TestSubnet(BaseCLI):
     """
     Subnet related tests.
     """
+    subnet_192_168_100 = "subnet-192168100"
 
     def _init_once(self):
         """
