@@ -85,6 +85,46 @@ locators = {
     "host.vm_addnic": (
         By.XPATH, "//fieldset[@id='network_interfaces']/a"),
 
+    #Provisioning Templates
+    #Third level UI
+
+    "provision.tab_primary": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'primary')]"),
+    "provision.tab_type": (
+        By.XPATH,
+        "//a[contains(@href,'template_type')]"),
+    "provision.tab_association": (
+        By.XPATH,
+        "//a[contains(@href,'template_associations')]"),
+    "provision.tab_history": (
+        By.XPATH,
+        "//a[contains(@href,'history')]"),
+
+    #provision.primary
+    "provision.template_new": (
+        By.XPATH, "//a[contains(@href, '/config_templates/new')]"),
+    "provision.template_select": (
+        By.XPATH,
+        "//a[contains(@href, 'config_templates') and normalize-space(.)='%s']"), # @IgnorePep8
+    "provision.template_name": (
+        By.ID, "config_template_name"),
+   # "provision.template_template": (
+   #     By.ID, "config_template_template"),
+    "provision.template_template": (
+        By.XPATH, "//input[@id='config_template_template']"),
+
+    #provision.type
+    "provision.template_type": (
+        By.ID, "config_template_template_kind_id"),
+    "provision.template_snippet": (
+        By.ID, "config_template_snippet"),
+
+    #provision.association
+    "provision.associate_os": (
+        By.XPATH,
+        "//label[@class='operatingsystem' and normalize-space(.)='%s']/input[@type='checkbox']"), # @IgnorePep8
+
     # Hostgroups
 
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
