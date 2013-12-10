@@ -199,14 +199,14 @@ class Base():
             "search": "name=\"%s\"" % name,
         }
 
-        _ret = self.list(options)
+        result = self.list(options)
 
-        if _ret['stdout']:
-            _ret = _ret['stdout'][0]
+        if result['stdout']:
+            result = result['stdout'][0]
         else:
-            _ret = []
+            result = []
 
-        return _ret
+        return result
 
     def info(self, options=None):
         """

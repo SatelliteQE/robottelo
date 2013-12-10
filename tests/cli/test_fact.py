@@ -32,8 +32,8 @@ class TestFact(BaseCLI):
             'search': "fact='%s'" % fact,
         }
 
-        _ret = Fact().list(args)
-        stdout = _ret['stdout']
+        result = Fact().list(args)
+        stdout = result['stdout']
 
         self.assertEqual(stdout[0]['Fact'], fact)
 

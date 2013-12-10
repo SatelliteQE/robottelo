@@ -43,5 +43,5 @@ class BaseCLI(unittest.TestCase):
     def setUp(self):
         if not self.__initialized:
             self.__init_once_me()
-            self._init_once()
             self.__class__.__initialized = True
+            self._init_once()
