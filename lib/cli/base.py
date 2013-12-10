@@ -149,7 +149,7 @@ class Base():
 
         return '' if result['stderr'] else result['stdout'][0]
 
-    def execute(self, command, user=None, password=None):
+    def execute(self, command, user=None, password=None, expect_csv=False):
 
         # Dictionary object to hold all artifacts from Paramiko.
         result = {
@@ -163,7 +163,10 @@ class Base():
         if password is None:
             password = self.katello_passwd
 
-        shell_cmd = "LANG=%s hammer -u %s -p %s --csv %s"
+        output_csv = ""
+        if expect_csv:
+            output_csv = " --output csv"
+        shell_cmd = "LANG=%s hammer -u %s -p %s" + output_csv + " %s"
 
         lock = Lock()
         with lock:
@@ -215,7 +218,8 @@ class Base():
         if options is None:
             options = {}
 
-        result = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options),
+                              expect_csv=True)
         stdout = result['stdout']
 
         return csv_to_dictionary(stdout) if stdout else {}
@@ -230,7 +234,8 @@ class Base():
             options = {}
             options['per-page'] = 10000
 
-        stdout = self.execute(self._construct_command(options))['stdout']
+        stdout = self.execute(self._construct_command(options),
+                              expect_csv=True)['stdout']
         return csv_to_dictionary(stdout) if stdout else {}
 
     def remove_operating_system(self, options=None):

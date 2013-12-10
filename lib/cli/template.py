@@ -18,7 +18,7 @@ class Template(Base):
 
         cmd = "template kinds"
 
-        stdout, stderr = self.execute(cmd)
+        stdout, stderr = self.execute(cmd, expect_csv=True)
 
         kinds = []
         if stdout:
