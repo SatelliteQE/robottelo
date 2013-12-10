@@ -8,7 +8,7 @@ from lib.common.helpers import generate_name
 from lib.common.helpers import generate_string
 
 
-class UserUser(BaseCLI):
+class TestUser(BaseCLI):
 
     def _create_user(self, login=None, fname=None, lname=None,
                      email=None, admin=None, passwd1=None, auth_id=1):

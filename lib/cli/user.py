@@ -19,9 +19,11 @@ class User(Base):
             "search": "login='%s'" % login,
         }
 
-        _ret = self.list(options)
+        result = self.list(options)
 
-        if _ret:
-            _ret = _ret[0]
+        if result['stdout']:
+            result = result['stdout'][0]
+        else:
+            result = []
 
-        return _ret
+        return result

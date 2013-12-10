@@ -9,6 +9,8 @@ from lib.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 
+import unittest
+
 
 @ddt
 class TestFact(BaseCLI):
@@ -16,6 +18,7 @@ class TestFact(BaseCLI):
     Fact related tests.
     """
 
+    @unittest.skip("Need to create facts before we can check them.")
     @data(
         'uptime', 'uptime_days', 'uptime_seconds', 'memoryfree', 'ipaddress',
     )
@@ -29,9 +32,10 @@ class TestFact(BaseCLI):
             'search': "fact='%s'" % fact,
         }
 
-        _ret = Fact().list(args)
+        result = Fact().list(args)
+        stdout = result['stdout']
 
-        self.assertEqual(_ret[0]['Fact'], fact)
+        self.assertEqual(stdout[0]['Fact'], fact)
 
     @data(
         generate_name(), generate_name(), generate_name(), generate_name(),
@@ -46,4 +50,4 @@ class TestFact(BaseCLI):
             'search': "fact='%s'" % fact,
         }
         self.assertEqual(
-            Fact().list(args), [], "No records should be returned")
+            Fact().list(args)['stdout'], [], "No records should be returned")
