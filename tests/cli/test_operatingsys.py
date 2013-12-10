@@ -13,9 +13,9 @@ class TestOperatingSys(BaseCLI):
 
     def _create_os(self, name=None, major=None, minor=None):
 
-        name = name or generate_name()
-        major = major or random.randint(0, 10)
-        minor = minor or random.randint(0, 10)
+        name = name if name else generate_name()
+        major = major if major else random.randint(0, 10)
+        minor = minor if minor else random.randint(0, 10)
 
         args = {
             'name': name,

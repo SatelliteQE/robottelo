@@ -72,7 +72,7 @@ class TestTemplate(BaseCLI):
         }
 
         template_content = Template().dump(args)
-        self.assertTrue(content in template_content)
+        self.assertTrue(content in template_content['stdout'][0])
 
     def test_delete_medium_1(self):
         "Creates and immediately deletes template."
