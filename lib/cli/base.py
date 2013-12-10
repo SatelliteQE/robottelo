@@ -147,9 +147,9 @@ class Base():
 
         result = self.execute(self._construct_command(options))
 
-        return result
+        return '' if result['stderr'] else result['stdout'][0]
 
-    def execute(self, command, user=None, password=None):
+    def execute(self, command, user=None, password=None, expect_csv=False):
 
         # Dictionary object to hold all artifacts from Paramiko.
         result = {
@@ -163,7 +163,10 @@ class Base():
         if password is None:
             password = self.katello_passwd
 
-        shell_cmd = "LANG=%s hammer -u %s -p %s --csv %s"
+        output_csv = ""
+        if expect_csv:
+            output_csv = " --output csv"
+        shell_cmd = "LANG=%s hammer -u %s -p %s" + output_csv + " %s"
 
         lock = Lock()
         with lock:
@@ -196,15 +199,13 @@ class Base():
         """
 
         options = {
-            "search": "name=\"%s\"" % name,
+            "search": "name='%s'" % name,
         }
 
         _ret = self.list(options)
 
-        if _ret['stdout']:
-            _ret = _ret['stdout'][0]
-        else:
-            _ret = []
+        if _ret:
+            _ret = _ret[0]
 
         return _ret
 
@@ -217,12 +218,11 @@ class Base():
         if options is None:
             options = {}
 
-        result = self.execute(self._construct_command(options))
-        # Converting stdout to a list of dictionaries
+        result = self.execute(self._construct_command(options),
+                              expect_csv=True)
         stdout = result['stdout']
-        result['stdout'] = csv_to_dictionary(stdout) if stdout else {}
 
-        return result
+        return csv_to_dictionary(stdout) if stdout else {}
 
     def list(self, options=None):
         """
@@ -234,11 +234,9 @@ class Base():
             options = {}
             options['per-page'] = 10000
 
-        result = self.execute(self._construct_command(options))
-        stdout = result['stdout']
-        result['stdout'] = csv_to_dictionary(stdout) if stdout else {}
-
-        return result
+        stdout = self.execute(self._construct_command(options),
+                              expect_csv=True)['stdout']
+        return csv_to_dictionary(stdout) if stdout else {}
 
     def remove_operating_system(self, options=None):
         """
@@ -270,11 +268,8 @@ class Base():
         tail = ""
 
         for key, val in options.items():
-            if val is not None:
-                if isinstance(val, str):
-                    tail += " --%s='%s'" % (key, val)
-                else:
-                    tail += " --%s=%s" % (key, val)
+            if val:
+                tail += " --%s='%s'" % (key, val)
             else:
                 tail += " --%s" % key
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()

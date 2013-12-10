@@ -55,7 +55,7 @@ class HostGroup(Base):
         if per_page:
             cmd += " --per-page='%s'" % per_page
 
-        stdout, stderr = self.execute(cmd)
+        stdout, stderr = self.execute(cmd, expect_csv=True)
 
         puppet_classes = []
 

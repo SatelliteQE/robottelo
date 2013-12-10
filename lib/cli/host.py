@@ -46,7 +46,7 @@ class Host(Base):
         if per_page:
             cmd += " --per-page='%s'" % per_page
 
-        stdout, stderr = self.execute(cmd)
+        stdout, stderr = self.execute(cmd, expect_csv=True)
         facts = []
         if stdout:
             facts = csv_to_dictionary(stdout)
@@ -80,7 +80,7 @@ class Host(Base):
         if per_page:
             cmd += " --per-page='%s'" % per_page
 
-        stdout, stderr = self.execute(cmd)
+        stdout, stderr = self.execute(cmd, expect_csv=True)
         puppet_classes = []
         if stdout:
             puppet_classes = csv_to_dictionary(stdout)
@@ -118,7 +118,7 @@ class Host(Base):
         if per_page:
             cmd += " --per-page='%s'" % per_page
 
-        stdout, stderr = self.execute(cmd)
+        stdout, stderr = self.execute(cmd, expect_csv=True)
         reports = []
         if stdout:
             reports = csv_to_dictionary(stdout)
