@@ -50,9 +50,9 @@ class TestSubnet(BaseCLI):
 
         _ret = Subnet().info({'name': options['name']})
 
-        self.assertEquals(len(_ret), 1,
+        self.assertEquals(len(_ret['stdout']), 1,
                           "Subnet info - returns 1 record")
-        self.assertEquals(_ret[0]['Name'], options['name'],
+        self.assertEquals(_ret['stdout'][0]['Name'], options['name'],
                           "Subnet info - check name")
 
     @attr('cli', 'subnet')
@@ -62,7 +62,7 @@ class TestSubnet(BaseCLI):
         """
 
         _ret = Subnet().list({'per-page': '10'})
-        self.assertGreater(len(_ret), 0,
+        self.assertGreater(len(_ret['stdout']), 0,
                            "Subnet list - returns > 0 records")
 
     @data(

@@ -147,7 +147,7 @@ class Base():
 
         result = self.execute(self._construct_command(options))
 
-        return '' if result['stderr'] else result['stdout'][0]
+        return result
 
     def execute(self, command, user=None, password=None):
 
@@ -196,13 +196,15 @@ class Base():
         """
 
         options = {
-            "search": "name='%s'" % name,
+            "search": "name=\"%s\"" % name,
         }
 
         _ret = self.list(options)
 
-        if _ret:
-            _ret = _ret[0]
+        if _ret['stdout']:
+            _ret = _ret['stdout'][0]
+        else:
+            _ret = []
 
         return _ret
 
@@ -216,9 +218,11 @@ class Base():
             options = {}
 
         result = self.execute(self._construct_command(options))
+        # Converting stdout to a list of dictionaries
         stdout = result['stdout']
+        result['stdout'] = csv_to_dictionary(stdout) if stdout else {}
 
-        return csv_to_dictionary(stdout) if stdout else {}
+        return result
 
     def list(self, options=None):
         """
@@ -230,8 +234,11 @@ class Base():
             options = {}
             options['per-page'] = 10000
 
-        stdout = self.execute(self._construct_command(options))['stdout']
-        return csv_to_dictionary(stdout) if stdout else {}
+        result = self.execute(self._construct_command(options))
+        stdout = result['stdout']
+        result['stdout'] = csv_to_dictionary(stdout) if stdout else {}
+
+        return result
 
     def remove_operating_system(self, options=None):
         """
@@ -263,8 +270,11 @@ class Base():
         tail = ""
 
         for key, val in options.items():
-            if val:
-                tail += " --%s='%s'" % (key, val)
+            if val is not None:
+                if isinstance(val, str):
+                    tail += " --%s='%s'" % (key, val)
+                else:
+                    tail += " --%s=%s" % (key, val)
             else:
                 tail += " --%s" % key
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
