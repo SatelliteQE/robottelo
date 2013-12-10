@@ -2,6 +2,21 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Usage:
+    hammer subnet [OPTIONS] SUBCOMMAND [ARG] ...
+
+Parameters:
+    SUBCOMMAND                    subcommand
+    [ARG] ...                     subcommand arguments
+
+Subcommands:
+    create                        Create a subnet
+    info                          Show a subnet.
+    list                          List of subnets
+    update                        Update a subnet
+    delete                        Delete a subnet
+"""
 from ddt import data
 from ddt import ddt
 from lib.cli.subnet import Subnet
@@ -14,37 +29,26 @@ from tests.cli.basecli import BaseCLI
 @ddt
 class TestSubnet(BaseCLI):
     """
-    Subnet related tests.
+    Subnet CLI tests.
     """
     subnet_192_168_100 = "subnet-192168100"
 
     def _init_once(self):
-        """
-        a method invoked only once and setup some self.__class__.<properties>
-        """
-        self.__class__.subnet_update_ok_name = generate_name(8, 8)
-        self.__class__.subnet_update_ok_network = generate_ipaddr(ip3=True)
-
-        Subnet().create_minimal(
-            self.subnet_update_ok_name,
-            self.subnet_update_ok_network,
-        )  # needs for update DDT tests.
+        """ a method invoked only once """
+        #  needs for update DDT tests.
+        Subnet().delete({'name': self.subnet_192_168_100})
+        Subnet().create_minimal(self.subnet_192_168_100)
 
     @attr('cli', 'subnet')
     def test_create(self):
-        """
-        create basic operation of subnet with minimal parameters required.
-        """
-
-        self.assertTrue(Subnet().create_minimal(),
-                        'Subnet created - no error')
+        """ `subnet create` basic test (minimal params required) """
+        result = Subnet().create_minimal()
+        self.assertTrue(result['retcode'] == 0,
+                        "Subnet create - exit code %d" % result['retcode'])
 
     @attr('cli', 'subnet')
     def test_info(self):
-        """
-        basic `info` operation test.
-        """
-
+        """`subnet info` basic test """
         options = {}
         options['name'] = generate_name(8, 8)
         options['network'] = generate_ipaddr(ip3=True)
@@ -52,21 +56,18 @@ class TestSubnet(BaseCLI):
 
         Subnet().create(options)
 
-        _ret = Subnet().info({'name': options['name']})
+        result = Subnet().info({'name': options['name']})
 
-        self.assertEquals(len(_ret['stdout']), 1,
+        self.assertEquals(len(result), 1,
                           "Subnet info - returns 1 record")
-        self.assertEquals(_ret['stdout'][0]['Name'], options['name'],
+        self.assertEquals(result[0]['Name'], options['name'],
                           "Subnet info - check name")
 
     @attr('cli', 'subnet')
     def test_list(self):
-        """
-        basic `list` operation test.
-        """
-
-        _ret = Subnet().list({'per-page': '10'})
-        self.assertGreater(len(_ret['stdout']), 0,
+        """ `subnet list` basic test """
+        result = Subnet().list({'per-page': '10'})
+        self.assertGreater(len(result), 0,
                            "Subnet list - returns > 0 records")
 
     @data(
@@ -84,8 +85,24 @@ class TestSubnet(BaseCLI):
     )
     @attr('cli', 'subnet')
     def test_update_success_ddt(self, option_dict):
+        """ `subnet update` basic test (different options) """
         options = {}
-        options['name'] = self.subnet_update_ok_name
+        options['name'] = self.subnet_192_168_100
         for option in option_dict:
             options[option] = option_dict[option]
-        self.assertTrue(Subnet().update(options), "Subnet update - true")
+        result = Subnet().update(options)
+        self.assertTrue(result['retcode'] == 0,
+                        "Subnet update - exit code %d" % result['retcode'])
+
+    @attr('cli', 'subnet')
+    def test_delete(self):
+        """ `subnet delete` basic test """
+        name = generate_name()
+        options = {}
+        options['name'] = name
+        result = Subnet().create_minimal(name)
+        self.assertTrue(result['retcode'] == 0,
+                        "Subnet create - exit code %d" % result['retcode'])
+        result = Subnet().delete(options)
+        self.assertTrue(result['retcode'] == 0,
+                        "Subnet delete - exit code %d" % result['retcode'])
