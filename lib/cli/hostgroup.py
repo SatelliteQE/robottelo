@@ -11,54 +11,100 @@ class HostGroup(Base):
     def __init__(self):
         self.command_base = "hostgroup"
 
-    def delete_parameter(self, hostgroup_id, name):
+    def delete_parameter(self, options=None):
         """
         Delete parameter for a hostgroup.
+
+        Usage:
+        hammer hostgroup delete_parameter [OPTIONS]
+
+        Options:
+            --hostgroup-id HOSTGROUP_ID   id of the hostgroup the
+            parameter is being deleted for
+            -h, --help                    print help
+            --name NAME                   parameter name
+
         """
-        cmd = "hostgroup delete_parameter --hostgroup-id='%s' --name='%s'" % \
-              (hostgroup_id, name)
-        stdout, stderr = self.execute(cmd)
 
-        return False if stderr else True
+        self.command_sub = "delete_parameter"
 
-    def set_parameter(self, hostgroup_id, name, value):
-        """
-        Create or update parameter for a hostgroup.
-        """
-        cmd = "hostgroup set_parameter --hostgroup-id='%s'" % hostgroup_id
-        cmd += " --name='%s' --value='%s'" % (name, value)
+        result = self.execute(self._construct_command(options))
 
-        stdout, stderr = self.execute(cmd)
+        return False if result.stderr else True
 
-        return False if stderr else True
-
-    def puppet_classes(self, hg_id, host_id=None, hostgroup_id=None,
-                       environment_id=None, search=None, order=None, page=None,
-                       per_page=None):
+    def puppet_classes(self, options=None):
         """
         List all puppetclasses.
+
+        Usage:
+            hammer hostgroup puppet_classes [OPTIONS]
+
+        Options:
+            --host-id HOST_ID             id of nested host
+            --hostgroup-id HOSTGROUP_ID   id of nested hostgroup
+            --environment-id ENVIRONMENT_ID id of nested environment
+            --search SEARCH               Filter results
+            --order ORDER                 Sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --id ID                       resource id
+            -h, --help                    print help
         """
-        cmd = "hostgroup puppet_classes --id='%s'" % hg_id
 
-        if host_id:
-            cmd += " --host-id='%s'" % host_id
-        if hostgroup_id:
-            cmd += " --hostgroup-id='%s'" % hostgroup_id
-        if environment_id:
-            cmd += " --environment-id='%s'" % environment_id
-        if search:
-            cmd += " --search='%s'" % search
-        if order:
-            cmd += " --order='%s'" % order
-        if page:
-            cmd += " --page='%s'" % page
-        if per_page:
-            cmd += " --per-page='%s'" % per_page
+        self.command_sub = "puppet_classes"
 
-        stdout, stderr = self.execute(cmd, expect_csv=True)
+        result = self.execute(self._construct_command(options))
 
         puppet_classes = []
 
-        if stdout:
-            puppet_classes = csv_to_dictionary(stdout)
+        if result.stdout:
+            puppet_classes = csv_to_dictionary(result.stdout)
+
         return puppet_classes
+
+    def sc_params(self, options=None):
+        """
+        List all smart class parameters
+
+        Usage:
+            hammer hostgroup sc_params [OPTIONS]
+
+        Options:
+            --search SEARCH               Filter results
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --id, --name HOSTGROUP_ID     hostgroup id/name
+            -h, --help                    print help
+        """
+
+        self.command_sub = "sc_params"
+
+        result = self.execute(self._construct_command(options))
+
+        parameters = []
+
+        if result.stdout:
+            parameters = csv_to_dictionary(result.stdout)
+
+        return parameters
+
+    def set_parameter(self, options=None):
+        """
+        Create or update parameter for a hostgroup.
+
+        Usage:
+            hammer hostgroup set_parameter [OPTIONS]
+
+        Options:
+            --hostgroup-id HOSTGROUP_ID   id of the hostgroup the parameter is being set for
+            -h, --help                    print help
+            --name NAME                   parameter name
+            --value VALUE                 parameter value
+        """
+
+        self.command_sub = "set_parameter"
+
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
