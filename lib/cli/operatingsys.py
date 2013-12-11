@@ -17,9 +17,9 @@ class OperatingSys(Base):
 
         self.command_sub = "add_architecture"
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def add_configtemplate(self, options=None):
         """
@@ -28,9 +28,9 @@ class OperatingSys(Base):
 
         self.command_sub = "add_configtemplate "
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def add_ptable(self, options=None):
         """
@@ -39,9 +39,9 @@ class OperatingSys(Base):
 
         self.command_sub = "add_ptable"
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def delete_parameter(self, options=None):
         """
@@ -50,9 +50,9 @@ class OperatingSys(Base):
 
         self.command_sub = "delete_parameter"
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def remove_architecture(self, options=None):
         """
@@ -61,9 +61,9 @@ class OperatingSys(Base):
 
         self.command_sub = "remove_architecture"
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def remove_configtemplate(self, options=None):
         """
@@ -72,9 +72,9 @@ class OperatingSys(Base):
 
         self.command_sub = "remove_configtemplate"
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def remove_ptable(self, options=None):
         """
@@ -83,9 +83,9 @@ class OperatingSys(Base):
 
         self.command_sub = "os remove_ptable "
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
 
     def set_parameter(self, options=None):
         """
@@ -94,6 +94,6 @@ class OperatingSys(Base):
 
         self.command_sub = "set_parameter"
 
-        (stdout, stderr) = self.execute(self._construct_command(options))
+        result = self.execute(self._construct_command(options))
 
-        return False if stderr else True
+        return False if result.get_stderr() else True
