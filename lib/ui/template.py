@@ -39,7 +39,7 @@ class Template(Base):
             type_ele = self.find_element(locators["provision.template_type"])
             Select(type_ele).select_by_visible_text(template_type)
         if os_list is not None:
-            self.wait_until_element(locators["provision.tab_association"]).click() # @IgnorePep8
+            self.wait_until_element(locators["provision.tab_association"]).click()  # @IgnorePep8
             for os in os_list:
                 strategy = locators["provision.associate_os"][0]
                 value = locators["provision.associate_os"][1]
