@@ -65,7 +65,7 @@ class TestGlobalParameter(BaseCLI):
         self.assertEquals(result['retcode'], 0,
                           "GlobalParameter set - exit code %d" %
                           result['retcode'])
-        result = GlobalParameter.delete({'name': name})
+        result = GlobalParameter().delete({'name': name})
         self.assertEquals(result['retcode'], 0,
                           "GlobalParameter delete - exit code %d" %
                           result['retcode'])
