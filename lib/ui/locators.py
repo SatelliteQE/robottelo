@@ -85,6 +85,44 @@ locators = {
     "host.vm_addnic": (
         By.XPATH, "//fieldset[@id='network_interfaces']/a"),
 
+    #Provisioning Templates
+    #Third level UI
+
+    "provision.tab_primary": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'primary')]"),
+    "provision.tab_type": (
+        By.XPATH,
+        "//a[contains(@href,'template_type')]"),
+    "provision.tab_association": (
+        By.XPATH,
+        "//a[contains(@href,'template_associations')]"),
+    "provision.tab_history": (
+        By.XPATH,
+        "//a[contains(@href,'history')]"),
+
+    #provision.primary
+    "provision.template_new": (
+        By.XPATH, "//a[contains(@href, '/config_templates/new')]"),
+    "provision.template_select": (
+        By.XPATH,
+        "//a[contains(@href, 'config_templates') and normalize-space(.)='%s']"),  # @IgnorePep8
+    "provision.template_name": (
+        By.ID, "config_template_name"),
+    "provision.template_template": (
+        By.XPATH, "//input[@id='config_template_template']"),
+
+    #provision.type
+    "provision.template_type": (
+        By.ID, "config_template_template_kind_id"),
+    "provision.template_snippet": (
+        By.ID, "config_template_snippet"),
+
+    #provision.association
+    "provision.associate_os": (
+        By.XPATH,
+        "//label[@class='operatingsystem' and normalize-space(.)='%s']/input[@type='checkbox']"),  # @IgnorePep8
+
     # Hostgroups
 
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
@@ -94,7 +132,7 @@ locators = {
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.dropdown": (
         By.XPATH,
-        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"), # @IgnorePep8
+        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"),  # @IgnorePep8
     "hostgroups.delete": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(@class,'delete')]"),
@@ -195,10 +233,10 @@ locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_hosts']"),
     "menu.operating_systems": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),  # @IgnorePep8
+        "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),   # @IgnorePep8
     "menu.provisioning_templates": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_config_templates']"),  # @IgnorePep8
+        "//div[contains(@style,'static')]//a[@id='menu_item_config_templates']"),   # @IgnorePep8
     "menu.partition_tables": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_ptables']"),
