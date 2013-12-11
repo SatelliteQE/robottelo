@@ -103,7 +103,7 @@ class BaseUI(unittest.TestCase):
                 pass
         else:
             file_name = os.path.join(SCREENSHOTS_DIR, file_name)
-        if not isinstance(self.browser, webdriver.Remote):
+        if not "remote" in str(type(self.browser)):
             self.browser.save_screenshot(file_name)
 
     def run(self, result=None):
