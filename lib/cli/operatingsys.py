@@ -17,8 +17,6 @@ class OperatingSys(Base):
 
         self.command_sub = "add_architecture"
 
-        options = options or {}
-
         (stdout, stderr) = self.execute(self._construct_command(options))
 
         return False if stderr else True
@@ -29,8 +27,6 @@ class OperatingSys(Base):
         """
 
         self.command_sub = "add_configtemplate "
-
-        options = options or {}
 
         (stdout, stderr) = self.execute(self._construct_command(options))
 
@@ -43,8 +39,6 @@ class OperatingSys(Base):
 
         self.command_sub = "add_ptable"
 
-        options = options or {}
-
         (stdout, stderr) = self.execute(self._construct_command(options))
 
         return False if stderr else True
@@ -55,8 +49,6 @@ class OperatingSys(Base):
         """
 
         self.command_sub = "delete_parameter"
-
-        options = options or {}
 
         (stdout, stderr) = self.execute(self._construct_command(options))
 
@@ -69,8 +61,6 @@ class OperatingSys(Base):
 
         self.command_sub = "remove_architecture"
 
-        options = options or {}
-
         (stdout, stderr) = self.execute(self._construct_command(options))
 
         return False if stderr else True
@@ -81,8 +71,6 @@ class OperatingSys(Base):
         """
 
         self.command_sub = "remove_configtemplate"
-
-        options = options or {}
 
         (stdout, stderr) = self.execute(self._construct_command(options))
 
@@ -95,8 +83,6 @@ class OperatingSys(Base):
 
         self.command_sub = "os remove_ptable "
 
-        options = options or {}
-
         (stdout, stderr) = self.execute(self._construct_command(options))
 
         return False if stderr else True
@@ -107,8 +93,6 @@ class OperatingSys(Base):
         """
 
         self.command_sub = "set_parameter"
-
-        options = options or {}
 
         (stdout, stderr) = self.execute(self._construct_command(options))
 

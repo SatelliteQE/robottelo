@@ -17,8 +17,6 @@ class Domain(Base):
 
         self.command_sub = "delete_parameter"
 
-        options = options or {}
-
         (stdout, stderr) = self.execute(self._construct_command(options))
 
         return False if stderr else True
@@ -29,8 +27,6 @@ class Domain(Base):
         """
 
         self.command_sub = "set_parameter"
-
-        options = options or {}
 
         (stdout, stderr) = self.execute(self._construct_command(options))
 

@@ -104,8 +104,6 @@ class Base():
 
         self.command_sub = "add_operatingsystem"
 
-        options = options or {}
-
         result = self.execute(self._construct_command(options))
 
         return result
@@ -116,8 +114,6 @@ class Base():
         """
 
         self.command_sub = "create"
-
-        options = options or {}
 
         result = self.execute(self._construct_command(options))
 
@@ -130,8 +126,6 @@ class Base():
 
         self.command_sub = "delete"
 
-        options = options or {}
-
         result = self.execute(self._construct_command(options))
 
         return result
@@ -142,8 +136,6 @@ class Base():
         """
 
         self.command_sub = "dump"
-
-        options = options or {}
 
         result = self.execute(self._construct_command(options))
 
@@ -214,8 +206,6 @@ class Base():
         @param options: ID (sometimes name or id).
         """
         self.command_sub = "info"
-        if options is None:
-            options = {}
 
         result = self.execute(self._construct_command(options))
         # Converting stdout to a list of dictionaries
@@ -247,8 +237,6 @@ class Base():
 
         self.command_sub = "remove_operatingsystem"
 
-        options = options or {}
-
         result = self.execute(self._construct_command(options))
 
         return result
@@ -260,14 +248,14 @@ class Base():
 
         self.command_sub = "update"
 
-        options = options or {}
-
         result = self.execute(self._construct_command(options))
 
         return result
 
-    def _construct_command(self, options={}):
+    def _construct_command(self, options=None):
         tail = ""
+
+        options = options or {}
 
         for key, val in options.items():
             if val is not None:
