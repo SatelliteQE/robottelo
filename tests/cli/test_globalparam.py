@@ -27,9 +27,8 @@ class TestGlobalParameter(BaseCLI):
         name = "opt-%s" % generate_name(8, 8)
         value = "val-%s" % generate_name(12, 12) + " " + generate_name()
         result = GlobalParameter().set({
-                                        'name': name,
-                                        'value': value
-                                        })
+            'name': name,
+            'value': value})
         self.assertEquals(result['retcode'], 0,
                           "GlobalParameter set - exit code %d" %
                           result['retcode'])
@@ -39,9 +38,8 @@ class TestGlobalParameter(BaseCLI):
         name = "opt-%s" % generate_name(8, 8)
         value = "val-%s" % generate_name(12, 12) + " " + generate_name()
         result = GlobalParameter().set({
-                                        'name': name,
-                                        'value': value
-                                        })
+            'name': name,
+            'value': value})
         self.assertEquals(result['retcode'], 0,
                           "GlobalParameter set - exit code %d" %
                           result['retcode'])
@@ -59,9 +57,8 @@ class TestGlobalParameter(BaseCLI):
         name = "opt-%s" % generate_name(8, 8)
         value = "val-%s" % generate_name(12, 12) + " " + generate_name()
         result = GlobalParameter().set({
-                                        'name': name,
-                                        'value': value
-                                        })
+            'name': name,
+            'value': value})
         self.assertEquals(result['retcode'], 0,
                           "GlobalParameter set - exit code %d" %
                           result['retcode'])
@@ -72,5 +69,5 @@ class TestGlobalParameter(BaseCLI):
         sleep_for_seconds(5)
         result = GlobalParameter().list({'search': name})
         self.assertNotEquals(result['retcode'], 0,
-                          "GlobalParameter list - exit code is not 0 but %d" %
-                          result['retcode'])
+                             "GlobalParameter list - exit code is %d" %
+                             result['retcode'])
