@@ -2,20 +2,21 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+from lib.cli.base import Base
 from lib.cli.user import User
 from lib.common.helpers import generate_name
 
 
-def make_user(override_args=None):
+def make_user(self, override_args=None):
     """
     Override the parameters login, firstname, lastname, mail, admin, password,
     auth-source-id by passing them as a dictionary object from the caller
     """
-    login = override_args['login'] or generate_name(6)
+    login = generate_name(6)
 
     #Assigning default values for attributes
     args = {
-            'login': generate_name(6),
+            'login': login,
             'firstname': generate_name(),
             'lastname': generate_name(),
             'mail': "%s@example.com" % login,
@@ -25,12 +26,19 @@ def make_user(override_args=None):
         }
 
     #Update the dict with user overrides if any
-    if override_args is not None:
-        args.update(override_args)
-
-    User().create(args)
-
-    if User().exists(login):
-        return args
-    else:
-        return None
+    try:
+        if override_args:
+            args.update(override_args)
+            result = User().create(args)
+            # Check 1 - retcode
+            if result['retcode'] is 0:
+                # Check 2 - checking .exists()
+                if User().exists(login):
+                    return args
+                else:
+                    raise Exception("Failed to create User")
+            else:
+                raise Exception("Failed to create User")
+    except Exception, e:
+            self.logger.debug("Failed to create User. ERROR: %s" % str(e))
+            return None
