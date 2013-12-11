@@ -70,11 +70,16 @@ def generate_ipaddr(ip3=False):
     return ipaddr if not ip3 else ipaddr + ".0"
 
 
-def generate_mac():
+def generate_mac(delimiter=":"):
     chars = ['a', 'b', 'c', 'd', 'e', 'f',
              '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-    mac = ":".join(
+    # We'll eventually need to be able to test against all valid
+    # (and some invalid!) delimiters, so might as well make it
+    # parameterized.  Valid delimiters include (but may not be
+    # limited to):  ':', "-", "None"
+
+    mac = delimiter.join(
         chars[random.randrange(0, len(chars), 1)]+chars[random.randrange(
             0, len(chars), 1)] for x in range(6))
 

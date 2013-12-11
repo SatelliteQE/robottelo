@@ -14,6 +14,9 @@ class TestHost(BaseCLI):
 
     @unittest.skip("Test needs to create required objects.")
     def test_create_host(self):
+        # Change delimiter to whatever you want, of course
+        # in other tests
+        mac_addr = generate_mac(":")
         "Create new host"
         # TODO need to create env, architecture, domain etc.
         args = {
@@ -24,7 +27,6 @@ class TestHost(BaseCLI):
             "puppet-proxy-id": 1,
             "operatingsystem-id": 1,
             "partition-table-id": 1,
-            "mac": generate_mac()
+            "mac": mac_addr
         }
-
         Host().create(args)
