@@ -24,7 +24,7 @@ class TestOperatingSys(BaseCLI):
         }
 
         OperatingSys().create(args)
-        self.assertTrue(OperatingSys().exists(args['name']))
+        self.assertTrue(OperatingSys().exists(('name', args['name'])))
 
     def test_create_os_1(self):
         "Successfully creates a new OS."

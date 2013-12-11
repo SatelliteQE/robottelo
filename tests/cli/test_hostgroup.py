@@ -17,4 +17,4 @@ class TestHostGroup(BaseCLI):
         }
 
         HostGroup().create(args)
-        self.assertTrue(HostGroup().exists(args['name']))
+        self.assertTrue(HostGroup().exists(('name', args['name'])))
