@@ -35,6 +35,35 @@ locators = {
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
 
+    #Compute Resource
+
+    "resource.new": (
+        By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
+    "resource.name": (By.ID, "compute_resource_name"),
+    "resource.provider_type": (By.ID, "compute_resource_provider"),
+    "resource.description": (By.ID, "compute_resource_description"),
+    "resource.test_connection": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
+    "resource.user": (By.ID, "compute_resource_user"),
+    "resource.password": (By.ID, "compute_resource_password"),
+    "resource.region": (By.ID, "compute_resource_region"),
+    "resource.select_name": (
+        By.XPATH,
+        "//a[contains(@href,'compute_resources') and normalize-space(.)='%s']"),  # @IgnorePep8
+    "resource.dropdown": (By.XPATH, "//a[contains(@href,'%s')]/../../a"),
+    "resource.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    #resource - libvirt
+    "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
+    "resource.libvirt_console_passwd": (
+        By.ID, "compute_resource_set_console_password"),
+
+    #resource - openstack
+    "resource.rhos_tenant": (By.ID, "compute_resource_tenant"),
+
     #Host
     #Third level UI
 
@@ -94,7 +123,7 @@ locators = {
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.dropdown": (
         By.XPATH,
-        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"), # @IgnorePep8
+        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"),  # @IgnorePep8
     "hostgroups.delete": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(@class,'delete')]"),

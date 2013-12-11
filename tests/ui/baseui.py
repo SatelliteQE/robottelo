@@ -19,6 +19,7 @@ from lib.ui.product import Product
 from lib.ui.user import User
 from lib.ui.hostgroup import Hostgroup
 from lib.ui.subnet import Subnet
+from lib.ui.compute_resource import ComputeResource
 from selenium import webdriver
 from lib.common import conf
 
@@ -86,6 +87,7 @@ class BaseUI(unittest.TestCase):
         self.hostgroup = Hostgroup(self.browser)
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
+        self.compute_resource = ComputeResource(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
         """
