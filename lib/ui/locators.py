@@ -106,7 +106,7 @@ locators = {
         By.XPATH, "//a[contains(@href, '/config_templates/new')]"),
     "provision.template_select": (
         By.XPATH,
-        "//a[contains(@href, 'config_templates') and normalize-space(.)='%s']"), # @IgnorePep8
+        "//a[contains(@href, 'config_templates') and normalize-space(.)='%s']"),  # @IgnorePep8
     "provision.template_name": (
         By.ID, "config_template_name"),
     "provision.template_template": (
