@@ -19,7 +19,7 @@ class Domain(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def set_parameter(self, options=None):
         """
@@ -30,4 +30,4 @@ class Domain(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True

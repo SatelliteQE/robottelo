@@ -16,29 +16,32 @@ except ImportError:
     sys.exit(-1)
 
 
-class SSHCommandResult():
+class SSHCommandResult(object):
     """
     Structure that returns in all Base commands results.
     """
 
     def __init__(self, stdout=None, stderr=None,
                  return_code=0, transform_csv=False):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.return_code = return_code
-        self.transform_csv = transform_csv
+        self.__stdout = stdout
+        self.__stderr = stderr
+        self.__return_code = return_code
+        self.__transform_csv = transform_csv
         #  Does not make sense to return suspicious CSV if ($? <> 0)
-        if transform_csv and self.return_code == 0:
-            self.stdout = csv_to_dictionary(stdout) if stdout else {}
+        if transform_csv and self.__return_code == 0:
+            self.__stdout = csv_to_dictionary(stdout) if stdout else {}
 
-    def get_stdout(self):
-        return self.stdout
+    @property
+    def stdout(self):
+        return self.__stdout
 
-    def get_stderr(self):
-        return self.stderr
+    @property
+    def stderr(self):
+        return self.__stderr
 
-    def get_return_code(self):
-        return self.return_code
+    @property
+    def return_code(self):
+        return self.__return_code
 
 
 class Base():
@@ -218,8 +221,8 @@ class Base():
 
         result_list = self.list(options)
 
-        if result_list.get_stdout():
-            result = result_list.get_stdout()[0]
+        if result_list.stdout:
+            result = result_list.stdout[0]
         else:
             result = []
 
