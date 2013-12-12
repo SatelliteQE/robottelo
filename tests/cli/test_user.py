@@ -24,9 +24,9 @@ class TestUser(BaseCLI):
         }
 
         ret = User().create(args)
-        self.assertTrue(User().exists(args['login']))
+        self.assertTrue(User().exists(('login', args['login'])))
 
-        return ret['retcode']
+        return ret.return_code
 
     def test_create_user_1(self):
         "Successfully creates a new user"
@@ -42,15 +42,15 @@ class TestUser(BaseCLI):
         login = generate_name(6)
         self._create_user(login=login, passwd1=password)
 
-        user = User().exists(login)
+        user = User().exists(('login', login))
 
         args = {
             'id': user['Id'],
         }
 
         ret = User().delete(args)
-        self.assertFalse(User().exists(login))
-        self.assertEqual(ret['retcode'], 0)
+        self.assertFalse(User().exists(('login', login)))
+        self.assertEqual(ret.return_code, 0)
 
     def test_create_user_utf8(self):
         "Create utf8 user"

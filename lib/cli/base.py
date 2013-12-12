@@ -16,6 +16,34 @@ except ImportError:
     sys.exit(-1)
 
 
+class SSHCommandResult(object):
+    """
+    Structure that returns in all Base commands results.
+    """
+
+    def __init__(self, stdout=None, stderr=None,
+                 return_code=0, transform_csv=False):
+        self.__stdout = stdout
+        self.__stderr = stderr
+        self.__return_code = return_code
+        self.__transform_csv = transform_csv
+        #  Does not make sense to return suspicious CSV if ($? <> 0)
+        if transform_csv and self.__return_code == 0:
+            self.__stdout = csv_to_dictionary(stdout) if stdout else {}
+
+    @property
+    def stdout(self):
+        return self.__stdout
+
+    @property
+    def stderr(self):
+        return self.__stderr
+
+    @property
+    def return_code(self):
+        return self.__return_code
+
+
 class Base():
     """
     @param command_base: base command of hammer.
@@ -144,12 +172,6 @@ class Base():
     def execute(self, command, user=None, password=None, expect_csv=False):
 
         # Dictionary object to hold all artifacts from Paramiko.
-        result = {
-            'stdout': None,
-            'stderr': None,
-            'retcode': None,
-        }
-
         if user is None:
             user = self.katello_user
         if password is None:
@@ -168,11 +190,6 @@ class Base():
             output = stdout.readlines()
             errors = stderr.readlines()
 
-            # Update results
-            result['stdout'] = output
-            result['stderr'] = errors
-            result['retcode'] = errorcode
-
         # helps for each command to be grouped with a new line.
         print ""
 
@@ -183,21 +200,21 @@ class Base():
         if errors:
             self.logger.error("".join(errors))
 
-        return result
+        return SSHCommandResult(output, errors, errorcode, expect_csv)
 
-    def exists(self, name):
+    def exists(self, tuple_search=None):
         """
-        Search for record by name.
+        Search for record by given: ('name', '<search_value>')
+        @return: CSV parsed structure[0] of the list.
         """
+        if tuple_search:
+            options = {"search": "%s=\"%s\"" %
+                       (tuple_search[0], tuple_search[1])}
 
-        options = {
-            "search": "name=\"%s\"" % name,
-        }
+        result_list = self.list(options)
 
-        result = self.list(options)
-
-        if result['stdout']:
-            result = result['stdout'][0]
+        if result_list.stdout:
+            result = result_list.stdout[0]
         else:
             result = []
 
@@ -212,10 +229,6 @@ class Base():
 
         result = self.execute(self._construct_command(options),
                               expect_csv=True)
-        # Converting stdout to a list of dictionaries
-        stdout = result['stdout']
-        result['stdout'] = csv_to_dictionary(stdout) if stdout else {}
-
         return result
 
     def list(self, options=None):
@@ -230,8 +243,6 @@ class Base():
 
         result = self.execute(self._construct_command(options),
                               expect_csv=True)
-        stdout = result['stdout']
-        result['stdout'] = csv_to_dictionary(stdout) if stdout else {}
 
         return result
 

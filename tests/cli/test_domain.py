@@ -16,4 +16,4 @@ class TestDomain(BaseCLI):
         }
 
         Domain().create(args)
-        self.assertTrue(Domain().exists(args['name']))
+        self.assertTrue(Domain().exists(('name', args['name'])))
