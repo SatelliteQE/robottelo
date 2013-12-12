@@ -43,15 +43,10 @@ def make_user(self, override_args=None):
                 if key in args_keys:
                     args[key] = val
         result = User().create(args)
-        # Check 1 - retcode
-        if result.return_code == 0:
-            # Check 2 - checking .exists()
-            if User().exists(login):
-                return args
-            else:
-                raise Exception("Failed to create User from factory")
-        else:
-                raise Exception("Failed to create User from factory")
+        # Check 1 - retcode, Check 2 - checking .exists()
+        if result.return_code == 0 and User().exists(args['login']):
+            return args
+        raise Exception("Failed to create User from factory")
     except Exception, e:
             logger.error("ERROR: %s" % str(e))
             return None
