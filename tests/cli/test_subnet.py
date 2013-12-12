@@ -43,8 +43,9 @@ class TestSubnet(BaseCLI):
     def test_create(self):
         """ `subnet create` basic test (minimal params required) """
         result = Subnet().create_minimal()
-        self.assertTrue(result['retcode'] == 0,
-                        "Subnet create - exit code %d" % result['retcode'])
+        self.assertTrue(result.return_code == 0,
+                        "Subnet create - exit code %d" %
+                        result.return_code)
 
     @attr('cli', 'subnet')
     def test_info(self):
@@ -58,16 +59,16 @@ class TestSubnet(BaseCLI):
 
         result = Subnet().info({'name': options['name']})
 
-        self.assertEquals(len(result['stdout']), 1,
+        self.assertEquals(len(result.stdout), 1,
                           "Subnet info - returns 1 record")
-        self.assertEquals(result['stdout'][0]['Name'], options['name'],
+        self.assertEquals(result.stdout[0]['Name'], options['name'],
                           "Subnet info - check name")
 
     @attr('cli', 'subnet')
     def test_list(self):
         """ `subnet list` basic test """
         result = Subnet().list({'per-page': '10'})
-        self.assertGreater(len(result['stdout']), 0,
+        self.assertGreater(len(result.stdout), 0,
                            "Subnet list - returns > 0 records")
 
     @data(
@@ -91,8 +92,9 @@ class TestSubnet(BaseCLI):
         for option in option_dict:
             options[option] = option_dict[option]
         result = Subnet().update(options)
-        self.assertTrue(result['retcode'] == 0,
-                        "Subnet update - exit code %d" % result['retcode'])
+        self.assertTrue(result.return_code == 0,
+                        "Subnet update - exit code %d" %
+                        result.return_code)
 
     @attr('cli', 'subnet')
     def test_delete(self):
@@ -101,8 +103,10 @@ class TestSubnet(BaseCLI):
         options = {}
         options['name'] = name
         result = Subnet().create_minimal(name)
-        self.assertTrue(result['retcode'] == 0,
-                        "Subnet create - exit code %d" % result['retcode'])
+        self.assertTrue(result.return_code == 0,
+                        "Subnet create - exit code %d" %
+                        result.return_code)
         result = Subnet().delete(options)
-        self.assertTrue(result['retcode'] == 0,
-                        "Subnet delete - exit code %d" % result['retcode'])
+        self.assertTrue(result.return_code == 0,
+                        "Subnet delete - exit code %d" %
+                        result.return_code)
