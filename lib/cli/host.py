@@ -11,143 +11,253 @@ class Host(Base):
     def __init__(self):
         self.command_base = "host"
 
-    def delete_parameter(self, name, host_name=None, host_id=None):
+    def delete_parameter(self, options=None):
         """
         Delete parameter for a host.
+
+        Usage:
+        hammer host delete_parameter [OPTIONS]
+
+        Options:
+            --hostgroup-id HOSTGROUP_ID   id of the hostgroup the
+            parameter is being deleted for
+            -h, --help                    print help
+            --name NAME                   parameter name
+
         """
-        cmd = "host delete_parameter --name='%s'" % name
 
-        if host_name:
-            cmd += " --host-name='%s'" % host_name
-        if host_id:
-            cmd += " --host-id='%s'" % host_id
+        self.command_sub = "delete_parameter"
 
-        stdout, stderr = self.execute(cmd)
-        return False if stderr else True
+        result = self.execute(self._construct_command(options))
 
-    def facts(self, name=None, host_id=None, search=None, order=None,
-              page=None, per_page=None):
+        return False if result.stderr else True
+
+    def facts(self, options=None):
         """
         List all fact values.
+
+        Usage:
+            hammer host facts [OPTIONS]
+
+        Options:
+            --search SEARCH               filter results
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
         """
-        cmd = "host facts"
+        self.command_sub = "facts"
 
-        if host_id:
-            cmd += " --id='%s'" % host_id
-        if name:
-            cmd += " --name='%s'" % name
+        result = self.execute(
+            self._construct_command(options), expect_csv=True)
 
-        if search:
-            cmd += " --search='%s'" % search
-        if order:
-            cmd += " --order='%s'" % order
-        if page:
-            cmd += " --page='%s'" % page
-        if per_page:
-            cmd += " --per-page='%s'" % per_page
-
-        stdout, stderr = self.execute(cmd, expect_csv=True)
         facts = []
-        if stdout:
-            facts = csv_to_dictionary(stdout)
+
+        if result.stdout:
+            facts = csv_to_dictionary(result.stdout)
+
         return facts
 
-    def puppet_classes(self, name=None, resource_id=None, host_id=None,
-                       hostgroup_id=None, environment_id=None, search=None,
-                       order=None, page=None, per_page=None):
+    def puppet_classes(self, options=None):
         """
         List all puppetclasses.
+
+        Usage:
+            hammer host puppet_classes [OPTIONS]
+
+        Options:
+            --host-id HOST_ID             id of nested host
+            --hostgroup-id HOSTGROUP_ID   id of nested hostgroup
+            --environment-id ENVIRONMENT_ID id of nested environment
+            --search SEARCH               Filter results
+            --order ORDER                 Sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --id ID                       resource id
+            -h, --help                    print help
         """
-        cmd = "host puppet_classes"
 
-        if name:
-            cmd += " --name='%s'" % name
-        if resource_id:
-            cmd += " --id='%s'" % resource_id
+        self.command_sub = "puppet_classes"
 
-        if host_id:
-            cmd += " --host-id='%s'" % host_id
-        if hostgroup_id:
-            cmd += " --hostgroup-id='%s'" % hostgroup_id
-        if environment_id:
-            cmd += " --environment-id='%s'" % environment_id
-        if search:
-            cmd += " --search='%s'" % search
-        if order:
-            cmd += " --order='%s'" % order
-        if page:
-            cmd += " --page='%s'" % page
-        if per_page:
-            cmd += " --per-page='%s'" % per_page
+        result = self.execute(self._construct_command(options))
 
-        stdout, stderr = self.execute(cmd, expect_csv=True)
         puppet_classes = []
-        if stdout:
-            puppet_classes = csv_to_dictionary(stdout)
+
+        if result.stdout:
+            puppet_classes = csv_to_dictionary(result.stdout)
+
         return puppet_classes
 
-    def puppetrun(self, host_id=None, name=None):
+    def puppetrun(self, options=None):
         """
         Force a puppet run on the agent.
+
+        Usage:
+            hammer host puppetrun [OPTIONS]
+
+        Options:
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
         """
-        cmd = "host puppetrun"
-        if host_id:
-            cmd += " --id='%s'" % host_id
-        if name:
-            cmd += " --name='%s'" % name
 
-        stdout, stderr = self.execute(cmd)
-        return False if stderr else True
+        self.command_sub = "puppetrun"
 
-    def reports(self, name=None, host_id=None, order=None, page=None,
-                per_page=None):
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
+
+    def reboot(self, options=None):
+        """
+        Reboot a host
+
+        Usage:
+            hammer host reboot [OPTIONS]
+
+        Options:
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
+        """
+
+        self.command_sub = "reboot"
+
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
+
+    def reports(self, options=None):
         """
         List all reports.
+
+        Usage:
+            hammer host reports [OPTIONS]
+
+        Options:
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
         """
-        cmd = "host reports"
 
-        if host_id:
-            cmd += " --id='%s'" % host_id
-        if name:
-            cmd += " --name='%s'" % name
+        self.command_sub = "reports"
 
-        if order:
-            cmd += " --order='%s'" % order
-        if page:
-            cmd += " --page='%s'" % page
-        if per_page:
-            cmd += " --per-page='%s'" % per_page
+        result = self.execute(
+            self._construct_command(options), expect_csv=True)
 
-        stdout, stderr = self.execute(cmd, expect_csv=True)
         reports = []
-        if stdout:
-            reports = csv_to_dictionary(stdout)
+
+        if result.stdout:
+            reports = csv_to_dictionary(result.stdout)
+
         return reports
 
-    def set_parameter(self, name, value, host_name=None, host_id=None):
+    def sc_params(self, options=None):
         """
-        Create or update parameter for a host.
+        List all smart class parameters
+
+        Usage:
+            hammer host sc_params [OPTIONS]
+
+        Options:
+            --search SEARCH               Filter results
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --id, --name HOSTGROUP_ID     hostgroup id/name
+            -h, --help                    print help
         """
-        cmd = "host set_parameter --name='%s' --value='%s'" % (name, value)
 
-        if host_name:
-            cmd += " --host-name='%s'" % host_name
-        if host_id:
-            cmd += " --host-id='%s'" % host_id
+        self.command_sub = "sc_params"
 
-        stdout, stderr = self.execute(cmd)
-        return False if stderr else True
+        result = self.execute(self._construct_command(options))
 
-    def status(self, name=None, host_id=None):
+        parameters = []
+
+        if result.stdout:
+            parameters = csv_to_dictionary(result.stdout)
+
+        return parameters
+
+    def set_parameter(self, options=None):
+        """
+        Create or update parameter for a hostgroup.
+
+        Usage:
+            hammer hostgroup set_parameter [OPTIONS]
+
+        Options:
+            --hostgroup-id HOSTGROUP_ID   id of the hostgroup
+                the parameter is being set for
+            -h, --help                    print help
+            --name NAME                   parameter name
+            --value VALUE                 parameter value
+        """
+
+        self.command_sub = "set_parameter"
+
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
+
+    def start(self, options=None):
+        """
+        Power a host on
+
+        Usage:
+            hammer host start [OPTIONS]
+
+        Options:
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
+        """
+
+        self.command_sub = "stop"
+
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
+
+    def status(self, options=None):
         """
         Get status of host
+
+        Usage:
+            hammer host start [OPTIONS]
+
+        Options:
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
         """
-        cmd = "host status"
 
-        if host_id:
-            cmd += " --id='%s'" % host_id
-        if name:
-            cmd += " --name='%s'" % name
+        self.command_sub = "status"
 
-        stdout, stderr = self.execute(cmd)
-        return False if stderr else True
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
+
+    def stop(self, options=None):
+        """
+        Power a host off
+
+        Usage:
+            hammer host stop [OPTIONS]
+
+        Options:
+            --force                       Force turning off a host
+            --id ID                       resource id
+            --name NAME                   resource name
+            -h, --help                    print help
+        """
+
+        self.command_sub = "stop"
+
+        result = self.execute(self._construct_command(options))
+
+        return False if result.stderr else True
