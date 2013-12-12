@@ -1,25 +1,42 @@
-import lib.api.base
+from lib.api.base import get, put, post, delete
 
-def query(opts = None,api = None):
-    api = api or lib.api.base.ApiRequest()
-    if opts:
-        api.content(opts)
-    return api.path("/api/users").get().submit()
+def raw_query(opts = None, **kwargs):
+    """Query users with api.
 
-def read(id,api = None):
-    api = api or lib.api.base.ApiRequest()
-    return api.path("/api/users/{0}".format(id)).get().submit()
+    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/index.html
 
-def create(opts, api = None):
-    api = api or lib.api.base.ApiRequest()
-    api.content(opts)
-    return api.path("/api/users").post().submit()
+    """
 
-def remove(id,api = None):
-    api = api or lib.api.base.ApiRequest()
-    return api.path("/api/users/{0}".format(id)).delete().submit()
+    return get(path="/api/users", json=opts, **kwargs)
 
-def update(id,opts,api = None):
-    api = api or lib.api.base.ApiRequest()
-    api.content(opts)
-    return api.path("/api/users/{0}".format(id)).put().submit()
+def raw_read(uid, **kwargs):
+    """Show an user with api.
+
+    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/show.html
+
+    """
+    return get(path="/api/users/{0}".format(uid), **kwargs)
+
+def raw_create(opts, **kwargs):
+    """Create an user with api.
+
+    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/create.html
+
+    """
+    return post(path="/api/users", json=opts, **kwargs)
+
+def raw_remove(uid, **kwargs):
+    """Delete an user with api.
+
+    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/destroy.html
+
+    """
+    return delete(path="/api/users/{0}".format(uid), **kwargs)
+
+def raw_update(uid, opts, **kwargs):
+    """Update an user with api.
+
+    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/update.html
+
+    """
+    return put(path="/api/users/{0}".format(uid), json=opts, **kwargs)
