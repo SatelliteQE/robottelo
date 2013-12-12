@@ -2,9 +2,11 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from lib.cli.base import Base
 from lib.cli.user import User
 from lib.common.helpers import generate_name
+import logging.config
+
+logger = logging.getLogger("robottelo")
 
 
 def make_user(self, override_args=None):
@@ -28,10 +30,12 @@ def make_user(self, override_args=None):
     #Update the dict with user overrides if any
     try:
         if override_args:
-            args.update(override_args)
+            for key, val in override_args.items():
+                if key in args.keys():
+                    args[key] = val
             result = User().create(args)
             # Check 1 - retcode
-            if result['retcode'] is 0:
+            if result.return_code is 0:
                 # Check 2 - checking .exists()
                 if User().exists(login):
                     return args
@@ -40,5 +44,5 @@ def make_user(self, override_args=None):
             else:
                 raise Exception("Failed to create User")
     except Exception, e:
-            self.logger.debug("Failed to create User. ERROR: %s" % str(e))
+            logger.error("ERROR: %s" % str(e))
             return None
