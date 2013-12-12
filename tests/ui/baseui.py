@@ -3,7 +3,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import datetime
-import logging.config
+import logging
 import os
 import unittest
 import sauceclient
@@ -45,10 +45,7 @@ class BaseUI(unittest.TestCase):
         self.verbosity = int(conf.properties['nosetests.verbosity'])
         self.remote = int(conf.properties['main.remote'])
 
-        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
-
         self.logger = logging.getLogger("robottelo")
-        self.logger.setLevel(self.verbosity * 10)
 
         if not self.remote:
             if self.driver_name.lower() == 'firefox':

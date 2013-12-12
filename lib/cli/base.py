@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging.config
+import logging
 import sys
 
 from lib.common import conf
@@ -74,14 +74,7 @@ class Base():
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc
 
-    try:
-        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
-    except Exception:
-        log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
-        logging.basicConfig(format=log_format)
-
     logger = logging.getLogger("robottelo")
-    logger.setLevel(int(conf.properties['nosetests.verbosity']))
 
     locale = conf.properties['main.locale']
     katello_user = conf.properties['foreman.admin.username']
@@ -95,7 +88,6 @@ class Base():
     @classmethod
     def get_connection(cls):
         if not cls.__connection:
-            logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
             # Hide base logger from paramiko
             logging.getLogger("paramiko").setLevel(logging.ERROR)
 

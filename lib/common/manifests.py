@@ -24,10 +24,8 @@ class Manifests():
                                  portal_url=self.portal_url,
                                  login=self.login,
                                  password=self.password)
-        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
         logging.getLogger("python-stageportal").setLevel(logging.ERROR)
         self.logger = logging.getLogger("robottelo")
-        self.logger.setLevel(self.verbosity * 10)
 
     def create_distributor(self, ds_name=None):
         """
