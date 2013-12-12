@@ -4,7 +4,7 @@
 
 from lib.cli.user import User
 from lib.common.helpers import generate_name
-import logging.config
+import logging
 
 logger = logging.getLogger("robottelo")
 
@@ -38,19 +38,20 @@ def make_user(self, override_args=None):
     #Update the dict with user overrides if any
     try:
         if override_args:
+            args_keys = args.keys()
             for key, val in override_args.items():
-                if key in args.keys():
+                if key in args_keys:
                     args[key] = val
-            result = User().create(args)
-            # Check 1 - retcode
-            if result.return_code is 0:
-                # Check 2 - checking .exists()
-                if User().exists(login):
-                    return args
-                else:
-                    raise Exception("Failed to create User")
+        result = User().create(args)
+        # Check 1 - retcode
+        if result.return_code == 0:
+            # Check 2 - checking .exists()
+            if User().exists(login):
+                return args
             else:
-                raise Exception("Failed to create User")
+                raise Exception("Failed to create User from factory")
+        else:
+                raise Exception("Failed to create User from factory")
     except Exception, e:
             logger.error("ERROR: %s" % str(e))
             return None
