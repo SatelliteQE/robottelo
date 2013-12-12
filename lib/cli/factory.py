@@ -11,8 +11,16 @@ logger = logging.getLogger("robottelo")
 
 def make_user(self, override_args=None):
     """
-    Override the parameters login, firstname, lastname, mail, admin, password,
-    auth-source-id by passing them as a dictionary object from the caller
+    @param override_args: override dictionary object which may have one or more
+    of the following key items
+            login
+            firstname
+            lastname
+            mail
+            admin
+            password
+            auth-source-id
+    @return args: dictionary object with all the above key items
     """
     login = generate_name(6)
 
