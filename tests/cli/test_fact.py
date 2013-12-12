@@ -33,7 +33,7 @@ class TestFact(BaseCLI):
         }
 
         result = Fact().list(args)
-        stdout = result.get_stdout()
+        stdout = result.stdout
 
         self.assertEqual(stdout[0]['Fact'], fact)
 
@@ -50,5 +50,5 @@ class TestFact(BaseCLI):
             'search': "fact='%s'" % fact,
         }
         self.assertEqual(
-                         Fact().list(args).get_stdout(),
+                         Fact().list(args).stdout,
                          [], "No records should be returned")

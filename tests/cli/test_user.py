@@ -26,7 +26,7 @@ class TestUser(BaseCLI):
         ret = User().create(args)
         self.assertTrue(User().exists(('login', args['login'])))
 
-        return ret.get_return_code()
+        return ret.return_code
 
     def test_create_user_1(self):
         "Successfully creates a new user"
@@ -50,7 +50,7 @@ class TestUser(BaseCLI):
 
         ret = User().delete(args)
         self.assertFalse(User().exists(('login', login)))
-        self.assertEqual(ret.get_return_code(), 0)
+        self.assertEqual(ret.return_code, 0)
 
     def test_create_user_utf8(self):
         "Create utf8 user"

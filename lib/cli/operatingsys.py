@@ -19,7 +19,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def add_configtemplate(self, options=None):
         """
@@ -30,7 +30,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def add_ptable(self, options=None):
         """
@@ -41,7 +41,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def delete_parameter(self, options=None):
         """
@@ -52,7 +52,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def remove_architecture(self, options=None):
         """
@@ -63,7 +63,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def remove_configtemplate(self, options=None):
         """
@@ -74,7 +74,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def remove_ptable(self, options=None):
         """
@@ -85,7 +85,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
 
     def set_parameter(self, options=None):
         """
@@ -96,4 +96,4 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.get_stderr() else True
+        return False if result.stderr else True
