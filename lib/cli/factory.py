@@ -47,7 +47,8 @@ def create_object(cli_object, args):
     result = cli_object().create(args)
 
     # If the object is not created, raise exception, stop the show.
-    if result.return_code != 0 and not cli_object().exists(('name', args['name'])):
+    if result.return_code != 0 and not cli_object().exists(
+            ('name', args['name'])):
 
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
@@ -92,7 +93,7 @@ def make_proxy(options=None):
     args = {
         'name': generate_name(),
         'url': 'http://%s:%s' % (generate_string('alpha', 6),
-            generate_string('numeric', 4)),
+                                 generate_string('numeric', 4)),
     }
 
     args = update_dictionary(args, options)
