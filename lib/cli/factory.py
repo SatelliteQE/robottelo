@@ -2,11 +2,13 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from lib.cli.model import Model
-from lib.cli.user import User
-from lib.common.helpers import generate_name
-
 import logging
+
+from lib.cli.model import Model
+from lib.cli.proxy import Proxy
+from lib.cli.user import User
+from lib.common.helpers import generate_name, generate_string
+
 
 logger = logging.getLogger("robottelo")
 
@@ -45,7 +47,8 @@ def create_object(cli_object, args):
     result = cli_object().create(args)
 
     # If the object is not created, raise exception, stop the show.
-    if result.return_code != 0 and not object().exists(result.stdout['Name']):
+    if result.return_code != 0 and not cli_object().exists(('name', args['name'])):
+
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
 
@@ -72,6 +75,28 @@ def make_model(options=None):
     # Override default dictionary with updated one
     args = update_dictionary(args, options)
     create_object(Model, args)
+
+    return args
+
+
+def make_proxy(options=None):
+    """
+    Usage:
+        hammer proxy create [OPTIONS]
+
+    Options:
+        --name NAME
+        --url URL
+    """
+
+    args = {
+        'name': generate_name(),
+        'url': 'http://%s:%s' % (generate_string('alpha', 6),
+            generate_string('numeric', 4)),
+    }
+
+    args = update_dictionary(args, options)
+    create_object(Proxy, args)
 
     return args
 
