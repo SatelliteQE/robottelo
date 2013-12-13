@@ -231,6 +231,15 @@ class Base():
 
         result = self.execute(self._construct_command(options),
                               expect_csv=True)
+
+        # TODO: update SSHCommandResult so that attributes are not
+        # "protected" :)
+        if len(result.stdout) == 1:
+            result._SSHCommandResult__stdout = result.stdout[0]
+        # This should never happen but we're trying to be safe
+        elif len(result.stdout) > 1:
+            raise Exception("Info subcommand returned more than 1 result.")
+
         return result
 
     def list(self, options=None):
