@@ -46,6 +46,7 @@ def create_object(cli_object, args):
 
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0 and not object().exists(result.stdout['Name']):
+        logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
 
 
