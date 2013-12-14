@@ -5,8 +5,8 @@
 import unittest
 
 from basecli import BaseCLI
-from lib.cli.factory import make_proxy
-from lib.cli.proxy import Proxy
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.proxy import Proxy
 
 
 class TestProxy(BaseCLI):

@@ -5,8 +5,8 @@
 import random
 
 from basecli import BaseCLI
-from lib.cli.medium import Medium
-from lib.common.helpers import generate_name
+from robottelo.cli.medium import Medium
+from robottelo.common.helpers import generate_name
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = [

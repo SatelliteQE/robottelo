@@ -6,9 +6,9 @@ import os
 import random
 
 from basecli import BaseCLI
-from lib.cli.base import Base
-from lib.cli.partitiontable import PartitionTable
-from lib.common.helpers import generate_name
+from robottelo.cli.base import Base
+from robottelo.cli.partitiontable import PartitionTable
+from robottelo.common.helpers import generate_name
 from tempfile import mkstemp
 
 # TODO: Move this to a common location
