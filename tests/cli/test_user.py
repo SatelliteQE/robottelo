@@ -3,9 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from lib.cli.user import User
-from lib.common.helpers import generate_name
-from lib.common.helpers import generate_string
+from robottelo.cli.user import User
+from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 
 
 class TestUser(BaseCLI):

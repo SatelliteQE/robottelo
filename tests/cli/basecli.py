@@ -4,7 +4,7 @@
 import logging
 import unittest
 
-from lib.common import conf
+from robottelo.common import conf
 
 
 class BaseCLI(unittest.TestCase):

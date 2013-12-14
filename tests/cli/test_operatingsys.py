@@ -5,8 +5,8 @@
 import random
 
 from basecli import BaseCLI
-from lib.cli.operatingsys import OperatingSys
-from lib.common.helpers import generate_name
+from robottelo.cli.operatingsys import OperatingSys
+from robottelo.common.helpers import generate_name
 
 
 class TestOperatingSys(BaseCLI):
