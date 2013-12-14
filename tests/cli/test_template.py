@@ -6,9 +6,9 @@ import os
 import random
 
 from basecli import BaseCLI
-from lib.cli.base import Base
-from lib.cli.template import Template
-from lib.common.helpers import generate_name
+from robottelo.cli.base import Base
+from robottelo.cli.template import Template
+from robottelo.common.helpers import generate_name
 from tempfile import mkstemp
 
 # TODO: Move this to a common location

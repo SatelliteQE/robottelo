@@ -3,8 +3,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from lib.cli.domain import Domain
-from lib.common.helpers import generate_name
+from robottelo.cli.domain import Domain
+from robottelo.common.helpers import generate_name
 
 
 class TestDomain(BaseCLI):

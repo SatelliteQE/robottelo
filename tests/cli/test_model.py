@@ -3,9 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from lib.cli.factory import make_model
-from lib.cli.model import Model
-from lib.common.helpers import generate_name
+from robottelo.cli.factory import make_model
+from robottelo.cli.model import Model
+from robottelo.common.helpers import generate_name
 
 
 class TestModel(BaseCLI):

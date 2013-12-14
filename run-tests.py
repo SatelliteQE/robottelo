@@ -7,7 +7,7 @@ import glob
 import os
 import subprocess
 
-from lib.common import conf
+from robottelo.common import conf
 
 # Borrowed from https://github.com/pulp/pulp/blob/master/run-tests.py
 # Find and eradicate any existing .pyc files, so they do not eradicate us!
@@ -48,7 +48,7 @@ params = [
 os.environ['PYTHONPATH'] = PROJECT_DIR
 
 # for run through: run-tests.py
-# This runner caused to not make a single call point in lib/common/__init__.py
+# This runner caused to not make a single call point in robottelo/common/__init__.py
 # I am not sure why but call of subprocess.call made __init__.py to be
 # loaded second time. FIXME please if you aware of / know the solution. thx.
 conf.log_properties()

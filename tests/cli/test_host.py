@@ -3,9 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from lib.cli.host import Host
-from lib.common.helpers import generate_name
-from lib.common.helpers import generate_mac
+from robottelo.cli.host import Host
+from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_mac
 
 import unittest
 

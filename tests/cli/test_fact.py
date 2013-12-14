@@ -4,8 +4,8 @@
 
 from ddt import data
 from ddt import ddt
-from lib.cli.fact import Fact
-from lib.common.helpers import generate_name
+from robottelo.cli.fact import Fact
+from robottelo.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 

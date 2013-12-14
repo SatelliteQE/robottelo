@@ -19,9 +19,9 @@ Subcommands:
 """
 from ddt import data
 from ddt import ddt
-from lib.cli.subnet import Subnet
-from lib.common.helpers import generate_ipaddr
-from lib.common.helpers import generate_name
+from robottelo.cli.subnet import Subnet
+from robottelo.common.helpers import generate_ipaddr
+from robottelo.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 

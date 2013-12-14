@@ -18,8 +18,8 @@ Subcommands:
     sc_params                     List all smart class parameters
     delete                        Delete an environment.
 """
-from lib.cli.environment import Environment
-from lib.common.helpers import generate_name, sleep_for_seconds
+from robottelo.cli.environment import Environment
+from robottelo.common.helpers import generate_name, sleep_for_seconds
 from tests.cli.basecli import BaseCLI
 
 

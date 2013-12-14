@@ -3,9 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from baseui import BaseUI
-from lib.ui.locators import *
-from lib.common.helpers import generate_name
-from lib.common.helpers import generate_email_address
+from robottelo.ui.locators import *
+from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_email_address
 
 
 class Hostgroup(BaseUI):

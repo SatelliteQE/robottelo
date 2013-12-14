@@ -14,8 +14,8 @@ Subcommands:
     list                          List all common parameters.
     delete                        Delete a common_parameter
 """
-from lib.cli.globalparam import GlobalParameter
-from lib.common.helpers import generate_name, sleep_for_seconds
+from robottelo.cli.globalparam import GlobalParameter
+from robottelo.common.helpers import generate_name, sleep_for_seconds
 from tests.cli.basecli import BaseCLI
 
 

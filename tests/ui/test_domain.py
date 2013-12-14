@@ -3,8 +3,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from tests.ui.baseui import BaseUI
-from lib.ui.locators import locators
-from lib.common.helpers import generate_name
+from robottelo.ui.locators import locators
+from robottelo.common.helpers import generate_name
 from time import sleep
 
 domain = "lab.dom.%s"
