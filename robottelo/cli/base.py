@@ -156,6 +156,17 @@ class Base():
 
         return result
 
+    def delete_parameter(self, options=None):
+        """
+        Deletes parameter from record.
+        """
+
+        self.command_sub = "delete_parameter"
+
+        result = self.execute(self._construct_command(options))
+
+        return result
+
     def dump(self, options=None):
         """
         Displays the content for existing partition table.
@@ -257,6 +268,18 @@ class Base():
 
         return result
 
+    def puppetclasses(self, options=None):
+        """
+        Lists all puppet classes.
+        """
+
+        self.command_sub = "puppet_classes"
+
+        result = self.execute(self._construct_command(options),
+                              expect_csv=True)
+
+        return result
+
     def remove_operating_system(self, options=None):
         """
         Removes OS from record.
@@ -265,6 +288,29 @@ class Base():
         self.command_sub = "remove_operatingsystem"
 
         options = options or {}
+
+        result = self.execute(self._construct_command(options))
+
+        return result
+
+    def sc_params(self, options=None):
+        """
+        Lists all smart class parameters.
+        """
+
+        self.command_sub = "sc_params"
+
+        result = self.execute(self._construct_command(options),
+                              expect_csv=True)
+
+        return result
+
+    def set_parameter(self, options=None):
+        """
+        Creates or updates parameter for a record.
+        """
+
+        self.command_sub = "set_parameter"
 
         result = self.execute(self._construct_command(options))
 
