@@ -1,33 +1,35 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
+
+"""
+Usage:
+    hammer domain [OPTIONS] SUBCOMMAND [ARG] ...
+
+Parameters:
+    SUBCOMMAND                    subcommand
+    [ARG] ...                     subcommand arguments
+
+Subcommands:
+    set_parameter                 Create or update parameter for a domain.
+    create                        Create a domain.
+    info                          Show a domain.
+    list                          List of domains
+    update                        Update a domain.
+    delete                        Delete a domain.
+    delete_parameter              Delete parameter for a domain.
+"""
 
 from robottelo.cli.base import Base
 
 
 class Domain(Base):
+    """
+    Manipulates Foreman's domains.
+    """
 
     def __init__(self):
+        """
+        Sets the base command for class.
+        """
+        Base.__init__(self)
         self.command_base = "domain"
-
-    def delete_parameter(self, options=None):
-        """
-        Delete parameter for a domain.
-        """
-
-        self.command_sub = "delete_parameter"
-
-        result = self.execute(self._construct_command(options))
-
-        return False if result.stderr else True
-
-    def set_parameter(self, options=None):
-        """
-        Create or update parameter for a domain.
-        """
-
-        self.command_sub = "set_parameter"
-
-        result = self.execute(self._construct_command(options))
-
-        return False if result.stderr else True
