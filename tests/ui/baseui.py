@@ -110,13 +110,16 @@ class BaseUI(unittest.TestCase):
     def run(self, result=None):
         super(BaseUI, self).run(result)
 
-        if result.skipped:
-            try:
-                self.browser.quit()
-            except Exception, e:
-                pass
+        try:
+            if result.skipped:
+                try:
+                    self.browser.quit()
+                except Exception:
+                    pass
 
-            return result
+                return result
+        except AttributeError:
+            pass
 
         # create a sauceclient object to report pass/fail results
         if "remote" in str(type(self.browser)):
