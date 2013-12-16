@@ -67,14 +67,10 @@ class PartitionTable(Base):
         if element:
             element.click()
         if self.wait_until_element(locators["ptable.name"]):
-            txt_field = self.find_element(locators["ptable.name"])
-            txt_field.clear()
-            txt_field.send_keys(new_name)
+            self.field_update("ptable.name", new_name)
         if new_layout:
             if self.wait_until_element(locators["ptable.layout"]):
-                txt_field = self.find_element(locators["ptable.layout"])
-                txt_field.clear()
-                txt_field.send_keys(new_layout)
+                self.field_update("ptable.layout", new_layout)
         if new_os_family:
             Select(self.find_element(locators
                                      ["ptable.os_family"]
