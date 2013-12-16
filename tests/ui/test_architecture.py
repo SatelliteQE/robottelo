@@ -3,8 +3,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from tests.ui.baseui import BaseUI
-from lib.common.helpers import generate_name
-from lib.common.helpers import generate_string
+from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from time import sleep
 
 
