@@ -6,7 +6,6 @@ from tests.ui.baseui import BaseUI
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
 from urllib2 import urlopen
-from time import sleep
 
 
 class PartitionTable(BaseUI):
