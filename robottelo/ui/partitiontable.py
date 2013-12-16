@@ -27,7 +27,6 @@ class PartitionTable(Base):
             self.find_element(locators["submit"]).click()
             self.wait_for_ajax()
 
-
     def remove(self, name, really):
         element = self.wait_until_element((locators
                                            ["ptable.delete"][0],
