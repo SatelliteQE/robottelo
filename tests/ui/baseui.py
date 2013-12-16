@@ -8,21 +8,21 @@ import os
 import unittest
 import sauceclient
 
-from robottelo.ui.login import Login
-from robottelo.ui.operatingsys import OperatingSys
-from robottelo.ui.environment import Environment
+from robottelo.common import conf
 from robottelo.ui.architecture import Architecture
-from robottelo.ui.medium import Medium
 from robottelo.ui.domain import Domain
-from robottelo.ui.navigator import Navigator
-from robottelo.ui.product import Product
-from robottelo.ui.user import User
+from robottelo.ui.environment import Environment
 from robottelo.ui.hostgroup import Hostgroup
+from robottelo.ui.login import Login
+from robottelo.ui.medium import Medium
+from robottelo.ui.navigator import Navigator
+from robottelo.ui.operatingsys import OperatingSys
+from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.product import Product
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
-from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.user import User
 from selenium import webdriver
-from robottelo.common import conf
 
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')

@@ -2,10 +2,12 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from tests.ui.baseui import BaseUI
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
+from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
+
+PART_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
 
 
 class PartitionTable(BaseUI):
@@ -13,7 +15,7 @@ class PartitionTable(BaseUI):
     def test_create_partition_table(self):
         "Create new partition table"
         name = generate_name(6)
-        layout = urlopen('https://gist.github.com/sghai/7822090/raw').read()
+        layout = urlopen(PART_SCRIPT_URL).read()
         #layout = "test layout"
         os_family = "Redhat"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -37,7 +39,7 @@ class PartitionTable(BaseUI):
         name = generate_name(6)
         new_name = generate_name(4)
         layout = "test layout"
-        new_layout = urlopen('https://gist.github.com/sghai/7822090/raw').read()
+        new_layout = urlopen(PART_SCRIPT_URL).read()
         os_family = "Debian"
         new_os_family = "Redhat"
         self.login.login(self.katello_user, self.katello_passwd)
