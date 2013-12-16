@@ -20,6 +20,7 @@ from robottelo.ui.user import User
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
+from robottelo.ui.partitiontable import PartitionTable
 from selenium import webdriver
 from robottelo.common import conf
 
@@ -85,6 +86,7 @@ class BaseUI(unittest.TestCase):
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
         self.template = Template(self.browser)
+        self.partitiontable = PartitionTable(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
         """
