@@ -25,6 +25,7 @@ class PartitionTable(Base):
                                          ["ptable.os_family"]
                                          )).select_by_visible_text(os_family)
             self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
 
     def remove(self, name, really):
         element = self.wait_until_element((locators
@@ -39,6 +40,7 @@ class PartitionTable(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
+            self.wait_for_ajax()
 
     def search(self, name):
         searchbox = self.wait_until_element(locators["search"])
