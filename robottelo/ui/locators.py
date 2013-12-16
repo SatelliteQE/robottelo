@@ -83,10 +83,16 @@ locators = {
     #host.primary
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new')]"),
     "host.name": (By.ID, "host_name"),
+    "host.clone": (
+        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
+    "host.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "host.group": (By.ID, "host_hostgroup_id"),
     "host.deploy": (By.ID, "host_compute_resource_id"),
     "host.environment": (By.ID, "host_environment_id"),
-
+    "host.dropdown": (
+        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
+    "host.select_name": (By.ID, )
     #host.network
     "host.mac": (By.ID, "host_mac"),
     "host.domain": (By.ID, "host_domain_id"),
