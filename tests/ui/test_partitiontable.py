@@ -16,7 +16,6 @@ class PartitionTable(BaseUI):
         "Create new partition table"
         name = generate_name(6)
         layout = urlopen(PART_SCRIPT_URL).read()
-        #layout = "test layout"
         os_family = "Redhat"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_partition_tables()
