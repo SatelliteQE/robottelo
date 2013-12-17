@@ -6,10 +6,12 @@ import logging
 
 from robottelo.cli.model import Model
 from robottelo.cli.proxy import Proxy
+from robottelo.cli.subnet import Subnet
 from robottelo.cli.user import User
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from robottelo.common.helpers import generate_name, generate_string
+from robottelo.common.helpers import generate_ipaddr, generate_name, \
+    generate_string
 from robottelo.cli.computeresource import ComputeResource
 
 
@@ -101,6 +103,51 @@ def make_proxy(options=None):
 
     args = update_dictionary(args, options)
     create_object(Proxy, args)
+
+    return args
+
+
+def make_subnet(options=None):
+    """
+    Usage:
+        hammer subnet create [OPTIONS]
+
+    Options:
+        --name NAME                   Subnet name
+        --network NETWORK             Subnet network
+        --mask MASK                   Netmask for this subnet
+        --gateway GATEWAY             Primary DNS for this subnet
+        --dns-primary DNS_PRIMARY     Primary DNS for this subnet
+        --dns-secondary DNS_SECONDARY Secondary DNS for this subnet
+        --from FROM                   Starting IP Address for IP auto
+                                      suggestion
+        --to TO                       Ending IP Address for IP auto suggestion
+        --vlanid VLANID               VLAN ID for this subnet
+        --domain-ids DOMAIN_IDS       Domains in which this subnet is part
+                                      Comma separated list of values.
+        --dhcp-id DHCP_ID             DHCP Proxy to use within this subnet
+        --tftp-id TFTP_ID             TFTP Proxy to use within this subnet
+        --dns-id DNS_ID               DNS Proxy to use within this subnet
+    """
+
+    args = {
+        'name': generate_name(8, 8),
+        'network': generate_ipaddr(ip3=True),
+        'mask': '255.255.255.0',
+        'gateway': None,
+        'dns-primary': None,
+        'dns-secondary': None,
+        'from': None,
+        'to': None,
+        'vlanid': None,
+        'domain-ids': None,
+        'dhcp-id': None,
+        'tftp-id': None,
+        'dns-id': None,
+    }
+
+    args = update_dictionary(args, options)
+    create_object(Subnet, args)
 
     return args
 
