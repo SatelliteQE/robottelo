@@ -22,9 +22,9 @@ from ddt import ddt
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
 from robottelo.common.helpers import generate_name, sleep_for_seconds
-from tests.cli.basecli import BaseCLI
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
+from tests.cli.basecli import BaseCLI
 
 
 @ddt
@@ -35,7 +35,10 @@ class TestComputeResource(BaseCLI):
 
     def _init_once(self):
         """ a method invoked only once """
-        self.__class__.comp_res = make_compute_resource()['name']
+        self.__class__.comp_res = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': "qemu+tcp://%s:16509/system" %
+            conf.properties['main.server.hostname']})['name']
 
     def test_create(self):
         """ `compute_resource create` basic test """
@@ -51,7 +54,10 @@ class TestComputeResource(BaseCLI):
 
     def test_info(self):
         """ `compute_resource info` basic test """
-        result_create = make_compute_resource()
+        result_create = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': "qemu+tcp://%s:16509/system" %
+            conf.properties['main.server.hostname']})
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
         sleep_for_seconds(5)
@@ -63,7 +69,10 @@ class TestComputeResource(BaseCLI):
 
     def test_list(self):
         """ `compute_resource list` basic test """
-        result_create = make_compute_resource()
+        result_create = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': "qemu+tcp://%s:16509/system" %
+            conf.properties['main.server.hostname']})
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
         result_list = ComputeResource().list()
@@ -98,7 +107,10 @@ class TestComputeResource(BaseCLI):
 
     def test_delete(self):
         """ `compute_resource delete` basic test """
-        result_create = make_compute_resource()
+        result_create = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': "qemu+tcp://%s:16509/system" %
+            conf.properties['main.server.hostname']})
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
         sleep_for_seconds(5)
