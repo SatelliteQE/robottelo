@@ -7,7 +7,10 @@ import logging
 from robottelo.cli.model import Model
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.user import User
+from robottelo.common import conf
+from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.common.helpers import generate_name, generate_string
+from robottelo.cli.computeresource import ComputeResource
 
 
 logger = logging.getLogger("robottelo")
@@ -132,5 +135,40 @@ def make_user(options=None):
 
     args = update_dictionary(args, options)
     create_object(User, args)
+
+    return args
+
+
+def make_compute_resource(options=None):
+    """
+    Usage:
+        hammer compute_resource create [OPTIONS]
+
+    Options:
+        --name NAME
+        --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
+            Vmware, Openstack, Rackspace, GCE
+        --url URL                     URL for Libvirt, Ovirt, and Openstack
+        --description DESCRIPTION
+        --user USER                   Username for Ovirt, EC2, Vmware,
+            Openstack. Access Key for EC2.
+        --password PASSWORD           Password for Ovirt, EC2, Vmware,
+            Openstack. Secret key for EC2
+        --uuid UUID                   for Ovirt, Vmware Datacenter
+        --region REGION               for EC2 only
+        --tenant TENANT               for Openstack only
+        --server SERVER               for Vmware
+        -h, --help                    print help
+    """
+    options = options or {}
+    args = {
+        'name': generate_name(8, 8),
+        'provider': FOREMAN_PROVIDERS['libvirt'],
+        'url': "qemu+tcp://%s:16509/system" %
+            conf.properties['main.server.hostname']
+    }
+
+    args = update_dictionary(args, options)
+    create_object(ComputeResource, args)
 
     return args
