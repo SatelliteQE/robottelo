@@ -7,6 +7,7 @@ import random
 
 from os import chmod
 from robottelo.cli.base import Base
+#TODO: Remove Base when upload_file is moved to a new module
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.hostgroup import HostGroup
@@ -361,6 +362,7 @@ def make_template(options=None):
             'audit-comment': '',
             'operatingsystem-ids': '',
             #TODO: Change '' to None when base is coded with disregarding None
+            #Fix other methods above for this change too
         }
 
     #Special handling for template factory
