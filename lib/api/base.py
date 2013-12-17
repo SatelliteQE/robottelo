@@ -1,6 +1,11 @@
+# -*- encoding: utf-8 -*-
 from lib.common import conf
 import json as js
 import requests
+
+def _is_arg_set(arg, args):
+    "Easier utilizing kwargs"
+    return (arg in args) and (args[arg] != None)
 
 def request(method, **kwargs):
     """Wrapper around requests.request function, that adds default domain,
@@ -39,10 +44,10 @@ def request(method, **kwargs):
     kwargs.setdefault('schema', "https://")
     kwargs.setdefault('auth',  (conf.properties['foreman.admin.username'],
                                 conf.properties['foreman.admin.password']))
-    kwargs.setdefault('headers',{'Content-type': 'application/json'})
+    kwargs.setdefault('headers', {'Content-type': 'application/json'})
 
-    if kwargs['path']:
-        url =  "{0}{1}/{2}".format(kwargs['schema'],
+    if _is_arg_set('path', kwargs):
+        url =  "{0}{1}{2}".format(kwargs['schema'],
                                    kwargs['domain'],
                                    kwargs['path'])
         del kwargs['path']
@@ -50,7 +55,7 @@ def request(method, **kwargs):
         url = kwargs['url']
         del kwargs['url']
 
-    if kwargs['json']:
+    if _is_arg_set('json', kwargs):
         try:
             kwargs.setdefault('data', js.dumps(kwargs['json']))
         except:

@@ -1,42 +1,47 @@
-from lib.api.base import get, put, post, delete
+# -*- encoding: utf-8 -*-
+from apicrud import ApiCrudMixin
+from model import ApiModelMixin
+from lib.common.helpers import generate_name
+from lib.common.helpers import generate_email_address
 
-def raw_query(opts = None, **kwargs):
-    """Query users with api.
+class UserApi(ApiCrudMixin,ApiModelMixin):
+    """Implementation of /api/user endpoint"""
+    @classmethod
+    def api_path(cls):
+        return "/api/users/"
 
-    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/index.html
+    @classmethod
+    def id_from_json(cls, json):
+        return json[u'user'][u'id']
 
-    """
+    def __init__(self, generate=False):
+        if generate:
+            self.login = unicode(generate_name(6))
+            self.password = unicode(generate_name(8))
+            self.mail = unicode(generate_email_address())
+            self.firstname = unicode(generate_name(6))
+            self.lastname = unicode(generate_name(6))
+            self.admin = False
+            self.auth_source_id = 1
 
-    return get(path="/api/users", json=opts, **kwargs)
+    def filter_create_opts(self, **kwargs):
+        user = self.copy()
+        user.graylist(login = True,
+                password = True,
+                mail = True,
+                firstname = True,
+                lastname = True,
+                admin = True,
+                auth_source_id = True, **kwargs)
+        return user
 
-def raw_read(uid, **kwargs):
-    """Show an user with api.
+    def opts(self):
+        return {u'user':self.to_json()}
 
-    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/show.html
+    def result_opts(self):
+        return self.graylist(password = False).opts()
 
-    """
-    return get(path="/api/users/{0}".format(uid), **kwargs)
+    def change(self):
+        self.mail ="updated" + self.mail
+        return self
 
-def raw_create(opts, **kwargs):
-    """Create an user with api.
-
-    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/create.html
-
-    """
-    return post(path="/api/users", json=opts, **kwargs)
-
-def raw_remove(uid, **kwargs):
-    """Delete an user with api.
-
-    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/destroy.html
-
-    """
-    return delete(path="/api/users/{0}".format(uid), **kwargs)
-
-def raw_update(uid, opts, **kwargs):
-    """Update an user with api.
-
-    :url http://people.redhat.com/~dcleal/apiv2/apidoc/users/update.html
-
-    """
-    return put(path="/api/users/{0}".format(uid), json=opts, **kwargs)

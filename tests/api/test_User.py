@@ -2,27 +2,30 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import lib.api.users as user
-from tests.api.baseapi import BaseAPI, assertFeaturing
-from lib.common.helpers import generate_name
-from lib.common.helpers import generate_email_address
+from ddt import data
+from ddt import ddt
+from lib.api.users import UserApi
+from tests.api.baseapi import BaseAPI
+from tests.api.positive_crud_tests import PositiveCrudTestMixin
 
-
-class User(BaseAPI):
+@ddt
+class User(PositiveCrudTestMixin, BaseAPI):
     """Testing /api/user entrypoint"""
 
-    def test_create_user(self):
-        """Create a new User"""
-        name = unicode(generate_name(6))
-        password = unicode(generate_name(8))
-        email = unicode(generate_email_address())
-        opts = {u'user' : {u'login' : name,
-			  u'password' : password,
-			  u'mail' : email,
-              u'auth_source_id' : 1
-			}}
-        result = user.raw_create(opts)
-        del opts[u'user'][u'password']
-        self.assertEqual(result.status_code, 200)
-        assertFeaturing(opts, result.json())
+    def tested_class(self):
+        return UserApi
+
+    @data(
+        ("login", {u'login': [u"can't be blank"]}),
+        ("password", {u'password_hash': [u"can't be blank"]}),
+    )
+    def test_create_user_negative(self,data_tuple):
+        """Try to create a new user with missing params"""
+        param, result = data_tuple
+
+        user = UserApi(generate=True)
+        user = user.filter_create_opts().graylist(**{param : False})
+        response = UserApi.create(json=user.opts())
+        self.assertEqual(response.status_code, 422)
+        self.assertFeaturing({u'user': {u'errors': result}}, response.json())
 

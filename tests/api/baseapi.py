@@ -25,7 +25,7 @@ def featuring(match, test):
         return all([any([featuring(m, t) for t in test]) for m in match])
     return match == test
 
-def assertFeaturing(match, test):
+def assert_featuring(match, test):
     """Version of featuring function that fails with Assertion error instead
     of returning False and passes instead of returning True.
 
@@ -38,7 +38,7 @@ def assertFeaturing(match, test):
             if not k in test:
                 raise AssertionError("{0} lacks key {1}".format(test, k))
         for k in match:
-            assertFeaturing(match[k], test[k])
+            assert_featuring(match[k], test[k])
     elif type(match) is list:
         for m in match:
             exists = any([featuring(m, t) for t in test])
@@ -56,4 +56,7 @@ class BaseAPI(unittest.TestCase):
         self.verbosity = int(conf.properties['nosetests.verbosity'])
         self.logger = logging.getLogger("robottelo")
         self.logger.setLevel(self.verbosity * 10)
+
+    def assertFeaturing(self,match,tests):
+        assert_featuring(match,tests)
 
