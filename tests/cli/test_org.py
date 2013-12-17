@@ -6,7 +6,7 @@ from tests.cli.basecli import BaseCLI
 from robottelo.cli.org import Org
 from robottelo.cli.factory import (
     make_domain, make_environment, make_hostgroup, make_medium, make_org,
-    make_proxy, make_subnet, make_user)
+    make_proxy, make_subnet, make_template, make_user)
 
 
 class TestOrg(BaseCLI):
@@ -155,13 +155,27 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_configtemplate(self):
-        "Adds a configtemplate in an org"
-        #TODO: Test should be done once configtemplate base class is added
-        pass
+        "Adds a configtemplate to an org"
+        org_result = make_org()
+        template_result = make_template()
+        return_value = Org().add_configtemplate({
+                'name': org_result['name'],
+                'configtemplate': template_result['name']})
+        self.assertTrue(return_value.return_code, 0)
+        self.assertFalse(return_value.stderr)
 
     def test_remove_configtemplate(self):
-        #TODO: Test should be done once configtemplate base class is added
-        pass
+        "Removes a configtemplate from an org"
+        org_result = make_org()
+        template_result = make_template()
+        Org().add_configtemplate({
+                'name': org_result['name'],
+                'configtemplate': template_result['name']})
+        return_value = Org().remove_configtemplate({
+                'name': org_result['name'],
+                'configtemplate': template_result['name']})
+        self.assertTrue(return_value.return_code, 0)
+        self.assertFalse(return_value.stderr)
 
     def test_add_environment(self):
         "Adds an environment to an org"
