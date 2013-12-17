@@ -18,6 +18,7 @@ from robottelo.ui.medium import Medium
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.compute_resource import ComputeResource
 from robottelo.ui.product import Product
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -85,6 +86,7 @@ class BaseUI(unittest.TestCase):
         self.hostgroup = Hostgroup(self.browser)
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
+        self.compute_resource = ComputeResource(self.browser)
         self.template = Template(self.browser)
         self.partitiontable = PartitionTable(self.browser)
 
