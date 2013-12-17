@@ -338,8 +338,6 @@ class Base():
                     tail += " --%s='%s'" % (key, val)
                 else:
                     tail += " --%s=%s" % (key, val)
-            else:
-                tail += " --%s" % key
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
 
         return cmd

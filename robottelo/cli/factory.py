@@ -208,6 +208,15 @@ def make_compute_resource(options=None):
     options = options or {}
     args = {
         'name': generate_name(8, 8),
+        'provider': None,
+        'url': None,
+        'description': None,
+        'user': None,
+        'password': None,
+        'uuid': None,
+        'region': None,
+        'tenant': None,
+        'server': None
     }
 
     args = update_dictionary(args, options)
