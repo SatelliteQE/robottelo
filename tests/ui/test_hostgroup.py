@@ -2,10 +2,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from baseui import BaseUI
-from robottelo.ui.locators import *
+from tests.ui.baseui import BaseUI
 from robottelo.common.helpers import generate_name
-from robottelo.common.helpers import generate_email_address
 
 
 class Hostgroup(BaseUI):
@@ -25,7 +23,7 @@ class Hostgroup(BaseUI):
         self.hostgroup.create(name)
         #confirm the Hostgroup appears in the UI
         self.assertIsNotNone(self.hostgroup.search(name))
-        self.hostgroup.delete(name, really = True)
+        self.hostgroup.delete(name, really=True)
         self.assertIsNone(self.hostgroup.search(name))
 
     def test_update_hostgroup(self):
@@ -36,5 +34,5 @@ class Hostgroup(BaseUI):
         self.hostgroup.create(name)
         #confirm the Hostgroup appears in the UI
         self.assertIsNotNone(self.hostgroup.search(name))
-        self.hostgroup.update(name,new_name = updated_name)
+        self.hostgroup.update(name, new_name=updated_name)
         self.assertIsNotNone(self.hostgroup.search(updated_name))
