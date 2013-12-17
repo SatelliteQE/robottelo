@@ -1,11 +1,10 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging.config
+import logging
 import unittest
 
-from lib.common import conf
+from robottelo.common import conf
 
 
 class BaseCLI(unittest.TestCase):
@@ -34,7 +33,6 @@ class BaseCLI(unittest.TestCase):
         self.__class__.locale = conf.properties['main.locale']
         self.__class__.verbosity = int(conf.properties['nosetests.verbosity'])
 
-        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
         # Hide base logger from paramiko
         logging.getLogger("paramiko").setLevel(logging.ERROR)
 
@@ -44,5 +42,5 @@ class BaseCLI(unittest.TestCase):
     def setUp(self):
         if not self.__initialized:
             self.__init_once_me()
-            self._init_once()
             self.__class__.__initialized = True
+            self._init_once()

@@ -3,7 +3,7 @@
 import argparse
 import sys
 import unittest
-from lib.common import conf
+from robottelo.common import conf
 
 PROJECT_DIR = conf.get_root_path()
 if PROJECT_DIR not in sys.path:

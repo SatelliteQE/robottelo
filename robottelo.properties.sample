@@ -26,11 +26,12 @@ tunnel=some_tunnel
 verbosity=2
 nocapture=1
 nologcapture=1
-no-path-adjustment=1
 with-xunit=1
 xunit-file=foreman-results.xml
-processes=1
-process-timeout=120
+# NOTE: nosetests --with-xunit does not work with
+# 'processes' property enabled.
+# processes=1
+# process-timeout=120
 
 # NOTE: Candlepin url accepts just the hostname.
 
