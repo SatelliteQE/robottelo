@@ -17,10 +17,14 @@ class OperatingSys(Base):
         if self.wait_until_element(locators["operatingsys.name"]):
             self.find_element(locators["operatingsys.name"]).send_keys(name)
             if self.wait_until_element(locators["operatingsys.major_version"]):
-                self.find_element(locators["operatingsys.major_version"]).send_keys(major_version)
+                self.find_element(locators
+                                  ["operatingsys.major_version"]
+                                  ).send_keys(major_version)
             if minor_version:
                 if self.wait_until_element(locators["operatingsys.minor_version"]):
-                    self.find_element(locators["operatingsys.minor_version"]).send_keys(minor_version)
+                    self.find_element(locators
+                                      ["operatingsys.minor_version"]
+                                      ).send_keys(minor_version)
             if os_family:
                 if self.wait_until_element(locators["operatingsys.family"]):
                     select = self.browser.find_element_by_tag_name("select")
@@ -30,9 +34,13 @@ class OperatingSys(Base):
                             option.click()
                             break
             self.find_element(locators["operatingsys.submit"]).click()
+            self.wait_for_ajax()
 
     def delete(self, osname, really):
-        element = self.wait_until_element((locators["operatingsys.delete"][0], locators["operatingsys.delete"][1] % osname))
+        element = self.wait_until_element((locators
+                                           ["operatingsys.delete"][0],
+                                           locators
+                                           ["operatingsys.delete"][1] % osname))
         if element:
             element.click()
             if really:

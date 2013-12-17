@@ -2,10 +2,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from tests.ui.baseui import BaseUI
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
-from time import sleep
+from tests.ui.baseui import BaseUI
 
 domain = "lab.dom.%s"
 
@@ -42,7 +41,6 @@ class Domain(BaseUI):
         new_name = generate_name(4) + '.org'
         new_description = domain % new_name
         self.create_domain(name, description)
-        sleep(5)
         self.domain.update(name, new_name, new_description)
         # UI throwing 'PGError' while performing search
         # self.assertTrue(self, self.domain.search(new_description))
@@ -64,5 +62,4 @@ class Domain(BaseUI):
         param_value = generate_name(3)
         self.create_domain(name, description)
         self.domain.set_parameter(description, param_name, param_value)
-        sleep(5)
         self.domain.remove_parameter(description, param_name)
