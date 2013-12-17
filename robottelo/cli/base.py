@@ -331,3 +331,28 @@ class Base():
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
 
         return cmd
+
+    def ssh_command(self, cmd, hostname=None):
+        """
+        Executes SSH command(s) on remote hostname.
+        Defaults to main.server.hostname.
+        """
+        hostname = hostname or conf.properties['main.server.hostname']
+        lock = Lock()
+        with lock:
+            stdout, stderr = Base.get_connection().exec_command(cmd)[-2:]
+            errorcode = stdout.channel.recv_exit_status()
+            output = stdout.readlines()
+            errors = stderr.readlines()
+
+        # helps for each command to be grouped with a new line.
+        print ""
+
+        self.logger.debug(cmd)
+
+        if output:
+            self.logger.debug("".join(output))
+        if errors:
+            self.logger.error("".join(errors))
+
+        return SSHCommandResult(output, errors, errorcode, expect_csv=False)
