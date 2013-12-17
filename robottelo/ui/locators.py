@@ -74,7 +74,7 @@ locators = {
     "host.tab_os": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href,'os')]"),
     "host.tab_vm": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'vm')]"),
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'compute_resource')]"),  # @IgnorePep8
     "host.tab_params": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href,'params')]"),
     "host.tab_info": (
@@ -92,7 +92,9 @@ locators = {
     "host.environment": (By.ID, "host_environment_id"),
     "host.dropdown": (
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
-    "host.select_name": (By.ID, )
+    "host.select_name": (
+        By.XPATH,
+        "//input[contains(@id,'host_ids')]/../../td[@class='ellipsis']/a[contains(@href,'%s')]"),  # @IgnorePep8
     #host.network
     "host.mac": (By.ID, "host_mac"),
     "host.domain": (By.ID, "host_domain_id"),
