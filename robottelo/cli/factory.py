@@ -10,7 +10,6 @@ from robottelo.cli.subnet import Subnet
 from robottelo.cli.user import User
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from robottelo.common.helpers import generate_name, generate_string
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
 from robottelo.cli.computeresource import ComputeResource
