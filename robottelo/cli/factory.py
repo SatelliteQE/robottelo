@@ -6,21 +6,21 @@ import logging
 import random
 
 from os import chmod
-from tempfile import mkstemp
 from robottelo.cli.base import Base
-from robottelo.cli.model import Model
-from robottelo.cli.proxy import Proxy
-from robottelo.cli.subnet import Subnet
-from robottelo.cli.user import User
-from robottelo.cli.org import Org
 from robottelo.cli.domain import Domain
+from robottelo.cli.environment import Environment
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.medium import Medium
-from robottelo.cli.environment import Environment
+from robottelo.cli.model import Model
+from robottelo.cli.org import Org
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
+from robottelo.cli.user import User
+from robottelo.common.constants import TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
-from robottelo.common.constants import TEMPLATE_TYPES
+from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
 
