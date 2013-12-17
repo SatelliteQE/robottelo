@@ -3,25 +3,27 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import datetime
-import logging.config
+import logging
 import os
 import unittest
 import sauceclient
 
-from lib.ui.login import Login
-from lib.ui.operatingsys import OperatingSys
-from lib.ui.environment import Environment
-from lib.ui.architecture import Architecture
-from lib.ui.medium import Medium
-from lib.ui.domain import Domain
-from lib.ui.navigator import Navigator
-from lib.ui.product import Product
-from lib.ui.user import User
-from lib.ui.hostgroup import Hostgroup
-from lib.ui.subnet import Subnet
-from lib.ui.compute_resource import ComputeResource
+from robottelo.common import conf
+from robottelo.ui.architecture import Architecture
+from robottelo.ui.domain import Domain
+from robottelo.ui.environment import Environment
+from robottelo.ui.hostgroup import Hostgroup
+from robottelo.ui.login import Login
+from robottelo.ui.medium import Medium
+from robottelo.ui.navigator import Navigator
+from robottelo.ui.operatingsys import OperatingSys
+from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.compute_resource import ComputeResource
+from robottelo.ui.product import Product
+from robottelo.ui.subnet import Subnet
+from robottelo.ui.template import Template
+from robottelo.ui.user import User
 from selenium import webdriver
-from lib.common import conf
 
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')
@@ -45,10 +47,7 @@ class BaseUI(unittest.TestCase):
         self.verbosity = int(conf.properties['nosetests.verbosity'])
         self.remote = int(conf.properties['main.remote'])
 
-        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
-
         self.logger = logging.getLogger("robottelo")
-        self.logger.setLevel(self.verbosity * 10)
 
         if not self.remote:
             if self.driver_name.lower() == 'firefox':
@@ -88,6 +87,8 @@ class BaseUI(unittest.TestCase):
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
         self.compute_resource = ComputeResource(self.browser)
+        self.template = Template(self.browser)
+        self.partitiontable = PartitionTable(self.browser)
 
     def take_screenshot(self, file_name="error.png"):
         """
@@ -111,13 +112,16 @@ class BaseUI(unittest.TestCase):
     def run(self, result=None):
         super(BaseUI, self).run(result)
 
-        if result.skipped:
-            try:
-                self.browser.quit()
-            except Exception, e:
-                pass
+        try:
+            if result.skipped:
+                try:
+                    self.browser.quit()
+                except Exception:
+                    pass
 
-            return result
+                return result
+        except AttributeError:
+            pass
 
         # create a sauceclient object to report pass/fail results
         if "remote" in str(type(self.browser)):

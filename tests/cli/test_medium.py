@@ -5,8 +5,8 @@
 import random
 
 from basecli import BaseCLI
-from lib.cli.medium import Medium
-from lib.common.helpers import generate_name
+from robottelo.cli.medium import Medium
+from robottelo.common.helpers import generate_name
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = [
@@ -36,7 +36,7 @@ class TestMedium(BaseCLI):
 
         Medium().create(args)
 
-        self.assertTrue(Medium().exists(args['name']))
+        self.assertTrue(Medium().exists(('name', args['name'])))
 
     def test_create_medium_1(self):
         "Successfully creates a new medium"
@@ -50,11 +50,11 @@ class TestMedium(BaseCLI):
         name = generate_name(6)
         self._create_medium(name)
 
-        medium = Medium().exists(name)
+        medium = Medium().exists(('name', name))
 
         args = {
             'id': medium['Id'],
         }
 
         Medium().delete(args)
-        self.assertFalse(Medium().exists(name))
+        self.assertFalse(Medium().exists(('name', name)))

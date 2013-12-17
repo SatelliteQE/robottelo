@@ -6,9 +6,9 @@ import os
 import random
 
 from basecli import BaseCLI
-from lib.cli.base import Base
-from lib.cli.partitiontable import PartitionTable
-from lib.common.helpers import generate_name
+from robottelo.cli.base import Base
+from robottelo.cli.partitiontable import PartitionTable
+from robottelo.common.helpers import generate_name
 from tempfile import mkstemp
 
 # TODO: Move this to a common location
@@ -45,7 +45,7 @@ class TestPartitionTable(BaseCLI):
 
         PartitionTable().create(args)
 
-        self.assertTrue(PartitionTable().exists(args['name']))
+        self.assertTrue(PartitionTable().exists(('name', args['name'])))
 
     def test_create_ptable_1(self):
         "Successfully creates a new ptable"
@@ -61,7 +61,7 @@ class TestPartitionTable(BaseCLI):
         name = generate_name(6)
         self._create_ptable(name=name, content=content)
 
-        ptable = PartitionTable().exists(name)
+        ptable = PartitionTable().exists(('name', name))
 
         args = {
             'id': ptable['Id'],
@@ -69,7 +69,7 @@ class TestPartitionTable(BaseCLI):
 
         ptable_content = PartitionTable().dump(args)
 
-        self.assertTrue(content in ptable_content['stdout'][0])
+        self.assertTrue(content in ptable_content.stdout[0])
 
     def test_delete_medium_1(self):
         "Creates and immediately deletes medium."
@@ -78,11 +78,11 @@ class TestPartitionTable(BaseCLI):
         name = generate_name(6)
         self._create_ptable(name=name, content=content)
 
-        ptable = PartitionTable().exists(name)
+        ptable = PartitionTable().exists(('name', name))
 
         args = {
             'id': ptable['Id'],
         }
 
         PartitionTable().delete(args)
-        self.assertFalse(PartitionTable().exists(name))
+        self.assertFalse(PartitionTable().exists(('name', name)))

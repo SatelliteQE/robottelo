@@ -5,8 +5,8 @@
 import random
 
 from basecli import BaseCLI
-from lib.cli.operatingsys import OperatingSys
-from lib.common.helpers import generate_name
+from robottelo.cli.operatingsys import OperatingSys
+from robottelo.common.helpers import generate_name
 
 
 class TestOperatingSys(BaseCLI):
@@ -24,7 +24,7 @@ class TestOperatingSys(BaseCLI):
         }
 
         OperatingSys().create(args)
-        self.assertTrue(OperatingSys().exists(args['name']))
+        self.assertTrue(OperatingSys().exists(('name', args['name'])))
 
     def test_create_os_1(self):
         "Successfully creates a new OS."
