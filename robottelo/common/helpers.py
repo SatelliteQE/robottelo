@@ -11,6 +11,8 @@ from threading import Lock
 from robottelo.cli.base import Base, SSHCommandResult
 from robottelo.common import conf
 
+logger = logging.getLogger("robottelo")
+
 
 def generate_name(min=4, max=8):
 
@@ -170,7 +172,7 @@ def sleep_for_seconds(guaranteed_sleep=1):
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
 
 
-def ssh_command(self, cmd, hostname=None):
+def ssh_command(cmd, hostname=None):
     """
     Executes SSH command(s) on remote hostname.
     Defaults to main.server.hostname.
@@ -186,11 +188,11 @@ def ssh_command(self, cmd, hostname=None):
     # helps for each command to be grouped with a new line.
     print ""
 
-    self.logger.debug(cmd)
+    logger.debug(cmd)
 
     if output:
-        self.logger.debug("".join(output))
+        logger.debug("".join(output))
     if errors:
-        self.logger.error("".join(errors))
+        logger.error("".join(errors))
 
     return SSHCommandResult(output, errors, errorcode, False)
