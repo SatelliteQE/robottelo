@@ -2,41 +2,50 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Several helper methods and functions.
+"""
+
 import random
 import string
 import time
 
 from itertools import izip
-from threading import Lock
-from robottelo.cli.base import Base, SSHCommandResult
-from robottelo.common import conf
-
-logger = logging.getLogger("robottelo")
 
 
-def generate_name(min=4, max=8):
+def generate_name(minimum=4, maximum=8):
+    """
+    Generates a random string using lower, upper boundaries to determine the
+    length.
+    """
 
-    if min <= 0:
-        min = 4
-    if max < min:
-        max = min
+    if minimum <= 0:
+        minimum = 4
+    if maximum < minimum:
+        maximum = minimum
 
-    r = random.SystemRandom()
+    rand = random.SystemRandom()
     pool1 = string.ascii_lowercase + string.digits
 
-    name = str().join(r.choice(pool1) for x in range(random.randint(min, max)))
+    name = str().join(
+        rand.choice(pool1) for x in range(random.randint(minimum, maximum)))
 
     return name
 
 
 def generate_email_address(name_length=8, domain_length=6):
+    """
+    Generates a random email address.
+    """
     return "%s@%s.com" % (generate_name(name_length),
                           generate_name(domain_length))
 
 
 def valid_names_list():
-
-    VALID_NAMES = [
+    """
+    List of valid names for input testing.
+    """
+    valid_names = [
         generate_name(5, 5),
         generate_name(255),
         "%s-%s" % (generate_name(4), generate_name(4)),
@@ -52,23 +61,27 @@ def valid_names_list():
         "bar+{}|\"?hi %s" % generate_name(),
     ]
 
-    return VALID_NAMES
+    return valid_names
 
 
 def invalid_names_list():
-
-    INVALID_NAMES = [
+    """
+    List of invalid names for input testing.
+    """
+    invalid_names = [
         " ",
         generate_name(256),
         " " + generate_name(),
         generate_name() + " ",
     ]
 
-    return INVALID_NAMES
+    return invalid_names
 
 
 def generate_ipaddr(ip3=False):
-
+    """
+    Generates a random IP address.
+    """
     rng = 3 if ip3 else 4
     ipaddr = ".".join(str(random.randrange(0, 255, 1)) for x in range(rng))
 
@@ -76,6 +89,9 @@ def generate_ipaddr(ip3=False):
 
 
 def generate_mac(delimiter=":"):
+    """
+    Generates a random MAC address.
+    """
     chars = ['a', 'b', 'c', 'd', 'e', 'f',
              '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -170,29 +186,3 @@ def sleep_for_seconds(guaranteed_sleep=1):
     @param guaranteed_sleep: Guaranteed sleep in seconds.
     """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
-
-
-def ssh_command(cmd, hostname=None):
-    """
-    Executes SSH command(s) on remote hostname.
-    Defaults to main.server.hostname.
-    """
-    hostname = hostname or conf.properties['main.server.hostname']
-    lock = Lock()
-    with lock:
-        stdout, stderr = Base.get_connection().exec_command(cmd)[-2:]
-        errorcode = stdout.channel.recv_exit_status()
-        output = stdout.readlines()
-        errors = stderr.readlines()
-
-    # helps for each command to be grouped with a new line.
-    print ""
-
-    logger.debug(cmd)
-
-    if output:
-        logger.debug("".join(output))
-    if errors:
-        logger.error("".join(errors))
-
-    return SSHCommandResult(output, errors, errorcode, False)
