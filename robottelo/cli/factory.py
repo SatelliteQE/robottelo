@@ -360,6 +360,7 @@ def make_template(options=None):
             'name': generate_name(6),
             'audit-comment': '',
             'operatingsystem-ids': '',
+            #TODO: Change '' to None when base is coded with disregarding None
         }
 
     #Special handling for template factory
