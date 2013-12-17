@@ -4,6 +4,7 @@
 
 import logging
 
+from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.model import Model
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
@@ -12,7 +13,6 @@ from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
-from robottelo.cli.computeresource import ComputeResource
 
 
 logger = logging.getLogger("robottelo")
