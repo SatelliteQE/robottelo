@@ -5,8 +5,6 @@ import logging
 import unittest
 
 from robottelo.common import conf
-from threading import Lock
-from robottelo.cli.base import Base, SSHCommandResult
 
 
 class BaseCLI(unittest.TestCase):
@@ -46,28 +44,3 @@ class BaseCLI(unittest.TestCase):
             self.__init_once_me()
             self.__class__.__initialized = True
             self._init_once()
-
-    def ssh(self, cmd, hostname=None):
-        """
-        Executes SSH command(s) on remote hostname.
-        Defaults to main.server.hostname.
-        """
-        hostname = hostname or conf.properties['main.server.hostname']
-        lock = Lock()
-        with lock:
-            stdout, stderr = Base.get_connection().exec_command(cmd)[-2:]
-            errorcode = stdout.channel.recv_exit_status()
-            output = stdout.readlines()
-            errors = stderr.readlines()
-
-        # helps for each command to be grouped with a new line.
-        print ""
-
-        self.logger.debug(cmd)
-
-        if output:
-            self.logger.debug("".join(output))
-        if errors:
-            self.logger.error("".join(errors))
-
-        return SSHCommandResult(output, errors, errorcode, False)

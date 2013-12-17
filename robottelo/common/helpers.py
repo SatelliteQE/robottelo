@@ -7,6 +7,9 @@ import string
 import time
 
 from itertools import izip
+from threading import Lock
+from robottelo.cli.base import Base, SSHCommandResult
+from robottelo.common import conf
 
 
 def generate_name(min=4, max=8):
@@ -178,3 +181,29 @@ def sleep_for_seconds(guaranteed_sleep=1):
     @param guaranteed_sleep: Guaranteed sleep in seconds.
     """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
+
+
+def ssh_command(self, cmd, hostname=None):
+    """
+    Executes SSH command(s) on remote hostname.
+    Defaults to main.server.hostname.
+    """
+    hostname = hostname or conf.properties['main.server.hostname']
+    lock = Lock()
+    with lock:
+        stdout, stderr = Base.get_connection().exec_command(cmd)[-2:]
+        errorcode = stdout.channel.recv_exit_status()
+        output = stdout.readlines()
+        errors = stderr.readlines()
+
+    # helps for each command to be grouped with a new line.
+    print ""
+
+    self.logger.debug(cmd)
+
+    if output:
+        self.logger.debug("".join(output))
+    if errors:
+        self.logger.error("".join(errors))
+
+    return SSHCommandResult(output, errors, errorcode, False)
