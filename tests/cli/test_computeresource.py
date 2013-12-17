@@ -80,9 +80,11 @@ class TestComputeResource(BaseCLI):
                           "ComputeResource list - exit code")
         self.assertTrue(len(result_list.stdout) > 0,
                         "ComputeResource list - stdout has results")
-        self.assertTrue(ComputeResource().exists(
-            ('name', result_create['name'])),
-                        "ComputeResource list - exists name")
+        self.assertTrue(
+            ComputeResource().exists(
+                ('name', result_create['name'])
+            ),
+            "ComputeResource list - exists name")
 
     @data(
         {'description': "updated: compute resource"},
@@ -114,11 +116,13 @@ class TestComputeResource(BaseCLI):
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
         sleep_for_seconds(5)
-        result_delete = ComputeResource().delete({'name':
-                                                  result_create['name']})
-        self.assertEquals(result_delete.return_code, 0,
-                        "ComputeResource delete - exit code")
+        result_delete = ComputeResource().delete(
+            {'name': result_create['name']})
+        self.assertEquals(
+            result_delete.return_code, 0,
+            "ComputeResource delete - exit code")
         sleep_for_seconds(5)
-        self.assertFalse(ComputeResource().exists(
-            ('name', result_create['name'])),
-                        "ComputeResource list - does not exist name")
+        self.assertFalse(
+            ComputeResource().exists(
+                ('name', result_create['name'])),
+            "ComputeResource list - does not exist name")
