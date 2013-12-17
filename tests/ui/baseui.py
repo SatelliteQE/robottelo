@@ -17,6 +17,7 @@ from robottelo.ui.domain import Domain
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.product import Product
 from robottelo.ui.user import User
+from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -81,6 +82,7 @@ class BaseUI(unittest.TestCase):
         self.environment = Environment(self.browser)
         self.architecture = Architecture(self.browser)
         self.medium = Medium(self.browser)
+        self.hosts = Hosts(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
