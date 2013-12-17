@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Factory object creation for all CLI methods
+"""
+
 import logging
 import random
 
@@ -356,13 +360,13 @@ def make_template(options=None):
     """
     #Assigning default values for attribute
     args = {
-            'file': "/tmp/%s" % generate_name(),
-            'type': random.choice(TEMPLATE_TYPES),
-            'name': generate_name(6),
-            'audit-comment': '',
-            'operatingsystem-ids': '',
-            #TODO: Change '' to None when base is coded with disregarding None
-            #Fix other methods above for this change too
+        'file': "/tmp/%s" % generate_name(),
+        'type': random.choice(TEMPLATE_TYPES),
+        'name': generate_name(6),
+        'audit-comment': '',
+        'operatingsystem-ids': '',
+        #TODO: Change '' to None when base is coded with disregarding None
+        #TODO: Fix other methods above for this change too
         }
 
     #Special handling for template factory
