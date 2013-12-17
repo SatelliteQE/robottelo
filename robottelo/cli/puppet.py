@@ -3,22 +3,24 @@
 
 """
 Usage:
-    hammer fact [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer puppet_class [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters:
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
 Subcommands:
-    list                          List all fact values.
+    sc_params                     List all smart class parameters
+    info                          Show a puppetclass
+    list                          List all puppetclasses.
 """
 
 from robottelo.cli.base import Base
 
 
-class Fact(Base):
+class Puppet(Base):
     """
-    Searches Foreman's facts.
+    Search Foreman's puppet modules.
     """
 
     def __init__(self):
@@ -26,4 +28,4 @@ class Fact(Base):
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "fact"
+        self.command_base = "puppet_class"

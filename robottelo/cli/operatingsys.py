@@ -1,13 +1,44 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
+
+"""
+Usage:
+    hammer os [OPTIONS] SUBCOMMAND [ARG] ...
+
+Parameters:
+    SUBCOMMAND                    subcommand
+    [ARG] ...                     subcommand arguments
+
+Subcommands:
+    set_parameter                 Create or update parameter for an
+                                  operating system.
+    remove_configtemplate         Disassociate a resource
+    create                        Create an OS.
+    info                          Show an OS.
+    add_configtemplate            Associate a resource
+    remove_architecture           Disassociate a resource
+    list                          List all operating systems.
+    remove_ptable                 Disassociate a resource
+    update                        Update an OS.
+    add_architecture              Associate a resource
+    add_ptable                    Associate a resource
+    delete                        Delete an OS.
+    delete_parameter              Delete parameter for an operating system.
+"""
 
 from robottelo.cli.base import Base
 
 
 class OperatingSys(Base):
+    """
+    Manipulates Foreman's operating systems.
+    """
 
     def __init__(self):
+        """
+        Sets the base command for class.
+        """
+        Base.__init__(self)
         self.command_base = "os"
 
     def add_architecture(self, options=None):
@@ -19,7 +50,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.stderr else True
+        return result
 
     def add_configtemplate(self, options=None):
         """
@@ -30,7 +61,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.stderr else True
+        return result
 
     def add_ptable(self, options=None):
         """
@@ -41,18 +72,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.stderr else True
-
-    def delete_parameter(self, options=None):
-        """
-        Deletes parameter from OS.
-        """
-
-        self.command_sub = "delete_parameter"
-
-        result = self.execute(self._construct_command(options))
-
-        return False if result.stderr else True
+        return result
 
     def remove_architecture(self, options=None):
         """
@@ -63,7 +83,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.stderr else True
+        return result
 
     def remove_configtemplate(self, options=None):
         """
@@ -74,7 +94,7 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.stderr else True
+        return result
 
     def remove_ptable(self, options=None):
         """
@@ -85,15 +105,4 @@ class OperatingSys(Base):
 
         result = self.execute(self._construct_command(options))
 
-        return False if result.stderr else True
-
-    def set_parameter(self, options=None):
-        """
-        Adds a new parameter to the OS.
-        """
-
-        self.command_sub = "set_parameter"
-
-        result = self.execute(self._construct_command(options))
-
-        return False if result.stderr else True
+        return result

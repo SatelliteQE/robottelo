@@ -207,6 +207,14 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
 
+    #Partition Table
+    "ptable.new": (By.XPATH, "//a[contains(@href, '/ptables/new')]"),
+    "ptable.name": (By.ID, "ptable_name"),
+    "ptable.layout": (By.ID, "ptable_layout"),
+    "ptable.os_family": (By.ID, "ptable_os_family"),
+    "ptable.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
+    "ptable.ptable_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
+
     # Menus
 
     # Monitor Menu

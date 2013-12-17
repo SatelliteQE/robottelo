@@ -62,31 +62,31 @@ Assuming you have already installed and configured **The Foreman**, the simplest
 
 ::
 
-    python robottelo_runner.py --tests tests.ui.test_Login
+    python robottelo_runner.py --tests tests.ui.test_login
 
 Multiple tests can also be invoked:
 
 ::
 
-    python robottelo_runner.py --tests tests.ui.test_Login --tests tests.ui.test_Organization
+    python robottelo_runner.py --tests tests.ui.test_login --tests tests.ui.test_organization
 
 Running individual tests from a test suite from the command line:
 
 ::
 
-    python robottelo_runner.py --tests tests.ui.test_Login.test_successful_login
+    python robottelo_runner.py --tests tests.ui.test_login.test_successful_login
 
 You can also run tests directly using either **unittest** or **nosetests** provided you pass all the expected arguments:
 
 ::
 
-    KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox python -m unittest tests.ui.test_Login.test_successful_login
+    KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox python -m unittest tests.ui.test_login.test_successful_login
 
 or
 
 ::
 
-    KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox nosetests tests.ui.test_Login.test_successful_login
+    KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox nosetests tests.ui.test_login.test_successful_login
 
 Known Issues
 ============
