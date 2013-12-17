@@ -22,6 +22,13 @@ from robottelo.cli.base import Base
 
 
 class ComputeResource(Base):
+    """
+    Manipulates Foreman's compute resources.
+    """
 
     def __init__(self):
+        """
+        Sets the base command for class.
+        """
+        Base.__init__(self)
         self.command_base = "compute_resource"
