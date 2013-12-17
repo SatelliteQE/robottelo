@@ -9,18 +9,8 @@ from basecli import BaseCLI
 from robottelo.cli.base import Base
 from robottelo.cli.template import Template
 from robottelo.common.helpers import generate_name
+from robottelo.common.constants import TEMPLATE_TYPES
 from tempfile import mkstemp
-
-# TODO: Move this to a common location
-TEMPLATE_TYPES = [
-    'PXELinux',
-    'gPXE',
-    'provision',
-    'finish',
-    'script',
-    'PXEGrub',
-    'snippet',
-]
 
 
 class TestTemplate(BaseCLI):
@@ -38,8 +28,7 @@ class TestTemplate(BaseCLI):
         args = {
             'file': "/tmp/%s" % generate_name(),
             'name': name or generate_name(),
-            'type': template_type or TEMPLATE_TYPES[random.randint(
-                0, len(TEMPLATE_TYPES) - 1)],
+            'type': template_type or random.choice(TEMPLATE_TYPES),
             'audit-comment': audit_comment,
             'operatingsystem-ids': operatingsystem_ids,
         }
