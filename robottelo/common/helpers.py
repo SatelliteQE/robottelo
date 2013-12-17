@@ -23,6 +23,19 @@ def generate_name(min=4, max=8):
 
     return name
 
+def generate_id(min=4, max=8):
+
+    if min <= 0:
+        min = 4
+    if max < min:
+        max = min
+
+    r = random.SystemRandom()
+    pool1 = string.digits
+    
+    id = str().join(r.choice(pool1) for x in range(random.randint(min, max)))
+    
+    return id
 
 def generate_email_address(name_length=8, domain_length=6):
     return "%s@%s.com" % (generate_name(name_length),
