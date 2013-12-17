@@ -22,7 +22,7 @@ from robottelo.ui.product import Product
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
-from robottelo.ui.compute_resource import ComputeResource
+from robottelo.ui.computeresource import ComputeResource
 from selenium import webdriver
 
 SCREENSHOTS_DIR = os.path.join(
