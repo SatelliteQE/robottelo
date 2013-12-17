@@ -3,8 +3,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-from lib.cli.architecture import Architecture
-from lib.common.helpers import generate_name
+from robottelo.cli.architecture import Architecture
+from robottelo.common.helpers import generate_name
 
 
 class TestArchitecture(BaseCLI):
@@ -20,7 +20,7 @@ class TestArchitecture(BaseCLI):
 
         Architecture().create(args)
 
-        self.assertTrue(Architecture().exists(args['name']))
+        self.assertTrue(Architecture().exists(('name', args['name'])))
 
     def test_create_architecture_1(self):
         """Successfully creates a new architecture"""
@@ -34,11 +34,11 @@ class TestArchitecture(BaseCLI):
         name = generate_name(6)
         self._create_arch(name)
 
-        arch = Architecture().exists(name)
+        arch = Architecture().exists(('name', name))
 
         args = {
             'id': arch['Id'],
         }
 
         Architecture().delete(args)
-        self.assertFalse(Architecture().exists(name))
+        self.assertFalse(Architecture().exists(('name', name)))
