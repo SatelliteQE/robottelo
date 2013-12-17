@@ -4,14 +4,9 @@
 
 from tests.cli.basecli import BaseCLI
 from robottelo.cli.org import Org
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_subnet
-from robottelo.cli.factory import make_user
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_environment
-from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import (
+    make_domain, make_environment, make_hostgroup, make_medium, make_org,
+    make_proxy, make_subnet, make_user)
 
 
 class TestOrg(BaseCLI):
@@ -49,7 +44,6 @@ class TestOrg(BaseCLI):
         subnet_result = make_subnet()
         return_value = Org().add_subnet(
                 {'name': org_result['name'], 'subnet': subnet_result['name']})
-        #TODO: subnet factory fails sometimes. Need to fix
         self.assertTrue(return_value.return_code, 0)
         self.assertFalse(return_value.stderr)
 
