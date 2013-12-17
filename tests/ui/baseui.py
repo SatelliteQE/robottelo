@@ -12,14 +12,12 @@ from robottelo.common import conf
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
-from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.product import Product
-from robottelo.ui.user import User
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.subnet import Subnet
