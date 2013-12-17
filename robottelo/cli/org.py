@@ -40,8 +40,15 @@ Subcommands:
 
 
 class Org(Base):
+    """
+    Manipulates Foreman's Organizations
+    """
 
     def __init__(self):
+        """
+        Sets the base command for class
+        """
+        Base.__init__(self)
         self.command_base = "organization"
 
     def add_subnet(self, options=None):
