@@ -2,10 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from tests.ui.baseui import BaseUI
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
+from tests.ui.baseui import BaseUI
 
 
 class OperatingSys(BaseUI):

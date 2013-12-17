@@ -2,10 +2,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from tests.ui.baseui import BaseUI
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
-from time import sleep
+from tests.ui.baseui import BaseUI
 
 
 class Architecture(BaseUI):
@@ -23,10 +22,9 @@ class Architecture(BaseUI):
         major_version = generate_string('numeric', 1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(os_name, major_version)  # create os
-        sleep(5)
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(name, os_name)
-        self.assertTrue(self, self.architecture.search(name))  # search the created arch
+        self.assertTrue(self, self.architecture.search(name))
 
     def test_remove_arch(self):
         "Delete Arch"
@@ -35,7 +33,6 @@ class Architecture(BaseUI):
         major_version = generate_string('numeric', 1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(os_name, major_version)
-        sleep(5)
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(name, os_name)
         self.architecture.remove(name, True)
@@ -48,9 +45,7 @@ class Architecture(BaseUI):
         major_version = generate_string('numeric', 1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(new_osname, major_version)
-        sleep(5)
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(oldname)
-        sleep(5)
         self.architecture.update(oldname, newname, new_osname)
         self.assertTrue(self, self.architecture.search(newname))
