@@ -2,8 +2,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from robottelo.cli.base import Base
-
 """
 Usage:
     hammer model [OPTIONS] SUBCOMMAND [ARG] ...
@@ -37,6 +35,8 @@ Subcommands:
     add_smartproxy                Associate a resource
     list                          List all organizations
 """
+
+from robottelo.cli.base import Base
 
 
 class Org(Base):
