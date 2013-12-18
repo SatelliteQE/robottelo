@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+import unittest
 from tests.ui.baseui import BaseUI
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
@@ -9,6 +10,7 @@ from robottelo.common.helpers import generate_name
 
 class ComputeResource(BaseUI):
 
+    @unittest.skip("Test needs to create other required stuff")
     def test_create_resource(self):
         "Test to create a new libvirt Compute Resource"
         name = generate_name(8)
