@@ -10,8 +10,9 @@ import logging
 import random
 
 from os import chmod
-from robottelo.cli.base import Base
 #TODO: Remove Base when upload_file is moved to a new module
+from robottelo.cli.base import Base
+from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.hostgroup import HostGroup
@@ -195,6 +196,46 @@ def make_user(options=None):
     args = update_dictionary(args, options)
     create_object(User, args)
 
+    return args
+
+
+def make_compute_resource(options=None):
+    """
+    Usage:
+        hammer compute_resource create [OPTIONS]
+
+    Options:
+        --name NAME
+        --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
+            Vmware, Openstack, Rackspace, GCE
+        --url URL                     URL for Libvirt, Ovirt, and Openstack
+        --description DESCRIPTION
+        --user USER                   Username for Ovirt, EC2, Vmware,
+            Openstack. Access Key for EC2.
+        --password PASSWORD           Password for Ovirt, EC2, Vmware,
+            Openstack. Secret key for EC2
+        --uuid UUID                   for Ovirt, Vmware Datacenter
+        --region REGION               for EC2 only
+        --tenant TENANT               for Openstack only
+        --server SERVER               for Vmware
+        -h, --help                    print help
+    """
+    options = options or {}
+    args = {
+        'name': generate_name(8, 8),
+        'provider': None,
+        'url': None,
+        'description': None,
+        'user': None,
+        'password': None,
+        'uuid': None,
+        'region': None,
+        'tenant': None,
+        'server': None
+    }
+
+    args = update_dictionary(args, options)
+    create_object(ComputeResource, args)
     return args
 
 
