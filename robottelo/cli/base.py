@@ -2,11 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-<<<<<<< HEAD
-Base class for all cli operations
-=======
 Generic base class for cli hammer commands
->>>>>>> upstream/master
 """
 
 import logging
