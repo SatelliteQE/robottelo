@@ -236,6 +236,7 @@ def make_compute_resource(options=None):
 
     args = update_dictionary(args, options)
     create_object(ComputeResource, args)
+    return args
 
 
 def make_org(options=None):
