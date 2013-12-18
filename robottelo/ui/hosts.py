@@ -84,8 +84,8 @@ class Hosts(Base):
         dropdown = self.wait_until_element((strategy, value % name))
         dropdown.click()
         strategy1 = locators["host.delete"][0]
-        value1 = locators["host.delete"][0]
-        element = self.wait_until_element((strategy1, value1 % name))
+        value1 = locators["host.delete"][1]
+        element = self.wait_until_element((strategy1, value1 % name), delay=5)
         if element:
             element.click()
             if really:
