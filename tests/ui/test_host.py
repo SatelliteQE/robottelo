@@ -43,4 +43,4 @@ class Host(BaseUI):
         self.navigator.go_to_hosts()
         #confirm the Host appears in the UI
         self.hosts.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))  # @IgnorePep8
