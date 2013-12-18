@@ -8,6 +8,7 @@ import random
 from basecli import BaseCLI
 from robottelo.cli.base import Base
 from robottelo.cli.partitiontable import PartitionTable
+from robottelo.common import ssh
 from robottelo.common.helpers import generate_name
 from tempfile import mkstemp
 
@@ -41,7 +42,7 @@ class TestPartitionTable(BaseCLI):
         }
 
         # Upload file to server
-        Base.upload_file(local_file=layout, remote_file=args['file'])
+        ssh.upload_file(local_file=layout, remote_file=args['file'])
 
         PartitionTable().create(args)
 
