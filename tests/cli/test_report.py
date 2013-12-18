@@ -33,7 +33,7 @@ class TestReport(BaseCLI):
         Displays info for puppet report.
         """
         id = generate_id() 
-        result = Report().info({'id': 3})
+        result = Report().info({'id': id})
         self.assertEquals(
             len(result.stdout), 1, "Report info - return count"
         )
