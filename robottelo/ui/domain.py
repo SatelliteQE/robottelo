@@ -23,8 +23,11 @@ class Domain(Base):
                                       ["domain.description"]
                                       ).send_keys(description)
             if dns_proxy:
-                Select(self.find_element(locators["domain.dns_proxy"])).select_by_visible_text(dns_proxy)
+                Select(self.find_element(locators
+                                         ["domain.dns_proxy"]
+                                         )).select_by_visible_text(dns_proxy)
             self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
 
     def delete(self, name, really):
         element = self.wait_until_element((locators
@@ -40,6 +43,7 @@ class Domain(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
+            self.wait_for_ajax()
 
     def search(self, description):
         searchbox = self.wait_until_element(locators["search"])
@@ -66,17 +70,16 @@ class Domain(Base):
         if element:
             element.click()
         if self.wait_until_element(locators["domain.name"]):
-            txt_field = self.find_element(locators["domain.name"])
-            txt_field.clear()
-            txt_field.send_keys(new_name)
+            self.field_update("domain.name", new_name)
         if new_description:
             if self.wait_until_element(locators["domain.description"]):
-                txt_field = self.find_element(locators["domain.description"])
-                txt_field.clear()
-                txt_field.send_keys(new_description)
+                self.field_update("domain.description", new_description)
         if new_dns_proxy:
-            Select(self.find_element(locators["domain.dns_proxy"])).select_by_visible_text(new_dns_proxy)
+            Select(self.find_element(locators
+                                     ["domain.dns_proxy"]
+                                     )).select_by_visible_text(new_dns_proxy)
         self.find_element(locators["submit"]).click()
+        self.wait_for_ajax()
 
     def set_parameter(self, domain_description, param_name, param_value):
         element = self.wait_until_element((locators
@@ -99,6 +102,7 @@ class Domain(Base):
                                   ["domain.parameter_value"]
                                   ).send_keys(param_value)
             self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
 
     def remove_parameter(self, domain_description, param_name):
         element = self.wait_until_element((locators
