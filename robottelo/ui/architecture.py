@@ -15,9 +15,7 @@ class Architecture(Base):
     def create(self, name, os_name=None):
         self.wait_until_element(locators["arch.new"]).click()
         if self.wait_until_element(locators["arch.name"]):
-            txt_field = self.find_element(locators["arch.name"])
-            txt_field.clear()
-            txt_field.send_keys(name)
+            self.field_update("arch.name", name)
         if os_name:
             element = self.wait_until_element((locators["arch.os_name"][0],
                                                locators["arch.os_name"][1] \
@@ -25,6 +23,7 @@ class Architecture(Base):
             if element:
                 element.click()
         self.find_element(locators["arch.submit"]).click()
+        self.wait_for_ajax()
 
     def remove(self, name, really):
         element = self.wait_until_element((locators["arch.delete"][0],
@@ -59,9 +58,7 @@ class Architecture(Base):
         if element:
             element.click()
         if self.wait_until_element(locators["arch.name"]):
-            txt_field = self.find_element(locators["arch.name"])
-            txt_field.clear()
-            txt_field.send_keys(newname)
+            self.field_update("arch.name", newname)
         if new_osname:
             element = self.wait_until_element((locators["arch.os_name"][0],
                                                locators["arch.os_name"][1] \
@@ -69,3 +66,4 @@ class Architecture(Base):
             if element:
                 element.click()
         self.find_element(locators["arch.submit"]).click()
+        self.wait_for_ajax()

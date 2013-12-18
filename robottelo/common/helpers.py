@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Several helper methods and functions.
+"""
+
 import random
 import string
 import time
@@ -9,29 +13,39 @@ import time
 from itertools import izip
 
 
-def generate_name(min=4, max=8):
+def generate_name(minimum=4, maximum=8):
+    """
+    Generates a random string using lower, upper boundaries to determine the
+    length.
+    """
 
-    if min <= 0:
-        min = 4
-    if max < min:
-        max = min
+    if minimum <= 0:
+        minimum = 4
+    if maximum < minimum:
+        maximum = minimum
 
-    r = random.SystemRandom()
+    rand = random.SystemRandom()
     pool1 = string.ascii_lowercase + string.digits
 
-    name = str().join(r.choice(pool1) for x in range(random.randint(min, max)))
+    name = str().join(
+        rand.choice(pool1) for x in range(random.randint(minimum, maximum)))
 
     return name
 
 
 def generate_email_address(name_length=8, domain_length=6):
+    """
+    Generates a random email address.
+    """
     return "%s@%s.com" % (generate_name(name_length),
                           generate_name(domain_length))
 
 
 def valid_names_list():
-
-    VALID_NAMES = [
+    """
+    List of valid names for input testing.
+    """
+    valid_names = [
         generate_name(5, 5),
         generate_name(255),
         "%s-%s" % (generate_name(4), generate_name(4)),
@@ -47,23 +61,27 @@ def valid_names_list():
         "bar+{}|\"?hi %s" % generate_name(),
     ]
 
-    return VALID_NAMES
+    return valid_names
 
 
 def invalid_names_list():
-
-    INVALID_NAMES = [
+    """
+    List of invalid names for input testing.
+    """
+    invalid_names = [
         " ",
         generate_name(256),
         " " + generate_name(),
         generate_name() + " ",
     ]
 
-    return INVALID_NAMES
+    return invalid_names
 
 
 def generate_ipaddr(ip3=False):
-
+    """
+    Generates a random IP address.
+    """
     rng = 3 if ip3 else 4
     ipaddr = ".".join(str(random.randrange(0, 255, 1)) for x in range(rng))
 
@@ -71,6 +89,9 @@ def generate_ipaddr(ip3=False):
 
 
 def generate_mac(delimiter=":"):
+    """
+    Generates a random MAC address.
+    """
     chars = ['a', 'b', 'c', 'd', 'e', 'f',
              '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 

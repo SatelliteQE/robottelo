@@ -2,21 +2,31 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging
+"""
+Factory object creation for all CLI methods
+"""
 
+import logging
+import random
+
+from os import chmod
+#TODO: Remove Base when upload_file is moved to a new module
+from robottelo.cli.base import Base
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.model import Model
-from robottelo.cli.proxy import Proxy
-from robottelo.cli.subnet import Subnet
-from robottelo.cli.user import User
-from robottelo.cli.org import Org
 from robottelo.cli.domain import Domain
+from robottelo.cli.environment import Environment
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.medium import Medium
-from robottelo.cli.environment import Environment
+from robottelo.cli.model import Model
+from robottelo.cli.org import Org
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.subnet import Subnet
+from robottelo.cli.template import Template
+from robottelo.cli.user import User
+from robottelo.common.constants import TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
-
+from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
 
@@ -55,7 +65,7 @@ def create_object(cli_object, args):
     result = cli_object().create(args)
 
     # If the object is not created, raise exception, stop the show.
-    if result.return_code != 0 and not cli_object().exists(
+    if result.return_code != 0 or not cli_object().exists(
             ('name', args['name'])):
 
         logger.debug(result.stderr)  # Show why creation failed.
@@ -226,6 +236,8 @@ def make_compute_resource(options=None):
 
     args = update_dictionary(args, options)
     create_object(ComputeResource, args)
+
+
 def make_org(options=None):
     """
     Usage:
@@ -366,5 +378,47 @@ def make_environment(options=None):
 
     args = update_dictionary(args, options)
     create_object(Environment, args)
+
+    return args
+
+
+def make_template(options=None):
+    """
+    Usage:
+    hammer template create [OPTIONS]
+
+    Options:
+    --file TEMPLATE             Path to a file that contains the template
+    --type TYPE                 Template type. Eg. snippet, script, provision
+    --name NAME                 template name
+    --audit-comment AUDIT_COMMENT
+    --operatingsystem-ids OPERATINGSYSTEM_IDS
+                                Array of operating systems ID
+                                to associate the template with
+                                Comma separated list of values.
+
+    """
+    #Assigning default values for attribute
+    args = {
+        'file': "/tmp/%s" % generate_name(),
+        'type': random.choice(TEMPLATE_TYPES),
+        'name': generate_name(6),
+        'audit-comment': '',
+        'operatingsystem-ids': '',
+        #TODO: Change '' to None when base is coded with disregarding None
+        #TODO: Fix other methods above for this change too
+        }
+
+    #Special handling for template factory
+    (file_handle, layout) = mkstemp(text=True)
+    chmod(layout, 0700)
+    with open(layout, "w") as ptable:
+        ptable.write(generate_name())
+    #Upload file to server
+    Base.upload_file(local_file=layout, remote_file=args['file'])
+    #End - Special handling for template factory
+
+    args = update_dictionary(args, options)
+    create_object(Template, args)
 
     return args
