@@ -8,3 +8,5 @@ requests
 git+https://github.com/RedHatQE/python-stageportal.git#egg=stageportal
 iniparse
 nose
+git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFactory
+nose_xunitmp
