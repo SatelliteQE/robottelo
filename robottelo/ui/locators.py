@@ -243,10 +243,10 @@ locators = {
     # Hosts Menu
     "menu.hosts": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='hosts_menu']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='hosts_menu']"),  # @IgnorePep8
     "menu.all_hosts": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_hosts']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='menu_item_hosts']"),  # @IgnorePep8
     "menu.operating_systems": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),   # @IgnorePep8
