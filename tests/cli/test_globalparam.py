@@ -2,18 +2,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 """
-Usage:
-    hammer global_parameter [OPTIONS] SUBCOMMAND [ARG] ...
-
-Parameters:
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
-
-Subcommands:
-    set                           Set a global parameter.
-    list                          List all common parameters.
-    delete                        Delete a common_parameter
+Test class for Global parameters CLI
 """
+
 from robottelo.cli.globalparam import GlobalParameter
 from robottelo.common.helpers import generate_name, sleep_for_seconds
 from tests.cli.basecli import BaseCLI

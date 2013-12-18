@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Test class for Host Group UI
+"""
+
 from baseui import BaseUI
 from robottelo.ui.locators import *
 from robottelo.common.helpers import generate_name
