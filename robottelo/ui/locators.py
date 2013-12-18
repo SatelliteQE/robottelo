@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Implements different locators for UI
+"""
+
 from selenium.webdriver.common.by import By
 
 locators = {

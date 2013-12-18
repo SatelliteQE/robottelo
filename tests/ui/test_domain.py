@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Test class for Domain UI
+"""
+
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI

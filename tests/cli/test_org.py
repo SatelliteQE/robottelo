@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Test class for Organization CLI
+"""
+
 from tests.cli.basecli import BaseCLI
 from robottelo.cli.factory import (
     make_domain, make_environment, make_hostgroup, make_medium, make_org,
