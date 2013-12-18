@@ -55,7 +55,8 @@ class BaseUI(unittest.TestCase):
             else:
                 self.browser = webdriver.Remote()
         else:
-            self.browser = SeleniumFactory().createWebDriver(job_name=self.id(), show_session_id=True)
+            self.browser = SeleniumFactory().createWebDriver(job_name=self.id(),
+                                                             show_session_id=True)
 
         self.browser.maximize_window()
         self.browser.get("https://" + self.host)
