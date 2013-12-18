@@ -25,7 +25,7 @@ from robottelo.ui.template import Template
 from robottelo.ui.user import User
 from selenium import webdriver
 from selenium_factory.ParseSauceURL import ParseSauceURL
-from selenium_factory.SeleniumFactory import SeleniumFactory, SauceRest
+from selenium_factory.SeleniumFactory import SauceRest, SeleniumFactory
 
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')
