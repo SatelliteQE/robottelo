@@ -5,8 +5,8 @@
 import random
 
 from os import chmod
-from robottelo.cli.base import Base
 from robottelo.cli.template import Template
+from robottelo.common import ssh
 from robottelo.common.constants import TEMPLATE_TYPES
 from robottelo.common.helpers import generate_name
 from tests.cli.basecli import BaseCLI
@@ -34,7 +34,7 @@ class TestTemplate(BaseCLI):
         }
 
         # Upload file to server
-        Base.upload_file(local_file=layout, remote_file=args['file'])
+        ssh.upload_file(local_file=layout, remote_file=args['file'])
 
         Template().create(args)
 

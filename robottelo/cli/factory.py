@@ -10,8 +10,6 @@ import logging
 import random
 
 from os import chmod
-from robottelo.cli.base import Base
-#TODO: Remove Base when upload_file is moved to a new module
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.hostgroup import HostGroup
@@ -22,6 +20,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
+from robottelo.common import ssh
 from robottelo.common.constants import TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
@@ -375,7 +374,7 @@ def make_template(options=None):
     with open(layout, "w") as ptable:
         ptable.write(generate_name())
     #Upload file to server
-    Base.upload_file(local_file=layout, remote_file=args['file'])
+    ssh.upload_file(local_file=layout, remote_file=args['file'])
     #End - Special handling for template factory
 
     args = update_dictionary(args, options)
