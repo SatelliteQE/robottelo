@@ -37,7 +37,7 @@ xunit-file=foreman-results.xml
 
 [stageportal]
 api=http://api.server.com:port/svcrest
-candlepin=candlepin.server.com  
+candlepin=candlepin.server.com
 customer.portal=https://access.server.com
 customer.username=username
 customer.password=password
