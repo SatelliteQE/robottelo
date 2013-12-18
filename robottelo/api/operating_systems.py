@@ -2,8 +2,8 @@
 from robottelo.api.apicrud import ApiCrudMixin
 from robottelo.api.model import ApiModelMixin
 from random import randint, choice
-from lib.common.helpers import generate_name
-from lib.common.helpers import generate_email_address
+from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_email_address
 
 class OperatingSystemApi(ApiCrudMixin,ApiModelMixin):
     """Implementation of /api/operatingsystems endpoint"""
