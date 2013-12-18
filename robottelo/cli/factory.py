@@ -23,7 +23,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
-from robottelo.common.constants import TEMPLATE_TYPES
+from robottelo.common.constants import FOREMAN_PROVIDERS, TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
 from tempfile import mkstemp
@@ -221,18 +221,48 @@ def make_compute_resource(options=None):
         -h, --help                    print help
     """
     options = options or {}
+    provider = options['provider'] or random.choice(FOREMAN_PROVIDERS.values())
     args = {
         'name': generate_name(8, 8),
-        'provider': None,
-        'url': None,
-        'description': None,
-        'user': None,
-        'password': None,
-        'uuid': None,
-        'region': None,
-        'tenant': None,
-        'server': None
+        'provider': provider,
+        'description': None
     }
+
+    if provider == FOREMAN_PROVIDERS['libvirt']:
+        args['url'] = None
+    elif provider == FOREMAN_PROVIDERS['ovirt']:
+        args['url'] = None
+        args['user'] = None
+        args['password'] = None
+        args['uuid'] = None
+    elif provider == FOREMAN_PROVIDERS['ec2']:
+        args['user'] = None
+        args['password'] = None
+        args['region'] = None
+    elif provider == FOREMAN_PROVIDERS['vmware']:
+        args['user'] = None
+        args['password'] = None
+        args['uuid'] = None
+        args['server'] = None
+    elif provider == FOREMAN_PROVIDERS['openstack']:
+        args['url'] = None
+        args['user'] = None
+        args['password'] = None
+        args['tenant'] = None
+    elif provider == FOREMAN_PROVIDERS['rackspace']:
+        pass  # strange 1
+    elif provider == FOREMAN_PROVIDERS['ce']:
+        pass  # strange 2
+    else:
+        args = {
+            'url': None,
+            'user': None,
+            'password': None,
+            'uuid': None,
+            'region': None,
+            'tenant': None,
+            'server': None
+        }
 
     args = update_dictionary(args, options)
     create_object(ComputeResource, args)
