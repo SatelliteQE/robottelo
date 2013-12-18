@@ -24,6 +24,8 @@ from robottelo.ui.template import Template
 from robottelo.ui.user import User
 from robottelo.ui.computeresource import ComputeResource
 from selenium import webdriver
+from selenium_factory.ParseSauceURL import ParseSauceURL
+from selenium_factory.SeleniumFactory import SeleniumFactory, SauceRest
 
 SCREENSHOTS_DIR = os.path.join(
     os.path.abspath(os.path.curdir), 'screenshots')
@@ -32,17 +34,11 @@ SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
 
 class BaseUI(unittest.TestCase):
-
     def setUp(self):
         self.host = conf.properties['main.server.hostname']
         self.katello_user = conf.properties['foreman.admin.username']
         self.katello_passwd = conf.properties['foreman.admin.password']
         self.driver_name = conf.properties['saucelabs.driver']
-        self.sauce_user = conf.properties['saucelabs.username']
-        self.sauce_key = conf.properties['saucelabs.key']
-        self.sauce_os = conf.properties['saucelabs.os']
-        self.sauce_tunnel = conf.properties['saucelabs.tunnel']
-        self.sauce_version = conf.properties['saucelabs.browser.version']
         self.locale = conf.properties['main.locale']
         self.verbosity = int(conf.properties['nosetests.verbosity'])
         self.remote = int(conf.properties['main.remote'])
@@ -59,17 +55,7 @@ class BaseUI(unittest.TestCase):
             else:
                 self.browser = webdriver.Remote()
         else:
-            desired_capabilities = getattr(
-                webdriver.DesiredCapabilities, self.driver_name.upper())
-            desired_capabilities['version'] = self.sauce_version
-            desired_capabilities['platform'] = self.sauce_os
-
-            if self.sauce_tunnel is not None:
-                desired_capabilities['parent-tunnel'] = self.sauce_tunnel
-            self.browser = webdriver.Remote(
-                desired_capabilities=desired_capabilities,
-                command_executor=SAUCE_URL % (self.sauce_user, self.sauce_key))
-            self.browser.implicitly_wait(3)
+            self.browser = SeleniumFactory().createWebDriver(job_name=self.id(), show_session_id=True)
 
         self.browser.maximize_window()
         self.browser.get("https://" + self.host)
@@ -123,30 +109,18 @@ class BaseUI(unittest.TestCase):
         except AttributeError:
             pass
 
-        # create a sauceclient object to report pass/fail results
-        if "remote" in str(type(self.browser)):
-            sc = sauceclient.SauceClient(
-                self.sauce_user,
-                self.sauce_key)
+        try:
+            if result.failures or result.errors:
 
-        if result.failures or result.errors:
-
-            # Take screenshot
-            fname = str(self).replace(
-                "(", "").replace(")", "").replace(" ", "_")
-            fmt = '%y-%m-%d_%H.%M.%S'
-            fdate = datetime.datetime.now().strftime(fmt)
-            filename = "%s_%s.png" % (fdate, fname)
-            self.take_screenshot(filename)
-
-            # Mark test as passed remotely
-            if "remote" in str(type(self.browser)):
-                sc.jobs.update_job(
-                    self.browser.session_id, name=str(self), passed=False)
-        else:
-            if "remote" in str(type(self.browser)):
-                sc.jobs.update_job(
-                    self.browser.session_id, name=str(self), passed=True)
+                # Take screenshot
+                fname = str(self).replace(
+                    "(", "").replace(")", "").replace(" ", "_")
+                fmt = '%y-%m-%d_%H.%M.%S'
+                fdate = datetime.datetime.now().strftime(fmt)
+                filename = "%s_%s.png" % (fdate, fname)
+                self.take_screenshot(filename)
+        except:
+            pass
 
         self.browser.quit()
         self.browser = None
