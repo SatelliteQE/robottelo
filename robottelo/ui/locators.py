@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Implements different locators for UI
+"""
+
 from selenium.webdriver.common.by import By
 
 locators = {
@@ -45,7 +49,7 @@ locators = {
     "host.tab_os": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href,'os')]"),
     "host.tab_vm": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'vm')]"),
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'compute_resource')]"),  # @IgnorePep8
     "host.tab_params": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href,'params')]"),
     "host.tab_info": (
@@ -54,10 +58,18 @@ locators = {
     #host.primary
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new')]"),
     "host.name": (By.ID, "host_name"),
+    "host.clone": (
+        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
+    "host.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "host.group": (By.ID, "host_hostgroup_id"),
     "host.deploy": (By.ID, "host_compute_resource_id"),
     "host.environment": (By.ID, "host_environment_id"),
-
+    "host.dropdown": (
+        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
+    "host.select_name": (
+        By.XPATH,
+        "//input[contains(@id,'host_ids')]/../../td[@class='ellipsis']/a[contains(@href,'%s')]"),  # @IgnorePep8
     #host.network
     "host.mac": (By.ID, "host_mac"),
     "host.domain": (By.ID, "host_domain_id"),
@@ -235,10 +247,10 @@ locators = {
     # Hosts Menu
     "menu.hosts": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='hosts_menu']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='hosts_menu']"),  # @IgnorePep8
     "menu.all_hosts": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_hosts']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='menu_item_hosts']"),  # @IgnorePep8
     "menu.operating_systems": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),   # @IgnorePep8
@@ -333,13 +345,16 @@ locators = {
         "//a[@id='menu_item_my_account']"),
 
     # Subnet Page
-     "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
-     "subnet.name": (By.ID, "subnet_name"),
-     "subnet.network": (By.ID, "subnet_network"),
-     "subnet.mask": (By.ID, "subnet_mask"),
-     "subnet.submit":
-        (By.XPATH, "//input[@class='btn btn-primary' and @name='commit']"),
-     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
-     "subnet.delete":
-        (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
+    "subnet.name": (By.ID, "subnet_name"),
+    "subnet.network": (By.ID, "subnet_network"),
+    "subnet.mask": (By.ID, "subnet_mask"),
+    "subnet.submit": (
+        By.XPATH,
+        "//input[@class='btn btn-primary' and @name='commit']"),
+    "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "subnet.delete": (
+        By.XPATH,
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"
+    ),
 }
