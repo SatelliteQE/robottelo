@@ -10,8 +10,6 @@ import logging
 import random
 
 from os import chmod
-#TODO: Remove Base when upload_file is moved to a new module
-from robottelo.cli.base import Base
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
