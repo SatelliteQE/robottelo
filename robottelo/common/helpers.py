@@ -46,7 +46,7 @@ def generate_id(minimum=4, maximum=8):
     rand = random.SystemRandom()
     pool1 = string.digits
 
-    name = str().join(
+    id = str().join(
         rand.choice(pool1) for x in range(random.randint(minimum, maximum)))
 
     return id
