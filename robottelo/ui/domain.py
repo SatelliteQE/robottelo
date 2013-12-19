@@ -85,7 +85,8 @@ class Domain(Base):
         self.find_element(locators["submit"]).click()
         self.wait_for_ajax()
 
-    def set_parameter(self, domain_description, param_name, param_value):
+    def set_domain_parameter(self, domain_description,
+                             param_name, param_value):
         element = self.wait_until_element((locators
                                            ["domain.domain_description"][0],
                                            locators
@@ -93,22 +94,9 @@ class Domain(Base):
                                            % domain_description))
         if element:
             element.click()
-            self.wait_until_element(locators["domain.parameter_tab"]).click()
-            self.wait_until_element(locators["domain.add_parameter"]).click()
-            if self.wait_until_element(locators
-                                       ["domain.parameter_name"]):
-                self.find_element(locators
-                                  ["domain.parameter_name"]
-                                  ).send_keys(param_name)
-            if self.wait_until_element(locators
-                                       ["domain.parameter_value"]):
-                self.find_element(locators
-                                  ["domain.parameter_value"]
-                                  ).send_keys(param_value)
-            self.find_element(locators["submit"]).click()
-            self.wait_for_ajax()
+        self.set_parameter(param_name, param_value)
 
-    def remove_parameter(self, domain_description, param_name):
+    def remove_domain_parameter(self, domain_description, param_name):
         element = self.wait_until_element((locators
                                            ["domain.domain_description"][0],
                                            locators
@@ -116,12 +104,4 @@ class Domain(Base):
                                            % domain_description))
         if element:
             element.click()
-            self.wait_until_element(locators["domain.parameter_tab"]).click()
-            remove_element = self.wait_until_element((locators
-                                                      ["domain.parameter_remove"][0],
-                                                      locators
-                                                      ["domain.parameter_remove"][1]
-                                                      % param_name))
-            if remove_element:
-                remove_element.click()
-            self.find_element(locators["submit"]).click()
+        self.remove_parameter(param_name)

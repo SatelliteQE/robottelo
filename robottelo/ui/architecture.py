@@ -16,22 +16,19 @@ class Architecture(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, os_name=None):
+    def create(self, name, os_name):
         self.wait_until_element(locators["arch.new"]).click()
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
         if os_name:
-            element = self.wait_until_element((locators["arch.os_name"][0],
-                                               locators["arch.os_name"][1] \
-                                               % os_name))
-            if element:
-                element.click()
+            self.select_entity("arch.os_name", "arch.select_os_name",
+                               os_name, None)
         self.find_element(locators["arch.submit"]).click()
         self.wait_for_ajax()
 
     def remove(self, name, really):
         element = self.wait_until_element((locators["arch.delete"][0],
-                                           locators["arch.delete"][1] \
+                                           locators["arch.delete"][1]
                                            % name))
         if element:
             element.click()
@@ -49,7 +46,7 @@ class Architecture(Base):
             searchbox.send_keys(name)
             searchbox.send_keys(Keys.RETURN)
             arch = self.wait_until_element((locators["arch.arch_name"][0],
-                                            locators["arch.arch_name"][1] \
+                                            locators["arch.arch_name"][1]
                                             % name))
             if arch:
                 arch.click()
@@ -57,17 +54,14 @@ class Architecture(Base):
 
     def update(self, oldname, newname, new_osname):
         element = self.wait_until_element((locators["arch.arch_name"][0],
-                                           locators["arch.arch_name"][1] \
+                                           locators["arch.arch_name"][1]
                                            % oldname))
         if element:
             element.click()
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", newname)
         if new_osname:
-            element = self.wait_until_element((locators["arch.os_name"][0],
-                                               locators["arch.os_name"][1] \
-                                               % new_osname))
-            if element:
-                element.click()
+            self.select_entity("arch.os_name", "arch.select_os_name",
+                               new_osname, None)
         self.find_element(locators["arch.submit"]).click()
         self.wait_for_ajax()

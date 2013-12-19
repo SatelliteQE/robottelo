@@ -80,3 +80,65 @@ class Base():
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
         txt_field.send_keys(newtext)
+
+    def select_entity(self, loc_string, loc_select_string,
+                      loc_value, loc_tab=None):
+
+        """
+        Function to select an entity like OS, Partition Table, Arch
+        from selection list or by selecting relevant checkbox
+        """
+
+        if loc_tab:
+            self.wait_until_element(locators[loc_tab]).click()
+        check_element = self.find_element((locators
+                                           [loc_string][0],
+                                           locators
+                                           [loc_string][1]
+                                           % loc_value))
+        select_element = self.find_element((locators
+                                            [loc_select_string][0],
+                                            locators
+                                            [loc_select_string][1]
+                                            % loc_value))
+        if check_element:
+            check_element.click()
+        elif select_element:
+            select_element.click()
+
+    def set_parameter(self, param_name, param_value):
+
+        """
+        Function to set parameters for different entities like OS and Domain
+        """
+
+        self.wait_until_element(locators["parameter_tab"]).click()
+        self.wait_until_element(locators["add_parameter"]).click()
+        if self.wait_until_element(locators
+                                   ["parameter_name"]):
+            self.find_element(locators
+                              ["parameter_name"]
+                              ).send_keys(param_name)
+        if self.wait_until_element(locators
+                                   ["parameter_value"]):
+            self.find_element(locators
+                              ["parameter_value"]
+                              ).send_keys(param_value)
+        self.find_element(locators["submit"]).click()
+        self.wait_for_ajax()
+
+    def remove_parameter(self, param_name):
+
+        """
+        Function to remove parameters for different entities like OS and Domain
+        """
+
+        self.wait_until_element(locators["parameter_tab"]).click()
+        remove_element = self.wait_until_element((locators
+                                                  ["parameter_remove"][0],
+                                                  locators
+                                                  ["parameter_remove"][1]
+                                                  % param_name))
+        if remove_element:
+            remove_element.click()
+        self.find_element(locators["submit"]).click()
