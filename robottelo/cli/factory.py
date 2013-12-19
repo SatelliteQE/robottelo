@@ -221,49 +221,24 @@ def make_compute_resource(options=None):
         --server SERVER               for Vmware
         -h, --help                    print help
     """
-    options = options or {}
-    provider = options['provider'] or random.choice(FOREMAN_PROVIDERS.values())
+    options = options or {}  # needed, to make options.keys() in next step
+    if not 'provider' in options.keys():
+        options['provider'] = FOREMAN_PROVIDERS['libvirt']
+        if not 'url' in options.keys():
+            options['url'] = "qemu+tcp://localhost:16509/system"
+
     args = {
         'name': generate_name(8, 8),
-        'provider': provider,
-        'description': None
+        'provider': None,
+        'url': None,
+        'description': None,
+        'user': None,
+        'password': None,
+        'uuid': None,
+        'region': None,
+        'tenant': None,
+        'server': None
     }
-
-    if provider == FOREMAN_PROVIDERS['libvirt']:
-        args['url'] = None
-    elif provider == FOREMAN_PROVIDERS['ovirt']:
-        args['url'] = None
-        args['user'] = None
-        args['password'] = None
-        args['uuid'] = None
-    elif provider == FOREMAN_PROVIDERS['ec2']:
-        args['user'] = None
-        args['password'] = None
-        args['region'] = None
-    elif provider == FOREMAN_PROVIDERS['vmware']:
-        args['user'] = None
-        args['password'] = None
-        args['uuid'] = None
-        args['server'] = None
-    elif provider == FOREMAN_PROVIDERS['openstack']:
-        args['url'] = None
-        args['user'] = None
-        args['password'] = None
-        args['tenant'] = None
-    elif provider == FOREMAN_PROVIDERS['rackspace']:
-        pass  # strange 1
-    elif provider == FOREMAN_PROVIDERS['ce']:
-        pass  # strange 2
-    else:
-        args = {
-            'url': None,
-            'user': None,
-            'password': None,
-            'uuid': None,
-            'region': None,
-            'tenant': None,
-            'server': None
-        }
 
     args = update_dictionary(args, options)
     create_object(ComputeResource, args)
