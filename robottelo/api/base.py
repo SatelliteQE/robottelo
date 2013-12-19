@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
-from robottelo.common import conf
 import json as js
 import requests
 
+from robottelo.common import conf
 
 def request(method, **kwargs):
     """Wrapper around requests.request function, that adds default domain,
