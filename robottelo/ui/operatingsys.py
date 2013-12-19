@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Implements Operating System UI
+"""
+
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
 from selenium.webdriver.support.select import Select

@@ -3,20 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
-    hammer subnet [OPTIONS] SUBCOMMAND [ARG] ...
-
-Parameters:
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
-
-Subcommands:
-    create                        Create a subnet
-    info                          Show a subnet.
-    list                          List of subnets
-    update                        Update a subnet
-    delete                        Delete a subnet
+Test class for Subnet CLI
 """
+
 from ddt import data
 from ddt import ddt
 from robottelo.cli.subnet import Subnet
@@ -59,9 +48,9 @@ class TestSubnet(BaseCLI):
 
         result = Subnet().info({'name': options['name']})
 
-        self.assertEquals(len(result.stdout), 1,
+        self.assertTrue(len(result.stdout) > 1,
                           "Subnet info - returns 1 record")
-        self.assertEquals(result.stdout[0]['Name'], options['name'],
+        self.assertEquals(result.stdout['Name'], options['name'],
                           "Subnet info - check name")
 
     @attr('cli', 'subnet')

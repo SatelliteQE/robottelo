@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+"""
+Base class for all UI tests
+"""
+
 import datetime
 import logging
 import os
@@ -12,13 +16,14 @@ from robottelo.common import conf
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
-from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.product import Product
+from robottelo.ui.hosts import Hosts
+from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
@@ -82,6 +87,7 @@ class BaseUI(unittest.TestCase):
         self.environment = Environment(self.browser)
         self.architecture = Architecture(self.browser)
         self.medium = Medium(self.browser)
+        self.hosts = Hosts(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
