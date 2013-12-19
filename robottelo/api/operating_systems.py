@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 from random import randint, choice
-
 from robottelo.api.apicrud import ApiCrudMixin
 from robottelo.api.model import ApiModelMixin
 from robottelo.common.helpers import generate_name
