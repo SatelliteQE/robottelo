@@ -32,33 +32,34 @@ class TestReport(BaseCLI):
         """
         Displays info for puppet report.
         """
-        id = generate_id() 
+
+        id = generate_id()
         result = Report().info({'id': id})
         self.assertEquals(
-            len(result.stdout), 1, "Report info - return count"
-        )
+            len(result.stdout), 1, "Report info - return count")
         self.assertEquals(result.stdout['ID'], name,
                           "Report info - stdout contains 'ID'")
-        
-    @bzbug('1043830')   
+
+    @bzbug('1043830')
     def test_delete(self):
         """
         Deletes the report generated for puppet.
         """
+
         id = generate_id()
         result = Report().delete({'id': id})
-        self.assertTrue(result.return_code == 0,
-                        "Report delete - retcode")
+        self.assertTrue(result.return_code == 0, "Report delete - retcode")
         sleep_for_seconds(5)  # sleep for about 5 sec.
         result = Report().list({'search': id})
         self.assertTrue(len(result.stdout) == 0,
                         "Report list - does not have deleted id")
-        
-    @bzbug('1043830')    
+
+    @bzbug('1043830')
     def test_list(self):
         """
         List the report for puppet.
         """
+
         id = generate_id()
         result = Report().list({'search': id})
         self.assertTrue(len(result.stdout) == 1,
@@ -72,4 +73,3 @@ class TestReport(BaseCLI):
         result = Report().list({'per-page': id})
         self.assertTrue(len(result.stdout) == 1,
                         "Report list - stdout contains 'ID'")
-           

@@ -30,4 +30,3 @@ class Report(Base):
         """
         Base.__init__(self)
         self.command_base = "report"
-       
