@@ -15,12 +15,6 @@ admin.password=changeme
 
 [saucelabs]
 driver=firefox
-os=Linux
-browser.version=25
-# TODO here please.
-username=some_username
-key=some_key
-tunnel=some_tunnel
 
 [nosetests]
 verbosity=2
