@@ -32,7 +32,8 @@ class Domain(BaseUI):
         description = domain % name
         self.create_domain(name, description)
         self.domain.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators
+                                                     ["notif.success"]))
 
     def test_update_domain(self):
         "Create new domain and update its name, description"
@@ -52,7 +53,7 @@ class Domain(BaseUI):
         param_name = generate_name(4)
         param_value = generate_name(3)
         self.create_domain(name, description)
-        self.domain.set_parameter(description, param_name, param_value)
+        self.domain.set_domain_parameter(description, param_name, param_value)
 
     def test_remove_parameter(self):
         "Remove selected domain parameter"
@@ -61,5 +62,5 @@ class Domain(BaseUI):
         param_name = generate_name(4)
         param_value = generate_name(3)
         self.create_domain(name, description)
-        self.domain.set_parameter(description, param_name, param_value)
-        self.domain.remove_parameter(description, param_name)
+        self.domain.set_domain_parameter(description, param_name, param_value)
+        self.domain.remove_domain_parameter(description, param_name)
