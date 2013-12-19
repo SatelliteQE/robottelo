@@ -16,7 +16,7 @@ class Architecture(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, os_name):
+    def create(self, name, os_name=None):
         self.wait_until_element(locators["arch.new"]).click()
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
