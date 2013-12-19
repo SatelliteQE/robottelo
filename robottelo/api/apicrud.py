@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import robottelo.api.base as base
 
+
 class ApiCrudMixin:
     """Defines basic crud methods based on api_path class method """
     @classmethod
@@ -25,8 +26,8 @@ class ApiCrudMixin:
         """Method parsing the api_path for extra arguments"""
         path = cls.api_path()
         path_args = [s[1:]
-                        for s in path.split('/')
-                        if s.startswith(":")]
+            for s in path.split('/')
+                if s.startswith(":")]
         for arg in path_args:
             if arg in args:
                 path = path.replace(":{0}/".format(arg), args[arg])
@@ -34,7 +35,6 @@ class ApiCrudMixin:
             else:
                 raise NameError("Expecting {0} as an argument.".format(arg))
         return path
-
 
     @classmethod
     def list(cls, **kwargs):

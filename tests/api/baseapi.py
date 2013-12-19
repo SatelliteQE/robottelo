@@ -3,6 +3,7 @@ import logging.config
 
 from robottelo.common import conf
 
+
 def featuring(match, test):
     """Recursively tests, if structure 'match' could be considered
     a subset of 'test'.
@@ -23,10 +24,11 @@ def featuring(match, test):
         return False
     if type(match) is dict:
         return all([k in test and featuring(v, test[k])
-                        for (k,v) in match.items()])
+                        for (k, v) in match.items()])
     if type(match) is list:
         return all([any([featuring(m, t) for t in test]) for m in match])
     return match == test
+
 
 def assert_featuring(match, test):
     """Version of featuring function that fails with Assertion error instead
@@ -42,7 +44,7 @@ def assert_featuring(match, test):
     """
     if type(match) != type(test):
         raise AssertionError("Type of {0} is {1} and {2} is {3}"
-                .format(match,type(match),test,type(test)))
+                .format(match, type(match), test, type(test)))
     elif type(match) is dict:
         for k in match:
             if not k in test:
@@ -57,15 +59,12 @@ def assert_featuring(match, test):
     else:
         assert match == test
 
+
 class BaseAPI(unittest.TestCase):
     """Base class that all the api tests inherit from"""
 
     def setUp(self):
-        logging.config.fileConfig("%s/logging.conf" % conf.get_root_path())
-
-        self.verbosity = int(conf.properties['nosetests.verbosity'])
         self.logger = logging.getLogger("robottelo")
-        self.logger.setLevel(self.verbosity * 10)
 
     def assertFeaturing(self, match, tests):
         """Method to maintain consistency
@@ -74,4 +73,5 @@ class BaseAPI(unittest.TestCase):
         """
 
         assert_featuring(match, tests)
+
 

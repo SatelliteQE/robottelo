@@ -5,7 +5,8 @@ from random import randint, choice
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
 
-class OperatingSystemApi(ApiCrudMixin,ApiModelMixin):
+
+class OperatingSystemApi(ApiCrudMixin, ApiModelMixin):
     """Implementation of /api/operatingsystems endpoint"""
     @classmethod
     def api_path(cls):
@@ -20,18 +21,19 @@ class OperatingSystemApi(ApiCrudMixin,ApiModelMixin):
             self.name = unicode(generate_name(8))
             self.major = unicode(randint(1, 8))
             self.minor = unicode(randint(1, 30))
-            self.family = unicode(choice([ "Archlinux",
+            self.family = unicode(choice(
+                ["Archlinux",
                 "Debian",
                 "Freebsd",
                 "Gentoo",
                 "Redhat",
                 "Solaris",
                 "Suse",
-                "Windows" ]))
+                "Windows"]))
             self.release_name = unicode(generate_name(8))
 
     def opts(self):
-        return {u'operatingsystem':self.to_json()}
+        return {u'operatingsystem': self.to_data_structure()}
 
     def change(self):
         self.release_name += "updated"
