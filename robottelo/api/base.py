@@ -3,9 +3,6 @@ from robottelo.common import conf
 import json as js
 import requests
 
-def _is_arg_set(arg, args):
-    "Easier utilizing kwargs"
-    return (arg in args) and (args[arg] != None)
 
 def request(method, **kwargs):
     """Wrapper around requests.request function, that adds default domain,
@@ -46,16 +43,17 @@ def request(method, **kwargs):
                                 conf.properties['foreman.admin.password']))
     kwargs.setdefault('headers', {'Content-type': 'application/json'})
 
-    if _is_arg_set('path', kwargs):
-        url =  "{0}{1}{2}".format(kwargs['schema'],
-                                   kwargs['domain'],
-                                   kwargs['path'])
+    if kwargs.get('path', None):
+        url = "{0}{1}{2}".format(
+            kwargs['schema'],
+            kwargs['domain'],
+            kwargs['path'])
         del kwargs['path']
     else:
         url = kwargs['url']
         del kwargs['url']
 
-    if _is_arg_set('json', kwargs):
+    if kwargs.get('json', None):
         try:
             kwargs.setdefault('data', js.dumps(kwargs['json']))
         except:
@@ -67,6 +65,7 @@ def request(method, **kwargs):
     del kwargs['schema']
 
     return requests.request(method=method, url=url, **kwargs)
+
 
 def get(**kwargs):
     """Sends a GET request. Returns :class:`Response` object.
@@ -127,6 +126,7 @@ def patch(json=None, **kwargs):
     """
 
     return request('patch', json=json, **kwargs)
+
 
 def delete(**kwargs):
     """Sends a DELETE request. Returns :class:`Response` object.

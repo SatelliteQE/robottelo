@@ -4,6 +4,7 @@ from robottelo.api.model import ApiModelMixin
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
 
+
 class UserApi(ApiCrudMixin, ApiModelMixin):
     """Implementation of /api/user endpoint"""
     @classmethod
@@ -25,12 +26,12 @@ class UserApi(ApiCrudMixin, ApiModelMixin):
             self.auth_source_id = 1
 
     def opts(self):
-        return {u'user':self.to_json()}
+        return {u'user': self.to_data_structure()}
 
     def result_opts(self):
-        return self.graylist(password = False).opts()
+        return self.graylist(password=False).opts()
 
     def change(self):
-        self.mail ="updated" + self.mail
+        self.mail = "updated" + self.mail
         return self
 

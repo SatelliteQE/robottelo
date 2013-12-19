@@ -3,8 +3,9 @@ from robottelo.api.apicrud import ApiCrudMixin
 from robottelo.api.model import ApiModelMixin
 from robottelo.common.helpers import generate_name
 
+
 class ModelApi(ApiCrudMixin, ApiModelMixin):
-    """Implementation of /api/operatingsystems endpoint"""
+    """Implementation of /api/models endpoint"""
     @classmethod
     def api_path(cls):
         return "/api/models/"
@@ -23,7 +24,7 @@ class ModelApi(ApiCrudMixin, ApiModelMixin):
             self.hardware_model = unicode(generate_name(8))
 
     def opts(self):
-        return {u'model':self.to_json()}
+        return {u'model': self.to_data_structure()}
 
     def change(self):
         self.info += "updated"
