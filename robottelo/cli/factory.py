@@ -219,12 +219,6 @@ def make_compute_resource(options=None):
         --server SERVER               for Vmware
         -h, --help                    print help
     """
-    options = options or {}  # needed, to make options.keys() in next step
-    if not 'provider' in options.keys():
-        options['provider'] = FOREMAN_PROVIDERS['libvirt']
-        if not 'url' in options.keys():
-            options['url'] = "qemu+tcp://localhost:16509/system"
-
     args = {
         'name': generate_name(8, 8),
         'provider': None,
@@ -239,6 +233,10 @@ def make_compute_resource(options=None):
     }
 
     args = update_dictionary(args, options)
+    if args['provider'] is None:
+        options['provider'] = FOREMAN_PROVIDERS['libvirt']
+        if args['url'] is None:
+            options['url'] = "qemu+tcp://localhost:16509/system"
     create_object(ComputeResource, args)
     return args
 
