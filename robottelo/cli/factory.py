@@ -10,6 +10,7 @@ import logging
 import random
 
 from os import chmod
+from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.hostgroup import HostGroup
@@ -21,7 +22,7 @@ from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.common import ssh
-from robottelo.common.constants import TEMPLATE_TYPES
+from robottelo.common.constants import FOREMAN_PROVIDERS, TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
     generate_string
 from tempfile import mkstemp
@@ -194,6 +195,49 @@ def make_user(options=None):
     args = update_dictionary(args, options)
     create_object(User, args)
 
+    return args
+
+
+def make_compute_resource(options=None):
+    """
+    Usage:
+        hammer compute_resource create [OPTIONS]
+
+    Options:
+        --name NAME
+        --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
+            Vmware, Openstack, Rackspace, GCE
+        --url URL                     URL for Libvirt, Ovirt, and Openstack
+        --description DESCRIPTION
+        --user USER                   Username for Ovirt, EC2, Vmware,
+            Openstack. Access Key for EC2.
+        --password PASSWORD           Password for Ovirt, EC2, Vmware,
+            Openstack. Secret key for EC2
+        --uuid UUID                   for Ovirt, Vmware Datacenter
+        --region REGION               for EC2 only
+        --tenant TENANT               for Openstack only
+        --server SERVER               for Vmware
+        -h, --help                    print help
+    """
+    args = {
+        'name': generate_name(8, 8),
+        'provider': None,
+        'url': None,
+        'description': None,
+        'user': None,
+        'password': None,
+        'uuid': None,
+        'region': None,
+        'tenant': None,
+        'server': None
+    }
+
+    args = update_dictionary(args, options)
+    if args['provider'] is None:
+        options['provider'] = FOREMAN_PROVIDERS['libvirt']
+        if args['url'] is None:
+            options['url'] = "qemu+tcp://localhost:16509/system"
+    create_object(ComputeResource, args)
     return args
 
 

@@ -48,9 +48,9 @@ class TestSubnet(BaseCLI):
 
         result = Subnet().info({'name': options['name']})
 
-        self.assertEquals(len(result.stdout), 1,
+        self.assertTrue(len(result.stdout) > 1,
                           "Subnet info - returns 1 record")
-        self.assertEquals(result.stdout[0]['Name'], options['name'],
+        self.assertEquals(result.stdout['Name'], options['name'],
                           "Subnet info - check name")
 
     @attr('cli', 'subnet')
