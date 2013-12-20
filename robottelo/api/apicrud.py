@@ -1,9 +1,19 @@
 # -*- encoding: utf-8 -*-
+
+"""
+Module for mixin of basic crud methods based on api_path class method.
+"""
+
 import robottelo.api.base as base
 
 
-class ApiCrudMixin:
+class ApiCrudMixin(object):
     """Defines basic crud methods based on api_path class method """
+
+    def __init__(self):
+        """Mixin is not supposed to be instantiated """
+        raise NotImplementedError()
+
     @classmethod
     def api_path(cls):
         """Stores the path to api entry point,
@@ -25,9 +35,9 @@ class ApiCrudMixin:
     def parse_path_arg(cls, args):
         """Method parsing the api_path for extra arguments"""
         path = cls.api_path()
-        path_args = [s[1:]
-            for s in path.split('/')
-                if s.startswith(":")]
+        path_args = [
+                s[1:] for s in path.split('/') if s.startswith(":")
+        ]
         for arg in path_args:
             if arg in args:
                 path = path.replace(":{0}/".format(arg), args[arg])
@@ -89,5 +99,3 @@ class ApiCrudMixin:
         path = cls.parse_path_arg(kwargs)
         path = "{0}/{1}".format(path, uid)
         return base.delete(path=path, **kwargs)
-
-

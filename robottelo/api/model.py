@@ -1,12 +1,22 @@
 # -*- encoding: utf-8 -*-
+
+"""
+Module for shared model declaration, like converting to json.
+"""
+
 import copy
 
 
-class ApiModelMixin:
+class ApiModelMixin(object):
     """Simple mixin, that enables conversion of a given object to json,
        expects attributes to be simple.
 
     """
+    def __init__(self):
+        """Mixin not to be instatiated"""
+        raise NotImplementedError("""Simple mixin, that enables conversion of a
+            given object to json,expects attributes to be simple.""")
+
     def to_data_structure(self):
         """Converts atributes to unicode hashmap"""
         user = {k: v for (k, v) in self.__dict__.items()}

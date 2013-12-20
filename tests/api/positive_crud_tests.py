@@ -1,10 +1,19 @@
 # -*- encoding: utf-8 -*-
 
-class PositiveCrudTestMixin:
+"""
+Module for automatic implementation of positive crud tests.
+"""
+
+class PositiveCrudTestMixin(object):
     """Implements basic crud tests based oon supplied test class
     implementing ApiCrudMixin and ApiModelMixin
 
     """
+
+    def __init__(self):
+        """Mixin is not to be instantiated"""
+        raise NotImplementedError("Mixin is not to be instantiated")
+
     def tested_class(self):
         """Returns class implementing both ApiCrudMixin and ApiModelMixin"""
         raise NotImplementedError("Tested class needs to be defined")
@@ -39,7 +48,6 @@ class PositiveCrudTestMixin:
         response = ModelApi.show(uid=-1)
         self.assertEqual(response.status_code, 404)
 
-
     def test_update_model(self):
         """Basic positive update test"""
         ModelApi = self.tested_class()
@@ -48,7 +56,7 @@ class PositiveCrudTestMixin:
         uid = ModelApi.id_from_json(response.json())
         model = model.change()
 
-        response = ModelApi.update(uid=uid,json=model.opts())
+        response = ModelApi.update(uid=uid, json=model.opts())
         self.assertEqual(response.status_code, 200)
         self.assertFeaturing(model.result_opts(), response.json())
 

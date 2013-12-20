@@ -1,9 +1,13 @@
 # -*- encoding: utf-8 -*-
+
+"""
+Module for Operating System
+"""
+
 from random import randint, choice
 from robottelo.api.apicrud import ApiCrudMixin
 from robottelo.api.model import ApiModelMixin
 from robottelo.common.helpers import generate_name
-from robottelo.common.helpers import generate_email_address
 
 
 class OperatingSystemApi(ApiCrudMixin, ApiModelMixin):
