@@ -6,7 +6,8 @@ from robottelo.api.models import ModelApi
 from tests.api.baseapi import BaseAPI
 from tests.api.positive_crud_tests import PositiveCrudTestMixin
 
-class Model(PositiveCrudTestMixin, BaseAPI):
+
+class Model(BaseAPI, PositiveCrudTestMixin):
     """Testing /api/models entrypoint"""
 
     def tested_class(self):
@@ -14,5 +15,3 @@ class Model(PositiveCrudTestMixin, BaseAPI):
 
     def post_result(self):
         return 201
-
-
