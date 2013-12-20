@@ -15,8 +15,14 @@ URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
 class OperatingSys(BaseUI):
+    """
+    Implements Operating system tests from UI
+    """
 
     def create_arch(self, arch_name, os_name=None):
+        """
+        Function navigates and creates new architecture from UI
+        """
         arch_name = arch_name or generate_name(4)
         os_name = os_name or generate_name(6)
         self.navigator.go_to_architectures()  # go to architecture page
@@ -35,7 +41,7 @@ class OperatingSys(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version,
                                  minor_version, os_family, arch)
-        # UI doesn't raise notification - Raise Bug
+        # TODO: UI doesn't raise notification - Raise Bug
         # self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
 
     def test_remove_os(self):
@@ -48,7 +54,8 @@ class OperatingSys(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version, minor_version, os_family)
         self.operatingsys.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        self.assertTrue(self.user.wait_until_element(locators
+                                                     ["notif.success"]))
 
     def test_update_os(self):
         "Update OS name, major_version, minor_version, os_family, arch, medium"

@@ -8,16 +8,18 @@ Base class for all UI operations
 
 import logging.config
 
-from robottelo.common import conf
+from robottelo.ui.locators import locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from robottelo.ui.locators import locators
 
 
-class Base():
+class Base(object):
+    """
+    Base class for UI
+    """
 
     logger = logging.getLogger("robottelo")
 
@@ -26,7 +28,6 @@ class Base():
         Wrapper around Selenium's WebDriver that allows you to search for an
         element in the web page.
         """
-
         try:
             _webelement = self.browser.find_element(*locator)
             if _webelement.is_displayed():
@@ -41,12 +42,10 @@ class Base():
             return None
 
     def wait_until_element(self, locator, delay=20):
-
         """
         Wrapper around Selenium's WebDriver that allows you to pause your test
         until an element in the web page is present.
         """
-
         try:
             element = WebDriverWait(
                 self.browser, delay
@@ -77,18 +76,19 @@ class Base():
         )
 
     def field_update(self, loc_string, newtext):
+        """
+        Function to replace the existing/default text from textbox
+        """
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
         txt_field.send_keys(newtext)
 
     def select_entity(self, loc_string, loc_select_string,
                       loc_value, loc_tab=None):
-
         """
         Function to select an entity like OS, Partition Table, Arch
         from selection list or by selecting relevant checkbox
         """
-
         if loc_tab:
             self.wait_until_element(locators[loc_tab]).click()
         check_element = self.find_element((locators
@@ -107,11 +107,10 @@ class Base():
             select_element.click()
 
     def set_parameter(self, param_name, param_value):
-
         """
-        Function to set parameters for different entities like OS and Domain
+        Function to set parameters for different
+        entities like OS and Domain
         """
-
         self.wait_until_element(locators["parameter_tab"]).click()
         self.wait_until_element(locators["add_parameter"]).click()
         if self.wait_until_element(locators
@@ -128,11 +127,10 @@ class Base():
         self.wait_for_ajax()
 
     def remove_parameter(self, param_name):
-
         """
-        Function to remove parameters for different entities like OS and Domain
+        Function to remove parameters for different
+        entities like OS and Domain
         """
-
         self.wait_until_element(locators["parameter_tab"]).click()
         remove_element = self.wait_until_element((locators
                                                   ["parameter_remove"][0],
