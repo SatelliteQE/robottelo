@@ -56,25 +56,10 @@ e) 'yum install swig' for fedora/RHEL
 
 4)Then, run **sudo pip install -I -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
-Running the test
-----------------
-Assuming you have already installed and configured **The Foreman**, the simplest way to execute tests is to use the included **robottelo_runner** script. First, make sure to copy the **robottelo.properties.sample** file and save it as **robottelo.properties**. Next, edit the file and update the attributes to match your existing configuration, and run your tests:
+Running the tests
+=================
 
-::
-
-    python robottelo_runner.py --tests tests.ui.test_login
-
-Multiple tests can also be invoked:
-
-::
-
-    python robottelo_runner.py --tests tests.ui.test_login --tests tests.ui.test_organization
-
-Running individual tests from a test suite from the command line:
-
-::
-
-    python robottelo_runner.py --tests tests.ui.test_login.test_successful_login
+All tests are written so that it is possible to run them using Python Nose or Python's unittest module. For more instructions about how to run the tests take a look on the following sections.
 
 Testing with Python Nose
 ------------------------
