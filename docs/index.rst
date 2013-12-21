@@ -24,37 +24,109 @@ If you haven't cloned the source code yet, then make sure to do it now:
 
 Then, run **sudo pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
 
-Running the test
-----------------
-Assuming you have already installed and configured **The Foreman**, the simplest way to execute tests is to use the included **robottelo_runner** script. First, make sure to copy the **robottelo.properties.sample** file and save it as **robottelo.properties**. Next, edit the file and update the attributes to match your existing configuration, and run your tests:
+Running the tests
+=================
+
+All tests are written so that it is possible to run them using Python Nose or Python's unittest module. For more instructions about how to run the tests take a look on the following sections.
+
+Testing with Python Nose
+------------------------
+Tests can be run using the Python Nose module. Assuming that you have Nose installed (it will be already installed if you installed the requirements using the following command pip -r requirements.txt), that you have installed and configured **The Foreman** and have copied the **robottelo.properties.sample** file and saved it as **robottelo.properties**. Make sure to edit the **robottelo.properties** file and update the attributes to match your existing configuration. Now you can run all tests:
 
 ::
 
-    python robottelo_runner.py --tests tests.ui.test_Login
+    nosetests -c robottelo.properties
+
+The test arguments may be the path or Python import:
+
+::
+
+    nosetests -c robottelo.properties tests/cli/test_user.py
+    nosetests -c robottelo.properties tests.cli.test_user
+
+Run all cli tests (all modules under tests/cli path):
+
+::
+
+    nosetests -c robottelo.properties tests/cli
+
+Run all UI tests (all modules under tests/ui path):
+
+::
+
+    nosetests -c robottelo.properties tests/ui
 
 Multiple tests can also be invoked:
 
 ::
 
-    python robottelo_runner.py --tests tests.ui.test_Login --tests tests.ui.test_Organization
+    nosetests -c robottelo.properties tests.cli.test_user tests.cli.test_model
 
-Running individual tests from a test suite from the command line:
-
-::
-
-    python robottelo_runner.py --tests tests.ui.test_Login.test_successful_login
-
-You can also run tests directly using either **unittest** or **nosetests** provided you pass all the expected arguments:
+Running individual test:
 
 ::
 
-    KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox python -m unittest tests.ui.test_Login.test_successful_login
+    nosetests -c robottelo.properties tests.cli.test_user:TestUser.test_create_user_utf8
 
-or
+For more information about nosestests command and its options see its help:
 
 ::
 
-    KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox nosetests tests.ui.test_Login.test_successful_login
+    nosetests --help
+
+Testing with unittest module
+----------------------------
+Tests can be run using the Python unittest module. Assuming that you have installed and configured **The Foreman** and have copied the **robottelo.properties.sample** file and saved it as **robottelo.properties**. Make sure to edit the **robottelo.properties** file and update the attributes to match your existing configuration. Now you can run the unittest module from the command line to run tests from modules, classes or even individual test methods:
+
+::
+
+    python -m unittest tests.cli.test_user
+    python -m unittest tests.cli.test_user.TestUser
+    python -m unittest tests.cli.test_user.TestUser.test_create_user_utf8
+
+Multiple tests can also be invoked:
+
+::
+
+    python -m unittest tests.cli.test_user tests.cli.test_model
+
+If you want a more verbose output:
+
+::
+
+    python -m unittest -v tests.cli.test_user
+
+For a list of all the command line options:
+
+::
+
+    python -m unittest -h
+
+If you have at least Python 2.7 installed, you can take advantage of the unittest simple test dicovery:
+
+::
+
+    python -m unittest discover
+
+Run all cli tests (all modules under tests/cli path):
+
+::
+
+    python -m unittest discover tests/cli
+
+Run all UI tests (all modules under tests/ui path):
+
+::
+
+    python -m unittest discover tests/ui
+
+If you want a more verbose output:
+
+::
+
+    python -m unittest discover -v
+
+For more information about the Python's unittest module take a look on the Python's docs http://docs.python.org/2/library/unittest.html
 
 Known Issues
 ============
