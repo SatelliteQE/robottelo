@@ -6,6 +6,8 @@
 Test class for Operating System UI
 """
 
+import unittest
+
 from robottelo.ui.locators import locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
@@ -41,9 +43,10 @@ class OperatingSys(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version,
                                  minor_version, os_family, arch)
-        # TODO: UI doesn't raise notification - Raise Bug
-        # self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        # TODO: assertion is pending Foreman issue #3920
+        # self.assertTrue(self.user.search(name))
 
+    @unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_remove_os(self):
         "Delete OS "
         name = generate_name(6)
@@ -57,6 +60,7 @@ class OperatingSys(BaseUI):
         self.assertTrue(self.user.wait_until_element(locators
                                                      ["notif.success"]))
 
+    @unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_update_os(self):
         "Update OS name, major_version, minor_version, os_family, arch, medium"
         name = generate_name(6)
@@ -81,6 +85,7 @@ class OperatingSys(BaseUI):
                                  new_minor_version, new_os_family,
                                  new_arch, None, medium)
 
+    @unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_set_parameter(self):
         "Set OS parameter"
         name = generate_name(6)
@@ -92,6 +97,7 @@ class OperatingSys(BaseUI):
         self.operatingsys.create(name, major_version)
         self.operatingsys.set_os_parameter(name, param_name, param_value)
 
+    @unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_remove_parameter(self):
         "Remove selected OS parameter"
         name = generate_name(6)
