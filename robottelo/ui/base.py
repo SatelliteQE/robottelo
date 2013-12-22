@@ -12,6 +12,7 @@ from robottelo.ui.locators import locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -34,12 +35,31 @@ class Base(object):
                 return _webelement
             else:
                 return None
-        except NoSuchElementException, e:
+        except NoSuchElementException:
             self.logger.debug("Could not locate element '%s'." % locator[1])
             return None
-        except Exception, e:
-            self.logger.debug("Failed to locate element. ERROR: %s" % str(e))
+        except Exception, error:
+            self.logger.debug(
+                "Failed to locate element. ERROR: %s" % str(error))
             return None
+
+    def search(self, element_name, element_locator):
+        """
+        Uses the search box to locate an element from a list of elements.
+        """
+
+        element = None
+
+        searchbox = self.wait_until_element(locators["search"])
+
+        if searchbox:
+            searchbox.clear()
+            searchbox.send_keys(element_name)
+            searchbox.send_keys(Keys.RETURN)
+            element = self.wait_until_element(
+                (element_locator[0], element_locator[1] % element_name))
+
+        return element
 
     def wait_until_element(self, locator, delay=20):
         """
@@ -51,24 +71,33 @@ class Base(object):
                 self.browser, delay
             ).until(EC.visibility_of_element_located((locator)))
             return element
-        except TimeoutException, e:
+        except TimeoutException:
             self.logger.debug(
                 "Timed out waiting for element '%s' to display." % locator[1])
             return None
-        except NoSuchElementException, e:
+        except NoSuchElementException:
             self.logger.debug("Element '%s' was never found." % locator[1])
             return None
-        except Exception, e:
-            self.logger.debug("Failed to locate element. ERROR: %s" % str(e))
+        except Exception, error:
+            self.logger.debug(
+                "Failed to locate element. ERROR: %s" % str(error))
             return None
 
     def ajax_complete(self, driver):
+        """
+        Checks whether an ajax call is completed.
+        """
+
         try:
             return 0 == driver.execute_script("return jQuery.active")
         except WebDriverException:
             pass
 
     def wait_for_ajax(self):
+        """
+        Waits for an ajax call to complete.
+        """
+
         WebDriverWait(
             self.browser, 30
         ).until(
