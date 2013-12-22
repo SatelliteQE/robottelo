@@ -15,7 +15,11 @@ class OperatingSys(Base):
     """
     Manipulates Foreman's operating system from UI
     """
+
     def __init__(self, browser):
+        """
+        Sets up the browser object.
+        """
         self.browser = browser
 
     def create(self, name, major_version=None,
@@ -24,7 +28,9 @@ class OperatingSys(Base):
         """
         Create operating system from UI
         """
+
         self.wait_until_element(locators["operatingsys.new"]).click()
+
         if self.wait_until_element(locators["operatingsys.name"]):
             self.find_element(locators["operatingsys.name"]).send_keys(name)
             if self.wait_until_element(locators["operatingsys.major_version"]):
@@ -55,13 +61,13 @@ class OperatingSys(Base):
             self.find_element(locators["operatingsys.submit"]).click()
             self.wait_for_ajax()
 
-    def delete(self, osname, really):
+    def delete(self, os_name, really):
         """
         Delete operating system from UI
         """
-        strategy = locators["operatingsys.delete"][0]
-        value = locators["operatingsys.delete"][1]
-        element = self.wait_until_element((strategy, value % osname))
+
+        element = self.search(os_name, locators['operatingsys.delete'])
+
         if element:
             element.click()
             if really:
@@ -70,6 +76,9 @@ class OperatingSys(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
+        else:
+            raise Exception(
+                "Could not delete the operating system '%s'" % os_name)
 
     def update(self, os_name, new_name=None,
                new_major_version=None, new_minor_version=None,
@@ -78,58 +87,75 @@ class OperatingSys(Base):
         """
         Update all entities(arch, Partition table, medium) of OS from UI
         """
-        strategy = locators["operatingsys.operatingsys_name"][0]
-        value = locators["operatingsys.operatingsys_name"][1]
-        element = self.wait_until_element((strategy, value % os_name))
+
+        element = self.search(
+            os_name, locators['operatingsys.operatingsys_name']
+        )
+
         if element:
             element.click()
-        if new_name:
-            if self.wait_until_element(locators["operatingsys.name"]):
-                self.field_update("operatingsys.name", new_name)
-        if new_major_version:
-            if self.wait_until_element(locators["operatingsys.major_version"]):
-                self.field_update("operatingsys.major_version",
-                                  new_major_version)
-        if new_minor_version:
-            if self.wait_until_element(locators["operatingsys.minor_version"]):
-                self.field_update("operatingsys.minor_version",
-                                  new_minor_version)
-        if new_os_family:
-            Select(self.find_element(locators
-                                     ["operatingsys.family"]
-                                     )).select_by_visible_text(new_os_family)
-        if new_arch:
-            self.select_entity("operatingsys.arch",
-                               "operatingsys.select_arch", new_arch, None)
-        if new_ptable:
-            self.select_entity("operatingsys.ptable",
-                               "operatingsys.select_ptable", new_ptable,
-                               "operatingsys.tab_ptable")
-        if new_medium:
-            self.select_entity("operatingsys.medium",
-                               "operatingsys.select_medium", new_medium,
-                               "operatingsys.tab_medium")
-        self.find_element(locators["submit"]).click()
-        self.wait_for_ajax()
+
+            if new_name:
+                if self.wait_until_element(locators["operatingsys.name"]):
+                    self.field_update("operatingsys.name", new_name)
+            if new_major_version:
+                if self.wait_until_element(
+                        locators["operatingsys.major_version"]):
+                    self.field_update("operatingsys.major_version",
+                                      new_major_version)
+            if new_minor_version:
+                if self.wait_until_element(
+                        locators["operatingsys.minor_version"]):
+                    self.field_update("operatingsys.minor_version",
+                                      new_minor_version)
+            if new_os_family:
+                Select(self.find_element(
+                    locators["operatingsys.family"])
+                ).select_by_visible_text(new_os_family)
+            if new_arch:
+                self.select_entity("operatingsys.arch",
+                                   "operatingsys.select_arch", new_arch, None)
+            if new_ptable:
+                self.select_entity("operatingsys.ptable",
+                                   "operatingsys.select_ptable", new_ptable,
+                                   "operatingsys.tab_ptable")
+            if new_medium:
+                self.select_entity("operatingsys.medium",
+                                   "operatingsys.select_medium", new_medium,
+                                   "operatingsys.tab_medium")
+            self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
+
+        else:
+            raise Exception(
+                "Could not update the operating system '%s'" % os_name)
 
     def set_os_parameter(self, os_name, param_name, param_value):
         """
         Add new OS parameter
         """
-        strategy = locators["operatingsys.operatingsys_name"][0]
-        value = locators["operatingsys.operatingsys_name"][1]
-        element = self.wait_until_element((strategy, value % os_name))
+
+        element = self.search(
+            os_name, locators['operatingsys.operatingsys_name']
+        )
+
         if element:
             element.click()
-        self.set_parameter(param_name, param_value)
+            self.set_parameter(param_name, param_value)
+        else:
+            raise Exception("Could not set parameter '%s'" % param_name)
 
     def remove_os_parameter(self, os_name, param_name):
         """
         Remove selected OS parameter
         """
-        strategy = locators["operatingsys.operatingsys_name"][0]
-        value = locators["operatingsys.operatingsys_name"][1]
-        element = self.wait_until_element((strategy, value % os_name))
+
+        element = self.search(
+            os_name, locators['operatingsys.operatingsys_name']
+        )
+
         if element:
             element.click()
-        self.remove_parameter(param_name)
+            self.remove_parameter(param_name)
+        else:
+            raise Exception("Could not remove parameter '%s'" % param_name)
