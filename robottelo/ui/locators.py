@@ -34,24 +34,37 @@ locators = {
     "operatingsys.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.submit": (By.NAME, "commit"),
-    "operatingsys.arch": (
-        By.XPATH, "//label[@class='architecture' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
-    "operatingsys.select_arch": (By.XPATH, "//li/span[contains(., '%s')]"),
-    "operatingsys.operatingsys_name": (By.XPATH, "//a[contains(., '%s')]"),
 
-    #Operating System
-    #Third level UI
-    "operatingsys.tab_primary": (By.XPATH, "//a[@href='#primary']"),
-    "operatingsys.tab_ptable": (By.XPATH, "//a[@href='#ptable']"),
-    "operatingsys.tab_medium": (By.XPATH, "//a[@href='#media']"),
-    "operatingsys.tab_templates": (By.XPATH, "//a[@href='#templates']"),
-    "operatingsys.tab_parameters": (By.XPATH, "//a[@href='#params']"),
-    "operatingsys.ptable": (
-        By.XPATH, "//label[@class='ptable' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
-    "operatingsys.select_ptable": (By.XPATH, "//li/span[contains(., '%s')]"),
-    "operatingsys.select_medium": (By.XPATH, "//li/span[contains(., '%s')]"),
-    "operatingsys.medium": (
-        By.XPATH, "//label[@class='medium' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
+    #Compute Resource
+
+    "resource.new": (
+        By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
+    "resource.name": (By.ID, "compute_resource_name"),
+    "resource.provider_type": (
+        By.XPATH,
+        "//select[@id='compute_resource_provider']"),
+    "resource.description": (By.ID, "compute_resource_description"),
+    "resource.test_connection": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
+    "resource.user": (By.ID, "compute_resource_user"),
+    "resource.password": (By.ID, "compute_resource_password"),
+    "resource.region": (By.ID, "compute_resource_region"),
+    "resource.select_name": (
+        By.XPATH,
+        "//a[contains(@href,'compute_resources') and normalize-space(.)='%s']"),  # @IgnorePep8
+    "resource.dropdown": (By.XPATH, "//a[contains(@href,'%s')]/../../a"),
+    "resource.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    #resource - libvirt
+    "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
+    "resource.libvirt_console_passwd": (
+        By.ID, "compute_resource_set_console_password"),
+
+    #resource - openstack
+    "resource.rhos_tenant": (By.ID, "compute_resource_tenant"),
 
     #Host
     #Third level UI
@@ -173,13 +186,6 @@ locators = {
     #common locators
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),
-    "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
-    "add_parameter": (
-        By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
-    "parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
-    "parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
-    "parameter_remove": (
-        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
 
     #Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
@@ -189,7 +195,6 @@ locators = {
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
     "arch.os_name": (
         By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
-    "arch.select_os_name": (By.XPATH, "//li/span[contains(., '%s')]"),
 
     #Medium
     "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
@@ -205,6 +210,13 @@ locators = {
     "domain.description": (By.ID, "domain_fullname"),
     "domain.dns_proxy": (By.ID, "domain_dns_id"),
     "domain.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
+    "domain.parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
+    "domain.add_parameter": (
+        By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
+    "domain.parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
+    "domain.parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
+    "domain.parameter_remove": (
+        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
     "domain.domain_description": (By.XPATH, "//a[contains(., '%s')]"),
 
     #Environment
@@ -300,13 +312,13 @@ locators = {
     # Infrastructure Menu
     "menu.infrastructure": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='infrastructure_menu']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='infrastructure_menu']"),
     "menu.smart_proxies": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
     "menu.compute_resources": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style, 'fixed')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
     "menu.subnets": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
@@ -352,13 +364,13 @@ locators = {
         "//a[@id='menu_item_my_account']"),
 
     # Subnet Page
-    "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
-    "subnet.name": (By.ID, "subnet_name"),
-    "subnet.network": (By.ID, "subnet_network"),
-    "subnet.mask": (By.ID, "subnet_mask"),
-    "subnet.submit": (
-        By.XPATH, "//input[@class='btn btn-primary' and @name='commit']"),
-    "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
-    "subnet.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+     "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
+     "subnet.name": (By.ID, "subnet_name"),
+     "subnet.network": (By.ID, "subnet_network"),
+     "subnet.mask": (By.ID, "subnet_mask"),
+     "subnet.submit":
+        (By.XPATH, "//input[@class='btn btn-primary' and @name='commit']"),
+     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
+     "subnet.delete":
+        (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 }
