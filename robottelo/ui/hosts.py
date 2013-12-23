@@ -95,3 +95,4 @@ class Hosts(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss()
+        # TODO: need to raise exception for negative testing
