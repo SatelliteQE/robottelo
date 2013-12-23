@@ -312,7 +312,7 @@ locators = {
     # Infrastructure Menu
     "menu.infrastructure": (
         By.XPATH,
-        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='infrastructure_menu']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='infrastructure_menu']"),  # @IgnorePep8
     "menu.smart_proxies": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),

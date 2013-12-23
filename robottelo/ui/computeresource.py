@@ -4,7 +4,6 @@
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 
