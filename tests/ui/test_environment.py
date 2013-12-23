@@ -19,8 +19,9 @@ class Environment(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_environments()
         self.environment.create(name)
-#       self.assertIsNotNone(self.environment.search(name,
-#                                                    locators["env.env_name"]))
+        # TODO: assertion is pending Foreman issue #3826
+        #search = self.environment.search(name, locators["env.env_name"])
+        #self.assertIsNotNone(search)
 
     def test_remove_env(self):
         "Delete an Environment "
