@@ -54,7 +54,7 @@ class Base(object):
 
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys(element_name)
+            searchbox.send_keys("name = " + element_name)
             searchbox.send_keys(Keys.RETURN)
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
