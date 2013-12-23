@@ -21,12 +21,14 @@ Options:
 """
 
 from tests.cli.basecli import BaseCLI
+from robottelo.cli.report import Report
 from robottelo.common.decorators import bzbug
 from robottelo.common import ssh
 
 
 class TestReport(BaseCLI):
 
+    @bzbug(1044408)
     def test_list(self):
         """
         Displays list for puppet report.
@@ -35,19 +37,20 @@ class TestReport(BaseCLI):
         result = ssh.command('puppet agent -t')
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
-        result = ssh.command('hammer report list --search')
+        result = Report().list({'search': 'search'})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
-        result = ssh.command('hammer report list --order')
+        result = Report().list({'order': 'order'})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
-        result = ssh.command('hammer report list --page')
+        result = Report().list({'page': 'page'})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
-        result = ssh.command('hammer report list --per-page')
+        result = Report().list({'per-page': 'per-page'})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
 
+    @bzbug(1044408)
     def test_info(self):
         """
         Displays info for puppet report.
@@ -56,13 +59,13 @@ class TestReport(BaseCLI):
         result = ssh.command('puppet agent -t')
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
-        result = ssh.command('hammer report list')
+        result = Report().list()
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
         output = result.stdout
         index = [c.strip() for c in output[1].split('|')].index('ID')
         ids = [line.split('|')[index].strip() for line in output[3:-1]]
-        result = ssh.command('hammer report info --id ' + ids[0])
+        result = Report().info({'id': ids[0]})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
 
@@ -75,12 +78,12 @@ class TestReport(BaseCLI):
         result = ssh.command('puppet agent -t')
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
-        result = ssh.command('hammer report list')
+        result = Report().list()
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
         output = result.stdout
         index = [c.strip() for c in output[1].split('|')].index('ID')
         ids = [line.split('|')[index].strip() for line in output[3:-1]]
-        result = ssh.command('hammer report delete --id ' + ids[0])
+        result = Report().delete({'id': ids[0]})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
