@@ -33,25 +33,6 @@ def generate_name(minimum=4, maximum=8):
     return name
 
 
-def generate_id(minimum=4, maximum=8):
-    """
-    Generates a unique id for reports
-    """
-
-    if minimum <= 0:
-        minimum = 4
-    if maximum < minimum:
-        maximum = minimum
-
-    rand = random.SystemRandom()
-    pool1 = string.digits
-
-    id = str().join(
-        rand.choice(pool1) for x in range(random.randint(minimum, maximum)))
-
-    return id
-
-
 def generate_email_address(name_length=8, domain_length=6):
     """
     Generates a random email address.
