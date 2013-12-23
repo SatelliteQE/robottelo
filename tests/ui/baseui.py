@@ -11,6 +11,7 @@ import unittest
 
 from robottelo.common import conf
 from robottelo.ui.architecture import Architecture
+from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.login import Login
@@ -86,6 +87,7 @@ class BaseUI(unittest.TestCase):
         self.hostgroup = Hostgroup(self.browser)
         self.domain = Domain(self.browser)
         self.subnet = Subnet(self.browser)
+        self.compute_resource = ComputeResource(self.browser)
         self.template = Template(self.browser)
         self.partitiontable = PartitionTable(self.browser)
 

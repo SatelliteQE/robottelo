@@ -57,6 +57,37 @@ locators = {
     "operatingsys.medium": (
         By.XPATH, "//label[@class='medium' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
 
+    #Compute Resource
+
+    "resource.new": (
+        By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
+    "resource.name": (By.ID, "compute_resource_name"),
+    "resource.provider_type": (
+        By.XPATH,
+        "//select[@id='compute_resource_provider']"),
+    "resource.description": (By.ID, "compute_resource_description"),
+    "resource.test_connection": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
+    "resource.user": (By.ID, "compute_resource_user"),
+    "resource.password": (By.ID, "compute_resource_password"),
+    "resource.region": (By.ID, "compute_resource_region"),
+    "resource.select_name": (
+        By.XPATH,
+        "//a[contains(@href,'compute_resources') and normalize-space(.)='%s']"),  # @IgnorePep8
+    "resource.dropdown": (By.XPATH, "//a[contains(@href,'%s')]/../../a"),
+    "resource.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    #resource - libvirt
+    "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
+    "resource.libvirt_console_passwd": (
+        By.ID, "compute_resource_set_console_password"),
+
+    #resource - openstack
+    "resource.rhos_tenant": (By.ID, "compute_resource_tenant"),
+
     #Host
     #Third level UI
 
@@ -312,13 +343,13 @@ locators = {
     # Infrastructure Menu
     "menu.infrastructure": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='infrastructure_menu']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='infrastructure_menu']"),  # @IgnorePep8
     "menu.smart_proxies": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
     "menu.compute_resources": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style, 'fixed')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
     "menu.subnets": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
