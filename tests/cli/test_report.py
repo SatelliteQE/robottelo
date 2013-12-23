@@ -50,7 +50,6 @@ class TestReport(BaseCLI):
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
 
-    @bzbug(1044408)
     def test_info(self):
         """
         Displays info for puppet report.
@@ -63,9 +62,12 @@ class TestReport(BaseCLI):
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
         output = result.stdout
-        index = [c.strip() for c in output[1].split('|')].index('ID')
-        ids = [line.split('|')[index].strip() for line in output[3:-1]]
-        result = Report().info({'id': ids[0]})
+        keys_id = []
+        for i in range(0, len(output)):
+            for key in output[i].keys():
+                if key == 'Id':
+                    keys_id.append(output[i][key])
+        result = Report().info({'id': keys_id[0]})
         self.assertEqual(result.return_code, 0)
         self.assertFalse(result.stderr)
 
