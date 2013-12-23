@@ -1,50 +1,17 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import logging
-import sys
+"""
+Generic base class for cli hammer commands
+"""
 
-from robottelo.common import conf
-from robottelo.common.helpers import csv_to_dictionary
+import logging
+
+from robottelo.common import conf, ssh
 from threading import Lock
 
-try:
-    import paramiko
-except ImportError:
-    print "Please install paramiko."
-    sys.exit(-1)
 
-
-class SSHCommandResult(object):
-    """
-    Structure that returns in all Base commands results.
-    """
-
-    def __init__(self, stdout=None, stderr=None,
-                 return_code=0, transform_csv=False):
-        self.__stdout = stdout
-        self.__stderr = stderr
-        self.__return_code = return_code
-        self.__transform_csv = transform_csv
-        #  Does not make sense to return suspicious CSV if ($? <> 0)
-        if transform_csv and self.__return_code == 0:
-            self.__stdout = csv_to_dictionary(stdout) if stdout else {}
-
-    @property
-    def stdout(self):
-        return self.__stdout
-
-    @property
-    def stderr(self):
-        return self.__stderr
-
-    @property
-    def return_code(self):
-        return self.__return_code
-
-
-class Base():
+class Base(object):
     """
     @param command_base: base command of hammer.
     Output of recent: `hammer --help`
@@ -80,42 +47,8 @@ class Base():
     katello_user = conf.properties['foreman.admin.username']
     katello_passwd = conf.properties['foreman.admin.password']
 
-    __connection = None
-
     def __init__(self):
         pass
-
-    @classmethod
-    def get_connection(cls):
-        if not cls.__connection:
-            # Hide base logger from paramiko
-            logging.getLogger("paramiko").setLevel(logging.ERROR)
-
-            conn = paramiko.SSHClient()
-            conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            host = conf.properties['main.server.hostname']
-            root = conf.properties['main.server.ssh.username']
-            key_filename = conf.properties['main.server.ssh.key_private']
-            conn.connect(host, username=root, key_filename=key_filename)
-            cls.__connection = conn
-            cls.logger.info(
-                "Paramiko instance prepared (and would be reused): %s"
-                % hex(id(cls.__connection))
-            )
-        return cls.__connection
-
-    @classmethod
-    def upload_file(cls, local_file, remote_file=None):
-        """
-        Uploads a remote file to a server.
-        """
-
-        if not remote_file:
-            remote_file = local_file
-
-        sftp = cls.get_connection().open_sftp()
-        sftp.put(local_file, remote_file)
-        sftp.close()
 
     def add_operating_system(self, options=None):
         """
@@ -173,8 +106,9 @@ class Base():
         return result
 
     def execute(self, command, user=None, password=None, expect_csv=False):
-
-        # Dictionary object to hold all artifacts from Paramiko.
+        """
+        Executes the command
+        """
         if user is None:
             user = self.katello_user
         if password is None:
@@ -184,26 +118,9 @@ class Base():
         if expect_csv:
             output_csv = " --output csv"
         shell_cmd = "LANG=%s hammer -u %s -p %s" + output_csv + " %s"
+        cmd = shell_cmd % (self.locale, user, password, command)
 
-        lock = Lock()
-        with lock:
-            stdout, stderr = Base.get_connection().exec_command(
-                shell_cmd % (self.locale, user, password, command))[-2:]
-            errorcode = stdout.channel.recv_exit_status()
-            output = stdout.readlines()
-            errors = stderr.readlines()
-
-        # helps for each command to be grouped with a new line.
-        print ""
-
-        self.logger.debug(shell_cmd % (self.locale, user, password, command))
-
-        if output:
-            self.logger.debug("".join(output))
-        if errors:
-            self.logger.error("".join(errors))
-
-        return SSHCommandResult(output, errors, errorcode, expect_csv)
+        return ssh.command(cmd, expect_csv=expect_csv)
 
     def exists(self, tuple_search=None):
         """
@@ -233,10 +150,8 @@ class Base():
         result = self.execute(self._construct_command(options),
                               expect_csv=True)
 
-        # TODO: update SSHCommandResult so that attributes are not
-        # "protected" :)
         if len(result.stdout) == 1:
-            result._SSHCommandResult__stdout = result.stdout[0]
+            result.stdout = result.stdout[0]
         # This should never happen but we're trying to be safe
         elif len(result.stdout) > 1:
             raise Exception("Info subcommand returned more than 1 result.")
@@ -316,6 +231,9 @@ class Base():
         return result
 
     def _construct_command(self, options=None):
+        """
+        Build a hammer cli command based on the options passed
+        """
         tail = ""
 
         options = options or {}
@@ -326,8 +244,6 @@ class Base():
                     tail += " --%s='%s'" % (key, val)
                 else:
                     tail += " --%s=%s" % (key, val)
-            else:
-                tail += " --%s" % key
         cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
 
         return cmd

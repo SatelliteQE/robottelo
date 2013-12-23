@@ -3,21 +3,9 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
-    hammer environment [OPTIONS] SUBCOMMAND [ARG] ...
-
-Parameters:
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
-
-Subcommands:
-    create                        Create an environment.
-    info                          Show an environment.
-    list                          List all environments.
-    update                        Update an environment.
-    sc_params                     List all smart class parameters
-    delete                        Delete an environment.
+Test class for Environment  CLI
 """
+
 from robottelo.cli.environment import Environment
 from robottelo.common.helpers import generate_name, sleep_for_seconds
 from tests.cli.basecli import BaseCLI

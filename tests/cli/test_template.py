@@ -2,25 +2,19 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import os
+"""
+Test class for Template CLI
+"""
+
 import random
 
-from basecli import BaseCLI
-from robottelo.cli.base import Base
+from os import chmod
 from robottelo.cli.template import Template
+from robottelo.common import ssh
+from robottelo.common.constants import TEMPLATE_TYPES
 from robottelo.common.helpers import generate_name
+from tests.cli.basecli import BaseCLI
 from tempfile import mkstemp
-
-# TODO: Move this to a common location
-TEMPLATE_TYPES = [
-    'PXELinux',
-    'gPXE',
-    'provision',
-    'finish',
-    'script',
-    'PXEGrub',
-    'snippet',
-]
 
 
 class TestTemplate(BaseCLI):
@@ -31,21 +25,20 @@ class TestTemplate(BaseCLI):
 
         if not template:
             (file_handle, layout) = mkstemp(text=True)
-            os.chmod(layout, 0700)
+            chmod(layout, 0700)
             with open(layout, "w") as ptable:
                 ptable.write(content)
 
         args = {
             'file': "/tmp/%s" % generate_name(),
             'name': name or generate_name(),
-            'type': template_type or TEMPLATE_TYPES[random.randint(
-                0, len(TEMPLATE_TYPES) - 1)],
+            'type': template_type or random.choice(TEMPLATE_TYPES),
             'audit-comment': audit_comment,
             'operatingsystem-ids': operatingsystem_ids,
         }
 
         # Upload file to server
-        Base.upload_file(local_file=layout, remote_file=args['file'])
+        ssh.upload_file(local_file=layout, remote_file=args['file'])
 
         Template().create(args)
 
