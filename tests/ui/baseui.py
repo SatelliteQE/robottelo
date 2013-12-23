@@ -11,6 +11,7 @@ import unittest
 
 from robottelo.common import conf
 from robottelo.ui.architecture import Architecture
+from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.hostgroup import Hostgroup
@@ -23,7 +24,6 @@ from robottelo.ui.product import Product
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
-from robottelo.ui.computeresource import ComputeResource
 from selenium import webdriver
 from selenium_factory.SeleniumFactory import SeleniumFactory
 
