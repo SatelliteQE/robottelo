@@ -40,7 +40,9 @@ locators = {
     "resource.new": (
         By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
     "resource.name": (By.ID, "compute_resource_name"),
-    "resource.provider_type": (By.ID, "compute_resource_provider"),
+    "resource.provider_type": (
+        By.XPATH,
+        "//select[@id='compute_resource_provider']"),
     "resource.description": (By.ID, "compute_resource_description"),
     "resource.test_connection": (
         By.XPATH,
@@ -310,13 +312,13 @@ locators = {
     # Infrastructure Menu
     "menu.infrastructure": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='infrastructure_menu']"),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='infrastructure_menu']"),
     "menu.smart_proxies": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
     "menu.compute_resources": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style, 'fixed')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
     "menu.subnets": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),

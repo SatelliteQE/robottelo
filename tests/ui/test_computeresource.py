@@ -21,8 +21,10 @@ class ComputeResource(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_compute_resources()
         self.compute_resource.create(name, provider_type="Libvirt", url=url)
+        self.navigator.go_to_compute_resources()
         self.assertIsNotNone(self.compute_resource.search(name))
 
+    @unittest.skip("Test needs to create other required stuff")
     def test_remove_resource(self):
         "Test to delete a Compute Resource "
         name = generate_name(8)
@@ -31,6 +33,6 @@ class ComputeResource(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_compute_resources()
         self.compute_resource.create(name, provider_type="Libvirt", url=url)
-        self.assertIsNotNone(self.compute_resource.search(name))
+        self.navigator.go_to_compute_resources()
         self.compute_resource.delete(name, really=True)
         self.assertTrue(self.user.wait_until_element(locators["notif.success"]))  # @IgnorePep8

@@ -16,7 +16,7 @@ class ComputeResource(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, provider_type=None, url=None, user=None,
+    def create(self, name, desc="CR", provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
                libvirt_set_passwd=True, tenant=None):
         """
@@ -26,11 +26,8 @@ class ComputeResource(Base):
         if self.wait_until_element(locators["resource.name"]):
             self.find_element(locators["resource.name"]).send_keys(name)
         if provider_type:
-            self.wait_until_element(locators["resource.provider_type"]).click()
             type_ele = self.find_element(locators["resource.provider_type"])
             Select(type_ele).select_by_visible_text(provider_type)
-            self.wait_for_ajax()
-
             if provider_type in ["EC2", "Rackspace", "Openstack"]:
                 if provider_type in ["Rackspace", "Openstack"]:
                     self.find_element(locators["resource.url"]).send_keys(url)
@@ -63,34 +60,35 @@ class ComputeResource(Base):
         """
         Removes the compute resource info.
         """
-        strategy = locators["resource.dropdown"][0]
-        value = locators["resource.dropdown"][1]
-        dropdown = self.wait_until_element((strategy, value % name))
-        dropdown.click()
-        strategy1 = locators["resource.delete"][0]
-        value1 = locators["resource.delete"][1]
-        element = self.wait_until_element((strategy1, value1 % name))
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
+        searched = self.search(name)
+        if searched:
+            strategy = locators["resource.dropdown"][0]
+            value = locators["resource.dropdown"][1]
+            dropdown = self.wait_until_element((strategy, value % name))
+            dropdown.click()
+            strategy1 = locators["resource.delete"][0]
+            value1 = locators["resource.delete"][1]
+            element = self.wait_until_element((strategy1, value1 % name))
+            if element:
+                element.click()
+                if really:
+                    alert = self.browser.switch_to_alert()
+                    alert.accept()
+                else:
+                    alert = self.browser.switch_to_alert()
+                    alert.dismiss()
 
     def search(self, name):
         """
         Searches for compute resources.
         """
+        resource = None
         searchbox = self.wait_until_element(locators["search"])
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys(name)
+            searchbox.send_keys("name = " + name)
             searchbox.send_keys(Keys.RETURN)
             strategy = locators["resource.select_name"][0]
             value = locators["resource.select_name"][1]
             resource = self.wait_until_element((strategy, value % name))
-            if resource:
-                resource.click()
         return resource
