@@ -7,6 +7,7 @@ Test class for Template UI
 """
 
 import unittest
+from robottelo.ui.locators import locators
 from tests.ui.baseui import BaseUI
 
 
@@ -23,4 +24,6 @@ class Template(BaseUI):
         self.template.create(name, os_list, True,
                              template_path="~/anaconda-ks.cfg",
                              template_type="provision")
-        self.assertIsNotNone(self.template.search(name))
+        search = self.template.search(name,
+                                      locators["provision.template_select"])
+        self.assertIsNotNone(search)

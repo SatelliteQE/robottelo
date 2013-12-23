@@ -19,7 +19,8 @@ class Environment(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_environments()
         self.environment.create(name)
-#        self.assertIsNotNone(self.environment.search(name))
+#       self.assertIsNotNone(self.environment.search(name,
+#                                                    locators["env.env_name"]))
 
     def test_remove_env(self):
         "Delete an Environment "
@@ -28,4 +29,5 @@ class Environment(BaseUI):
         self.navigator.go_to_environments()
         self.environment.create(name)
         self.environment.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        notif = self.user.wait_until_element(locators["notif.success"])
+        self.assertTrue(notif)
