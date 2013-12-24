@@ -8,35 +8,44 @@ Implements Subnet UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 
 
 class Subnet(Base):
+    """
+    Provides the CRUD functionality for Subnet
+    """
 
     def __init__(self, browser):
+        """
+        Sets up the browser object.
+        """
         self.browser = browser
 
     def create(self, subnet_name=None, subnet_network=None, subnet_mask=None,):
+        """
+        Create Subnet from UI
+        """
+
         self.wait_until_element(locators["subnet.new"]).click()
+
         if self.wait_until_element(locators["subnet.name"]):
-            name_field = self.find_element(locators["subnet.name"])
-            name_field.clear()
-            name_field.send_keys(subnet_name)
+            self.find_element(locators["subnet.name"]).send_keys(subnet_name)
         if self.wait_until_element(locators["subnet.network"]):
-            network_field = self.find_element(locators["subnet.network"])
-            network_field.clear()
-            network_field.send_keys(subnet_network)
+            self.find_element(locators
+                              ["subnet.network"]
+                              ).send_keys(subnet_network)
         if self.wait_until_element(locators["subnet.mask"]):
-            mask_field = self.find_element(locators["subnet.mask"])
-            mask_field.clear()
-            mask_field.send_keys(subnet_mask)
+            self.find_element(locators["subnet.mask"]).send_keys(subnet_mask)
         self.wait_until_element(locators["subnet.submit"]).click()
         self.wait_for_ajax()
 
     def remove(self, subnet_name, really):
-        element = self.wait_until_element((locators["subnet.delete"][0],
-                                           locators["subnet.delete"][1]
-                                           % subnet_name), delay=5)
+        """
+        Remove subnet from UI
+        """
+
+        element = self.search(subnet_name, locators['subnet.delete'])
+
         if element:
             element.click()
             if really:
@@ -45,57 +54,58 @@ class Subnet(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
+        else:
+            raise Exception(
+                "Could not delete the subnet '%s'" % subnet_name)
         self.wait_for_ajax()
 
-    def search(self, subnet_name):
+    def search_subnet(self, subnet_name):
+        """
+        Search Subnet name, network and mask to validate results
+        """
+
         result = None
-        searchbox = self.wait_until_element(locators["search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(subnet_name)
-            searchbox.send_keys(Keys.RETURN)
-            subnet_object = self.find_element((
-                                locators["subnet.display_name"][0],
-                                locators["subnet.display_name"][1]
-                                % subnet_name))
-            if subnet_object:
-                subnet_object.click()
-                if self.wait_until_element(locators["subnet.name"]):
-                    result = dict([('name', None), ('network', None),
-                                   ('mask', None)])
-                    result['name'] = self.find_element(
-                                        locators["subnet.name"]).get_attribute("value")  # @IgnorePep8
-                    result['network'] = self.find_element(
-                                            locators["subnet.network"]).get_attribute("value")  # @IgnorePep8
-                    result['mask'] = self.find_element(
-                                        locators["subnet.mask"]).get_attribute("value")  # @IgnorePep8
+
+        subnet_object = self.search(subnet_name,
+                                    locators
+                                    ['subnet.display_name'])
+
+        if subnet_object:
+            subnet_object.click()
+            if self.wait_until_element(locators["subnet.name"]):
+                result = dict([('name', None), ('network', None),
+                               ('mask', None)])
+                result['name'] = self.find_element(locators
+                                                   ["subnet.name"]
+                                                   ).get_attribute("value")  # @IgnorePep8
+                result['network'] = self.find_element(locators
+                                                      ["subnet.network"]
+                                                      ).get_attribute("value")  # @IgnorePep8
+                result['mask'] = self.find_element(locators
+                                                   ["subnet.mask"]
+                                                   ).get_attribute("value")  # @IgnorePep8
         return result
 
     def update(self, subnet_name, new_subnet_name=None,
                new_subnet_network=None, new_subnet_mask=None):
-        if self.wait_until_element((locators["subnet.display_name"][0],
-                                    locators["subnet.display_name"][1]
-                                    % subnet_name), delay=2):
-            subnet_object = self.find_element((
-                                locators["subnet.display_name"][0],
-                                locators["subnet.display_name"][1]
-                                % subnet_name))
+        """
+        Update subnet name, network and mask from UI
+        """
+
+        subnet_object = self.search(subnet_name,
+                                    locators
+                                    ["subnet.display_name"])
+
         if subnet_object:
             subnet_object.click()
         if new_subnet_name:
             if self.wait_until_element(locators["subnet.name"]):
-                name_field = self.find_element(locators["subnet.name"])
-                name_field.clear()
-                name_field.send_keys(new_subnet_name)
+                self.field_update("subnet.name", new_subnet_name)
         if new_subnet_network:
             if self.wait_until_element(locators["subnet.network"]):
-                network_field = self.find_element(locators["subnet.network"])
-                network_field.clear()
-                network_field.send_keys(new_subnet_network)
+                self.field_update("subnet.network", new_subnet_network)
         if new_subnet_mask:
             if self.wait_until_element(locators["subnet.mask"]):
-                mask_field = self.find_element(locators["subnet.mask"])
-                mask_field.clear()
-                mask_field.send_keys(new_subnet_mask)
+                self.field_update("subnet.mask", new_subnet_mask)
         self.wait_until_element(locators["subnet.submit"]).click()
         self.wait_for_ajax()
