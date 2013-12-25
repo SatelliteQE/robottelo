@@ -2,7 +2,6 @@
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 
@@ -79,34 +78,21 @@ class Hosts(Base):
         """
         Deletes a host.
         """
-        strategy = locators["host.dropdown"][0]
-        value = locators["host.dropdown"][1]
-        dropdown = self.wait_until_element((strategy, value % name))
-        dropdown.click()
-        strategy1 = locators["host.delete"][0]
-        value1 = locators["host.delete"][1]
-        element = self.wait_until_element((strategy1, value1 % name), delay=5)
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-
-    def search(self, name):
-        """
-        Searches for the host.
-        """
-        searchbox = self.wait_until_element(locators["search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(name)
-            searchbox.send_keys(Keys.RETURN)
-            strategy = locators["host.select_name"][0]
-            value = locators["host.select_name"][1]
-            host = self.wait_until_element((strategy, value % name))
-            if host:
-                host.click()
-        return host
+        search = self.search(name, locators["host.select_name"])
+        if search:
+            strategy = locators["host.dropdown"][0]
+            value = locators["host.dropdown"][1]
+            dropdown = self.wait_until_element((strategy, value % name))
+            dropdown.click()
+            strategy1 = locators["host.delete"][0]
+            value1 = locators["host.delete"][1]
+            element = self.wait_until_element((strategy1, value1 % name))
+            if element:
+                element.click()
+                if really:
+                    alert = self.browser.switch_to_alert()
+                    alert.accept()
+                else:
+                    alert = self.browser.switch_to_alert()
+                    alert.dismiss()
+        # TODO: need to raise exception for negative testing

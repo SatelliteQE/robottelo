@@ -8,7 +8,6 @@ Implements Template UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 
@@ -57,7 +56,7 @@ class Template(Base):
         """
         Updates a given template.
         """
-        element = self.search(name)
+        element = self.search(name, locators["provision.template_select"])
         if element:
             element.click()
             self.wait_for_ajax()
@@ -90,30 +89,17 @@ class Template(Base):
         """
         Deletes a template.
         """
-        strategy = locators["provision.template_select"][0]
-        value = locators["provision.template_select"][1]
-        element = self.wait_until_element((strategy, value % name))
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss(self)
-
-    def search(self, name):
-        """
-        Searches for the template.
-        """
-        searchbox = self.wait_until_element(locators["search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(name)
-            searchbox.send_keys(Keys.RETURN)
+        search = self.search(name, locators["provision.template_select"])
+        if search:
             strategy = locators["provision.template_select"][0]
             value = locators["provision.template_select"][1]
-            template = self.wait_until_element((strategy, value % name))
-            if template:
-                template.click()
-        return template
+            element = self.wait_until_element((strategy, value % name))
+            if element:
+                element.click()
+                if really:
+                    alert = self.browser.switch_to_alert()
+                    alert.accept()
+                else:
+                    alert = self.browser.switch_to_alert()
+                    alert.dismiss(self)
+        # TODO: need to raise exception for negative testing
