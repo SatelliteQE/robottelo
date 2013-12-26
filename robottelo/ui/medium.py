@@ -8,17 +8,27 @@ Implements Medium UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 
 class Medium(Base):
+    """
+    Implements the CRUD functions for Installation media
+    """
 
     def __init__(self, browser):
+        """
+        Sets the browser object
+        """
         self.browser = browser
 
     def create(self, name, path, os_family=None):
+        """
+        Creates new Installation media
+        """
+
         self.wait_until_element(locators["medium.new"]).click()
+
         if self.wait_until_element(locators["medium.name"]):
             self.find_element(locators["medium.name"]).send_keys(name)
             if self.wait_until_element(locators["medium.path"]):
@@ -31,10 +41,12 @@ class Medium(Base):
             self.wait_for_ajax()
 
     def remove(self, name, really):
-        element = self.wait_until_element((locators
-                                           ["medium.delete"][0],
-                                           locators
-                                           ["medium.delete"][1] % name))
+        """
+        Delete Installation media
+        """
+
+        element = self.search(name, locators['medium.delete'])
+
         if element:
             element.click()
             if really:
@@ -43,27 +55,18 @@ class Medium(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
-            self.wait_for_ajax()
-
-    def search(self, name):
-        searchbox = self.wait_until_element(locators["search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(name)
-            searchbox.send_keys(Keys.RETURN)
-            medium = self.wait_until_element((locators
-                                              ["medium.medium_name"][0],
-                                              locators
-                                              ["medium.medium_name"][1] % name))
-            if medium:
-                medium.click()
-        return medium
+        else:
+            raise Exception(
+                "Could not remove the installation media '%s'" % name)
+        self.wait_for_ajax()
 
     def update(self, oldname, newname=None, newpath=None, new_os_family=None):
-        element = self.wait_until_element((locators
-                                           ["medium.medium_name"][0],
-                                           locators
-                                           ["medium.medium_name"][1] % oldname))
+        """
+        Update installation media name, media path and OS family
+        """
+
+        element = self.search(oldname, locators['medium.medium_name'])
+
         if element:
             element.click()
         if self.wait_until_element(locators["medium.name"]):
