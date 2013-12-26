@@ -14,8 +14,12 @@ URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
 class Medium(BaseUI):
+    """
+    Implements all Installation Media tests
+    """
 
     def create_medium(self, name=None, path=None, os_family=None):
+        "Create Installation media with navigation steps"
         name = name or generate_name(6)
         path = path or URL % generate_name(6)
         self.navigator.go_to_installation_media()  # go to media page
@@ -25,20 +29,22 @@ class Medium(BaseUI):
         "Create new Media"
         name = generate_name(6)
         path = URL % generate_name(6)
-        os_family = "Redhat"
+        os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
-        self.assertTrue(self, self.medium.search(name))
+        self.assertIsNotNone(self, self.medium.search
+                            (name, locators['medium.medium_name']))
 
     def test_remove_medium(self):
         "Delete Media"
         name = generate_name(6)
         path = URL % generate_name(6)
-        os_family = "Redhat"
+        os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
         self.medium.remove(name, True)
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))
+        self.assertTrue(self.medium.wait_until_element
+                        (locators["notif.success"]))
 
     def test_update_medium(self):
         "Create new Media and update its name, path and OS family"
@@ -46,9 +52,10 @@ class Medium(BaseUI):
         newname = generate_name(4)
         path = URL % generate_name(6)
         newpath = URL % generate_name(6)
-        os_family = "Redhat"
+        os_family = "Red Hat"
         new_os_family = "Debian"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
         self.medium.update(name, newname, newpath, new_os_family)
-        self.assertTrue(self, self.medium.search(newname))
+        self.assertTrue(self, self.medium.search
+                        (newname, locators['medium.medium_name']))
