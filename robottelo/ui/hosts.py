@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
