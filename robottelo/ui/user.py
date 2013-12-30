@@ -7,48 +7,54 @@ Implements User UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 
 class User(Base):
+    """
+    Implements CRUD functions from UI
+    """
 
     def __init__(self, browser):
+        """
+        Sets the browser object
+        """
         self.browser = browser
 
-    def create(self, username, email=None, password1=None, password2=None, authorized_by="INTERNAL", locale=None):
+    def create(self, username, email=None, password1=None,
+               password2=None, authorized_by="INTERNAL", locale=None):
+        """
+        Create new user from UI
+        """
+
         self.wait_until_element(locators["users.new"]).click()
 
         if self.wait_until_element(locators["users.username"]):
             self.find_element(locators["users.username"]).send_keys(username)
-            Select(self.find_element(locators["users.authorized_by"])).select_by_visible_text(authorized_by)
+            Select(self.find_element(locators["users.authorized_by"]
+                                     )).select_by_visible_text(authorized_by)
             # The following fields are not available via LDAP auth
             if self.wait_until_element(locators["users.email"]):
                 self.find_element(locators["users.email"]).send_keys(email)
             if self.wait_until_element(locators["users.password"]):
-                self.find_element(locators["users.password"]).send_keys(password1)
-            if self.wait_until_element(locators["users.password_confirmation"]):
-                self.find_element(locators["users.password_confirmation"]).send_keys(password2)
+                self.find_element(locators
+                                  ["users.password"]).send_keys(password1)
+            if self.wait_until_element(locators
+                                       ["users.password_confirmation"]):
+                self.find_element(locators["users.password_confirmation"]
+                                  ).send_keys(password2)
             if locale:
-                Select(self.find_element(locators["users.language"])).select_by_value(locale)
+                Select(self.find_element(locators["users.language"]
+                                         )).select_by_value(locale)
             self.find_element(locators["submit"]).click()
 
-    def search(self, username):
-        # Make sure the user is present
+    def delete(self, username, search_key, really=False):
+        """
+        Delete existing user from UI
+        """
 
-        user = None
+        element = self.search(username, locators['users.delete'], search_key)
 
-        searchbox = self.wait_until_element(locators["search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(username)
-            searchbox.send_keys(Keys.RETURN)
-            user = self.wait_until_element((locators["users.user"][0], locators["users.user"][1] % username))
-        return user
-
-    def delete(self, username, really=False):
-        self.search(username)
-        element = self.wait_until_element((locators["users.delete"][0], locators["users.delete"][1] % username))
         if element:
             element.click()
             if really:
@@ -57,10 +63,20 @@ class User(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
+        else:
+            raise Exception(
+                "Could not delete the user '%s'" % username)
 
-    def update(self, username, new_username=None, email=None, password=None,
+    def update(self, search_key, username, new_username=None,
+               email=None, password=None,
                firstname=None, lastname=None, locale=None):
-        element = self.search(username)
+        """
+        Update username, email, password, firstname,
+        lastname and locale from UI
+        """
+
+        element = self.search(username, locators['users.user'], search_key)
+
         if element:
             element.click()
             self.wait_for_ajax()
@@ -73,8 +89,10 @@ class User(Base):
             if lastname:
                 self.field_update("users.lastname", lastname)
             if locale:
-                Select(self.find_element(locators["users.language"])).select_by_value(locale)
+                Select(self.find_element(locators["users.language"]
+                                         )).select_by_value(locale)
             if password:
                 self.field_update("users.password", password)
                 self.field_update("users.password_confirmation", password)
             self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
