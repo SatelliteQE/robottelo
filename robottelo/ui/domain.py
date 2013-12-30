@@ -7,7 +7,6 @@ Implements Domain UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 
@@ -15,13 +14,18 @@ class Domain(Base):
     "Manipulates Foreman's domain from UI"
 
     def __init__(self, browser):
+        """
+        Sets the browser object
+        """
         self.browser = browser
 
     def create(self, name, description=None, dns_proxy=None):
         """
         Creates new domain with name, description and dns_proxy
         """
+
         self.wait_until_element(locators["domain.new"]).click()
+
         if self.wait_until_element(locators["domain.name"]):
             self.find_element(locators["domain.name"]).send_keys(name)
             if description:
@@ -40,9 +44,9 @@ class Domain(Base):
         """
         Delete existing domain from UI
         """
-        strategy = locators["domain.delete"][0]
-        value = locators["domain.delete"][1]
-        element = self.wait_until_element((strategy, value % name))
+
+        element = self.search(name, locators['domain.delete'])
+
         if element:
             element.click()
             if really:
@@ -51,32 +55,20 @@ class Domain(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss(self)
-            self.wait_for_ajax()
-
-    def search(self, description):
-        """
-        Search an existing domain
-        """
-        searchbox = self.wait_until_element(locators["search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(description)
-            searchbox.send_keys(Keys.RETURN)
-            strategy = locators["domain.domain_description"][0]
-            value = locators["domain.domain_description"][1]
-            domain = self.wait_until_element((strategy, value % description))
-            if domain:
-                domain.click()
-        return domain
+        else:
+            raise Exception(
+                "Could not delete the domain '%s'" % name)
+        self.wait_for_ajax()
 
     def update(self, old_description, new_name=None,
                new_description=None, new_dns_proxy=None):
         """
         Update an existing domain's name, description and dns_proxy
         """
-        strategy = locators["domain.domain_description"][0]
-        value = locators["domain.domain_description"][1]
-        element = self.wait_until_element((strategy, value % old_description))
+
+        element = self.search(old_description,
+                              locators['domain.domain_description'])
+
         if element:
             element.click()
         if self.wait_until_element(locators["domain.name"]):
@@ -96,10 +88,10 @@ class Domain(Base):
         """
         Add new parameter for domain
         """
-        strategy = locators["domain.domain_description"][0]
-        value = locators["domain.domain_description"][1]
-        element = self.wait_until_element((strategy,
-                                           value % domain_description))
+
+        element = self.search(domain_description,
+                              locators['domain.domain_description'])
+
         if element:
             element.click()
         self.set_parameter(param_name, param_value)
@@ -108,10 +100,10 @@ class Domain(Base):
         """
         Remove new parameter from domain
         """
-        strategy = locators["domain.domain_description"][0]
-        value = locators["domain.domain_description"][1]
-        element = self.wait_until_element((strategy,
-                                           value % domain_description))
+
+        element = self.search(domain_description,
+                              locators['domain.domain_description'])
+
         if element:
             element.click()
         self.remove_parameter(param_name)

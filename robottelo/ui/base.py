@@ -42,18 +42,19 @@ class Base(object):
                 "Failed to locate element. ERROR: %s" % str(error))
             return None
 
-    def search(self, element_name, element_locator):
+    def search(self, element_name, element_locator, search_key=None):
         """
         Uses the search box to locate an element from a list of elements.
         """
 
+        search_key = search_key or "name"
         element = None
 
         searchbox = self.wait_until_element(locators["search"])
 
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys("name = " + element_name)
+            searchbox.send_keys(search_key + " = " + element_name)
             searchbox.send_keys(Keys.RETURN)
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
