@@ -9,6 +9,9 @@ from tests.ui.baseui import BaseUI
 
 
 class Login(BaseUI):
+    """
+    Implements the login tests rom UI
+    """
 
     def test_successful_login(self):
         "Successfully logs in as admin user"
