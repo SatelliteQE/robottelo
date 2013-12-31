@@ -35,7 +35,7 @@ class Architecture(Base):
         self.find_element(locators["arch.submit"]).click()
         self.wait_for_ajax()
 
-    def remove(self, name, really):
+    def delete(self, name, really):
         """
         Delete existing architecture from UI
         """

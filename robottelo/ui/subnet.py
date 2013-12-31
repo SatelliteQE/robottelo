@@ -38,7 +38,7 @@ class Subnet(Base):
         self.wait_until_element(locators["subnet.submit"]).click()
         self.wait_for_ajax()
 
-    def remove(self, subnet_name, really):
+    def delete(self, subnet_name, really):
         """
         Remove subnet from UI
         """
@@ -53,10 +53,10 @@ class Subnet(Base):
             else:
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not delete the subnet '%s'" % subnet_name)
-        self.wait_for_ajax()
 
     def search_subnet(self, subnet_name):
         """
@@ -74,15 +74,15 @@ class Subnet(Base):
             if self.wait_until_element(locators["subnet.name"]):
                 result = dict([('name', None), ('network', None),
                                ('mask', None)])
-                result['name'] = self.find_element(locators
-                                                   ["subnet.name"]
-                                                   ).get_attribute("value")  # @IgnorePep8
-                result['network'] = self.find_element(locators
-                                                      ["subnet.network"]
-                                                      ).get_attribute("value")  # @IgnorePep8
-                result['mask'] = self.find_element(locators
-                                                   ["subnet.mask"]
-                                                   ).get_attribute("value")  # @IgnorePep8
+                result['name'] = self.find_element(
+                    locators["subnet.name"]
+                ).get_attribute("value")
+                result['network'] = self.find_element(
+                    locators["subnet.network"]
+                ).get_attribute("value")
+                result['mask'] = self.find_element(
+                    locators["subnet.mask"]
+                ).get_attribute("value")
         return result
 
     def update(self, subnet_name, new_subnet_name=None,

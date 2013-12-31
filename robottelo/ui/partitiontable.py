@@ -39,7 +39,7 @@ class PartitionTable(Base):
             self.find_element(locators["submit"]).click()
             self.wait_for_ajax()
 
-    def remove(self, name, really):
+    def delete(self, name, really):
         """
         Removes existing partition table from UI
         """
