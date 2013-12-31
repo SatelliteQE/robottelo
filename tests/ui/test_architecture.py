@@ -48,7 +48,7 @@ class Architecture(BaseUI):
         self.create_os(os_name, major_version)
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(name, os_name)
-        self.architecture.remove(name, True)
+        self.architecture.delete(name, True)
         self.assertFalse(self.architecture.search(name,
                                                   locators
                                                   ['arch.arch_name']))

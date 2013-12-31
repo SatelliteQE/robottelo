@@ -40,7 +40,7 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        self.subnet.remove(subnet_name, True)
+        self.subnet.delete(subnet_name, True)
         #TODO: Unable to capture the success message for now
         self.assertFalse(self.subnet.search_subnet(subnet_name))
 
@@ -52,7 +52,7 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        self.subnet.remove(subnet_name, False)
+        self.subnet.delete(subnet_name, False)
         self.assertTrue(self.subnet.search_subnet(subnet_name))
 
     def test_update_subnet_1(self):
