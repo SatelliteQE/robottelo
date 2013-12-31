@@ -18,7 +18,6 @@ from robottelo.ui.medium import Medium
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.partitiontable import PartitionTable
-from robottelo.ui.product import Product
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.subnet import Subnet
@@ -76,7 +75,6 @@ class BaseUI(unittest.TestCase):
         # Library methods
         self.login = Login(self.browser)
         self.navigator = Navigator(self.browser)
-        self.product = Product(self.browser)
         self.user = User(self.browser)
         self.operatingsys = OperatingSys(self.browser)
         self.environment = Environment(self.browser)
