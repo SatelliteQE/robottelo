@@ -41,7 +41,7 @@ class Medium(BaseUI):
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
-        self.medium.remove(name, True)
+        self.medium.delete(name, True)
         self.assertTrue(self.medium.wait_until_element
                         (locators["notif.success"]))
 

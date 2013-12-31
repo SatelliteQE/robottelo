@@ -35,7 +35,7 @@ class PartitionTable(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(name, layout, os_family)
-        self.partitiontable.remove(name, really=True)
+        self.partitiontable.delete(name, really=True)
         self.assertTrue(self.partitiontable.wait_until_element
                         (locators["notif.success"]))
 
