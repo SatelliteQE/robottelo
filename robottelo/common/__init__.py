@@ -10,22 +10,21 @@ class Configs():
 
     def __init__(self):
         prop = ConfigParser.RawConfigParser()
-        propFile = "%s/%s" % (self.get_root_path(), ROBOTTELO_PROPERTIES)
-        if prop.read(propFile):
+        prop_file = "%s/%s" % (self.get_root_path(), ROBOTTELO_PROPERTIES)
+
+        if prop.read(prop_file):
             self.properties = {}
             for section in prop.sections():
                 for option in prop.options(section):
                     self.properties[
                         "%s.%s" % (section, option)
                     ] = prop.get(section, option)
-#             self.log_properties()
         else:
             print "Please make sure that you have a robottelo.properties file."
             sys.exit(-1)
 
         self._configure_logging()
         self.log_root = logging.getLogger("root")
-
 
     def log_properties(self):
         keylist = self.properties.keys()
@@ -37,7 +36,7 @@ class Configs():
         self.log_root.debug("")
 
     def get_root_path(self):
-        return os.path.realpath(os.path.join(os.path.dirname(__file__), \
+        return os.path.realpath(os.path.join(os.path.dirname(__file__),
             os.pardir, os.pardir))
 
     def _configure_logging(self):

@@ -9,7 +9,6 @@ import os
 import random
 
 from basecli import BaseCLI
-from robottelo.cli.base import Base
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.common import ssh
 from robottelo.common.helpers import generate_name
@@ -31,6 +30,7 @@ class TestPartitionTable(BaseCLI):
 
     def _create_ptable(self, layout=None, name=None, os_family=None,
                        content=''):
+        """Creates a generic partition table"""
 
         if not layout:
             (file_handle, layout) = mkstemp(text=True)
@@ -52,14 +52,14 @@ class TestPartitionTable(BaseCLI):
         self.assertTrue(PartitionTable().exists(('name', args['name'])))
 
     def test_create_ptable_1(self):
-        "Successfully creates a new ptable"
+        """Successfully creates a new ptable"""
 
         content = "Fake ptable"
         name = generate_name(6)
         self._create_ptable(name=name, content=content)
 
     def test_dump_ptable_1(self):
-        "Creates partition table with specific content."
+        """Creates partition table with specific content."""
 
         content = "Fake ptable"
         name = generate_name(6)
@@ -76,7 +76,7 @@ class TestPartitionTable(BaseCLI):
         self.assertTrue(content in ptable_content.stdout[0])
 
     def test_delete_medium_1(self):
-        "Creates and immediately deletes medium."
+        """Creates and immediately deletes medium."""
 
         content = "Fake ptable"
         name = generate_name(6)
