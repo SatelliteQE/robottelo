@@ -9,7 +9,6 @@ Generic base class for cli hammer commands
 import logging
 
 from robottelo.common import conf, ssh
-from threading import Lock
 
 
 class Base(object):
