@@ -50,7 +50,10 @@ class Hostgroup(Base):
         dropdown = self.search(name, locators["hostgroups.dropdown"])
         if dropdown:
             dropdown.click()
-            element = self.search(name, locators["hostgroups.delete"])
+            self.wait_for_ajax()
+            element = self.wait_until_element(
+                (locators["hostgroups.delete"][0],
+                 locators["hostgroups.delete"][1] % name))
             if element:
                 element.click()
                 if really:
@@ -70,7 +73,7 @@ class Hostgroup(Base):
         Updates existing hostgroup from UI
         """
 
-        element = self.search(name, locators["hostgroup.parent"])
+        element = self.search(name, locators["hostgroups.hostgroup"])
 
         if element:
             element.click()
