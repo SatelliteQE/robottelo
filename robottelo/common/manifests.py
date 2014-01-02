@@ -7,12 +7,19 @@ Implements Manifest functions
 
 import stageportal
 import logging
+
 from robottelo.common import conf
 
 
 class Manifests():
+    """
+    Handles Red Hat manifest files.
+    """
 
     def __init__(self):
+        """
+        Sets up initial configuration values
+        """
 
         self.api_url = conf.properties['stageportal.api']
         self.candlepin_url = conf.properties['stageportal.candlepin']
@@ -22,11 +29,13 @@ class Manifests():
         self.distributor_name = conf.properties['stageportal.distributor.name']
         self.quantity = int(conf.properties['stageportal.subs.quantity'])
         self.verbosity = int(conf.properties['nosetests.verbosity'])
-        self.sp = stageportal.SMPortal(api_url=self.api_url,
-                                 candlepin_url=self.candlepin_url,
-                                 portal_url=self.portal_url,
-                                 login=self.login,
-                                 password=self.password)
+        self.sp = stageportal.SMPortal(
+            api_url=self.api_url,
+            candlepin_url=self.candlepin_url,
+            portal_url=self.portal_url,
+            login=self.login,
+            password=self.password
+        )
         logging.getLogger("python-stageportal").setLevel(logging.ERROR)
         self.logger = logging.getLogger("robottelo")
 
@@ -56,11 +65,11 @@ class Manifests():
                 attach_subs = self.sp.distributor_attach_subscriptions(ds_uuid,
                                                                        subs)
                 if attach_subs != "<Response [200]>":
-                    self.logger.error("Attaching subscription %s failed." \
-                                      % sub['id'])
+                    self.logger.error(
+                        "Attaching subscription %s failed." % sub['id'])
             else:
                 self.logger.debug("Specified quantity : %s, is more than the \
-                available quantity: %s" (self.quantity, sub['quantity']))
+                available quantity: %s" % (self.quantity, sub['quantity']))
         attached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
         return attached_subs
 
@@ -85,8 +94,9 @@ class Manifests():
         detach_sub_ids = []
         for detach_sub in detach_subs:
             detach_sub_ids.append(detach_sub['id'])
-        detach_subs = self.sp.distributor_detach_subscriptions(ds_uuid,
-                                                               detach_sub_ids)
+        detach_subs = self.sp.distributor_detach_subscriptions(
+            ds_uuid,
+            detach_sub_ids)
         if detach_subs is not None:
             detached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
             return detached_subs
