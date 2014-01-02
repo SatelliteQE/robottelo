@@ -34,7 +34,7 @@ class OperatingSys(BaseUI):
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
-        os_family = "Redhat"
+        os_family = "Red Hat"
         arch = generate_name(4)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page

@@ -47,6 +47,7 @@ class User(Base):
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)
             self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
 
     def delete(self, username, search_key, really=False):
         """
