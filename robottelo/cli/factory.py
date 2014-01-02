@@ -145,16 +145,16 @@ def make_subnet(options=None):
         'name': generate_name(8, 8),
         'network': generate_ipaddr(ip3=True),
         'mask': '255.255.255.0',
-        'gateway': '',
-        'dns-primary': '',
-        'dns-secondary': '',
-        'from': '',
-        'to': '',
-        'vlanid': '',
-        'domain-ids': '',
-        'dhcp-id': '',
-        'tftp-id': '',
-        'dns-id': '',
+        'gateway': None,
+        'dns-primary': None,
+        'dns-secondary': None,
+        'from': None,
+        'to': None,
+        'vlanid': None,
+        'domain-ids': None,
+        'dhcp-id': None,
+        'tftp-id': None,
+        'dns-id': None,
     }
 
     args = update_dictionary(args, options)
@@ -272,8 +272,8 @@ def make_domain(options=None):
     #Assigning default values for attributes
     args = {
         'name': generate_name(6),
-        'dns-id': '',
-        'description': '',
+        'dns-id': None,
+        'description': None,
     }
 
     args = update_dictionary(args, options)
@@ -304,16 +304,16 @@ def make_hostgroup(options=None):
     #Assigning default values for attributes
     args = {
         'name': generate_name(6),
-        'parent-id': '',
-        'environment-id': '',
-        'operatingsystem-id': '',
-        'architecture-id': '',
-        'medium-id': '',
-        'ptable-id': '',
-        'puppet-ca-proxy-id': '',
-        'subnet-id': '',
-        'domain-id': '',
-        'puppet-proxy-id': '',
+        'parent-id': None,
+        'environment-id': None,
+        'operatingsystem-id': None,
+        'architecture-id': None,
+        'medium-id': None,
+        'ptable-id': None,
+        'puppet-ca-proxy-id': None,
+        'subnet-id': None,
+        'domain-id': None,
+        'puppet-proxy-id': None,
     }
     args = update_dictionary(args, options)
     create_object(HostGroup, args)
@@ -355,8 +355,8 @@ def make_medium(options=None):
     args = {
         'name': generate_name(6),
         'path': 'http://%s' % (generate_string('alpha', 6)),
-        'os-family': '',
-        'operatingsystem-ids': '',
+        'os-family': None,
+        'operatingsystem-ids': None,
     }
 
     args = update_dictionary(args, options)
@@ -405,10 +405,8 @@ def make_template(options=None):
         'file': "/tmp/%s" % generate_name(),
         'type': random.choice(TEMPLATE_TYPES),
         'name': generate_name(6),
-        'audit-comment': '',
-        'operatingsystem-ids': '',
-        #TODO: Change '' to None when base is coded with disregarding None
-        #TODO: Fix other methods above for this change too
+        'audit-comment': None,
+        'operatingsystem-ids': None,
         }
 
     #Special handling for template factory
