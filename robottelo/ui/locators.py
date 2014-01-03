@@ -56,6 +56,8 @@ locators = {
     "resource.dropdown": (By.XPATH, "//a[contains(@href,'%s')]/../../a"),
     "resource.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "resource.edit": (
+        By.XPATH, "//a[contains(.,'Edit') and contains(@href,'%s')]"),
 
     #resource - libvirt
     "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
