@@ -6,6 +6,7 @@ Test class for Smart Class Parameter CLI.
 """
 
 import random
+import logging
 
 from tests.cli.basecli import BaseCLI
 from robottelo.cli.smartclass import SmartClassParameter
@@ -32,13 +33,11 @@ class TestSmartClassParameter(BaseCLI):
         Displays info for smart class parameter.
         """
         self.run_puppet_module()
+        result = SmartClassParameter().list()
 
-        result = SmartClassParameter.list()
-        if not result:
-            print "List is empty"
-        else:
-           # Grab a random report
-           sc_param = random.choice(result.stdout)
-           result = SmartClassParameter().info({'id': sc_param['Id']})
-           self.assertEqual(result.return_code, 0)
-           self.assertEqual(sc_param['Id'], result.stdout['Id'])
+        # Grab a random report
+        if len(result.stdout) > 0:
+            sc_param = random.choice(result.stdout)
+            result = SmartClassParameter().info({'id': sc_param['Id']})
+            self.assertEqual(sc_param['Id'], result.stdout['Id'])
+            self.assertEqual(result.return_code, 0)
