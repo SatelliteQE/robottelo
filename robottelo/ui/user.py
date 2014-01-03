@@ -70,7 +70,7 @@ class User(Base):
 
     def update(self, search_key, username, new_username=None,
                email=None, password=None,
-               firstname=None, lastname=None, locale=None,
+               first_name=None, last_name=None, locale=None,
                role=None):
         """
         Update username, email, password, firstname,
@@ -86,10 +86,10 @@ class User(Base):
                 self.field_update("users.username", new_username)
             if email:
                 self.field_update("users.email", email)
-            if firstname:
-                self.field_update("users.firstname", firstname)
-            if lastname:
-                self.field_update("users.lastname", lastname)
+            if first_name:
+                self.field_update("users.firstname", first_name)
+            if last_name:
+                self.field_update("users.lastname", last_name)
             if locale:
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)

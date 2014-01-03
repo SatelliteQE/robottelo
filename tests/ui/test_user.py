@@ -76,3 +76,4 @@ class User(BaseUI):
         self.user.create(name, email, password, password)
         self.user.update(search_key, name, None, None, None,
                          None, None, None, role)
+        #TODO assert newly added role/permissions for user

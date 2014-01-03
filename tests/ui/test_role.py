@@ -37,12 +37,12 @@ class Role(BaseUI):
     def test_update_role(self):
         "Create new role and update its name or permission"
         name = generate_name(6)
-        newname = generate_name(4)
+        new_name = generate_name(4)
         perm_type = "Media"
         permissions = ['create_media', 'edit_media']  # List of permissions
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
         self.role.create(name)
-        self.role.update(name, newname, perm_type, permissions)
+        self.role.update(name, new_name, perm_type, permissions)
         self.assertTrue(self, self.role.search
-                        (newname, locators['roles.role']))
+                        (new_name, locators['roles.role']))

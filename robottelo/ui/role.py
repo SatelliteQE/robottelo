@@ -30,8 +30,11 @@ class Role(Base):
         if self.wait_until_element(locators["roles.name"]):
             self.find_element(locators["roles.name"]).send_keys(name)
 
-        self.find_element(locators["submit"]).click()
-        self.wait_for_ajax()
+            self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
+        else:
+            raise Exception(
+                "Could not create new role '%s'" % name)
 
     def remove(self, name, really):
         """
@@ -53,35 +56,39 @@ class Role(Base):
                 "Could not remove the role '%s'" % name)
         self.wait_for_ajax()
 
-    def update(self, oldname, newname=None, perm_type=None, permissions=None):
+    def update(self, old_name, new_name=None,
+               perm_type=None, permissions=None):
         """
         Update role name and permission
         """
 
-        element = self.search(oldname, locators['roles.role'])
+        element = self.search(old_name, locators['roles.role'])
 
         if element:
             element.click()
-        if self.wait_until_element(locators["roles.name"]):
-            self.field_update("roles.name", newname)
-        if perm_type:
-            self.find_element(locators
-                              ["roles.perm_filter"]).send_keys(perm_type)
-            strategy = locators["roles.perm_type"][0]
-            value = locators["roles.perm_type"][1]
-            element = self.wait_until_element((strategy, value % perm_type))
-            if element:
-                element.click()
-            self.wait_for_ajax()
-            for permission in permissions:
-                strategy = locators["roles.permission"][0]
-                value = locators["roles.permission"][1]
+            if new_name:
+                if self.wait_until_element(locators["roles.name"]):
+                    self.field_update("roles.name", new_name)
+            if perm_type:
+                self.find_element(locators
+                                  ["roles.perm_filter"]).send_keys(perm_type)
+                strategy = locators["roles.perm_type"][0]
+                value = locators["roles.perm_type"][1]
                 element = self.wait_until_element((strategy,
-                                                   value % permission))
+                                                   value % perm_type))
                 if element:
                     element.click()
-                else:
-                    raise Exception(
-                        "Could not find the permission '%s'" % permission)
-            self.find_element(locators["submit"]).click()
-            self.wait_for_ajax()
+                    self.wait_for_ajax()
+                    for permission in permissions:
+                        strategy = locators["roles.permission"][0]
+                        value = locators["roles.permission"][1]
+                        element = self.wait_until_element((strategy,
+                                                           value % permission))
+                        if element:
+                            element.click()
+                        else:
+                            raise Exception(
+                                "Could not find the permission '%s'"
+                                % permission)
+                    self.find_element(locators["submit"]).click()
+                    self.wait_for_ajax()

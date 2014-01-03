@@ -217,7 +217,7 @@ locators = {
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
     "users.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
-            
+
     #users.roles
     "users.admin_role": (By.ID, "user_admin"),
     "users.select_role": (By.XPATH, "//li/span[contains(., '%s')]"),
