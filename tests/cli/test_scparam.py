@@ -36,8 +36,9 @@ class TestSmartClassParameter(BaseCLI):
         result = SmartClassParameter().list()
 
         # Grab a random report
-        if len(result.stdout) > 0:
+        flag = self.assertTrue(len(result.stdout) > 0)
+        if flag:
             sc_param = random.choice(result.stdout)
             result = SmartClassParameter().info({'id': sc_param['Id']})
             self.assertEqual(sc_param['Id'], result.stdout['Id'])
-            self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.return_code, 0)
