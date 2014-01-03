@@ -97,14 +97,14 @@ class Subnet(Base):
 
         if subnet_object:
             subnet_object.click()
-        if new_subnet_name:
-            if self.wait_until_element(locators["subnet.name"]):
-                self.field_update("subnet.name", new_subnet_name)
-        if new_subnet_network:
-            if self.wait_until_element(locators["subnet.network"]):
-                self.field_update("subnet.network", new_subnet_network)
-        if new_subnet_mask:
-            if self.wait_until_element(locators["subnet.mask"]):
-                self.field_update("subnet.mask", new_subnet_mask)
-        self.wait_until_element(locators["subnet.submit"]).click()
-        self.wait_for_ajax()
+            if new_subnet_name:
+                if self.wait_until_element(locators["subnet.name"]):
+                    self.field_update("subnet.name", new_subnet_name)
+            if new_subnet_network:
+                if self.wait_until_element(locators["subnet.network"]):
+                    self.field_update("subnet.network", new_subnet_network)
+            if new_subnet_mask:
+                if self.wait_until_element(locators["subnet.mask"]):
+                    self.field_update("subnet.mask", new_subnet_mask)
+            self.wait_until_element(locators["subnet.submit"]).click()
+            self.wait_for_ajax()
