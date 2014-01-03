@@ -59,3 +59,20 @@ class User(BaseUI):
         self.login.logout()
         self.login.login(name, new_password)
         self.assertTrue(self.login.is_logged())
+
+    def test_update_role(self):
+        "Creates a User and updates the password"
+        name = generate_name(6)
+        password = generate_name(8)
+        email = generate_email_address()
+        role = generate_name(6)
+        search_key = "login"
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.navigator.go_to_roles()
+        self.role.create(role)
+        self.assertIsNotNone(self, self.role.search
+                            (role, locators['roles.role']))
+        self.navigator.go_to_users()
+        self.user.create(name, email, password, password)
+        self.user.update(search_key, name, None, None, None,
+                         None, None, None, role)

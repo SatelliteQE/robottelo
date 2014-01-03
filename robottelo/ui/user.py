@@ -47,6 +47,7 @@ class User(Base):
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)
             self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
 
     def delete(self, username, search_key, really=False):
         """
@@ -69,7 +70,8 @@ class User(Base):
 
     def update(self, search_key, username, new_username=None,
                email=None, password=None,
-               firstname=None, lastname=None, locale=None):
+               firstname=None, lastname=None, locale=None,
+               role=None):
         """
         Update username, email, password, firstname,
         lastname and locale from UI
@@ -94,5 +96,9 @@ class User(Base):
             if password:
                 self.field_update("users.password", password)
                 self.field_update("users.password_confirmation", password)
+            if role:
+                self.select_entity("users.role",
+                                   "users.select_role", role,
+                                   "users.tab_roles")
             self.find_element(locators["submit"]).click()
             self.wait_for_ajax()
