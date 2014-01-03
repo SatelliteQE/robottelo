@@ -71,17 +71,16 @@ class Domain(Base):
 
         if element:
             element.click()
-        if self.wait_until_element(locators["domain.name"]):
-            self.field_update("domain.name", new_name)
-        if new_description:
-            if self.wait_until_element(locators["domain.description"]):
-                self.field_update("domain.description", new_description)
-        if new_dns_proxy:
-            Select(self.find_element(locators
-                                     ["domain.dns_proxy"]
-                                     )).select_by_visible_text(new_dns_proxy)
-        self.find_element(locators["submit"]).click()
-        self.wait_for_ajax()
+            if self.wait_until_element(locators["domain.name"]):
+                self.field_update("domain.name", new_name)
+            if new_description:
+                if self.wait_until_element(locators["domain.description"]):
+                    self.field_update("domain.description", new_description)
+            if new_dns_proxy:
+                element = self.find_element(locators["domain.dns_proxy"])
+                Select(element).select_by_visible_text(new_dns_proxy)
+            self.find_element(locators["submit"]).click()
+            self.wait_for_ajax()
 
     def set_domain_parameter(self, domain_description,
                              param_name, param_value):

@@ -63,10 +63,10 @@ class Architecture(Base):
 
         if element:
             element.click()
-        if self.wait_until_element(locators["arch.name"]):
-            self.field_update("arch.name", newname)
-        if new_osname:
-            self.select_entity("arch.os_name", "arch.select_os_name",
-                               new_osname, None)
-        self.find_element(locators["arch.submit"]).click()
-        self.wait_for_ajax()
+            if self.wait_until_element(locators["arch.name"]):
+                self.field_update("arch.name", newname)
+            if new_osname:
+                self.select_entity("arch.os_name", "arch.select_os_name",
+                                   new_osname, None)
+            self.find_element(locators["arch.submit"]).click()
+            self.wait_for_ajax()
