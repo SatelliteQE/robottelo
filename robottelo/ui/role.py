@@ -53,8 +53,7 @@ class Role(Base):
                 alert.dismiss()
         else:
             raise Exception(
-                "Could not remove the role '%s'" % name)
-        self.wait_for_ajax()
+                "Could not find the role '%s'" % name)
 
     def update(self, old_name, new_name=None,
                perm_type=None, permissions=None):
@@ -92,3 +91,5 @@ class Role(Base):
                                 % permission)
                     self.find_element(locators["submit"]).click()
                     self.wait_for_ajax()
+        else:
+            raise Exception("Could not find role '%s'" % old_name)
