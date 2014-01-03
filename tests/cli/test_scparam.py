@@ -6,7 +6,6 @@ Test class for Smart Class Parameter CLI.
 """
 
 import random
-import logging
 
 from tests.cli.basecli import BaseCLI
 from robottelo.cli.smartclass import SmartClassParameter
