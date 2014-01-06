@@ -169,8 +169,13 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(@class,'delete')]"),
 
-    # Users
+    #Users
+    #Third level UI
+    "users.tab_primary": (By.XPATH, "//a[@href='#primary']"),
+    "users.tab_roles": (By.XPATH, "//a[@href='#roles']"),
+    "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
 
+    # Users.primary
     "users.new": (By.XPATH, "//a[contains(@href, '/users/new')]"),
     "users.username": (By.ID, "user_login"),
     "users.firstname": (By.ID, "user_firstname"),
@@ -183,6 +188,20 @@ locators = {
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
     "users.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    #users.roles
+    "users.admin_role": (By.ID, "user_admin"),
+    "users.select_role": (By.XPATH, "//li/span[contains(., '%s')]"),
+    "users.role": (
+        By.XPATH, "//label[@class='role' and normalize-space(.)='%s']/input[@type='checkbox']"),
+    #Roles
+    "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
+    "roles.name": (By.ID, "role_name"),
+    "roles.delete": (By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
+    "roles.perm_filter": (By.XPATH, "//input[@placeholder='Filter permissions']"),
+    "roles.perm_type": (By.XPATH, "//label[contains(., '%s')]"),
+    "roles.permission": (By.XPATH, "//input[@value='%s']"),
 
     #common locators
     "search": (By.ID, "search"),
