@@ -32,11 +32,12 @@ class TestSmartClassParameter(BaseCLI):
         Displays info for smart class parameter.
         """
         self.run_puppet_module()
+        result = SmartClassParameter().list()
 
-        result = SmartClassParameter.list()
-
-        # Grab a random report
-        sc_param = random.choice(result.stdout)
-        result = SmartClassParameter().info({'id': sc_param['Id']})
+        self.assertTrue(len(result.stdout) > 0)
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(sc_param['Id'], result.stdout['Id'])
+
+        sc_param = random.choice(result.stdout)
+        res = SmartClassParameter().info({'id': sc_param['Id']})
+        self.assertEqual(sc_param['Id'], res.stdout['Id'])
+        self.assertEqual(res.return_code, 0)
