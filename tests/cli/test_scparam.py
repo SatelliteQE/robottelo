@@ -35,7 +35,7 @@ class TestSmartClassParameter(BaseCLI):
         result = SmartClassParameter().list()
       
         flag = len(result.stdout) > 0
-        self.assertTrue(flag)
+        self.assertFalse(flag)
         
         if flag:
             # Grab a random report
