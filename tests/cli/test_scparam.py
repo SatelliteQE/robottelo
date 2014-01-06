@@ -33,13 +33,14 @@ class TestSmartClassParameter(BaseCLI):
         """
         self.run_puppet_module()
         result = SmartClassParameter().list()
-      
+
         flag = len(result.stdout) > 0
-        self.assertFalse(flag)
-        
+        self.assertTrue(len(result.stdout) > 0)
+        self.assertEqual(result.return_code, 0)
+
         if flag:
-            # Grab a random report
-            
+            #Grab a random report
+
             sc_param = random.choice(result.stdout)
             res = SmartClassParameter().info({'id': sc_param['Id']})
             self.assertEqual(sc_param['Id'], res.stdout['Id'])
