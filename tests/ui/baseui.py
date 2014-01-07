@@ -24,6 +24,7 @@ from robottelo.ui.role import Role
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
+from robottelo.ui.usergroup import UserGroup
 from selenium import webdriver
 from selenium_factory.SeleniumFactory import SeleniumFactory
 
@@ -77,6 +78,7 @@ class BaseUI(unittest.TestCase):
         self.login = Login(self.browser)
         self.navigator = Navigator(self.browser)
         self.user = User(self.browser)
+        self.usergroup = UserGroup(self.browser)
         self.operatingsys = OperatingSys(self.browser)
         self.environment = Environment(self.browser)
         self.architecture = Architecture(self.browser)
