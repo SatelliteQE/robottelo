@@ -10,8 +10,11 @@ from ddt import ddt
 from robottelo.cli.subnet import Subnet
 from robottelo.common.helpers import generate_ipaddr
 from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import sleep_for_seconds
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
+
+subnet_192_168_100 = "subnet-192168100"
 
 
 @ddt
@@ -19,13 +22,12 @@ class TestSubnet(BaseCLI):
     """
     Subnet CLI tests.
     """
-    subnet_192_168_100 = "subnet-192168100"
 
-    def _init_once(self):
-        """ a method invoked only once """
-        #  needs for update DDT tests.
-        Subnet().delete({'name': self.subnet_192_168_100})
-        Subnet().create_minimal(self.subnet_192_168_100)
+    @classmethod
+    def setUpClass(cls):
+        BaseCLI.setUpClass()
+        Subnet().delete({'name': subnet_192_168_100})
+        Subnet().create_minimal(subnet_192_168_100)
 
     @attr('cli', 'subnet')
     def test_create(self):
@@ -44,6 +46,7 @@ class TestSubnet(BaseCLI):
         options['mask'] = '255.255.255.0'
 
         Subnet().create(options)
+        sleep_for_seconds(5)
 
         result = Subnet().info({'name': options['name']})
 
@@ -76,7 +79,7 @@ class TestSubnet(BaseCLI):
     def test_update_success_ddt(self, option_dict):
         """ `subnet update` basic test (different options) """
         options = {}
-        options['name'] = self.subnet_192_168_100
+        options['name'] = subnet_192_168_100
         for option in option_dict:
             options[option] = option_dict[option]
         result = Subnet().update(options)
