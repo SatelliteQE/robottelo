@@ -7,9 +7,9 @@ Test class for Model CLI
 
 from basecli import BaseCLI
 from ddt import ddt
-from metatest import MetaCLITest
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
+from robottelo.cli.metatest import MetaCLITest
 from robottelo.common.helpers import generate_name
 
 
