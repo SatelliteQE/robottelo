@@ -83,6 +83,8 @@ class ComputeResource(Base):
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
             self.find_element(locators["submit"]).click()
+        else:
+            raise Exception("Could not update the resource '%s'" % oldname)
 
     def delete(self, name, really):
         """
@@ -105,3 +107,8 @@ class ComputeResource(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss()
+            else:
+                raise Exception(
+                    "Could not select the resource '%s' for deletion." % name)
+        else:
+            raise Exception("Could not delete the resource '%s'" % name)
