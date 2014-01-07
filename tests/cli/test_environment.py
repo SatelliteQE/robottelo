@@ -22,10 +22,10 @@ class TestEnvironment(BaseCLI):
         Environment().create({'name': name})
         sleep_for_seconds(5)  # give time to appear in the list
         result = Environment().info({'name': name})
-        self.assertEquals(
-            len(result.stdout), 1, "Environment info - return count"
-        )
-        self.assertEquals(result.stdout[0]['Name'], name,
+
+        self.assertTrue(result.return_code == 0,
+                        "Environment info - retcode")
+        self.assertEquals(result.stdout['Name'], name,
                           "Environment info - stdout contains 'Name'")
 
     def test_list(self):
@@ -52,7 +52,7 @@ class TestEnvironment(BaseCLI):
         result = Environment().delete({'name': name})
         self.assertTrue(result.return_code == 0,
                         "Environment delete - retcode")
-        sleep_for_seconds(5)  # sleep for about 5 sec.
+        sleep_for_seconds(10)  # sleep for about 10 sec.
         result = Environment().list({'search': name})
         self.assertTrue(len(result.stdout) == 0,
                         "Environment list - does not have deleted name")
