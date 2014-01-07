@@ -83,6 +83,8 @@ class Template(Base):
                     if element:
                         element.click()
             self.find_element(locators["submit"]).click()
+        else:
+            raise Exception("Could not update the template '%s'" % name)
 
     def delete(self, name, really):
         """
@@ -101,4 +103,8 @@ class Template(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss(self)
-        # TODO: need to raise exception for negative testing
+            else:
+                raise Exception(
+                    "Could not select the template '%s' for deletion." % name)
+        else:
+            raise Exception("Could not delete the template '%s'" % name)

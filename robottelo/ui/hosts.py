@@ -94,4 +94,8 @@ class Hosts(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss()
-        # TODO: need to raise exception for negative testing
+            else:
+                raise Exception(
+                    "Could not select the host '%s' for deletion." % name)
+        else:
+            raise Exception("Could not delete the host '%s'" % name)

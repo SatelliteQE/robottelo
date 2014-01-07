@@ -47,4 +47,8 @@ class Environment(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss()
-        # TODO: need to raise exception for negative testing
+            else:
+                raise Exception(
+                    "Could not select the environment '%s' for deletion." % name)  # @IgnorePep8
+        else:
+            raise Exception("Could not delete the environment '%s'" % name)
