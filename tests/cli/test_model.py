@@ -7,9 +7,9 @@ Test class for Model CLI
 
 from basecli import BaseCLI
 from ddt import ddt
-from metatest import MetaCLITest
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
+from robottelo.cli.metatest import MetaCLITest
 from robottelo.common.helpers import generate_name
 
 
@@ -24,14 +24,14 @@ class TestModel(BaseCLI):
     def test_create_model_1(self):
         """Successfully creates a new model"""
 
-        result = self.create()
+        result = self.factory()
         model = Model().info({'name': result['name']})
         self.assertEqual(result['name'], model.stdout['name'])
 
     def test_create_model_2(self):
         """Create model with specific vendor class"""
 
-        result = self.create({'vendor-class': generate_name()})
+        result = self.factory({'vendor-class': generate_name()})
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
         self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
