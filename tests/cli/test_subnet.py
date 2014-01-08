@@ -78,7 +78,7 @@ class TestSubnet(BaseCLI):
     def test_update_success_ddt(self, option_dict):
         """ `subnet update` basic test (different options) """
         options = {}
-        options['name'] = self.__class__.subnet_192_168_100
+        options['name'] = self.subnet_192_168_100
         for option in option_dict:
             options[option] = option_dict[option]
         result = Subnet().update(options)
