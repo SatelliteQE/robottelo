@@ -18,5 +18,11 @@ NEGATIVE_CREATE_DATA = (
 
 POSITIVE_UPDATE_DATA = ()
 NEGATIVE_UPDATE_DATA = ()
-POSITIVE_DELETE_DATA = ()
+POSITIVE_DELETE_DATA = (
+    {'name': generate_string("latin1", 10).encode("utf-8")},
+    {'name': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10)},
+    {'name': generate_string("numeric", 10)},
+)
 NEGATIVE_DELETE_DATA = ()
