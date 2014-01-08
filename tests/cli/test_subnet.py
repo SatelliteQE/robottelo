@@ -14,8 +14,6 @@ from robottelo.common.helpers import sleep_for_seconds
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 
-subnet_192_168_100 = "subnet-192168100"
-
 
 @ddt
 class TestSubnet(BaseCLI):
@@ -26,8 +24,9 @@ class TestSubnet(BaseCLI):
     @classmethod
     def setUpClass(cls):
         BaseCLI.setUpClass()
-        Subnet().delete({'name': subnet_192_168_100})
-        Subnet().create_minimal(subnet_192_168_100)
+        cls.subnet_192_168_100 = "subnet-192168100"
+        Subnet().delete({'name': cls.subnet_192_168_100})
+        Subnet().create_minimal(cls.subnet_192_168_100)
 
     @attr('cli', 'subnet')
     def test_create(self):
@@ -79,7 +78,7 @@ class TestSubnet(BaseCLI):
     def test_update_success_ddt(self, option_dict):
         """ `subnet update` basic test (different options) """
         options = {}
-        options['name'] = subnet_192_168_100
+        options['name'] = self.__class__.subnet_192_168_100
         for option in option_dict:
             options[option] = option_dict[option]
         result = Subnet().update(options)

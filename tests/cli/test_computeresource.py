@@ -25,8 +25,6 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from tests.cli.basecli import BaseCLI
 
-compute_res_updates = None
-
 
 @ddt
 class TestComputeResource(BaseCLI):
@@ -37,7 +35,7 @@ class TestComputeResource(BaseCLI):
     @classmethod
     def setUpClass(cls):
         BaseCLI.setUpClass()
-        compute_res_updates = make_compute_resource({
+        cls.compute_res_updates = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': "qemu+tcp://%s:16509/system" %
             conf.properties['main.server.hostname']})['name']
@@ -102,7 +100,7 @@ class TestComputeResource(BaseCLI):
     def test_update(self, option_dict):
         """ `compute_resource update` basic test (different options) """
         options = {}
-        options['name'] = compute_res_updates
+        options['name'] = self.__class__.compute_res_updates
         for option in option_dict:
             options[option] = option_dict[option]
         result_update = ComputeResource().update(options)
