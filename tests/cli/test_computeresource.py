@@ -100,7 +100,7 @@ class TestComputeResource(BaseCLI):
     def test_update(self, option_dict):
         """ `compute_resource update` basic test (different options) """
         options = {}
-        options['name'] = self.__class__.compute_res_updates
+        options['name'] = self.compute_res_updates
         for option in option_dict:
             options[option] = option_dict[option]
         result_update = ComputeResource().update(options)
