@@ -9,22 +9,13 @@ from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
 from robottelo.ui.locators import locators
 from tests.ui.baseui import BaseUI
+from tests.ui.test_user import User
 
 
 class UserGroup(BaseUI):
     """
     Implements UserGroup tests from UI
     """
-
-    def create_user(self, name):
-        "Function to create a new User"
-        password = generate_name(8)
-        email = generate_email_address()
-        search_key = "login"
-        self.navigator.go_to_users()
-        self.user.create(name, email, password, password)
-        self.assertIsNotNone(self.user.search
-                             (name, locators['users.user'], search_key))
 
     def create_usergroup(self, name, user=None):
         "Function to create a new user group with navigation"
@@ -36,9 +27,10 @@ class UserGroup(BaseUI):
         "Create new usergroup"
         user_name = generate_name(6)
         group_name = generate_name(6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name)
+        User().create_user(user_name)
         self.create_usergroup(group_name, user_name)
+        self.assertTrue(self.usergroup.wait_until_element
+                        (locators["notif.success"]))
 
     def test_remove_usergroup(self):
         "Delete existing usergroup"
@@ -46,7 +38,7 @@ class UserGroup(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_usergroup(name, None)
         self.usergroup.remove(name, True)
-        self.assertTrue(self.medium.wait_until_element
+        self.assertTrue(self.usergroup.wait_until_element
                         (locators["notif.success"]))
 
     def test_update_usergroup(self):
