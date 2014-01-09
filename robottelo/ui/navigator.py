@@ -183,3 +183,8 @@ class Navigator(Base):
         self.menu_click(
             locators['menu.account'], locators['menu.my_account'],
         )
+
+    def go_to_org(self):
+        self.menu_click(
+            locators['org.any_context'], locators['org.manage_org'],
+        )
