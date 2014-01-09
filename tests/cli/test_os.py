@@ -47,12 +47,23 @@ class TestOperatingSystem(BaseCLI):
         Displays info for operating system.
         """
 
-        result = OperatingSys().list()
-        # Grab a random report
-        report = random.choice(result.stdout)
-        result = OperatingSys().info({'id': report['Id']})
+        name = generate_name()
+        report = []
+        result = OperatingSys().create({'name': name,
+                                        'major': 1, 'minor': 1})
+        self.assertTrue(result.return_code == 0,
+                        "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(report['Id'], result.stdout['Id'])
+        result = OperatingSys().list()
+        for i in result.stdout:
+            nm = name + " 1.1"
+            if nm == i['Name']:
+                    report.append(i)
+                                        
+        # Grab a random report
+        result = OperatingSys().info({'id': report[0]['Id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(report[0]['Id'], result.stdout['Id'])
 
     def test_delete(self):
         """
