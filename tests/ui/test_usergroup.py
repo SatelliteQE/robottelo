@@ -9,7 +9,6 @@ from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
 from robottelo.ui.locators import locators
 from tests.ui.baseui import BaseUI
-from tests.ui.test_user import User
 
 
 class UserGroup(BaseUI):
@@ -27,10 +26,12 @@ class UserGroup(BaseUI):
         "Create new usergroup"
         user_name = generate_name(6)
         group_name = generate_name(6)
-        User().create_user(user_name)
+        password = generate_name(8)
+        email = generate_email_address()
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_users()
+        self.user.create(user_name, email, password, password)
         self.create_usergroup(group_name, user_name)
-        self.assertTrue(self.usergroup.wait_until_element
-                        (locators["notif.success"]))
 
     def test_remove_usergroup(self):
         "Delete existing usergroup"
@@ -46,8 +47,11 @@ class UserGroup(BaseUI):
         name = generate_name(6)
         new_name = generate_name(4)
         user_name = generate_name(6)
+        password = generate_name(8)
+        email = generate_email_address()
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name)
+        self.navigator.go_to_users()
+        self.user.create(user_name, email, password, password)
         self.create_usergroup(name, None)
         self.usergroup.update(name, new_name, user_name)
         #TODO: assertion is pending, Foreman issue:3953
