@@ -16,52 +16,69 @@ class User(BaseUI):
     Implements User tests from UI
     """
 
-    def test_create_user(self):
-        "Create a new User"
-        name = generate_name(6)
-        password = generate_name(8)
-        email = generate_email_address()
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
+    def create_user(self, name=None, password=None,
+                    email=None, search_key=None):
+        """
+        Function to create a new User
+        """
+
+        name = name or generate_name(8)
+        password = password or generate_name(8)
+        email = email or generate_email_address()
         self.navigator.go_to_users()
         self.user.create(name, email, password, password)
         self.assertIsNotNone(self.user.search
                              (name, locators['users.user'], search_key))
 
+    def test_create_user(self):
+        """
+        Create a new User
+        """
+
+        name = generate_name(6)
+        password = generate_name(8)
+        email = generate_email_address()
+        search_key = "login"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.create_user(name, password, email, search_key)
+
     def test_delete_user(self):
-        "Create and Delete a User"
+        """
+        Create and Delete a User
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.navigator.go_to_users()
-        self.user.create(name, email, password, password)
-        self.assertIsNotNone(self.user.search
-                             (name, locators['users.user'], search_key))
+        self.create_user(name, password, email, search_key)
         self.user.delete(name, search_key, really=True)
         self.assertTrue(self.user.wait_until_element(locators
                                                      ["notif.success"]))
 
     def test_update_password(self):
-        "Creates a User and updates the password"
+        """
+        Creates a User and updates the password
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         new_password = generate_name(8)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.navigator.go_to_users()
-        self.user.create(name, email, password, password)
-        self.assertIsNotNone(self.user.search
-                             (name, locators['users.user'], search_key))
+        self.create_user(name, password, email, search_key)
         self.user.update(search_key, name, None, None, new_password)
         self.login.logout()
         self.login.login(name, new_password)
         self.assertTrue(self.login.is_logged())
 
     def test_update_role(self):
-        "Creates a User and updates the password"
+        """
+        Creates a User and updates the password
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
@@ -72,8 +89,7 @@ class User(BaseUI):
         self.role.create(role)
         self.assertIsNotNone(self, self.role.search
                             (role, locators['roles.role']))
-        self.navigator.go_to_users()
-        self.user.create(name, email, password, password)
+        self.create_user(name, password, email, search_key)
         self.user.update(search_key, name, None, None, None,
                          None, None, None, role)
         #TODO assert newly added role/permissions for user
