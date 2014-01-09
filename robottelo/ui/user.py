@@ -6,7 +6,7 @@ Implements User UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -46,7 +46,7 @@ class User(Base):
             if locale:
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
     def delete(self, username, search_key, really=False):
@@ -100,5 +100,5 @@ class User(Base):
                 self.select_entity("users.role",
                                    "users.select_role", role,
                                    "users.tab_roles")
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()

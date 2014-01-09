@@ -5,8 +5,10 @@
 Test class for Environment UI
 """
 
+import unittest
+
 from tests.ui.baseui import BaseUI
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 
 
@@ -22,6 +24,7 @@ class Environment(BaseUI):
         #search = self.environment.search(name, locators["env.env_name"])
         #self.assertIsNotNone(search)
 
+    @unittest.skip("http://projects.theforeman.org/issues/3826")
     def test_remove_env(self):
         "Delete an Environment "
         name = generate_name(6)
@@ -29,5 +32,5 @@ class Environment(BaseUI):
         self.navigator.go_to_environments()
         self.environment.create(name)
         self.environment.delete(name, really=True)
-        notif = self.user.wait_until_element(locators["notif.success"])
+        notif = self.user.wait_until_element(common_locators["notif.success"])
         self.assertTrue(notif)

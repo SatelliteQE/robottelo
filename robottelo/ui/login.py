@@ -6,7 +6,7 @@ Implements Login UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -32,9 +32,9 @@ class Login(Base):
             self.field_update("login.username", username)
             self.field_update("login.password", password)
 
-            self.find_element(locators["login.submit"]).click()
+            self.find_element(common_locators["submit"]).click()
 
-            if self.find_element(locators["notif.error"]):
+            if self.find_element(common_locators["notif.error"]):
                 return
 
     def logout(self):
