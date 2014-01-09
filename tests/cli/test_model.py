@@ -35,3 +35,12 @@ class TestModel(BaseCLI):
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
         self.assertEqual(result['vendor-class'], model.stdout['Vendor class'])
+
+    def test_positive_create(self):
+        pass
+
+    def test_negative_create(self):
+        pass
+
+    def test_positive_delete(self):
+        pass
