@@ -42,7 +42,7 @@ class TestGlobalParameter(BaseCLI):
                           result.return_code)
         self.assertEquals(len(result.stdout), 1,
                           "GlobalParameter list - stdout has one record")
-        self.assertEquals(result.stdout[0]['Value'], value,
+        self.assertEquals(result.stdout[0]['value'], value,
                           "GlobalParameter list - value matches")
 
     @redminebug('3964')

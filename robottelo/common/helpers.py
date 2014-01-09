@@ -171,10 +171,12 @@ def csv_to_dictionary(data):
 
     items = "".join(data).split('\n')
     headers = items.pop(0)
-    entries = [item.split(',') for item in items if len(item) > 0]
+    dic_values = [item.split(',') for item in items if len(item) > 0]
 
-    for entry in entries:
-        records.append(dict(izip(headers.split(','), entry)))
+    dic_keys = [x.replace(' ', '-').lower() for x in headers.split(',')]
+
+    for value in dic_values:
+        records.append(dict(izip(dic_keys, value)))
 
     return records
 

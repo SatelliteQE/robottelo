@@ -56,7 +56,7 @@ class TestMedium(BaseCLI):
         medium = Medium().exists(('name', name))
 
         args = {
-            'id': medium['Id'],
+            'id': medium['id'],
         }
 
         Medium().delete(args)

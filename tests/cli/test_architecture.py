@@ -40,7 +40,7 @@ class TestArchitecture(BaseCLI):
         arch = Architecture().exists(('name', name))
 
         args = {
-            'id': arch['Id'],
+            'id': arch['id'],
         }
 
         Architecture().delete(args)

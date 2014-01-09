@@ -68,7 +68,7 @@ class TestPartitionTable(BaseCLI):
         ptable = PartitionTable().exists(('name', name))
 
         args = {
-            'id': ptable['Id'],
+            'id': ptable['id'],
         }
 
         ptable_content = PartitionTable().dump(args)
@@ -85,7 +85,7 @@ class TestPartitionTable(BaseCLI):
         ptable = PartitionTable().exists(('name', name))
 
         args = {
-            'id': ptable['Id'],
+            'id': ptable['id'],
         }
 
         PartitionTable().delete(args)

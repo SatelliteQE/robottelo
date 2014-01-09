@@ -60,7 +60,7 @@ class TestTemplate(BaseCLI):
         template = Template().exists(('name', name))
 
         args = {
-            'id': template['Id'],
+            'id': template['id'],
         }
 
         template_content = Template().dump(args)
@@ -76,7 +76,7 @@ class TestTemplate(BaseCLI):
         template = Template().exists(('name', name))
 
         args = {
-            'id': template['Id'],
+            'id': template['id'],
         }
 
         Template().delete(args)

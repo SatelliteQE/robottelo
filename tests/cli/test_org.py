@@ -18,7 +18,7 @@ class TestOrg(BaseCLI):
         result = make_org()
         org_info = Org().info({'name': result['name']})
         #TODO: Assert fails currently for an existing bug
-        self.assertEqual(result['name'], org_info.stdout['Name'])
+        self.assertEqual(result['name'], org_info.stdout['name'])
 
     def test_delete_org(self):
         """Org Deletion - Successfully deletes an org"""
