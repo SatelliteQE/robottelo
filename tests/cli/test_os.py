@@ -4,7 +4,6 @@
 """
 Test class for Operating System CLI
 """
-import random
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common.helpers import generate_name
 from tests.cli.basecli import BaseCLI
@@ -48,42 +47,29 @@ class TestOperatingSystem(BaseCLI):
         """
 
         name = generate_name()
-        report = []
         result = OperatingSys().create({'name': name,
                                         'major': 1, 'minor': 1})
         self.assertTrue(result.return_code == 0,
                         "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().list()
-        for i in result.stdout:
-            nm = name + " 1.1"
-            if nm == i['Name']:
-                    report.append(i)
-                                        
+
         # Grab a random report
-        result = OperatingSys().info({'id': report[0]['Id']})
+        result = OperatingSys().info({'label': name})
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(report[0]['Id'], result.stdout['Id'])
 
     def test_delete(self):
         """
         Displays delete for operating system.
         """
         name = generate_name()
-        report = []
         result = OperatingSys().create({'name': name,
                                         'major': 1, 'minor': 1})
         self.assertTrue(result.return_code == 0,
                         "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().list()
-        for i in result.stdout:
-            nm = name + " 1.1"
-            if nm == i['Name']:
-                    report.append(i)
 
         # Grab a random report
-        result = OperatingSys().delete({'id': report[0]['Id']})
+        result = OperatingSys().delete({'label': name})
         self.assertEqual(result.return_code, 0)
 
     def test_update(self):
@@ -92,20 +78,15 @@ class TestOperatingSystem(BaseCLI):
         """
 
         name = generate_name()
-        report = []
         result = OperatingSys().create({'name': name,
                                         'major': 1, 'minor': 1})
         self.assertTrue(result.return_code == 0,
                         "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().list()
-        for i in result.stdout:
-            nm = name + " 1.1"
-            if nm == i['Name']:
-                    report.append(i)
+        result = OperatingSys().info({'label': name})
 
         # Grab a random report
-        result = OperatingSys().update({'id': report[0]['Id'], 'major': 3})
+        result = OperatingSys().update({'id': result.stdout['Id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().info({'id': report[0]['Id']})
+        result = OperatingSys().info({'label': name})
         self.assertEqual(result.return_code, 0)
