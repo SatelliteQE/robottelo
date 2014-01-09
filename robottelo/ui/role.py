@@ -6,7 +6,7 @@ Implements Roles UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class Role(Base):
@@ -30,7 +30,7 @@ class Role(Base):
         if self.wait_until_element(locators["roles.name"]):
             self.find_element(locators["roles.name"]).send_keys(name)
 
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(
@@ -89,7 +89,7 @@ class Role(Base):
                             raise Exception(
                                 "Could not find the permission '%s'"
                                 % permission)
-                    self.find_element(locators["submit"]).click()
+                    self.find_element(common_locators["submit"]).click()
                     self.wait_for_ajax()
         else:
             raise Exception("Could not find role '%s'" % old_name)

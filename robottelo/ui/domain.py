@@ -6,7 +6,7 @@ Implements Domain UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -37,7 +37,7 @@ class Domain(Base):
                 Select(self.find_element(locators
                                          ["domain.dns_proxy"]
                                          )).select_by_visible_text(dns_proxy)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
     def delete(self, name, really):
@@ -79,7 +79,7 @@ class Domain(Base):
             if new_dns_proxy:
                 element = self.find_element(locators["domain.dns_proxy"])
                 Select(element).select_by_visible_text(new_dns_proxy)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
     def set_domain_parameter(self, domain_description,

@@ -6,7 +6,7 @@ Implements Medium UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -36,7 +36,7 @@ class Medium(Base):
                 Select(self.find_element(locators
                                          ["medium.os_family"]
                                          )).select_by_visible_text(os_family)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
     def delete(self, name, really):
@@ -77,5 +77,5 @@ class Medium(Base):
             Select(self.find_element(locators
                                      ["medium.os_family"]
                                      )).select_by_visible_text(new_os_family)
-        self.find_element(locators["submit"]).click()
+        self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()

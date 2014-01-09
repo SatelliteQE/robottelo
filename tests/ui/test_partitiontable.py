@@ -5,7 +5,7 @@
 Test class for Partition Table UI
 """
 
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
@@ -37,7 +37,7 @@ class PartitionTable(BaseUI):
         self.partitiontable.create(name, layout, os_family)
         self.partitiontable.delete(name, really=True)
         self.assertTrue(self.partitiontable.wait_until_element
-                        (locators["notif.success"]))
+                        (common_locators["notif.success"]))
 
     def test_update_partition_table(self):
         "Creates new partition table and update its name, layout and OS family"

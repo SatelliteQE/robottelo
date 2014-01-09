@@ -3,7 +3,7 @@
 
 import unittest
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -43,4 +43,4 @@ class Host(BaseUI):
         self.navigator.go_to_hosts()
         #confirm the Host appears in the UI
         self.hosts.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators["notif.success"]))  # @IgnorePep8
+        self.assertTrue(self.user.wait_until_element(common_locators["notif.success"]))  # @IgnorePep8
