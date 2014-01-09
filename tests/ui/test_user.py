@@ -18,7 +18,10 @@ class User(BaseUI):
 
     def create_user(self, name=None, password=None,
                     email=None, search_key=None):
-        "Function to create a new User"
+        """
+        Function to create a new User
+        """
+
         name = name or generate_name(8)
         password = password or generate_name(8)
         email = email or generate_email_address()
@@ -28,7 +31,10 @@ class User(BaseUI):
                              (name, locators['users.user'], search_key))
 
     def test_create_user(self):
-        "Create a new User"
+        """
+        Create a new User
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
@@ -37,7 +43,10 @@ class User(BaseUI):
         self.create_user(name, password, email, search_key)
 
     def test_delete_user(self):
-        "Create and Delete a User"
+        """
+        Create and Delete a User
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
@@ -49,7 +58,10 @@ class User(BaseUI):
                                                      ["notif.success"]))
 
     def test_update_password(self):
-        "Creates a User and updates the password"
+        """
+        Creates a User and updates the password
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         new_password = generate_name(8)
@@ -63,7 +75,10 @@ class User(BaseUI):
         self.assertTrue(self.login.is_logged())
 
     def test_update_role(self):
-        "Creates a User and updates the password"
+        """
+        Creates a User and updates the password
+        """
+
         name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
