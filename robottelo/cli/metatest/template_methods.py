@@ -26,7 +26,28 @@ def test_negative_create(self, data):
 
 
 def test_positive_update(self, data):
-    pass
+    """
+    Successfully updates an object
+    Data should include 2 items: initial record and updates for it.
+    """
+
+    orig, changes = data
+    new_obj = self.factory(orig)
+    result = self.factory_obj().info(
+        {self.search_key: new_obj[self.search_key]})
+    self.assertTrue(result.return_code == 0, "Failed to create object")
+
+    # Update original data with new values
+    result.stdout.update(changes)
+    # Now update it
+    result = self.factory_obj().update(orig)
+    self.assertTrue(result.return_code == 0, "Failed to update object")
+    result = self.factory_obj().info(
+        {self.search_key: new_obj[self.search_key]})
+
+    # Verify that new values are correct
+    for key, value in changes.items():
+        self.assertEqual(result.stdout[key], value, "Failed to update field")
 
 
 def test_negative_update(self, data):
