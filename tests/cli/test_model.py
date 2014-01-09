@@ -18,7 +18,7 @@ class TestModel(BaseCLI):
 
         result = make_model()
         model = Model().info({'name': result['name']})
-        self.assertEqual(result['name'], model.stdout['Name'])
+        self.assertEqual(result['name'], model.stdout['name'])
 
     def test_create_model_2(self):
         """Create model with specific vendor class"""
@@ -26,4 +26,4 @@ class TestModel(BaseCLI):
         result = make_model({'vendor-class': generate_name()})
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
-        self.assertEqual(result['vendor-class'], model.stdout['Vendor class'])
+        self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])

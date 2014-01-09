@@ -25,7 +25,7 @@ class TestEnvironment(BaseCLI):
 
         self.assertTrue(result.return_code == 0,
                         "Environment info - retcode")
-        self.assertEquals(result.stdout['Name'], name,
+        self.assertEquals(result.stdout['name'], name,
                           "Environment info - stdout contains 'Name'")
 
     def test_list(self):
