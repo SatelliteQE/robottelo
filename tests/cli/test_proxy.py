@@ -20,4 +20,4 @@ class TestProxy(BaseCLI):
 
         result = make_proxy()
         proxy = Proxy().info({'name': result['name']})
-        self.assertEqual(result['name'], proxy.stdout['Name'])
+        self.assertEqual(result['name'], proxy.stdout['name'])

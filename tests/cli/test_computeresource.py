@@ -64,7 +64,7 @@ class TestComputeResource(BaseCLI):
         result_info = ComputeResource().info({'name': result_create['name']})
         self.assertEquals(result_info.return_code, 0,
                           "ComputeResource info - exit code")
-        self.assertEquals(result_info.stdout['Name'], result_create['name'],
+        self.assertEquals(result_info.stdout['name'], result_create['name'],
                           "ComputeResource info - check name")
 
     def test_list(self):
