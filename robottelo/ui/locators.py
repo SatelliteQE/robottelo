@@ -206,6 +206,26 @@ locators = {
     "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
 
     # Organizations
+    "org.any_context": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
+    "org.manage_org": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),   # @IgnorePep8
+    "org.new": (
+        By.XPATH,
+        "//a[@class='btn btn-success' and contains(@href, '/organizations/new')]"),
+    "org.name": (By.ID, "organization_name"),
+    "org.proceed_to_edit": (
+        By.XPATH,
+        "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
+    "org.org_name": (By.LINK_TEXT, "%s"),
+    "org.dropdown": (
+        By.XPATH,
+        "//table[@class='table table-bordered table-striped']/tbody/tr/td/div/a[@class='btn btn-default btn-sm dropdown-toggle']"),   # @IgnorePep8
+    "org.delete": (
+        By.XPATH,
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     #Operating system (OS)
     "operatingsys.new": (
