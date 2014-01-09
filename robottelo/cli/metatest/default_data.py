@@ -28,6 +28,7 @@ POSITIVE_UPDATE_DATA = (
     ({'name': generate_string("numeric", 10)},
      {'name': generate_string("numeric", 10)}),
 )
+
 NEGATIVE_UPDATE_DATA = (
     ({'name': generate_string("utf8", 10).encode("utf-8")},
      {'name': generate_string("utf8", 300).encode("utf-8")}),
