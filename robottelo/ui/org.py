@@ -24,7 +24,6 @@ class Org(Base):
         """
         Create Organization in UI
         """
-
         if self.wait_until_element(locators["org.new"]):
             self.wait_until_element(locators["org.new"]).click()
             self.wait_until_element(locators["org.name"])
