@@ -7,6 +7,7 @@ Test class for Operating System CLI
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.factory import make_os
 from robottelo.common.helpers import generate_name
+from robottelo.common.decorators import bzbug
 from tests.cli.basecli import BaseCLI
 
 
@@ -18,6 +19,9 @@ class TestOperatingSystem(BaseCLI):
     def test_create_os_1(self):
         """Successfully creates a new OS."""
         os_res = make_os()
+        os_info = OperatingSys().info({'label': os_res['name']})
+        os_res['name'] = os_info.stdout['name']
+        self.assertEqual(os_res['name'], os_info.stdout['name'])
 
     def test_list(self):
         """
@@ -26,11 +30,10 @@ class TestOperatingSystem(BaseCLI):
         result = OperatingSys().list()
         self.assertEqual(result.return_code, 0)
         length = len(result.stdout)
-        result = OperatingSys().create({'name': generate_name(),
-                                        'major': 1, 'minor': 1})
-        self.assertTrue(result.return_code == 0,
-                        "Operating system create - retcode")
-        self.assertEqual(result.return_code, 0)
+        result = make_os()
+        os_info = OperatingSys().info({'label': result['name']})
+        result['name'] = os_info.stdout['name']
+        self.assertEqual(result['name'], os_info.stdout['name'])
         result = OperatingSys().list()
         self.assertTrue(len(result.stdout) > length)
         self.assertEqual(result.return_code, 0)
@@ -40,46 +43,46 @@ class TestOperatingSystem(BaseCLI):
         Displays info for operating system.
         """
 
-        name = generate_name()
-        result = OperatingSys().create({'name': name,
-                                        'major': 1, 'minor': 1})
-        self.assertTrue(result.return_code == 0,
-                        "Operating system create - retcode")
-        self.assertEqual(result.return_code, 0)
+        result = make_os()
+        os_info = OperatingSys().info({'label': result['name']})
+        result['name'] = os_info.stdout['name']
+        self.assertEqual(result['name'], os_info.stdout['name'])
 
-        result = OperatingSys().info({'label': name})
+        name = result['name'].split(" ")
+        result = OperatingSys().info({'label': name[0]})
         self.assertEqual(result.return_code, 0)
 
     def test_delete(self):
         """
         Displays delete for operating system.
         """
-        name = generate_name()
-        result = OperatingSys().create({'name': name,
-                                        'major': 1, 'minor': 1})
-        self.assertTrue(result.return_code == 0,
-                        "Operating system create - retcode")
+        result = make_os()
+        os_info = OperatingSys().info({'label': result['name']})
+        result['name'] = os_info.stdout['name']
+        self.assertEqual(result['name'], os_info.stdout['name'])
+
+        name = result['name'].split(" ")
+        result = OperatingSys().delete({'label': name[0]})
         self.assertEqual(result.return_code, 0)
 
-        result = OperatingSys().delete({'label': name})
-        self.assertEqual(result.return_code, 0)
-
-        result = OperatingSys().info({'label': name})
+        result = OperatingSys().info({'label': name[0]})
         self.assertEqual(result.return_code, 128)
+        self.assertTrue(len(result.stderr) > 0)
 
+    @bzbug('1051557')
     def test_update(self):
         """
          Displays update for operating system.
         """
 
         nm = generate_name()
-        result = OperatingSys().create({'name': nm,
-                                        'major': 1, 'minor': 1})
-        self.assertTrue(result.return_code == 0,
-                        "Operating system create - retcode")
-        self.assertEqual(result.return_code, 0)
+        result = make_os()
+        os_info = OperatingSys().info({'label': result['name']})
+        result['name'] = os_info.stdout['name']
+        self.assertEqual(result['name'], os_info.stdout['name'])
         result = OperatingSys().info({'label': nm})
 
+        print result
         result = OperatingSys().update({'id': result.stdout['id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
         result = OperatingSys().info({'label': nm})
