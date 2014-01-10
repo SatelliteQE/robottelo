@@ -20,6 +20,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
+from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common import ssh
 from robottelo.common.constants import FOREMAN_PROVIDERS, TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
@@ -255,6 +256,23 @@ def make_org(options=None):
 
     args = update_dictionary(args, options)
     create_object(Org, args)
+
+    return args
+
+
+def make_os(options=None):
+    """
+        Creates the operating system
+        """
+    #Assigning default values for attributes
+    args = {
+        'name': generate_name(6),
+        'major': random.randint(0, 10),
+        'minor': random.randint(0, 10),
+    }
+
+    args = update_dictionary(args, options)
+    create_object(OperatingSys, args)
 
     return args
 
