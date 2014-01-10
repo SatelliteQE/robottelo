@@ -4,6 +4,7 @@
 """
 Test class for Operating System CLI
 """
+import random
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common.helpers import generate_name
 from tests.cli.basecli import BaseCLI
@@ -14,16 +15,27 @@ class TestOperatingSystem(BaseCLI):
     Test class for Operating System CLI.
     """
 
-    def test_create(self):
+    def _create_os(self, name=None, major=None, minor=None):
         """
         Creates the operating system
         """
+        name = name if name else generate_name()
+        major = major if major else random.randint(0, 10)
+        minor = minor if minor else random.randint(0, 10)
 
-        result = OperatingSys().create({'name': generate_name(),
-                                        'major': 1, 'minor': 1})
-        self.assertTrue(result.return_code == 0,
-                        "Operating system create - retcode")
-        self.assertEqual(result.return_code, 0)
+        args = {
+            'name': name,
+            'major': major,
+            'minor': minor,
+        }
+
+        OperatingSys().create(args)
+        self.assertTrue(OperatingSys().exists(('name', args['name'])))
+
+    def test_create_os_1(self):
+        "Successfully creates a new OS."
+
+        self._create_os()
 
     def test_list(self):
         """
