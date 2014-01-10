@@ -90,3 +90,5 @@ class TestOperatingSystem(BaseCLI):
         nm = result.stdout['name']
         # this will check the updation of major == 3
         self.assertEqual(nm, result.stdout['name'])
+        self.assertEqual(3,result.stdout['major'])
+
