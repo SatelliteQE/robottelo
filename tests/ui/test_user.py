@@ -6,7 +6,7 @@ Test class for User UI
 """
 
 from tests.ui.baseui import BaseUI
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
 
@@ -54,7 +54,7 @@ class User(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_user(name, password, email, search_key)
         self.user.delete(name, search_key, really=True)
-        self.assertTrue(self.user.wait_until_element(locators
+        self.assertTrue(self.user.wait_until_element(common_locators
                                                      ["notif.success"]))
 
     def test_update_password(self):

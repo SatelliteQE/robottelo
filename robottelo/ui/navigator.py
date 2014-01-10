@@ -6,7 +6,7 @@ Implements Navigator UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import menu_locators
 from selenium.webdriver.common.action_chains import ActionChains
 
 
@@ -30,161 +30,161 @@ class Navigator(Base):
 
     def go_to_dashboard(self):
         self.menu_click(
-            locators['menu.monitor'], locators['menu.dashboard'],
+            menu_locators['menu.monitor'], menu_locators['menu.dashboard'],
         )
 
     def go_to_reports(self):
         self.menu_click(
-            locators['menu.monitor'], locators['menu.reports'],
+            menu_locators['menu.monitor'], menu_locators['menu.reports'],
         )
 
     def go_to_facts(self):
         self.menu_click(
-            locators['menu.monitor'], locators['menu.facts'],
+            menu_locators['menu.monitor'], menu_locators['menu.facts'],
         )
 
     def go_to_statistics(self):
         self.menu_click(
-            locators['menu.monitor'], locators['menu.statistics'],
+            menu_locators['menu.monitor'], menu_locators['menu.statistics'],
         )
 
     def go_to_trends(self):
         self.menu_click(
-            locators['menu.monitor'], locators['menu.trends'],
+            menu_locators['menu.monitor'], menu_locators['menu.trends'],
         )
 
     def go_to_audits(self):
         self.menu_click(
-            locators['menu.monitor'], locators['menu.audits'],
+            menu_locators['menu.monitor'], menu_locators['menu.audits'],
         )
 
     def go_to_hosts(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.all_hosts'],
+            menu_locators['menu.hosts'], menu_locators['menu.all_hosts'],
         )
 
     def go_to_operating_systems(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.operating_systems'],
+            menu_locators['menu.hosts'], menu_locators['menu.operating_systems'],
         )
 
     def go_to_provisioning_templates(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.provisioning_templates'],
+            menu_locators['menu.hosts'], menu_locators['menu.provisioning_templates'],
         )
 
     def go_to_partition_tables(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.partition_tables'],
+            menu_locators['menu.hosts'], menu_locators['menu.partition_tables'],
         )
 
     def go_to_installation_media(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.installation_media'],
+            menu_locators['menu.hosts'], menu_locators['menu.installation_media'],
         )
 
     def go_to_hardware_models(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.hardware_models'],
+            menu_locators['menu.hosts'], menu_locators['menu.hardware_models'],
         )
 
     def go_to_architectures(self):
         self.menu_click(
-            locators['menu.hosts'], locators['menu.architectures'],
+            menu_locators['menu.hosts'], menu_locators['menu.architectures'],
         )
 
     def go_to_host_groups(self):
         self.menu_click(
-            locators['menu.configure'], locators['menu.host_groups'],
+            menu_locators['menu.configure'], menu_locators['menu.host_groups'],
         )
 
     def go_to_global_parameters(self):
         self.menu_click(
-            locators['menu.configure'], locators['menu.global_parameters'],
+            menu_locators['menu.configure'], menu_locators['menu.global_parameters'],
         )
 
     def go_to_environments(self):
         self.menu_click(
-            locators['menu.configure'], locators['menu.environments'],
+            menu_locators['menu.configure'], menu_locators['menu.environments'],
         )
 
     def go_to_puppet_classes(self):
         self.menu_click(
-            locators['menu.configure'], locators['menu.puppet_classes'],
+            menu_locators['menu.configure'], menu_locators['menu.puppet_classes'],
         )
 
     def go_to_smart_variables(self):
         self.menu_click(
-            locators['menu.configure'], locators['menu.'],
+            menu_locators['menu.configure'], menu_locators['menu.'],
         )
 
     def go_to_smart_proxies(self):
         self.menu_click(
-            locators['menu.infrastructure'], locators['menu.smart_proxies'],
+            menu_locators['menu.infrastructure'], menu_locators['menu.smart_proxies'],
         )
 
     def go_to_compute_resources(self):
         self.menu_click(
-            locators['menu.infrastructure'],
-            locators['menu.compute_resources'],
+            menu_locators['menu.infrastructure'],
+            menu_locators['menu.compute_resources'],
         )
 
     def go_to_subnets(self):
         self.menu_click(
-            locators['menu.infrastructure'], locators['menu.subnets'],
+            menu_locators['menu.infrastructure'], menu_locators['menu.subnets'],
         )
 
     def go_to_domains(self):
         self.menu_click(
-            locators['menu.infrastructure'], locators['menu.domains'],
+            menu_locators['menu.infrastructure'], menu_locators['menu.domains'],
         )
 
     def go_to_ldap_auth(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.ldap_auth'],
+            menu_locators['menu.administer'], menu_locators['menu.ldap_auth'],
         )
 
     def go_to_users(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.users'],
+            menu_locators['menu.administer'], menu_locators['menu.users'],
         )
 
     def go_to_user_groups(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.user_groups'],
+            menu_locators['menu.administer'], menu_locators['menu.user_groups'],
         )
 
     def go_to_roles(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.roles'],
+            menu_locators['menu.administer'], menu_locators['menu.roles'],
         )
 
     def go_to_bookmarks(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.bookmarks'],
+            menu_locators['menu.administer'], menu_locators['menu.bookmarks'],
         )
 
     def go_to_settings(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.settings'],
+            menu_locators['menu.administer'], menu_locators['menu.settings'],
         )
 
     def go_to_about(self):
         self.menu_click(
-            locators['menu.administer'], locators['menu.about'],
+            menu_locators['menu.administer'], menu_locators['menu.about'],
         )
 
     def go_to_sign_out(self):
         self.menu_click(
-            locators['menu.account'], locators['menu.sign_out'],
+            menu_locators['menu.account'], menu_locators['menu.sign_out'],
         )
 
     def go_to_my_account(self):
         self.menu_click(
-            locators['menu.account'], locators['menu.my_account'],
+            menu_locators['menu.account'], menu_locators['menu.my_account'],
         )
 
     def go_to_org(self):
         self.menu_click(
-            locators['org.any_context'], locators['org.manage_org'],
+            menu_locators['org.any_context'], menu_locators['org.manage_org'],
         )

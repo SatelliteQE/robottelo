@@ -6,7 +6,7 @@ Implements Operating System UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -57,7 +57,7 @@ class OperatingSys(Base):
                 self.select_entity("operatingsys.medium",
                                    "operatingsys.select_medium", medium,
                                    "operatingsys.tab_medium")
-            self.find_element(locators["operatingsys.submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
     def delete(self, os_name, really):
@@ -122,7 +122,7 @@ class OperatingSys(Base):
                 self.select_entity("operatingsys.medium",
                                    "operatingsys.select_medium", new_medium,
                                    "operatingsys.tab_medium")
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
         else:

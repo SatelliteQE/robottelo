@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -62,7 +62,7 @@ class ComputeResource(Base):
             self.find_element(locators["resource.name"]).send_keys(name)
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd)
-        self.find_element(locators["submit"]).click()
+        self.find_element(common_locators["submit"]).click()
 
     def update(self, oldname, newname, provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
@@ -82,7 +82,7 @@ class ComputeResource(Base):
             self._configure_resource(provider_type, url, user, password,
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
         else:
             raise Exception("Could not update the resource '%s'" % oldname)
 
