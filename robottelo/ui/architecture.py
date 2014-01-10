@@ -6,7 +6,7 @@ Implements Architecture UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class Architecture(Base):
@@ -38,7 +38,7 @@ class Architecture(Base):
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
             self._configure_arch(os_name)
-            self.find_element(locators["arch.submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(
@@ -75,7 +75,7 @@ class Architecture(Base):
             if self.wait_until_element(locators["arch.name"]):
                 self.field_update("arch.name", new_name)
                 self._configure_arch(os_name)
-                self.find_element(locators["arch.submit"]).click()
+                self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
         else:
             raise Exception(

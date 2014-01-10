@@ -6,7 +6,7 @@ Implements Operating System UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -64,7 +64,7 @@ class OperatingSys(Base):
                                   ).send_keys(major_version)
                 self._configure_os(minor_version,
                                    os_family, arch, ptable, medium)
-                self.find_element(locators["operatingsys.submit"]).click()
+                self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:
                 raise Exception(
@@ -116,7 +116,7 @@ class OperatingSys(Base):
                                       major_version)
             self._configure_os(minor_version, os_family,
                                arch, ptable, medium)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(

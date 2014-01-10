@@ -6,7 +6,7 @@ Implements Partition Table UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -42,7 +42,7 @@ class PartitionTable(Base):
             if self.wait_until_element(locators["ptable.layout"]):
                 self.find_element(locators["ptable.layout"]).send_keys(layout)
                 self._configure_partition_table(os_family)
-                self.find_element(locators["submit"]).click()
+                self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:
                 raise Exception(
@@ -87,7 +87,7 @@ class PartitionTable(Base):
                 if self.wait_until_element(locators["ptable.layout"]):
                     self.field_update("ptable.layout", new_layout)
             self._configure_partition_table(os_family)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(

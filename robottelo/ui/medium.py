@@ -6,7 +6,7 @@ Implements Medium UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -42,7 +42,7 @@ class Medium(Base):
             if self.wait_until_element(locators["medium.path"]):
                 self.find_element(locators["medium.path"]).send_keys(path)
                 self._configure_medium(os_family)
-                self.find_element(locators["submit"]).click()
+                self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:
                 raise Exception(
@@ -85,7 +85,7 @@ class Medium(Base):
                 if self.wait_until_element(locators["medium.path"]):
                     self.field_update("medium.path", new_path)
             self._configure_medium(os_family)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(

@@ -6,7 +6,7 @@ Implements Org UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class Org(Base):
@@ -28,9 +28,9 @@ class Org(Base):
             self.wait_until_element(locators["org.new"]).click()
             self.wait_until_element(locators["org.name"])
             self.field_update("org.name", org_name)
-            self.wait_until_element(locators["submit"]).click()
+            self.wait_until_element(common_locators["submit"]).click()
             self.wait_until_element(locators["org.proceed_to_edit"]).click()
-            self.wait_until_element(locators["submit"]).click()
+            self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(
@@ -47,7 +47,7 @@ class Org(Base):
             if new_name:
                 if self.wait_until_element(locators["org.name"]):
                     self.field_update("org.name", new_name)
-            self.wait_until_element(locators["submit"]).click()
+            self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(

@@ -1,6 +1,6 @@
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -35,7 +35,7 @@ class Hosts(Base):
         if domain:
             if resource is None:
                 self.find_element(locators["host.mac"]).send_keys(mac)
-            self.wait_until_element(locators["host.tab_network"]).click()
+            self.wait_until_element(tab_locators["host.tab_network"]).click()
             type_domain = self.find_element(locators["host.domain"])
             Select(type_domain).select_by_visible_text(domain)
             self.wait_for_ajax()
@@ -44,7 +44,7 @@ class Hosts(Base):
             if ip_addr:
                 self.find_element(locators["host.ip"]).send_keys(ip_addr)
         if os:
-            self.wait_until_element(locators["host.tab_os"]).click()
+            self.wait_until_element(tab_locators["host.tab_os"]).click()
             type_arch = self.find_element(locators["host.arch"])
             Select(type_arch).select_by_visible_text(arch)
             self.wait_for_ajax()
@@ -66,12 +66,12 @@ class Hosts(Base):
             self.wait_for_ajax()
 
         if resource is not None:
-            self.wait_until_element(locators["host.tab_vm"]).click()
+            self.wait_until_element(tab_locators["host.tab_vm"]).click()
             vm_cpu = self.find_element(locators["host.vm_cpus"])
             Select(vm_cpu).select_by_visible_text(cpus)
             vm_mem = self.find_element(locators["host.vm_memory"])
             Select(vm_mem).select_by_visible_text(memory)
-        self.find_element(locators["submit"]).click()
+        self.find_element(common_locators["submit"]).click()
 
     def delete(self, name, really):
         """

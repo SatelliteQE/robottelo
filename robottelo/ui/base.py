@@ -7,7 +7,7 @@ Base class for all UI operations
 
 import logging.config
 
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
@@ -50,7 +50,7 @@ class Base(object):
         search_key = search_key or "name"
         element = None
 
-        searchbox = self.wait_until_element(locators["search"])
+        searchbox = self.wait_until_element(common_locators["search"])
 
         if searchbox:
             searchbox.clear()
@@ -119,17 +119,13 @@ class Base(object):
         from selection list or by selecting relevant checkbox
         """
         if loc_tab:
-            self.wait_until_element(locators[loc_tab]).click()
-        check_element = self.find_element((locators
-                                           [loc_string][0],
-                                           locators
-                                           [loc_string][1]
-                                           % loc_value))
-        select_element = self.find_element((locators
-                                            [loc_select_string][0],
-                                            locators
-                                            [loc_select_string][1]
-                                            % loc_value))
+            self.wait_until_element(tab_locators[loc_tab]).click()
+        strategy = locators[loc_string][0]
+        value = locators[loc_string][1]
+        check_element = self.find_element((strategy, value % loc_value))
+        strategy1 = locators[loc_select_string][0]
+        value1 = locators[loc_select_string][1]
+        select_element = self.find_element((strategy1, value1 % loc_value))
         if check_element:
             check_element.click()
         elif select_element:
@@ -140,19 +136,15 @@ class Base(object):
         Function to set parameters for different
         entities like OS and Domain
         """
-        self.wait_until_element(locators["parameter_tab"]).click()
-        self.wait_until_element(locators["add_parameter"]).click()
-        if self.wait_until_element(locators
-                                   ["parameter_name"]):
-            self.find_element(locators
-                              ["parameter_name"]
-                              ).send_keys(param_name)
-        if self.wait_until_element(locators
-                                   ["parameter_value"]):
-            self.find_element(locators
-                              ["parameter_value"]
-                              ).send_keys(param_value)
-        self.find_element(locators["submit"]).click()
+        self.wait_until_element(common_locators["parameter_tab"]).click()
+        self.wait_until_element(common_locators["add_parameter"]).click()
+        if self.wait_until_element(common_locators["parameter_name"]):
+            pname = self.find_element(common_locators["parameter_name"])
+            pname.send_keys(param_name)
+        if self.wait_until_element(common_locators["parameter_value"]):
+            pvalue = self.find_element(common_locators["parameter_value"])
+            pvalue.send_keys(param_value)
+        self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
     def remove_parameter(self, param_name):
@@ -160,12 +152,11 @@ class Base(object):
         Function to remove parameters for different
         entities like OS and Domain
         """
-        self.wait_until_element(locators["parameter_tab"]).click()
-        remove_element = self.wait_until_element((locators
-                                                  ["parameter_remove"][0],
-                                                  locators
-                                                  ["parameter_remove"][1]
-                                                  % param_name))
+        self.wait_until_element(common_locators["parameter_tab"]).click()
+        strategy = common_locators["parameter_remove"][0]
+        value = common_locators["parameter_remove"][1]
+        remove_element = self.wait_until_element((strategy,
+                                                  value % param_name))
         if remove_element:
             remove_element.click()
-        self.find_element(locators["submit"]).click()
+        self.find_element(common_locators["submit"]).click()

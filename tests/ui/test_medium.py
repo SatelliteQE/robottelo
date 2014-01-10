@@ -6,7 +6,7 @@ Test class for Medium UI
 """
 
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from tests.ui.baseui import BaseUI
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -43,7 +43,7 @@ class Medium(BaseUI):
         self.create_medium(name, path, os_family)
         self.medium.delete(name, True)
         self.assertTrue(self.medium.wait_until_element
-                        (locators["notif.success"]))
+                        (common_locators["notif.success"]))
         self.assertIsNone(self.medium.search(name, locators
                                              ['medium.medium_name']))
 

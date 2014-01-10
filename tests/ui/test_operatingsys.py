@@ -7,7 +7,7 @@ Test class for Operating System UI
 
 import unittest
 
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
 from tests.ui.baseui import BaseUI
@@ -69,7 +69,7 @@ class OperatingSys(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(name, major_version, minor_version, os_family)
         self.operatingsys.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators
+        self.assertTrue(self.user.wait_until_element(common_locators
                                                      ["notif.success"]))
         self.assertIsNone(
             self.operatingsys.search(name,
