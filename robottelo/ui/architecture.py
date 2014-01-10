@@ -6,8 +6,7 @@ Implements Architecture UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class Architecture(Base):

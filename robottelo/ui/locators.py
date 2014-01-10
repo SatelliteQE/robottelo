@@ -126,7 +126,12 @@ menu_locators = {
     # Account Menu
     "menu.account": (By.XPATH, "//a[@id='account_menu']"),
     "menu.sign_out": (By.XPATH, "//a[@id='menu_item_logout']"),
-    "menu.my_account": (By.XPATH, "//a[@id='menu_item_my_account']")}
+    "menu.my_account": (By.XPATH, "//a[@id='menu_item_my_account']"),
+
+    # Orgs
+    "org.manage_org": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]")}  # @IgnorePep8
 
 tab_locators = {
 
@@ -209,12 +214,9 @@ locators = {
     "org.any_context": (
         By.XPATH,
         "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
-    "org.manage_org": (
-        By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),   # @IgnorePep8
     "org.new": (
         By.XPATH,
-        "//a[@class='btn btn-success' and contains(@href, '/organizations/new')]"),
+        "//a[@class='btn btn-success' and contains(@href, '/organizations/new')]"),  # @IgnorePep8
     "org.name": (By.ID, "organization_name"),
     "org.proceed_to_edit": (
         By.XPATH,
@@ -386,7 +388,20 @@ locators = {
     "users.select_role": (By.XPATH, "//li/span[contains(., '%s')]"),
     "users.role": (
         By.XPATH,
-        "//label[@class='role' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
+        "//label[@class='role' and normalize-space(.)='%s']/input[@type='checkbox']"),  # @IgnorePep8
+
+    #User Groups
+    "usergroups.new": (By.XPATH, "//a[contains(@href, '/usergroups/new')]"),
+    "usergroups.name": (By.ID, "usergroup_name"),
+    "usergroups.user": (
+        By.XPATH,
+        "//label[@class='user' and normalize-space(.)='%s']/input[@id='usergroup_user_ids_']"),  # @IgnorePep8
+    "usergroups.select_user": (
+        By.XPATH,
+        "//div[@id='ms-usergroup_user_ids']//li/span[contains(., '%s')]"),
+    "usergroups.usergroup": (By.XPATH, "//a[contains(., '%s')]"),
+    "usergroups.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     #Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
