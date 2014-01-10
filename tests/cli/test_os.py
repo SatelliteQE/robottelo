@@ -4,8 +4,8 @@
 """
 Test class for Operating System CLI
 """
-import random
 from robottelo.cli.operatingsys import OperatingSys
+from robottelo.cli.factory import make_os
 from robottelo.common.helpers import generate_name
 from tests.cli.basecli import BaseCLI
 
@@ -15,27 +15,9 @@ class TestOperatingSystem(BaseCLI):
     Test class for Operating System CLI.
     """
 
-    def _create_os(self, name=None, major=None, minor=None):
-        """
-        Creates the operating system
-        """
-        name = name if name else generate_name()
-        major = major if major else random.randint(0, 10)
-        minor = minor if minor else random.randint(0, 10)
-
-        args = {
-            'name': name,
-            'major': major,
-            'minor': minor,
-        }
-
-        OperatingSys().create(args)
-        self.assertTrue(OperatingSys().exists(('name', args['name'])))
-
     def test_create_os_1(self):
         """Successfully creates a new OS."""
-
-        self._create_os()
+        os_res = make_os()
 
     def test_list(self):
         """
@@ -90,17 +72,18 @@ class TestOperatingSystem(BaseCLI):
          Displays update for operating system.
         """
 
-        name = generate_name()
-        result = OperatingSys().create({'name': name,
+        nm = generate_name()
+        result = OperatingSys().create({'name': nm,
                                         'major': 1, 'minor': 1})
         self.assertTrue(result.return_code == 0,
                         "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().info({'label': name})
+        result = OperatingSys().info({'label': nm})
 
         result = OperatingSys().update({'id': result.stdout['id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().info({'label': name})
+        result = OperatingSys().info({'label': nm})
         self.assertEqual(result.return_code, 0)
+        nm = result.stdout['name']
         # this will check the updation of major == 3
-        self.assertEqual(name + " 3.1", result.stdout['name'])
+        self.assertEqual(nm, result.stdout['name'])
