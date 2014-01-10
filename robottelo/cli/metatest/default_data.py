@@ -28,7 +28,19 @@ POSITIVE_UPDATE_DATA = (
     ({'name': generate_string("numeric", 10)},
      {'name': generate_string("numeric", 10)}),
 )
-NEGATIVE_UPDATE_DATA = ()
+NEGATIVE_UPDATE_DATA = (
+    ({'name': generate_string("utf8", 10).encode("utf-8")},
+     {'name': generate_string("utf8", 300).encode("utf-8")}),
+    ({'name': generate_string("utf8", 10).encode("utf-8")},
+     {'name': " "}),
+    ({'name': generate_string("utf8", 10).encode("utf-8")},
+     {'': generate_string("alpha", 10)}),
+    ({'name': generate_string("utf8", 10).encode("utf-8")},
+     {generate_string("alphanumeric", 10): " "}),
+    ({'name': generate_string("utf8", 10).encode("utf-8")},
+     {'id': generate_string("alpha", 10)}),
+)
+
 POSITIVE_DELETE_DATA = (
     {'name': generate_string("latin1", 10).encode("utf-8")},
     {'name': generate_string("utf8", 10).encode("utf-8")},
@@ -36,4 +48,10 @@ POSITIVE_DELETE_DATA = (
     {'name': generate_string("alphanumeric", 10)},
     {'name': generate_string("numeric", 10)},
 )
-NEGATIVE_DELETE_DATA = ()
+NEGATIVE_DELETE_DATA = (
+    {'id': generate_string("alpha", 10)},
+    {'id': None},
+    {'id': ""},
+    {},
+    {'id': -1},
+)
