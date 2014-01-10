@@ -32,9 +32,10 @@ class TestComputeResource(BaseCLI):
     ComputeResource CLI tests.
     """
 
-    def _init_once(self):
-        """ a method invoked only once """
-        self.__class__.comp_res = make_compute_resource({
+    @classmethod
+    def setUpClass(cls):
+        BaseCLI.setUpClass()
+        cls.compute_res_updates = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': "qemu+tcp://%s:16509/system" %
             conf.properties['main.server.hostname']})['name']
@@ -63,7 +64,7 @@ class TestComputeResource(BaseCLI):
         result_info = ComputeResource().info({'name': result_create['name']})
         self.assertEquals(result_info.return_code, 0,
                           "ComputeResource info - exit code")
-        self.assertEquals(result_info.stdout['Name'], result_create['name'],
+        self.assertEquals(result_info.stdout['name'], result_create['name'],
                           "ComputeResource info - check name")
 
     def test_list(self):
@@ -99,7 +100,7 @@ class TestComputeResource(BaseCLI):
     def test_update(self, option_dict):
         """ `compute_resource update` basic test (different options) """
         options = {}
-        options['name'] = self.comp_res
+        options['name'] = self.compute_res_updates
         for option in option_dict:
             options[option] = option_dict[option]
         result_update = ComputeResource().update(options)

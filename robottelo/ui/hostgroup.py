@@ -6,7 +6,7 @@ Implements Host Group UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -38,7 +38,7 @@ class Hostgroup(Base):
                 Select(self.find_element(
                     locators["hostgroups.environment"])
                 ).select_by_visible_text(environment)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
         else:
             raise Exception("Could not create new hostgroup.")
 
@@ -50,7 +50,10 @@ class Hostgroup(Base):
         dropdown = self.search(name, locators["hostgroups.dropdown"])
         if dropdown:
             dropdown.click()
-            element = self.search(name, locators["hostgroups.delete"])
+            self.wait_for_ajax()
+            element = self.wait_until_element(
+                (locators["hostgroups.delete"][0],
+                 locators["hostgroups.delete"][1] % name))
             if element:
                 element.click()
                 if really:
@@ -70,7 +73,7 @@ class Hostgroup(Base):
         Updates existing hostgroup from UI
         """
 
-        element = self.search(name, locators["hostgroup.parent"])
+        element = self.search(name, locators["hostgroups.hostgroup"])
 
         if element:
             element.click()
@@ -85,6 +88,6 @@ class Hostgroup(Base):
                 ).select_by_visible_text(environment)
             if new_name:
                 self.field_update("hostgroups.name", new_name)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
         else:
             raise Exception("Could not find hostgroup '%s'" % name)

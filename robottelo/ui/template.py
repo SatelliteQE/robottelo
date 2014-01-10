@@ -6,7 +6,7 @@ Implements Template UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -37,18 +37,18 @@ class Template(Base):
                 alert = self.browser.switch_to_alert()
                 alert.dismiss()
         if template_type:
-            self.wait_until_element(locators["provision.tab_type"]).click()
+            self.wait_until_element(tab_locators["provision.tab_type"]).click()
             type_ele = self.find_element(locators["provision.template_type"])
             Select(type_ele).select_by_visible_text(template_type)
         if os_list is not None:
-            self.wait_until_element(locators["provision.tab_association"]).click()  # @IgnorePep8
+            self.wait_until_element(tab_locators["provision.tab_association"]).click()  # @IgnorePep8
             for os in os_list:
                 strategy = locators["provision.associate_os"][0]
                 value = locators["provision.associate_os"][1]
                 element = self.wait_until_element((strategy, value % os))
                 if element:
                     element.click()
-        self.find_element(locators["submit"]).click()
+        self.find_element(common_locators["submit"]).click()
 
     def update(self, name, os_list, custom_really, new_name=None,
                template_path=None, template_type=None):
@@ -71,18 +71,22 @@ class Template(Base):
                     alert = self.browser.switch_to_alert()
                     alert.dismiss()
             if template_type:
-                self.wait_until_element(locators["provision.tab_type"]).click()
+                type_loc = self.wait_until_element(tab_locators["provision.tab_type"])  # @IgnorePep8
+                type_loc.click()
                 ele = self.find_element(locators["provision.template_type"])
                 Select(ele).select_by_visible_text(template_type)
             if os_list is not None:
-                self.wait_until_element(locators["provision.tab_association"]).click()  # @IgnorePep8
+                assoc_loc = self.wait_until_element(tab_locators["provision.tab_association"])  # @IgnorePep8
+                assoc_loc.click()
                 for os in os_list:
                     strategy = locators["provision.associate_os"][0]
                     value = locators["provision.associate_os"][1]
                     element = self.wait_until_element((strategy, value % os))
                     if element:
                         element.click()
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
+        else:
+            raise Exception("Could not update the template '%s'" % name)
 
     def delete(self, name, really):
         """
@@ -101,4 +105,8 @@ class Template(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss(self)
-        # TODO: need to raise exception for negative testing
+            else:
+                raise Exception(
+                    "Could not select the template '%s' for deletion." % name)
+        else:
+            raise Exception("Could not delete the template '%s'" % name)

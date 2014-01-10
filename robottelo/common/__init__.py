@@ -1,14 +1,26 @@
+"""
+Configuration class for the Framework
+"""
+
 import ConfigParser
 import logging
+import logging.config
 import sys
 import os
 
-from constants import ROBOTTELO_PROPERTIES
+from robottelo.common.constants import ROBOTTELO_PROPERTIES
 
 
-class Configs():
+class Configs(object):
+    """
+    Reads configuration attributes and sets up logging
+    """
 
     def __init__(self):
+        """
+        Reads and initializes configuration attributes
+        """
+
         prop = ConfigParser.RawConfigParser()
         prop_file = "%s/%s" % (self.get_root_path(), ROBOTTELO_PROPERTIES)
 
@@ -27,6 +39,10 @@ class Configs():
         self.log_root = logging.getLogger("root")
 
     def log_properties(self):
+        """
+        Displays available configuration attributes
+        """
+
         keylist = self.properties.keys()
         keylist.sort()
         self.log_root.debug("")
@@ -36,10 +52,18 @@ class Configs():
         self.log_root.debug("")
 
     def get_root_path(self):
+        """
+        Returns correct path to logging config file
+        """
+
         return os.path.realpath(os.path.join(os.path.dirname(__file__),
-            os.pardir, os.pardir))
+                                             os.pardir, os.pardir))
 
     def _configure_logging(self):
+        """
+        Configures logging for the entire framework
+        """
+
         try:
             logging.config.fileConfig("%s/logging.conf" % self.get_root_path())
         except Exception:
@@ -48,7 +72,7 @@ class Configs():
 
         for name in ['root', 'robottelo']:
             logger = logging.getLogger(name)
-            logger.setLevel(int(self.properties['nosetests.verbosity']))
+            logger.setLevel(int(self.properties['nosetests.verbosity']) * 10)
 
 
 conf = Configs()

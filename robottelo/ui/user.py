@@ -6,7 +6,7 @@ Implements User UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -46,7 +46,8 @@ class User(Base):
             if locale:
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)
-            self.find_element(locators["submit"]).click()
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
 
     def delete(self, username, search_key, really=False):
         """
@@ -69,7 +70,8 @@ class User(Base):
 
     def update(self, search_key, username, new_username=None,
                email=None, password=None,
-               firstname=None, lastname=None, locale=None):
+               first_name=None, last_name=None, locale=None,
+               role=None):
         """
         Update username, email, password, firstname,
         lastname and locale from UI
@@ -84,15 +86,19 @@ class User(Base):
                 self.field_update("users.username", new_username)
             if email:
                 self.field_update("users.email", email)
-            if firstname:
-                self.field_update("users.firstname", firstname)
-            if lastname:
-                self.field_update("users.lastname", lastname)
+            if first_name:
+                self.field_update("users.firstname", first_name)
+            if last_name:
+                self.field_update("users.lastname", last_name)
             if locale:
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)
             if password:
                 self.field_update("users.password", password)
                 self.field_update("users.password_confirmation", password)
-            self.find_element(locators["submit"]).click()
+            if role:
+                self.select_entity("users.role",
+                                   "users.select_role", role,
+                                   "users.tab_roles")
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()

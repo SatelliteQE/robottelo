@@ -7,7 +7,7 @@ Test class for Operating System UI
 
 import unittest
 
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
 from tests.ui.baseui import BaseUI
@@ -34,7 +34,7 @@ class OperatingSys(BaseUI):
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
-        os_family = "Redhat"
+        os_family = "Red Hat"
         arch = generate_name(4)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page
@@ -56,7 +56,7 @@ class OperatingSys(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version, minor_version, os_family)
         self.operatingsys.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(locators
+        self.assertTrue(self.user.wait_until_element(common_locators
                                                      ["notif.success"]))
 
     @unittest.skip("http://projects.theforeman.org/issues/3920")

@@ -6,7 +6,7 @@ Implements Architecture UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class Architecture(Base):
@@ -32,7 +32,7 @@ class Architecture(Base):
         if os_name:
             self.select_entity("arch.os_name", "arch.select_os_name",
                                os_name, None)
-        self.find_element(locators["arch.submit"]).click()
+        self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
     def delete(self, name, really):
@@ -63,10 +63,10 @@ class Architecture(Base):
 
         if element:
             element.click()
-        if self.wait_until_element(locators["arch.name"]):
-            self.field_update("arch.name", newname)
-        if new_osname:
-            self.select_entity("arch.os_name", "arch.select_os_name",
-                               new_osname, None)
-        self.find_element(locators["arch.submit"]).click()
-        self.wait_for_ajax()
+            if self.wait_until_element(locators["arch.name"]):
+                self.field_update("arch.name", newname)
+            if new_osname:
+                self.select_entity("arch.os_name", "arch.select_os_name",
+                                   new_osname, None)
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()

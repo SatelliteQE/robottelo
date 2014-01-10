@@ -6,7 +6,7 @@ Implements Environment UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class Environment(Base):
@@ -24,7 +24,7 @@ class Environment(Base):
         self.wait_until_element(locators["env.new"]).click()
         if self.wait_until_element(locators["env.name"]):
             self.find_element(locators["env.name"]).send_keys(name)
-        self.find_element(locators["submit"]).click()
+        self.find_element(common_locators["submit"]).click()
 
     def delete(self, name, really):
         """
@@ -47,4 +47,8 @@ class Environment(Base):
                 else:
                     alert = self.browser.switch_to_alert()
                     alert.dismiss()
-        # TODO: need to raise exception for negative testing
+            else:
+                raise Exception(
+                    "Could not select the environment '%s' for deletion." % name)  # @IgnorePep8
+        else:
+            raise Exception("Could not delete the environment '%s'" % name)
