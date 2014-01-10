@@ -6,7 +6,7 @@ Implements Architecture UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators
 
 
 class Architecture(Base):
@@ -20,6 +20,14 @@ class Architecture(Base):
         """
         self.browser = browser
 
+    def _configure_arch(self, os_name=None):
+        """
+        Configures architecture details like: OS name
+        """
+        if os_name:
+            self.select_entity("arch.os_name", "arch.select_os_name",
+                               os_name, None)
+
     def create(self, name, os_name=None):
         """
         Creates new architecture from UI with existing OS
@@ -29,11 +37,12 @@ class Architecture(Base):
 
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
-        if os_name:
-            self.select_entity("arch.os_name", "arch.select_os_name",
-                               os_name, None)
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+            self._configure_arch(os_name)
+            self.find_element(locators["arch.submit"]).click()
+            self.wait_for_ajax()
+        else:
+            raise Exception(
+                "Could not create new architecture '%s'" % name)
 
     def delete(self, name, really):
         """
@@ -54,19 +63,20 @@ class Architecture(Base):
             raise Exception(
                 "Could not delete the architecture '%s'" % name)
 
-    def update(self, oldname, newname, new_osname):
+    def update(self, old_name, new_name=None, os_name=None):
         """
         Update existing arch's name and OS
         """
 
-        element = self.search(oldname, locators['arch.arch_name'])
+        element = self.search(old_name, locators['arch.arch_name'])
 
         if element:
             element.click()
             if self.wait_until_element(locators["arch.name"]):
-                self.field_update("arch.name", newname)
-            if new_osname:
-                self.select_entity("arch.os_name", "arch.select_os_name",
-                                   new_osname, None)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+                self.field_update("arch.name", new_name)
+                self._configure_arch(os_name)
+                self.find_element(locators["arch.submit"]).click()
+                self.wait_for_ajax()
+        else:
+            raise Exception(
+                "Could not update the architecture '%s'" % old_name)
