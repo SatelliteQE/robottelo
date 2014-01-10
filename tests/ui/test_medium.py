@@ -23,6 +23,8 @@ class Medium(BaseUI):
         path = path or URL % generate_name(6)
         self.navigator.go_to_installation_media()  # go to media page
         self.medium.create(name, path, os_family)
+        self.assertIsNotNone(self.medium.search
+                             (name, locators['medium.medium_name']))
 
     def test_create_medium(self):
         "Create new Media"
@@ -31,8 +33,6 @@ class Medium(BaseUI):
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
-        self.assertIsNotNone(self, self.medium.search
-                            (name, locators['medium.medium_name']))
 
     def test_remove_medium(self):
         "Delete Media"
@@ -44,6 +44,8 @@ class Medium(BaseUI):
         self.medium.delete(name, True)
         self.assertTrue(self.medium.wait_until_element
                         (locators["notif.success"]))
+        self.assertIsNone(self.medium.search(name, locators
+                                             ['medium.medium_name']))
 
     def test_update_medium(self):
         "Create new Media and update its name, path and OS family"
@@ -56,5 +58,5 @@ class Medium(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
         self.medium.update(name, newname, newpath, new_os_family)
-        self.assertTrue(self, self.medium.search
-                        (newname, locators['medium.medium_name']))
+        self.assertIsNotNone(self.medium.search
+                             (newname, locators['medium.medium_name']))
