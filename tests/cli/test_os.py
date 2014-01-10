@@ -33,7 +33,7 @@ class TestOperatingSystem(BaseCLI):
         self.assertTrue(OperatingSys().exists(('name', args['name'])))
 
     def test_create_os_1(self):
-        "Successfully creates a new OS."
+        """Successfully creates a new OS."""
 
         self._create_os()
 
@@ -98,9 +98,9 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(result.return_code, 0)
         result = OperatingSys().info({'label': name})
 
-        result = OperatingSys().update({'id': result.stdout['Id'], 'major': 3})
+        result = OperatingSys().update({'id': result.stdout['id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
         result = OperatingSys().info({'label': name})
         self.assertEqual(result.return_code, 0)
         # this will check the updation of major == 3
-        self.assertEqual(name + " 3.1", result.stdout['Name'])
+        self.assertEqual(name + " 3.1", result.stdout['name'])
