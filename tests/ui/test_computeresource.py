@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import unittest
 from robottelo.common import conf
 from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import locators, common_locators

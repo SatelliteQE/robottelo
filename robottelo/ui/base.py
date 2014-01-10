@@ -7,9 +7,7 @@ Base class for all UI operations
 
 import logging.config
 
-from robottelo.ui.locators import locators
-from robottelo.ui.locators import common_locators
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
