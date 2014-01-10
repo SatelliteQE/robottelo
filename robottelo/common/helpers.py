@@ -10,6 +10,7 @@ import string
 import time
 
 from itertools import izip
+from robottelo.common.constants import HTML_TAGS
 
 
 def generate_name(minimum=4, maximum=8):
@@ -118,6 +119,10 @@ def generate_string(str_type, length):
     # (note: includes some mathematical symbol, which sort of wreaks
     # havoc with using full range.  See range broken outto avoid these,
     # below)
+
+    # First lowercase the selected str type
+    str_type = str_type.lower()
+
     if str_type == "alphanumeric":
         output_string = ''.join(
             random.choice(
@@ -155,6 +160,10 @@ def generate_string(str_type, length):
         output_string = ''.join(
             unichr(random.choice(output_array)) for x in xrange(length))
         output_string.encode('utf-8')
+    elif str_type == "html":
+        html_tag = random.choice(HTML_TAGS)
+        output_string = "<%s>%s</%s>" % (
+            html_tag, generate_string("alpha", length), html_tag)
     else:
         raise Exception(
             'Unexpected output type, valid types are "alphanumeric", \
