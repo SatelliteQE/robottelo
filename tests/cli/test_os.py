@@ -53,7 +53,6 @@ class TestOperatingSystem(BaseCLI):
                         "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
 
-        # Grab a random report
         result = OperatingSys().info({'label': name})
         self.assertEqual(result.return_code, 0)
 
@@ -68,9 +67,11 @@ class TestOperatingSystem(BaseCLI):
                         "Operating system create - retcode")
         self.assertEqual(result.return_code, 0)
 
-        # Grab a random report
         result = OperatingSys().delete({'label': name})
         self.assertEqual(result.return_code, 0)
+
+        result = OperatingSys().info({'label': name})
+        self.assertEqual(result.return_code, 128)
 
     def test_update(self):
         """
@@ -85,8 +86,9 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(result.return_code, 0)
         result = OperatingSys().info({'label': name})
 
-        # Grab a random report
         result = OperatingSys().update({'id': result.stdout['Id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
         result = OperatingSys().info({'label': name})
         self.assertEqual(result.return_code, 0)
+        # this will check the updation of major == 3
+        self.assertEqual(name + " 3.1", result.stdout['Name'])
