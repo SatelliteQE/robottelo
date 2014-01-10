@@ -82,13 +82,13 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(result['name'], os_info.stdout['name'])
         result = OperatingSys().info({'label': nm})
 
-        print result
         result = OperatingSys().update({'id': result.stdout['id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
         result = OperatingSys().info({'label': nm})
         self.assertEqual(result.return_code, 0)
         nm = result.stdout['name']
+        major = result.stdout['major']
         # this will check the updation of major == 3
         self.assertEqual(nm, result.stdout['name'])
-        self.assertEqual(3,result.stdout['major'])
+        self.assertEqual(major,result.stdout['major'])
 
