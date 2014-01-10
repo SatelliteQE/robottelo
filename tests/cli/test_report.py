@@ -47,9 +47,9 @@ class TestReport(BaseCLI):
 
         # Grab a random report
         report = random.choice(result.stdout)
-        result = Report().info({'id': report['Id']})
+        result = Report().info({'id': report['id']})
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(report['Id'], result.stdout['Id'])
+        self.assertEqual(report['id'], result.stdout['id'])
 
     def test_delete(self):
         """
@@ -63,7 +63,7 @@ class TestReport(BaseCLI):
 
         # Grab a random report
         report = random.choice(result.stdout)
-        result = Report().delete({'id': report['Id']})
+        result = Report().delete({'id': report['id']})
         self.assertEqual(result.return_code, 0)
-        result = Report().info({'id': report['Id']})
+        result = Report().info({'id': report['id']})
         self.assertTrue(result.stderr)

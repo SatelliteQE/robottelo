@@ -27,6 +27,7 @@ class TestUser(BaseCLI):
         }
 
         ret = User().create(args)
+        self.assertTrue(ret.return_code == 0, "User was not created")
         self.assertTrue(User().exists(('login', args['login'])))
 
         return ret.return_code
@@ -48,7 +49,7 @@ class TestUser(BaseCLI):
         user = User().exists(('login', login))
 
         args = {
-            'id': user['Id'],
+            'id': user['id'],
         }
 
         ret = User().delete(args)

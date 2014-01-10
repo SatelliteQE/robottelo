@@ -38,7 +38,7 @@ class TestFact(BaseCLI):
         result = Fact().list(args)
         stdout = result.stdout
 
-        self.assertEqual(stdout[0]['Fact'], fact)
+        self.assertEqual(stdout[0]['fact'], fact)
 
     @data(
         generate_name(), generate_name(), generate_name(), generate_name(),

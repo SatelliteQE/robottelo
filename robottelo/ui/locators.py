@@ -126,7 +126,12 @@ menu_locators = {
     # Account Menu
     "menu.account": (By.XPATH, "//a[@id='account_menu']"),
     "menu.sign_out": (By.XPATH, "//a[@id='menu_item_logout']"),
-    "menu.my_account": (By.XPATH, "//a[@id='menu_item_my_account']")}
+    "menu.my_account": (By.XPATH, "//a[@id='menu_item_my_account']"),
+    
+    # Orgs
+    "org.manage_org": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]")}  # @IgnorePep8
 
 tab_locators = {
 
@@ -206,6 +211,23 @@ locators = {
     "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
 
     # Organizations
+    "org.any_context": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
+    "org.new": (
+        By.XPATH,
+        "//a[@class='btn btn-success' and contains(@href, '/organizations/new')]"),
+    "org.name": (By.ID, "organization_name"),
+    "org.proceed_to_edit": (
+        By.XPATH,
+        "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
+    "org.org_name": (By.LINK_TEXT, "%s"),
+    "org.dropdown": (
+        By.XPATH,
+        "//table[@class='table table-bordered table-striped']/tbody/tr/td/div/a[@class='btn btn-default btn-sm dropdown-toggle']"),   # @IgnorePep8
+    "org.delete": (
+        By.XPATH,
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     #Operating system (OS)
     "operatingsys.new": (
@@ -365,8 +387,16 @@ locators = {
     "users.admin_role": (By.ID, "user_admin"),
     "users.select_role": (By.XPATH, "//li/span[contains(., '%s')]"),
     "users.role": (
-        By.XPATH,
-        "//label[@class='role' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
+        By.XPATH, "//label[@class='role' and normalize-space(.)='%s']/input[@type='checkbox']"),
+
+    #User Groups
+    "usergroups.new": (By.XPATH, "//a[contains(@href, '/usergroups/new')]"),
+    "usergroups.name": (By.ID, "usergroup_name"),
+    "usergroups.user": (By.XPATH, "//label[@class='user' and normalize-space(.)='%s']/input[@id='usergroup_user_ids_']"),
+    "usergroups.select_user": (By.XPATH, "//div[@id='ms-usergroup_user_ids']//li/span[contains(., '%s')]"),
+    "usergroups.usergroup": (By.XPATH, "//a[contains(., '%s')]"),
+    "usergroups.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     #Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
