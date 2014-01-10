@@ -3,6 +3,7 @@
 
 """
 Base class for all UI operations
+
 """
 
 import logging.config
