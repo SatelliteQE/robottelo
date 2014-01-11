@@ -161,13 +161,13 @@ def generate_string(str_type, length):
             unichr(random.choice(output_array)) for x in xrange(length))
         output_string.encode('utf-8')
     elif str_type == "html":
-        html_tag = random.choice(HTML_TAGS)
+        html_tag = random.choice(HTML_TAGS).lower()
         output_string = "<%s>%s</%s>" % (
             html_tag, generate_string("alpha", length), html_tag)
     else:
         raise Exception(
-            'Unexpected output type, valid types are "alphanumeric", \
-            "alpha", "numeric", "latin1", "utf8"')
+            'Unexpected output type, valid types are \"alpha\", \
+            \"alphanumeric\", \"html\", \"latin1\", \"numeric\" or \"utf8\".')
     return output_string
 
 
