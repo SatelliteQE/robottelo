@@ -21,10 +21,10 @@ def test_positive_create(self, data):
     result = self.factory_obj().info(
         {self.search_key: new_obj[self.search_key]})
 
-    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
     self.assertTrue(result.return_code == 0, "Failed to create object")
     self.assertTrue(
         len(result.stderr) == 0, "There should not be an exception here")
+    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
 
 
 def test_negative_create(self, data):
@@ -81,18 +81,26 @@ def test_positive_update(self, data):
     self.assertTrue(
         len(result.stderr) == 0, "There should not be an exception here")
 
+    # Store the new object for future assertions and to use its ID
+    new_obj = result.stdout
+
     # Update original data with new values
     orig_dict['id'] = result.stdout['id']
     orig_dict.update(updates_dict)
     # Now update the Foreman object
     result = self.factory_obj().update(orig_dict)
     self.assertTrue(result.return_code == 0, "Failed to update object")
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+    self.assertTrue(
+        len(result.stderr) == 0, "There should not be an exception here")
 
-    # Verify that new values are correct
-    for key, value in updates_dict.items():
-        self.assertEqual(result.stdout[key], value, "Failed to update field")
+    result = self.factory_obj().info({'id': new_obj['id']})
+
+    # Verify that standard values are correct
+    self.assertEqual(new_obj['id'], result.stdout['id'], "IDs should match")
+    self.assertNotEqual(
+        new_obj[self.search_key], result.stdout[self.search_key])
+    # There should be some attributes changed now
+    self.assertNotEqual(new_obj, result.stdout, "Object should be updated")
 
 
 def test_negative_update(self, data):
@@ -122,25 +130,27 @@ def test_negative_update(self, data):
     new_obj = self.factory(orig_dict)
     result = self.factory_obj().info(
         {self.search_key: new_obj[self.search_key]})
+    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
     self.assertTrue(result.return_code == 0, "Failed to create object")
+    self.assertTrue(
+        len(result.stderr) == 0, "There should not be an exception here")
 
-    # Store the new object for future assertions
+    # Store the new object for future assertionss and to use its ID
     new_obj = result.stdout
 
     # Update original data with new values
-    orig_dict['id'] = result.stdout['id']
+    orig_dict['id'] = int(result.stdout['id'])
     orig_dict.update(updates_dict)
     # Now update the Foreman object
     result = self.factory_obj().update(orig_dict)
-    self.assertFalse(result.return_code == 0, "Object should not be updated")
+    #self.assertFalse(result.return_code == 0, "Object should not be
+    #updated")
+    self.assertFalse(result.return_code == 0, "%s, %s" % (data, result.stdout))
     self.assertTrue(len(result.stderr) > 0, "There should be errors")
     result = self.factory_obj().info(
         {self.search_key: new_obj[self.search_key]})
-
     # Verify that new values were not updated
-    for key, value in updates_dict.items():
-        self.assertNotEqual(
-            result.stdout[key], value, "Values should not have changed")
+    self.assertEqual(new_obj, result.stdout, "Object should not be updated")
 
 
 def test_positive_delete(self, data):
@@ -166,14 +176,16 @@ def test_positive_delete(self, data):
         {self.search_key: new_obj[self.search_key]})
     self.assertTrue(result.return_code == 0, "Failed to create object")
 
+    # Store the new object for future assertionss and to use its ID
+    new_obj = result.stdout
+
     # Now delete it...
     result = self.factory_obj().delete(
-        {self.search_key: result.stdout[self.search_key]})
+        {'id': new_obj['id']})
     self.assertTrue(result.return_code == 0, "Failed to delete object")
     self.assertTrue(len(result.stderr) == 0)
     # ... and make sure it does not exist anymore
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+    result = self.factory_obj().info({'id': new_obj['id']})
     self.assertFalse(result.return_code == 0, "Return code should not be zero")
     self.assertTrue(len(result.stderr) > 0, "Should have gotten an error")
     self.assertEqual(result.stdout, [], "Should not get any output")
