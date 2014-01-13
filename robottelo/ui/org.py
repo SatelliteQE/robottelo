@@ -36,11 +36,17 @@ class Org(Base):
             raise Exception(
                 "Unable to create the Organization '%s'" % org_name)
 
+    def search(self, name):
+        """
+        Searches existing Organization from UI
+        """
+        self.search_entity(name, locators["org.org_name"])
+
     def update(self, org_name, new_name=None,):
         """
         Update Organization in UI
         """
-        org_object = self.search(org_name, locators["org.org_name"])
+        org_object = self.search(org_name)
         self.wait_for_ajax()
         if org_object:
             org_object.click()

@@ -60,6 +60,12 @@ class OperatingSys(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
+    def search(self, name):
+        """
+        Searches existing operating system from UI
+        """
+        self.search_entity(name, locators['operatingsys.operatingsys_name'])
+
     def delete(self, os_name, really):
         """
         Delete operating system from UI
@@ -77,9 +83,7 @@ class OperatingSys(Base):
         Update all entities(arch, Partition table, medium) of OS from UI
         """
 
-        element = self.search(
-            os_name, locators['operatingsys.operatingsys_name']
-        )
+        element = self.search(os_name)
 
         if element:
             element.click()
@@ -123,11 +127,7 @@ class OperatingSys(Base):
         """
         Add new OS parameter
         """
-
-        element = self.search(
-            os_name, locators['operatingsys.operatingsys_name']
-        )
-
+        element = self.search(os_name)
         if element:
             element.click()
             self.set_parameter(param_name, param_value)
@@ -138,11 +138,7 @@ class OperatingSys(Base):
         """
         Remove selected OS parameter
         """
-
-        element = self.search(
-            os_name, locators['operatingsys.operatingsys_name']
-        )
-
+        element = self.search(os_name)
         if element:
             element.click()
             self.remove_parameter(param_name)

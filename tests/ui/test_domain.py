@@ -5,7 +5,7 @@
 Test class for Domain UI
 """
 
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
 
@@ -25,9 +25,7 @@ class Domain(BaseUI):
         self.domain.create(name, description)
         # UI throwing 'PGError' while performing search
         self.assertTrue(self,
-                        self.domain.search(description,
-                                           locators
-                                           ['domain.domain_description']))
+                        self.domain.search(description))
 
     def test_create_domain(self):
         """create new Domain"""
@@ -53,9 +51,7 @@ class Domain(BaseUI):
         self.create_domain(name, description)
         self.domain.update(name, new_name, new_description)
         self.assertIsNotNone(self,
-                             self.domain.search(new_description,
-                                                locators
-                                                ['domain.domain_description']))
+                             self.domain.search(new_description))
 
     def test_set_parameter(self):
         """Set domain parameter"""

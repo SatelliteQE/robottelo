@@ -5,7 +5,7 @@
 Test class for Partition Table UI
 """
 
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
@@ -24,8 +24,7 @@ class PartitionTable(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(name, layout, os_family)
-        self.assertIsNotNone(self.partitiontable.search
-                            (name, locators['ptable.ptable_name']))
+        self.assertIsNotNone(self.partitiontable.search(name))
 
     def test_remove_partition_table(self):
         "Delete Partition table"
@@ -51,5 +50,4 @@ class PartitionTable(BaseUI):
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(name, layout, os_family)
         self.partitiontable.update(name, new_name, new_layout, new_os_family)
-        self.assertIsNotNone(self, self.partitiontable.search
-                             (new_name, locators['ptable.ptable_name']))
+        self.assertIsNotNone(self, self.partitiontable.search(new_name))

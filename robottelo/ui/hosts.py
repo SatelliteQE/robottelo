@@ -73,6 +73,12 @@ class Hosts(Base):
             Select(vm_mem).select_by_visible_text(memory)
         self.find_element(common_locators["submit"]).click()
 
+    def search(self, name):
+        """
+        Searches existing host from UI
+        """
+        self.search_entity(name, locators["host.select_name"])
+
     def delete(self, name, really):
         """
         Deletes a host.

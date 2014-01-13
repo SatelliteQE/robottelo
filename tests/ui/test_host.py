@@ -3,7 +3,7 @@
 
 import unittest
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -24,7 +24,7 @@ class Host(BaseUI):
                           memory="768 MB")
         self.navigator.go_to_hosts()
         #confirm the Host appears in the UI
-        search = self.hosts.search(name, locators["host.select_name"])
+        search = self.hosts.search(name)
         self.assertIsNotNone(search)
 
     @unittest.skip("Test needs to create other required stuff")

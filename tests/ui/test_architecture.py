@@ -7,7 +7,6 @@ Test class for Architecture UI
 
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
-from robottelo.ui.locators import locators
 from tests.ui.baseui import BaseUI
 
 
@@ -22,9 +21,7 @@ class Architecture(BaseUI):
         major_version = major_version or generate_string('numeric', 1)
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(os_name, major_version)
-        self.assertIsNotNone(self.operatingsys.search
-                             (os_name,
-                              locators['operatingsys.operatingsys_name']))
+        self.assertIsNotNone(self.operatingsys.search(os_name))
 
     def test_create_arch(self):
         "Create new Arch"
@@ -35,9 +32,7 @@ class Architecture(BaseUI):
         self.create_os(os_name, major_version)  # create os
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(name, os_name)
-        self.assertIsNotNone(self.architecture.search(name,
-                                                      locators
-                                                      ['arch.arch_name']))
+        self.assertIsNotNone(self.architecture.search(name))
 
     def test_remove_arch(self):
         "Delete Arch"
@@ -49,9 +44,7 @@ class Architecture(BaseUI):
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(name, os_name)
         self.architecture.delete(name, True)
-        self.assertFalse(self.architecture.search(name,
-                                                  locators
-                                                  ['arch.arch_name']))
+        self.assertFalse(self.architecture.search(name))
 
     def test_update_arch(self):
         "Update arch with new arch-name and new OS"
@@ -64,6 +57,4 @@ class Architecture(BaseUI):
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(oldname)
         self.architecture.update(oldname, newname, new_osname)
-        self.assertTrue(self.architecture.search(newname,
-                                                 locators
-                                                 ['arch.arch_name']))
+        self.assertTrue(self.architecture.search(newname))

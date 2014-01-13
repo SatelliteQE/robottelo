@@ -31,8 +31,7 @@ class Medium(BaseUI):
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
-        self.assertIsNotNone(self, self.medium.search
-                            (name, locators['medium.medium_name']))
+        self.assertIsNotNone(self, self.medium.search(name))
 
     def test_remove_medium(self):
         "Delete Media"
@@ -56,5 +55,4 @@ class Medium(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
         self.medium.update(name, newname, newpath, new_os_family)
-        self.assertTrue(self, self.medium.search
-                        (newname, locators['medium.medium_name']))
+        self.assertTrue(self, self.medium.search(newname))

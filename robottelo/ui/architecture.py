@@ -35,6 +35,12 @@ class Architecture(Base):
         self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
+    def search(self, name):
+        """
+        Searches existing architecture from UI
+        """
+        self.search_entity(name, locators['arch.arch_name'])
+
     def delete(self, name, really):
         """
         Delete existing architecture from UI
@@ -48,7 +54,7 @@ class Architecture(Base):
         Update existing arch's name and OS
         """
 
-        element = self.search(oldname, locators['arch.arch_name'])
+        element = self.search(oldname)
 
         if element:
             element.click()

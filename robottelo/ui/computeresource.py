@@ -64,13 +64,19 @@ class ComputeResource(Base):
                                  libvirt_display, tenant, libvirt_set_passwd)
         self.find_element(common_locators["submit"]).click()
 
+    def search(self, name):
+        """
+        Searches existing compute resource from UI
+        """
+        self.search_entity(name, locators["resource.select_name"])
+
     def update(self, oldname, newname, provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
                libvirt_set_passwd=True, tenant=None):
         """
         Updates a compute resource.
         """
-        element = self.search(oldname, locators["resource.select_name"])
+        element = self.search(oldname)
         if element:
             element.click()
             strategy = locators["resource.edit"][0]

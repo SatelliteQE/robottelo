@@ -42,7 +42,7 @@ class Base(object):
                 "Failed to locate element. ERROR: %s" % str(error))
             return None
 
-    def search(self, element_name, element_locator, search_key=None):
+    def search_entity(self, element_name, element_locator, search_key=None):
         """
         Uses the search box to locate an element from a list of elements.
         """
@@ -58,10 +58,12 @@ class Base(object):
             searchbox.send_keys(Keys.RETURN)
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
-
         return element
 
     def handle_alert(self, really):
+        """
+        Handles any alerts
+        """
         if really:
             alert = self.browser.switch_to_alert()
             alert.accept()
@@ -70,8 +72,12 @@ class Base(object):
             alert.dismiss()
 
     def delete_entity(self, name, really, name_locator, del_locator,
-                      drop_locator=None):
-        searched = self.search(name, name_locator)
+                      drop_locator=None, search_key=None):
+        """
+        Delete an added entity, handles both with and without dropdown.
+        """
+        searched = self.search_entity(name, name_locator,
+                                      search_key=search_key)
         if searched:
             if drop_locator:
                 strategy = drop_locator[0]
