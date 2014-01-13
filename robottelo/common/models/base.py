@@ -27,8 +27,7 @@ class ModelBase(type):
 
         # Ensure initialization is only performed for subclasses of Model
         # (excluding Model class itself).
-        parents = [b for b in bases if isinstance(b, ModelBase) and
-                not (b.__name__ == 'NewBase' and b.__mro__ == (b, object))]
+        parents = [b for b in bases if isinstance(b, ModelBase)]
         if not parents:
             return super_new(cls, name, bases, attrs)
 
