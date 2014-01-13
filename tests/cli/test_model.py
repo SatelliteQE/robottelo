@@ -5,18 +5,13 @@
 Test class for Model CLI
 """
 
-from basecli import BaseCLI
-from ddt import ddt
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
-from robottelo.cli.metatest import MetaCLITest
 from robottelo.common.helpers import generate_name
+from tests.cli.basecli import MetaCLI
 
 
-@ddt
-class TestModel(BaseCLI):
-
-    __metaclass__ = MetaCLITest
+class TestModel(MetaCLI):
 
     factory = make_model
     factory_obj = Model
@@ -35,12 +30,3 @@ class TestModel(BaseCLI):
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
         self.assertEqual(result['vendor-class'], model.stdout['Vendor class'])
-
-    def test_positive_create(self):
-        pass
-
-    def test_negative_create(self):
-        pass
-
-    def test_positive_delete(self):
-        pass
