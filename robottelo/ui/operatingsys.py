@@ -77,7 +77,9 @@ class OperatingSys(Base):
         """
         Searches existing operating system from UI
         """
-        self.search_entity(name, locators['operatingsys.operatingsys_name'])
+        element = self.search_entity(name,
+                                     locators['operatingsys.operatingsys_name'])  # @IgnorePep8
+        return element
 
     def delete(self, os_name, really):
         """

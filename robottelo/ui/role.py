@@ -39,7 +39,8 @@ class Role(Base):
         """
         Searches existing role from UI
         """
-        self.search_entity(name, locators["roles.role"])
+        element = self.search_entity(name, locators["roles.role"])
+        return element
 
     def remove(self, name, really):
         """

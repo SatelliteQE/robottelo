@@ -49,7 +49,9 @@ class Template(Base):
         """
         Searches existing template from UI
         """
-        self.search_entity(name, locators["provision.template_select"])
+        element = self.search_entity(name,
+                                     locators["provision.template_select"])
+        return element
 
     def update(self, name, os_list, custom_really, new_name=None,
                template_path=None, template_type=None):

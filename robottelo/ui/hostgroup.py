@@ -46,7 +46,8 @@ class Hostgroup(Base):
         """
         Searches existing hostgroup from UI
         """
-        self.search_entity(name, locators["hostgroups.hostgroup"])
+        element = self.search_entity(name, locators["hostgroups.hostgroup"])
+        return element
 
     def delete(self, name, really=False):
         """

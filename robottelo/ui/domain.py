@@ -44,7 +44,9 @@ class Domain(Base):
         """
         Searches existing domain from UI
         """
-        self.search_entity(name, locators['domain.domain_description'])
+        element = self.search_entity(name,
+                                     locators['domain.domain_description'])
+        return element
 
     def delete(self, name, really):
         """

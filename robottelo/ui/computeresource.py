@@ -68,7 +68,8 @@ class ComputeResource(Base):
         """
         Searches existing compute resource from UI
         """
-        self.search_entity(name, locators["resource.select_name"])
+        element = self.search_entity(name, locators["resource.select_name"])
+        return element
 
     def update(self, oldname, newname, provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,

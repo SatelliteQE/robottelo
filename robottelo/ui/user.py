@@ -53,7 +53,9 @@ class User(Base):
         """
         Searches existing user from UI
         """
-        self.search_entity(name, locators["users.user"], search_key=search_key)
+        element = self.search_entity(name, locators["users.user"],
+                                     search_key=search_key)
+        return element
 
     def delete(self, name, search_key, really=False):
         """
