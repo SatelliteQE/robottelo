@@ -17,7 +17,10 @@ class Subnet(BaseUI):
 
     def create_subnet(self, subnet_name=None, subnet_network=None,
                       subnet_mask=None,):
-        "Create Subnet with navigation steps"
+        """
+        Create Subnet with navigation steps
+        """
+
         subnet_name = subnet_name or generate_name(8, 8)
         subnet_network = subnet_network or generate_ipaddr(ip3=True)
         self.navigator.go_to_subnets()  # go to subnet page
@@ -25,7 +28,10 @@ class Subnet(BaseUI):
         #TODO: Unable to capture the success message for now
 
     def test_create_subnet(self):
-        "Create new subnet - given subnet name, subnet network, subnet mask"
+        """
+        Create new subnet - given subnet name, subnet network, subnet mask
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -34,7 +40,10 @@ class Subnet(BaseUI):
         self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
 
     def test_remove_subnet_1(self):
-        "Delete subnet - Create subnet and delete the same"
+        """
+        Delete subnet - Create subnet and delete the same
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -45,8 +54,11 @@ class Subnet(BaseUI):
         self.assertFalse(self.subnet.search_subnet(subnet_name))
 
     def test_remove_subnet_2(self):
-        "Delete subnet - Create subnet. Attempt to delete subnet but cancel \
-            in the confirmation dialog box"
+        """"
+        Delete subnet - Create subnet. Attempt to delete subnet but cancel
+        in the confirmation dialog box
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -56,7 +68,10 @@ class Subnet(BaseUI):
         self.assertTrue(self.subnet.search_subnet(subnet_name))
 
     def test_update_subnet_1(self):
-        "Update subnet name"
+        """
+        Update subnet name
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -68,7 +83,10 @@ class Subnet(BaseUI):
         self.assertEqual(new_subnet_name, result_object['name'])
 
     def test_update_subnet_2(self):
-        "Update subnet network"
+        """
+        Update subnet network
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -80,7 +98,10 @@ class Subnet(BaseUI):
         self.assertEqual(new_subnet_network, result_object['network'])
 
     def test_update_subnet_3(self):
-        "Update subnet mask"
+        """
+        Update subnet mask
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -92,7 +113,10 @@ class Subnet(BaseUI):
         self.assertEqual(new_subnet_mask, result_object['mask'])
 
     def test_search_subnet_1(self):
-        "Search subnet - Given the subnet name"
+        """
+        Search subnet - Given the subnet name
+        """
+
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -104,7 +128,10 @@ class Subnet(BaseUI):
         self.assertEqual(subnet_mask, result_object['mask'])
 
     def test_search_subnet_2(self):
-        "Search subnet - Search for a non-existent subnet"
+        """
+        Search subnet - Search for a non-existent subnet
+        """
+
         subnet_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.assertFalse(self.subnet.search_subnet(subnet_name))

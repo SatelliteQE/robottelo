@@ -41,6 +41,7 @@ class Domain(BaseUI):
         self.domain.delete(name, really=True)
         self.assertTrue(self.user.wait_until_element(common_locators
                                                      ["notif.success"]))
+        self.assertIsNone(self.domain.search(name))
 
     def test_update_domain(self):
         """Create new domain and update its name, description"""
