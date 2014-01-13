@@ -5,38 +5,77 @@
 Test class for User CLI
 """
 
-from basecli import BaseCLI
 from robottelo.cli.user import User
+from robottelo.cli.factory import make_user
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
+from tests.cli.basecli import MetaCLI
 
 
-class TestUser(BaseCLI):
+class TestUser(MetaCLI):
 
-    def _create_user(self, login=None, fname=None, lname=None,
-                     email=None, admin=None, passwd1=None, auth_id=1):
+    factory = make_user
+    factory_obj = User
+    search_key = 'id'
 
-        args = {
-            'login': login or generate_name(6),
-            'firstname': fname or generate_name(),
-            'lastname': lname or generate_name(),
-            'mail': email or "%s@example.com" % login,
-            'admin': admin,
-            'password': passwd1 or generate_name(),
-            'auth-source-id': auth_id,
-        }
+    POSITIVE_CREATE_DATA = (
+        {'login': generate_string("latin1", 10).encode("utf-8")},
+        {'login': generate_string("utf8", 10).encode("utf-8")},
+        {'login': generate_string("alpha", 10)},
+        {'login': generate_string("alphanumeric", 10)},
+        {'login': generate_string("numeric", 10)},
+        {'login': generate_string("html", 10)},
+    )
 
-        ret = User().create(args)
-        self.assertTrue(ret.return_code == 0, "User was not created")
-        self.assertTrue(User().exists(('login', args['login'])))
+    NEGATIVE_CREATE_DATA = (
+        {'login': generate_string("latin1", 300).encode("utf-8")},
+        {'login': " "},
+        {'': generate_string("alpha", 10)},
+        {generate_string("alphanumeric", 10): " "},
+    )
 
-        return ret.return_code
+    POSITIVE_UPDATE_DATA = (
+        ({'login': generate_string("latin1", 10).encode("utf-8")},
+         {'lastname': generate_string("latin1", 10).encode("utf-8")}),
+        ({'login': generate_string("utf8", 10).encode("utf-8")},
+         {'lastname': generate_string("utf8", 10).encode("utf-8")}),
+        ({'login': generate_string("alpha", 10)},
+         {'lastname': generate_string("alpha", 10)}),
+        ({'login': generate_string("alphanumeric", 10)},
+         {'lastname': generate_string("alphanumeric", 10)}),
+        ({'login': generate_string("numeric", 10)},
+         {'lastname': generate_string("numeric", 10)}),
+        ({'login': generate_string("utf8", 10).encode("utf-8")},
+         {'lastname': generate_string("html", 6)}),
+    )
+
+    NEGATIVE_UPDATE_DATA = (
+        ({'login': generate_string("utf8", 10).encode("utf-8")},
+         {'lastname': generate_string("utf8", 300).encode("utf-8")}),
+        ({'login': generate_string("utf8", 10).encode("utf-8")},
+         {'lastname': ""}),
+    )
+
+    POSITIVE_DELETE_DATA = (
+        {'login': generate_string("latin1", 10).encode("utf-8")},
+        {'login': generate_string("utf8", 10).encode("utf-8")},
+        {'login': generate_string("alpha", 10)},
+        {'login': generate_string("alphanumeric", 10)},
+        {'login': generate_string("numeric", 10)},
+    )
+    NEGATIVE_DELETE_DATA = (
+        {'id': generate_string("alpha", 10)},
+        {'id': None},
+        {'id': ""},
+        {},
+        {'id': -1},
+    )
 
     def test_create_user_1(self):
         "Successfully creates a new user"
 
         password = generate_name(6)
-        return_code = self._create_user(None, None, password)
+        return_code = make_user({'password': password})
         self.assertEqual(return_code, 0)
 
     def test_delete_user_1(self):
@@ -44,7 +83,7 @@ class TestUser(BaseCLI):
 
         password = generate_name(6)
         login = generate_name(6)
-        self._create_user(login=login, passwd1=password)
+        make_user({'login': login, 'password': password})
 
         user = User().exists(('login', login))
 
@@ -63,9 +102,8 @@ class TestUser(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('utf8', 6).encode('utf-8')
-        return_code = self._create_user(
-            login=login, email=email, passwd1=password)
-        self.assertEqual(return_code, 0)
+        make_user({'login': login, 'email': email, 'password': password})
+        self.assertFalse(User().exists(('login', login)))
 
     def test_create_user_latin1(self):
         "Create latin1 user"
@@ -74,6 +112,5 @@ class TestUser(BaseCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('latin1', 6).encode('utf-8')
-        return_code = self._create_user(
-            login=login, email=email, passwd1=password)
-        self.assertEqual(return_code, 0)
+        make_user({'login': login, 'email': email, 'password': password})
+        self.assertFalse(User().exists(('login', login)))

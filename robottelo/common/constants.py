@@ -7,15 +7,14 @@ Defines various constants
 
 ROBOTTELO_PROPERTIES = "robottelo.properties"
 
-TEMPLATE_TYPES = [
-    'PXELinux',
-    'gPXE',
-    'provision',
-    'finish',
-    'script',
-    'PXEGrub',
-    'snippet',
-]
+FOREMAN_PROVIDERS = {
+    'libvirt': 'Libvirt',
+    'ovirt': 'Ovirt',
+    'ec2': 'EC2',
+    'vmware': 'Vmware',
+    'openstack': 'Openstack',
+    'rackspace': 'Rackspace',
+    'gce': 'GCE'}
 
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
@@ -31,3 +30,23 @@ HTML_TAGS = [
     'SELECT', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'STYLE', 'SUB',
     'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH',
     'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL', 'VAR']
+
+OPERATING_SYSTEMS = [
+    'Archlinux',
+    'Debian',
+    'Gentoo',
+    'Redhat',
+    'Solaris',
+    'Suse',
+    'Windows',
+]
+
+TEMPLATE_TYPES = [
+    'PXELinux',
+    'gPXE',
+    'provision',
+    'finish',
+    'script',
+    'PXEGrub',
+    'snippet',
+]
