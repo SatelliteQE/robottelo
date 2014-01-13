@@ -5,8 +5,6 @@
 Test class for Operating System UI
 """
 
-import unittest
-
 from robottelo.ui.locators import locators
 from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
