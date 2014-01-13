@@ -61,6 +61,35 @@ class Base(object):
 
         return element
 
+    def handle_alert(self, really):
+        if really:
+            alert = self.browser.switch_to_alert()
+            alert.accept()
+        else:
+            alert = self.browser.switch_to_alert()
+            alert.dismiss()
+
+    def delete_entity(self, name, really, name_locator, del_locator,
+                      drop_locator=None):
+        searched = self.search(name, name_locator)
+        if searched:
+            if drop_locator:
+                strategy = drop_locator[0]
+                value = drop_locator[1]
+                dropdown = self.wait_until_element((strategy, value % name))
+                dropdown.click()
+            strategy1 = del_locator[0]
+            value1 = del_locator[1]
+            element = self.wait_until_element((strategy1, value1 % name))
+            if element:
+                element.click()
+                self.handle_alert(really)
+            else:
+                raise Exception(
+                    "Could not select the entity '%s' for deletion." % name)
+        else:
+            raise Exception("Could not search the entity '%s'" % name)
+
     def wait_until_element(self, locator, delay=20):
         """
         Wrapper around Selenium's WebDriver that allows you to pause your test

@@ -78,19 +78,9 @@ class OperatingSys(Base):
         Delete operating system from UI
         """
 
-        element = self.search(os_name, locators['operatingsys.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss(self)
-        else:
-            raise Exception(
-                "Could not delete the operating system '%s'" % os_name)
+        self.delete_entity(os_name, really,
+                           locators['operatingsys.operatingsys_name'],
+                           locators['operatingsys.delete'])
 
     def update(self, os_name, new_name=None,
                major_version=None, minor_version=None,

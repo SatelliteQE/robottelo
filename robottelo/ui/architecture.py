@@ -49,19 +49,8 @@ class Architecture(Base):
         Delete existing architecture from UI
         """
 
-        element = self.search(name, locators['arch.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not delete the architecture '%s'" % name)
+        self.delete_entity(name, really, locators['arch.arch_name'],
+                           locators['arch.delete'])
 
     def update(self, old_name, new_name=None, os_name=None):
         """

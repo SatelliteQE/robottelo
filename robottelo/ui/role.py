@@ -24,7 +24,6 @@ class Role(Base):
         """
         Creates new Role with default permissions
         """
-
         self.wait_until_element(locators["roles.new"]).click()
 
         if self.wait_until_element(locators["roles.name"]):
@@ -40,27 +39,14 @@ class Role(Base):
         """
         Delete existing role
         """
-
-        element = self.search(name, locators['roles.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not find the role '%s'" % name)
+        self.delete_entity(name, really, locators["roles.role"],
+                           locators['roles.delete'])
 
     def update(self, old_name, new_name=None,
                perm_type=None, permissions=None):
         """
         Update role name and permission
         """
-
         element = self.search(old_name, locators['roles.role'])
 
         if element:

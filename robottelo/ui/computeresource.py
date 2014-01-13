@@ -90,25 +90,7 @@ class ComputeResource(Base):
         """
         Removes the compute resource info.
         """
-        searched = self.search(name, locators["resource.select_name"])
-        if searched:
-            strategy = locators["resource.dropdown"][0]
-            value = locators["resource.dropdown"][1]
-            dropdown = self.wait_until_element((strategy, value % name))
-            dropdown.click()
-            strategy1 = locators["resource.delete"][0]
-            value1 = locators["resource.delete"][1]
-            element = self.wait_until_element((strategy1, value1 % name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
-            else:
-                raise Exception(
-                    "Could not select the resource '%s' for deletion." % name)
-        else:
-            raise Exception("Could not delete the resource '%s'" % name)
+
+        self.delete_entity(name, really, locators["resource.select_name"],
+                           locators['resource.delete'],
+                           drop_locator=locators["resource.dropdown"])
