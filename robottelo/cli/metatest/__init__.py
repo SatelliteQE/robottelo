@@ -8,6 +8,7 @@ import template_methods
 import types
 
 from ddt import data
+from ddt import ddt
 
 
 # Possible permutations of CRUD tests:
@@ -68,5 +69,8 @@ class MetaCLITest(type):
                 func = data(*params)(getattr(template_methods, test_name))
                 # Add method to test class
                 setattr(_klass, test_name, func)
+
+        # Apply ddt decorator to class
+        _klass = ddt(_klass)
 
         return _klass

@@ -6,13 +6,11 @@ Test class for Architecture CLI
 """
 
 from basecli import BaseCLI
-from ddt import ddt
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.factory import make_architecture
 from robottelo.cli.metatest import MetaCLITest
 
 
-@ddt
 class TestArchitecture(BaseCLI):
     """
     Architecture CLI related tests.
