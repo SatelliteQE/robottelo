@@ -5,18 +5,15 @@
 Test class for Architecture CLI
 """
 
-from basecli import BaseCLI
+from basecli import MetaCLI
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.factory import make_architecture
-from robottelo.cli.metatest import MetaCLITest
 
 
-class TestArchitecture(BaseCLI):
+class TestArchitecture(MetaCLI):
     """
     Architecture CLI related tests.
     """
-
-    __metaclass__ = MetaCLITest
 
     factory = make_architecture
     factory_obj = Architecture

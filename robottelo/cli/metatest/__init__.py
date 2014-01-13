@@ -39,6 +39,20 @@ class MetaCLITest(type):
         _klass = super(
             MetaCLITest, mcs).__new__(mcs, name, bases, attributes)
 
+        # When loading test classes for a test run, the Nose class
+        # loader "transplants" any class that inherits from unittest.TestCase
+        # into an internal class "C". If your test class uses MetaCLI,
+        # then it will automatically also inherit from BaseCLI and
+        # Nose will automatically see a new "C". We want to ignore
+        # this class when using MetaCLITest
+        if name == 'C':
+            return _klass
+
+        # Only perform attribute tests if instance is MetaCLITest
+        parents = [b for b in bases if isinstance(b, MetaCLITest)]
+        if not parents:
+            return _klass
+
         # Make sure test module has required properties
         if not hasattr(_klass, "factory"):
             raise AttributeError("No 'factory' attribute found.")
