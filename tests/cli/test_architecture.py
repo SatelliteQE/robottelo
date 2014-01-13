@@ -6,42 +6,19 @@ Test class for Architecture CLI
 """
 
 from basecli import BaseCLI
+from ddt import ddt
 from robottelo.cli.architecture import Architecture
-from robottelo.common.helpers import generate_name
+from robottelo.cli.factory import make_architecture
+from robottelo.cli.metatest import MetaCLITest
 
 
+@ddt
 class TestArchitecture(BaseCLI):
+    """
+    Architecture CLI related tests.
+    """
 
-    def _create_arch(self, name=None, operating_system_id=None):
+    __metaclass__ = MetaCLITest
 
-        args = {
-            'name': name or generate_name(),
-            #TODO: if operating_system_id is None then fetch
-            # list of available OSes from system.
-            'operatingsystem-ids': operating_system_id or "1",
-        }
-
-        Architecture().create(args)
-
-        self.assertTrue(Architecture().exists(('name', args['name'])))
-
-    def test_create_architecture_1(self):
-        """Successfully creates a new architecture"""
-
-        name = generate_name(6)
-        self._create_arch(name)
-
-    def test_delete_architecture_1(self):
-        """Creates and immediately deletes architecture."""
-
-        name = generate_name(6)
-        self._create_arch(name)
-
-        arch = Architecture().exists(('name', name))
-
-        args = {
-            'id': arch['id'],
-        }
-
-        Architecture().delete(args)
-        self.assertFalse(Architecture().exists(('name', name)))
+    factory = make_architecture
+    factory_obj = Architecture
