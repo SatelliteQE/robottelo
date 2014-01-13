@@ -44,20 +44,8 @@ class PartitionTable(Base):
         Removes existing partition table from UI
         """
 
-        element = self.search(name, locators['ptable.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not delete the partition table '%s'" % name)
-        self.wait_for_ajax()
+        self.delete_entity(name, really, locators["ptable.ptable_name"],
+                           locators['ptable.delete'])
 
     def update(self, oldname, new_name=None,
                new_layout=None, new_os_family=None):

@@ -45,20 +45,8 @@ class Domain(Base):
         Delete existing domain from UI
         """
 
-        element = self.search(name, locators['domain.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss(self)
-        else:
-            raise Exception(
-                "Could not delete the domain '%s'" % name)
-        self.wait_for_ajax()
+        self.delete_entity(name, really, locators['domain.domain_description'],
+                           locators['domain.delete'])
 
     def update(self, old_description, new_name=None,
                new_description=None, new_dns_proxy=None):

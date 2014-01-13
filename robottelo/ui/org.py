@@ -57,27 +57,7 @@ class Org(Base):
         """
         Remove Organization in UI
         """
-        self.search(org_name, locators["org.org_name"])
-        self.wait_until_element(locators["org.dropdown"])
-        dropdown = self.find_element(locators["org.dropdown"])
-        if dropdown:
-            dropdown.click()
-            self.wait_for_ajax()
-            element = self.wait_until_element(
-                (locators["org.delete"][0],
-                 locators["org.delete"][1] % org_name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
-                self.wait_for_ajax()
-            else:
-                raise Exception(
-                    "Unable to find the organization '%s'" % org_name)
-        else:
-            raise Exception(
-                "Unable to find the organization dropdown for '%s'" % org_name)
+
+        self.delete_entity(org_name, really, locators["org.org_name"],
+                           locators['org.delete'],
+                           drop_locator=locators["org.dropdown"])

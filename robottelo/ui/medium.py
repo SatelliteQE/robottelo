@@ -44,20 +44,8 @@ class Medium(Base):
         Delete Installation media
         """
 
-        element = self.search(name, locators['medium.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not remove the installation media '%s'" % name)
-        self.wait_for_ajax()
+        self.delete_entity(name, really, locators["medium.medium_name"],
+                           locators['medium.delete'])
 
     def update(self, oldname, newname=None, newpath=None, new_os_family=None):
         """

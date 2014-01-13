@@ -30,12 +30,7 @@ class Template(Base):
         if template_path:
             browse = self.find_element(locators["provision.template_template"])
             browse.send_keys(template_path)
-            if custom_really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
+            self.handle_alert(custom_really)
         if template_type:
             self.wait_until_element(tab_locators["provision.tab_type"]).click()
             type_ele = self.find_element(locators["provision.template_type"])
@@ -64,12 +59,7 @@ class Template(Base):
             if template_path:
                 tp = self.find_element(locators["provision.template_template"])
                 tp.send_keys(template_path)
-                if custom_really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
+                self.handle_alert(custom_really)
             if template_type:
                 type_loc = self.wait_until_element(tab_locators["provision.tab_type"])  # @IgnorePep8
                 type_loc.click()
@@ -92,21 +82,5 @@ class Template(Base):
         """
         Deletes a template.
         """
-        search = self.search(name, locators["provision.template_select"])
-        if search:
-            strategy = locators["provision.template_select"][0]
-            value = locators["provision.template_select"][1]
-            element = self.wait_until_element((strategy, value % name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss(self)
-            else:
-                raise Exception(
-                    "Could not select the template '%s' for deletion." % name)
-        else:
-            raise Exception("Could not delete the template '%s'" % name)
+        self.delete_entity(name, really, locators["provision.template_select"],
+                           locators["provision.template_delete"])
