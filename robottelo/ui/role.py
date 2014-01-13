@@ -35,6 +35,12 @@ class Role(Base):
             raise Exception(
                 "Could not create new role '%s'" % name)
 
+    def search(self, name):
+        """
+        Searches existing role from UI
+        """
+        self.search_entity(name, locators["roles.role"])
+
     def remove(self, name, really):
         """
         Delete existing role
@@ -47,7 +53,7 @@ class Role(Base):
         """
         Update role name and permission
         """
-        element = self.search(old_name, locators['roles.role'])
+        element = self.search(old_name)
 
         if element:
             element.click()

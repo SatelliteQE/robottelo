@@ -54,7 +54,7 @@ class Subnet(Base):
 
         result = None
 
-        subnet_object = self.search(subnet_name,
+        subnet_object = self.search_entity(subnet_name,
                                     locators
                                     ['subnet.display_name'])
 
@@ -80,7 +80,7 @@ class Subnet(Base):
         Update subnet name, network and mask from UI
         """
 
-        subnet_object = self.search(subnet_name,
+        subnet_object = self.search_entity(subnet_name,
                                     locators
                                     ["subnet.display_name"])
 

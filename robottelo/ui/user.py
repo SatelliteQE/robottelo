@@ -49,24 +49,18 @@ class User(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
-    def delete(self, username, search_key, really=False):
+    def search(self, name, search_key):
         """
-        Delete existing user from UI
+        Searches existing user from UI
         """
+        self.search_entity(name, locators["users.user"], search_key=search_key)
 
-        element = self.search(username, locators['users.delete'], search_key)
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss(self)
-        else:
-            raise Exception(
-                "Could not delete the user '%s'" % username)
+    def delete(self, name, search_key, really=False):
+        """
+        Deletes existing user from UI.
+        """
+        self.delete_entity(name, really, locators["users.user"],
+                           locators["users.delete"], search_key=search_key)
 
     def update(self, search_key, username, new_username=None,
                email=None, password=None,
@@ -77,7 +71,7 @@ class User(Base):
         lastname and locale from UI
         """
 
-        element = self.search(username, locators['users.user'], search_key)
+        element = self.search(username, search_key)
 
         if element:
             element.click()

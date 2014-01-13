@@ -6,7 +6,6 @@ Test class for Organization UI
 """
 
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators
 from tests.ui.baseui import BaseUI
 
 
@@ -27,19 +26,18 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
         self.assertIsNotNone(
-            self.org.search(org_name, locators['org.org_name']))
+            self.org.search(org_name))
 
     def test_update_org(self):
         """Update org name - given a valid new org name"""
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
-        self.org.search(org_name, locators["org.org_name"])
+        self.org.search(org_name)
         new_name = generate_name(8, 8)
         self.org.update(org_name, new_name)
         self.assertIsNotNone(
-            self.org.search(
-                new_name, locators["org.org_name"]))
+            self.org.search(new_name))
 
     def test_remove_org(self):
         """Remove org name - given a valid existing org name"""
@@ -48,4 +46,4 @@ class Org(BaseUI):
         self.create_org(org_name)
         self.org.remove(org_name, really=True)
         self.assertIsNone(
-            self.org.search(org_name, locators['org.org_name']))
+            self.org.search(org_name))

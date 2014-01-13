@@ -45,12 +45,18 @@ class Template(Base):
                     element.click()
         self.find_element(common_locators["submit"]).click()
 
+    def search(self, name):
+        """
+        Searches existing template from UI
+        """
+        self.search_entity(name, locators["provision.template_select"])
+
     def update(self, name, os_list, custom_really, new_name=None,
                template_path=None, template_type=None):
         """
         Updates a given template.
         """
-        element = self.search(name, locators["provision.template_select"])
+        element = self.search(name)
         if element:
             element.click()
             self.wait_for_ajax()

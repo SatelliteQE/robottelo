@@ -40,6 +40,12 @@ class Domain(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
+    def search(self, name):
+        """
+        Searches existing domain from UI
+        """
+        self.search_entity(name, locators['domain.domain_description'])
+
     def delete(self, name, really):
         """
         Delete existing domain from UI
@@ -54,8 +60,7 @@ class Domain(Base):
         Update an existing domain's name, description and dns_proxy
         """
 
-        element = self.search(old_description,
-                              locators['domain.domain_description'])
+        element = self.search(old_description)
 
         if element:
             element.click()
@@ -76,8 +81,7 @@ class Domain(Base):
         Add new parameter for domain
         """
 
-        element = self.search(domain_description,
-                              locators['domain.domain_description'])
+        element = self.search(domain_description)
 
         if element:
             element.click()
@@ -88,8 +92,7 @@ class Domain(Base):
         Remove new parameter from domain
         """
 
-        element = self.search(domain_description,
-                              locators['domain.domain_description'])
+        element = self.search(domain_description)
 
         if element:
             element.click()

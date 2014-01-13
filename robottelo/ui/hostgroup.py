@@ -42,6 +42,12 @@ class Hostgroup(Base):
         else:
             raise Exception("Could not create new hostgroup.")
 
+    def search(self, name):
+        """
+        Searches existing hostgroup from UI
+        """
+        self.search_entity(name, locators["hostgroups.hostgroup"])
+
     def delete(self, name, really=False):
         """
         Deletes existing hostgroup from UI
@@ -56,7 +62,7 @@ class Hostgroup(Base):
         Updates existing hostgroup from UI
         """
 
-        element = self.search(name, locators["hostgroups.hostgroup"])
+        element = self.search(name)
 
         if element:
             element.click()

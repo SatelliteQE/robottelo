@@ -39,6 +39,12 @@ class Medium(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
 
+    def search(self, name):
+        """
+        Searches existing medium from UI
+        """
+        self.search_entity(name, locators["medium.medium_name"])
+
     def delete(self, name, really):
         """
         Delete Installation media
@@ -52,7 +58,7 @@ class Medium(Base):
         Update installation media name, media path and OS family
         """
 
-        element = self.search(oldname, locators['medium.medium_name'])
+        element = self.search(oldname)
 
         if element:
             element.click()

@@ -6,7 +6,7 @@ Test class for User UI
 """
 
 from tests.ui.baseui import BaseUI
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
 
@@ -27,8 +27,7 @@ class User(BaseUI):
         email = email or generate_email_address()
         self.navigator.go_to_users()
         self.user.create(name, email, password, password)
-        self.assertIsNotNone(self.user.search
-                             (name, locators['users.user'], search_key))
+        self.assertIsNotNone(self.user.search(name, search_key))
 
     def test_create_user(self):
         """
@@ -87,8 +86,7 @@ class User(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
         self.role.create(role)
-        self.assertIsNotNone(self, self.role.search
-                            (role, locators['roles.role']))
+        self.assertIsNotNone(self, self.role.search(role))
         self.create_user(name, password, email, search_key)
         self.user.update(search_key, name, None, None, None,
                          None, None, None, role)
