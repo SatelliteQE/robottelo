@@ -9,6 +9,7 @@ import logging
 import random
 
 from os import chmod
+from robottelo.cli.architecture import Architecture
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -69,6 +70,29 @@ def create_object(cli_object, args):
 
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
+
+
+def make_architecture(options=None):
+    """
+    Usage:
+        hammer architecture create [OPTIONS]
+
+    Options:
+        --name NAME
+        --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
+                                      Comma separated list of values.
+    """
+
+    args = {
+        'name': generate_name(),
+        'operatingsystem-ids': None,
+    }
+
+    # Override default dictionary with updated one
+    args = update_dictionary(args, options)
+    create_object(Architecture, args)
+
+    return args
 
 
 def make_model(options=None):
