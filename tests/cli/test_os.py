@@ -75,20 +75,19 @@ class TestOperatingSystem(BaseCLI):
          Displays update for operating system.
         """
 
-        nm = generate_name()
+        name = generate_name()
         result = make_os()
         os_info = OperatingSys().info({'label': result['name']})
         result['name'] = os_info.stdout['name']
         self.assertEqual(result['name'], os_info.stdout['name'])
-        result = OperatingSys().info({'label': nm})
+        result = OperatingSys().info({'label': name})
 
         result = OperatingSys().update({'id': result.stdout['id'], 'major': 3})
         self.assertEqual(result.return_code, 0)
-        result = OperatingSys().info({'label': nm})
+        result = OperatingSys().info({'label': name})
         self.assertEqual(result.return_code, 0)
-        nm = result.stdout['name']
+        name = result.stdout['name']
         major = result.stdout['major']
         # this will check the updation of major == 3
-        self.assertEqual(nm, result.stdout['name'])
-        self.assertEqual(major,result.stdout['major'])
-
+        self.assertEqual(name, result.stdout['name'])
+        self.assertEqual(major, result.stdout['major'])
