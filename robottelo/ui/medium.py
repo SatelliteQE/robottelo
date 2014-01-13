@@ -21,6 +21,15 @@ class Medium(Base):
         """
         self.browser = browser
 
+    def _configure_medium(self, os_family=None):
+        """
+        Configures Installation media's OS family
+        """
+        if os_family:
+            Select(self.find_element(locators
+                                     ["medium.os_family"]
+                                     )).select_by_visible_text(os_family)
+
     def create(self, name, path, os_family=None):
         """
         Creates new Installation media
@@ -32,12 +41,15 @@ class Medium(Base):
             self.find_element(locators["medium.name"]).send_keys(name)
             if self.wait_until_element(locators["medium.path"]):
                 self.find_element(locators["medium.path"]).send_keys(path)
-            if os_family:
-                Select(self.find_element(locators
-                                         ["medium.os_family"]
-                                         )).select_by_visible_text(os_family)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+                self._configure_medium(os_family)
+                self.find_element(common_locators["submit"]).click()
+                self.wait_for_ajax()
+            else:
+                raise Exception(
+                    "Could not create new installation media without path")
+        else:
+            raise Exception(
+                "Could not create new installation media '%s'" % name)
 
     def delete(self, name, really):
         """
@@ -57,25 +69,24 @@ class Medium(Base):
         else:
             raise Exception(
                 "Could not remove the installation media '%s'" % name)
-        self.wait_for_ajax()
 
-    def update(self, oldname, newname=None, newpath=None, new_os_family=None):
+    def update(self, old_name, new_name=None, new_path=None, os_family=None):
         """
         Update installation media name, media path and OS family
         """
 
-        element = self.search(oldname, locators['medium.medium_name'])
+        element = self.search(old_name, locators['medium.medium_name'])
 
         if element:
             element.click()
-        if self.wait_until_element(locators["medium.name"]):
-            self.field_update("medium.name", newname)
-        if newpath:
-            if self.wait_until_element(locators["medium.path"]):
-                self.field_update("medium.path", newpath)
-        if new_os_family:
-            Select(self.find_element(locators
-                                     ["medium.os_family"]
-                                     )).select_by_visible_text(new_os_family)
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+            if self.wait_until_element(locators["medium.name"]):
+                self.field_update("medium.name", new_name)
+            if new_path:
+                if self.wait_until_element(locators["medium.path"]):
+                    self.field_update("medium.path", new_path)
+            self._configure_medium(os_family)
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
+        else:
+            raise Exception(
+                "Could not update the installation media '%s'" % old_name)
