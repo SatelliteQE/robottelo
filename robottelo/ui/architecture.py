@@ -48,7 +48,8 @@ class Architecture(Base):
         """
         Searches existing architecture from UI
         """
-        self.search_entity(name, locators['arch.arch_name'])
+        element = self.search_entity(name, locators['arch.arch_name'])
+        return element
 
     def delete(self, name, really):
         """
@@ -62,7 +63,7 @@ class Architecture(Base):
         """
         Update existing arch's name and OS
         """
-        element = self.search(oldname)
+        element = self.search(old_name)
 
         if element:
             element.click()

@@ -40,7 +40,8 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
-        self.search_entity(name, locators["org.org_name"])
+        element = self.search_entity(name, locators["org.org_name"])
+        return element
 
     def update(self, org_name, new_name=None,):
         """

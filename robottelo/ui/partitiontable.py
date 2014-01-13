@@ -56,7 +56,8 @@ class PartitionTable(Base):
         """
         Searches existing partition table from UI
         """
-        self.search_entity(name, locators["ptable.ptable_name"])
+        element = self.search_entity(name, locators["ptable.ptable_name"])
+        return element
 
     def delete(self, name, really):
         """
@@ -71,7 +72,7 @@ class PartitionTable(Base):
         """
         Updates partition table name, layout and OS family
         """
-        element = self.search(oldname)
+        element = self.search(old_name)
 
         if element:
             element.click()

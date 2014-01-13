@@ -77,7 +77,8 @@ class Hosts(Base):
         """
         Searches existing host from UI
         """
-        self.search_entity(name, locators["host.select_name"])
+        element = self.search_entity(name, locators["host.select_name"])
+        return element
 
     def delete(self, name, really):
         """

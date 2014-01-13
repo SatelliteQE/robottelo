@@ -55,7 +55,8 @@ class Medium(Base):
         """
         Searches existing medium from UI
         """
-        self.search_entity(name, locators["medium.medium_name"])
+        element = self.search_entity(name, locators["medium.medium_name"])
+        return element
 
     def delete(self, name, really):
         """
@@ -68,7 +69,7 @@ class Medium(Base):
         """
         Update installation media name, media path and OS family
         """
-        element = self.search(oldname)
+        element = self.search(old_name)
 
         if element:
             element.click()
