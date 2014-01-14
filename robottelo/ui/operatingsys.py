@@ -65,7 +65,6 @@ class OperatingSys(Base):
                 self._configure_os(minor_version,
                                    os_family, arch, ptable, medium)
                 self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
             else:
                 raise Exception(
                     "Could not create OS without major_version")
@@ -113,7 +112,6 @@ class OperatingSys(Base):
             self._configure_os(minor_version, os_family,
                                arch, ptable, medium)
             self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the operating system '%s'" % os_name)

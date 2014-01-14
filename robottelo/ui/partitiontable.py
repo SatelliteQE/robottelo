@@ -43,7 +43,6 @@ class PartitionTable(Base):
                 self.find_element(locators["ptable.layout"]).send_keys(layout)
                 self._configure_partition_table(os_family)
                 self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
             else:
                 raise Exception(
                     "Could not create partition table '%s', \
@@ -83,7 +82,6 @@ class PartitionTable(Base):
                     self.field_update("ptable.layout", new_layout)
             self._configure_partition_table(os_family)
             self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update partition table '%s'" % old_name)

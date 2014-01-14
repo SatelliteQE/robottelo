@@ -7,7 +7,7 @@ Test class for UserGroup UI
 
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -49,7 +49,7 @@ class UserGroup(BaseUI):
         self.create_usergroup(name, None)
         self.usergroup.remove(name, True)
         self.assertTrue(self.usergroup.wait_until_element
-                        (locators["notif.success"]))
+                        (common_locators["notif.success"]))
         #TODO: asserIsNone pending due to issue:3953
 
     def test_update_usergroup(self):
