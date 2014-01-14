@@ -16,16 +16,6 @@ FOREMAN_PROVIDERS = {
     'rackspace': 'Rackspace',
     'gce': 'GCE'}
 
-TEMPLATE_TYPES = [
-    'PXELinux',
-    'gPXE',
-    'provision',
-    'finish',
-    'script',
-    'PXEGrub',
-    'snippet',
-]
-
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
     'BASE', 'BASEFONT', 'BDO', 'BIG', 'BLINK', 'BLOCKQUOTE', 'BODY', 'BR',
@@ -40,3 +30,23 @@ HTML_TAGS = [
     'SELECT', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'STYLE', 'SUB',
     'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH',
     'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL', 'VAR']
+
+OPERATING_SYSTEMS = [
+    'Archlinux',
+    'Debian',
+    'Gentoo',
+    'Redhat',
+    'Solaris',
+    'Suse',
+    'Windows',
+]
+
+TEMPLATE_TYPES = [
+    'PXELinux',
+    'gPXE',
+    'provision',
+    'finish',
+    'script',
+    'PXEGrub',
+    'snippet',
+]

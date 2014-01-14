@@ -30,6 +30,6 @@ class TestHost(BaseCLI):
             "puppet-proxy-id": 1,
             "operatingsystem-id": 1,
             "partition-table-id": 1,
-            "mac": mac_addr
+            "mac": mac_addr()
         }
         Host().create(args)

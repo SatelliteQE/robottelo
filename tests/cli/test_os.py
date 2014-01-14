@@ -6,15 +6,41 @@ Test class for Operating System CLI
 """
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.factory import make_os
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_name, generate_string
 from robottelo.common.decorators import bzbug
-from tests.cli.basecli import BaseCLI
+from tests.cli.basecli import MetaCLI
 
 
-class TestOperatingSystem(BaseCLI):
+class TestOperatingSystem(MetaCLI):
     """
     Test class for Operating System CLI.
     """
+
+    factory = make_os
+    factory_obj = OperatingSys
+
+    # Overide defaults from metaclass
+    POSITIVE_UPDATE_DATA = (
+        ({'name': generate_string("latin1", 10).encode("utf-8")},
+         {'name': generate_string("latin1", 10).encode("utf-8")}),
+        ({'name': generate_string("utf8", 10).encode("utf-8")},
+         {'name': generate_string("utf8", 10).encode("utf-8")}),
+        ({'name': generate_string("alpha", 10)},
+         {'name': generate_string("alpha", 10)}),
+        ({'name': generate_string("alphanumeric", 10)},
+         {'name': generate_string("alphanumeric", 10)}),
+        ({'name': generate_string("numeric", 10)},
+         {'name': generate_string("numeric", 10)}),
+        ({'name': generate_string("utf8", 10).encode("utf-8")},
+         {'name': generate_string("html", 6)}),
+    )
+
+    NEGATIVE_UPDATE_DATA = (
+        ({'name': generate_string("utf8", 10).encode("utf-8")},
+         {'name': generate_string("utf8", 300).encode("utf-8")}),
+        ({'name': generate_string("utf8", 10).encode("utf-8")},
+         {'name': ""}),
+    )
 
     def test_create_os_1(self):
         """Successfully creates a new OS."""

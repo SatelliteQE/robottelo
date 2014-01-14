@@ -5,19 +5,12 @@
 Test class for Hostgroup CLI
 """
 
-from basecli import BaseCLI
 from robottelo.cli.hostgroup import HostGroup
-from robottelo.common.helpers import generate_name
+from robottelo.cli.factory import make_hostgroup
+from tests.cli.basecli import MetaCLI
 
 
-class TestHostGroup(BaseCLI):
+class TestHostGroup(MetaCLI):
 
-    def test_hostgroup_create(self):
-        "Create new hostgroup"
-
-        args = {
-            'name': generate_name(),
-        }
-
-        HostGroup().create(args)
-        self.assertTrue(HostGroup().exists(('name', args['name'])))
+    factory = make_hostgroup
+    factory_obj = HostGroup
