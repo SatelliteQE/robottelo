@@ -5,6 +5,7 @@ Module for mixin of basic crud methods based on api_path class method.
 """
 
 import robottelo.api.base as base
+from robottelo.common.models.fields import load_from_data, convert_to_data
 
 
 class ApiCrudMixin(object):
@@ -15,7 +16,7 @@ class ApiCrudMixin(object):
         raise NotImplementedError()
 
     @classmethod
-    def api_path(cls):
+    def get_api_path(cls):
         """Stores the path to api entry point,
         allows for automatic param definition, i.e.:
 
@@ -24,17 +25,39 @@ class ApiCrudMixin(object):
         will require compute_resource_id to be supplied in each crud call
 
         """
+
+        if hasattr(cls, 'api_path'):
+            return cls.api_path
+
         raise NotImplementedError("Api path needs to be defined")
+
+    @classmethod
+    def get_json_key(cls):
+        """Stores the path to api entry point,
+        allows for automatic param definition, i.e.:
+
+        /api/compute_resources/:compute_resource_id/images
+
+        will require compute_resource_id to be supplied in each crud call
+
+        """
+
+        if hasattr(cls, 'api_json_key'):
+            return cls.api_json_key
+
+        raise NotImplementedError("Api path needs to be defined")
+
 
     @classmethod
     def id_from_json(cls, json):
         """Required for automatic generating of crud tests"""
-        raise NotImplementedError("Api path needs to be defined")
+        return json[cls.get_json_key()][u'id']
+
 
     @classmethod
     def parse_path_arg(cls, args):
         """Method parsing the api_path for extra arguments"""
-        path = cls.api_path()
+        path = cls.get_api_path()
         path_args = [
             s[1:] for s in path.split('/') if s.startswith(":")
         ]
@@ -99,3 +122,20 @@ class ApiCrudMixin(object):
         path = cls.parse_path_arg(kwargs)
         path = "{0}/{1}".format(path, uid)
         return base.delete(path=path, **kwargs)
+
+    @classmethod
+    def opts(cls,instance):
+        return {cls.get_json_key(): convert_to_data(instance)}
+
+    @classmethod
+    def record_create(cls,instance):
+        if cls != instance._meta.api_class:
+            return instance._meta.api_class.record_create(instance)
+
+        r = cls.create(json=cls.opts(instance))
+        if r.ok:
+            nself = instance.copy()
+            instance = load_from_data(nself,r.json()[cls.get_json_key()])
+            return nself
+        else:
+            raise Exception(r.status_code, r.content)

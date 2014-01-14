@@ -1,4 +1,5 @@
-"""Base models definition"""
+import copy
+from robottelo.common.models.fields import convert_to_data
 
 class Options(object):
     def __init__(self, meta):
@@ -111,3 +112,9 @@ class Model(object):
             if kwargs:
                 raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
         super(Model, self).__init__()
+
+    def __str__(self):
+        return convert_to_data(self).__str__()
+
+    def copy(self):
+        return copy.deepcopy(self)
