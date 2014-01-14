@@ -8,7 +8,6 @@ Test class for Host Group UI
 
 from tests.ui.baseui import BaseUI
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators
 
 
 class Hostgroup(BaseUI):
@@ -19,8 +18,7 @@ class Hostgroup(BaseUI):
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)
         #confirm the Hostgroup appears in the UI
-        self.assertIsNotNone(
-            self.hostgroup.search(name, locators["hostgroups.hostgroup"]))
+        self.assertIsNotNone(self.hostgroup.search(name))
 
     def test_delete_hostgroup(self):
         name = generate_name(8)
@@ -28,11 +26,9 @@ class Hostgroup(BaseUI):
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)
         #confirm the Hostgroup appears in the UI
-        self.assertIsNotNone(
-            self.hostgroup.search(name, locators["hostgroups.hostgroup"]))
+        self.assertIsNotNone(self.hostgroup.search(name))
         self.hostgroup.delete(name, really=True)
-        self.assertIsNone(
-            self.hostgroup.search(name, locators["hostgroups.hostgroup"]))
+        self.assertIsNone(self.hostgroup.search(name))
 
     def test_update_hostgroup(self):
         name = generate_name(7)
@@ -41,9 +37,6 @@ class Hostgroup(BaseUI):
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)
         #confirm the Hostgroup appears in the UI
-        self.assertIsNotNone(
-            self.hostgroup.search(name, locators["hostgroups.hostgroup"]))
+        self.assertIsNotNone(self.hostgroup.search(name))
         self.hostgroup.update(name, new_name=updated_name)
-        self.assertIsNotNone(
-            self.hostgroup.search(
-                updated_name, locators["hostgroups.hostgroup"]))
+        self.assertIsNotNone(self.hostgroup.search(updated_name))

@@ -73,29 +73,18 @@ class Hosts(Base):
             Select(vm_mem).select_by_visible_text(memory)
         self.find_element(common_locators["submit"]).click()
 
+    def search(self, name):
+        """
+        Searches existing host from UI
+        """
+        element = self.search_entity(name, locators["host.select_name"])
+        return element
+
     def delete(self, name, really):
         """
         Deletes a host.
         """
-        search = self.search(name, locators["host.select_name"])
-        if search:
-            strategy = locators["host.dropdown"][0]
-            value = locators["host.dropdown"][1]
-            dropdown = self.wait_until_element((strategy, value % name))
-            dropdown.click()
-            strategy1 = locators["host.delete"][0]
-            value1 = locators["host.delete"][1]
-            element = self.wait_until_element((strategy1, value1 % name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
-            else:
-                raise Exception(
-                    "Could not select the host '%s' for deletion." % name)
-        else:
-            raise Exception("Could not delete the host '%s'" % name)
+
+        self.delete_entity(name, really, locators["host.select_name"],
+                           locators['host.delete'],
+                           drop_locator=locators["host.dropdown"])

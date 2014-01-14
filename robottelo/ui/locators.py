@@ -134,7 +134,10 @@ menu_locators = {
         "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
     "org.manage_org": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]")}  # @IgnorePep8
+        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),
+    "org.any_context": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']")}   # @IgnorePep8
 
 tab_locators = {
 

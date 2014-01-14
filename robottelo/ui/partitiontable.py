@@ -52,32 +52,27 @@ class PartitionTable(Base):
             raise Exception(
                 "Could not create partition table '%s'" % name)
 
+    def search(self, name):
+        """
+        Searches existing partition table from UI
+        """
+        element = self.search_entity(name, locators["ptable.ptable_name"])
+        return element
+
     def delete(self, name, really):
         """
         Removes existing partition table from UI
         """
 
-        element = self.search(name, locators['ptable.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not delete the partition table '%s'" % name)
+        self.delete_entity(name, really, locators["ptable.ptable_name"],
+                           locators['ptable.delete'])
 
     def update(self, old_name, new_name=None,
                new_layout=None, os_family=None):
         """
         Updates partition table name, layout and OS family
         """
-
-        element = self.search(old_name, locators['ptable.ptable_name'])
+        element = self.search(old_name)
 
         if element:
             element.click()

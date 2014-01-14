@@ -4,7 +4,6 @@
 """
 Implements Domain UI
 """
-
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
@@ -47,33 +46,27 @@ class Domain(Base):
             raise Exception(
                 "Could not create new domain '%s'" % name)
 
+    def search(self, name):
+        """
+        Searches existing domain from UI
+        """
+        element = self.search_entity(name,
+                                     locators['domain.domain_description'])
+        return element
+
     def delete(self, name, really):
         """
         Delete existing domain from UI
         """
-
-        element = self.search(name, locators['domain.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss(self)
-        else:
-            raise Exception(
-                "Could not delete the domain '%s'" % name)
+        self.delete_entity(name, really, locators['domain.domain_description'],
+                           locators['domain.delete'])
 
     def update(self, old_description, new_name=None,
                description=None, dns_proxy=None):
         """
         Update an existing domain's name, description and dns_proxy
         """
-
-        element = self.search(old_description,
-                              locators['domain.domain_description'])
+        element = self.search(old_description)
 
         if element:
             element.click()
@@ -92,8 +85,7 @@ class Domain(Base):
         Add new parameter for domain
         """
 
-        element = self.search(domain_description,
-                              locators['domain.domain_description'])
+        element = self.search(domain_description)
 
         if element:
             element.click()
@@ -107,8 +99,7 @@ class Domain(Base):
         Remove new parameter from domain
         """
 
-        element = self.search(domain_description,
-                              locators['domain.domain_description'])
+        element = self.search(domain_description)
 
         if element:
             element.click()

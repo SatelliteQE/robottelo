@@ -5,7 +5,7 @@
 Test class for Partition Table UI
 """
 
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
@@ -26,8 +26,7 @@ class PartitionTable(BaseUI):
         os_family = os_family or "Red Hat"
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(name, layout, os_family)
-        self.assertIsNotNone(self.partitiontable.search
-                            (name, locators['ptable.ptable_name']))
+        self.assertIsNotNone(self.partitiontable.search(name))
 
     def test_create_partition_table(self):
         """
@@ -53,8 +52,7 @@ class PartitionTable(BaseUI):
         self.partitiontable.delete(name, really=True)
         self.assertTrue(self.partitiontable.wait_until_element
                         (common_locators["notif.success"]))
-        self.assertIsNone(self.partitiontable.search(name, locators
-                                                     ['ptable.ptable_name']))
+        self.assertIsNone(self.partitiontable.search(name))
 
     def test_update_partition_table(self):
         """
@@ -70,5 +68,4 @@ class PartitionTable(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_partition_table(name, layout, os_family)
         self.partitiontable.update(name, new_name, new_layout, new_os_family)
-        self.assertIsNotNone(self, self.partitiontable.search
-                             (new_name, locators['ptable.ptable_name']))
+        self.assertIsNotNone(self, self.partitiontable.search(new_name))
