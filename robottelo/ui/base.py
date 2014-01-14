@@ -5,6 +5,7 @@
 Base class for all UI operations
 """
 
+import time
 import logging.config
 
 from robottelo.ui.locators import locators, common_locators, tab_locators
@@ -47,6 +48,7 @@ class Base(object):
         Uses the search box to locate an element from a list of elements.
         """
 
+        time.sleep(3)
         search_key = search_key or "name"
         element = None
 
@@ -180,7 +182,7 @@ class Base(object):
             pvalue = self.find_element(common_locators["parameter_value"])
             pvalue.send_keys(param_value)
         self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+        #self.wait_for_ajax()
 
     def remove_parameter(self, param_name):
         """

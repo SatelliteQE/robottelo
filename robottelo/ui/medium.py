@@ -43,7 +43,6 @@ class Medium(Base):
                 self.find_element(locators["medium.path"]).send_keys(path)
                 self._configure_medium(os_family)
                 self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
             else:
                 raise Exception(
                     "Could not create new installation media without path")
@@ -80,7 +79,6 @@ class Medium(Base):
                     self.field_update("medium.path", new_path)
             self._configure_medium(os_family)
             self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the installation media '%s'" % old_name)

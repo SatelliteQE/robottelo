@@ -39,7 +39,6 @@ class Architecture(Base):
             self.field_update("arch.name", name)
             self._configure_arch(os_name)
             self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new architecture '%s'" % name)
@@ -71,7 +70,6 @@ class Architecture(Base):
                 self.field_update("arch.name", new_name)
                 self._configure_arch(os_name)
                 self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the architecture '%s'" % old_name)
