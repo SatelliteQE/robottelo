@@ -5,8 +5,6 @@
 Implements User UI
 """
 
-import time
-
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
@@ -49,6 +47,7 @@ class User(Base):
                 Select(self.find_element(locators["users.language"]
                                          )).select_by_value(locale)
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
 
     def search(self, name, search_key):
         """
@@ -78,7 +77,7 @@ class User(Base):
 
         if element:
             element.click()
-            time.sleep(3)
+            self.wait_for_ajax()
             if new_username:
                 self.field_update("users.username", new_username)
             if email:
@@ -98,3 +97,4 @@ class User(Base):
                                    "users.select_role", role,
                                    "users.tab_roles")
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()

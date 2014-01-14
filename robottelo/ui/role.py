@@ -30,6 +30,7 @@ class Role(Base):
             self.find_element(locators["roles.name"]).send_keys(name)
 
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new role '%s'" % name)
@@ -82,5 +83,6 @@ class Role(Base):
                                 "Could not find the permission '%s'"
                                 % permission)
                     self.find_element(common_locators["submit"]).click()
+                    self.wait_for_ajax()
         else:
             raise Exception("Could not find role '%s'" % old_name)

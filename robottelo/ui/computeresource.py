@@ -63,6 +63,7 @@ class ComputeResource(Base):
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd)
         self.find_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def search(self, name):
         """
@@ -90,6 +91,7 @@ class ComputeResource(Base):
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception("Could not update the resource '%s'" % oldname)
 
