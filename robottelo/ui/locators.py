@@ -129,6 +129,9 @@ menu_locators = {
     "menu.my_account": (By.XPATH, "//a[@id='menu_item_my_account']"),
 
     # Orgs
+    "org.any_context": (
+        By.XPATH,
+        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
     "org.manage_org": (
         By.XPATH,
         "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),
