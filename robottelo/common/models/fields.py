@@ -12,6 +12,9 @@ class Field(object):
         self.model = None
         self.required = required
 
+    def convert_to_data():
+        return value
+
     def generate(self):
         """Generate a random value for field"""
         raise NotImplementedError('A subclass should create a way to random generate this')
@@ -57,3 +60,14 @@ class ChoiceField(Field):
 
     def generate(self):
         return choice(self.choices)
+
+def convert_to_data(instance):
+    return {k:v for k,v in instance.__dict__.items() if (not k.startswith("_") and k!="")}
+
+def load_from_data(instance,data):
+    for k,v in data.items():
+        instance.__dict__[k] = v
+    return instance
+
+
+
