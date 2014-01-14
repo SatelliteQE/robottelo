@@ -63,6 +63,7 @@ class TestUser(MetaCLI):
         {'login': generate_string("alphanumeric", 10)},
         {'login': generate_string("numeric", 10)},
     )
+
     NEGATIVE_DELETE_DATA = (
         {'id': generate_string("alpha", 10)},
         {'id': None},
@@ -75,7 +76,7 @@ class TestUser(MetaCLI):
         "Successfully creates a new user"
 
         password = generate_name(6)
-        return_code = make_user({'password': password})
+        return_code = self.make_user({'password': password})
         self.assertEqual(return_code, 0)
 
     def test_delete_user_1(self):
@@ -83,7 +84,7 @@ class TestUser(MetaCLI):
 
         password = generate_name(6)
         login = generate_name(6)
-        make_user({'login': login, 'password': password})
+        self.make_user({'login': login, 'password': password})
 
         user = User().exists(('login', login))
 
@@ -102,7 +103,7 @@ class TestUser(MetaCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('utf8', 6).encode('utf-8')
-        make_user({'login': login, 'email': email, 'password': password})
+        self.make_user({'login': login, 'email': email, 'password': password})
         self.assertFalse(User().exists(('login', login)))
 
     def test_create_user_latin1(self):
@@ -112,5 +113,5 @@ class TestUser(MetaCLI):
         email_name = generate_string('alpha', 6)
         email = "%s@example.com" % email_name
         login = generate_string('latin1', 6).encode('utf-8')
-        make_user({'login': login, 'email': email, 'password': password})
+        self.make_user({'login': login, 'email': email, 'password': password})
         self.assertFalse(User().exists(('login', login)))
