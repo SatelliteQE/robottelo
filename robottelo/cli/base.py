@@ -117,7 +117,7 @@ class Base(object):
         output_csv = ""
         if expect_csv:
             output_csv = " --output csv"
-        shell_cmd = "LANG=%s hammer -u %s -p %s" + output_csv + " %s"
+        shell_cmd = "LANG=%s hammer -v -u %s -p %s" + output_csv + " %s"
         cmd = shell_cmd % (self.locale, user, password, command)
 
         return ssh.command(cmd, expect_csv=expect_csv)
