@@ -83,10 +83,10 @@ def test_positive_update(self, data):
 
     result = self.factory_obj().info(
         {self.search_key: new_obj[self.search_key]})
-    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
     self.assertTrue(result.return_code == 0, "Failed to create object")
     self.assertTrue(
         len(result.stderr) == 0, "There should not be an exception here")
+    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
 
     # Store the new object for future assertions and to use its ID
     new_obj = result.stdout
@@ -137,10 +137,10 @@ def test_negative_update(self, data):
     new_obj = self.factory(orig_dict)
     result = self.factory_obj().info(
         {self.search_key: new_obj[self.search_key]})
-    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
     self.assertTrue(result.return_code == 0, "Failed to create object")
     self.assertTrue(
         len(result.stderr) == 0, "There should not be an exception here")
+    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
 
     # Store the new object for future assertionss and to use its ID
     new_obj = result.stdout
@@ -190,7 +190,7 @@ def test_positive_delete(self, data):
     result = self.factory_obj().delete(
         {'id': new_obj['id']})
     self.assertTrue(result.return_code == 0, "Failed to delete object")
-    self.assertTrue(len(result.stderr) == 0)
+    self.assertTrue(len(result.stderr) == 0, "Should get an error.")
     # ... and make sure it does not exist anymore
     result = self.factory_obj().info({'id': new_obj['id']})
     self.assertFalse(result.return_code == 0, "Return code should not be zero")
@@ -226,8 +226,8 @@ def test_negative_delete(self, data):
 
     # Now try to delete it...
     result = self.factory_obj().delete(data)
-    self.assertFalse(result.return_code == 0, "Successfully deleted object")
-    self.assertTrue(len(result.stderr) > 0)
+    self.assertFalse(result.return_code == 0, "Should not delete object")
+    self.assertTrue(len(result.stderr) > 0, "Should have gotten an error")
     # Now make sure that it still exists
     result = self.factory_obj().info(
         {self.search_key: new_obj[self.search_key]})
