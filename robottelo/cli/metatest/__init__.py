@@ -7,8 +7,7 @@ import itertools
 import template_methods
 import types
 
-from ddt import data
-from ddt import ddt
+from ddt import data, ddt
 
 
 # Possible permutations of CRUD tests:

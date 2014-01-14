@@ -9,7 +9,6 @@ POSITIVE_CREATE_DATA = (
     {'name': generate_string("html", 10)},
 )
 
-
 NEGATIVE_CREATE_DATA = (
     {'name': generate_string("latin1", 300).encode("utf-8")},
     {'name': " "},
@@ -46,6 +45,7 @@ POSITIVE_DELETE_DATA = (
     {'name': generate_string("alphanumeric", 10)},
     {'name': generate_string("numeric", 10)},
 )
+
 NEGATIVE_DELETE_DATA = (
     {'id': generate_string("alpha", 10)},
     {'id': None},

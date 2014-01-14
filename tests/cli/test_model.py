@@ -29,4 +29,4 @@ class TestModel(MetaCLI):
         result = self.factory({'vendor-class': generate_name()})
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
-        self.assertEqual(result['vendor-class'], model.stdout['Vendor class'])
+        self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
