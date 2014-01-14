@@ -41,6 +41,7 @@ class Domain(Base):
             self.find_element(locators["domain.name"]).send_keys(name)
             self._configure_domain(description, dns_proxy)
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new domain '%s'" % name)
@@ -73,6 +74,7 @@ class Domain(Base):
                 self.field_update("domain.name", new_name)
             self._configure_domain(description, dns_proxy)
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the domain '%s'" % old_description)

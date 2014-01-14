@@ -41,6 +41,7 @@ class UserGroup(Base):
             self._configure_usergroup(user)
 
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new usergroup '%s'" % name)
@@ -85,5 +86,6 @@ class UserGroup(Base):
                 if self.wait_until_element(locators["usergroups.name"]):
                     self.field_update("usergroups.name", new_name)
             self._configure_usergroup(user)
+            self.wait_for_ajax()
         else:
             raise Exception("Could not find usergroup '%s'" % old_name)

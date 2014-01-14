@@ -36,6 +36,7 @@ class Subnet(Base):
         if self.wait_until_element(locators["subnet.mask"]):
             self.find_element(locators["subnet.mask"]).send_keys(subnet_mask)
         self.wait_until_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def delete(self, subnet_name, really):
         """
@@ -95,3 +96,4 @@ class Subnet(Base):
                 if self.wait_until_element(locators["subnet.mask"]):
                     self.field_update("subnet.mask", new_subnet_mask)
             self.wait_until_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
