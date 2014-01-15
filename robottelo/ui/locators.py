@@ -131,13 +131,10 @@ menu_locators = {
     # Orgs
     "org.any_context": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
+        "//div[contains(@style,'static')]//a[@class='dropdown-toggle' and contains(.,'Any Context')]"),
     "org.manage_org": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),
-    "org.any_context": (
-        By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']")}   # @IgnorePep8
+        "//div[contains(@style,'static')]//a[@class='manage-menu' and contains(@href, 'organizations')]")}
 
 tab_locators = {
 
@@ -227,10 +224,10 @@ locators = {
     "org.org_name": (By.LINK_TEXT, "%s"),
     "org.dropdown": (
         By.XPATH,
-        "//table[@class='table table-bordered table-striped']/tbody/tr/td/div/a[@class='btn btn-default btn-sm dropdown-toggle']"),   # @IgnorePep8
+        "//a[normalize-space(.)='%s' and contains(@href,'organizations')]/../../td/div/a[@data-toggle='dropdown']"),   # @IgnorePep8
     "org.delete": (
         By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+        "//a[@class='delete' and @data-confirm='Delete %s?']"),
 
     #Operating system (OS)
     "operatingsys.new": (
