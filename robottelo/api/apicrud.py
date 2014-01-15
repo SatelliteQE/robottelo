@@ -6,7 +6,8 @@ Module for mixin of basic crud methods based on api_path class method.
 
 import robottelo.api.base as base
 from robottelo.common.models.fields import load_from_data, convert_to_data
-
+from robottelo.common.models.fields import RecordField
+from inspect import getmro
 
 class ApiCrudMixin(object):
     """Defines basic crud methods based on api_path class method """
@@ -14,6 +15,13 @@ class ApiCrudMixin(object):
     def __init__(self):
         """Mixin is not supposed to be instantiated """
         raise NotImplementedError()
+
+    @classmethod
+    def get_default_search(cls):
+        if hasattr(cls, 'default_search'):
+            return cls.default_search
+        return "name"
+
 
     @classmethod
     def get_api_path(cls):
@@ -124,15 +132,73 @@ class ApiCrudMixin(object):
         return base.delete(path=path, **kwargs)
 
     @classmethod
-    def opts(cls,instance):
-        return {cls.get_json_key(): convert_to_data(instance)}
+    def opts(cls, data):
+        return {cls.get_json_key(): data}
+
+    @classmethod
+    def record_exists(cls, instance):
+        if cls != instance._meta.api_class:
+            return instance._meta.api_class.record_exists(instance)
+
+        if hasattr(instance,"id"):
+            r = EnvironmentApi.show(instance.id)
+            return r.ok
+        else:
+            r = cls.list(json=dict(search="name="+instance.name))
+            if r.ok and len(r.json())>0:
+                return True
+            else:
+                return False
+
+    @classmethod
+    def record_resolve(cls, instance):
+        if cls != instance._meta.api_class:
+            return instance._meta.api_class.record_resolve(instance)
+
+        if hasattr(instance,"id"):
+            r = cls.show(instance.id)
+            if r.ok:
+                nself = instance.copy()
+                instance = load_from_data(nself,r.json()[cls.get_json_key()])
+                return nself
+            else:
+                raise Exception(r.status_code, r.content)
+        else:
+            r = cls.list(json=dict(search="name="+instance.name))
+            if r.ok:
+                nself = instance.copy()
+                instance = load_from_data(nself,r.json()[0][cls.get_json_key()])
+                return nself
+            else:
+                raise Exception(r.status_code, r.content)
+
 
     @classmethod
     def record_create(cls,instance):
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_create(instance)
 
-        r = cls.create(json=cls.opts(instance))
+        #resolve ids
+        data_instance = convert_to_data(instance)
+        resolvable_fields = [f.name for f in instance._meta.fields if isinstance(f,RecordField) ]
+
+        for field in resolvable_fields:
+            value = instance.__dict__[field]
+            if ApiCrudMixin.record_exists(value):
+               value = ApiCrudMixin.record_resolve(value)
+            else:
+               value = ApiCrudMixin.record_create(value)
+            instance.__dict__[field] = value
+            instance.__dict__[field+"_id"] = value.id
+
+        data = convert_to_data(instance)
+        print data
+        if hasattr(cls,"create_fields"):
+           data = {name:field for name, field in data.items() if name in cls.create_fields}
+
+        print data
+
+        r = cls.create(json=cls.opts(data))
         if r.ok:
             nself = instance.copy()
             instance = load_from_data(nself,r.json()[cls.get_json_key()])
