@@ -47,3 +47,5 @@ class ModelsTestCase(unittest.TestCase):
         """Can set a field attr value on instantiation"""
         instance = self.model_class(name='New Name')
         self.assertTrue(instance.name == 'New Name')
+
+test = [x for x in range(1,10)]
