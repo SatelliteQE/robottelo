@@ -1,6 +1,6 @@
 from robottelo.common import models
 from robottelo.api.operating_systems import OperatingSystemApi
-class OperatingSystem(models.Model):
+class OperatingSystems(models.Model):
     name = models.StringField(required=True)
     major = models.IntegerField(required = True)
     minor = models.IntegerField(required = True)
