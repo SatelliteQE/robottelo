@@ -139,6 +139,12 @@ class Base(object):
             self.ajax_complete, "Timeout waiting for page to load"
         )
 
+    def scroll_page(self):
+        """
+        Scrolls page up
+        """
+        self.browser.execute_script("scroll(350, 0);")
+
     def field_update(self, loc_string, newtext):
         """
         Function to replace the existing/default text from textbox

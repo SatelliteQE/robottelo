@@ -6,7 +6,9 @@ Implements Template UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -16,34 +18,68 @@ class Template(Base):
     """
 
     def __init__(self, browser):
+        """
+        Sets up the browser object
+        """
         self.browser = browser
 
-    def create(self, name, os_list, custom_really, template_path=None,
-               template_type=None):
+    def _configure_template(self, os_list):
         """
-        Creates a template.
+        Configures Operating system for templates
         """
-        self.wait_until_element(locators["provision.template_new"]).click()
-        if self.wait_until_element(locators["provision.template_name"]):
-            temp_name = self.find_element(locators["provision.template_name"])
-            temp_name.send_keys(name)
-        if template_path:
-            browse = self.find_element(locators["provision.template_template"])
-            browse.send_keys(template_path)
-            self.handle_alert(custom_really)
-        if template_type:
-            self.wait_until_element(tab_locators["provision.tab_type"]).click()
-            type_ele = self.find_element(locators["provision.template_type"])
-            Select(type_ele).select_by_visible_text(template_type)
+
         if os_list is not None:
-            self.wait_until_element(tab_locators["provision.tab_association"]).click()  # @IgnorePep8
-            for os in os_list:
+            self.wait_until_element(tab_locators
+                                    ["provision.tab_association"]).click()
+            for os_name in os_list:
                 strategy = locators["provision.associate_os"][0]
                 value = locators["provision.associate_os"][1]
-                element = self.wait_until_element((strategy, value % os))
+                element = self.wait_until_element((strategy,
+                                                   value % os_name))
                 if element:
                     element.click()
-        self.find_element(common_locators["submit"]).click()
+
+    def create(self, name, template_path, custom_really,
+               template_type, snippet, os_list=None):
+        """
+        Creates a provisioning template from UI.
+        """
+        self.wait_until_element(locators["provision.template_new"]).click()
+
+        if self.wait_until_element(locators["provision.template_name"]):
+            self.find_element(locators
+                              ["provision.template_name"]).send_keys(name)
+            if template_path:
+                self.wait_until_element(tab_locators
+                                        ["provision.tab_primary"]).click()
+                self.find_element(locators
+                                  ["provision.template_template"]
+                                  ).send_keys(template_path)
+                self.handle_alert(custom_really)
+                self.scroll_page()
+            else:
+                raise Exception(
+                    "Could not create blank template '%s'" % name)
+            if template_type:
+                self.wait_until_element(tab_locators
+                                        ["provision.tab_type"]).click()
+                type_ele = self.find_element(locators
+                                             ["provision.template_type"])
+                Select(type_ele).select_by_visible_text(template_type)
+            elif snippet:
+                self.wait_until_element(tab_locators
+                                        ["provision.tab_type"]).click()
+                self.find_element(locators
+                                  ["provision.template_snippet"]).click()
+            else:
+                raise Exception(
+                    "Could not create template '%s' without type" % name)
+            self._configure_template(os_list)
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
+        else:
+            raise Exception(
+                "Could not create new provisioning template '%s'" % name)
 
     def search(self, name):
         """
@@ -53,36 +89,32 @@ class Template(Base):
                                      locators["provision.template_select"])
         return element
 
-    def update(self, name, os_list, custom_really, new_name=None,
-               template_path=None, template_type=None):
+    def update(self, name, custom_really, new_name=None,
+               template_path=None, template_type=None, os_list=None):
         """
         Updates a given template.
         """
+
         element = self.search(name)
+
         if element:
             element.click()
             self.wait_for_ajax()
             if new_name:
                 self.field_update("provision.template_name", new_name)
             if template_path:
-                tp = self.find_element(locators["provision.template_template"])
-                tp.send_keys(template_path)
+                self.find_element(locators
+                                  ["provision.template_template"]
+                                  ).send_keys(template_path)
                 self.handle_alert(custom_really)
             if template_type:
-                type_loc = self.wait_until_element(tab_locators["provision.tab_type"])  # @IgnorePep8
-                type_loc.click()
+                self.wait_until_element(tab_locators
+                                        ["provision.tab_type"]).click()
                 ele = self.find_element(locators["provision.template_type"])
                 Select(ele).select_by_visible_text(template_type)
-            if os_list is not None:
-                assoc_loc = self.wait_until_element(tab_locators["provision.tab_association"])  # @IgnorePep8
-                assoc_loc.click()
-                for os in os_list:
-                    strategy = locators["provision.associate_os"][0]
-                    value = locators["provision.associate_os"][1]
-                    element = self.wait_until_element((strategy, value % os))
-                    if element:
-                        element.click()
+            self._configure_template(os_list)
             self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception("Could not update the template '%s'" % name)
 
