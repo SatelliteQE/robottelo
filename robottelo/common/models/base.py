@@ -113,6 +113,11 @@ class Model(object):
                 raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
         super(Model, self).__init__()
 
+        # Checks if has a _post_init method and calls it to do additional
+        # setup for this instance
+        if hasattr(self, '_post_init'):
+            getattr(self, '_post_init')()
+
     def __str__(self):
         return convert_to_data(self).__str__()
 

@@ -24,6 +24,10 @@ class OperatingSystem(models.Model):
     field_with_default = models.StringField(default='mydefault')
     callable_default = models.StringField(default=default_value)
 
+    def _post_init(self):
+        """Some post init processing"""
+        setattr(self, 'post_init_var', True)
+
     class Meta:
         api_path = "/api/operatingsystems"
         api_json_key = u"operatingsystem"
@@ -65,3 +69,8 @@ class ModelsTestCase(unittest.TestCase):
         """Field default value as callable is resolved"""
         instance = self.model_class()
         self.assertEqual(instance.callable_default, 'defaultfromcallable')
+
+    def test_model_post_init_hook(self):
+        """Post init is executed"""
+        instance = self.model_class()
+        self.assertTrue(hasattr(instance, 'post_init_var'))
