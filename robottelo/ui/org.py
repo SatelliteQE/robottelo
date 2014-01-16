@@ -30,9 +30,6 @@ class Org(Base):
             self.field_update("org.name", org_name)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
-            self.wait_until_element(locators["org.proceed_to_edit"]).click()
-            self.wait_until_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Unable to create the Organization '%s'" % org_name)
