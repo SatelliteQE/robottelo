@@ -344,6 +344,8 @@ locators = {
         By.ID, "config_template_name"),
     "provision.template_template": (
         By.XPATH, "//input[@id='config_template_template']"),
+    "provision.template_delete": (
+        By.XPATH, "//a[contains(@data-confirm, '%s')]"),
 
     #provision.type
     "provision.template_type": (
@@ -353,8 +355,7 @@ locators = {
 
     #provision.association
     "provision.associate_os": (
-        By.XPATH,
-        "//label[@class='operatingsystem' and normalize-space(.)='%s']/input[@type='checkbox']"),  # @IgnorePep8
+        By.XPATH, "//li/span[contains(., '%s')]"),
 
     # Hostgroups
 
