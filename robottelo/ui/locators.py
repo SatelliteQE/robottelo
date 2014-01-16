@@ -131,13 +131,10 @@ menu_locators = {
     # Orgs
     "org.any_context": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//li[contains(@class,'org-switcher')]/a"),  # @IgnorePep8
     "org.manage_org": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),
-    "org.any_context": (
-        By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']")}   # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@class='manage-menu' and contains(@href, 'organizations')]")}  # @IgnorePep8
 
 tab_locators = {
 
@@ -227,7 +224,7 @@ locators = {
     "org.org_name": (By.LINK_TEXT, "%s"),
     "org.dropdown": (
         By.XPATH,
-        "//table[@class='table table-bordered table-striped']/tbody/tr/td/div/a[@class='btn btn-default btn-sm dropdown-toggle']"),   # @IgnorePep8
+        "//a[normalize-space(.)='%s' and contains(@href,'organizations')]/../../td/div/a[@data-toggle='dropdown']"),   # @IgnorePep8
     "org.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
