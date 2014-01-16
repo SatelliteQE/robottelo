@@ -95,9 +95,9 @@ class Model(object):
                 try:
                     val = kwargs.pop(field.name)
                 except KeyError:
-                    val = field.generate()
+                    val = field.get_default()
             else:
-                val = field.generate()
+                val = field.get_default()
 
             setattr(self, field.name, val)
 
