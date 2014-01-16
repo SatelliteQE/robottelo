@@ -3,6 +3,10 @@ import unittest
 from robottelo.common import models
 
 
+def default_value():
+    return 'defaultfromcallable'
+
+
 class OperatingSystem(models.Model):
     name = models.StringField(r"operatingsystem\d\d\d", required=True)
     major = models.IntegerField(required = True)
@@ -17,6 +21,8 @@ class OperatingSystem(models.Model):
           "Suse",
           "Windows"], required = True)
     release_name = models.StringField(r"osrelease\d\d\d", required = True)
+    field_with_default = models.StringField(default='mydefault')
+    callable_default = models.StringField(default=default_value)
 
     class Meta:
         api_path = "/api/operatingsystems"
@@ -48,4 +54,14 @@ class ModelsTestCase(unittest.TestCase):
         instance = self.model_class(name='New Name')
         self.assertTrue(instance.name == 'New Name')
 
-test = [x for x in range(1,10)]
+    def test_field_default_value(self):
+        """Field default value is used if value is not passed on constructor"""
+        instance = self.model_class()
+        self.assertEqual(instance.field_with_default, 'mydefault')
+        instance = self.model_class(field_with_default='othervalue')
+        self.assertEqual(instance.field_with_default, 'othervalue')
+
+    def test_field_default_callable(self):
+        """Field default value as callable is resolved"""
+        instance = self.model_class()
+        self.assertEqual(instance.callable_default, 'defaultfromcallable')
