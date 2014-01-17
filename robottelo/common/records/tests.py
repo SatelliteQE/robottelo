@@ -1,17 +1,17 @@
 import unittest
 
-from robottelo.common import models
+from robottelo.common import records
 
 
 def default_value():
     return 'defaultfromcallable'
 
 
-class OperatingSystem(models.Model):
-    name = models.StringField(r"operatingsystem\d\d\d", required=True)
-    major = models.IntegerField(required = True)
-    minor = models.IntegerField(required = True)
-    family = models.ChoiceField(
+class OperatingSystem(records.Record):
+    name = records.StringField(r"operatingsystem\d\d\d", required=True)
+    major = records.IntegerField(required = True)
+    minor = records.IntegerField(required = True)
+    family = records.ChoiceField(
           ["Archlinux",
           "Debian",
           "Freebsd",
@@ -20,9 +20,9 @@ class OperatingSystem(models.Model):
           "Solaris",
           "Suse",
           "Windows"], required = True)
-    release_name = models.StringField(r"osrelease\d\d\d", required = True)
-    field_with_default = models.StringField(default='mydefault')
-    callable_default = models.StringField(default=default_value)
+    release_name = records.StringField(r"osrelease\d\d\d", required = True)
+    field_with_default = records.StringField(default='mydefault')
+    callable_default = records.StringField(default=default_value)
 
     def _post_init(self):
         """Some post init processing"""

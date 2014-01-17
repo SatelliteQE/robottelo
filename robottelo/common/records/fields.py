@@ -123,9 +123,9 @@ def load_from_data(instance, data):
     return instance
 
 
-class RecordField(Field):
+class RelatedField(Field):
     def __init__(self, record_class, **kwargs):
-        super(RecordField, self).__init__(**kwargs)
+        super(RelatedField, self).__init__(**kwargs)
         self.record_class = record_class
 
     def generate(self):
