@@ -52,3 +52,11 @@ DOCSTRING_TAGS = [
     'Assert',
     'BZ',
     'Status']
+
+REPORT_TAGS = [
+    'print',
+    'summary',
+    'validate_docstring',
+    'bugs',
+    'manual',
+    'auto']
