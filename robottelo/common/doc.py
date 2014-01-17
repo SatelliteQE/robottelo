@@ -9,7 +9,8 @@ import ast
 import os
 import sys
 
-from robottelo.common.constants import CLI_TESTS, DOCSTRING_TAGS, UI_TESTS, REPORT_TAGS  # @IgnorePep8
+from robottelo.common.constants import CLI_TESTS, DOCSTRING_TAGS, UI_TESTS, \
+    REPORT_TAGS
 from robottelo.common.helpers import get_root_path
 
 bugs = 0
@@ -18,6 +19,7 @@ invalid_doc_string = 0
 manual_count = 0
 no_doc_string = 0
 tc_count = 0
+userinput = None
 
 
 def main():
@@ -140,6 +142,7 @@ def main():
     global bug_list
     global bugs
     global invalid_doc_string
+    global userinput
 
     #Accept only one paramter.  Error out if argv is < 2 or > 2
     if len(sys.argv) < 2 or len(sys.argv) > 2:
@@ -147,6 +150,7 @@ def main():
     elif not any(x in sys.argv[1] for x in REPORT_TAGS):
         #Error out if user enters a wrong option
         print_user_message()
+    userinput = sys.argv[1]
     for input_path in (UI_TESTS, CLI_TESTS):
         reset_counts()
         path = get_root_path() + input_path
@@ -156,30 +160,30 @@ def main():
             for i in range(1, len(files)):  # Loop for each file
                 if str(files[i]).startswith('test_') and str(files[i]).endswith('.py'):  # @IgnorePep8
                     #Do not print this text for test summary
-                    if sys.argv[1] != REPORT_TAGS[1]:
+                    if userinput != REPORT_TAGS[1]:
                         print "Analyzing %s..." % files[i]
                     filepath = path + files[i]
                     list_strings = get_docstrings(filepath)
-                    if sys.argv[1] == REPORT_TAGS[0] or sys.argv[1] == REPORT_TAGS[2] or sys.argv[1] == REPORT_TAGS[3]:  # @IgnorePep8
+                    if userinput in REPORT_TAGS[0:3]:
                         #print the derived test cases
                         print_testcases(list_strings)
-                    elif sys.argv[1] == REPORT_TAGS[4]:
+                    elif userinput == REPORT_TAGS[4]:
                         #print manual test cases
                         print_testcases(list_strings, test_type="manual")
-                    elif sys.argv[1] == REPORT_TAGS[5]:
+                    elif userinput == REPORT_TAGS[5]:
                         #print auto test cases
                         print_testcases(list_strings, test_type="auto")
                     else:
                         #for printing test summary later
                         update_summary(list_strings)
         #Print for test summary
-        if sys.argv[1] == REPORT_TAGS[1]:
+        if userinput == REPORT_TAGS[1]:
             print_summary()
         #Print total number of invalid doc strings
-        if sys.argv[1] == REPORT_TAGS[2]:
+        if userinput == REPORT_TAGS[2]:
             print "Total Number of invalid docstrings:  %d" % invalid_doc_string  # @IgnorePep8
         #Print number of test cases affected by bugs and also the list of bugs
-        if sys.argv[1] == REPORT_TAGS[3]:
+        if userinput == REPORT_TAGS[3]:
             print "Total Number of test cases affected by bugs: %d" % bugs
             print "List of bugs:                               ", bug_list
 
@@ -208,7 +212,7 @@ def get_docstrings(path):
         try:
             obj_param = obj.body[i].body[j]._fields
             for attr in obj_param:
-                #Retrieve the function name to check if this is a test_* function
+                #Retrieve the func name to check if this is a test_* function
                 if attr == 'name':
                     func_name = getattr(obj.body[i].body[j], "name")
                     if func_name.startswith('test'):
@@ -224,13 +228,13 @@ def get_docstrings(path):
                             #Remove any new line characters
                             attr = attr.rstrip('\n')
                             if attr != '':
-                                if sys.argv[1] == REPORT_TAGS[2]:
+                                if userinput == REPORT_TAGS[2]:
                                     docstring_tag = attr.split(" ", 1)
                                     #Error out invalid docstring
                                     if not any(x in docstring_tag[0] for x in DOCSTRING_TAGS):  # @IgnorePep8
                                         item_list.append("-->Invalid DocString: %s<--" % attr)  # @IgnorePep8
                                         invalid_doc_string = invalid_doc_string + 1  # @IgnorePep8
-                                elif sys.argv[1] == REPORT_TAGS[3]:
+                                elif userinput == REPORT_TAGS[3]:
                                     #Find the bug from docstring
                                     docstring_tag = attr.split(" ", 1)
                                     if DOCSTRING_TAGS[5] in docstring_tag[0]:
@@ -243,7 +247,7 @@ def get_docstrings(path):
                         if len(item_list) != 0:
                             return_list.append(item_list)
         except AttributeError:
-            if sys.argv[1] == REPORT_TAGS[0] or sys.argv[1] == REPORT_TAGS[2]:
+            if userinput == REPORT_TAGS[0] or userinput == REPORT_TAGS[2]:
                 print "--> DocString Missing. Please update <--"
             no_doc_string = no_doc_string + 1
             continue
@@ -256,9 +260,10 @@ def print_testcases(list_strings, test_type=None):
     """
     Prints all the test cases based on given criteria
     """
+    global userinput
     tc = 0
     for docstring in list_strings:
-        if sys.argv[1] == REPORT_TAGS[0]:
+        if userinput == REPORT_TAGS[0]:
             tc = tc + 1
             print "TC %d" % tc
 
@@ -278,7 +283,7 @@ def print_testcases(list_strings, test_type=None):
             print_line_item(docstring)
         if test_type == "manual" and manual_print is True:
             print_line_item(docstring)
-        if sys.argv[1] == REPORT_TAGS[0] or sys.argv[1] == REPORT_TAGS[2]:
+        if userinput == REPORT_TAGS[0] or userinput == REPORT_TAGS[2]:
             print_line_item(docstring)
 
 

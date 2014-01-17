@@ -6,7 +6,6 @@ import ConfigParser
 import logging
 import logging.config
 import sys
-import os
 
 from robottelo.common.constants import ROBOTTELO_PROPERTIES
 from robottelo.common.helpers import get_root_path
@@ -58,7 +57,7 @@ class Configs(object):
         """
 
         try:
-            logging.config.fileConfig("%s/logging.conf" % self.get_root_path())
+            logging.config.fileConfig("%s/logging.conf" % get_root_path())
         except Exception:
             log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
             logging.basicConfig(format=log_format)
