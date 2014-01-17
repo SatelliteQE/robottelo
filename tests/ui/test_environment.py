@@ -19,7 +19,9 @@ class Environment(BaseUI):
         self.org.create(org_name)
 
     def test_create_env(self):
-        "create new Environment"
+        """
+        Creates a new environment from UI
+        """
         name = generate_name(6)
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -30,7 +32,9 @@ class Environment(BaseUI):
         self.assertIsNotNone(search)
 
     def test_update_env(self):
-        "Updates an existing Environment"
+        """
+        Updates an environment and associated OS from UI
+        """
         name = generate_name(6)
         new_name = generate_name(6)
         org_name = generate_name(8, 8)
@@ -47,7 +51,9 @@ class Environment(BaseUI):
         self.assertIsNotNone(search)
 
     def test_remove_env(self):
-        "Delete an Environment "
+        """
+        Deletes an environment from UI
+        """
         name = generate_name(6)
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
