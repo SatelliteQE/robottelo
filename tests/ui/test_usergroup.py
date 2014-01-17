@@ -34,9 +34,11 @@ class UserGroup(BaseUI):
         group_name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
+        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_users()
         self.user.create(user_name, email, password, password)
+        self.assertIsNotNone(self.user.search(user_name, search_key))
         self.create_usergroup(group_name, user_name)
 
     def test_remove_usergroup(self):
@@ -62,9 +64,11 @@ class UserGroup(BaseUI):
         user_name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
+        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_users()
         self.user.create(user_name, email, password, password)
+        self.assertIsNotNone(self.user.search(user_name, search_key))
         self.create_usergroup(name, None)
         self.usergroup.update(name, new_name, user_name)
         #TODO: assertion is pending, Foreman issue:3953
