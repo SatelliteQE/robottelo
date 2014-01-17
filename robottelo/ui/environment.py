@@ -18,6 +18,9 @@ class Environment(Base):
         self.browser = browser
 
     def _select_deselect_orgs(self, loc, org_list):
+        """
+        Selects and Deselects org association with environments.
+        """
         for org in org_list:
             strategy = loc[0]
             value = loc[1]
@@ -25,6 +28,9 @@ class Environment(Base):
             element.click()
 
     def _configure_env(self, orgs, new_orgs=None, org_select=True):
+        """
+        Configures environment details like, orgs.
+        """
         if orgs:
             org_tab_loc = tab_locators["environment.tab_org"]
             self.wait_until_element(org_tab_loc).click()

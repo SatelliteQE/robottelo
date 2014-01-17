@@ -11,6 +11,9 @@ from robottelo.common.helpers import generate_name
 
 
 class Environment(BaseUI):
+    """
+    Implements all Environment tests
+    """
 
     def create_org(self, org_name=None):
         """Creates Org"""
