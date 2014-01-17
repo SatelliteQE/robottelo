@@ -79,8 +79,15 @@ def command(cmd, hostname=None, expect_csv=False):
     with lock:
         stdout, stderr = connection.exec_command(cmd)[-2:]
         errorcode = stdout.channel.recv_exit_status()
-        output = stdout.readlines()
-        errors = stderr.readlines()
+
+        # For output we don't really want to see all of Rails traffic
+        # information, so strip it out.
+        output = [
+            line for line in stdout.readlines() if not line.startswith("[")]
+        # Ignore stderr if errorcode == 0. This is necessary since
+        # we're running Foreman in verbose mode which generates a lot
+        # of output return as stderr.
+        errors = [] if errorcode == 0 else stderr.readlines()
 
     logger = logging.getLogger('robottelo')
     logger.debug(cmd)
@@ -88,7 +95,7 @@ def command(cmd, hostname=None, expect_csv=False):
     if output:
         logger.debug("".join(output))
     if errors:
-        logger.error("".join(errors))
+        logger.debug("".join(errors))
 
     return SSHCommandResult(
         output, errors, errorcode, expect_csv)

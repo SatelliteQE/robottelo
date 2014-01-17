@@ -131,12 +131,19 @@ menu_locators = {
     # Orgs
     "org.any_context": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//li[contains(@class,'org-switcher')]/a"),  # @IgnorePep8
     "org.manage_org": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]")}  # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@class='manage-menu' and contains(@href, 'organizations')]")}  # @IgnorePep8
 
 tab_locators = {
+
+    #common
+    "tab_primary": (By.XPATH, "//a[@href='#primary']"),
+
+    #Environment
+    #Third level UI
+    "environment.tab_org": (By.XPATH, "//a[@href='#organizations']"),
 
     #Operating System
     #Third level UI
@@ -149,30 +156,19 @@ tab_locators = {
     #Host
     #Third level UI
 
-    "host.tab_primary": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'primary')]"),
-    "host.tab_network": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'network')]"),
-    "host.tab_os": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'os')]"),
-    "host.tab_vm": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'compute_resource')]"),  # @IgnorePep8
-    "host.tab_params": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'params')]"),
-    "host.tab_info": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'info')]"),
+    "host.tab_network": (By.XPATH, "//a[@href='#network']"),
+    "host.tab_os": (By.XPATH, "//a[@href='#os']"),
+    "host.tab_vm": (By.XPATH, "//a[@href='#compute_resource']"),
+    "host.tab_params": (By.XPATH, "//a[@href='#params']"),
+    "host.tab_info": (By.XPATH, "//a[@href='#info']"),
 
     #Provisioning Templates
     #Third level UI
 
-    "provision.tab_primary": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'primary')]"),
-    "provision.tab_type": (
-        By.XPATH, "//a[contains(@href,'template_type')]"),
-    "provision.tab_association": (
-        By.XPATH, "//a[contains(@href,'template_associations')]"),
-    "provision.tab_history": (
-        By.XPATH, "//a[contains(@href,'history')]"),
+    "provision.tab_type": (By.XPATH, "//a[@href='#template_type']"),
+    "provision.tab_association": (By.XPATH,
+                                  "//a[@href='#template_associations']"),
+    "provision.tab_history": (By.XPATH, "//a[@href='#history']"),
 
     #Users
     #Third level UI
@@ -224,7 +220,7 @@ locators = {
     "org.org_name": (By.LINK_TEXT, "%s"),
     "org.dropdown": (
         By.XPATH,
-        "//table[@class='table table-bordered table-striped']/tbody/tr/td/div/a[@class='btn btn-default btn-sm dropdown-toggle']"),   # @IgnorePep8
+        "//a[normalize-space(.)='%s' and contains(@href,'organizations')]/../../td/div/a[@data-toggle='dropdown']"),   # @IgnorePep8
     "org.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
@@ -341,6 +337,8 @@ locators = {
         By.ID, "config_template_name"),
     "provision.template_template": (
         By.XPATH, "//input[@id='config_template_template']"),
+    "provision.template_delete": (
+        By.XPATH, "//a[contains(@data-confirm, '%s')]"),
 
     #provision.type
     "provision.template_type": (
@@ -349,9 +347,10 @@ locators = {
         By.ID, "config_template_snippet"),
 
     #provision.association
+    "provision.select_os": (
+        By.XPATH, "//li/span[contains(., '%s')]"),
     "provision.associate_os": (
-        By.XPATH,
-        "//label[@class='operatingsystem' and normalize-space(.)='%s']/input[@type='checkbox']"),  # @IgnorePep8
+        By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]/input[@type='checkbox']"),   # @IgnorePep8
 
     # Hostgroups
 
@@ -446,6 +445,12 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Delete')]"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
+    "env.org_select": (
+        By.XPATH,
+        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
+    "env.org_deselect": (
+        By.XPATH,
+        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
     "env.dropdown": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),

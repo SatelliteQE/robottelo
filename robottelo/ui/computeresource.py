@@ -50,6 +50,8 @@ class ComputeResource(Base):
             self.find_element(locators["resource.libvirt_console_passwd"]).click()  # @IgnorePep8
         self.find_element(locators["resource.test_connection"]).click()
         self.wait_for_ajax()
+        self.find_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def create(self, name, provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
@@ -62,7 +64,13 @@ class ComputeResource(Base):
             self.find_element(locators["resource.name"]).send_keys(name)
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd)
-        self.find_element(common_locators["submit"]).click()
+
+    def search(self, name):
+        """
+        Searches existing compute resource from UI
+        """
+        element = self.search_entity(name, locators["resource.select_name"])
+        return element
 
     def update(self, oldname, newname, provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
@@ -70,7 +78,7 @@ class ComputeResource(Base):
         """
         Updates a compute resource.
         """
-        element = self.search(oldname, locators["resource.select_name"])
+        element = self.search(oldname)
         if element:
             element.click()
             strategy = locators["resource.edit"][0]
@@ -82,7 +90,6 @@ class ComputeResource(Base):
             self._configure_resource(provider_type, url, user, password,
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
-            self.find_element(common_locators["submit"]).click()
         else:
             raise Exception("Could not update the resource '%s'" % oldname)
 
@@ -90,25 +97,7 @@ class ComputeResource(Base):
         """
         Removes the compute resource info.
         """
-        searched = self.search(name, locators["resource.select_name"])
-        if searched:
-            strategy = locators["resource.dropdown"][0]
-            value = locators["resource.dropdown"][1]
-            dropdown = self.wait_until_element((strategy, value % name))
-            dropdown.click()
-            strategy1 = locators["resource.delete"][0]
-            value1 = locators["resource.delete"][1]
-            element = self.wait_until_element((strategy1, value1 % name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
-            else:
-                raise Exception(
-                    "Could not select the resource '%s' for deletion." % name)
-        else:
-            raise Exception("Could not delete the resource '%s'" % name)
+
+        self.delete_entity(name, really, locators["resource.select_name"],
+                           locators['resource.delete'],
+                           drop_locator=locators["resource.dropdown"])

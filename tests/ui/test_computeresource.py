@@ -3,7 +3,7 @@
 
 from robottelo.common import conf
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -18,8 +18,7 @@ class ComputeResource(BaseUI):
         self.navigator.go_to_compute_resources()
         self.compute_resource.create(name, provider_type="Libvirt", url=url)
         self.navigator.go_to_compute_resources()
-        search = self.compute_resource.search(name,
-                                              locators["resource.select_name"])
+        search = self.compute_resource.search(name)
         self.assertIsNotNone(search)
 
     def test_update_resource(self):
@@ -34,8 +33,7 @@ class ComputeResource(BaseUI):
         self.navigator.go_to_compute_resources()
         self.compute_resource.update(name, newname, libvirt_set_passwd=False)
         self.navigator.go_to_compute_resources()
-        search = self.compute_resource.search(newname,
-                                              locators["resource.select_name"])
+        search = self.compute_resource.search(newname)
         self.assertIsNotNone(search)
 
     def test_remove_resource(self):

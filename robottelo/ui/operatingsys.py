@@ -73,24 +73,22 @@ class OperatingSys(Base):
             raise Exception(
                 "Could not create new operating system '%s'" % name)
 
+    def search(self, name):
+        """
+        Searches existing operating system from UI
+        """
+        element = self.search_entity(name,
+                                     locators['operatingsys.operatingsys_name'])  # @IgnorePep8
+        return element
+
     def delete(self, os_name, really):
         """
         Delete operating system from UI
         """
 
-        element = self.search(os_name, locators['operatingsys.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss(self)
-        else:
-            raise Exception(
-                "Could not delete the operating system '%s'" % os_name)
+        self.delete_entity(os_name, really,
+                           locators['operatingsys.operatingsys_name'],
+                           locators['operatingsys.delete'])
 
     def update(self, os_name, new_name=None,
                major_version=None, minor_version=None,
@@ -100,9 +98,7 @@ class OperatingSys(Base):
         Update all entities(arch, Partition table, medium) of OS from UI
         """
 
-        element = self.search(
-            os_name, locators['operatingsys.operatingsys_name']
-        )
+        element = self.search(os_name)
 
         if element:
             element.click()
@@ -126,11 +122,7 @@ class OperatingSys(Base):
         """
         Add new OS parameter
         """
-
-        element = self.search(
-            os_name, locators['operatingsys.operatingsys_name']
-        )
-
+        element = self.search(os_name)
         if element:
             element.click()
             self.set_parameter(param_name, param_value)
@@ -141,11 +133,7 @@ class OperatingSys(Base):
         """
         Remove selected OS parameter
         """
-
-        element = self.search(
-            os_name, locators['operatingsys.operatingsys_name']
-        )
-
+        element = self.search(os_name)
         if element:
             element.click()
             self.remove_parameter(param_name)

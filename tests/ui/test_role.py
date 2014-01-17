@@ -6,7 +6,7 @@ Test class for Roles UI
 """
 
 from robottelo.common.helpers import generate_name
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -21,8 +21,7 @@ class Role(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_roles()
         self.role.create(name)
-        self.assertIsNotNone(self, self.role.search
-                            (name, locators['roles.role']))
+        self.assertIsNotNone(self.role.search(name))
 
     def test_remove_role(self):
         """Delete existing role"""
@@ -31,10 +30,9 @@ class Role(BaseUI):
         self.navigator.go_to_roles()
         self.role.create(name)
         self.role.remove(name, True)
-        self.assertTrue(self, self.role.wait_until_element
+        self.assertTrue(self.role.wait_until_element
                         (common_locators["notif.success"]))
-        self.assertIsNone(self, self.role.search(name, locators
-                                                 ['roles.role']))
+        self.assertIsNone(self.role.search(name))
 
     def test_update_role(self):
         """Create new role and update its name or permission"""
@@ -46,5 +44,5 @@ class Role(BaseUI):
         self.navigator.go_to_roles()
         self.role.create(name)
         self.role.update(name, new_name, perm_type, permissions)
-        self.assertIsNotNone(self, self.role.search
-                             (new_name, locators['roles.role']))
+        self.assertIsNotNone(self.role.search(new_name))
+

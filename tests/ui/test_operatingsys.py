@@ -5,7 +5,6 @@
 Test class for Operating System UI
 """
 
-from robottelo.ui.locators import locators
 from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
@@ -33,9 +32,7 @@ class OperatingSys(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version,
                                  minor_version, os_family, arch)
-        self.assertIsNotNone(self.operatingsys.search
-                             (name,
-                              locators['operatingsys.operatingsys_name']))
+        self.assertIsNotNone(self.operatingsys.search(name))
 
     def test_create_os(self):
         """
@@ -50,12 +47,9 @@ class OperatingSys(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(arch)
-        self.assertIsNotNone(self.architecture.search(arch,
-                                                      locators
-                                                      ['arch.arch_name']))
+        self.assertIsNotNone(self.architecture.search(arch))
         self.create_os(name, major_version, minor_version, os_family, arch)
 
-    #@unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_remove_os(self):
         """
         Delete an existing OS
@@ -70,12 +64,8 @@ class OperatingSys(BaseUI):
         self.operatingsys.delete(name, really=True)
         self.assertTrue(self.user.wait_until_element(common_locators
                                                      ["notif.success"]))
-        self.assertIsNone(
-            self.operatingsys.search(name,
-                                     locators
-                                     ['operatingsys.operatingsys_name']))
+        self.assertIsNone(self.operatingsys.search(name))
 
-    #@unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_update_os(self):
         """
         Update OS name, major_version, minor_version, os_family and arch
@@ -93,16 +83,12 @@ class OperatingSys(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(new_arch)
-        self.assertIsNotNone(self.architecture.search(new_arch,
-                                                      locators
-                                                      ['arch.arch_name']))
+        self.assertIsNotNone(self.architecture.search(new_arch))
         self.create_os(name, major_version, minor_version, os_family)
         self.operatingsys.update(name, new_name, new_major_version,
                                  new_minor_version, new_os_family,
                                  new_arch)
-        self.assertIsNotNone(self.operatingsys.search
-                             (new_name, locators
-                              ["operatingsys.operatingsys_name"]))
+        self.assertIsNotNone(self.operatingsys.search(new_name))
 
     def test_update_os_medium(self):
         """
@@ -116,8 +102,7 @@ class OperatingSys(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_installation_media()
         self.medium.create(medium, path)
-        self.assertIsNotNone(self.medium.search
-                             (medium, locators["medium.medium_name"]))
+        self.assertIsNotNone(self.medium.search(medium))
         self.create_os(name, major_version)
         self.operatingsys.update(name, None, None, None, None,
                                  None, None, medium)
@@ -134,13 +119,11 @@ class OperatingSys(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(ptable, layout)
-        self.assertIsNotNone(self.partitiontable.search
-                             (ptable, locators["ptable.ptable_name"]))
+        self.assertIsNotNone(self.partitiontable.search(ptable))
         self.create_os(name, major_version)
         self.operatingsys.update(name, None, None, None, None,
                                  None, ptable, None)
 
-    #@unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_set_parameter(self):
         "Set OS parameter"
         name = generate_name(6)
@@ -151,7 +134,6 @@ class OperatingSys(BaseUI):
         self.create_os(name, major_version)
         self.operatingsys.set_os_parameter(name, param_name, param_value)
 
-    #@unittest.skip("http://projects.theforeman.org/issues/3920")
     def test_remove_parameter(self):
         "Remove selected OS parameter"
         name = generate_name(6)

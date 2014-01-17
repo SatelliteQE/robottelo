@@ -51,31 +51,25 @@ class Medium(Base):
             raise Exception(
                 "Could not create new installation media '%s'" % name)
 
+    def search(self, name):
+        """
+        Searches existing medium from UI
+        """
+        element = self.search_entity(name, locators["medium.medium_name"])
+        return element
+
     def delete(self, name, really):
         """
         Delete Installation media
         """
-
-        element = self.search(name, locators['medium.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not remove the installation media '%s'" % name)
+        self.delete_entity(name, really, locators["medium.medium_name"],
+                           locators['medium.delete'])
 
     def update(self, old_name, new_name=None, new_path=None, os_family=None):
         """
         Update installation media name, media path and OS family
         """
-
-        element = self.search(old_name, locators['medium.medium_name'])
+        element = self.search(old_name)
 
         if element:
             element.click()

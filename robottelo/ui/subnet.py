@@ -43,20 +43,9 @@ class Subnet(Base):
         Remove subnet from UI
         """
 
-        element = self.search(subnet_name, locators['subnet.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-            self.wait_for_ajax()
-        else:
-            raise Exception(
-                "Could not delete the subnet '%s'" % subnet_name)
+        self.delete_entity(subnet_name, really,
+                           locators["subnet.display_name"],
+                           locators['subnet.delete'])
 
     def search_subnet(self, subnet_name):
         """
@@ -65,7 +54,7 @@ class Subnet(Base):
 
         result = None
 
-        subnet_object = self.search(subnet_name,
+        subnet_object = self.search_entity(subnet_name,
                                     locators
                                     ['subnet.display_name'])
 
@@ -91,7 +80,7 @@ class Subnet(Base):
         Update subnet name, network and mask from UI
         """
 
-        subnet_object = self.search(subnet_name,
+        subnet_object = self.search_entity(subnet_name,
                                     locators
                                     ["subnet.display_name"])
 

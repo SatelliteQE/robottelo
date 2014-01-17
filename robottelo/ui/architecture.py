@@ -27,6 +27,8 @@ class Architecture(Base):
         if os_name:
             self.select_entity("arch.os_name", "arch.select_os_name",
                                os_name, None)
+        self.find_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def create(self, name, os_name=None):
         """
@@ -38,45 +40,36 @@ class Architecture(Base):
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
             self._configure_arch(os_name)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new architecture '%s'" % name)
+
+    def search(self, name):
+        """
+        Searches existing architecture from UI
+        """
+        element = self.search_entity(name, locators['arch.arch_name'])
+        return element
 
     def delete(self, name, really):
         """
         Delete existing architecture from UI
         """
 
-        element = self.search(name, locators['arch.delete'])
-
-        if element:
-            element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
-        else:
-            raise Exception(
-                "Could not delete the architecture '%s'" % name)
+        self.delete_entity(name, really, locators['arch.arch_name'],
+                           locators['arch.delete'])
 
     def update(self, old_name, new_name=None, os_name=None):
         """
         Update existing arch's name and OS
         """
-
-        element = self.search(old_name, locators['arch.arch_name'])
+        element = self.search(old_name)
 
         if element:
             element.click()
-            if self.wait_until_element(locators["arch.name"]):
+            if self.wait_until_element(locators["arch.name"]) and new_name:
                 self.field_update("arch.name", new_name)
                 self._configure_arch(os_name)
-                self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the architecture '%s'" % old_name)

@@ -5,14 +5,18 @@
 Test class for Organization CLI
 """
 
-from tests.cli.basecli import BaseCLI
 from robottelo.cli.factory import (
     make_domain, make_environment, make_hostgroup, make_medium, make_org,
     make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.org import Org
+from tests.cli.basecli import MetaCLI
 
 
-class TestOrg(BaseCLI):
+class TestOrg(MetaCLI):
+
+    factory = make_org
+    factory_obj = Org
+
     def test_create_org(self):
         """Org Creation - Successfully creates a new org"""
         result = make_org()

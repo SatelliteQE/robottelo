@@ -7,7 +7,6 @@ Test class for Architecture UI
 
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
-from robottelo.ui.locators import locators
 from tests.ui.baseui import BaseUI
 
 
@@ -24,9 +23,7 @@ class Architecture(BaseUI):
         os_name = os_name or generate_name(6)
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(arch_name, os_name)
-        self.assertIsNotNone(self.architecture.search(arch_name,
-                                                      locators
-                                                      ['arch.arch_name']))
+        self.assertIsNotNone(self.architecture.search(arch_name))
 
     def test_create_arch(self):
         """
@@ -39,9 +36,7 @@ class Architecture(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(os_name, major_version)
-        self.assertIsNotNone(self.operatingsys.search
-                             (os_name,
-                              locators['operatingsys.operatingsys_name']))
+        self.assertIsNotNone(self.operatingsys.search(os_name))
         self.create_arch(name, os_name)
 
     def test_remove_arch(self):
@@ -55,13 +50,10 @@ class Architecture(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(os_name, major_version)
-        self.assertIsNotNone(self.operatingsys.search
-                             (os_name,
-                              locators['operatingsys.operatingsys_name']))
+        self.assertIsNotNone(self.operatingsys.search(os_name))
         self.create_arch(name, os_name)
         self.architecture.delete(name, True)
-        self.assertIsNone(self.architecture.search(name, locators
-                                                   ['arch.arch_name']))
+        self.assertIsNone(self.architecture.search(name))
 
     def test_update_arch(self):
         """
@@ -75,10 +67,7 @@ class Architecture(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(os_name, major_version)
-        self.assertIsNotNone(self.operatingsys.search
-                             (os_name,
-                              locators['operatingsys.operatingsys_name']))
+        self.assertIsNotNone(self.operatingsys.search(os_name))
         self.create_arch(old_name)
         self.architecture.update(old_name, new_name, os_name)
-        self.assertIsNotNone(self.architecture.search(new_name, locators
-                                                      ['arch.arch_name']))
+        self.assertIsNotNone(self.architecture.search(new_name))
