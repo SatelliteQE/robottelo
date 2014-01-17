@@ -40,3 +40,15 @@ HTML_TAGS = [
     'SELECT', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'STYLE', 'SUB',
     'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH',
     'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL', 'VAR']
+
+UI_TESTS = "/tests/ui/"
+CLI_TESTS = "/tests/cli/"
+
+DOCSTRING_TAGS = [
+    'Feature',
+    'Test',
+    'Setup',
+    'Steps',
+    'Assert',
+    'BZ',
+    'Status']

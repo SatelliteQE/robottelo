@@ -5,6 +5,7 @@
 Several helper methods and functions.
 """
 
+import os
 import random
 import string
 import time
@@ -196,3 +197,11 @@ def sleep_for_seconds(guaranteed_sleep=1):
     @param guaranteed_sleep: Guaranteed sleep in seconds.
     """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
+
+
+def get_root_path():
+    """
+    Returns correct path to logging config file
+    """
+    return os.path.realpath(
+        os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
