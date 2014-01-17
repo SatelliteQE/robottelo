@@ -45,8 +45,7 @@ class Template(Base):
             self.find_element(locators
                               ["provision.template_name"]).send_keys(name)
             if template_path:
-                self.wait_until_element(tab_locators
-                                        ["provision.tab_primary"]).click()
+                self.wait_until_element(tab_locators["tab_primary"]).click()
                 self.find_element(locators
                                   ["provision.template_template"]
                                   ).send_keys(template_path)
