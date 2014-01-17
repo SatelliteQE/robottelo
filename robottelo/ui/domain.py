@@ -29,6 +29,8 @@ class Domain(Base):
         if dns_proxy:
             element = self.find_element(locators["domain.dns_proxy"])
             Select(element).select_by_visible_text(dns_proxy)
+        self.find_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def create(self, name, description=None, dns_proxy=None):
         """
@@ -40,8 +42,6 @@ class Domain(Base):
         if self.wait_until_element(locators["domain.name"]):
             self.find_element(locators["domain.name"]).send_keys(name)
             self._configure_domain(description, dns_proxy)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new domain '%s'" % name)
@@ -73,8 +73,6 @@ class Domain(Base):
             if self.wait_until_element(locators["domain.name"]):
                 self.field_update("domain.name", new_name)
             self._configure_domain(description, dns_proxy)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the domain '%s'" % old_description)
