@@ -5,8 +5,8 @@ Module for mixin of basic crud methods based on api_path class method.
 """
 
 import robottelo.api.base as base
-from robottelo.common.models.fields import load_from_data, convert_to_data
-from robottelo.common.models.fields import RecordField
+from robottelo.common.records.fields import load_from_data, convert_to_data
+from robottelo.common.records.fields import RelatedField
 from inspect import getmro
 
 class ApiCrudMixin(object):
@@ -180,9 +180,9 @@ class ApiCrudMixin(object):
 
         #resolve ids
         data_instance = convert_to_data(instance)
-        resolvable_fields = [f.name for f in instance._meta.fields if isinstance(f,RecordField) ]
+        related_fields = [f.name for f in instance._meta.fields if isinstance(f, RelatedField) ]
 
-        for field in resolvable_fields:
+        for field in related_fields:
             value = instance.__dict__[field]
             if ApiCrudMixin.record_exists(value):
                value = ApiCrudMixin.record_resolve(value)

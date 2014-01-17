@@ -1,5 +1,5 @@
 import copy
-from robottelo.common.models.fields import convert_to_data
+from robottelo.common.records.fields import convert_to_data
 
 class Options(object):
     def __init__(self, meta):
@@ -22,13 +22,13 @@ class Options(object):
         self.fields.append(field)
 
 
-class ModelBase(type):
+class RecordBase(type):
     def __new__(cls, name, bases, attrs):
-        super_new = super(ModelBase, cls).__new__
+        super_new = super(RecordBase, cls).__new__
 
         # Ensure initialization is only performed for subclasses of Model
         # (excluding Model class itself).
-        parents = [b for b in bases if isinstance(b, ModelBase)]
+        parents = [b for b in bases if isinstance(b, RecordBase)]
         if not parents:
             return super_new(cls, name, bases, attrs)
 
@@ -59,8 +59,8 @@ class ModelBase(type):
         else:
             setattr(cls, name, value)
 
-class Model(object):
-    __metaclass__ = ModelBase
+class Record(object):
+    __metaclass__ = RecordBase
 
     def __init__(self, *args, **kwargs):
         fields_iter = iter(self._meta.fields)
@@ -111,7 +111,7 @@ class Model(object):
                     pass
             if kwargs:
                 raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
-        super(Model, self).__init__()
+        super(Record, self).__init__()
 
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
