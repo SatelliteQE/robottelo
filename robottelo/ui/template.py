@@ -6,9 +6,7 @@ Implements Template UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
-from robottelo.ui.locators import common_locators
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -32,12 +30,9 @@ class Template(Base):
             self.wait_until_element(tab_locators
                                     ["provision.tab_association"]).click()
             for os_name in os_list:
-                strategy = locators["provision.associate_os"][0]
-                value = locators["provision.associate_os"][1]
-                element = self.wait_until_element((strategy,
-                                                   value % os_name))
-                if element:
-                    element.click()
+                self.select_entity("provision.associate_os",
+                                   "provision.select_os", os_name,
+                                   None)
 
     def create(self, name, template_path, custom_really,
                template_type, snippet, os_list=None):

@@ -354,8 +354,10 @@ locators = {
         By.ID, "config_template_snippet"),
 
     #provision.association
-    "provision.associate_os": (
+    "provision.select_os": (
         By.XPATH, "//li/span[contains(., '%s')]"),
+    "provision.associate_os": (
+        By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]/input[@type='checkbox']"),   # @IgnorePep8
 
     # Hostgroups
 
