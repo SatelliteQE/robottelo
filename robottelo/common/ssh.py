@@ -3,6 +3,7 @@ Utility module to handle the shared ssh connection
 """
 
 import logging
+import re
 import sys
 
 from robottelo.common import conf
@@ -74,6 +75,10 @@ def command(cmd, hostname=None, expect_csv=False):
     Executes SSH command(s) on remote hostname.
     Defaults to main.server.hostname.
     """
+
+    # Remove escape code for colors displayed in the output
+    regex = re.compile(r'\x1b\[\d\d?m')
+
     hostname = hostname or conf.properties['main.server.hostname']
     lock = Lock()
     with lock:
@@ -83,7 +88,8 @@ def command(cmd, hostname=None, expect_csv=False):
         # For output we don't really want to see all of Rails traffic
         # information, so strip it out.
         output = [
-            line for line in stdout.readlines() if not line.startswith("[")]
+            regex.sub('', line) for line in stdout.readlines()
+            if not line.startswith("[")]
         # Ignore stderr if errorcode == 0. This is necessary since
         # we're running Foreman in verbose mode which generates a lot
         # of output return as stderr.
@@ -93,9 +99,10 @@ def command(cmd, hostname=None, expect_csv=False):
     logger.debug(cmd)
 
     if output:
-        logger.debug("".join(output))
+        logger.debug(output)
     if errors:
-        logger.debug("".join(errors))
+        errors = regex.sub('', "".join(errors))
+        logger.debug(errors)
 
     return SSHCommandResult(
         output, errors, errorcode, expect_csv)
