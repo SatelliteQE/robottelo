@@ -299,7 +299,8 @@ locators = {
     "host.deploy": (By.ID, "host_compute_resource_id"),
     "host.environment": (By.ID, "host_environment_id"),
     "host.dropdown": (
-        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
+        By.XPATH,
+        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"),  # @IgnorePep8
     "host.select_name": (
         By.XPATH,
         "//input[contains(@id,'host_ids')]/../../td[@class='ellipsis']/a[contains(@href,'%s')]"),  # @IgnorePep8
@@ -313,6 +314,11 @@ locators = {
     #host.os
     "host.arch": (By.ID, "host_architecture_id"),
     "host.os": (By.ID, "host_operatingsystem_id"),
+    "host.org": (By.ID, "host_organization_id"),
+    "host.edit": (By.XPATH,
+                  "//a[@class='btn btn-default' and contains(@href,'edit')]"),
+    "host.puppet_ca": (By.ID, "host_puppet_ca_proxy_id"),
+    "host.puppet_master": (By.ID, "host_puppet_proxy_id"),
     "host.provision": (By.ID, "host_build"),
     "host.media": (By.ID, "host_medium_id"),
     "host.ptable": (By.ID, "host_ptable_id"),
