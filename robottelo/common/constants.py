@@ -50,3 +50,23 @@ TEMPLATE_TYPES = [
     'PXEGrub',
     'snippet',
 ]
+
+UI_TESTS = "/tests/ui/"
+CLI_TESTS = "/tests/cli/"
+
+DOCSTRING_TAGS = [
+    'Feature',
+    'Test',
+    'Setup',
+    'Steps',
+    'Assert',
+    'BZ',
+    'Status']
+
+REPORT_TAGS = [
+    'print',
+    'summary',
+    'validate_docstring',
+    'bugs',
+    'manual',
+    'auto']
