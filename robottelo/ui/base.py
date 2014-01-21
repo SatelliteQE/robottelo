@@ -14,6 +14,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from urllib2 import urlopen
 
 
 class Base(object):
@@ -201,3 +202,14 @@ class Base(object):
         if remove_element:
             remove_element.click()
         self.find_element(common_locators["submit"]).click()
+
+    def download_template(self, url):
+        """
+        Function to download the template from given URL
+        """
+        filename = '/tmp/custom_template'
+        temp = urlopen(url)
+        temp_file = open(filename, 'wb')
+        temp_file.write(temp.read())
+        temp_file.close()
+        return filename

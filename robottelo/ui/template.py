@@ -27,6 +27,7 @@ class Template(Base):
         """
 
         if os_list is not None:
+            self.scroll_page()
             self.wait_until_element(tab_locators
                                     ["provision.tab_association"]).click()
             for os_name in os_list:

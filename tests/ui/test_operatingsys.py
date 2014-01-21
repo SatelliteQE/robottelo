@@ -13,7 +13,7 @@ from urllib2 import urlopen
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 PART_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
-
+TEMP_URL = 'https://gist.github.com/sghai/8109676/raw'
 
 class OperatingSys(BaseUI):
     """
@@ -123,6 +123,27 @@ class OperatingSys(BaseUI):
         self.create_os(name, major_version)
         self.operatingsys.update(name, None, None, None, None,
                                  None, ptable, None)
+
+    def test_update_os_template(self):
+        """
+        Updates Provisioning template
+        """
+
+        os_name = generate_name(6)
+        major_version = generate_string('numeric', 1)
+        template_name = generate_name(4)
+        temp_type = 'provision'
+        template_path = self.template.download_template(TEMP_URL)
+        os_list = [os_name]
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.create_os(os_name, major_version)
+        self.navigator.go_to_provisioning_templates()
+        self.template.create(template_name, template_path, True,
+                             temp_type, None, os_list)
+        self.assertIsNotNone(self.template.search(template_name))
+        self.navigator.go_to_operating_systems()
+        self.operatingsys.update(os_name, None, None, None, None,
+                                 None, None, None, template_name)
 
     def test_set_parameter(self):
         "Set OS parameter"

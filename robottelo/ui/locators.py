@@ -245,6 +245,8 @@ locators = {
     "operatingsys.select_medium": (By.XPATH, "//li/span[contains(., '%s')]"),
     "operatingsys.medium": (
         By.XPATH, "//label[@class='medium' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
+    "operatingsys.template": (
+        By.ID, "operatingsystem_os_default_templates_attributes_0_config_template_id"),
 
     #Compute Resource
 
