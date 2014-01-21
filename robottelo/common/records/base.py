@@ -1,13 +1,24 @@
+"""Records class definition with its options and metaclass"""
+
 import copy
+
 from robottelo.common.records.fields import convert_to_data
 
+
 class Options(object):
+    """
+    Option class for the records.
+    Its instances will hold metadata for some record object
+    """
+
     def __init__(self, meta):
-        # TODO: Add options default values
         self.fields = []
         self.meta = meta
+        self.model = None
 
     def contribute_to_class(self, cls, name):
+        """Setups a options instance on the class"""
+
         cls._meta = self
         self.model = cls
 
@@ -18,11 +29,13 @@ class Options(object):
 
     def add_field(self, field):
         """Adds the field to self fields"""
-        # TODO: we will need some aditional processing?
+
         self.fields.append(field)
 
 
 class RecordBase(type):
+    """Metaclass for Record class"""
+
     def __new__(cls, name, bases, attrs):
         super_new = super(RecordBase, cls).__new__
 
@@ -54,10 +67,12 @@ class RecordBase(type):
         Set attr with name and value to class.
         If the value has contribute_to_class method calls it instead of setattr
         """
+
         if hasattr(value, 'contribute_to_class'):
             value.contribute_to_class(cls, name)
         else:
             setattr(cls, name, value)
+
 
 class Record(object):
     __metaclass__ = RecordBase
@@ -72,26 +87,7 @@ class Record(object):
         # keywords, or default.
 
         for field in fields_iter:
-            # is_related_object = False
             if kwargs:
-                # TODO: detal with related objects, sample code commented below
-                # if isinstance(field.rel, ForeignObjectRel):
-                #     try:
-                #         # Assume object instance was passed in.
-                #         rel_obj = kwargs.pop(field.name)
-                #         is_related_object = True
-                #     except KeyError:
-                #         try:
-                #             # Object instance wasn't passed in -- must be an ID.
-                #             val = kwargs.pop(field.attname)
-                #         except KeyError:
-                #             val = field.get_default()
-                #     else:
-                #         # Object instance was passed in. Special case: You can
-                #         # pass in "None" for related objects if it's allowed.
-                #         if rel_obj is None and field.null:
-                #             val = None
-                # else:
                 try:
                     val = kwargs.pop(field.name)
                 except KeyError:
@@ -122,4 +118,6 @@ class Record(object):
         return convert_to_data(self).__str__()
 
     def copy(self):
+        """Creates an instance deepcopy"""
+
         return copy.deepcopy(self)
