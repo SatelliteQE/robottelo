@@ -115,8 +115,9 @@ class Record(object):
 
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
+        print self.__dict__
         if hasattr(self, '_post_init'):
-            getattr(self, '_post_init')()
+            self._post_init()
 
     def __str__(self):
         return convert_to_data(self).__str__()

@@ -7,7 +7,16 @@ Module for mixin of basic crud methods based on api_path class method.
 import robottelo.api.base as base
 from robottelo.common.records.fields import load_from_data, convert_to_data
 from robottelo.common.records.fields import RelatedField
+from robottelo.common.records.fields import ManyRelatedFields
 from inspect import getmro
+
+def resolve_or_create_record(record):
+    if ApiCrudMixin.record_exists(record):
+       return ApiCrudMixin.record_resolve(record)
+    else:
+       return ApiCrudMixin.record_create(record)
+
+
 
 class ApiCrudMixin(object):
     """Defines basic crud methods based on api_path class method """
@@ -141,7 +150,7 @@ class ApiCrudMixin(object):
             return instance._meta.api_class.record_exists(instance)
 
         if hasattr(instance,"id"):
-            r = EnvironmentApi.show(instance.id)
+            r = cls.show(instance.id)
             return r.ok
         else:
             r = cls.list(json=dict(search="name="+instance.name))
@@ -181,15 +190,24 @@ class ApiCrudMixin(object):
         #resolve ids
         data_instance = convert_to_data(instance)
         related_fields = [f.name for f in instance._meta.fields if isinstance(f, RelatedField) ]
+        for field in related_fields:
+            value = resolve_or_create_record(instance.__dict__[field])
+            instance.__dict__[field] = value
+            instance.__dict__[field+"_id"] = value.id
+
+        #resolve ManyRelated ids
+        data_instance = convert_to_data(instance)
+        related_fields = [f.name for f in instance._meta.fields if isinstance(f,ManyRelatedFields) ]
 
         for field in related_fields:
             value = instance.__dict__[field]
-            if ApiCrudMixin.record_exists(value):
-               value = ApiCrudMixin.record_resolve(value)
-            else:
-               value = ApiCrudMixin.record_create(value)
-            instance.__dict__[field] = value
-            instance.__dict__[field+"_id"] = value.id
+            if type(value) == type(list()):
+                values = [resolve_or_create_record(i)
+                            for i in value]
+                ids = [val.id for val in values]
+                instance.__dict__[field] = values
+                instance.__dict__[field+"_ids"] = ids
+
 
         data = convert_to_data(instance)
         print data

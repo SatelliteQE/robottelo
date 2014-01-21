@@ -85,15 +85,6 @@ class MACField(Field):
         return generate_mac(self.delimiter)
 
 
-class ArrayField(Field):
-    def __init__(self, delimiter=":", **kwargs):
-        super(ArrayField, self).__init__(**kwargs)
-        self.delimiter = delimiter
-
-    def generate(self):
-        return generate_mac(self.delimiter)
-
-
 class IpAddrField(Field):
     def __init__(self, ip3=False, **kwargs):
         super(IpAddrField, self).__init__(**kwargs)
@@ -130,3 +121,16 @@ class RelatedField(Field):
 
     def generate(self):
         return self.record_class()
+
+class ManyRelatedFields(Field):
+    """I have decided, that with [] it shall just set it,
+       but with {"+":positive_diff,"-":negative_diff} it will update it"""
+    def __init__(self, record_class, min, max, **kwargs):
+        super(ManyRelatedFields, self).__init__(**kwargs)
+        self.record_class = record_class
+
+    def generate(self):
+        i = randint(self.min, self.max)
+        return [self.record_class() for i in range(1, x)]
+
+

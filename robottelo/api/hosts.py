@@ -10,6 +10,8 @@ class HostApi(ApiCrudMixin):
         create_fields = ["name",
                          "environment_id",
                          "architecture_id",
+                         "mac",
                          "domain_id",
                          "puppet_proxy_id",
+                         "ptable_id",
                          "operatingsystem_id"]
