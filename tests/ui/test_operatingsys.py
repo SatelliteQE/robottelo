@@ -8,6 +8,7 @@ Test class for Operating System UI
 from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_string
+from robottelo.common.helpers import download_template
 from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
 
@@ -133,7 +134,7 @@ class OperatingSys(BaseUI):
         major_version = generate_string('numeric', 1)
         template_name = generate_name(4)
         temp_type = 'provision'
-        template_path = self.template.download_template(TEMP_URL)
+        template_path = download_template(TEMP_URL)
         os_list = [os_name]
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(os_name, major_version)
