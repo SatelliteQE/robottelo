@@ -6,6 +6,17 @@ from random import randint, choice
 from robottelo.common.helpers import *
 
 
+def convert_to_data(instance):
+    return {k: v for k, v in instance.__dict__.items()
+            if (not k.startswith("_") and k!="")}
+
+
+def load_from_data(instance, data):
+    for k, v in data.items():
+        instance.__dict__[k] = v
+    return instance
+
+
 class NOT_PROVIDED:
     pass
 
@@ -103,15 +114,6 @@ class ChoiceField(Field):
         return choice(self.choices)
 
 
-def convert_to_data(instance):
-    return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k!="")}
-
-
-def load_from_data(instance, data):
-    for k, v in data.items():
-        instance.__dict__[k] = v
-    return instance
 
 
 class RelatedField(Field):

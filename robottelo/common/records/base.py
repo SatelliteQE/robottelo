@@ -1,6 +1,32 @@
 import copy
 from robottelo.common.records.fields import convert_to_data
 
+def intersection(first,other):
+    if isinstance(first,Record):
+        if not isinstance(other,Record):
+            return False
+        self_data = convert_to_data(first)
+        other_data = convert_to_data(other)
+        intersects = True
+        for k in self_data:
+            if k in other_data:
+                self_v = self_data[k]
+                other_v = other_data[k]
+                intersects = intersects and intersection(self_v,other_v)
+        return intersects
+    elif type(first) == type([]):
+        if not (type(other) == type([])):
+            return False
+        intersects = True
+        for v in first:
+            #at least one has to intersect
+            intersects = intersects and any(intersection(v,i) for i in other)
+        return intersects
+    else:
+        return first == other
+
+
+
 class Options(object):
     def __init__(self, meta):
         # TODO: Add options default values
@@ -115,12 +141,22 @@ class Record(object):
 
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
-        print self.__dict__
         if hasattr(self, '_post_init'):
             self._post_init()
 
+    def _string_data(self):
+        return {k.__str__():
+                    v._string_data() if isinstance(v,Record)
+                        else [i.__str__() for i in v] if type(v) == type([])
+                        else v.__str__()
+                             for k,v in convert_to_data(self).items()}
+
+
+    def __contains__(self,other):
+        return intersection(other,self)
+
     def __str__(self):
-        return convert_to_data(self).__str__()
+        return self._string_data().__str__()
 
     def copy(self):
         return copy.deepcopy(self)
