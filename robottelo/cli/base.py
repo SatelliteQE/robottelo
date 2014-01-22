@@ -131,12 +131,10 @@ class Base(object):
             options = {"search": "%s=\"%s\"" %
                        (tuple_search[0], tuple_search[1])}
 
-        result_list = self.list(options)
+        result = self.list(options)
 
-        if result_list.stdout:
-            result = result_list.stdout[0]
-        else:
-            result = []
+        if result.stdout:
+            result.stdout = result.stdout[0]
 
         return result
 

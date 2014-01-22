@@ -43,7 +43,7 @@ class TestMedium(MetaCLI):
 
         Medium().create(args)
 
-        self.assertTrue(Medium().exists(('name', args['name'])))
+        self.assertTrue(Medium().exists(('name', args['name'])).stdout)
 
     def test_create_medium_1(self):
         "Successfully creates a new medium"
@@ -57,11 +57,11 @@ class TestMedium(MetaCLI):
         name = generate_name(6)
         self._create_medium(name)
 
-        medium = Medium().exists(('name', name))
+        medium = Medium().exists(('name', name)).stdout
 
         args = {
             'id': medium['id'],
         }
 
         Medium().delete(args)
-        self.assertFalse(Medium().exists(('name', name)))
+        self.assertFalse(Medium().exists(('name', name)).stdout)
