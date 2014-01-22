@@ -25,8 +25,9 @@ def test_positive_create(self, data):
     new_obj = self.factory(data)
 
     # Can we find the new object?
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
 
     self.assertTrue(result.return_code == 0, "Failed to create object")
     self.assertTrue(
@@ -81,8 +82,9 @@ def test_positive_update(self, data):
     # Create a new object passing @data to factory method
     new_obj = self.factory(orig_dict)
 
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
     self.assertTrue(result.return_code == 0, "Failed to create object")
     self.assertTrue(
         len(result.stderr) == 0, "There should not be an exception here")
@@ -135,8 +137,10 @@ def test_negative_update(self, data):
 
     # Create a new object passing @data to factory method
     new_obj = self.factory(orig_dict)
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
     self.assertTrue(result.return_code == 0, "Failed to create object")
     self.assertTrue(
         len(result.stderr) == 0, "There should not be an exception here")
@@ -154,8 +158,10 @@ def test_negative_update(self, data):
     #updated")
     self.assertFalse(result.return_code == 0, "%s, %s" % (data, result.stdout))
     self.assertTrue(len(result.stderr) > 0, "There should be errors")
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
     # Verify that new values were not updated
     self.assertEqual(new_obj, result.stdout, "Object should not be updated")
 
@@ -179,8 +185,10 @@ def test_positive_delete(self, data):
 
     # Create a new object passing @data to factory method
     new_obj = self.factory(data)
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
     self.assertTrue(result.return_code == 0, "Failed to create object")
 
     # Store the new object for future assertionss and to use its ID
@@ -218,8 +226,10 @@ def test_negative_delete(self, data):
 
     # Create a new object using default values
     new_obj = self.factory()
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
     self.assertTrue(result.return_code == 0, "Failed to create object")
     # Store the new object for further assertions
     new_obj = result.stdout
@@ -229,7 +239,9 @@ def test_negative_delete(self, data):
     self.assertFalse(result.return_code == 0, "Should not delete object")
     self.assertTrue(len(result.stderr) > 0, "Should have gotten an error")
     # Now make sure that it still exists
-    result = self.factory_obj().info(
-        {self.search_key: new_obj[self.search_key]})
+
+    result = self.factory_obj().exists(
+        (self.search_key, new_obj[self.search_key])
+    )
     self.assertTrue(result.return_code == 0, "Failed to find object")
     self.assertEqual(new_obj, result.stdout)
