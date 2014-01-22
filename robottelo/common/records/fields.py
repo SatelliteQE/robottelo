@@ -7,11 +7,15 @@ from robottelo.common.helpers import *
 
 
 def convert_to_data(instance):
+    """Converts an instance to a data dictionary"""
+
     return {k: v for k, v in instance.__dict__.items()
             if (not k.startswith("_") and k!="")}
 
 
 def load_from_data(instance, data):
+    """Loads instance attributes from a data dictionary"""
+
     for k, v in data.items():
         instance.__dict__[k] = v
     return instance
@@ -23,6 +27,7 @@ class NOT_PROVIDED:
 
 class Field(object):
     """Base class for all fields"""
+
     def __init__(self, default=NOT_PROVIDED, required=False):
         self.default = default
         self.name = None
@@ -31,19 +36,20 @@ class Field(object):
 
     def generate(self):
         """Generate a random value for field"""
+
         raise NotImplementedError('A subclass should create a way to random generate this')
 
     def contribute_to_class(self, cls, name):
         """Method used to setup this field on the model"""
+
         if not self.name:
             self.name = name
         self.model = cls
         cls._meta.add_field(self)
 
     def has_default(self):
-        """
-        Returns a boolean of whether this field has a default value.
-        """
+        """Returns a boolean of whether this field has a default value"""
+
         return self.default is not NOT_PROVIDED
 
     def get_default(self):
@@ -51,6 +57,7 @@ class Field(object):
         Returns the default value for this field.
         Otherwise generates a value if it is required else returns None
         """
+
         if self.has_default():
             if callable(self.default):
                 return self.default()
@@ -78,6 +85,8 @@ class StringField(Field):
 
 
 class IntegerField(Field):
+    """Integer field that generates random values based on a range"""
+
     def __init__(self, min=1, max=10, **kwargs):
         super(IntegerField, self).__init__(**kwargs)
         self.min = min
@@ -90,6 +99,15 @@ class IntegerField(Field):
 class MACField(Field):
     def __init__(self, delimiter=":", **kwargs):
         super(MACField, self).__init__(**kwargs)
+        self.delimiter = delimiter
+
+    def generate(self):
+        return generate_mac(self.delimiter)
+
+
+class ArrayField(Field):
+    def __init__(self, delimiter=":", **kwargs):
+        super(ArrayField, self).__init__(**kwargs)
         self.delimiter = delimiter
 
     def generate(self):
@@ -112,8 +130,6 @@ class ChoiceField(Field):
 
     def generate(self):
         return choice(self.choices)
-
-
 
 
 class RelatedField(Field):
