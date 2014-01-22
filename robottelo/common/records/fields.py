@@ -1,4 +1,4 @@
-"""Model's fields declarations"""
+"""Records's fields declarations"""
 
 import rstr
 
@@ -31,7 +31,7 @@ class Field(object):
     def __init__(self, default=NOT_PROVIDED, required=False):
         self.default = default
         self.name = None
-        self.model = None
+        self.record = None
         self.required = required
 
     def generate(self):
@@ -40,11 +40,11 @@ class Field(object):
         raise NotImplementedError('A subclass should create a way to random generate this')
 
     def contribute_to_class(self, cls, name):
-        """Method used to setup this field on the model"""
+        """Method used to setup this field on the record"""
 
         if not self.name:
             self.name = name
-        self.model = cls
+        self.record = cls
         cls._meta.add_field(self)
 
     def has_default(self):
@@ -69,14 +69,14 @@ class Field(object):
 
 
 class StringField(Field):
-    def __init__(self, format=r'{model_name}_\d\d\d', maxlen=20, **kwargs):
+    def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20, **kwargs):
         super(StringField, self).__init__(**kwargs)
         self.format = format
         self.maxlen = maxlen
 
     def _parse_field_format(self, fmt):
         """Parses the format provided and returns the parsed format"""
-        return fmt.replace('{model_name}', self.model.__name__)
+        return fmt.replace('{record_name}', self.model.__name__)
 
     def generate(self):
         if '{' in self.format:
