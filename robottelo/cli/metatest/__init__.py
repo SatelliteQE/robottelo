@@ -72,9 +72,9 @@ class MetaCLITest(type):
 
                 # The data provided is a tuple so we need to unpack to pass to
                 # the  data decorator e.g. @data(*((a, b), (a, c)))
-                if data_name in attributes.keys():
+                if data_name.upper() in attributes.keys():
                     # Use data provided by test class
-                    params = attributes[data_name]
+                    params = attributes[data_name.upper()]
                 else:
                     # Use data provided by default_data module
                     params = getattr(default_data, data_name.upper())

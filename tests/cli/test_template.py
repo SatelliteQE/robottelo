@@ -41,7 +41,7 @@ class TestTemplate(BaseCLI):
 
         Template().create(args)
 
-        self.assertTrue(Template().exists(('name', args['name'])))
+        self.assertTrue(Template().exists(('name', args['name'])).stdout)
 
     def test_create_template_1(self):
         "Successfully creates a new template"
@@ -57,7 +57,7 @@ class TestTemplate(BaseCLI):
         name = generate_name(6)
         self._create_template(name=name, content=content)
 
-        template = Template().exists(('name', name))
+        template = Template().exists(('name', name)).stdout
 
         args = {
             'id': template['id'],
@@ -73,11 +73,11 @@ class TestTemplate(BaseCLI):
         name = generate_name(6)
         self._create_template(name=name, content=content)
 
-        template = Template().exists(('name', name))
+        template = Template().exists(('name', name)).stdout
 
         args = {
             'id': template['id'],
         }
 
         Template().delete(args)
-        self.assertFalse(Template().exists(('name', name)))
+        self.assertFalse(Template().exists(('name', name)).stdout)
