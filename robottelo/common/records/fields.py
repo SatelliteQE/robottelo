@@ -122,7 +122,15 @@ class IpAddrField(Field):
     def generate(self):
         return generate_ipaddr(self.ip3)
 
+class StringTypeField(Field):
+    def __init__(self, ip3=False, **kwargs):
+        super(StringTypeField, self).__init__(**kwargs)
+        self.str_type = str_type
+        self.length = length
 
+    def generate(self):
+        return generate_string(self.str_type,self.length)
+    
 class ChoiceField(Field):
     def __init__(self, choices, **kwargs):
         super(ChoiceField, self).__init__(**kwargs)
