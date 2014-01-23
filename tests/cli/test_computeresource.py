@@ -95,7 +95,7 @@ class TestComputeResource(BaseCLI):
             'url': "https://localhost:443/api",
             'user': 'admin@internal',
             'password': "secret"
-         }
+        }
     )
     def test_update(self, option_dict):
         """ `compute_resource update` basic test (different options) """

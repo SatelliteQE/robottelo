@@ -46,4 +46,5 @@ class ComputeResource(BaseUI):
         self.compute_resource.create(name, provider_type="Libvirt", url=url)
         self.navigator.go_to_compute_resources()
         self.compute_resource.delete(name, really=True)
-        self.assertTrue(self.user.wait_until_element(common_locators["notif.success"]))  # @IgnorePep8
+        self.assertTrue(
+            self.user.wait_until_element(common_locators["notif.success"]))

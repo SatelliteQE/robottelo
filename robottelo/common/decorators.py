@@ -78,7 +78,7 @@ def redminebug(bug_id):
     else:
         closed_issue_statuses = _redmine_closed_issue_statuses()
         if status_id not in closed_issue_statuses:
-            return unittest.skip('Test skipped due to Redmine issue #%s' %
-                bug_id)
+            return unittest.skip(
+                'Test skipped due to Redmine issue #%s' % bug_id)
         else:
             return lambda func: func
