@@ -104,7 +104,14 @@ class MACField(Field):
     def generate(self):
         return generate_mac(self.delimiter)
 
+class IpAddrField(Field):
+    def __init__(self, delimiter=":", **kwargs):
+        super(IpAddrField, self).__init__(**kwargs)
+        self.delimiter = delimiter
 
+    def generate(self):
+        return generate_ipaddr(self.delimiter)
+    
 class ArrayField(Field):
     def __init__(self, delimiter=":", **kwargs):
         super(ArrayField, self).__init__(**kwargs)
