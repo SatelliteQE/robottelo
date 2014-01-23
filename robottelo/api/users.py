@@ -39,4 +39,3 @@ class UserApi(ApiCrudMixin, ApiModelMixin):
     def change(self):
         self.mail = "updated" + self.mail
         return self
-

@@ -55,8 +55,7 @@ class Subnet(Base):
         result = None
 
         subnet_object = self.search_entity(subnet_name,
-                                    locators
-                                    ['subnet.display_name'])
+                                           locators['subnet.display_name'])
 
         if subnet_object:
             subnet_object.click()
@@ -81,8 +80,7 @@ class Subnet(Base):
         """
 
         subnet_object = self.search_entity(subnet_name,
-                                    locators
-                                    ["subnet.display_name"])
+                                           locators["subnet.display_name"])
 
         if subnet_object:
             subnet_object.click()

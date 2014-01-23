@@ -69,4 +69,3 @@ class ApiModelMixin(object):
     def change(self):
         """Required for automatic generating update of crud test."""
         raise NotImplementedError("Change method not defined.")
-

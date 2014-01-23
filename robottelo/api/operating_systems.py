@@ -25,15 +25,16 @@ class OperatingSystemApi(ApiCrudMixin, ApiModelMixin):
             self.name = unicode(generate_name(8))
             self.major = unicode(randint(1, 8))
             self.minor = unicode(randint(1, 30))
-            self.family = unicode(choice(
-                ["Archlinux",
+            self.family = unicode(choice([
+                "Archlinux",
                 "Debian",
                 "Freebsd",
                 "Gentoo",
                 "Redhat",
                 "Solaris",
                 "Suse",
-                "Windows"]))
+                "Windows",
+            ]))
             self.release_name = unicode(generate_name(8))
 
     def opts(self):
