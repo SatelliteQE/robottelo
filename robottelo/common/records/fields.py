@@ -120,7 +120,7 @@ class IpAddrField(Field):
         self.ip3 = ip3
 
     def generate(self):
-        return generate_mac(self.ip3)
+        return generate_ipaddr(self.ip3)
 
 
 class ChoiceField(Field):
