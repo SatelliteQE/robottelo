@@ -143,8 +143,7 @@ class OperatingSys(BaseUI):
                              temp_type, None, os_list)
         self.assertIsNotNone(self.template.search(template_name))
         self.navigator.go_to_operating_systems()
-        self.operatingsys.update(os_name, None, None, None, None,
-                                 None, None, None, template_name)
+        self.operatingsys.update(os_name, template=template_name)
 
     def test_set_parameter(self):
         "Set OS parameter"
