@@ -50,3 +50,5 @@ TEMPLATE_TYPES = [
     'PXEGrub',
     'snippet',
 ]
+
+RESOURCE_DEFAULT = "baremetal"

@@ -131,15 +131,17 @@ menu_locators = {
     # Orgs
     "org.any_context": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']"),   # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//li[contains(@class,'org-switcher')]/a"),  # @IgnorePep8
     "org.manage_org": (
         By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li/ul/li/a[@class='manage-menu' and contains(@href, '/organizations')]"),
-    "org.any_context": (
-        By.XPATH,
-        "//div[contains(@style,'static')]/div/ul/li[@class='dropdown org-switcher menu_tab_dropdown']/a[@class='dropdown-toggle']")}   # @IgnorePep8
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@class='manage-menu' and contains(@href, 'organizations')]")}  # @IgnorePep8
 
 tab_locators = {
+
+    #common
+    "tab_primary": (By.XPATH, "//a[@href='#primary']"),
+    #Third level UI
+    "tab_org": (By.XPATH, "//a[@href='#organizations']"),
 
     #Operating System
     #Third level UI
@@ -152,30 +154,19 @@ tab_locators = {
     #Host
     #Third level UI
 
-    "host.tab_primary": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'primary')]"),
-    "host.tab_network": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'network')]"),
-    "host.tab_os": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'os')]"),
-    "host.tab_vm": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'compute_resource')]"),  # @IgnorePep8
-    "host.tab_params": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'params')]"),
-    "host.tab_info": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'info')]"),
+    "host.tab_network": (By.XPATH, "//a[@href='#network']"),
+    "host.tab_os": (By.XPATH, "//a[@href='#os']"),
+    "host.tab_vm": (By.XPATH, "//a[@href='#compute_resource']"),
+    "host.tab_params": (By.XPATH, "//a[@href='#params']"),
+    "host.tab_info": (By.XPATH, "//a[@href='#info']"),
 
     #Provisioning Templates
     #Third level UI
 
-    "provision.tab_primary": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href,'primary')]"),
-    "provision.tab_type": (
-        By.XPATH, "//a[contains(@href,'template_type')]"),
-    "provision.tab_association": (
-        By.XPATH, "//a[contains(@href,'template_associations')]"),
-    "provision.tab_history": (
-        By.XPATH, "//a[contains(@href,'history')]"),
+    "provision.tab_type": (By.XPATH, "//a[@href='#template_type']"),
+    "provision.tab_association": (By.XPATH,
+                                  "//a[@href='#template_associations']"),
+    "provision.tab_history": (By.XPATH, "//a[@href='#history']"),
 
     #Users
     #Third level UI
@@ -199,8 +190,16 @@ common_locators = {
     "notif.close": (
         By.XPATH, "//a[@class='jnotify-close']"),
 
+    "entity_select": (
+        By.XPATH,
+        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
+    "entity_deselect": (
+        By.XPATH,
+        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
+
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),
+    "filter": (By.XPATH, "//div[@id='ms-%s_ids']//input[@class='ms-filter']"),
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
     "add_parameter": (
         By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
@@ -227,7 +226,7 @@ locators = {
     "org.org_name": (By.LINK_TEXT, "%s"),
     "org.dropdown": (
         By.XPATH,
-        "//table[@class='table table-bordered table-striped']/tbody/tr/td/div/a[@class='btn btn-default btn-sm dropdown-toggle']"),   # @IgnorePep8
+        "//a[normalize-space(.)='%s' and contains(@href,'organizations')]/../../td/div/a[@data-toggle='dropdown']"),   # @IgnorePep8
     "org.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
@@ -252,8 +251,6 @@ locators = {
     "operatingsys.select_medium": (By.XPATH, "//li/span[contains(., '%s')]"),
     "operatingsys.medium": (
         By.XPATH, "//label[@class='medium' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
-    "operatingsys.template": (
-        By.ID, "operatingsystem_os_default_templates_attributes_0_config_template_id"),
 
     #Compute Resource
 
@@ -301,8 +298,7 @@ locators = {
     "host.deploy": (By.ID, "host_compute_resource_id"),
     "host.environment": (By.ID, "host_environment_id"),
     "host.dropdown": (
-        By.XPATH,
-        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"),  # @IgnorePep8
+        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
     "host.select_name": (
         By.XPATH,
         "//input[contains(@id,'host_ids')]/../../td[@class='ellipsis']/a[contains(@href,'%s')]"),  # @IgnorePep8
@@ -316,11 +312,6 @@ locators = {
     #host.os
     "host.arch": (By.ID, "host_architecture_id"),
     "host.os": (By.ID, "host_operatingsystem_id"),
-    "host.org": (By.ID, "host_organization_id"),
-    "host.edit": (By.XPATH,
-                  "//a[@class='btn btn-default' and contains(@href,'edit')]"),
-    "host.puppet_ca": (By.ID, "host_puppet_ca_proxy_id"),
-    "host.puppet_master": (By.ID, "host_puppet_proxy_id"),
     "host.provision": (By.ID, "host_build"),
     "host.media": (By.ID, "host_medium_id"),
     "host.ptable": (By.ID, "host_ptable_id"),
@@ -460,6 +451,12 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Delete')]"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
+    "env.org_select": (
+        By.XPATH,
+        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
+    "env.org_deselect": (
+        By.XPATH,
+        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
     "env.dropdown": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),

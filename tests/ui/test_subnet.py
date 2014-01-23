@@ -14,6 +14,11 @@ class Subnet(BaseUI):
     """
     Implements subnet tests from UI
     """
+    def create_org(self, org_name=None):
+        """Creates Org"""
+        org_name = org_name or generate_name(8, 8)
+        self.navigator.go_to_org()  # go to org page
+        self.org.create(org_name)
 
     def create_subnet(self, subnet_name=None, subnet_network=None,
                       subnet_mask=None,):
@@ -23,8 +28,11 @@ class Subnet(BaseUI):
 
         subnet_name = subnet_name or generate_name(8, 8)
         subnet_network = subnet_network or generate_ipaddr(ip3=True)
+        org_name = generate_name(8, 8)
+        self.create_org(org_name)
         self.navigator.go_to_subnets()  # go to subnet page
-        self.subnet.create(subnet_name, subnet_network, subnet_mask)
+        self.subnet.create([org_name], subnet_name, subnet_network,
+                           subnet_mask)
         #TODO: Unable to capture the success message for now
 
     def test_create_subnet(self):
@@ -78,7 +86,7 @@ class Subnet(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
         new_subnet_name = generate_name(8, 8)
-        self.subnet.update(subnet_name, new_subnet_name, None, None)
+        self.subnet.update(subnet_name, new_subnet_name=new_subnet_name)
         result_object = self.subnet.search_subnet(new_subnet_name)
         self.assertEqual(new_subnet_name, result_object['name'])
 
@@ -93,7 +101,7 @@ class Subnet(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
         new_subnet_network = generate_ipaddr(ip3=True)
-        self.subnet.update(subnet_name, None, new_subnet_network, None)
+        self.subnet.update(subnet_name, new_subnet_network=new_subnet_network)
         result_object = self.subnet.search_subnet(subnet_name)
         self.assertEqual(new_subnet_network, result_object['network'])
 
@@ -108,7 +116,7 @@ class Subnet(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
         new_subnet_mask = "128.128.128.0"
-        self.subnet.update(subnet_name, None, None, new_subnet_mask)
+        self.subnet.update(subnet_name, new_subnet_mask=new_subnet_mask)
         result_object = self.subnet.search_subnet(subnet_name)
         self.assertEqual(new_subnet_mask, result_object['mask'])
 
