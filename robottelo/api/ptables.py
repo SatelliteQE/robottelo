@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 
 
-from robottelo.api.apicrud import ApiCrudMixin
+from robottelo.api.apicrud import ApiCrud
 
 
-class PTableApi(ApiCrudMixin):
+class PTableApi(ApiCrud):
         api_path = "/api/ptables/"
         api_json_key = u"ptable"
 

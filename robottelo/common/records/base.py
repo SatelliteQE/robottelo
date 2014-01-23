@@ -7,6 +7,7 @@ from robottelo.common.records.fields import convert_to_data
 def intersection(first,other):
     if isinstance(first,Record):
         if not isinstance(other,Record):
+            print "NOT THE SAME INSTANCE \n",first,"\n\n",other
             return False
         self_data = convert_to_data(first)
         other_data = convert_to_data(other)
@@ -19,6 +20,7 @@ def intersection(first,other):
         return intersects
     elif type(first) == type([]):
         if not (type(other) == type([])):
+            print "NOT THE SAME INSTANCE \n",first,"\n\n",other
             return False
         intersects = True
         for v in first:
@@ -34,8 +36,6 @@ class Options(object):
     Its instances will hold metadata for some record object
     """
 
-
-class Options(object):
     def __init__(self, meta):
         self.fields = []
         self.meta = meta
@@ -102,7 +102,7 @@ class RecordBase(type):
 class Record(object):
     __metaclass__ = RecordBase
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, CLEAN = False, *args, **kwargs):
         fields_iter = iter(self._meta.fields)
         for val, field in zip(args, fields_iter):
             setattr(self, field.name, val)
@@ -118,9 +118,10 @@ class Record(object):
                 except KeyError:
                     val = field.get_default()
             else:
-                val = field.get_default()
+                val = field.get_default() if not CLEAN else None
 
-            setattr(self, field.name, val)
+            if not CLEAN:
+                setattr(self, field.name, val)
 
         # Process any property defined on model
         if kwargs:
@@ -137,7 +138,8 @@ class Record(object):
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
         if hasattr(self, '_post_init'):
-            self._post_init()
+            if not CLEAN:
+                self._post_init()
 
     def _string_data(self):
         return {k.__str__():

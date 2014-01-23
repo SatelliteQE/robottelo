@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 
 
-from robottelo.api.apicrud import ApiCrudMixin
+from robottelo.api.apicrud import ApiCrud
 
 
-class HostApi(ApiCrudMixin):
+class HostApi(ApiCrud):
         api_path = "/api/hosts/"
         api_json_key = u"host"
         create_fields = ["name",

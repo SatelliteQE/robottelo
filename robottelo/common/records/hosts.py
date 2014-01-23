@@ -18,6 +18,7 @@ class Hosts(records.Record):
     ptable = records.RelatedField(PTables,required=True)
 
     def _post_init(self):
+        self.name = self.name + "." + self.domain.name
         self.architecture.operatingsystem = [self.operatingsystem]
         self.ptable.operatingsystem = [self.operatingsystem]
 

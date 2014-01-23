@@ -11,14 +11,19 @@ from robottelo.common.records.fields import ManyRelatedFields
 from inspect import getmro
 
 def resolve_or_create_record(record):
-    if ApiCrudMixin.record_exists(record):
-       return ApiCrudMixin.record_resolve(record)
+    if ApiCrud.record_exists(record):
+       return ApiCrud.record_resolve(record)
     else:
-       return ApiCrudMixin.record_create(record)
+       return ApiCrud.record_create(record)
 
 
+def data_load_transform(instance_cls, data):
+   key = instance_cls._meta.api_class.api_json_key
+   if key in data:
+       return data[key]
+   return data
 
-class ApiCrudMixin(object):
+class ApiCrud(object):
     """Defines basic crud methods based on api_path class method """
 
     def __init__(self):
@@ -160,44 +165,104 @@ class ApiCrudMixin(object):
                 return False
 
     @classmethod
+    def record_remove(cls, instance):
+        if cls != instance._meta.api_class:
+            return instance._meta.api_class.record_remove(instance)
+
+        if hasattr(instance,"id"):
+            r = cls.delete(instance.id)
+            return r.ok
+        else:
+            r = cls.list(json=dict(search="name="+instance.name))
+            if r.ok and len(r.json())==1:
+                cls.record_remove(cls.record_resolve(instance))
+                return True
+            else:
+                return False
+    @classmethod
     def record_resolve(cls, instance):
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_resolve(instance)
 
+        r = None
+        json = None
+        print instance
         if hasattr(instance,"id"):
             r = cls.show(instance.id)
             if r.ok:
-                nself = instance.copy()
-                instance = load_from_data(nself,r.json()[cls.get_json_key()])
-                return nself
-            else:
-                raise Exception(r.status_code, r.content)
+                json = r.json()
         else:
             r = cls.list(json=dict(search="name="+instance.name))
             if r.ok:
-                nself = instance.copy()
-                instance = load_from_data(nself,r.json()[0][cls.get_json_key()])
-                return nself
-            else:
-                raise Exception(r.status_code, r.content)
+                json = r.json()[0]
 
+        if r.ok:
+            ninstance = load_from_data(instance.__class__, json, data_load_transform)
+            return ninstance
+        else:
+            raise Exception(r.status_code, r.content)
 
     @classmethod
-    def record_create(cls,instance):
+    def record_resolve_recursive(cls, instance):
         if cls != instance._meta.api_class:
-            return instance._meta.api_class.record_create(instance)
+            return instance._meta.api_class.record_resolve_recursive(instance)
+        ninstance = cls.record_resolve(instance)
+        related_fields = [f for f in ninstance._meta.fields if isinstance(f, RelatedField) ]
+        for f in related_fields:
+            if hasattr(ninstance,(f.name + "_id")):
+                related_class = f.record_class
+                related_instance = related_class(CLEAN=True )
+                related_instance.id = instance.__dict__[(f.name + "_id")]
+                related_instance = cls.record_resolve(related_instance)
+                ninstance.__dict__[f.name] = related_instance
+            elif hasattr(ninstance , f.name) :
+                related_instance = ninstance.__dict__[f.name]
+                if isinstance(related_instance,RelatedField):
+                    ninstance.__dict__[f.name] = cls.record_resolve(related_instance)
+        return ninstance
+
+    @classmethod
+    def record_update(cls, instance):
+        if cls != instance._meta.api_class:
+            return instance._meta.api_class.record_update(instance)
+
+        if not hasattr(instance,"id"):
+            r = cls.list(json=dict(search="name="+instance.name))
+            if r.ok and len(r.json())==1:
+                instance.id = cls.record_resolve(instance).id
+            else:
+                if len(r.json())==0:
+                    raise KeyError(instance.name + " not found.")
+                else:
+                    raise KeyError(instance.name + " not unique.")
+
+        data = convert_to_data(instance)
+        if hasattr(cls,"create_fields"):
+           data = {name:field for name, field in data.items() if name in cls.create_fields}
+
+        r = cls.update(instance.id, json=cls.opts(data))
+        if r.ok:
+            ninstance = load_from_data(instance.__class__, r.json(), data_load_transform)
+            return ninstance
+        else:
+            raise Exception(r.status_code, r.content)
+
+    @classmethod
+    def record_create(cls, instance_orig):
+        if cls != instance_orig._meta.api_class:
+            return instance_orig._meta.api_class.record_create(instance_orig)
+        instance = instance_orig.copy()
 
         #resolve ids
-        data_instance = convert_to_data(instance)
         related_fields = [f.name for f in instance._meta.fields if isinstance(f, RelatedField) ]
+
         for field in related_fields:
             value = resolve_or_create_record(instance.__dict__[field])
             instance.__dict__[field] = value
             instance.__dict__[field+"_id"] = value.id
 
         #resolve ManyRelated ids
-        data_instance = convert_to_data(instance)
-        related_fields = [f.name for f in instance._meta.fields if isinstance(f,ManyRelatedFields) ]
+        related_fields = [f.name for f in instance._meta.fields if isinstance(f, ManyRelatedFields) ]
 
         for field in related_fields:
             value = instance.__dict__[field]
@@ -210,16 +275,13 @@ class ApiCrudMixin(object):
 
 
         data = convert_to_data(instance)
-        print data
         if hasattr(cls,"create_fields"):
            data = {name:field for name, field in data.items() if name in cls.create_fields}
 
-        print data
 
         r = cls.create(json=cls.opts(data))
         if r.ok:
-            nself = instance.copy()
-            instance = load_from_data(nself,r.json()[cls.get_json_key()])
-            return nself
+            ninstance = load_from_data(instance.__class__, r.json(), data_load_transform)
+            return ninstance
         else:
             raise Exception(r.status_code, r.content)
