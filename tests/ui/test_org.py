@@ -19,6 +19,7 @@ class Org(BaseUI):
         org_name = org_name or generate_name(8, 8)
         self.navigator.go_to_org()  # go to org page
         self.org.create(org_name)
+        self.navigator.go_to_org()
 
     def test_create_org(self):
         """Create new org - given a valid org name"""
