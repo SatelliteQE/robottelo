@@ -50,3 +50,9 @@ TEMPLATE_TYPES = [
     'PXEGrub',
     'snippet',
 ]
+
+PARTITION_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
+
+OS_TEMPLATE_URL = 'https://gist.github.com/sghai/8109676/raw'
+
+INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"

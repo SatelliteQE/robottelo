@@ -6,7 +6,7 @@ Implements Operating System UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -22,7 +22,7 @@ class OperatingSys(Base):
         self.browser = browser
 
     def _configure_os(self, minor_version=None, os_family=None,
-                      arch=None, ptable=None, medium=None):
+                      arch=None, ptable=None, medium=None, template=None):
         """
         Configures the operating system details
         """
@@ -46,10 +46,17 @@ class OperatingSys(Base):
             self.select_entity("operatingsys.medium",
                                "operatingsys.select_medium", medium,
                                "operatingsys.tab_medium")
+        if template:
+            self.wait_until_element(tab_locators
+                                    ["operatingsys.tab_templates"]).click()
+            Select(self.find_element(locators
+                                     ["operatingsys.template"]
+                                     )).select_by_visible_text(template)
 
     def create(self, name, major_version=None,
                minor_version=None, os_family=None,
-               arch=None, ptable=None, medium=None):
+               arch=None, ptable=None, medium=None,
+               template=None):
         """
         Create operating system from UI
         """
@@ -63,7 +70,7 @@ class OperatingSys(Base):
                                   ["operatingsys.major_version"]
                                   ).send_keys(major_version)
                 self._configure_os(minor_version,
-                                   os_family, arch, ptable, medium)
+                                   os_family, arch, ptable, medium, template)
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:
@@ -93,7 +100,7 @@ class OperatingSys(Base):
     def update(self, os_name, new_name=None,
                major_version=None, minor_version=None,
                os_family=None, arch=None,
-               ptable=None, medium=None):
+               ptable=None, medium=None, template=None):
         """
         Update all entities(arch, Partition table, medium) of OS from UI
         """
@@ -111,7 +118,7 @@ class OperatingSys(Base):
                     self.field_update("operatingsys.major_version",
                                       major_version)
             self._configure_os(minor_version, os_family,
-                               arch, ptable, medium)
+                               arch, ptable, medium, template)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:

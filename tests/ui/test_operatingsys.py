@@ -6,13 +6,12 @@ Test class for Operating System UI
 """
 
 from robottelo.ui.locators import common_locators
-from robottelo.common.helpers import generate_name
-from robottelo.common.helpers import generate_string
+from robottelo.common.constants import OS_TEMPLATE_URL, PARTITION_SCRIPT_URL, \
+    INSTALL_MEDIUM_URL
+from robottelo.common.helpers import generate_name, generate_string, \
+    download_template
 from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
-
-URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
-PART_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
 
 
 class OperatingSys(BaseUI):
@@ -98,7 +97,7 @@ class OperatingSys(BaseUI):
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         medium = generate_name(4)
-        path = URL % generate_name(6)
+        path = INSTALL_MEDIUM_URL % generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_installation_media()
         self.medium.create(medium, path)
@@ -115,7 +114,7 @@ class OperatingSys(BaseUI):
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         ptable = generate_name(4)
-        layout = urlopen(PART_SCRIPT_URL).read()
+        layout = urlopen(PARTITION_SCRIPT_URL).read()
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(ptable, layout)
@@ -123,6 +122,26 @@ class OperatingSys(BaseUI):
         self.create_os(name, major_version)
         self.operatingsys.update(name, None, None, None, None,
                                  None, ptable, None)
+
+    def test_update_os_template(self):
+        """
+        Updates Provisioning template
+        """
+
+        os_name = generate_name(6)
+        major_version = generate_string('numeric', 1)
+        template_name = generate_name(4)
+        temp_type = 'provision'
+        template_path = download_template(OS_TEMPLATE_URL)
+        os_list = [os_name]
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.create_os(os_name, major_version)
+        self.navigator.go_to_provisioning_templates()
+        self.template.create(template_name, template_path, True,
+                             temp_type, None, os_list)
+        self.assertIsNotNone(self.template.search(template_name))
+        self.navigator.go_to_operating_systems()
+        self.operatingsys.update(os_name, template=template_name)
 
     def test_set_parameter(self):
         "Set OS parameter"
