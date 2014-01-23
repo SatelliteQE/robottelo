@@ -21,19 +21,6 @@ class Template(Base):
         """
         self.browser = browser
 
-    def _configure_template(self, os_list):
-        """
-        Configures Operating system for templates
-        """
-
-        if os_list is not None:
-            self.wait_until_element(tab_locators
-                                    ["provision.tab_association"]).click()
-            for os_name in os_list:
-                self.select_entity("provision.associate_os",
-                                   "provision.select_os", os_name,
-                                   None)
-
     def create(self, name, template_path, custom_really,
                template_type, snippet, os_list=None):
         """
@@ -68,7 +55,8 @@ class Template(Base):
             else:
                 raise Exception(
                     "Could not create template '%s' without type" % name)
-            self._configure_template(os_list)
+            self.configure_entity(os_list, "config_template_operatingsystem",
+                                  tab_locator=tab_locators["provision.tab_association"])
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
@@ -84,7 +72,8 @@ class Template(Base):
         return element
 
     def update(self, name, custom_really, new_name=None,
-               template_path=None, template_type=None, os_list=None):
+               template_path=None, template_type=None,
+               os_list=None, new_os_list=None):
         """
         Updates a given template.
         """
@@ -106,7 +95,9 @@ class Template(Base):
                                         ["provision.tab_type"]).click()
                 ele = self.find_element(locators["provision.template_type"])
                 Select(ele).select_by_visible_text(template_type)
-            self._configure_template(os_list)
+            self.configure_entity(os_list, "config_template_operatingsystem",
+                                  tab_locator=tab_locators["provision.tab_association"],
+                                  new_entity_list=new_os_list)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
