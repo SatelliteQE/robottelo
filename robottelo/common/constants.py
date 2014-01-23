@@ -51,4 +51,6 @@ TEMPLATE_TYPES = [
     'snippet',
 ]
 
-RESOURCE_DEFAULT = "baremetal"
+PART_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
+
+TEMP_URL = 'https://gist.github.com/sghai/8109676/raw'
