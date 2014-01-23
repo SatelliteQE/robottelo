@@ -7,9 +7,8 @@ Test class for Operating System UI
 
 from robottelo.ui.locators import common_locators
 from robottelo.common.constants import TEMP_URL, PART_SCRIPT_URL
-from robottelo.common.helpers import generate_name
-from robottelo.common.helpers import generate_string
-from robottelo.common.helpers import download_template
+from robottelo.common.helpers import generate_name, generate_string, \
+    download_template
 from tests.ui.baseui import BaseUI
 from urllib2 import urlopen
 
