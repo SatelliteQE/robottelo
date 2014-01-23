@@ -4,7 +4,7 @@
 """
 Base class for all UI operations
 """
-
+import time
 import logging.config
 
 from robottelo.ui.locators import locators, common_locators, tab_locators
@@ -70,6 +70,39 @@ class Base(object):
         else:
             alert = self.browser.switch_to_alert()
             alert.dismiss()
+
+    def select_deselect_entity(self, filter_key, loc, entity_list):
+        """
+        Selects and Deselects entity associations.
+        """
+        for entity in entity_list:
+            strategy = common_locators["filter"][0]
+            value = common_locators["filter"][1]
+            txt_field = self.wait_until_element((strategy, value % filter_key))
+            txt_field.clear()
+            txt_field.send_keys(entity)
+            strategy = loc[0]
+            value = loc[1]
+            element = self.wait_until_element((strategy, value % entity))
+            element.click()
+
+    def configure_entity(self, entity_list, filter_key, tab_locator=None,
+                         new_entity_list=None, entity_select=True):
+        """
+        Configures entities like orgs.
+        """
+        if entity_list:
+            self.wait_until_element(tab_locator).click()
+            if entity_select:
+                entity_locator = common_locators["entity_select"]
+            else:
+                entity_locator = common_locators["entity_deselect"]
+            self.select_deselect_entity(filter_key,
+                                        entity_locator, entity_list)
+        if new_entity_list:
+            entity_locator = common_locators["entity_select"]
+            self.select_deselect_entity(filter_key,
+                                        entity_locator, new_entity_list)
 
     def delete_entity(self, name, really, name_locator, del_locator,
                       drop_locator=None, search_key=None):

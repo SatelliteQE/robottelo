@@ -1,5 +1,6 @@
 
 from robottelo.ui.base import Base
+from robottelo.common.constants import RESOURCE_DEFAULT
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
@@ -22,7 +23,7 @@ class Hosts(Base):
         if self.wait_until_element(locators["host.name"]):
             self.find_element(locators["host.name"]).send_keys(name)
         if resource is None:
-            resource = "baremetal"
+            resource = RESOURCE_DEFAULT
         type_deploy = self.find_element(locators["host.deploy"])
         Select(type_deploy).select_by_visible_text(resource)
         if host_group:

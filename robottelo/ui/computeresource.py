@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -50,11 +50,9 @@ class ComputeResource(Base):
             self.find_element(locators["resource.libvirt_console_passwd"]).click()  # @IgnorePep8
         self.find_element(locators["resource.test_connection"]).click()
         self.wait_for_ajax()
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
 
-    def create(self, name, provider_type=None, url=None, user=None,
-               password=None, region=None, libvirt_display=None,
+    def create(self, name, orgs, org_select=True, provider_type=None, url=None,
+               user=None, password=None, region=None, libvirt_display=None,
                libvirt_set_passwd=True, tenant=None):
         """
         Creates a compute resource.
@@ -64,6 +62,11 @@ class ComputeResource(Base):
             self.find_element(locators["resource.name"]).send_keys(name)
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd)
+        self.configure_entity(orgs, "compute_resource_organization",
+                              tab_locator=tab_locators["tab_org"],
+                              entity_select=org_select)
+        self.find_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def search(self, name):
         """
@@ -72,9 +75,10 @@ class ComputeResource(Base):
         element = self.search_entity(name, locators["resource.select_name"])
         return element
 
-    def update(self, oldname, newname, provider_type=None, url=None, user=None,
-               password=None, region=None, libvirt_display=None,
-               libvirt_set_passwd=True, tenant=None):
+    def update(self, oldname, newname, orgs, new_orgs, org_select=False,
+               provider_type=None, url=None, user=None, password=None,
+               region=None, libvirt_display=None, libvirt_set_passwd=True,
+               tenant=None):
         """
         Updates a compute resource.
         """
@@ -90,6 +94,12 @@ class ComputeResource(Base):
             self._configure_resource(provider_type, url, user, password,
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
+            self.configure_entity(orgs, "compute_resource_organization",
+                                  tab_locator=tab_locators["tab_org"],
+                                  new_entity_list=new_orgs,
+                                  entity_select=org_select)
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception("Could not update the resource '%s'" % oldname)
 

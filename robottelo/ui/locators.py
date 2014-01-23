@@ -140,10 +140,8 @@ tab_locators = {
 
     #common
     "tab_primary": (By.XPATH, "//a[@href='#primary']"),
-
-    #Environment
     #Third level UI
-    "environment.tab_org": (By.XPATH, "//a[@href='#organizations']"),
+    "tab_org": (By.XPATH, "//a[@href='#organizations']"),
 
     #Operating System
     #Third level UI
@@ -192,8 +190,16 @@ common_locators = {
     "notif.close": (
         By.XPATH, "//a[@class='jnotify-close']"),
 
+    "entity_select": (
+        By.XPATH,
+        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
+    "entity_deselect": (
+        By.XPATH,
+        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
+
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),
+    "filter": (By.XPATH, "//div[@id='ms-%s_ids']//input[@class='ms-filter']"),
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
     "add_parameter": (
         By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
@@ -445,12 +451,6 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Delete')]"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "env.org_select": (
-        By.XPATH,
-        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
-    "env.org_deselect": (
-        By.XPATH,
-        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
     "env.dropdown": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
