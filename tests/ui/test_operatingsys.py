@@ -20,7 +20,7 @@ class OperatingSys(BaseUI):
     """
 
     def create_os(self, name=None, major_version=None,
-                  minor_version=None, os_family=None, arch=None):
+                  minor_version=None, os_family=None, archs=None):
         """
         Function to create OS with all navigation steps
         """
@@ -30,7 +30,7 @@ class OperatingSys(BaseUI):
         minor_version = minor_version or generate_string('numeric', 1)
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(name, major_version,
-                                 minor_version, os_family, arch)
+                                 minor_version, os_family, archs)
         self.assertIsNotNone(self.operatingsys.search(name))
 
     def test_create_os(self):
@@ -47,7 +47,7 @@ class OperatingSys(BaseUI):
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(arch)
         self.assertIsNotNone(self.architecture.search(arch))
-        self.create_os(name, major_version, minor_version, os_family, arch)
+        self.create_os(name, major_version, minor_version, os_family, [arch])
 
     def test_remove_os(self):
         """
@@ -86,7 +86,7 @@ class OperatingSys(BaseUI):
         self.create_os(name, major_version, minor_version, os_family)
         self.operatingsys.update(name, new_name, new_major_version,
                                  new_minor_version, new_os_family,
-                                 new_arch)
+                                 new_archs=[new_arch])
         self.assertIsNotNone(self.operatingsys.search(new_name))
 
     def test_update_os_medium(self):
@@ -103,8 +103,7 @@ class OperatingSys(BaseUI):
         self.medium.create(medium, path)
         self.assertIsNotNone(self.medium.search(medium))
         self.create_os(name, major_version)
-        self.operatingsys.update(name, None, None, None, None,
-                                 None, None, medium)
+        self.operatingsys.update(name, new_mediums=[medium])
 
     def test_update_os_partition_table(self):
         """
@@ -120,8 +119,7 @@ class OperatingSys(BaseUI):
         self.partitiontable.create(ptable, layout)
         self.assertIsNotNone(self.partitiontable.search(ptable))
         self.create_os(name, major_version)
-        self.operatingsys.update(name, None, None, None, None,
-                                 None, ptable, None)
+        self.operatingsys.update(name, new_ptables=[ptable])
 
     def test_update_os_template(self):
         """

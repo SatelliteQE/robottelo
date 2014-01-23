@@ -4,7 +4,6 @@
 """
 Base class for all UI operations
 """
-import time
 import logging.config
 
 from robottelo.ui.locators import locators, common_locators, tab_locators
@@ -91,8 +90,13 @@ class Base(object):
         """
         Configures entities like orgs.
         """
+        if entity_list is None:
+            entity_list = []
+        if new_entity_list is None:
+            new_entity_list = []
         if entity_list:
-            self.wait_until_element(tab_locator).click()
+            if tab_locator:
+                self.wait_until_element(tab_locator).click()
             if entity_select:
                 entity_locator = common_locators["entity_select"]
             else:
@@ -100,6 +104,8 @@ class Base(object):
             self.select_deselect_entity(filter_key,
                                         entity_locator, entity_list)
         if new_entity_list:
+            if tab_locator:
+                self.wait_until_element(tab_locator).click()
             entity_locator = common_locators["entity_select"]
             self.select_deselect_entity(filter_key,
                                         entity_locator, new_entity_list)
