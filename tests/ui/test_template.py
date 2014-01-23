@@ -5,9 +5,8 @@
 Test class for Template UI
 """
 
-from robottelo.common.helpers import generate_name
-from robottelo.common.helpers import generate_string
-from robottelo.common.helpers import download_template
+from robottelo.common.helpers import generate_name, generate_string, \
+    download_template
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
