@@ -198,13 +198,14 @@ def sleep_for_seconds(guaranteed_sleep=1):
     """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
 
+
 def download_template(url):
-        """
-        Function to download the template from given URL
-        """
-        filename = '/tmp/custom_template'
-        temp = urlopen(url)
-        temp_file = open(filename, 'wb')
-        temp_file.write(temp.read())
-        temp_file.close()
-        return filename
+    """
+    Function to download the template from given URL
+    """
+    filename = '/tmp/custom_template'
+    temp = urlopen(url)
+    temp_file = open(filename, 'wb')
+    temp_file.write(temp.read())
+    temp_file.close()
+    return filename

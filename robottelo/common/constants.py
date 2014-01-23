@@ -50,3 +50,7 @@ TEMPLATE_TYPES = [
     'PXEGrub',
     'snippet',
 ]
+
+PART_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
+
+TEMP_URL = 'https://gist.github.com/sghai/8109676/raw'
