@@ -203,10 +203,10 @@ common_locators = {
 
     "entity_select": (
         By.XPATH,
-        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
+        "//div[@class='ms-selectable']//span[contains(.,'%s')]"),
     "entity_deselect": (
         By.XPATH,
-        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
+        "//div[@class='ms-selection']//span[contains(.,'%s')]"),
     "entity_checkbox": (
         By.XPATH,
         "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
@@ -256,23 +256,7 @@ locators = {
     "operatingsys.family": (By.ID, "operatingsystem_family"),
     "operatingsys.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
-    "operatingsys.arch": (
-        By.XPATH,
-        ("//label[@class='architecture' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
-    "operatingsys.select_arch": (By.XPATH, "//li/span[contains(., '%s')]"),
     "operatingsys.operatingsys_name": (By.XPATH, "//a[contains(., '%s')]"),
-
-    "operatingsys.ptable": (
-        By.XPATH,
-        ("//label[@class='ptable' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
-    "operatingsys.select_ptable": (By.XPATH, "//li/span[contains(., '%s')]"),
-    "operatingsys.select_medium": (By.XPATH, "//li/span[contains(., '%s')]"),
-    "operatingsys.medium": (
-        By.XPATH,
-        ("//label[@class='medium' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
     "operatingsys.template": (
         By.ID,
         "operatingsystem_os_default_templates_attributes_0_config_template_id"
@@ -429,22 +413,10 @@ locators = {
 
     #users.roles
     "users.admin_role": (By.ID, "user_admin"),
-    "users.select_role": (By.XPATH, "//li/span[contains(., '%s')]"),
-    "users.role": (
-        By.XPATH,
-        ("//label[@class='role' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
 
     #User Groups
     "usergroups.new": (By.XPATH, "//a[contains(@href, '/usergroups/new')]"),
     "usergroups.name": (By.ID, "usergroup_name"),
-    "usergroups.user": (
-        By.XPATH,
-        ("//label[@class='user' and normalize-space(.)='%s']"
-            "/input[@id='usergroup_user_ids_']")),
-    "usergroups.select_user": (
-        By.XPATH,
-        "//div[@id='ms-usergroup_user_ids']//li/span[contains(., '%s')]"),
     "usergroups.usergroup": (By.XPATH, "//a[contains(., '%s')]"),
     "usergroups.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
@@ -465,9 +437,6 @@ locators = {
     "arch.name": (By.ID, "architecture_name"),
     "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
-    "arch.os_name": (
-        By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]"),
-    "arch.select_os_name": (By.XPATH, "//li/span[contains(., '%s')]"),
 
     #Medium
     "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
