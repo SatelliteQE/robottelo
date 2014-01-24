@@ -48,7 +48,7 @@ class Template(BaseUI):
         template_path = download_template(TEMP_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
-                             temp_type, None, None)
+                             temp_type, None)
 
     def test_create_snippet_template(self):
         """
@@ -64,7 +64,7 @@ class Template(BaseUI):
         template_path = download_template(SNIPPET_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
-                             None, True, None)
+                             None, True)
 
     def test_remove_template(self):
         """
@@ -80,7 +80,7 @@ class Template(BaseUI):
         template_path = download_template(TEMP_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
-                             temp_type, None, None)
+                             temp_type, None)
         self.template.delete(name, True)
         self.assertTrue(self.template.wait_until_element(common_locators
                                                          ["notif.success"]))
@@ -102,7 +102,7 @@ class Template(BaseUI):
         template_path = download_template(TEMP_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
-                             temp_type, None, None)
+                             temp_type, None)
         self.template.update(name, False, new_name, None, new_temp_type)
         self.assertIsNotNone(self.template.search(new_name))
 
@@ -130,7 +130,6 @@ class Template(BaseUI):
             self.operatingsys.create(os_name, major_version)
             self.assertIsNotNone(self.operatingsys.search(os_name))
         self.create_template(name, template_path, True,
-                             temp_type, None, None)
-        self.template.update(name, False, new_name, None,
-                             None, os_list)
+                             temp_type, None)
+        self.template.update(name, False, new_name, new_os_list=os_list)
         self.assertIsNotNone(self.template.search(new_name))

@@ -20,17 +20,7 @@ class Architecture(Base):
         """
         self.browser = browser
 
-    def _configure_arch(self, os_name=None):
-        """
-        Configures architecture details like: OS name
-        """
-        if os_name:
-            self.select_entity("arch.os_name", "arch.select_os_name",
-                               os_name, None)
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
-
-    def create(self, name, os_name=None):
+    def create(self, name, os_names=None):
         """
         Creates new architecture from UI with existing OS
         """
@@ -39,7 +29,9 @@ class Architecture(Base):
 
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
-            self._configure_arch(os_name)
+            self.configure_entity(os_names, "architecture_operatingsystem")
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new architecture '%s'" % name)
@@ -59,7 +51,8 @@ class Architecture(Base):
         self.delete_entity(name, really, locators['arch.arch_name'],
                            locators['arch.delete'])
 
-    def update(self, old_name, new_name=None, os_name=None):
+    def update(self, old_name, new_name=None, os_names=None,
+               new_os_names=None):
         """
         Update existing arch's name and OS
         """
@@ -69,7 +62,10 @@ class Architecture(Base):
             element.click()
             if self.wait_until_element(locators["arch.name"]) and new_name:
                 self.field_update("arch.name", new_name)
-                self._configure_arch(os_name)
+                self.configure_entity(os_names, "architecture_operatingsystem",
+                                      new_entity_list=new_os_names)
+                self.find_element(common_locators["submit"]).click()
+                self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not update the architecture '%s'" % old_name)

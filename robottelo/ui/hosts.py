@@ -1,5 +1,6 @@
 
 from robottelo.ui.base import Base
+from robottelo.common.constants import RESOURCE_DEFAULT
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
@@ -76,14 +77,14 @@ class Hosts(Base):
             Select(type_ele).select_by_visible_text(org)
 
         if resource is None:
-            resource = "baremetal"
+            resource = RESOURCE_DEFAULT
         type_deploy = self.find_element(locators["host.deploy"])
         Select(type_deploy).select_by_visible_text(resource)
 
         self._configure_hosts(domain, subnet, host_group, resource, env,
                               ip_addr, mac, os, arch, media, ptable,
                               custom_ptable, root_pwd)
-        if resource != "baremetal":
+        if resource != RESOURCE_DEFAULT:
             self.wait_until_element(tab_locators["host.tab_vm"]).click()
             vm_cpu = self.find_element(locators["host.vm_cpus"])
             Select(vm_cpu).select_by_visible_text(cpus)

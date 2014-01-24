@@ -20,16 +20,7 @@ class UserGroup(Base):
         """
         self.browser = browser
 
-    def _configure_usergroup(self, user=None):
-        """
-        Configures the other details of user groups like: users
-        """
-
-        if user:
-            self.select_entity("usergroups.user",
-                               "usergroups.select_user", user, None)
-
-    def create(self, name, user=None):
+    def create(self, name, users=None):
         """
         Creates new usergroup
         """
@@ -38,8 +29,7 @@ class UserGroup(Base):
 
         if self.wait_until_element(locators["usergroups.name"]):
             self.find_element(locators["usergroups.name"]).send_keys(name)
-            self._configure_usergroup(user)
-
+            self.configure_entity(users, "usergroup_user")
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
@@ -55,21 +45,15 @@ class UserGroup(Base):
         strategy = locators["usergroups.delete"][0]
         value = locators["usergroups.delete"][1]
         element = self.wait_until_element((strategy, value % name))
-
         if element:
             element.click()
-            if really:
-                alert = self.browser.switch_to_alert()
-                alert.accept()
-            else:
-                alert = self.browser.switch_to_alert()
-                alert.dismiss()
+            self.handle_alert(really)
         else:
             raise Exception(
                 "Could not find the usergroup '%s'" % name)
 
     def update(self, old_name, new_name=None,
-               user=None):
+               users=None, new_users=None):
         """
         Update usergroup name and its users
         """
@@ -85,7 +69,8 @@ class UserGroup(Base):
             if new_name:
                 if self.wait_until_element(locators["usergroups.name"]):
                     self.field_update("usergroups.name", new_name)
-            self._configure_usergroup(user)
+            self.configure_entity(users, "usergroup_user",
+                                  new_entity_list=new_users)
             self.wait_for_ajax()
         else:
             raise Exception("Could not find usergroup '%s'" % old_name)

@@ -6,7 +6,7 @@ Implements Subnet UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 
 
 class Subnet(Base):
@@ -20,7 +20,16 @@ class Subnet(Base):
         """
         self.browser = browser
 
-    def create(self, subnet_name=None, subnet_network=None, subnet_mask=None,):
+    def _configure_subnet(self, subnet_network, subnet_mask):
+        if subnet_network:
+            if self.wait_until_element(locators["subnet.network"]):
+                self.field_update("subnet.network", subnet_network)
+        if subnet_mask:
+            if self.wait_until_element(locators["subnet.mask"]):
+                self.field_update("subnet.mask", subnet_mask)
+
+    def create(self, orgs, subnet_name=None,
+               subnet_network=None, subnet_mask=None, org_select=True):
         """
         Create Subnet from UI
         """
@@ -29,12 +38,10 @@ class Subnet(Base):
 
         if self.wait_until_element(locators["subnet.name"]):
             self.find_element(locators["subnet.name"]).send_keys(subnet_name)
-        if self.wait_until_element(locators["subnet.network"]):
-            self.find_element(locators
-                              ["subnet.network"]
-                              ).send_keys(subnet_network)
-        if self.wait_until_element(locators["subnet.mask"]):
-            self.find_element(locators["subnet.mask"]).send_keys(subnet_mask)
+        self._configure_subnet(subnet_network, subnet_mask)
+        self.configure_entity(orgs, "subnet_organization",
+                              tab_locator=tab_locators["tab_org"],
+                              entity_select=org_select)
         self.wait_until_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
@@ -73,8 +80,9 @@ class Subnet(Base):
                 ).get_attribute("value")
         return result
 
-    def update(self, subnet_name, new_subnet_name=None,
-               new_subnet_network=None, new_subnet_mask=None):
+    def update(self, subnet_name, orgs=None, new_orgs=None, org_select=False,
+               new_subnet_name=None, new_subnet_network=None,
+               new_subnet_mask=None):
         """
         Update subnet name, network and mask from UI
         """
@@ -87,11 +95,10 @@ class Subnet(Base):
             if new_subnet_name:
                 if self.wait_until_element(locators["subnet.name"]):
                     self.field_update("subnet.name", new_subnet_name)
-            if new_subnet_network:
-                if self.wait_until_element(locators["subnet.network"]):
-                    self.field_update("subnet.network", new_subnet_network)
-            if new_subnet_mask:
-                if self.wait_until_element(locators["subnet.mask"]):
-                    self.field_update("subnet.mask", new_subnet_mask)
+            self._configure_subnet(new_subnet_network, new_subnet_mask)
+            self.configure_entity(orgs, "subnet_organization",
+                                  tab_locator=tab_locators["tab_org"],
+                                  new_entity_list=new_orgs,
+                                  entity_select=org_select)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()

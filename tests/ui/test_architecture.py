@@ -15,14 +15,14 @@ class Architecture(BaseUI):
     Implements Architecture tests from UI
     """
 
-    def create_arch(self, arch_name, os_name=None):
+    def create_arch(self, arch_name, os_names=None):
         """
         Function navigates and creates new architecture from UI
         """
         arch_name = arch_name or generate_name(4)
-        os_name = os_name or generate_name(6)
+        os_names = os_names or [generate_name(6)]
         self.navigator.go_to_architectures()  # go to architecture page
-        self.architecture.create(arch_name, os_name)
+        self.architecture.create(arch_name, os_names)
         self.assertIsNotNone(self.architecture.search(arch_name))
 
     def test_create_arch(self):
@@ -37,7 +37,7 @@ class Architecture(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(os_name, major_version)
         self.assertIsNotNone(self.operatingsys.search(os_name))
-        self.create_arch(name, os_name)
+        self.create_arch(name, [os_name])
 
     def test_remove_arch(self):
         """
@@ -51,7 +51,7 @@ class Architecture(BaseUI):
         self.navigator.go_to_operating_systems()  # go to operating system page
         self.operatingsys.create(os_name, major_version)
         self.assertIsNotNone(self.operatingsys.search(os_name))
-        self.create_arch(name, os_name)
+        self.create_arch(name, [os_name])
         self.architecture.delete(name, True)
         self.assertIsNone(self.architecture.search(name))
 
@@ -69,5 +69,6 @@ class Architecture(BaseUI):
         self.operatingsys.create(os_name, major_version)
         self.assertIsNotNone(self.operatingsys.search(os_name))
         self.create_arch(old_name)
-        self.architecture.update(old_name, new_name, os_name)
+        self.architecture.update(old_name, new_name,
+                                 new_os_names=[os_name])
         self.assertIsNotNone(self.architecture.search(new_name))

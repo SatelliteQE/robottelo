@@ -88,6 +88,5 @@ class User(BaseUI):
         self.role.create(role)
         self.assertIsNotNone(self, self.role.search(role))
         self.create_user(name, password, email, search_key)
-        self.user.update(search_key, name, None, None, None,
-                         None, None, None, role)
+        self.user.update(search_key, name, new_roles=[role])
         #TODO assert newly added role/permissions for user
