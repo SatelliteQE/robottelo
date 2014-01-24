@@ -123,8 +123,6 @@ class Template(BaseUI):
         os_name2 = generate_name(6)
         os_list = [os_name1, os_name2]
         major_version = generate_string('numeric', 1)
-        os_list1 = [os_name1 + " " + major_version,
-                    os_name2 + " " + major_version]
         template_path = download_template(TEMP_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         for os_name in os_list:
@@ -133,5 +131,5 @@ class Template(BaseUI):
             self.assertIsNotNone(self.operatingsys.search(os_name))
         self.create_template(name, template_path, True,
                              temp_type, None)
-        self.template.update(name, False, new_name, new_os_list=os_list1)
+        self.template.update(name, False, new_name, new_os_list=os_list)
         self.assertIsNotNone(self.template.search(new_name))
