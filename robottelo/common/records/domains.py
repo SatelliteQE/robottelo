@@ -3,7 +3,7 @@ from robottelo.common import records
 from robottelo.cli.records.domains import DomainCli
 
 class Domains(records.Record):
-    name = records.StringField(required=True)
+    name = records.StringField(format="domain\d\d\d\d",required=True)
 
     class Meta:
         api_class = DomainApi
