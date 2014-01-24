@@ -11,7 +11,7 @@ import unittest
 from robottelo.common import conf
 
 
-class BaseApi(unittest.TestCase):
+class BaseCommon(unittest.TestCase):
     """
     Base class for all cli tests
     """
