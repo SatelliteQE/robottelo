@@ -65,22 +65,26 @@ class Navigator(Base):
 
     def go_to_operating_systems(self):
         self.menu_click(
-            menu_locators['menu.hosts'], menu_locators['menu.operating_systems'],
+            menu_locators['menu.hosts'],
+            menu_locators['menu.operating_systems'],
         )
 
     def go_to_provisioning_templates(self):
         self.menu_click(
-            menu_locators['menu.hosts'], menu_locators['menu.provisioning_templates'],
+            menu_locators['menu.hosts'],
+            menu_locators['menu.provisioning_templates'],
         )
 
     def go_to_partition_tables(self):
         self.menu_click(
-            menu_locators['menu.hosts'], menu_locators['menu.partition_tables'],
+            menu_locators['menu.hosts'],
+            menu_locators['menu.partition_tables'],
         )
 
     def go_to_installation_media(self):
         self.menu_click(
-            menu_locators['menu.hosts'], menu_locators['menu.installation_media'],
+            menu_locators['menu.hosts'],
+            menu_locators['menu.installation_media'],
         )
 
     def go_to_hardware_models(self):
@@ -100,17 +104,20 @@ class Navigator(Base):
 
     def go_to_global_parameters(self):
         self.menu_click(
-            menu_locators['menu.configure'], menu_locators['menu.global_parameters'],
+            menu_locators['menu.configure'],
+            menu_locators['menu.global_parameters'],
         )
 
     def go_to_environments(self):
         self.menu_click(
-            menu_locators['menu.configure'], menu_locators['menu.environments'],
+            menu_locators['menu.configure'],
+            menu_locators['menu.environments'],
         )
 
     def go_to_puppet_classes(self):
         self.menu_click(
-            menu_locators['menu.configure'], menu_locators['menu.puppet_classes'],
+            menu_locators['menu.configure'],
+            menu_locators['menu.puppet_classes'],
         )
 
     def go_to_smart_variables(self):
@@ -120,7 +127,8 @@ class Navigator(Base):
 
     def go_to_smart_proxies(self):
         self.menu_click(
-            menu_locators['menu.infrastructure'], menu_locators['menu.smart_proxies'],
+            menu_locators['menu.infrastructure'],
+            menu_locators['menu.smart_proxies'],
         )
 
     def go_to_compute_resources(self):
@@ -131,12 +139,14 @@ class Navigator(Base):
 
     def go_to_subnets(self):
         self.menu_click(
-            menu_locators['menu.infrastructure'], menu_locators['menu.subnets'],
+            menu_locators['menu.infrastructure'],
+            menu_locators['menu.subnets'],
         )
 
     def go_to_domains(self):
         self.menu_click(
-            menu_locators['menu.infrastructure'], menu_locators['menu.domains'],
+            menu_locators['menu.infrastructure'],
+            menu_locators['menu.domains'],
         )
 
     def go_to_ldap_auth(self):
@@ -151,7 +161,8 @@ class Navigator(Base):
 
     def go_to_user_groups(self):
         self.menu_click(
-            menu_locators['menu.administer'], menu_locators['menu.user_groups'],
+            menu_locators['menu.administer'],
+            menu_locators['menu.user_groups'],
         )
 
     def go_to_roles(self):

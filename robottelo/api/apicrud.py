@@ -67,7 +67,7 @@ class ApiCrudMixin(object):
         """Method parsing the api_path for extra arguments"""
         path = cls.get_api_path()
         path_args = [
-                s[1:] for s in path.split('/') if s.startswith(":")
+            s[1:] for s in path.split('/') if s.startswith(":")
         ]
         for arg in path_args:
             if arg in args:

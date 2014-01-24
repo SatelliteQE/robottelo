@@ -7,15 +7,14 @@ Test class for Environment  CLI
 
 from robottelo.cli.environment import Environment
 from robottelo.common.helpers import generate_name, sleep_for_seconds
-from tests.cli.basecli import BaseCLI
+from robottelo.cli.factory import make_environment
+from tests.cli.basecli import MetaCLI
 
 
-class TestEnvironment(BaseCLI):
+class TestEnvironment(MetaCLI):
 
-    def test_create(self):
-        result = Environment().create({'name': generate_name()})
-        self.assertTrue(result.return_code == 0,
-                        "Environment create - retcode")
+    factory = make_environment
+    factory_obj = Environment
 
     def test_info(self):
         name = generate_name()
@@ -25,6 +24,7 @@ class TestEnvironment(BaseCLI):
 
         self.assertTrue(result.return_code == 0,
                         "Environment info - retcode")
+
         self.assertEquals(result.stdout['name'], name,
                           "Environment info - stdout contains 'Name'")
 
@@ -34,25 +34,3 @@ class TestEnvironment(BaseCLI):
         result = Environment().list({'search': name})
         self.assertTrue(len(result.stdout) == 1,
                         "Environment list - stdout contains 'Name'")
-
-    def test_update(self):
-        name = generate_name(8, 8)
-        Environment().create({'name': name})
-        result = Environment().update({'name': name,
-                                      'new-name': "updated_%s" % name})
-        self.assertTrue(result.return_code == 0,
-                        "Environment update - retcode")
-        result = Environment().list({'search': "updated_%s" % name})
-        self.assertTrue(len(result.stdout) == 1,
-                        "Environment list - has updated name")
-
-    def test_delete(self):
-        name = generate_name(8, 8)
-        Environment().create({'name': name})
-        result = Environment().delete({'name': name})
-        self.assertTrue(result.return_code == 0,
-                        "Environment delete - retcode")
-        sleep_for_seconds(10)  # sleep for about 10 sec.
-        result = Environment().list({'search': name})
-        self.assertTrue(len(result.stdout) == 0,
-                        "Environment list - does not have deleted name")

@@ -11,27 +11,23 @@ class Hosts(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def create(self, name, domain, subnet, host_group=None, resource=None,
-               env=None, ip_addr=None, mac=None, os=None, arch=None,
-               media=None, ptable=None, custom_ptable=None, root_pwd=None,
-               cpus="1", memory="768 MB"):
-        """
-        Creates a host.
-        """
-        self.wait_until_element(locators["host.new"]).click()
-        if self.wait_until_element(locators["host.name"]):
-            self.find_element(locators["host.name"]).send_keys(name)
-        if resource is None:
-            resource = "baremetal"
-        type_deploy = self.find_element(locators["host.deploy"])
-        Select(type_deploy).select_by_visible_text(resource)
+    def _configure_hosts(self, domain, subnet, puppet_ca=None,
+                         puppet_master=None, host_group=None,
+                         resource=None, env=None, ip_addr=None,
+                         mac=None, os=None, arch=None, media=None,
+                         ptable=None, custom_ptable=None, root_pwd=None):
         if host_group:
             type_ele = self.find_element(locators["host.group"])
             Select(type_ele).select_by_visible_text(host_group)
         elif env and host_group is None:  # As selecting hostgroup changes env
             type_env = self.find_element(locators["host.environment"])
             Select(type_env).select_by_visible_text(env)
-
+        if puppet_ca:
+            type_ele = self.find_element(locators["host.puppet_ca"])
+            Select(type_ele).select_by_visible_text(puppet_ca)
+        if puppet_master:
+            type_ele = self.find_element(locators["host.puppet_master"])
+            Select(type_ele).select_by_visible_text(puppet_master)
         if domain:
             if resource is None:
                 self.find_element(locators["host.mac"]).send_keys(mac)
@@ -65,7 +61,29 @@ class Hosts(Base):
             self.find_element(locators["host.provision_template"]).click()
             self.wait_for_ajax()
 
-        if resource is not None:
+    def create(self, name, domain, subnet, org, host_group=None, resource=None,
+               env=None, ip_addr=None, mac=None, os=None, arch=None,
+               media=None, ptable=None, custom_ptable=None, root_pwd=None,
+               cpus="1", memory="768 MB"):
+        """
+        Creates a host.
+        """
+        self.wait_until_element(locators["host.new"]).click()
+        if self.wait_until_element(locators["host.name"]):
+            self.find_element(locators["host.name"]).send_keys(name)
+        if org:
+            type_ele = self.find_element(locators["host.org"])
+            Select(type_ele).select_by_visible_text(org)
+
+        if resource is None:
+            resource = "baremetal"
+        type_deploy = self.find_element(locators["host.deploy"])
+        Select(type_deploy).select_by_visible_text(resource)
+
+        self._configure_hosts(domain, subnet, host_group, resource, env,
+                              ip_addr, mac, os, arch, media, ptable,
+                              custom_ptable, root_pwd)
+        if resource != "baremetal":
             self.wait_until_element(tab_locators["host.tab_vm"]).click()
             vm_cpu = self.find_element(locators["host.vm_cpus"])
             Select(vm_cpu).select_by_visible_text(cpus)
@@ -73,29 +91,40 @@ class Hosts(Base):
             Select(vm_mem).select_by_visible_text(memory)
         self.find_element(common_locators["submit"]).click()
 
+    def update(self, old_name, new_name, domain, subnet, host_group=None,
+               resource=None, env=None, ip_addr=None, mac=None, os=None,
+               arch=None, media=None, ptable=None, custom_ptable=None,
+               root_pwd=None):
+        """
+        Updates a Host.
+        """
+        element = self.search(old_name)
+        if element:
+            element.click()
+            strategy = locators["host.edit"][0]
+            value = locators["host.edit"][1]
+            edit = self.wait_until_element((strategy, value % old_name))
+            edit.click()
+            if self.wait_until_element(locators["host.name"]) and new_name:
+                self.field_update("host.name", new_name)
+            self._configure_hosts(domain, subnet, host_group, resource, env,
+                                  ip_addr, mac, os, arch, media, ptable,
+                                  custom_ptable, root_pwd)
+        else:
+            raise Exception("Could not update the host '%s'" % old_name)
+
+    def search(self, name):
+        """
+        Searches existing host from UI
+        """
+        element = self.search_entity(name, locators["host.select_name"])
+        return element
+
     def delete(self, name, really):
         """
         Deletes a host.
         """
-        search = self.search(name, locators["host.select_name"])
-        if search:
-            strategy = locators["host.dropdown"][0]
-            value = locators["host.dropdown"][1]
-            dropdown = self.wait_until_element((strategy, value % name))
-            dropdown.click()
-            strategy1 = locators["host.delete"][0]
-            value1 = locators["host.delete"][1]
-            element = self.wait_until_element((strategy1, value1 % name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
-            else:
-                raise Exception(
-                    "Could not select the host '%s' for deletion." % name)
-        else:
-            raise Exception("Could not delete the host '%s'" % name)
+
+        self.delete_entity(name, really, locators["host.select_name"],
+                           locators['host.delete'],
+                           drop_locator=locators["host.dropdown"])
