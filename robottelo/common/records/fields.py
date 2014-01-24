@@ -69,10 +69,11 @@ class Field(object):
 
 
 class StringField(Field):
-    def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20, **kwargs):
+    def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20, str_type='xeger', **kwargs):
         super(StringField, self).__init__(**kwargs)
         self.format = format
         self.maxlen = maxlen
+        self.str_type = str_type
 
     def _parse_field_format(self, fmt):
         """Parses the format provided and returns the parsed format"""
@@ -81,7 +82,10 @@ class StringField(Field):
     def generate(self):
         if '{' in self.format:
             self.format = self._parse_field_format(self.format)
-        return rstr.xeger(self.format)[:self.maxlen]
+        if self.str_type == 'xeger':
+            return rstr.xeger(self.format)[:self.maxlen]
+        else:
+            return generate_string(self.str_type, self.maxlen)
 
 
 class IntegerField(Field):
