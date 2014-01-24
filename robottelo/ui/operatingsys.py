@@ -72,8 +72,8 @@ class OperatingSys(Base):
                                           entity_select=select)
                 if mediums:
                     self.configure_entity(mediums, "operatingsystem_medium",
-                                      tab_locator=tab_medium_locator,
-                                      entity_select=select)
+                                          tab_locator=tab_medium_locator,
+                                          entity_select=select)
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:

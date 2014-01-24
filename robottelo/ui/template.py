@@ -56,7 +56,8 @@ class Template(Base):
                 raise Exception(
                     "Could not create template '%s' without type" % name)
             self.configure_entity(os_list, "config_template_operatingsystem",
-                                  tab_locator=tab_locators["provision.tab_association"])
+                                  tab_locator=tab_locators
+                                              ["provision.tab_association"])
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
@@ -96,7 +97,8 @@ class Template(Base):
                 ele = self.find_element(locators["provision.template_type"])
                 Select(ele).select_by_visible_text(template_type)
             self.configure_entity(os_list, "config_template_operatingsystem",
-                                  tab_locator=tab_locators["provision.tab_association"],
+                                  tab_locator=tab_locators
+                                              ["provision.tab_association"],
                                   new_entity_list=new_os_list)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
