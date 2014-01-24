@@ -4,7 +4,7 @@ Modules
 :mod:`Common`
 -------------
 
-.. automodule:: lib.common.helpers
+.. automodule:: robottelo.common.helpers
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,12 +12,12 @@ Modules
 :mod:`UI`
 ---------
 
-.. automodule:: lib.ui.login
+.. automodule:: robottelo.ui.login
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: lib.ui.user
+.. automodule:: robottelo.ui.user
     :members:
     :undoc-members:
     :show-inheritance:
