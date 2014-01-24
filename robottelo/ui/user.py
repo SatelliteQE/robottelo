@@ -6,7 +6,7 @@ Implements User UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -67,7 +67,7 @@ class User(Base):
     def update(self, search_key, username, new_username=None,
                email=None, password=None,
                first_name=None, last_name=None, locale=None,
-               role=None):
+               roles=None, new_roles=None):
         """
         Update username, email, password, firstname,
         lastname and locale from UI
@@ -92,9 +92,9 @@ class User(Base):
             if password:
                 self.field_update("users.password", password)
                 self.field_update("users.password_confirmation", password)
-            if role:
-                self.select_entity("users.role",
-                                   "users.select_role", role,
-                                   "users.tab_roles")
+            if new_roles:
+                self.configure_entity(roles, "user_role",
+                                      tab_locator=tab_locators["users.tab_roles"],
+                                      new_entity_list=new_roles)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()

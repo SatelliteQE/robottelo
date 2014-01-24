@@ -21,7 +21,7 @@ class OperatingSys(Base):
         """
         self.browser = browser
 
-    def _configure_os(self, minor_version=None, os_family=None):
+    def _configure_os(self, minor_version=None, os_family=None, template=None):
         """
         Configures the operating system details
         """
@@ -34,10 +34,17 @@ class OperatingSys(Base):
             Select(self.find_element(locators
                                      ["operatingsys.family"]
                                      )).select_by_visible_text(os_family)
+        if template:
+            self.wait_until_element(tab_locators
+                                    ["operatingsys.tab_templates"]).click()
+            Select(self.find_element(locators
+                                     ["operatingsys.template"]
+                                     )).select_by_visible_text(template)
 
     def create(self, name, major_version=None,
                minor_version=None, os_family=None,
-               archs=None, ptables=None, mediums=None, select=True):
+               archs=None, ptables=None, mediums=None, select=True,
+               template=None):
         """
         Create operating system from UI
         """
@@ -53,7 +60,7 @@ class OperatingSys(Base):
                 self.find_element(os_name_locator).send_keys(name)
             if self.wait_until_element(os_major_locator):
                 self.find_element(os_major_locator).send_keys(major_version)
-                self._configure_os(minor_version, os_family)
+                self._configure_os(minor_version, os_family, template)
                 if archs:
                     self.configure_entity(archs,
                                           "operatingsystem_architecture",
@@ -97,7 +104,8 @@ class OperatingSys(Base):
                major_version=None, minor_version=None,
                os_family=None, archs=None,
                ptables=None, mediums=None, new_archs=None,
-               new_ptables=None, new_mediums=None, select=False):
+               new_ptables=None, new_mediums=None, select=False,
+               template=None):
         """
         Update all entities(arch, Partition table, medium) of OS from UI
         """
@@ -115,7 +123,7 @@ class OperatingSys(Base):
                                            ["operatingsys.major_version"]):
                     self.field_update("operatingsys.major_version",
                                       major_version)
-            self._configure_os(minor_version, os_family)
+            self._configure_os(minor_version, os_family, template)
             if new_archs:
                 self.configure_entity(archs, "operatingsystem_architecture",
                                       tab_locator=tab_locators["tab_primary"],
