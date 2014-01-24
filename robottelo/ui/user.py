@@ -95,7 +95,7 @@ class User(Base):
             if new_roles:
                 self.configure_entity(roles, "user_role",
                                       tab_locator=tab_locators
-                                                  ["users.tab_roles"],
+                                      ["users.tab_roles"],
                                       new_entity_list=new_roles)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
