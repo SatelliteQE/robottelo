@@ -1,5 +1,8 @@
 from robottelo.common import records
 from robottelo.api.operating_systems import OperatingSystemApi
+from robottelo.cli.records.operating_systems import OperatingSysCli
+from robottelo.api.operating_systems import OperatingSystemApi
+
 class OperatingSystems(records.Record):
     name = records.StringField(required=True)
     major = records.IntegerField(required = True)
@@ -17,3 +20,4 @@ class OperatingSystems(records.Record):
 
     class Meta:
         api_class = OperatingSystemApi
+        cli_class = OperatingSysCli

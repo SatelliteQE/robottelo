@@ -14,7 +14,7 @@ def resolve_or_create_record(record):
     if ApiCrud.record_exists(record):
        return ApiCrud.record_resolve(record)
     else:
-       return ApiCrud.record_create(record)
+       return ApiCrud.record_create_recursive(record)
 
 
 def data_load_transform(instance_cls, data):
@@ -186,7 +186,6 @@ class ApiCrud(object):
 
         r = None
         json = None
-        print instance
         if hasattr(instance,"id"):
             r = cls.show(instance.id)
             if r.ok:
@@ -251,6 +250,24 @@ class ApiCrud(object):
     def record_create(cls, instance_orig):
         if cls != instance_orig._meta.api_class:
             return instance_orig._meta.api_class.record_create(instance_orig)
+        instance = instance_orig.copy()
+
+        data = convert_to_data(instance)
+        if hasattr(cls,"create_fields"):
+           data = {name:field for name, field in data.items() if name in cls.create_fields}
+
+
+        r = cls.create(json=cls.opts(data))
+        if r.ok:
+            ninstance = load_from_data(instance.__class__, r.json(), data_load_transform)
+            return ninstance
+        else:
+            raise Exception(r.status_code, r.content)
+
+    @classmethod
+    def record_create_recursive(cls, instance_orig):
+        if cls != instance_orig._meta.api_class:
+            return instance_orig._meta.api_class.record_create_recursive(instance_orig)
         instance = instance_orig.copy()
 
         #resolve ids
