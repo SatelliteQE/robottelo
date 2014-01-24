@@ -37,7 +37,8 @@ class ComputeResource(Base):
                     region = self.find_element(locators["resource.region"])
                     Select(region).select_by_visible_text(region)
                 elif provider_type == "Openstack":
-                    tenant = self.find_element(locators["resource.rhos_tenant"])  # @IgnorePep8
+                    tenant = self.find_element(
+                        locators["resource.rhos_tenant"])
                     Select(tenant).select_by_visible_text(tenant)
 
             if provider_type == "Libvirt":
@@ -47,7 +48,8 @@ class ComputeResource(Base):
             display = self.find_element(locators["resource.libvirt_display"])
             Select(display).select_by_visible_text(libvirt_display)
         if libvirt_set_passwd is False:
-            self.find_element(locators["resource.libvirt_console_passwd"]).click()  # @IgnorePep8
+            self.find_element(
+                locators["resource.libvirt_console_passwd"]).click()
         self.find_element(locators["resource.test_connection"]).click()
         self.wait_for_ajax()
 

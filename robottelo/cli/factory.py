@@ -54,7 +54,7 @@ def update_dictionary(default, updates):
     return default
 
 
-def create_object(cli_object, args):
+def create_object(cli_object, args, search_field='name'):
     """
     Creates <object> with dictionary of arguments.
 
@@ -71,7 +71,7 @@ def create_object(cli_object, args):
 
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0 or not cli_object().exists(
-            ('name', args['name'])):
+            (search_field, args[search_field])).stdout:
 
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
@@ -266,7 +266,7 @@ def make_user(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(User, args)
+    create_object(User, args, 'login')
 
     return args
 

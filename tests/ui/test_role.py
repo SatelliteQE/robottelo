@@ -45,4 +45,3 @@ class Role(BaseUI):
         self.role.create(name)
         self.role.update(name, new_name, perm_type, permissions)
         self.assertIsNotNone(self.role.search(new_name))
-
