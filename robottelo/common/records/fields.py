@@ -74,7 +74,7 @@ class StringField(Field):
         super(StringField, self).__init__(**kwargs)
         self.format = format
         self.maxlen = maxlen
-        self.str_type = str_type
+        self.str_type = 'xeger'
 
     def _parse_field_format(self, fmt):
         """Parses the format provided and returns the parsed format"""
@@ -86,7 +86,7 @@ class StringField(Field):
         if self.str_type == 'xeger':
             return rstr.xeger(self.format)[:self.maxlen]
         else:
-            return generate_string(self.str_type, self.maxlength)
+            return generate_string(self.str_type, self.maxlen)
 
 
 class IntegerField(Field):
