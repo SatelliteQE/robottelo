@@ -86,7 +86,7 @@ class Subnet(Base):
         """
         Update subnet name, network and mask from UI
         """
-        
+
         subnet_object = self.search_entity(subnet_name,
                                            locators["subnet.display_name"])
 
