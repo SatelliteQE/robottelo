@@ -10,7 +10,7 @@ def convert_to_data(instance):
     """Converts an instance to a data dictionary"""
 
     return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k!="")}
+            if (not k.startswith("_") and k != "")}
 
 
 def load_from_data(instance, data):
@@ -37,7 +37,8 @@ class Field(object):
     def generate(self):
         """Generate a random value for field"""
 
-        raise NotImplementedError('A subclass should create a way to random generate this')
+        raise NotImplementedError('A subclass should create' + 
+                                  'a way to random generate this')
 
     def contribute_to_class(self, cls, name):
         """Method used to setup this field on the record"""
@@ -73,6 +74,7 @@ class StringField(Field):
         super(StringField, self).__init__(**kwargs)
         self.format = format
         self.maxlen = maxlen
+        self.str_type = 'xeger'
 
     def _parse_field_format(self, fmt):
         """Parses the format provided and returns the parsed format"""
@@ -81,7 +83,10 @@ class StringField(Field):
     def generate(self):
         if '{' in self.format:
             self.format = self._parse_field_format(self.format)
-        return rstr.xeger(self.format)[:self.maxlen]
+        if self.str_type == 'xeger':
+            return rstr.xeger(self.format)[:self.maxlen]
+        else:
+            return generate_string(self.str_type, self.maxlen)
 
 
 class IntegerField(Field):
@@ -120,7 +125,7 @@ class IpAddrField(Field):
         self.ip3 = ip3
 
     def generate(self):
-        return generate_mac(self.ip3)
+        return generate_ipaddr(self.ip3)
 
 
 class ChoiceField(Field):
