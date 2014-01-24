@@ -37,20 +37,16 @@ menu_locators = {
     # Hosts Menu
     "menu.hosts": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='hosts_menu']")),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='hosts_menu']"),  # @IgnorePep8
     "menu.all_hosts": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='menu_item_hosts']")),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='menu_item_hosts']"),  # @IgnorePep8
     "menu.operating_systems": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_operatingsystems']")),
+        "//div[contains(@style,'static')]//a[@id='menu_item_operatingsystems']"),   # @IgnorePep8
     "menu.provisioning_templates": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_config_templates']")),
+        "//div[contains(@style,'static')]//a[@id='menu_item_config_templates']"),   # @IgnorePep8
     "menu.partition_tables": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_ptables']"),
@@ -73,8 +69,7 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_hostgroups']"),
     "menu.global_parameters": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_common_parameters']")),
+        "//div[contains(@style,'static')]//a[@id='menu_item_common_parameters']"),  # @IgnorePep8
     "menu.environments": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
@@ -88,15 +83,13 @@ menu_locators = {
     # Infrastructure Menu
     "menu.infrastructure": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='infrastructure_menu']")),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@id='infrastructure_menu']"),  # @IgnorePep8
     "menu.smart_proxies": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
     "menu.compute_resources": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-            "//a[@id='menu_item_compute_resources']")),
+        "//div[contains(@style,'static') or contains(@style, 'fixed')]//a[@id='menu_item_compute_resources']"),  # @IgnorePep8
     "menu.subnets": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
@@ -110,8 +103,7 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='administer_menu']"),
     "menu.ldap_auth": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_auth_source_ldaps']")),
+        "//div[contains(@style,'static')]//a[@id='menu_item_auth_source_ldaps']"),  # @IgnorePep8
     "menu.users": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_users']"),
@@ -139,22 +131,17 @@ menu_locators = {
     # Orgs
     "org.any_context": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//li[contains(@class,'org-switcher')]/a")),
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//li[contains(@class,'org-switcher')]/a"),  # @IgnorePep8
     "org.manage_org": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@class='manage-menu' and contains(@href, 'organizations')]"))
-}
+        "//div[contains(@style,'static') or contains(@style,'fixed')]//a[@class='manage-menu' and contains(@href, 'organizations')]")}  # @IgnorePep8
 
 tab_locators = {
 
     #common
     "tab_primary": (By.XPATH, "//a[@href='#primary']"),
-
-    #Environment
     #Third level UI
-    "environment.tab_org": (By.XPATH, "//a[@href='#organizations']"),
+    "tab_org": (By.XPATH, "//a[@href='#organizations']"),
 
     #Operating System
     #Third level UI
@@ -203,8 +190,19 @@ common_locators = {
     "notif.close": (
         By.XPATH, "//a[@class='jnotify-close']"),
 
+    "entity_select": (
+        By.XPATH,
+        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
+    "entity_deselect": (
+        By.XPATH,
+        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
+    "entity_checkbox": (
+        By.XPATH,
+        "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
+
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),
+    "filter": (By.XPATH, "//div[@id='ms-%s_ids']//input[@class='ms-filter']"),
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
     "add_parameter": (
         By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
@@ -223,8 +221,7 @@ locators = {
     # Organizations
     "org.new": (
         By.XPATH,
-        ("//a[@class='btn btn-success'"
-            "and contains(@href, '/organizations/new')]")),
+        "//a[@class='btn btn-success' and contains(@href, '/organizations/new')]"),  # @IgnorePep8
     "org.name": (By.ID, "organization_name"),
     "org.proceed_to_edit": (
         By.XPATH,
@@ -232,8 +229,7 @@ locators = {
     "org.org_name": (By.LINK_TEXT, "%s"),
     "org.dropdown": (
         By.XPATH,
-        ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
-            "/../../td/div/a[@data-toggle='dropdown']")),
+        "//a[normalize-space(.)='%s' and contains(@href,'organizations')]/../../td/div/a[@data-toggle='dropdown']"),   # @IgnorePep8
     "org.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
@@ -248,26 +244,16 @@ locators = {
     "operatingsys.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.arch": (
-        By.XPATH,
-        ("//label[@class='architecture' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
+        By.XPATH, "//label[@class='architecture' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
     "operatingsys.select_arch": (By.XPATH, "//li/span[contains(., '%s')]"),
     "operatingsys.operatingsys_name": (By.XPATH, "//a[contains(., '%s')]"),
 
     "operatingsys.ptable": (
-        By.XPATH,
-        ("//label[@class='ptable' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
+        By.XPATH, "//label[@class='ptable' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
     "operatingsys.select_ptable": (By.XPATH, "//li/span[contains(., '%s')]"),
     "operatingsys.select_medium": (By.XPATH, "//li/span[contains(., '%s')]"),
     "operatingsys.medium": (
-        By.XPATH,
-        ("//label[@class='medium' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
-    "operatingsys.template": (
-        By.ID,
-        "operatingsystem_os_default_templates_attributes_0_config_template_id"
-    ),
+        By.XPATH, "//label[@class='medium' and normalize-space(.)='%s']/input[@type='checkbox']"),   # @IgnorePep8
 
     #Compute Resource
 
@@ -287,8 +273,7 @@ locators = {
     "resource.region": (By.ID, "compute_resource_region"),
     "resource.select_name": (
         By.XPATH,
-        ("//a[contains(@href,'compute_resources')"
-            "and normalize-space(.)='%s']")),
+        "//a[contains(@href,'compute_resources') and normalize-space(.)='%s']"),  # @IgnorePep8
     "resource.dropdown": (By.XPATH, "//a[contains(@href,'%s')]/../../a"),
     "resource.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
@@ -316,13 +301,10 @@ locators = {
     "host.deploy": (By.ID, "host_compute_resource_id"),
     "host.environment": (By.ID, "host_environment_id"),
     "host.dropdown": (
-        By.XPATH,
-        ("//a[contains(@href,'%s')]"
-            "/../../a[contains(@data-toggle,'dropdown')]")),
+        By.XPATH, "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
     "host.select_name": (
         By.XPATH,
-        ("//input[contains(@id,'host_ids')]"
-            "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
+        "//input[contains(@id,'host_ids')]/../../td[@class='ellipsis']/a[contains(@href,'%s')]"),  # @IgnorePep8
 
     #host.network
     "host.mac": (By.ID, "host_mac"),
@@ -333,11 +315,6 @@ locators = {
     #host.os
     "host.arch": (By.ID, "host_architecture_id"),
     "host.os": (By.ID, "host_operatingsystem_id"),
-    "host.org": (By.ID, "host_organization_id"),
-    "host.edit": (By.XPATH,
-                  "//a[@class='btn btn-default' and contains(@href,'edit')]"),
-    "host.puppet_ca": (By.ID, "host_puppet_ca_proxy_id"),
-    "host.puppet_master": (By.ID, "host_puppet_proxy_id"),
     "host.provision": (By.ID, "host_build"),
     "host.media": (By.ID, "host_medium_id"),
     "host.ptable": (By.ID, "host_ptable_id"),
@@ -364,8 +341,7 @@ locators = {
         By.XPATH, "//a[contains(@href, '/config_templates/new')]"),
     "provision.template_select": (
         By.XPATH,
-        ("//a[contains(@href, 'config_templates')"
-            "and normalize-space(.)='%s']")),
+        "//a[contains(@href, 'config_templates') and normalize-space(.)='%s']"),  # @IgnorePep8
     "provision.template_name": (
         By.ID, "config_template_name"),
     "provision.template_template": (
@@ -383,9 +359,7 @@ locators = {
     "provision.select_os": (
         By.XPATH, "//li/span[contains(., '%s')]"),
     "provision.associate_os": (
-        By.XPATH,
-        ("//label[@class='operatingsystem'"
-            "and contains(., '%s')]/input[@type='checkbox']")),
+        By.XPATH, "//label[@class='operatingsystem' and contains(., '%s')]/input[@type='checkbox']"),   # @IgnorePep8
 
     # Hostgroups
 
@@ -396,8 +370,7 @@ locators = {
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.dropdown": (
         By.XPATH,
-        ("//a[contains(@href,'%s')]"
-            "/../../a[contains(@data-toggle,'dropdown')]")),
+        "//a[contains(@href,'%s')]/../../a[contains(@data-toggle,'dropdown')]"),  # @IgnorePep8
     "hostgroups.delete": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(@class,'delete')]"),
@@ -423,16 +396,14 @@ locators = {
     "users.select_role": (By.XPATH, "//li/span[contains(., '%s')]"),
     "users.role": (
         By.XPATH,
-        ("//label[@class='role' and normalize-space(.)='%s']"
-            "/input[@type='checkbox']")),
+        "//label[@class='role' and normalize-space(.)='%s']/input[@type='checkbox']"),  # @IgnorePep8
 
     #User Groups
     "usergroups.new": (By.XPATH, "//a[contains(@href, '/usergroups/new')]"),
     "usergroups.name": (By.ID, "usergroup_name"),
     "usergroups.user": (
         By.XPATH,
-        ("//label[@class='user' and normalize-space(.)='%s']"
-            "/input[@id='usergroup_user_ids_']")),
+        "//label[@class='user' and normalize-space(.)='%s']/input[@id='usergroup_user_ids_']"),  # @IgnorePep8
     "usergroups.select_user": (
         By.XPATH,
         "//div[@id='ms-usergroup_user_ids']//li/span[contains(., '%s')]"),
@@ -483,12 +454,6 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Delete')]"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "env.org_select": (
-        By.XPATH,
-        "//div[@class='ms-selectable']//span[normalize-space(.)='%s']"),
-    "env.org_deselect": (
-        By.XPATH,
-        "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
     "env.dropdown": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
