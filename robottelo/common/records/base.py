@@ -106,7 +106,9 @@ class Record(object):
                 except AttributeError:
                     pass
             if kwargs:
-                raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
+                raise TypeError(
+                    "'%s' is an invalid keyword argument for this function"
+                    % list(kwargs)[0])
         super(Record, self).__init__()
 
         # Checks if has a _post_init method and calls it to do additional
