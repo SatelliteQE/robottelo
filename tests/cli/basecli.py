@@ -2,13 +2,14 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Base class for all cli tests
+Base classes for all cli tests
 """
 
 import logging
 import unittest
 
 from robottelo.common import conf
+from robottelo.cli.metatest import MetaCLITest
 
 
 class BaseCLI(unittest.TestCase):
@@ -33,3 +34,12 @@ class BaseCLI(unittest.TestCase):
         # Hide base logger from paramiko
         logging.getLogger("paramiko").setLevel(logging.ERROR)
         cls.logger = logging.getLogger("robottelo")
+
+
+class MetaCLI(BaseCLI):
+
+    """
+    All Test modules should inherit from MetaCLI in order to obtain default
+    positive/negative CRUD tests.
+    """
+    __metaclass__ = MetaCLITest

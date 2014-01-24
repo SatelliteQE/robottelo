@@ -80,10 +80,10 @@ class TestComputeResource(BaseCLI):
                           "ComputeResource list - exit code")
         self.assertTrue(len(result_list.stdout) > 0,
                         "ComputeResource list - stdout has results")
+        stdout = ComputeResource().exists(
+            ('name', result_create['name'])).stdout
         self.assertTrue(
-            ComputeResource().exists(
-                ('name', result_create['name'])
-            ),
+            stdout,
             "ComputeResource list - exists name")
 
     @data(
@@ -95,7 +95,7 @@ class TestComputeResource(BaseCLI):
             'url': "https://localhost:443/api",
             'user': 'admin@internal',
             'password': "secret"
-         }
+        }
     )
     def test_update(self, option_dict):
         """ `compute_resource update` basic test (different options) """
@@ -122,7 +122,8 @@ class TestComputeResource(BaseCLI):
             result_delete.return_code, 0,
             "ComputeResource delete - exit code")
         sleep_for_seconds(5)
+        stdout = ComputeResource().exists(
+            ('name', result_create['name'])).stdout
         self.assertFalse(
-            ComputeResource().exists(
-                ('name', result_create['name'])),
+            stdout,
             "ComputeResource list - does not exist name")

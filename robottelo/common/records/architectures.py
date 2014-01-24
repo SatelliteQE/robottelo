@@ -1,5 +1,5 @@
-from robottelo.common import records
 from robottelo.api.architectures import ArchitectureApi
+from robottelo.common import records
 from robottelo.common.records.operatingsystems import OperatingSystems
 
 class Architectures(records.Record):

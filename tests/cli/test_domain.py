@@ -5,18 +5,12 @@
 Test class for Domain  CLI
 """
 
-from basecli import BaseCLI
 from robottelo.cli.domain import Domain
-from robottelo.common.helpers import generate_name
+from robottelo.cli.factory import make_domain
+from tests.cli.basecli import MetaCLI
 
 
-class TestDomain(BaseCLI):
+class TestDomain(MetaCLI):
 
-    def test_create_domain(self):
-        """Create a new domain"""
-        args = {
-            "name": generate_name(6)
-        }
-
-        Domain().create(args)
-        self.assertTrue(Domain().exists(('name', args['name'])))
+    factory = make_domain
+    factory_obj = Domain

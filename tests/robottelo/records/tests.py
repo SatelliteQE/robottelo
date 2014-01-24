@@ -16,7 +16,7 @@ class RecordsTestCase(unittest.TestCase):
         instance = self.record_class()
         print instance.name
         self.assertTrue(
-                instance.name.startswith(self.record_class.__name__))
+            instance.name.startswith(self.record_class.__name__))
 
     def test_can_set_name(self):
         """Can set a field attr value"""

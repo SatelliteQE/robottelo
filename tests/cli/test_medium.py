@@ -7,9 +7,10 @@ Test class for Medium  CLI
 
 import random
 
-from basecli import BaseCLI
 from robottelo.cli.medium import Medium
+from robottelo.cli.factory import make_medium
 from robottelo.common.helpers import generate_name
+from tests.cli.basecli import MetaCLI
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = [
@@ -23,7 +24,10 @@ OSES = [
 ]
 
 
-class TestMedium(BaseCLI):
+class TestMedium(MetaCLI):
+
+    factory = make_medium
+    factory_obj = Medium
 
     def _create_medium(self, name=None, path=None, os_family=None,
                        operating_system_id=None):
@@ -39,7 +43,7 @@ class TestMedium(BaseCLI):
 
         Medium().create(args)
 
-        self.assertTrue(Medium().exists(('name', args['name'])))
+        self.assertTrue(Medium().exists(('name', args['name'])).stdout)
 
     def test_create_medium_1(self):
         "Successfully creates a new medium"
@@ -53,11 +57,11 @@ class TestMedium(BaseCLI):
         name = generate_name(6)
         self._create_medium(name)
 
-        medium = Medium().exists(('name', name))
+        medium = Medium().exists(('name', name)).stdout
 
         args = {
             'id': medium['id'],
         }
 
         Medium().delete(args)
-        self.assertFalse(Medium().exists(('name', name)))
+        self.assertFalse(Medium().exists(('name', name)).stdout)

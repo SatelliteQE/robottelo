@@ -42,38 +42,28 @@ class Hostgroup(Base):
         else:
             raise Exception("Could not create new hostgroup.")
 
+    def search(self, name):
+        """
+        Searches existing hostgroup from UI
+        """
+        element = self.search_entity(name, locators["hostgroups.hostgroup"])
+        return element
+
     def delete(self, name, really=False):
         """
         Deletes existing hostgroup from UI
         """
 
-        dropdown = self.search(name, locators["hostgroups.dropdown"])
-        if dropdown:
-            dropdown.click()
-            self.wait_for_ajax()
-            element = self.wait_until_element(
-                (locators["hostgroups.delete"][0],
-                 locators["hostgroups.delete"][1] % name))
-            if element:
-                element.click()
-                if really:
-                    alert = self.browser.switch_to_alert()
-                    alert.accept()
-                else:
-                    alert = self.browser.switch_to_alert()
-                    alert.dismiss()
-            else:
-                raise Exception(
-                    "Could not select the hostgroup for deletion.")
-        else:
-            raise Exception("Could not find hostgroup '%s'" % name)
+        self.delete_entity(name, really, locators["hostgroups.hostgroup"],
+                           locators['hostgroups.delete'],
+                           drop_locator=locators["hostgroups.dropdown"])
 
     def update(self, name, new_name=None, parent=None, environment=None):
         """
         Updates existing hostgroup from UI
         """
 
-        element = self.search(name, locators["hostgroups.hostgroup"])
+        element = self.search(name)
 
         if element:
             element.click()

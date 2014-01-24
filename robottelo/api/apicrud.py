@@ -5,6 +5,8 @@ Module for mixin of basic crud methods based on api_path class method.
 """
 
 import robottelo.api.base as base
+
+from robottelo.common.records.fields import RelatedField
 from robottelo.common.records.fields import load_from_data, convert_to_data
 from robottelo.common.records.fields import RelatedField
 from robottelo.common.records.fields import ManyRelatedFields
@@ -35,7 +37,6 @@ class ApiCrud(object):
         if hasattr(cls, 'default_search'):
             return cls.default_search
         return "name"
-
 
     @classmethod
     def get_api_path(cls):
@@ -69,19 +70,17 @@ class ApiCrud(object):
 
         raise NotImplementedError("Api path needs to be defined")
 
-
     @classmethod
     def id_from_json(cls, json):
         """Required for automatic generating of crud tests"""
         return json[cls.get_json_key()][u'id']
-
 
     @classmethod
     def parse_path_arg(cls, args):
         """Method parsing the api_path for extra arguments"""
         path = cls.get_api_path()
         path_args = [
-                s[1:] for s in path.split('/') if s.startswith(":")
+            s[1:] for s in path.split('/') if s.startswith(":")
         ]
         for arg in path_args:
             if arg in args:
@@ -154,12 +153,12 @@ class ApiCrud(object):
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_exists(instance)
 
-        if hasattr(instance,"id"):
+        if hasattr(instance, "id"):
             r = cls.show(instance.id)
             return r.ok
         else:
             r = cls.list(json=dict(search="name="+instance.name))
-            if r.ok and len(r.json())>0:
+            if r.ok and len(r.json()) > 0:
                 return True
             else:
                 return False
@@ -179,6 +178,7 @@ class ApiCrud(object):
                 return True
             else:
                 return False
+
     @classmethod
     def record_resolve(cls, instance):
         if cls != instance._meta.api_class:

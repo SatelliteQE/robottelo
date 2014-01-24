@@ -1,3 +1,4 @@
+from robottelo.api.hosts import HostApi
 from robottelo.common import records
 from robottelo.common.records.environments import Environments
 from robottelo.common.records.architectures import Architectures
@@ -5,7 +6,6 @@ from robottelo.common.records.domains import Domains
 from robottelo.common.records.smart_proxies import SmartProxies
 from robottelo.common.records.operatingsystems import OperatingSystems
 from robottelo.common.records.ptables import PTables
-from robottelo.api.hosts import HostApi
 
 class Hosts(records.Record):
     name = records.StringField(format=r"host_\d\d\d\d\d", required=True)
@@ -24,4 +24,3 @@ class Hosts(records.Record):
 
     class Meta:
         api_class = HostApi
-

@@ -6,9 +6,11 @@ Factory object creation for all CLI methods
 """
 
 import logging
+import os
 import random
 
 from os import chmod
+from robottelo.cli.architecture import Architecture
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -16,14 +18,17 @@ from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.org import Org
+from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
+from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common import ssh
-from robottelo.common.constants import FOREMAN_PROVIDERS, TEMPLATE_TYPES
+from robottelo.common.constants import FOREMAN_PROVIDERS, OPERATING_SYSTEMS, \
+    TEMPLATE_TYPES
 from robottelo.common.helpers import generate_ipaddr, generate_name, \
-    generate_string
+    generate_string, sleep_for_seconds
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -49,7 +54,7 @@ def update_dictionary(default, updates):
     return default
 
 
-def create_object(cli_object, args):
+def create_object(cli_object, args, search_field='name'):
     """
     Creates <object> with dictionary of arguments.
 
@@ -61,13 +66,38 @@ def create_object(cli_object, args):
     """
 
     result = cli_object().create(args)
+    # Some methods require a bit of waiting
+    sleep_for_seconds(5)
 
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0 or not cli_object().exists(
-            ('name', args['name'])):
+            (search_field, args[search_field])).stdout:
 
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
+
+
+def make_architecture(options=None):
+    """
+    Usage:
+        hammer architecture create [OPTIONS]
+
+    Options:
+        --name NAME
+        --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
+                                      Comma separated list of values.
+    """
+
+    args = {
+        'name': generate_name(),
+        'operatingsystem-ids': None,
+    }
+
+    # Override default dictionary with updated one
+    args = update_dictionary(args, options)
+    create_object(Architecture, args)
+
+    return args
 
 
 def make_model(options=None):
@@ -114,6 +144,50 @@ def make_proxy(options=None):
 
     args = update_dictionary(args, options)
     create_object(Proxy, args)
+
+    return args
+
+
+def make_partition_table(options=None):
+    """
+    Usage:
+        hammer partition_table update [OPTIONS]
+
+    Options:
+        --file LAYOUT                 Path to a file that contains
+                                      the partition layout
+        --os-family OS_FAMILY
+        --id ID                       resource id
+        --name NAME                   resource name
+        --new-name NEW_NAME           new name for the resource
+        -h, --help                    print help
+    [root@qe-blade-04 ~]# hammer partition_table create --help
+    Usage:
+        hammer partition_table create [OPTIONS]
+
+    Options:
+        --file LAYOUT                 Path to a file that contains
+                                      the partition layout
+        --name NAME
+        --os-family OS_FAMILY
+    """
+
+    (file_handle, layout) = mkstemp(text=True)
+    os.chmod(layout, 0700)
+    with open(layout, "w") as ptable:
+        ptable.write(options.get('content', ''))
+
+    args = {
+        'name': generate_name(),
+        'file': "/tmp/%s" % generate_name(),
+        'os-family': random.choice(OPERATING_SYSTEMS)
+    }
+
+    # Upload file to server
+    ssh.upload_file(local_file=layout, remote_file=args['file'])
+
+    args = update_dictionary(args, options)
+    create_object(PartitionTable, args)
 
     return args
 
@@ -192,7 +266,7 @@ def make_user(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(User, args)
+    create_object(User, args, 'login')
 
     return args
 
@@ -255,6 +329,23 @@ def make_org(options=None):
 
     args = update_dictionary(args, options)
     create_object(Org, args)
+
+    return args
+
+
+def make_os(options=None):
+    """
+        Creates the operating system
+        """
+    #Assigning default values for attributes
+    args = {
+        'name': generate_name(6),
+        'major': random.randint(0, 10),
+        'minor': random.randint(0, 10),
+    }
+
+    args = update_dictionary(args, options)
+    create_object(OperatingSys, args)
 
     return args
 

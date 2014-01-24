@@ -39,13 +39,13 @@ class Options(object):
     def __init__(self, meta):
         self.fields = []
         self.meta = meta
-        self.model = None
+        self.record = None
 
     def contribute_to_class(self, cls, name):
         """Setups a options instance on the class"""
 
         cls._meta = self
-        self.model = cls
+        self.record = cls
 
         if self.meta:
             for attr_name, value in self.meta.__dict__.items():
@@ -64,8 +64,8 @@ class RecordBase(type):
     def __new__(cls, name, bases, attrs):
         super_new = super(RecordBase, cls).__new__
 
-        # Ensure initialization is only performed for subclasses of Model
-        # (excluding Model class itself).
+        # Ensure initialization is only performed for subclasses of Record
+        # (excluding Record class itself).
         parents = [b for b in bases if isinstance(b, RecordBase)]
         if not parents:
             return super_new(cls, name, bases, attrs)
@@ -123,7 +123,7 @@ class Record(object):
             if not CLEAN:
                 setattr(self, field.name, val)
 
-        # Process any property defined on model
+        # Process any property defined on record
         if kwargs:
             for prop in list(kwargs):
                 try:
@@ -132,7 +132,9 @@ class Record(object):
                 except AttributeError:
                     pass
             if kwargs:
-                raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
+                raise TypeError(
+                    "'%s' is an invalid keyword argument for this function"
+                    % list(kwargs)[0])
         super(Record, self).__init__()
 
         # Checks if has a _post_init method and calls it to do additional

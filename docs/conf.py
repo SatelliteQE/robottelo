@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 #
 # Robottelo documentation build configuration file, created by
 # sphinx-quickstart on Tue May  8 14:10:25 2012.

@@ -11,6 +11,7 @@ import time
 
 from itertools import izip
 from robottelo.common.constants import HTML_TAGS
+from urllib2 import urlopen
 
 
 def generate_name(minimum=4, maximum=8):
@@ -161,13 +162,13 @@ def generate_string(str_type, length):
             unichr(random.choice(output_array)) for x in xrange(length))
         output_string.encode('utf-8')
     elif str_type == "html":
-        html_tag = random.choice(HTML_TAGS)
+        html_tag = random.choice(HTML_TAGS).lower()
         output_string = "<%s>%s</%s>" % (
             html_tag, generate_string("alpha", length), html_tag)
     else:
         raise Exception(
-            'Unexpected output type, valid types are "alphanumeric", \
-            "alpha", "numeric", "latin1", "utf8"')
+            'Unexpected output type, valid types are \"alpha\", \
+            \"alphanumeric\", \"html\", \"latin1\", \"numeric\" or \"utf8\".')
     return output_string
 
 
@@ -196,3 +197,15 @@ def sleep_for_seconds(guaranteed_sleep=1):
     @param guaranteed_sleep: Guaranteed sleep in seconds.
     """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
+
+
+def download_template(url):
+    """
+    Function to download the template from given URL
+    """
+    filename = '/tmp/custom_template'
+    temp = urlopen(url)
+    temp_file = open(filename, 'wb')
+    temp_file.write(temp.read())
+    temp_file.close()
+    return filename

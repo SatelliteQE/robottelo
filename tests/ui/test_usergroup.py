@@ -7,7 +7,7 @@ Test class for UserGroup UI
 
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_email_address
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -34,9 +34,11 @@ class UserGroup(BaseUI):
         group_name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
+        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_users()
         self.user.create(user_name, email, password, password)
+        self.assertIsNotNone(self.user.search(user_name, search_key))
         self.create_usergroup(group_name, user_name)
 
     def test_remove_usergroup(self):
@@ -49,7 +51,7 @@ class UserGroup(BaseUI):
         self.create_usergroup(name, None)
         self.usergroup.remove(name, True)
         self.assertTrue(self.usergroup.wait_until_element
-                        (locators["notif.success"]))
+                        (common_locators["notif.success"]))
         #TODO: asserIsNone pending due to issue:3953
 
     def test_update_usergroup(self):
@@ -62,9 +64,11 @@ class UserGroup(BaseUI):
         user_name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
+        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_users()
         self.user.create(user_name, email, password, password)
+        self.assertIsNotNone(self.user.search(user_name, search_key))
         self.create_usergroup(name, None)
         self.usergroup.update(name, new_name, user_name)
         #TODO: assertion is pending, Foreman issue:3953
