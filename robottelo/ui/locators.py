@@ -196,6 +196,9 @@ common_locators = {
     "entity_deselect": (
         By.XPATH,
         "//div[@class='ms-selection']//span[normalize-space(.)='%s']"),
+    "entity_checkbox": (
+        By.XPATH,
+        "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
 
     "search": (By.ID, "search"),
     "submit": (By.NAME, "commit"),

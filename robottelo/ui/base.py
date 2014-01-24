@@ -72,23 +72,31 @@ class Base(object):
 
     def select_deselect_entity(self, filter_key, loc, entity_list):
         """
-        Selects and Deselects entity associations.
+        Function to select and deselect entity like OS, Partition Table, Arch
+        from selection list or by selecting relevant checkbox
         """
         for entity in entity_list:
             strategy = common_locators["filter"][0]
             value = common_locators["filter"][1]
-            txt_field = self.wait_until_element((strategy, value % filter_key))
-            txt_field.clear()
-            txt_field.send_keys(entity)
+            txt_field = self.find_element((strategy, value % filter_key))
+            if txt_field:
+                txt_field.clear()
+                txt_field.send_keys(entity)
             strategy = loc[0]
             value = loc[1]
-            element = self.wait_until_element((strategy, value % entity))
-            element.click()
+            strategy1 = common_locators["entity_checkbox"][0]
+            value1 = common_locators["entity_checkbox"][1]
+            checkbox_element = self.find_element((strategy1, value1 % entity))
+            select_element = self.find_element((strategy, value % entity))
+            if checkbox_element:
+                checkbox_element.click()
+            elif select_element:
+                select_element.click()
 
     def configure_entity(self, entity_list, filter_key, tab_locator=None,
                          new_entity_list=None, entity_select=True):
         """
-        Configures entities like orgs.
+        Configures entities like orgs, OS, ptable, Archs, Users, Usergroups.
         """
         if entity_list is None:
             entity_list = []
@@ -191,25 +199,6 @@ class Base(object):
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
         txt_field.send_keys(newtext)
-
-    def select_entity(self, loc_string, loc_select_string,
-                      loc_value, loc_tab=None):
-        """
-        Function to select an entity like OS, Partition Table, Arch
-        from selection list or by selecting relevant checkbox
-        """
-        if loc_tab:
-            self.wait_until_element(tab_locators[loc_tab]).click()
-        strategy = locators[loc_string][0]
-        value = locators[loc_string][1]
-        check_element = self.find_element((strategy, value % loc_value))
-        strategy1 = locators[loc_select_string][0]
-        value1 = locators[loc_select_string][1]
-        select_element = self.find_element((strategy1, value1 % loc_value))
-        if check_element:
-            check_element.click()
-        elif select_element:
-            select_element.click()
 
     def set_parameter(self, param_name, param_value):
         """
