@@ -1,2 +1,2 @@
-from robottelo.common.records.base import Record
-from robottelo.common.records.fields import *
+from robottelo.common.records.base import Record  # noqa
+from robottelo.common.records.fields import *  # noqa

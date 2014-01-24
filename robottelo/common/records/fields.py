@@ -3,14 +3,15 @@
 import rstr
 
 from random import randint, choice
-from robottelo.common.helpers import *
+from robottelo.common.helpers import (
+    generate_mac, generate_string, generate_ipaddr)
 
 
 def convert_to_data(instance):
     """Converts an instance to a data dictionary"""
 
     return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k!="")}
+            if (not k.startswith("_") and k != "")}
 
 
 def load_from_data(instance, data):
@@ -37,7 +38,8 @@ class Field(object):
     def generate(self):
         """Generate a random value for field"""
 
-        raise NotImplementedError('A subclass should create a way to random generate this')
+        raise NotImplementedError(
+            'A subclass should create a way to random generate this')
 
     def contribute_to_class(self, cls, name):
         """Method used to setup this field on the record"""
@@ -69,7 +71,8 @@ class Field(object):
 
 
 class StringField(Field):
-    def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20, str_type='xeger', **kwargs):
+    def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20,
+                 str_type='xeger', **kwargs):
         super(StringField, self).__init__(**kwargs)
         self.format = format
         self.maxlen = maxlen
@@ -124,7 +127,7 @@ class IpAddrField(Field):
         self.ip3 = ip3
 
     def generate(self):
-        return generate_mac(self.ip3)
+        return generate_ipaddr(self.ip3)
 
 
 class ChoiceField(Field):

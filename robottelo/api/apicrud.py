@@ -5,9 +5,10 @@ Module for mixin of basic crud methods based on api_path class method.
 """
 
 import robottelo.api.base as base
-from robottelo.common.records.fields import load_from_data, convert_to_data
+
 from robottelo.common.records.fields import RelatedField
-from inspect import getmro
+from robottelo.common.records.fields import load_from_data, convert_to_data
+
 
 class ApiCrudMixin(object):
     """Defines basic crud methods based on api_path class method """
@@ -21,7 +22,6 @@ class ApiCrudMixin(object):
         if hasattr(cls, 'default_search'):
             return cls.default_search
         return "name"
-
 
     @classmethod
     def get_api_path(cls):
@@ -55,12 +55,10 @@ class ApiCrudMixin(object):
 
         raise NotImplementedError("Api path needs to be defined")
 
-
     @classmethod
     def id_from_json(cls, json):
         """Required for automatic generating of crud tests"""
         return json[cls.get_json_key()][u'id']
-
 
     @classmethod
     def parse_path_arg(cls, args):
@@ -140,12 +138,12 @@ class ApiCrudMixin(object):
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_exists(instance)
 
-        if hasattr(instance,"id"):
-            r = EnvironmentApi.show(instance.id)
+        if hasattr(instance, "id"):
+            r = cls.show(instance.id)
             return r.ok
         else:
             r = cls.list(json=dict(search="name="+instance.name))
-            if r.ok and len(r.json())>0:
+            if r.ok and len(r.json()) > 0:
                 return True
             else:
                 return False
@@ -155,11 +153,11 @@ class ApiCrudMixin(object):
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_resolve(instance)
 
-        if hasattr(instance,"id"):
+        if hasattr(instance, "id"):
             r = cls.show(instance.id)
             if r.ok:
                 nself = instance.copy()
-                instance = load_from_data(nself,r.json()[cls.get_json_key()])
+                instance = load_from_data(nself, r.json()[cls.get_json_key()])
                 return nself
             else:
                 raise Exception(r.status_code, r.content)
@@ -167,41 +165,44 @@ class ApiCrudMixin(object):
             r = cls.list(json=dict(search="name="+instance.name))
             if r.ok:
                 nself = instance.copy()
-                instance = load_from_data(nself,r.json()[0][cls.get_json_key()])
+                instance = load_from_data(
+                    nself, r.json()[0][cls.get_json_key()])
                 return nself
             else:
                 raise Exception(r.status_code, r.content)
 
-
     @classmethod
-    def record_create(cls,instance):
+    def record_create(cls, instance):
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_create(instance)
 
-        #resolve ids
-        data_instance = convert_to_data(instance)
-        related_fields = [f.name for f in instance._meta.fields if isinstance(f, RelatedField) ]
+        # resolve ids
+        # TODO data_instance will be used?
+        # data_instance = convert_to_data(instance)
+        related_fields = [f.name for f in instance._meta.fields
+                          if isinstance(f, RelatedField)]
 
         for field in related_fields:
             value = instance.__dict__[field]
             if ApiCrudMixin.record_exists(value):
-               value = ApiCrudMixin.record_resolve(value)
+                value = ApiCrudMixin.record_resolve(value)
             else:
-               value = ApiCrudMixin.record_create(value)
+                value = ApiCrudMixin.record_create(value)
             instance.__dict__[field] = value
             instance.__dict__[field+"_id"] = value.id
 
         data = convert_to_data(instance)
         print data
-        if hasattr(cls,"create_fields"):
-           data = {name:field for name, field in data.items() if name in cls.create_fields}
+        if hasattr(cls, "create_fields"):
+            data = {name: field for name, field in data.items()
+                    if name in cls.create_fields}
 
         print data
 
         r = cls.create(json=cls.opts(data))
         if r.ok:
             nself = instance.copy()
-            instance = load_from_data(nself,r.json()[cls.get_json_key()])
+            instance = load_from_data(nself, r.json()[cls.get_json_key()])
             return nself
         else:
             raise Exception(r.status_code, r.content)
