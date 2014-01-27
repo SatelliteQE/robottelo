@@ -51,7 +51,8 @@ TEMPLATE_TYPES = [
     'snippet',
 ]
 
-#LOCATOR_FILTER_KEY = FILTER
+#       NOTE:- Below unique filter key's are used for select-item box
+#       filter's common_locator['filter']
 FILTER = {'arch_os': "architecture_operatingsystem",
           'cr_org': "compute_resource_organization",
           'env_org': "environment_organization",
