@@ -7,6 +7,7 @@ Implements User groups UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.common.constants import FILTER
 
 
 class UserGroup(Base):
@@ -29,7 +30,7 @@ class UserGroup(Base):
 
         if self.wait_until_element(locators["usergroups.name"]):
             self.find_element(locators["usergroups.name"]).send_keys(name)
-            self.configure_entity(users, "usergroup_user")
+            self.configure_entity(users, FILTER['usergroup_user'])
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
@@ -69,7 +70,7 @@ class UserGroup(Base):
             if new_name:
                 if self.wait_until_element(locators["usergroups.name"]):
                     self.field_update("usergroups.name", new_name)
-            self.configure_entity(users, "usergroup_user",
+            self.configure_entity(users, FILTER['usergroup_user'],
                                   new_entity_list=new_users)
             self.wait_for_ajax()
         else:

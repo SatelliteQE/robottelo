@@ -7,6 +7,7 @@ Implements Environment UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.common.constants import FILTER
 
 
 class Environment(Base):
@@ -24,7 +25,7 @@ class Environment(Base):
         self.wait_until_element(locators["env.new"]).click()
         if self.wait_until_element(locators["env.name"]):
             self.find_element(locators["env.name"]).send_keys(name)
-        self.configure_entity(orgs, "environment_organization",
+        self.configure_entity(orgs, FILTER['env_org'],
                               tab_locator=tab_locators["tab_org"],
                               entity_select=org_select)
         self.find_element(common_locators["submit"]).click()
@@ -40,7 +41,7 @@ class Environment(Base):
             element.click()
             if self.wait_until_element(locators["env.name"]) and new_name:
                 self.field_update("env.name", new_name)
-            self.configure_entity(orgs, "environment_organization",
+            self.configure_entity(orgs, FILTER['env_org'],
                                   tab_locator=tab_locators["tab_org"],
                                   new_entity_list=new_orgs,
                                   entity_select=org_select)

@@ -7,6 +7,7 @@ Implements Subnet UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.common.constants import FILTER
 
 
 class Subnet(Base):
@@ -39,7 +40,7 @@ class Subnet(Base):
         if self.wait_until_element(locators["subnet.name"]):
             self.find_element(locators["subnet.name"]).send_keys(subnet_name)
         self._configure_subnet(subnet_network, subnet_mask)
-        self.configure_entity(orgs, "subnet_organization",
+        self.configure_entity(orgs, FILTER['subnet_org'],
                               tab_locator=tab_locators["tab_org"],
                               entity_select=org_select)
         self.wait_until_element(common_locators["submit"]).click()
@@ -96,7 +97,7 @@ class Subnet(Base):
                 if self.wait_until_element(locators["subnet.name"]):
                     self.field_update("subnet.name", new_subnet_name)
             self._configure_subnet(new_subnet_network, new_subnet_mask)
-            self.configure_entity(orgs, "subnet_organization",
+            self.configure_entity(orgs, FILTER["subnet_org"],
                                   tab_locator=tab_locators["tab_org"],
                                   new_entity_list=new_orgs,
                                   entity_select=org_select)
