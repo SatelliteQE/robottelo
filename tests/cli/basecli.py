@@ -35,6 +35,13 @@ class BaseCLI(unittest.TestCase):
         logging.getLogger("paramiko").setLevel(logging.ERROR)
         cls.logger = logging.getLogger("robottelo")
 
+    def setUp(self):
+        """
+        Log test class and method name before each test.
+        """
+        self.logger.debug("Running test %s/%s", type(self).__name__,
+                          self._testMethodName)
+
 
 class MetaCLI(BaseCLI):
 
