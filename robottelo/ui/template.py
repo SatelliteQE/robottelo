@@ -55,6 +55,7 @@ class Template(Base):
             else:
                 raise Exception(
                     "Could not create template '%s' without type" % name)
+            self.scroll_page()
             self.configure_entity(os_list, "config_template_operatingsystem",
                                   tab_locator=tab_locators
                                   ["provision.tab_association"])
