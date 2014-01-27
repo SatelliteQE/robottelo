@@ -51,7 +51,7 @@ TEMPLATE_TYPES = [
     'snippet',
 ]
 
-LOCATOR_FILTER_KEY = \
+#LOCATOR_FILTER_KEY = FILTER
 FILTER = {'arch_os': "architecture_operatingsystem",
           'cr_org': "compute_resource_organization",
           'env_org': "environment_organization",
