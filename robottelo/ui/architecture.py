@@ -7,6 +7,7 @@ Implements Architecture UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.common.constants import FILTER
 
 
 class Architecture(Base):
@@ -29,7 +30,7 @@ class Architecture(Base):
 
         if self.wait_until_element(locators["arch.name"]):
             self.field_update("arch.name", name)
-            self.configure_entity(os_names, "architecture_operatingsystem")
+            self.configure_entity(os_names, FILTER['arch_os'])
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
@@ -62,7 +63,7 @@ class Architecture(Base):
             element.click()
             if self.wait_until_element(locators["arch.name"]) and new_name:
                 self.field_update("arch.name", new_name)
-                self.configure_entity(os_names, "architecture_operatingsystem",
+                self.configure_entity(os_names, FILTER['arch_os'],
                                       new_entity_list=new_os_names)
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()

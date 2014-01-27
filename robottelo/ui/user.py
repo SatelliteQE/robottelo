@@ -8,6 +8,7 @@ Implements User UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
+from robottelo.common.constants import FILTER
 
 
 class User(Base):
@@ -93,7 +94,7 @@ class User(Base):
                 self.field_update("users.password", password)
                 self.field_update("users.password_confirmation", password)
             if new_roles:
-                self.configure_entity(roles, "user_role",
+                self.configure_entity(roles, FILTER['user_role'],
                                       tab_locator=tab_locators
                                       ["users.tab_roles"],
                                       new_entity_list=new_roles)

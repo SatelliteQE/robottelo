@@ -51,7 +51,21 @@ TEMPLATE_TYPES = [
     'snippet',
 ]
 
+#       NOTE:- Below unique filter key's are used for select-item box
+#       filter's common_locator['filter']
+FILTER = {'arch_os': "architecture_operatingsystem",
+          'cr_org': "compute_resource_organization",
+          'env_org': "environment_organization",
+          'os_arch': "operatingsystem_architecture",
+          'os_ptable': "operatingsystem_ptable",
+          'os_medium': "operatingsystem_medium",
+          'subnet_org': "subnet_organization",
+          'template_os': "config_template_operatingsystem",
+          'user_role': "user_role",
+          'usergroup_user': "usergroup_user"}
+
 RESOURCE_DEFAULT = "baremetal"
+
 PARTITION_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
 
 OS_TEMPLATE_URL = 'https://gist.github.com/sghai/8109676/raw'

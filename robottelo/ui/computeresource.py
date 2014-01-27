@@ -4,6 +4,7 @@
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
+from robottelo.common.constants import FILTER
 
 
 class ComputeResource(Base):
@@ -64,7 +65,7 @@ class ComputeResource(Base):
             self.find_element(locators["resource.name"]).send_keys(name)
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd)
-        self.configure_entity(orgs, "compute_resource_organization",
+        self.configure_entity(orgs, FILTER['cr_org'],
                               tab_locator=tab_locators["tab_org"],
                               entity_select=org_select)
         self.find_element(common_locators["submit"]).click()
@@ -96,7 +97,7 @@ class ComputeResource(Base):
             self._configure_resource(provider_type, url, user, password,
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
-            self.configure_entity(orgs, "compute_resource_organization",
+            self.configure_entity(orgs, FILTER['cr_org'],
                                   tab_locator=tab_locators["tab_org"],
                                   new_entity_list=new_orgs,
                                   entity_select=org_select)

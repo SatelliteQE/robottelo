@@ -8,6 +8,7 @@ Implements Template UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
+from robottelo.common.constants import FILTER
 
 
 class Template(Base):
@@ -56,7 +57,7 @@ class Template(Base):
                 raise Exception(
                     "Could not create template '%s' without type" % name)
             self.scroll_page()
-            self.configure_entity(os_list, "config_template_operatingsystem",
+            self.configure_entity(os_list, FILTER['template_os'],
                                   tab_locator=tab_locators
                                   ["provision.tab_association"])
             self.find_element(common_locators["submit"]).click()
@@ -97,7 +98,7 @@ class Template(Base):
                                         ["provision.tab_type"]).click()
                 ele = self.find_element(locators["provision.template_type"])
                 Select(ele).select_by_visible_text(template_type)
-            self.configure_entity(os_list, "config_template_operatingsystem",
+            self.configure_entity(os_list, FILTER['template_os'],
                                   tab_locator=tab_locators
                                   ["provision.tab_association"],
                                   new_entity_list=new_os_list)

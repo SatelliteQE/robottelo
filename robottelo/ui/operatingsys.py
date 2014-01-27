@@ -8,6 +8,7 @@ Implements Operating System UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
+from robottelo.common.constants import FILTER
 
 
 class OperatingSys(Base):
@@ -21,10 +22,15 @@ class OperatingSys(Base):
         """
         self.browser = browser
 
-    def _configure_os(self, minor_version=None, os_family=None, template=None):
+    def _configure_os(self, archs, ptables, mediums, select,
+                      minor_version=None, os_family=None, template=None,
+                      arch_list=None, ptable_list=None, medium_list=None):
         """
         Configures the operating system details
         """
+        tab_primary_locator = tab_locators["tab_primary"]
+        tab_ptable_locator = tab_locators["operatingsys.tab_ptable"]
+        tab_medium_locator = tab_locators["operatingsys.tab_medium"]
 
         if minor_version:
             if self.wait_until_element(locators
@@ -34,6 +40,21 @@ class OperatingSys(Base):
             Select(self.find_element(locators
                                      ["operatingsys.family"]
                                      )).select_by_visible_text(os_family)
+        if archs or arch_list:
+            self.configure_entity(archs, FILTER['os_arch'],
+                                  tab_locator=tab_primary_locator,
+                                  new_entity_list=arch_list,
+                                  entity_select=select)
+        if ptables or ptable_list:
+            self.configure_entity(ptables, FILTER['os_ptable'],
+                                  tab_locator=tab_ptable_locator,
+                                  new_entity_list=ptable_list,
+                                  entity_select=select)
+        if mediums or medium_list:
+            self.configure_entity(mediums, FILTER['os_medium'],
+                                  tab_locator=tab_medium_locator,
+                                  new_entity_list=medium_list,
+                                  entity_select=select)
         if template:
             self.wait_until_element(tab_locators
                                     ["operatingsys.tab_templates"]).click()
@@ -53,27 +74,14 @@ class OperatingSys(Base):
             new_os.click()
             os_name_locator = locators["operatingsys.name"]
             os_major_locator = locators["operatingsys.major_version"]
-            tab_primary_locator = tab_locators["tab_primary"]
-            tab_ptable_locator = tab_locators["operatingsys.tab_ptable"]
-            tab_medium_locator = tab_locators["operatingsys.tab_medium"]
             if self.wait_until_element(os_name_locator):
                 self.find_element(os_name_locator).send_keys(name)
             if self.wait_until_element(os_major_locator):
                 self.find_element(os_major_locator).send_keys(major_version)
-                self._configure_os(minor_version, os_family, template)
-                if archs:
-                    self.configure_entity(archs,
-                                          "operatingsystem_architecture",
-                                          tab_locator=tab_primary_locator,
-                                          entity_select=select)
-                if ptables:
-                    self.configure_entity(ptables, "operatingsystem_ptable",
-                                          tab_locator=tab_ptable_locator,
-                                          entity_select=select)
-                if mediums:
-                    self.configure_entity(mediums, "operatingsystem_medium",
-                                          tab_locator=tab_medium_locator,
-                                          entity_select=select)
+                self._configure_os(archs, ptables, mediums, select,
+                                   minor_version, os_family, template,
+                                   arch_list=None, ptable_list=None,
+                                   medium_list=None)
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:
@@ -109,8 +117,6 @@ class OperatingSys(Base):
         """
         Update all entities(arch, Partition table, medium) of OS from UI
         """
-        tab_ptable_locator = tab_locators["operatingsys.tab_ptable"]
-        tab_medium_locator = tab_locators["operatingsys.tab_medium"]
         element = self.search(os_name)
 
         if element:
@@ -123,22 +129,10 @@ class OperatingSys(Base):
                                            ["operatingsys.major_version"]):
                     self.field_update("operatingsys.major_version",
                                       major_version)
-            self._configure_os(minor_version, os_family, template)
-            if new_archs:
-                self.configure_entity(archs, "operatingsystem_architecture",
-                                      tab_locator=tab_locators["tab_primary"],
-                                      new_entity_list=new_archs,
-                                      entity_select=select)
-            if new_ptables:
-                self.configure_entity(ptables, "operatingsystem_ptable",
-                                      tab_locator=tab_ptable_locator,
-                                      new_entity_list=new_ptables,
-                                      entity_select=select)
-            if new_mediums:
-                self.configure_entity(mediums, "operatingsystem_medium",
-                                      tab_locator=tab_medium_locator,
-                                      new_entity_list=new_mediums,
-                                      entity_select=select)
+            self._configure_os(archs, ptables, mediums, select,
+                               minor_version, os_family, template,
+                               arch_list=new_archs, ptable_list=new_ptables,
+                               medium_list=new_mediums)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
