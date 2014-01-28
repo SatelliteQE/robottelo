@@ -34,6 +34,60 @@ menu_locators = {
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_audits']"),
 
+    # Content Menu
+    "menu.content": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='content']"),
+    "menu.life_cycle_environments": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_audits']"),
+    "menu.red_hat_subscriptions": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_red_hat_subscriptions']")),
+    "menu.subscription_manager_applications": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_subscription_manager_applications']")),
+    "menu.activation_keys": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_activation_keys']")),
+    "menu.red_hat_repositories": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_redhat_provider']")),
+    "menu.products": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_products']"),
+    "menu.gpg_keys": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_gpg_keys']"),
+    "menu.sync_status": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_sync_status']"),
+    "menu.sync_plans": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_sync_plans']"),
+    "menu.sync_schedules": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_sync_schedules']"),
+    "menu.content_view_definitions": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_content_view_definitions']")),
+    "menu.content_search": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_content_search']"),
+    "menu.changeset_management": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_changeset_management']")),
+    "menu.changeset_history": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_changeset_history']")),
+
     # Hosts Menu
     "menu.hosts": (
         By.XPATH,

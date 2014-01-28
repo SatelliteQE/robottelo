@@ -58,6 +58,86 @@ class Navigator(Base):
             menu_locators['menu.monitor'], menu_locators['menu.audits'],
         )
 
+    def go_to_life_cycle_environments(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.life_cycle_environments'],
+        )
+
+    def go_to_red_hat_subscriptions(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.red_hat_subscriptions'],
+        )
+
+    def go_to_subscription_manager_applications(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.subscription_manager_applications'],
+        )
+
+    def go_to_activation_keys(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.activation_keys'],
+        )
+
+    def go_to_red_hat_repositories(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.red_hat_repositories'],
+        )
+
+    def go_to_products(self):
+        self.menu_click(
+            menu_locators['menu.content'], menu_locators['menu.products'],
+        )
+
+    def go_to_gpg_keys(self):
+        self.menu_click(
+            menu_locators['menu.content'], menu_locators['menu.gpg_keys'],
+        )
+
+    def go_to_sync_status(self):
+        self.menu_click(
+            menu_locators['menu.content'], menu_locators['menu.sync_status'],
+        )
+
+    def go_to_sync_plans(self):
+        self.menu_click(
+            menu_locators['menu.content'], menu_locators['menu.sync_plans'],
+        )
+
+    def go_to_sync_schedules(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.sync_schedules'],
+        )
+
+    def go_to_content_view_definitions(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.content_view_definitions'],
+        )
+
+    def go_to_content_search(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.content_search'],
+        )
+
+    def go_to_changeset_management(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.changeset_management'],
+        )
+
+    def go_to_changeset_history(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.changeset_history'],
+        )
+
     def go_to_hosts(self):
         self.menu_click(
             menu_locators['menu.hosts'], menu_locators['menu.all_hosts'],
