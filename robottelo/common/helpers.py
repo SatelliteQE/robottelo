@@ -11,7 +11,7 @@ import time
 
 from itertools import izip
 from robottelo.common.constants import HTML_TAGS
-from urllib2 import urlopen
+from urllib2 import urlopen, Request, URLError
 
 
 def generate_name(minimum=4, maximum=8):
@@ -204,8 +204,22 @@ def download_template(url):
     Function to download the template from given URL
     """
     filename = '/tmp/custom_template'
-    temp = urlopen(url)
-    temp_file = open(filename, 'wb')
-    temp_file.write(temp.read())
-    temp_file.close()
-    return filename
+    if url[0:7] == 'http://' or url[0:8] == 'https://':
+        req = Request(url)
+        try:
+            response = urlopen(req)
+        except URLError, err:
+            if hasattr(err, 'reason'):
+                raise Exception(
+                    "Invalid URL, Reason:", err.reason)
+            elif hasattr(err, 'code'):
+                raise Exception(
+                    "The server couldn\'t fulfill the request", err.code)
+        else:
+            temp_file = open(filename, 'wb')
+            temp_file.write(response.read())
+            temp_file.close()
+            return filename
+    else:
+        raise Exception(
+            "Invalid URL '%s'" % url)

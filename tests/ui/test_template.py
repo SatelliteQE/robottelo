@@ -5,13 +5,11 @@
 Test class for Template UI
 """
 
+from robottelo.common.constants import OS_TEMPLATE_URL, SNIPPET_URL
 from robottelo.common.helpers import generate_name, generate_string, \
     download_template
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
-
-TEMP_URL = 'https://gist.github.com/sghai/8109676/raw'
-SNIPPET_URL = 'https://gist.github.com/sghai/8434467/raw'
 
 
 class Template(BaseUI):
@@ -45,7 +43,7 @@ class Template(BaseUI):
         name = generate_name(6)
         temp_type = 'provision'
         #os_list = ["rhel 6.5", "rhel64 6.4"]
-        template_path = download_template(TEMP_URL)
+        template_path = download_template(OS_TEMPLATE_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              temp_type, None)
@@ -77,7 +75,7 @@ class Template(BaseUI):
 
         name = generate_name(6)
         temp_type = 'provision'
-        template_path = download_template(TEMP_URL)
+        template_path = download_template(OS_TEMPLATE_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              temp_type, None)
@@ -99,7 +97,7 @@ class Template(BaseUI):
         new_name = generate_name(6)
         temp_type = 'provision'
         new_temp_type = 'PXELinux'
-        template_path = download_template(TEMP_URL)
+        template_path = download_template(OS_TEMPLATE_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              temp_type, None)
@@ -123,7 +121,7 @@ class Template(BaseUI):
         os_name2 = generate_name(6)
         os_list = [os_name1, os_name2]
         major_version = generate_string('numeric', 1)
-        template_path = download_template(TEMP_URL)
+        template_path = download_template(OS_TEMPLATE_URL)
         self.login.login(self.katello_user, self.katello_passwd)
         for os_name in os_list:
             self.navigator.go_to_operating_systems()
