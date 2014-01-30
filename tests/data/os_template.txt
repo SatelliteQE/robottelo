@@ -1,0 +1,34 @@
+#version=RHEL7
+# System authorization information
+auth --enableshadow --passalgo=sha512
+
+# Use network installation
+url --url="http://download.test.com/pub/rhel/xxx/compose/xxxx"
+# Run the Setup Agent on first boot
+firstboot --enable
+ignoredisk --only-use=vda
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --bootproto=dhcp --device=eth0 --noipv6 --activate
+network  --hostname=dhcp201-xxx.test.com
+# Root password
+rootpw --iscrypted $6$Ug17F9SQOzGww/I7$iImNq1kyEw6EwsmpplK3avma
+# System services
+services --enabled="chronyd"
+# System timezone
+timezone Asia/Kolkata --isUtc
+user --name=test --password=$6$DQ7BFZ2qEaKuBh3l$il4f.smBhOqHgM/LGpAycTGTU86GuHU3yku4d/BSKckeFk0ivpU5Ug5x9Zg161NqzZkEyXTn0fnkWcyQBrT311 --iscrypted --gecos="test"
+# System bootloader configuration
+bootloader --location=mbr --boot-drive=vda
+autopart --type=lvm
+# Partition clearing information
+clearpart --none --initlabel 
+
+%packages
+@core
+
+%end

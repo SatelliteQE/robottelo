@@ -5,9 +5,10 @@
 Test class for Template UI
 """
 
-from robottelo.common.constants import OS_TEMPLATE_URL, SNIPPET_URL
+from robottelo.common.constants import OS_TEMPLATE_URL, SNIPPET_URL, \
+    OS_TEMPLATE
 from robottelo.common.helpers import generate_name, generate_string, \
-    download_template
+    download_template, get_data_file
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -43,7 +44,8 @@ class Template(BaseUI):
         name = generate_name(6)
         temp_type = 'provision'
         #os_list = ["rhel 6.5", "rhel64 6.4"]
-        template_path = download_template(OS_TEMPLATE_URL)
+        #template_path = download_template(OS_TEMPLATE_URL)
+        template_path = get_data_file(OS_TEMPLATE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              temp_type, None)
