@@ -136,6 +136,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   records
    lib
 
 Indices and tables
