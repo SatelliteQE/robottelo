@@ -66,6 +66,12 @@ FILTER = {'arch_os': "architecture_operatingsystem",
 
 RESOURCE_DEFAULT = "baremetal"
 
+OS_TEMPLATE = "os_template.txt"
+
+PARTITION_SCRIPT = "partition_script.txt"
+
+SNIPPET = "snippet.txt"
+
 PARTITION_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
 
 OS_TEMPLATE_URL = 'https://gist.github.com/sghai/8109676/raw'
