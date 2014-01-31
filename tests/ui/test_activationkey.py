@@ -20,7 +20,7 @@ class ActivationKey(BaseUI):
     Lesser than Min Length, Greater than Max DB size
     """
 
-    def test_positive_create_org_1(self):
+    def test_positive_create_activation_key_1(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Activation key name
@@ -32,7 +32,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_2(self):
+    def test_positive_create_activation_key_2(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Description
@@ -44,7 +44,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_3(self):
+    def test_positive_create_activation_key_3(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Environments
@@ -56,7 +56,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_4(self):
+    def test_positive_create_activation_key_4(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Content Views
@@ -68,7 +68,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_5(self):
+    def test_positive_create_activation_key_5(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of System Groups
@@ -80,7 +80,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_6(self):
+    def test_positive_create_activation_key_6(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key with default Usage limit (Unlimited)
@@ -92,7 +92,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_7(self):
+    def test_positive_create_activation_key_7(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key with finite Usage limit
@@ -104,7 +104,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_org_8(self):
+    def test_positive_create_activation_key_8(self):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key with minimal input parameters
@@ -112,6 +112,178 @@ class ActivationKey(BaseUI):
         1. Create Activation key by entering Activation Key Name alone
         leaving Description, Content View and Usage Limit as default values
         @Assert: Activation key is created
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_create_activation_key_1(self):
+        """
+        @Feature: Activation key - Negative Create
+        @Test: Create Activation key with invalid Name
+        @Steps:
+        1. Create Activation key for all invalid Activation Key Names in [2]
+        using valid Description, Environment, Content View, Usage limit
+        @Assert: Activation key is not created. Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_create_activation_key_2(self):
+        """
+        @Feature: Activation key - Negative Create
+        @Test: Create Activation key with invalid Description
+        @Steps:
+        1. Create Activation key for all invalid Description in [2]
+        using valid Name, Environment, Content View, Usage limit
+        @Assert: Activation key is not created. Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete_activation_key_1(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: Create Activation key and delete it for all variations of
+        Activation key name
+        @Steps:
+        1. Create Activation key for all valid Activation Key names in [1]
+        using valid Description, Environment, Content View, Usage limit
+        2. Delete the Activation key
+        @Assert: Activation key is deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete_activation_key_2(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: Create Activation key and delete it for all variations of 
+        Description
+        @Steps:
+        1. Create Activation key for all valid Description in [1]
+        using valid Name, Environment, Content View, Usage limit
+        2. Delete the Activation key
+        @Assert: Activation key is deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete_activation_key_3(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: Create Activation key and delete it for all variations of
+        Environment
+        @Steps:
+        1. Create Activation key for all valid Environments in [1]
+        using valid Name, Description, Content View, Usage limit
+        2. Delete the Activation key
+        @Assert: Activation key is deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete_activation_key_4(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: Create Activation key and delete it for all variations of
+        Content Views
+        @Steps:
+        1. Create Activation key for all valid Content Views in [1]
+        using valid Name, Description, Environment, Usage limit
+        2. Delete the Activation key
+        @Assert: Activation key is deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete_activation_key_5(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: Delete an Activation key which has registered systems
+        @Steps:
+        1. Create an Activation key
+        2. Register systems to it
+        3. Delete the Activation key
+        @Assert: Activation key is deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete_activation_key_6(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: Delete a Content View associated to an Activation Key deletes
+        the Activation Key
+        @Steps:
+        1. Create an Activation key with a Content View
+        2. Delete the Content View
+        @Assert: Activation key is deleted or updated accordingly
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_delete_activation_key_1(self):
+        """
+        @Feature: Activation key - Positive Delete
+        @Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
+        @Steps:
+        1. Create an Activation key
+        2. Attempt to remove an Activation Key
+        3. Click Cancel in the confirmation dialog box
+        @Assert: Activation key is not deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_update_activation_key_1(self):
+        """
+        @Feature: Activation key - Positive Update
+        @Test: Create Activation key and update for all variations of
+        Activation key name
+        @Steps:
+        1. Create Activation key
+        2. Update Activation key name for all variations in [1]
+        @Assert: Activation key is updated
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_update_activation_key_2(self):
+        """
+        @Feature: Activation key - Positive Update
+        @Test: Create Activation key and update for all variations of
+        Description
+        @Steps:
+        1. Create Activation key
+        2. Update Description for all variations in [1]
+        @Assert: Activation key is updated
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_update_activation_key_3(self):
+        """
+        @Feature: Activation key - Positive Update
+        @Test: Create Activation key and update for all variations of
+        Environment
+        @Steps:
+        1. Create Activation key
+        2. Update Environment for all variations in [1]
+        @Assert: Activation key is updated
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_update_activation_key_4(self):
+        """
+        @Feature: Activation key - Positive Update
+        @Test: Create Activation key and update for all variations of
+        Content View
+        @Steps:
+        1. Create Activation key
+        2. Update Content View for all variations in [1] and include both
+        RH and custom products
+        @Assert: Activation key is updated
         @Status: Manual
         """
         self.fail(NOT_IMPLEMENTED)
