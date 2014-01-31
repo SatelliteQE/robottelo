@@ -6,12 +6,11 @@ Test class for Operating System UI
 """
 
 from robottelo.ui.locators import common_locators
-from robottelo.common.constants import OS_TEMPLATE_URL, PARTITION_SCRIPT_URL, \
-    INSTALL_MEDIUM_URL
+from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, \
+    PARTITION_SCRIPT_DATA_FILE, INSTALL_MEDIUM_URL
 from robottelo.common.helpers import generate_name, generate_string, \
-    download_template
+    get_data_file
 from tests.ui.baseui import BaseUI
-from urllib2 import urlopen
 
 
 class OperatingSys(BaseUI):
@@ -113,7 +112,9 @@ class OperatingSys(BaseUI):
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         ptable = generate_name(4)
-        layout = urlopen(PARTITION_SCRIPT_URL).read()
+        script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
+        with open(script_file, 'r') as file_contents:
+            layout = file_contents.read()
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(ptable, layout)
@@ -130,7 +131,7 @@ class OperatingSys(BaseUI):
         major_version = generate_string('numeric', 1)
         template_name = generate_name(4)
         temp_type = 'provision'
-        template_path = download_template(OS_TEMPLATE_URL)
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         os_list = [os_name]
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(os_name, major_version)

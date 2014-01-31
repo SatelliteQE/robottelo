@@ -8,7 +8,7 @@ Templates for generic positive/negative CRUD tests.
 
 def test_positive_create(self, data):
     """
-    Successfully creates an object.
+    Successfully creates object FOREMAN_OBJECT.
 
     1. Create a new Foreman object using the a base factory using
        B{@data} as argument;
@@ -37,7 +37,7 @@ def test_positive_create(self, data):
 
 def test_negative_create(self, data):
     """
-    Fails to creates object.
+    Fails to creates object FOREMAN_OBJECT.
 
     1. Create a new Foreman object using the a base factory using
        B{@data} as argument;
@@ -59,7 +59,7 @@ def test_negative_create(self, data):
 
 def test_positive_update(self, data):
     """
-    Successfully updates an object.
+    Successfully updates object FOREMAN_OBJECT.
 
     1. Create a new Foreman object using the test base factory using
        B{@data}[1] as argument;
@@ -114,7 +114,7 @@ def test_positive_update(self, data):
 
 def test_negative_update(self, data):
     """
-    Fails to update an object after its creation.
+    Fails to update object FOREMAN_OBJECT after its creation.
 
     1. Create a new Foreman object using the test base factory using
        B{@data} as argument;
@@ -168,7 +168,7 @@ def test_negative_update(self, data):
 
 def test_positive_delete(self, data):
     """
-    Successfully deletes an object
+    Successfully deletes object FOREMAN_OBJECT.
 
     1. Create a new Foreman object using the test base factory using
        B{@data} as argument;
@@ -208,7 +208,7 @@ def test_positive_delete(self, data):
 
 def test_negative_delete(self, data):
     """
-    Fails to update object shortly after its creation.
+    Fails to update object FOREMAN_OBJECT shortly after its creation.
 
     1. Create a new Foreman object using the test base factory without
        arguments;

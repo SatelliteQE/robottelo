@@ -66,12 +66,14 @@ FILTER = {'arch_os': "architecture_operatingsystem",
 
 RESOURCE_DEFAULT = "baremetal"
 
-PARTITION_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
+OS_TEMPLATE_DATA_FILE = "os_template.txt"
 
-OS_TEMPLATE_URL = 'https://gist.github.com/sghai/8109676/raw'
+PARTITION_SCRIPT_DATA_FILE = "partition_script.txt"
 
-INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
+SNIPPET_DATA_FILE = "snippet.txt"
 
 SNIPPET_URL = 'https://gist.github.com/sghai/8434467/raw'
+
+INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 NOT_IMPLEMENTED = 'Test not implemented'
