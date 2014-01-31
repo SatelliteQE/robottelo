@@ -80,6 +80,9 @@ class MetaCLITest(type):
                     params = getattr(default_data, data_name.upper())
                 # Pass data to @data decorator
                 func = data(*params)(getattr(template_methods, test_name))
+                # Update method's docstring to include name of object
+                func.__doc__ = func.__doc__.replace(
+                    'FOREMAN_OBJECT', _klass.factory_obj.__name__)
                 # Add method to test class
                 setattr(_klass, test_name, func)
 
