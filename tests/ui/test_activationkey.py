@@ -169,7 +169,7 @@ class ActivationKey(BaseUI):
     def test_positive_delete_activation_key_2(self):
         """
         @Feature: Activation key - Positive Delete
-        @Test: Create Activation key and delete it for all variations of 
+        @Test: Create Activation key and delete it for all variations of
         Description
         @Steps:
         1. Create Activation key for all valid Description in [1]
@@ -415,7 +415,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
-        @Assert: RH/Custom products are successfully associated to Activation key
+        @Assert: RH/Custom product is successfully associated to Activation key
         @Status: Manual
         """
         self.fail(NOT_IMPLEMENTED)
