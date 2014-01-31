@@ -5,6 +5,7 @@
 Test class for Activation key UI
 """
 
+from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
 
 
@@ -29,7 +30,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_2(self):
         """
@@ -41,7 +42,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_3(self):
         """
@@ -53,7 +54,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_4(self):
         """
@@ -65,7 +66,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_5(self):
         """
@@ -77,7 +78,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_6(self):
         """
@@ -89,7 +90,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_7(self):
         """
@@ -101,7 +102,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_create_org_8(self):
         """
@@ -113,4 +114,4 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail('Test not implemented')
+        self.fail(NOT_IMPLEMENTED)
