@@ -239,3 +239,14 @@ def get_data_file(filename):
     else:
         raise Exception(
             "Couldn't locate the data file '%s'" % data_file)
+
+
+def read_partition_script(filename):
+    """
+    Read the contents of partition table script
+    filename : constant value of partition script file
+                e.g. PARTITION_SCRIPT_DATA_FILE
+    """
+    absolute_file_path = get_data_file(filename)
+    with open(absolute_file_path, 'r') as file_contents:
+        return file_contents.read()

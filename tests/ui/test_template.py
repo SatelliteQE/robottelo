@@ -5,10 +5,9 @@
 Test class for Template UI
 """
 
-from robottelo.common.constants import OS_TEMPLATE_URL, SNIPPET_URL, \
-    OS_TEMPLATE_DATA_FILE
+from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.helpers import generate_name, generate_string, \
-    download_template, get_data_file
+    get_data_file
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -43,8 +42,6 @@ class Template(BaseUI):
 
         name = generate_name(6)
         temp_type = 'provision'
-        #os_list = ["rhel 6.5", "rhel64 6.4"]
-        #template_path = download_template(OS_TEMPLATE_URL)
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
@@ -61,7 +58,7 @@ class Template(BaseUI):
         """
 
         name = generate_name(6)
-        template_path = download_template(SNIPPET_URL)
+        template_path = get_data_file(SNIPPET_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              None, True)
@@ -77,7 +74,7 @@ class Template(BaseUI):
 
         name = generate_name(6)
         temp_type = 'provision'
-        template_path = download_template(OS_TEMPLATE_URL)
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              temp_type, None)
@@ -99,7 +96,7 @@ class Template(BaseUI):
         new_name = generate_name(6)
         temp_type = 'provision'
         new_temp_type = 'PXELinux'
-        template_path = download_template(OS_TEMPLATE_URL)
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
                              temp_type, None)
@@ -123,7 +120,7 @@ class Template(BaseUI):
         os_name2 = generate_name(6)
         os_list = [os_name1, os_name2]
         major_version = generate_string('numeric', 1)
-        template_path = download_template(OS_TEMPLATE_URL)
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         for os_name in os_list:
             self.navigator.go_to_operating_systems()

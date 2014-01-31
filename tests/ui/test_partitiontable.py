@@ -5,12 +5,10 @@
 Test class for Partition Table UI
 """
 
+from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
+from robottelo.common.helpers import generate_name, read_partition_script
 from robottelo.ui.locators import common_locators
-from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
-from urllib2 import urlopen
-
-PART_SCRIPT_URL = 'https://gist.github.com/sghai/7822090/raw'
 
 
 class PartitionTable(BaseUI):
@@ -22,7 +20,7 @@ class PartitionTable(BaseUI):
         Creates partition table with navigation
         """
         name = name or generate_name(6)
-        layout = layout or urlopen(PART_SCRIPT_URL).read()
+        layout = layout or read_partition_script(PARTITION_SCRIPT_DATA_FILE)
         os_family = os_family or "Red Hat"
         self.navigator.go_to_partition_tables()
         self.partitiontable.create(name, layout, os_family)
@@ -34,7 +32,7 @@ class PartitionTable(BaseUI):
         """
 
         name = generate_name(6)
-        layout = urlopen(PART_SCRIPT_URL).read()
+        layout = read_partition_script(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_partition_table(name, layout, os_family)
@@ -62,7 +60,7 @@ class PartitionTable(BaseUI):
         name = generate_name(6)
         new_name = generate_name(4)
         layout = "test layout"
-        new_layout = urlopen(PART_SCRIPT_URL).read()
+        new_layout = read_partition_script(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Debian"
         new_os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
