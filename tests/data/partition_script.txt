@@ -1,0 +1,22 @@
+#Dynamic - this line tells Foreman this is a script rather then a static layout
+#This snippets define the swap partition size, it would generate a partition twice the size of the memory if your physical memory is up to 2GB
+#or will create a swap partition with your memory size + 2GB.
+
+#get the actual memory installed on the system and divide by 1024 to get it in MB
+act_mem=$((`grep MemTotal: /proc/meminfo | sed 's/^MemTotal: *//'|sed 's/ .*//'` / 1024))
+
+#check if the memory is less than 2GB then swap is double the memory else it is memory plus 2 GB
+if [ "$act_mem" -gt 2048 ]; then
+    vir_mem=$(($act_mem + 2048))
+else
+    vir_mem=$(($act_mem * 2))
+fi
+
+#copy all the HDD partitions to the temp file for execution
+cat <<EOF > /tmp/diskpart.cfg
+zerombr yes
+clearpart --all --initlabel
+part swap --size "$vir_mem" 
+part /boot --fstype ext3 --size 100 --asprimary
+part / --fstype ext3 --size 1024 --grow
+EOF

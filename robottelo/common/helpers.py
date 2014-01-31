@@ -5,6 +5,7 @@
 Several helper methods and functions.
 """
 
+import os
 import random
 import string
 import time
@@ -223,3 +224,29 @@ def download_template(url):
     else:
         raise Exception(
             "Invalid URL '%s'" % url)
+
+
+def get_data_file(filename):
+    """
+    Returns correct path of file from data folder
+    """
+
+    path = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                         os.pardir, os.pardir))
+    data_file = os.path.join(path, "tests", "data", filename)
+    if os.path.isfile(data_file):
+        return data_file
+    else:
+        raise Exception(
+            "Couldn't locate the data file '%s'" % data_file)
+
+
+def read_partition_script(filename):
+    """
+    Read the contents of partition table script
+    filename : constant value of partition script file
+                e.g. PARTITION_SCRIPT_DATA_FILE
+    """
+    absolute_file_path = get_data_file(filename)
+    with open(absolute_file_path, 'r') as file_contents:
+        return file_contents.read()
