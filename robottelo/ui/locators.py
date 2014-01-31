@@ -97,6 +97,14 @@ menu_locators = {
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
             "//a[@id='menu_item_hosts']")),
+    "menu.registered_systems": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_systems']")),
+    "menu.system_groups": (
+        By.XPATH,
+        ("//div[contains(@style,'static')]"
+            "//a[@id='menu_item_system_groups']")),
     "menu.operating_systems": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
