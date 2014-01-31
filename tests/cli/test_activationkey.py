@@ -2,16 +2,16 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Test class for Activation key UI
+Test class for Activation key CLI
 """
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.ui.baseui import BaseUI
+from tests.cli.basecli import MetaCLI
 
 
-class ActivationKey(BaseUI):
+class ActivationKey(MetaCLI):
     """
-    Implements Activation key tests in UI
+    Implements Activation key tests in CLI
 
     [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
     Latin1, Multibyte, Max length,  Min length, Max_db_size, html, css,
@@ -245,7 +245,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)  # Skip for CLI as this is UI only
 
     def test_positive_update_activation_key_1(self):
         """
