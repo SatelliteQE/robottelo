@@ -180,7 +180,7 @@ def csv_to_dictionary(data):
 
     records = []
 
-    items = "".join(data).split('\n')
+    items = data
     headers = items.pop(0)
     dic_values = [item.split(',') for item in items if len(item) > 0]
 

@@ -70,6 +70,7 @@ def create_object(cli_object, args, search_field='name'):
     sleep_for_seconds(5)
 
     # If the object is not created, raise exception, stop the show.
+
     if result.return_code != 0 or not cli_object().exists(
             (search_field, args[search_field])).stdout:
 
