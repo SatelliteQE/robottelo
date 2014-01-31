@@ -140,6 +140,18 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    def test_negative_create_activation_key_3(self):
+        """
+        @Feature: Activation key - Negative Create
+        @Test: Create Activation key with invalid Usage Limit
+        @Steps:
+        1. Create Activation key for all invalid Usage Limit in [2]
+        using valid Name, Description, Environment, Content View
+        @Assert: Activation key is not created. Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
     def test_positive_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -238,8 +250,7 @@ class ActivationKey(BaseUI):
     def test_positive_update_activation_key_1(self):
         """
         @Feature: Activation key - Positive Update
-        @Test: Create Activation key and update for all variations of
-        Activation key name
+        @Test: Update Activation Key Name in an Activation key
         @Steps:
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
@@ -251,8 +262,7 @@ class ActivationKey(BaseUI):
     def test_positive_update_activation_key_2(self):
         """
         @Feature: Activation key - Positive Update
-        @Test: Create Activation key and update for all variations of
-        Description
+        @Test: Update Description in an Activation key
         @Steps:
         1. Create Activation key
         2. Update Description for all variations in [1]
@@ -264,8 +274,7 @@ class ActivationKey(BaseUI):
     def test_positive_update_activation_key_3(self):
         """
         @Feature: Activation key - Positive Update
-        @Test: Create Activation key and update for all variations of
-        Environment
+        @Test: Update Environment in an Activation key
         @Steps:
         1. Create Activation key
         2. Update Environment for all variations in [1]
@@ -277,13 +286,161 @@ class ActivationKey(BaseUI):
     def test_positive_update_activation_key_4(self):
         """
         @Feature: Activation key - Positive Update
-        @Test: Create Activation key and update for all variations of
-        Content View
+        @Test: Update Content View in an Activation key
         @Steps:
         1. Create Activation key
         2. Update Content View for all variations in [1] and include both
         RH and custom products
         @Assert: Activation key is updated
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_update_activation_key_5(self):
+        """
+        @Feature: Activation key - Positive Update
+        @Test: Update Usage limit from Unlimited to a finite number
+        @Steps:
+        1. Create Activation key
+        2. Update Usage limit from Unlimited to a definite number
+        @Assert: Activation key is updated
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_update_activation_key_6(self):
+        """
+        @Feature: Activation key - Positive Update
+        @Test: Update Usage limit from definite number to Unlimited
+        @Steps:
+        1. Create Activation key
+        2. Update Usage limit from definite number to Unlimited
+        @Assert: Activation key is updated
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_update_activation_key_1(self):
+        """
+        @Feature: Activation key - Negative Update
+        @Test: Update invalid name in an activation key
+        @Steps:
+        1. Create Activation key
+        2. Update Activation key name for all variations in [2]
+        @Assert: Activation key is not updated.  Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_update_activation_key_2(self):
+        """
+        @Feature: Activation key - Negative Update
+        @Test: Update invalid Description in an activation key
+        @Steps:
+        1. Create Activation key
+        2. Update Description for all variations in [2]
+        @Assert: Activation key is not updated.  Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_update_activation_key_3(self):
+        """
+        @Feature: Activation key - Negative Update
+        @Test: Update invalid Usage Limit in an activation key
+        @Steps:
+        1. Create Activation key
+        2. Update Usage Limit for all variations in [2]
+        @Assert: Activation key is not updated.  Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_usage_limit(self):
+        """
+        @Feature: Activation key - Usage limit
+        @Test: Test that Usage limit actually limits usage
+        @Steps:
+        1. Create Activation key
+        2. Update Usage Limit to a finite number
+        3. Register Systems to match the Usage Limit
+        4. Attempt to register an other system after reaching the Usage Limit
+        @Assert: System Registration fails. Appropriate error shown
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_associate_host(self):
+        """
+        @Feature: Activation key - Host
+        @Test: Test that hosts can be associated to Activation Keys
+        @Steps:
+        1. Create Activation key
+        2. Create different hosts
+        3. Associate the hosts to Activation key
+        @Assert: Hosts are successfully associated to Activation key
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_associate_product_1(self):
+        """
+        @Feature: Activation key - Product
+        @Test: Test that RH product can be associated to Activation Keys
+        @Steps:
+        1. Create Activation key
+        2. Associate RH product(s) to Activation Key
+        @Assert: RH products are successfully associated to Activation key
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_associate_product_2(self):
+        """
+        @Feature: Activation key - Product
+        @Test: Test that custom product can be associated to Activation Keys
+        @Steps:
+        1. Create Activation key
+        2. Associate custom product(s) to Activation Key
+        @Assert: Custom products are successfully associated to Activation key
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_associate_product_3(self):
+        """
+        @Feature: Activation key - Product
+        @Test: Test that RH/Custom product can be associated to Activation keys
+        @Steps:
+        1. Create Activation key
+        2. Associate RH product(s) to Activation Key
+        3. Associate custom product(s) to Activation Key
+        @Assert: RH/Custom products are successfully associated to Activation key
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_delete_manifest(self):
+        """
+        @Feature: Activation key - Manifest
+        @Test: Check if deleting a manifest removes it from Activation key
+        @Steps:
+        1. Create Activation key
+        2. Associate a manifest to the Activation Key
+        3. Delete the manifest
+        @Assert: Deleting a manifest removes it from the Activation key
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_multiple_activation_keys_to_system(self):
+        """
+        @Feature: Activation key - System
+        @Test: Check if multiple Activation keys can be attached to a system
+        @Steps:
+        1. Create multiple Activation keys
+        2. Attach all the created Activation keys to a System
+        @Assert: Multiple Activation keys are attached to a system successfully
         @Status: Manual
         """
         self.fail(NOT_IMPLEMENTED)
