@@ -4,9 +4,8 @@ Configuration class for the Framework
 
 import ConfigParser
 import logging
-import logging.config
-import sys
 import os
+import sys
 
 from robottelo.common.constants import ROBOTTELO_PROPERTIES
 
@@ -22,21 +21,27 @@ class Configs(object):
         """
 
         prop = ConfigParser.RawConfigParser()
-        prop_file = "%s/%s" % (self.get_root_path(), ROBOTTELO_PROPERTIES)
+        prop_file = os.path.join(self.get_root_path(), ROBOTTELO_PROPERTIES)
+        self._properties = None
 
         if prop.read(prop_file):
-            self.properties = {}
+            self._properties = {}
             for section in prop.sections():
                 for option in prop.options(section):
-                    self.properties[
+                    self._properties[
                         "%s.%s" % (section, option)
                     ] = prop.get(section, option)
-        else:
-            print "Please make sure that you have a robottelo.properties file."
-            sys.exit(-1)
 
         self._configure_logging()
-        self.log_root = logging.getLogger("root")
+        self.logger = logging.getLogger('robottelo')
+
+    @property
+    def properties(self):
+        if self._properties is None:
+            self.logger.error(
+                'Please make sure that you have a robottelo.properties file.')
+            sys.exit(-1)
+        return self._properties
 
     def log_properties(self):
         """
@@ -45,11 +50,11 @@ class Configs(object):
 
         keylist = self.properties.keys()
         keylist.sort()
-        self.log_root.debug("")
-        self.log_root.debug("# ** ** ** list properties ** ** **")
+        self.logger.debug("")
+        self.logger.debug("# ** ** ** list properties ** ** **")
         for key in keylist:
-            self.log_root.debug("property %s=%s" % (key, self.properties[key]))
-        self.log_root.debug("")
+            self.logger.debug("property %s=%s" % (key, self.properties[key]))
+        self.logger.debug("")
 
     def get_root_path(self):
         """
@@ -70,9 +75,15 @@ class Configs(object):
             log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
             logging.basicConfig(format=log_format)
 
+        if self._properties:
+            verbosity = self._properties.get('nosetests.verbosity', '1')
+            log_level = int(verbosity) * 10
+        else:
+            log_level = logging.DEBUG
+
         for name in ['root', 'robottelo']:
             logger = logging.getLogger(name)
-            logger.setLevel(int(self.properties['nosetests.verbosity']) * 10)
+            logger.setLevel(log_level)
 
 
 conf = Configs()
