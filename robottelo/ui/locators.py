@@ -274,6 +274,7 @@ common_locators = {
         "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
 
     "search": (By.ID, "search"),
+    "search_button": (By.XPATH,"//button[contains(@type,'submit')]"),
     "submit": (By.NAME, "commit"),
     "filter": (By.XPATH, "//div[@id='ms-%s_ids']//input[@class='ms-filter']"),
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
