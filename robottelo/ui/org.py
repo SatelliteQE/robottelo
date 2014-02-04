@@ -22,11 +22,12 @@ class Org(Base):
         self.browser = browser
 
     def _configure_org(self, users=None, proxies=None, subnets=None,
-                      resources=None, medias=None, templates=None,
-                      domains=None, envs=None, hostgroups=None, new_users=None,
-                      new_proxies=None, new_subnets=None, new_resources=None,
-                      new_medias=None, new_templates=None, new_domains=None,
-                      new_envs=None, new_hostgroups=None, select=None):
+                       resources=None, medias=None, templates=None,
+                       domains=None, envs=None, hostgroups=None,
+                       new_users=None, new_proxies=None, new_subnets=None,
+                       new_resources=None, new_medias=None,
+                       new_templates=None, new_domains=None,
+                       new_envs=None, new_hostgroups=None, select=None):
 
         if users or new_users:
             self.configure_entity(users, FILTER['org_user'],
