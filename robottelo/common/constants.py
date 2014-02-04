@@ -62,7 +62,16 @@ FILTER = {'arch_os': "architecture_operatingsystem",
           'subnet_org': "subnet_organization",
           'template_os': "config_template_operatingsystem",
           'user_role': "user_role",
-          'usergroup_user': "usergroup_user"}
+          'usergroup_user': "usergroup_user",
+          'org_user': "organization_user",
+          'org_proxy': "organization_smart_proxy",
+          'org_subnet': "organization_subnet",
+          'org_resource': "organization_compute_resource",
+          'org_media': "organization_medium",
+          'org_template': "organization_config_template",
+          'org_domain': "organization_domain",
+          'org_envs': "organization_environment",
+          'org_hostgroup': "organization_hostgroup"}
 
 RESOURCE_DEFAULT = "baremetal"
 
