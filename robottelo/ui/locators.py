@@ -206,7 +206,16 @@ menu_locators = {
     "org.manage_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@class='manage-menu' and contains(@href, 'organizations')]"))
+            "//a[@class='manage-menu' and contains(@href, 'organizations')]")),
+    "org.current_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+            "//li[contains(@class,'org-switcher')]"
+            "//li/a[@data-toggle='dropdown']")),
+    "org.select_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/organizations/clear']/../../li/a[contains(.,'%s')]"))
 }
 
 tab_locators = {

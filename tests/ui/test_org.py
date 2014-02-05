@@ -4,7 +4,6 @@
 """
 Test class for Organization UI
 """
-
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
 
