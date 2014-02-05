@@ -801,6 +801,19 @@ class User(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    def test_negative_update_user_6(self):
+        """
+        @Feature: User - Negative Update
+        @Test: [UI ONLY] Attempt to update User info and Cancel
+        @Steps:
+        1. Update Current user with valid Firstname, Surname, Email Address,
+        Language, Password/Verify fields
+        2. Click Cancel
+        @Assert: User is not updated.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
     def test_positive_delete_user_1(self):
         """
         @Feature: User - Positive Delete
