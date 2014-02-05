@@ -208,7 +208,7 @@ def test_positive_delete(self, data):
 
 def test_negative_delete(self, data):
     """
-    Fails to update object FOREMAN_OBJECT shortly after its creation.
+    Fails to delete object FOREMAN_OBJECT shortly after its creation.
 
     1. Create a new Foreman object using the test base factory without
        arguments;
