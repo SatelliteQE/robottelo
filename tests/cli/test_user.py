@@ -23,7 +23,6 @@ class TestUser(MetaCLI):
         {'login': generate_string("alpha", 10)},
         {'login': generate_string("alphanumeric", 10)},
         {'login': generate_string("numeric", 10)},
-        {'login': generate_string("html", 10)},
     )
 
     NEGATIVE_CREATE_DATA = (
@@ -31,6 +30,7 @@ class TestUser(MetaCLI):
         {'login': " "},
         {'': generate_string("alpha", 10)},
         {generate_string("alphanumeric", 10): " "},
+        {'login': generate_string("html", 10)},
     )
 
     POSITIVE_UPDATE_DATA = (
