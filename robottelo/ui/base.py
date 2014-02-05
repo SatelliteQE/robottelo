@@ -10,7 +10,6 @@ from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -54,7 +53,7 @@ class Base(object):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(search_key + " = " + element_name)
-            searchbox.send_keys(Keys.RETURN)
+            self.find_element(common_locators["search_button"]).click()
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
         return element
