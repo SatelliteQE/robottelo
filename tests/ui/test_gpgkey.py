@@ -7,7 +7,7 @@ Test class for GPG Key CLI
 
 from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.cli.baseui import BaseUI
+from tests.ui.baseui import BaseUI
 
 
 @ddt
