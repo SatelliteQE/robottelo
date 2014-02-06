@@ -316,6 +316,18 @@ class User(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    def test_positive_create_user_28(self):
+        """
+        @Feature: User - Positive Create
+        @Test: Create User in supported ldap modes
+        @Steps:
+        1. Create User in all supported ldap modes - (Active Driectory,
+        IPA, Posix)
+        @Assert: User is created without specifying the password
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
     def test_negative_create_user_1(self):
         """
         @Feature: User - Positive Create
@@ -841,7 +853,7 @@ class User(BaseUI):
     def test_negative_delete_user_1(self):
         """
         @Feature: User - Negative Delete
-        @Test: Attempt to delete an User and cancel
+        @Test: [UI ONLY] Attempt to delete an User and cancel
         @Steps:
         1. Create a User
         2. ATtempt to delete the user and click Cancel on the confirmation
@@ -859,6 +871,309 @@ class User(BaseUI):
         2. Delete the users except the last admin user
         3. Attempt to delete the last admin user
         @Assert: User is not deleted
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_list_user_1(self):
+        """
+        @Feature: User - list
+        @Test: List User for all variations of Username
+        @Steps:
+        1. Create User for all Username variations in [1] using valid
+        First Name, Surname, Email Address, Language, authorized by
+        2. List User
+        @Assert: User is listed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_list_user_2(self):
+        """
+        @Feature: User - list
+        @Test: List User for all variations of Firstname
+        @Steps:
+        1. Create User for all Firstname variations in [1] using valid
+        Username, Surname, Email Address, Language, authorized by
+        2. List User
+        @Assert: User is listed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_list_user_3(self):
+        """
+        @Feature: User - list
+        @Test: List User for all variations of Surname
+        @Steps:
+        1. Create User for all Surname variations in [1] using valid
+        Username, First Name, Email Address, Language, authorized by
+        2. List User
+        @Assert: User is listed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_list_user_4(self):
+        """
+        @Feature: User - list
+        @Test: List User for all variations of Email Address
+        @Steps:
+        1. Create User for all Email Address variations in [1] using valid
+        valid Username, First Name, Surname, Language, authorized by
+        2. List User
+        @Assert: User is listed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_list_user_5(self):
+        """
+        @Feature: User - list
+        @Test: List User for all variations of Language
+        @Steps:
+        1. Create User for all Language variations using valid
+        Username, First Name, Surname, Email Address, authorized by
+        2. List User
+        @Assert: User is listed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_search_user_1(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Username
+        @Steps:
+        1. Create User for all Username variations in [1] using valid
+        First Name, Surname, Email Address, Language, authorized by
+        2. Search/Find User
+        @Assert: User is found
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_search_user_2(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Firstname
+        @Steps:
+        1. Create User for all Firstname variations in [1] using valid
+        Username, Surname, Email Address, Language, authorized by
+        2. Search/Find User
+        @Assert: User is found
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_search_user_3(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Surname
+        @Steps:
+        1. Create User for all Surname variations in [1] using valid
+        Username, First Name, Email Address, Language, authorized by
+        2. Search/Find User
+        @Assert: User is found
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_search_user_4(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Email Address
+        @Steps:
+        1. Create User for all Email Address variations in [1] using valid
+        valid Username, First Name, Surname, Language, authorized by
+        2. Search/Find User
+        @Assert: User is found
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_search_user_5(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Language
+        @Steps:
+        1. Create User for all Language variations using valid
+        Username, First Name, Surname, Email Address, authorized by
+        2. Search/Find User
+        @Assert: User is found
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_info_user_1(self):
+        """
+        @Feature: User - info
+        @Test: Get User info for all variations of Username
+        @Steps:
+        1. Create User for all Username variations in [1] using valid
+        First Name, Surname, Email Address, Language, authorized by
+        2. Get info of the User
+        @Assert: User info is displayed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_info_user_2(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Firstname
+        @Steps:
+        1. Create User for all Firstname variations in [1] using valid
+        Username, Surname, Email Address, Language, authorized by
+        2. Get info of the User
+        @Assert: User info is displayed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_info_user_3(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Surname
+        @Steps:
+        1. Create User for all Surname variations in [1] using valid
+        Username, First Name, Email Address, Language, authorized by
+        2. Get info of the User
+        @Assert: User info is displayed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_info_user_4(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Email Address
+        @Steps:
+        1. Create User for all Email Address variations in [1] using valid
+        valid Username, First Name, Surname, Language, authorized by
+        2. Get info of the User
+        @Assert: User info is displayed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_info_user_5(self):
+        """
+        @Feature: User - search
+        @Test: Search User for all variations of Language
+        @Steps:
+        1. Create User for all Language variations using valid
+        Username, First Name, Surname, Email Address, authorized by
+        2. Get info of the User
+        @Assert: User info is displayed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_end_to_end_user_1(self):
+        """
+        @Feature: User - End to End
+        @Test: Create User and perform different operations
+        @Steps:
+        1. Create User
+        2. Login with the new user
+        3. Upload Subscriptions
+        4. Provision Systems
+        5. Add/Remove Users
+        6. Add/Remove Orgs
+        7. Delete the User
+        @Assert: All actions passed
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_end_to_end_user_2(self):
+        """
+        @Feature: User - End to End
+        @Test: Create User with no Org assigned and attempt different
+        operations
+        @Steps:
+        1. Create User.  Do not assign any Org
+        2. Login with the new user
+        3. Attempt to Upload Subscriptions
+        4. Attempt to Provision Systems
+        5. Attempt to Add/Remove Users
+        6. Attempt to Add/Remove Orgs
+        @Assert: All actions failed since the User is not assigned to any Org
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_create_bookmark_1(self):
+        """
+        @Feature: Search bookmark - Positive Create
+        @Test: Create a bookmark with default values
+        @Steps:
+        1. Search for a criteria
+        2. Create bookmark with default values
+        @Assert: Search bookmark is created
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_create_bookmark_2(self):
+        """
+        @Feature: Search bookmark - Positive Create
+        @Test: Create a bookmark by altering the default values
+        @Steps:
+        1. Search for a criteria
+        2. Create bookmark updating all the default values
+        @Assert: Search bookmark is created
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_create_bookmark_3(self):
+        """
+        @Feature: Search bookmark - Positive Create
+        @Test: Create a bookmark in public mode
+        @Steps:
+        1. Search for a criteria
+        2. Create bookmark in public mode
+        @Assert: Search bookmark is created in public mode and is accessible
+        by other users
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_create_bookmark_4(self):
+        """
+        @Feature: Search bookmark - Positive Create
+        @Test: Create a bookmark in private mode
+        @Steps:
+        1. Search for a criteria
+        2. Create bookmark in private mode
+        @Assert: Search bookmark is created in private mode and is not
+        accessible by other users
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_create_bookmark_1(self):
+        """
+        @Feature: Search bookmark - Negative Create
+        @Test: Create a bookmark with a blank bookmark name
+        @Steps:
+        1. Search for a criteria
+        2. Create bookmark with a blank bookmark name
+        @Assert: Search bookmark not created. Appropriate error shown.
+        @Status: Manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_negative_create_bookmark_2(self):
+        """
+        @Feature: Search bookmark - Negative Create
+        @Test: Create a bookmark with a blank bookmark query
+        @Steps:
+        1. Search for a criteria
+        2. Create bookmark with a blank bookmark query
+        @Assert: Search bookmark not created. Appropriate error shown.
         @Status: Manual
         """
         self.fail(NOT_IMPLEMENTED)

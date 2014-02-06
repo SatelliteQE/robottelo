@@ -521,7 +521,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_end_to_end(self):
+    def test_end_to_end_activation_key(self):
         """
         @Feature: Activation key - End to End
         @Test: Create Activation key and provision systems with it
