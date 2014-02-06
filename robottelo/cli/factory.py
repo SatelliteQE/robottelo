@@ -209,11 +209,12 @@ def make_partition_table(options=None):
         --name NAME
         --os-family OS_FAMILY
     """
-
+    if options is None:
+        options = {}
     (file_handle, layout) = mkstemp(text=True)
     os.chmod(layout, 0700)
     with open(layout, "w") as ptable:
-        ptable.write(options.get('content', ''))
+        ptable.write(options.get('content', 'default ptable content'))
 
     args = {
         'name': generate_name(),

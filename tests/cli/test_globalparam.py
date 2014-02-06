@@ -5,7 +5,6 @@ Test class for Global parameters CLI
 """
 
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.common.decorators import redminebug
 from robottelo.common.helpers import generate_name, sleep_for_seconds
 from tests.cli.basecli import BaseCLI
 
@@ -13,7 +12,6 @@ from tests.cli.basecli import BaseCLI
 class TestGlobalParameter(BaseCLI):
     """ GlobalParameter related CLI tests. """
 
-    @redminebug('3964')
     def test_set(self):
         """ `global_parameter set` basic test """
         name = "opt-%s" % generate_name(8, 8)
@@ -25,7 +23,6 @@ class TestGlobalParameter(BaseCLI):
                           "GlobalParameter set - exit code %d" %
                           result.return_code)
 
-    @redminebug('3964')
     def test_list(self):
         """ `global_parameter list` basic test """
         name = "opt-%s" % generate_name(8, 8)
@@ -45,7 +42,6 @@ class TestGlobalParameter(BaseCLI):
         self.assertEquals(result.stdout[0]['value'], value,
                           "GlobalParameter list - value matches")
 
-    @redminebug('3964')
     def test_delete(self):
         """ `global_parameter delete` basic test """
         name = "opt-%s" % generate_name(8, 8)
@@ -62,6 +58,5 @@ class TestGlobalParameter(BaseCLI):
                           result.return_code)
         sleep_for_seconds(5)
         result = GlobalParameter().list({'search': name})
-        self.assertNotEquals(result.return_code, 0,
-                             "GlobalParameter list - exit code is %d" %
-                             result.return_code)
+        self.assertTrue(len(result.stdout) == 0,
+                        "GlobalParameter list - deleted item is not listed")
