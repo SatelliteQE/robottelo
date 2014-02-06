@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Test class for Users UI
+Test class for Users CLI
 """
 
 from tests.cli.basecli import BaseCLI
