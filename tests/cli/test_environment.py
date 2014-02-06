@@ -6,8 +6,8 @@ Test class for Environment  CLI
 """
 
 from robottelo.cli.environment import Environment
-from robottelo.common.helpers import generate_name, generate_string, \
-    sleep_for_seconds
+from robottelo.common.helpers import (
+    generate_name, generate_string, sleep_for_seconds)
 from robottelo.cli.factory import make_environment
 from tests.cli.basecli import MetaCLI
 
