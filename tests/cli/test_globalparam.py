@@ -5,7 +5,6 @@ Test class for Global parameters CLI
 """
 
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.common.decorators import redminebug
 from robottelo.common.helpers import generate_name, sleep_for_seconds
 from tests.cli.basecli import BaseCLI
 
