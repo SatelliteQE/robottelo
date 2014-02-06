@@ -10,6 +10,7 @@ from robottelo.cli.factory import (
     make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.org import Org
 from tests.cli.basecli import MetaCLI
+from robottelo.common.decorators import bzbug
 
 
 class TestOrg(MetaCLI):
@@ -17,6 +18,7 @@ class TestOrg(MetaCLI):
     factory = make_org
     factory_obj = Org
 
+    @bzbug('1062306')
     def test_create_org(self):
         """Org Creation - Successfully creates a new org"""
         result = make_org()
@@ -24,24 +26,28 @@ class TestOrg(MetaCLI):
         #TODO: Assert fails currently for an existing bug
         self.assertEqual(result['name'], org_info.stdout['name'])
 
+    @bzbug('1061658')
     def test_delete_org(self):
         """Org Deletion - Successfully deletes an org"""
         result = make_org()
         return_value = Org().delete({'name': result['name']})
-        self.assertEqual(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Delete Org - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_list_org(self):
         """Org list - Successfully displays the list of available orgs"""
         return_value = Org().list()
-        self.assertEqual(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "List Org - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_info_org(self):
         """Org info - Successfully displays the info of an org"""
         result = make_org()
         return_value = Org().info({'name': result['name']})
-        self.assertEqual(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Info Org - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_add_subnet(self):
@@ -50,7 +56,8 @@ class TestOrg(MetaCLI):
         subnet_result = make_subnet()
         return_value = Org().add_subnet(
             {'name': org_result['name'], 'subnet': subnet_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add subnet - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_remove_subnet(self):
@@ -61,7 +68,8 @@ class TestOrg(MetaCLI):
             {'name': org_result['name'], 'subnet': subnet_result['name']})
         return_value = Org().remove_subnet(
             {'name': org_result['name'], 'subnet': subnet_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove Subnet - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_add_domain(self):
@@ -70,7 +78,8 @@ class TestOrg(MetaCLI):
         domain_result = make_domain()
         return_value = Org().add_domain(
             {'name': org_result['name'], 'domain': domain_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add Domain - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_remove_domain(self):
@@ -81,7 +90,8 @@ class TestOrg(MetaCLI):
             {'name': org_result['name'], 'domain': domain_result['name']})
         return_value = Org().remove_domain(
             {'name': org_result['name'], 'domain': domain_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove Domain - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_add_user(self):
@@ -90,7 +100,8 @@ class TestOrg(MetaCLI):
         user_result = make_user()
         return_value = Org().add_user(
             {'name': org_result['name'], 'user-id': user_result['login']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add User - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_remove_user(self):
@@ -101,7 +112,8 @@ class TestOrg(MetaCLI):
             {'name': org_result['name'], 'user-id': user_result['login']})
         return_value = Org().remove_user(
             {'name': org_result['name'], 'user-id': user_result['login']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove User - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_add_hostgroup(self):
@@ -111,7 +123,8 @@ class TestOrg(MetaCLI):
         return_value = Org().add_hostgroup({
             'name': org_result['name'],
             'hostgroup': hostgroup_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add Hostgroup - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_remove_hostgroup(self):
@@ -124,7 +137,8 @@ class TestOrg(MetaCLI):
         return_value = Org().remove_hostgroup({
             'name': org_result['name'],
             'hostgroup': hostgroup_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove Hostgroup - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_add_computeresource(self):
@@ -144,7 +158,8 @@ class TestOrg(MetaCLI):
         return_value = Org().add_medium({
             'name': org_result['name'],
             'medium': medium_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add Medium - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_remove_medium(self):
@@ -157,9 +172,11 @@ class TestOrg(MetaCLI):
         return_value = Org().remove_medium({
             'name': org_result['name'],
             'medium': medium_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove Medium - retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062295')
     def test_add_configtemplate(self):
         """Adds a configtemplate to an org"""
         org_result = make_org()
@@ -167,9 +184,11 @@ class TestOrg(MetaCLI):
         return_value = Org().add_configtemplate({
             'name': org_result['name'],
             'configtemplate': template_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add ConfigTemplate- retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062295')
     def test_remove_configtemplate(self):
         """Removes a configtemplate from an org"""
         org_result = make_org()
@@ -180,7 +199,8 @@ class TestOrg(MetaCLI):
         return_value = Org().remove_configtemplate({
             'name': org_result['name'],
             'configtemplate': template_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove ConfigTemplate- retcode")
         self.assertFalse(return_value.stderr)
 
     def test_add_environment(self):
@@ -190,7 +210,8 @@ class TestOrg(MetaCLI):
         return_value = Org().add_environment({
             'name': org_result['name'],
             'environment': env_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add Environment - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_remove_environment(self):
@@ -203,9 +224,11 @@ class TestOrg(MetaCLI):
         return_value = Org().remove_environment({
             'name': org_result['name'],
             'environment': env_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove Environment - retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062303')
     def test_add_smartproxy(self):
         """Adds a smartproxy to an org"""
         org_result = make_org()
@@ -213,9 +236,11 @@ class TestOrg(MetaCLI):
         return_value = Org().add_proxy({
             'name': org_result['name'],
             'proxy': proxy_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Add smartproxy - retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062303')
     def test_remove_smartproxy(self):
         """Removes a smartproxy from an org"""
         org_result = make_org()
@@ -226,5 +251,6 @@ class TestOrg(MetaCLI):
         return_value = Org().remove_proxy({
             'name': org_result['name'],
             'proxy': proxy_result['name']})
-        self.assertTrue(return_value.return_code, 0)
+        self.assertTrue(return_value.return_code == 0,
+                        "Remove smartproxy - retcode")
         self.assertFalse(return_value.stderr)
