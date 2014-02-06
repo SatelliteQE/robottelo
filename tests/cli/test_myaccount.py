@@ -9,7 +9,7 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.cli.basecli import BaseCLI
 
 
-class User(BaseCLI):
+class MyAccount(BaseCLI):
     """
     Implements Users tests in CLI
 

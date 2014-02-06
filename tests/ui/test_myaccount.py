@@ -9,7 +9,7 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
 
 
-class User(BaseUI):
+class MyAccount(BaseUI):
     """
     Implements Users tests in UI
 
