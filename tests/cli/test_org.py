@@ -18,6 +18,7 @@ class TestOrg(MetaCLI):
     factory = make_org
     factory_obj = Org
 
+    @bzbug('1062306')
     def test_create_org(self):
         """Org Creation - Successfully creates a new org"""
         result = make_org()
@@ -175,6 +176,7 @@ class TestOrg(MetaCLI):
                         "Remove Medium - retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062295')
     def test_add_configtemplate(self):
         """Adds a configtemplate to an org"""
         org_result = make_org()
@@ -186,6 +188,7 @@ class TestOrg(MetaCLI):
                         "Add ConfigTemplate- retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062295')
     def test_remove_configtemplate(self):
         """Removes a configtemplate from an org"""
         org_result = make_org()
@@ -199,7 +202,7 @@ class TestOrg(MetaCLI):
         self.assertTrue(return_value.return_code == 0,
                         "Remove ConfigTemplate- retcode")
         self.assertFalse(return_value.stderr)
-
+ 
     def test_add_environment(self):
         """Adds an environment to an org"""
         org_result = make_org()
@@ -225,6 +228,7 @@ class TestOrg(MetaCLI):
                         "Remove Environment - retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062303')
     def test_add_smartproxy(self):
         """Adds a smartproxy to an org"""
         org_result = make_org()
@@ -236,6 +240,7 @@ class TestOrg(MetaCLI):
                         "Add smartproxy - retcode")
         self.assertFalse(return_value.stderr)
 
+    @bzbug('1062303')
     def test_remove_smartproxy(self):
         """Removes a smartproxy from an org"""
         org_result = make_org()
