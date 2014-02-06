@@ -202,7 +202,7 @@ class TestOrg(MetaCLI):
         self.assertTrue(return_value.return_code == 0,
                         "Remove ConfigTemplate- retcode")
         self.assertFalse(return_value.stderr)
- 
+
     def test_add_environment(self):
         """Adds an environment to an org"""
         org_result = make_org()
