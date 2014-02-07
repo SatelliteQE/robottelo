@@ -191,6 +191,13 @@ class Base(object):
         """
         self.browser.execute_script("scroll(350, 0);")
 
+    def scroll_right_pane(self):
+        """
+        Scrolls right pane down to find the save/submit button
+        """
+        self.browser.execute_script("$('#panel_main').\
+                                    data('jsp').scrollBy(0, 100);")
+
     def field_update(self, loc_string, newtext):
         """
         Function to replace the existing/default text from textbox
