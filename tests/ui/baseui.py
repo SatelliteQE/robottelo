@@ -52,7 +52,6 @@ class BaseUI(unittest.TestCase):
         cls.remote = int(conf.properties['main.remote'])
 
         cls.logger = logging.getLogger("robottelo")
-        cls.logger.setLevel(cls.verbosity * 10)
 
     def setUp(self):
         """
@@ -66,6 +65,12 @@ class BaseUI(unittest.TestCase):
                 self.browser = webdriver.Chrome()
             elif self.driver_name.lower() == 'ie':
                 self.browser = webdriver.Ie()
+            elif self.driver_name.lower() == 'phantomjs':
+                self.browser = webdriver.PhantomJS(
+                    desired_capabilities={
+                        'acceptSslCerts': True,
+                        'javascriptEnabled': True
+                    })
             else:
                 self.browser = webdriver.Remote()
         else:
