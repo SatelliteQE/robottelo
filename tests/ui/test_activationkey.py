@@ -24,8 +24,8 @@ class ActivationKey(BaseUI):
     Lesser than Min Length, Greater than Max DB size
     """
 
-    @data(valid_names_list())
-    def test_positive_create_activation_key_1(self, valid_names):
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_1(self, name):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Activation key name
@@ -38,13 +38,12 @@ class ActivationKey(BaseUI):
 
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        for name in valid_names:
-            self.activationkey.create(name, description=generate_name(16))
-            self.assertTrue(self.activationkey.wait_until_element
-                            (common_locators["notif.success"]))
+        self.activationkey.create(name, description=generate_name(16))
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["notif.success"]))
 
-    @data(valid_names_list())
-    def test_positive_create_activation_key_2(self, valid_description):
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_2(self, description):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Description
@@ -57,11 +56,10 @@ class ActivationKey(BaseUI):
 
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        for description in valid_description:
-            self.activationkey.create(name=generate_name(6),
-                                      description=description)
-            self.assertTrue(self.activationkey.wait_until_element
-                            (common_locators["notif.success"]))
+        self.activationkey.create(name=generate_name(6),
+                                  description=description)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["notif.success"]))
 
     def test_positive_create_activation_key_3(self):
         """
