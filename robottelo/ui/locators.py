@@ -544,4 +544,12 @@ locators = {
     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
     "subnet.delete": (
         By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]")}
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    # Activation Keys
+    "ak.new": (By.ID, "new"),
+    "ak.name": (By.ID, "activation_key_name"),
+    "ak.description": (By.ID, "activation_key_description"),
+    "ak.content_view": (By.ID, "activation_key_content_view_id"),
+    "ak.usage_limit_checkbox": (By.ID, "usage_limit_checkbox"),
+    "ak.usage_limit": (By.ID, "activation_key_usage_limit")}
