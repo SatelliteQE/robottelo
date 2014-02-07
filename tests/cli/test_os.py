@@ -45,9 +45,11 @@ class TestOperatingSystem(MetaCLI):
     def test_create_os_1(self):
         """Successfully creates a new OS."""
         os_res = make_os()
-        os_info = OperatingSys().info({'label': os_res['name']})
-        os_res['name'] = os_info.stdout['name']
-        self.assertEqual(os_res['name'], os_info.stdout['name'])
+        varname = os_res['name']
+        os_list = OperatingSys().list({'search': 'name='+varname})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        os_res['id'] = os_info.stdout['id']
+        self.assertEqual(os_res['id'], os_info.stdout['id'])
 
     def test_list(self):
         """
@@ -57,9 +59,11 @@ class TestOperatingSystem(MetaCLI):
         self.assertEqual(result.return_code, 0)
         length = len(result.stdout)
         result = make_os()
-        os_info = OperatingSys().info({'label': result['name']})
-        result['name'] = os_info.stdout['name']
-        self.assertEqual(result['name'], os_info.stdout['name'])
+        varname = result['name']
+        os_list = OperatingSys().list({'search': 'name='+varname})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        result['id'] = os_info.stdout['id']
+        self.assertEqual(result['id'], os_info.stdout['id'])
         result = OperatingSys().list()
         self.assertTrue(len(result.stdout) > length)
         self.assertEqual(result.return_code, 0)
@@ -70,28 +74,28 @@ class TestOperatingSystem(MetaCLI):
         """
 
         result = make_os()
-        os_info = OperatingSys().info({'label': result['name']})
-        result['name'] = os_info.stdout['name']
-        self.assertEqual(result['name'], os_info.stdout['name'])
-
-        name = result['name'].split(" ")
-        result = OperatingSys().info({'label': name[0]})
-        self.assertEqual(result.return_code, 0)
+        varname = result['name']
+        os_list = OperatingSys().list({'search': 'name='+varname})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        result['id'] = os_info.stdout['id']
+        self.assertEqual(result['id'], os_info.stdout['id'])
 
     def test_delete(self):
         """
         Displays delete for operating system.
         """
         result = make_os()
-        os_info = OperatingSys().info({'label': result['name']})
-        result['name'] = os_info.stdout['name']
-        self.assertEqual(result['name'], os_info.stdout['name'])
+        varname = result['name']
+        os_list = OperatingSys().list({'search': 'name='+varname})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        result['id'] = os_info.stdout['id']
+        self.assertEqual(result['id'], os_info.stdout['id'])
 
-        name = result['name'].split(" ")
-        result = OperatingSys().delete({'label': name[0]})
+        del_id = os_list.stdout[0]['id']
+        result = OperatingSys().delete({'id': del_id})
         self.assertEqual(result.return_code, 0)
 
-        result = OperatingSys().info({'label': name[0]})
+        result = OperatingSys().info({'id': del_id})
         self.assertEqual(result.return_code, 128)
         self.assertTrue(len(result.stderr) > 0)
 
