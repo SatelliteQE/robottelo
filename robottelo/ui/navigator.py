@@ -20,7 +20,6 @@ class Navigator(Base):
 
     def menu_click(self, top_menu_locator, sub_menu_locator,
                    tertiary_menu_locator=None, entity=None):
-        #import epdb; epdb.st()
         menu_element = self.find_element(top_menu_locator)
 
         if menu_element:
@@ -28,22 +27,29 @@ class Navigator(Base):
             submenu_element = self.find_element(sub_menu_locator)
             if submenu_element and not tertiary_menu_locator:
                 submenu_element.click()
-        if submenu_element and tertiary_menu_locator:
-            ActionChains(self.browser).move_to_element(submenu_element).perform()
-            if entity:
-                strategy = tertiary_menu_locator[0]
-                value = tertiary_menu_locator[1]
-                tertiary_element = self.wait_until_element((strategy,
-                                                            value % entity))
-            else:
-                tertiary_element = self.find_element(tertiary_menu_locator)
-            #TODO:-  We get no element exception
-            if tertiary_element:
-                tertiary_element.click()
+            elif submenu_element and tertiary_menu_locator:
+                ActionChains(self.browser).move_to_element(submenu_element).\
+                perform()
+                if entity:
+                    strategy = tertiary_menu_locator[0]
+                    value = tertiary_menu_locator[1]
+                    tertiary_element = self.find_element((strategy,
+                                                          value % entity))
+                else:
+                    tertiary_element = self.find_element(tertiary_menu_locator)
+                self.browser.execute_script("arguments[0].click();",
+                                            tertiary_element)
+                self.wait_for_ajax()
 
     def go_to_dashboard(self):
         self.menu_click(
             menu_locators['menu.monitor'], menu_locators['menu.dashboard'],
+        )
+
+    def go_to_content_dashboard(self):
+        self.menu_click(
+            menu_locators['menu.monitor'],
+            menu_locators['menu.content_dashboard'],
         )
 
     def go_to_reports(self):
@@ -306,6 +312,10 @@ class Navigator(Base):
 
     def go_to_select_org(self, org):
         self.menu_click(
-            menu_locators['org.any_context'], menu_locators['org.current_org'],
+            menu_locators['org.any_context'],
+            menu_locators['org.nav_current_org'],
             menu_locators['org.select_org'], entity=org
         )
+        current_org = self.find_element(menu_locators['org.current_org']).text
+        if org == str(current_org):
+            return True

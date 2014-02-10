@@ -17,7 +17,12 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='monitor_menu']"),
     "menu.dashboard": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_dashboard']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+        "//a[@id='menu_item_dashboard']")),
+    "menu.content_dashboard": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+        "//a[@id='menu_item_content_dashboard']")),
     "menu.reports": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_reports']"),
@@ -207,11 +212,15 @@ menu_locators = {
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
             "//a[@class='manage-menu' and contains(@href, 'organizations')]")),
-    "org.current_org": (
+    "org.nav_current_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
             "//li[contains(@class,'org-switcher')]"
             "//li/a[@data-toggle='dropdown']")),
+    "org.current_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+            "//li[contains(@class,'org-switcher')]/a")),
     "org.select_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"

@@ -25,7 +25,8 @@ class Org(BaseUI):
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
-        self.navigator.go_to_select_org(org_name)
+        select_org = self.navigator.go_to_select_org(org_name)
+        self.assertIsNotNone(select_org)
         self.assertIsNotNone(
             self.org.search(org_name))
 
