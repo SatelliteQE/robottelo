@@ -37,9 +37,9 @@ class Navigator(Base):
                                                           value % entity))
                 else:
                     tertiary_element = self.find_element(tertiary_menu_locator)
-                self.browser.execute_script("arguments[0].click();",
+                if tertiary_element:
+                    self.browser.execute_script("arguments[0].click();",
                                             tertiary_element)
-                self.wait_for_ajax()
 
     def go_to_dashboard(self):
         self.menu_click(
@@ -318,4 +318,4 @@ class Navigator(Base):
         )
         current_org = self.find_element(menu_locators['org.current_org']).text
         if org == str(current_org):
-            return True
+            return org
