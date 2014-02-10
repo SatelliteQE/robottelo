@@ -42,6 +42,24 @@ class TestOperatingSystem(MetaCLI):
          {'name': ""}),
     )
 
+    def test_positive_create(self):
+        pass
+
+    def test_negative_create(self):
+        pass
+
+    def test_positive_update(self):
+        pass
+
+    def test_negative_update(self):
+        pass
+
+    def test_positive_delete(self):
+        pass
+
+    def test_negative_delete(self):
+        pass
+
     def test_create_os_1(self):
         """Successfully creates a new OS."""
         os_res = make_os()

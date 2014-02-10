@@ -80,7 +80,7 @@ def upload_file(local_file, remote_file=None):
     sftp.close()
 
 
-def command(cmd, hostname=None, expect_csv=False, timeout=10):
+def command(cmd, hostname=None, expect_csv=False, timeout=50):
     """
     Executes SSH command(s) on remote hostname.
     Defaults to main.server.hostname.
