@@ -33,10 +33,10 @@ class Navigator(Base):
                 if entity:
                     strategy = tertiary_menu_locator[0]
                     value = tertiary_menu_locator[1]
-                    tertiary_element = self.find_element((strategy,
+                    tertiary_element = self.wait_until_element((strategy,
                                                           value % entity))
                 else:
-                    tertiary_element = self.find_element(tertiary_menu_locator)
+                    tertiary_element = self.wait_until_element(tertiary_menu_locator)
                 if tertiary_element:
                     self.browser.execute_script("arguments[0].click();",
                                                 tertiary_element)
