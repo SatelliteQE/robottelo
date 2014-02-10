@@ -18,11 +18,11 @@ menu_locators = {
     "menu.dashboard": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-        "//a[@id='menu_item_dashboard']")),
+         "//a[@id='menu_item_dashboard']")),
     "menu.content_dashboard": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-        "//a[@id='menu_item_content_dashboard']")),
+         "//a[@id='menu_item_content_dashboard']")),
     "menu.reports": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_reports']"),

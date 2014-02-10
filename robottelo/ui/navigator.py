@@ -29,7 +29,7 @@ class Navigator(Base):
                 submenu_element.click()
             elif submenu_element and tertiary_menu_locator:
                 ActionChains(self.browser).move_to_element(submenu_element).\
-                perform()
+                    perform()
                 if entity:
                     strategy = tertiary_menu_locator[0]
                     value = tertiary_menu_locator[1]
