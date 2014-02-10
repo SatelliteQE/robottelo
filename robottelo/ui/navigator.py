@@ -39,7 +39,7 @@ class Navigator(Base):
                     tertiary_element = self.find_element(tertiary_menu_locator)
                 if tertiary_element:
                     self.browser.execute_script("arguments[0].click();",
-                                            tertiary_element)
+                                                tertiary_element)
 
     def go_to_dashboard(self):
         self.menu_click(
