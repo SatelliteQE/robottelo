@@ -9,6 +9,7 @@ import logging
 import unittest
 
 from robottelo.common import conf
+from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.domain import Domain
@@ -52,7 +53,6 @@ class BaseUI(unittest.TestCase):
         cls.remote = int(conf.properties['main.remote'])
 
         cls.logger = logging.getLogger("robottelo")
-        cls.logger.setLevel(cls.verbosity * 10)
 
     def setUp(self):
         """
@@ -66,6 +66,12 @@ class BaseUI(unittest.TestCase):
                 self.browser = webdriver.Chrome()
             elif self.driver_name.lower() == 'ie':
                 self.browser = webdriver.Ie()
+            elif self.driver_name.lower() == 'phantomjs':
+                self.browser = webdriver.PhantomJS(
+                    desired_capabilities={
+                        'acceptSslCerts': True,
+                        'javascriptEnabled': True
+                    })
             else:
                 self.browser = webdriver.Remote()
         else:
@@ -76,6 +82,7 @@ class BaseUI(unittest.TestCase):
         self.browser.get("https://" + self.host)
 
         # Library methods
+        self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.domain = Domain(self.browser)

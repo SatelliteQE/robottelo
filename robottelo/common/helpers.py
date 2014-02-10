@@ -48,19 +48,19 @@ def valid_names_list():
     List of valid names for input testing.
     """
     valid_names = [
-        generate_name(5, 5),
-        generate_name(255),
-        "%s-%s" % (generate_name(4), generate_name(4)),
-        "%s.%s" % (generate_name(4), generate_name(4)),
+        generate_name(5, 5).decode('utf-8'),
+        generate_name(255).decode('utf-8'),
+        u"%s-%s" % (generate_name(4), generate_name(4)),
+        u"%s.%s" % (generate_name(4), generate_name(4)),
         u"նոր օգտվող-%s" % generate_name(2),
         u"新用戶-%s" % generate_name(2),
         u"नए उपयोगकर्ता-%s" % generate_name(2),
         u"нового пользователя-%s" % generate_name(2),
         u"uusi käyttäjä-%s" % generate_name(2),
         u"νέος χρήστης-%s" % generate_name(2),
-        "foo@!#$^&*( ) %s" % generate_name(),
-        "<blink>%s</blink>" % generate_name(),
-        "bar+{}|\"?hi %s" % generate_name(),
+        u"foo@!#$^&*( ) %s" % generate_name(),
+        u"<blink>%s</blink>" % generate_name(),
+        u"bar+{}|\"?hi %s" % generate_name(),
     ]
 
     return valid_names
