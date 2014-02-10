@@ -319,3 +319,6 @@ class Navigator(Base):
         current_org = self.find_element(menu_locators['org.current_org']).text
         if org == str(current_org):
             return org
+        else:
+            raise Exception(
+                "Could not select the org: '%s'" % org)
