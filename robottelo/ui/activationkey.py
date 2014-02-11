@@ -60,3 +60,22 @@ class ActivationKey(Base):
         else:
             raise Exception(
                 "Could not create new activation key '%s'" % name)
+
+    def search_key(self, element_name):
+        """
+        Uses the search box to locate an element from a list of elements.
+        """
+
+        element = None
+
+        searchbox = self.wait_until_element(locators["ak.search"])
+
+        if searchbox:
+            searchbox.clear()
+            searchbox.send_keys(element_name)
+            sleep(10)
+            self.find_element(locators["ak.search_button"]).click()
+            strategy = locators["ak.ak_name"][0]
+            value = locators["ak.ak_name"][1]
+            element = self.wait_until_element((strategy, value % element_name))
+        return element
