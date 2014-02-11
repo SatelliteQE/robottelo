@@ -4,7 +4,7 @@
 """
 Implements Navigator UI
 """
-
+import time
 from robottelo.ui.base import Base
 from robottelo.ui.locators import menu_locators
 from selenium.webdriver.common.action_chains import ActionChains
@@ -18,19 +18,40 @@ class Navigator(Base):
     def __init__(self, browser):
         self.browser = browser
 
-    def menu_click(self, top_menu_locator, sub_menu_locator):
-        #import epdb; epdb.st()
+    def menu_click(self, top_menu_locator, sub_menu_locator,
+                   tertiary_menu_locator=None, entity=None):
         menu_element = self.find_element(top_menu_locator)
 
         if menu_element:
             ActionChains(self.browser).move_to_element(menu_element).perform()
-            submenu_element = self.find_element(sub_menu_locator)
-            if submenu_element:
+            time.sleep(5)
+            submenu_element = self.wait_until_element(sub_menu_locator)
+            if submenu_element and not tertiary_menu_locator:
                 submenu_element.click()
+            elif submenu_element and tertiary_menu_locator:
+                time.sleep(5)
+                ActionChains(self.browser).move_to_element(submenu_element).perform()
+                time.sleep(5)
+                if entity:
+                    strategy = tertiary_menu_locator[0]
+                    value = tertiary_menu_locator[1]
+                    tertiary_element = self.wait_until_element((strategy,
+                                                          value % entity))
+                else:
+                    tertiary_element = self.wait_until_element(tertiary_menu_locator)
+                if tertiary_element:
+                    self.browser.execute_script("arguments[0].click();",
+                                                tertiary_element)
 
     def go_to_dashboard(self):
         self.menu_click(
             menu_locators['menu.monitor'], menu_locators['menu.dashboard'],
+        )
+
+    def go_to_content_dashboard(self):
+        self.menu_click(
+            menu_locators['menu.monitor'],
+            menu_locators['menu.content_dashboard'],
         )
 
     def go_to_reports(self):
@@ -290,3 +311,16 @@ class Navigator(Base):
         self.menu_click(
             menu_locators['org.any_context'], menu_locators['org.manage_org'],
         )
+
+    def go_to_select_org(self, org):
+        self.menu_click(
+            menu_locators['org.any_context'],
+            menu_locators['org.nav_current_org'],
+            menu_locators['org.select_org'], entity=org
+        )
+        current_org = self.find_element(menu_locators['org.current_org']).text
+        if org == str(current_org):
+            return org
+        else:
+            raise Exception(
+                "Could not select the org: '%s'" % org)
