@@ -35,10 +35,11 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-
+        
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, description=generate_name(16))
+        self.activationkey.create(name, env, description=generate_name(16))
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["notif.success"]))
 
@@ -53,10 +54,12 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-
+        
+        name = generate_name(6)
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name=generate_name(6),
+        self.activationkey.create(name, env,
                                   description=description)
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["notif.success"]))
@@ -109,9 +112,10 @@ class ActivationKey(BaseUI):
         """
         name = generate_name(6)
         description = generate_name(6)
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, description)
+        self.activationkey.create(name, env, description)
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["notif.success"]))
 
@@ -138,9 +142,10 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
         name = generate_name(6)
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name)
+        self.activationkey.create(name, env)
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["notif.success"]))
 
