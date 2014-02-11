@@ -31,6 +31,7 @@ class Navigator(Base):
             elif submenu_element and tertiary_menu_locator:
                 time.sleep(5)
                 ActionChains(self.browser).move_to_element(submenu_element).perform()
+                time.sleep(5)
                 if entity:
                     strategy = tertiary_menu_locator[0]
                     value = tertiary_menu_locator[1]
