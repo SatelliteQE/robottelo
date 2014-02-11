@@ -22,7 +22,8 @@ class ActivationKey(Base):
         """
         self.browser = browser
 
-    def create(self, name, env, description=None, content_view=None):
+    def create(self, name, env, description=None, limit=None,
+               content_view=None):
         """
         Creates new activation key from UI
         """
@@ -32,6 +33,15 @@ class ActivationKey(Base):
 
         if self.wait_until_element(locators["ak.name"]):
             self.field_update("ak.name", name)
+            if limit:
+                unlimited_set = self.find_element(locators
+                                                  ["ak.usage_limit_checkbox"]
+                                                  ).get_attribute("checked")
+                if unlimited_set:
+                    self.find_element(locators
+                                      ["ak.usage_limit_checkbox"]
+                                      ).click()
+                self.field_update("ak.usage_limit", limit)
             if description:
                 if self.wait_until_element(locators
                                            ["ak.description"]):
