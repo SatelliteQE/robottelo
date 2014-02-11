@@ -4,7 +4,7 @@
 """
 Implements Navigator UI
 """
-
+import time
 from robottelo.ui.base import Base
 from robottelo.ui.locators import menu_locators
 from selenium.webdriver.common.action_chains import ActionChains
@@ -28,6 +28,7 @@ class Navigator(Base):
             if submenu_element and not tertiary_menu_locator:
                 submenu_element.click()
             elif submenu_element and tertiary_menu_locator:
+                time.sleep(5)
                 ActionChains(self.browser).move_to_element(submenu_element).\
                     perform()
                 if entity:
