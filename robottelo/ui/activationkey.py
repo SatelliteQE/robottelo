@@ -22,7 +22,7 @@ class ActivationKey(Base):
         """
         self.browser = browser
 
-    def create(self, name, env, description=None, limit=None,
+    def create(self, name, env, limit=None, description=None,
                content_view=None):
         """
         Creates new activation key from UI

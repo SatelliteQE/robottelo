@@ -112,7 +112,7 @@ class ActivationKey(BaseUI):
         env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env, description)
+        self.activationkey.create(name, env, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_7(self):
