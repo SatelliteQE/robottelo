@@ -125,7 +125,14 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        description = generate_name(6)
+        env = "Library"
+        limit = "6"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env, limit, description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_8(self):
         """
