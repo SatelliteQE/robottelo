@@ -25,7 +25,7 @@ class Navigator(Base):
         if menu_element:
             ActionChains(self.browser).move_to_element(menu_element).perform()
             time.sleep(5)
-            submenu_element = self.find_element(sub_menu_locator)
+            submenu_element = self.wait_until_element(sub_menu_locator)
             if submenu_element and not tertiary_menu_locator:
                 submenu_element.click()
             elif submenu_element and tertiary_menu_locator:
