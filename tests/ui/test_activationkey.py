@@ -8,7 +8,6 @@ Test class for Activation key UI
 from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_name, valid_names_list
-from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -36,11 +35,11 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
 
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, description=generate_name(16))
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["notif.success"]))
+        self.activationkey.create(name, env, description=generate_name(16))
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     @data(*valid_names_list())
     def test_positive_create_activation_key_2(self, description):
@@ -54,12 +53,13 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
 
+        name = generate_name(6)
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name=generate_name(6),
+        self.activationkey.create(name, env,
                                   description=description)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["notif.success"]))
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_3(self):
         """
@@ -109,11 +109,11 @@ class ActivationKey(BaseUI):
         """
         name = generate_name(6)
         description = generate_name(6)
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, description)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["notif.success"]))
+        self.activationkey.create(name, env, description=description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_7(self):
         """
@@ -125,7 +125,14 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        description = generate_name(6)
+        env = "Library"
+        limit = "6"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env, limit, description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_8(self):
         """
@@ -138,11 +145,11 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
         name = generate_name(6)
+        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["notif.success"]))
+        self.activationkey.create(name, env)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_negative_create_activation_key_1(self):
         """
