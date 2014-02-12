@@ -562,4 +562,31 @@ locators = {
     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
     "subnet.delete": (
         By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]")}
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    # Activation Keys
+    "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
+    "ak.name": (By.ID, "name"),
+    "ak.label": (By.ID, "label"),
+    "ak.description": (By.ID, "description"),
+    "ak.env": (
+        By.XPATH,
+        "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "ak.content_view": (By.ID, "content_view_id"),
+    "ak.usage_limit_checkbox": (
+        By.XPATH,
+        "//input[@ng-checked='isUnlimited(activationKey)']"),
+    "ak.usage_limit": (By.ID, "usage_limit"),
+    "ak.create": (
+        By.XPATH,
+        "//button[@ng-click='handleSave(); working = true']"),
+    "ak.close": (
+        By.XPATH,
+        "//button[@ui-sref='activation-keys.index']"),
+    "ak.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
+    "ak.search_button": (
+        By.XPATH,
+        "//button[@ng-click='table.search(table.searchTerm)']"),
+    "ak.ak_name": (
+        By.XPATH,
+        "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]")}

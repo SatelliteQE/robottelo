@@ -5,10 +5,13 @@
 Test class for Activation key UI
 """
 
+from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.helpers import generate_name, valid_names_list
 from tests.ui.baseui import BaseUI
 
 
+@ddt
 class ActivationKey(BaseUI):
     """
     Implements Activation key tests in UI
@@ -20,7 +23,8 @@ class ActivationKey(BaseUI):
     Lesser than Min Length, Greater than Max DB size
     """
 
-    def test_positive_create_activation_key_1(self):
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_1(self, name):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Activation key name
@@ -30,9 +34,15 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_create_activation_key_2(self):
+        env = "Library"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env, description=generate_name(16))
+        self.assertIsNotNone(self.activationkey.search_key(name))
+
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_2(self, description):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Description
@@ -42,7 +52,14 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+
+        name = generate_name(6)
+        env = "Library"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env,
+                                  description=description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_3(self):
         """
@@ -90,7 +107,13 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        description = generate_name(6)
+        env = "Library"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env, description=description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_7(self):
         """
@@ -102,7 +125,14 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        description = generate_name(6)
+        env = "Library"
+        limit = "6"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env, limit, description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_8(self):
         """
@@ -114,7 +144,12 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        env = "Library"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_negative_create_activation_key_1(self):
         """
@@ -521,7 +556,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_end_to_end(self):
+    def test_end_to_end_activation_key(self):
         """
         @Feature: Activation key - End to End
         @Test: Create Activation key and provision systems with it

@@ -14,6 +14,7 @@ from robottelo.cli.architecture import Architecture
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
+from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
@@ -70,10 +71,7 @@ def create_object(cli_object, args, search_field='name'):
     sleep_for_seconds(5)
 
     # If the object is not created, raise exception, stop the show.
-
-    if result.return_code != 0 or not cli_object().exists(
-            (search_field, args[search_field])).stdout:
-
+    if result.return_code != 0:
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
 
@@ -97,6 +95,45 @@ def make_architecture(options=None):
     # Override default dictionary with updated one
     args = update_dictionary(args, options)
     create_object(Architecture, args)
+
+    return args
+
+
+def make_gpg_key(options=None):
+    """
+    Usage:
+        hammer gpg create [OPTIONS]
+
+    Options:
+        --organization-id ORGANIZATION_ID organization identifier
+        --name NAME                   identifier of the GPG Key
+        --key GPG_KEY_FILE            GPG Key file
+        -h, --help                    print help
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    # Create a fake gpg key file if none was provided
+    if not options.get('key', None):
+        (file_handle, key_filename) = mkstemp(text=True)
+        os.chmod(key_filename, 0700)
+        with open(key_filename, "w") as gpg_key_file:
+            gpg_key_file.write(generate_name(minimum=20, maximum=50))
+
+    args = {
+        'name': generate_name(),
+        'key': "/tmp/%s" % generate_name(),
+        'organization-id': None,
+    }
+
+    # Upload file to server
+    ssh.upload_file(local_file=key_filename, remote_file=args['key'])
+
+    args = update_dictionary(args, options)
+
+    create_object(GPGKey, args, search_field='organization-id')
 
     return args
 
@@ -172,11 +209,12 @@ def make_partition_table(options=None):
         --name NAME
         --os-family OS_FAMILY
     """
-
+    if options is None:
+        options = {}
     (file_handle, layout) = mkstemp(text=True)
     os.chmod(layout, 0700)
     with open(layout, "w") as ptable:
-        ptable.write(options.get('content', ''))
+        ptable.write(options.get('content', 'default ptable content'))
 
     args = {
         'name': generate_name(),
