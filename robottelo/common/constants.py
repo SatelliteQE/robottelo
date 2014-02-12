@@ -84,3 +84,7 @@ INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 SNIPPET_URL = 'https://gist.github.com/sghai/8434467/raw'
 
 NOT_IMPLEMENTED = 'Test not implemented'
+
+SYNC_INTERVAL = {'hour': "hourly",
+                 'day': "daily",
+                 'week': "weekly"}
