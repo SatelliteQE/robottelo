@@ -246,7 +246,12 @@ tab_locators = {
 
     "users.tab_primary": (By.XPATH, "//a[@href='#primary']"),
     "users.tab_roles": (By.XPATH, "//a[@href='#roles']"),
-    "users.tab_filters": (By.XPATH, "//a[@href='#filters']")}
+    "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
+
+    "prd.tab_details": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "prd.tab_repos": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
 
 
 common_locators = {
@@ -283,7 +288,21 @@ common_locators = {
     "parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
     "parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
     "parameter_remove": (
-        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i")}
+        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
+
+    # Katello Common Locators
+    "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
+    "create": (By.XPATH, "//button[contains(@ng-click,'Save')]"),
+    "cancel": (By.XPATH, "//button[contains(@ng-click,'Cancel')]"),
+    "name": (By.ID, "name"),
+    "label": (By.ID, "label"),
+    "description": (By.ID, "description"),
+    "kt_search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
+    "kt_search_button": (
+        By.XPATH,
+        "//button[@ng-click='table.search(table.searchTerm)']"),
+    # Katello common Product and Repo locators
+    "gpg_key": (By.ID, "gpg_key_id")}
 
 locators = {
 
@@ -552,4 +571,38 @@ locators = {
     "ak.description": (By.ID, "activation_key_description"),
     "ak.content_view": (By.ID, "activation_key_content_view_id"),
     "ak.usage_limit_checkbox": (By.ID, "usage_limit_checkbox"),
-    "ak.usage_limit": (By.ID, "activation_key_usage_limit")}
+    "ak.usage_limit": (By.ID, "activation_key_usage_limit"),
+
+    # Products
+    "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),
+    "prd.bulk_actions": (
+        By.XPATH, "//button[contains(@ui-sref,'products.bulk-actions')]"),
+    "prd.repo_discovery": (
+        By.XPATH, "//button[contains(@ui-sref,'products.discovery')]"),
+    "prd.new_provider": (
+        By.XPATH, "//a[@ui-sref='products.new.provider']"),
+    "prd.provider": (By.ID, "provider_id"),
+    "prd.sync_plan": (By.ID, "sync_plan_id"),
+    "prd.new_sync_plan": (
+        By.XPATH, "//a[@ui-sref='products.new.sync-plan']"),
+    "prd.close": (
+        By.XPATH, "//button[@ui-sref='products.index']"),
+    "prd.remove": (
+        By.XPATH, "//button[@ng-disabled='!product.permissions.deletable']"),
+    "prd.select": (
+        By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
+                   "/../../td/input[contains(@ng-model,'product')]")),
+    "prd.sync_interval": (By.ID, "interval"),
+    "prd.sync_startdate": (By.ID, "startDate"),
+    "prd.sync_hrs": (By.XPATH, "//input[@ng-model='hours']"),
+    "prd.sync_mins": (By.XPATH, "//input[@ng-model='minutes']"),
+    "repo.type": (By.ID, "content_type"),
+    "repo.url": (By.ID, "url"),
+    "repo.via_http": (By.ID, "unprotected"),
+    "repo.remove": (
+        By.XPATH,
+        "//button[@ng-disabled='!repository.permissions.deletable']"),
+    "repo.select": (
+        By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
+                   "/../../td/input[contains(@ng-model,'repository')]")),
+    "repo.discover_url": (By.XPATH, "//input[@type='url']")}
