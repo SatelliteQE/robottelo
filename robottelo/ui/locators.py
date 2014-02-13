@@ -598,6 +598,26 @@ locators = {
     "prd.sync_startdate": (By.ID, "startDate"),
     "prd.sync_hrs": (By.XPATH, "//input[@ng-model='hours']"),
     "prd.sync_mins": (By.XPATH, "//input[@ng-model='minutes']"),
+    "prd.gpg_key_edit": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
+                                    "//i[contains(@class,'icon-edit')]")),
+    "prd.gpg_key_update": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
+                                    "/div/input")),
+    "prd.name_edit": (By.XPATH, ("//form[@alch-edit-text='product.name']"
+                                 "//i[contains(@class,'icon-edit')]")),
+    "prd.name_update": (By.XPATH, ("//form[@alch-edit-text='product.name']"
+                                   "/div/input")),
+    "prd.desc_edit": (
+        By.XPATH, ("//form[@alch-edit-textarea='product.description']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "prd.desc_update": (
+        By.XPATH, ("//form[@alch-edit-textarea='product.description']"
+                   "/div/textarea")),
+    "prd.sync_plan_edit": (
+        By.XPATH, ("//form[@selector='product.sync_plan_id']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "prd.sync_plan_update": (
+        By.XPATH, ("//form[@selector='product.sync_plan_id']"
+                   "/div/select")),
 
     #Repository
     "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
@@ -612,4 +632,20 @@ locators = {
                    "/../../td/input[contains(@ng-model,'repository')]")),
     "repo.select": (
         By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
-    "repo.discover_url": (By.XPATH, "//input[@type='url']")}
+    "repo.discover_url": (By.XPATH, "//input[@type='url']"),
+    "repo.url_edit": (
+        By.XPATH, ("//form[@alch-edit-text='repository.feed']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "repo.url_update": (
+        By.XPATH, "//form[@alch-edit-text='repository.feed']/div/input"),
+    "repo.via_http_edit": (
+        By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "repo.via_http_toggle": (
+        By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
+                   "/div/input")),
+    "repo.gpg_key_edit": (
+        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "repo.gpg_key_update": (
+        By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select")}

@@ -19,7 +19,7 @@ class Repos(Base):
         """
         self.browser = browser
 
-    def create(self, name, product=None, gpg_key=None, http=True, url=None,
+    def create(self, name, product=None, gpg_key=None, http=False, url=None,
                repo_type=REPO_TYPE['yum']):
         """
         Creates new repository from UI
@@ -37,10 +37,33 @@ class Repos(Base):
         if gpg_key:
             type_ele = self.find_element(common_locators["gpg_key"])
             Select(type_ele).select_by_visible_text(gpg_key)
-        self.text_field_update(locators["repo.url"], url)
+        if url:
+            self.text_field_update(locators["repo.url"], url)
         if http:
             self.find_element(locators["repo.via_http"]).click()
         self.find_element(common_locators["create"]).click()
+
+    def update(self, name, new_url=None, new_gpg_key=None, http=False):
+        """
+        Updates repositories from UI
+        """
+        prd_element = self.search_entity(name, locators["repo.select"],
+                                         katello=True)
+        if prd_element:
+            prd_element.click()
+        if new_url:
+            self.wait_until_element(locators["repo.url_edit"]).click()
+            self.text_field_update(locators["repo.url_update"], new_url)
+            self.find_element(common_locators["create"]).click()
+        if new_gpg_key:
+            self.wait_until_element(locators["repo.gpg_key_edit"]).click()
+            type_ele = self.find_element(locators["repo.gpg_key_update"])
+            Select(type_ele).select_by_visible_text(new_gpg_key)
+            self.find_element(common_locators["create"]).click()
+        if http:
+            self.wait_until_element(locators["repo.via_http_edit"]).click()
+            self.wait_until_element(locators["repo.via_http_update"]).click()
+            self.find_element(common_locators["create"]).click()
 
     def delete(self, repo, really):
         """
