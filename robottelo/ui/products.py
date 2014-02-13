@@ -3,7 +3,7 @@ Implements Products UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -52,6 +52,35 @@ class Products(Base):
             Select(type_ele).select_by_visible_text(gpg_key)
         self.text_field_update(common_locators["description"], description)
         self.find_element(common_locators["create"]).click()
+
+    def update(self, name, new_name=None, new_desc=None,
+               new_sync_plan=None, new_gpg_key=None):
+        """
+        Updates product from UI
+        """
+        prd_element = self.search_entity(name, locators["prd.select"],
+                                         katello=True)
+        if prd_element:
+            prd_element.click()
+        self.wait_until_element(tab_locators["prd.tab_details"]).click()
+        if new_name:
+            self.wait_until_element(locators["prd.name_edit"]).click()
+            self.text_field_update(locators["prd.name_update"], new_name)
+            self.find_element(common_locators["create"]).click()
+        if new_desc:
+            self.wait_until_element(locators["prd.desc_edit"]).click()
+            self.text_field_update(locators["prd.desc_update"], new_name)
+            self.find_element(common_locators["create"]).click()
+        if new_gpg_key:
+            self.wait_until_element(locators["prd.gpg_key_edit"]).click()
+            type_ele = self.find_element(locators["prd.gpg_key_update"])
+            Select(type_ele).select_by_visible_text(new_gpg_key)
+            self.find_element(common_locators["create"]).click()
+        if new_sync_plan:
+            self.wait_until_element(locators["prd.sync_plan_edit"]).click()
+            type_ele = self.find_element(locators["prd.sync_plan_update"])
+            Select(type_ele).select_by_visible_text(new_sync_plan)
+            self.find_element(common_locators["create"]).click()
 
     def delete(self, product, really):
         """
