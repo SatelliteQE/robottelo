@@ -6,8 +6,11 @@ Test class for Activation key UI
 """
 
 from ddt import data, ddt
-from robottelo.common.constants import NOT_IMPLEMENTED
+from nose.plugins.attrib import attr
+from robottelo.common.constants import NOT_IMPLEMENTED, ENVIRONMENT
+from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name, valid_names_list
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -23,6 +26,7 @@ class ActivationKey(BaseUI):
     Lesser than Min Length, Greater than Max DB size
     """
 
+    @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_1(self, name):
         """
@@ -35,12 +39,13 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
 
-        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env, description=generate_name(16))
+        self.activationkey.create(name, ENVIRONMENT,
+                                  description=generate_name(16))
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_2(self, description):
         """
@@ -54,10 +59,9 @@ class ActivationKey(BaseUI):
         """
 
         name = generate_name(6)
-        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env,
+        self.activationkey.create(name, ENVIRONMENT,
                                   description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
@@ -97,6 +101,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """
         @Feature: Activation key - Positive Create
@@ -109,12 +114,12 @@ class ActivationKey(BaseUI):
         """
         name = generate_name(6)
         description = generate_name(6)
-        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env, description=description)
+        self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """
         @Feature: Activation key - Positive Create
@@ -127,13 +132,13 @@ class ActivationKey(BaseUI):
         """
         name = generate_name(6)
         description = generate_name(6)
-        env = "Library"
         limit = "6"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env, limit, description)
+        self.activationkey.create(name, ENVIRONMENT, limit, description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """
         @Feature: Activation key - Positive Create
@@ -145,10 +150,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
         name = generate_name(6)
-        env = "Library"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env)
+        self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_negative_create_activation_key_1(self):
@@ -187,6 +191,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_positive_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -201,6 +206,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_positive_delete_activation_key_2(self):
         """
         @Feature: Activation key - Positive Delete
@@ -215,6 +221,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_positive_delete_activation_key_3(self):
         """
         @Feature: Activation key - Positive Delete
@@ -229,6 +236,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_positive_delete_activation_key_4(self):
         """
         @Feature: Activation key - Positive Delete
@@ -243,6 +251,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_positive_delete_activation_key_5(self):
         """
         @Feature: Activation key - Positive Delete
@@ -256,6 +265,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_positive_delete_activation_key_6(self):
         """
         @Feature: Activation key - Positive Delete
@@ -269,6 +279,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @bzbug('1063273')
     def test_negative_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -282,7 +293,9 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_update_activation_key_1(self):
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_update_activation_key_1(self, new_name):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Activation Key Name in an Activation key
@@ -292,9 +305,18 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
 
-    def test_positive_update_activation_key_2(self):
+        name = generate_name(6)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, new_name)
+        self.assertIsNotNone(self.activationkey.search_key(new_name))
+
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_update_activation_key_2(self, new_description):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Description in an Activation key
@@ -304,7 +326,16 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+
+        name = generate_name(6)
+        description = generate_name(6)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT, description=description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, description=new_description)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
 
     def test_positive_update_activation_key_3(self):
         """
@@ -331,6 +362,7 @@ class ActivationKey(BaseUI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """
         @Feature: Activation key - Positive Update
@@ -341,8 +373,18 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
 
+        name = generate_name(6)
+        limit = "8"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, limit=limit)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
+
+    @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """
         @Feature: Activation key - Positive Update
@@ -353,7 +395,17 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+
+        name = generate_name(6)
+        limit = "6"
+        new_limit = "Unlimited"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT, limit=limit)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, limit=new_limit)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
 
     def test_negative_update_activation_key_1(self):
         """

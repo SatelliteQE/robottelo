@@ -281,6 +281,9 @@ common_locators = {
     "notif.close": (
         By.XPATH, "//a[@class='jnotify-close']"),
 
+    "alert.success": (
+        By.XPATH, "//div[contains(@class, 'alert-success')]"),
+
     "entity_select": (
         By.XPATH,
         "//div[@class='ms-selectable']//span[contains(.,'%s')]"),
@@ -576,7 +579,8 @@ locators = {
     "ak.usage_limit_checkbox": (
         By.XPATH,
         "//input[@ng-checked='isUnlimited(activationKey)']"),
-    "ak.usage_limit": (By.ID, "usage_limit"),
+    "ak.usage_limit": (
+        By.XPATH, "//input[@ng-model='activationKey.usage_limit']"),
     "ak.create": (
         By.XPATH,
         "//button[@ng-click='handleSave(); working = true']"),
@@ -589,4 +593,40 @@ locators = {
         "//button[@ng-click='table.search(table.searchTerm)']"),
     "ak.ak_name": (
         By.XPATH,
-        "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]")}
+        "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]"),
+    "ak.select_ak_name": (
+        By.XPATH,
+        "//input[@ng-model='activationKey.selected']"),
+    "ak.edit_name": (
+        By.XPATH, "//form[@alch-edit-text='activationKey.name']//div/span/i"),
+    "ak.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='activationKey.name']/div/input"),
+    "ak.save_name": (
+        By.XPATH,
+        "//form[@alch-edit-text='activationKey.name']\
+        //button[@ng-click='save()']"),
+    "ak.edit_description": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='activationKey.description']//div/span/i"),
+    "ak.edit_description_text": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='activationKey.description']\
+        /div/textarea"),
+    "ak.save_description": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='activationKey.description']\
+        //button[@ng-click='save()']"),
+    "ak.edit_limit": (
+        By.XPATH, "//div[@alch-edit-custom='activationKey.usage_limit']\
+        //div/span/i"),
+    "ak.save_limit": (
+        By.XPATH,
+        "//div[@alch-edit-custom='activationKey.usage_limit']\
+        //button[@ng-click='save()']"),
+    "ak.edit_content_view": (
+        By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
+        //div/span/i"),
+    "ak.edit_content_view_select": (
+        By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
+        /select")}
