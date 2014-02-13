@@ -90,3 +90,6 @@ NOT_IMPLEMENTED = 'Test not implemented'
 SYNC_INTERVAL = {'hour': "hourly",
                  'day': "daily",
                  'week': "weekly"}
+
+REPO_TYPE = {'yum': "yum",
+             'puppet': "puppet"}

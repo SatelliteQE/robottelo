@@ -589,20 +589,27 @@ locators = {
         By.XPATH, "//button[@ui-sref='products.index']"),
     "prd.remove": (
         By.XPATH, "//button[@ng-disabled='!product.permissions.deletable']"),
-    "prd.select": (
+    "prd.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'product')]")),
+    "prd.select": (
+        By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
     "prd.sync_interval": (By.ID, "interval"),
     "prd.sync_startdate": (By.ID, "startDate"),
     "prd.sync_hrs": (By.XPATH, "//input[@ng-model='hours']"),
     "prd.sync_mins": (By.XPATH, "//input[@ng-model='minutes']"),
+
+    #Repository
+    "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
     "repo.type": (By.ID, "content_type"),
     "repo.url": (By.ID, "url"),
     "repo.via_http": (By.ID, "unprotected"),
     "repo.remove": (
         By.XPATH,
         "//button[@ng-disabled='!repository.permissions.deletable']"),
-    "repo.select": (
+    "repo.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'repository')]")),
+    "repo.select": (
+        By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
     "repo.discover_url": (By.XPATH, "//input[@type='url']")}
