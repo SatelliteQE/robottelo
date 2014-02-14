@@ -33,8 +33,9 @@ class Navigator(Base):
                 if entity:
                     strategy = tertiary_menu_locator[0]
                     value = tertiary_menu_locator[1]
-                    tertiary_element = self.wait_until_element((strategy,
-                                                          value % entity))
+                    tertiary_element = self.\
+                        wait_until_element((strategy,
+                                            value % entity))
                 else:
                     tertiary_element = self.\
                         wait_until_element(tertiary_menu_locator)
@@ -317,7 +318,8 @@ class Navigator(Base):
             menu_locators['org.nav_current_org'],
             menu_locators['org.select_org'], entity=org
         )
-        current_org = self.wait_until_element(menu_locators['org.current_org']).text
+        current_org = self.wait_until_element(menu_locators
+                                              ['org.current_org']).text
         if org == str(current_org):
             return org
         else:
