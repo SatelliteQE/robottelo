@@ -93,3 +93,6 @@ SYNC_INTERVAL = {'hour': "hourly",
 
 REPO_TYPE = {'yum': "yum",
              'puppet': "puppet"}
+
+REPO_URL = {'rhel65': ("http://download.eng.pnq.redhat.com/pub/"
+                       "rhel/released/RHEL-6/6.5/Server/x86_64/os/")}
