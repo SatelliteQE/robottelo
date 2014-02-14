@@ -1,3 +1,4 @@
+from robottelo.api.hosts import HostApi
 from robottelo.common import records
 from robottelo.records.architecture import Architecture
 from robottelo.records.domain import Domain
@@ -8,7 +9,8 @@ from robottelo.records.smartproxy import SmartProxy
 
 
 class Host(records.Record):
-    name = records.StringField(format=r"host_\d\d\d\d\d")
+    name = records.StringField(format=r"host\d\d\d\d\d")
+    root_pass = records.StringField("changeme")
     mac = records.MACField()
     environment = records.RelatedField(Environment)
     architecture = records.RelatedField(Architecture)
@@ -21,3 +23,6 @@ class Host(records.Record):
         self.name = self.name + "." + self.domain.name
         self.architecture.operatingsystem = [self.operatingsystem]
         self.ptable.operatingsystem = [self.operatingsystem]
+
+    class Meta:
+        api_class = HostApi
