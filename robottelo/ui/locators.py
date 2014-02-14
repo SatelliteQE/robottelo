@@ -17,7 +17,12 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='monitor_menu']"),
     "menu.dashboard": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_dashboard']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_dashboard']")),
+    "menu.content_dashboard": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_content_dashboard']")),
     "menu.reports": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_reports']"),
@@ -206,7 +211,20 @@ menu_locators = {
     "org.manage_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@class='manage-menu' and contains(@href, 'organizations')]"))
+            "//a[@class='manage-menu' and contains(@href, 'organizations')]")),
+    "org.nav_current_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+            "//li[contains(@class,'org-switcher')]"
+            "//li/a[@data-toggle='dropdown']")),
+    "org.current_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+            "//li[contains(@class,'org-switcher')]/a")),
+    "org.select_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/organizations/clear']/../../li/a[contains(.,'%s')]"))
 }
 
 tab_locators = {
@@ -267,6 +285,9 @@ common_locators = {
         By.XPATH, "//div[contains(@class, 'jnotify-notification-success')]"),
     "notif.close": (
         By.XPATH, "//a[@class='jnotify-close']"),
+
+    "alert.success": (
+        By.XPATH, "//div[contains(@class, 'alert-success')]"),
 
     "entity_select": (
         By.XPATH,
@@ -565,14 +586,6 @@ locators = {
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
-    # Activation Keys
-    "ak.new": (By.ID, "new"),
-    "ak.name": (By.ID, "activation_key_name"),
-    "ak.description": (By.ID, "activation_key_description"),
-    "ak.content_view": (By.ID, "activation_key_content_view_id"),
-    "ak.usage_limit_checkbox": (By.ID, "usage_limit_checkbox"),
-    "ak.usage_limit": (By.ID, "activation_key_usage_limit"),
-
     # Products
     "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),
     "prd.bulk_actions": (
@@ -649,3 +662,68 @@ locators = {
                    "//i[contains(@class,'icon-edit')]")),
     "repo.gpg_key_update": (
         By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select")}
+
+    # Activation Keys
+
+    "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
+    "ak.name": (By.ID, "name"),
+    "ak.label": (By.ID, "label"),
+    "ak.description": (By.ID, "description"),
+    "ak.env": (
+        By.XPATH,
+        "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "ak.content_view": (By.ID, "content_view_id"),
+    "ak.usage_limit_checkbox": (
+        By.XPATH,
+        "//input[@ng-checked='isUnlimited(activationKey)']"),
+    "ak.usage_limit": (
+        By.XPATH, "//input[@ng-model='activationKey.usage_limit']"),
+    "ak.create": (
+        By.XPATH,
+        "//button[@ng-click='handleSave(); working = true']"),
+    "ak.close": (
+        By.XPATH,
+        "//button[@ui-sref='activation-keys.index']"),
+    "ak.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
+    "ak.search_button": (
+        By.XPATH,
+        "//button[@ng-click='table.search(table.searchTerm)']"),
+    "ak.ak_name": (
+        By.XPATH,
+        "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]"),
+    "ak.select_ak_name": (
+        By.XPATH,
+        "//input[@ng-model='activationKey.selected']"),
+    "ak.edit_name": (
+        By.XPATH, "//form[@alch-edit-text='activationKey.name']//div/span/i"),
+    "ak.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='activationKey.name']/div/input"),
+    "ak.save_name": (
+        By.XPATH,
+        "//form[@alch-edit-text='activationKey.name']\
+        //button[@ng-click='save()']"),
+    "ak.edit_description": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='activationKey.description']//div/span/i"),
+    "ak.edit_description_text": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='activationKey.description']\
+        /div/textarea"),
+    "ak.save_description": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='activationKey.description']\
+        //button[@ng-click='save()']"),
+    "ak.edit_limit": (
+        By.XPATH, "//div[@alch-edit-custom='activationKey.usage_limit']\
+        //div/span/i"),
+    "ak.save_limit": (
+        By.XPATH,
+        "//div[@alch-edit-custom='activationKey.usage_limit']\
+        //button[@ng-click='save()']"),
+    "ak.edit_content_view": (
+        By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
+        //div/span/i"),
+    "ak.edit_content_view_select": (
+        By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
+        /select")}

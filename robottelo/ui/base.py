@@ -253,3 +253,12 @@ class Base(object):
         if remove_element:
             remove_element.click()
         self.find_element(common_locators["submit"]).click()
+
+    def edit_entity(self, edit_loc, edit_text_loc, entity_value, save_loc):
+        """
+        Function to edit the selected entity's  text and save it
+        """
+
+        self.find_element(locators[edit_loc]).click()
+        self.field_update(edit_text_loc, entity_value)
+        self.find_element(locators[save_loc]).click()
