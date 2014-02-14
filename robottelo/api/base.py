@@ -1,8 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-"""
-Module for our utility wrapper around requests library.
-"""
 
 import json as js
 import requests
@@ -70,6 +67,7 @@ def request(method, **kwargs):
     del kwargs['domain']
     del kwargs['schema']
 
+    print method, url, kwargs
     return requests.request(method=method, url=url, **kwargs)
 
 
