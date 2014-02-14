@@ -22,6 +22,8 @@ from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
 from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.products import Products
+from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -96,6 +98,8 @@ class BaseUI(unittest.TestCase):
         self.operatingsys = OperatingSys(self.browser)
         self.org = Org(self.browser)
         self.partitiontable = PartitionTable(self.browser)
+        self.products = Products(self.browser)
+        self.repository = Repos(self.browser)
         self.role = Role(self.browser)
         self.subnet = Subnet(self.browser)
         self.template = Template(self.browser)
