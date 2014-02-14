@@ -45,7 +45,7 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='content']"),
     "menu.life_cycle_environments": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_audits']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
     "menu.red_hat_subscriptions": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
@@ -629,4 +629,26 @@ locators = {
         //div/span/i"),
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /select")}
+        /select"),
+
+    # Lifecycle Envionments
+    "content_env.new": (
+        By.XPATH, "//button[@ng-click='initiateCreatePath()']"),
+    "content_env.create_initial": (
+        By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
+    "content_env.name": (By.ID, "name"),
+    "content_env.label": (By.ID, "label"),
+    "content_env.description": (By.ID, "description"),
+    "content_env.create": (
+        By.XPATH,
+        "//button[@ng-click='handleSave(); working = true']"),
+    "content_env.select_name": (
+        By.XPATH,
+        "//div[contains(., '%s')]/parent::label\
+        [@ng-click='selectEnvironment(env.environment)']"),
+    "content_env.remove": (
+        By.XPATH,
+        "//button[@ng-click='openModal()']"),
+     "content_env.confirm_remove": (
+        By.XPATH,
+        "//div[@class='modal-dialog']//button[@ng-click='ok()']")}
