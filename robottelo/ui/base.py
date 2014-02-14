@@ -220,7 +220,7 @@ class Base(object):
         """
         Function to replace text from textbox using a common locator
         """
-        txt_field = self.find_element(locator)
+        txt_field = self.wait_until_element(locator)
         txt_field.clear()
         txt_field.send_keys(newtext)
 

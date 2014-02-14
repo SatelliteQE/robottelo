@@ -29,9 +29,10 @@ class Repos(Base):
         if prd_element:
             prd_element.click()
         self.find_element(locators["repo.new"]).click()
+        self.find_element(locators["repo.new"]).click()
         self.wait_for_ajax()
         self.text_field_update(common_locators["name"], name)
-        if repo_type != REPO_TYPE['yum']:
+        if repo_type:
             type_ele = self.find_element(locators["repo.type"])
             Select(type_ele).select_by_visible_text(repo_type)
         if gpg_key:
@@ -65,12 +66,12 @@ class Repos(Base):
             self.wait_until_element(locators["repo.via_http_update"]).click()
             self.find_element(common_locators["create"]).click()
 
-    def delete(self, repo, really):
+    def delete(self, repo, really=True):
         """
         Delete a repository from UI
         """
-        strategy = locators["repo.select_checkox"][0]
-        value = locators["repo.select_checbox"][1]
+        strategy = locators["repo.select"][0]
+        value = locators["repo.select"][1]
         self.wait_until_element((strategy, value % repo)).click()
         self.wait_until_element(locators["repo.remove"]).click()
         if really:
@@ -78,10 +79,16 @@ class Repos(Base):
         else:
             self.wait_until_element(common_locators["cancel"]).click()
 
-    def search(self, name):
+    def search(self, element_name):
         """
-        Searches existing repository from UI
+        Uses the search box to locate an element from a list of elements.
         """
-        element = self.search_entity(name, locators["repo.select"],
-                                     katello=True)
-        return element
+        element = None
+        strategy = locators["repo.select"][0]
+        value = locators["repo.select"][1]
+        searchbox = self.wait_until_element(locators["repo.search"])
+        if searchbox:
+            searchbox.clear()
+            searchbox.send_keys(element_name)
+            element = self.wait_until_element((strategy, value % element_name))
+            return element

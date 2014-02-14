@@ -267,7 +267,7 @@ tab_locators = {
     "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
 
     "prd.tab_details": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+        By.XPATH, "//li[contains(@ng-class,'info')]"),
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
 
@@ -314,6 +314,7 @@ common_locators = {
     # Katello Common Locators
     "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
     "create": (By.XPATH, "//button[contains(@ng-click,'Save')]"),
+    "save": (By.XPATH, "//button[contains(@ng-click,'save')]"),
     "cancel": (By.XPATH, "//button[contains(@ng-click,'Cancel')]"),
     "name": (By.ID, "name"),
     "label": (By.ID, "label"),
@@ -601,7 +602,8 @@ locators = {
     "prd.close": (
         By.XPATH, "//button[@ui-sref='products.index']"),
     "prd.remove": (
-        By.XPATH, "//button[@ng-disabled='!product.permissions.deletable']"),
+        By.XPATH,
+        "//button[contains(@ng-disabled,'product.permissions.deletable')]"),
     "prd.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'product')]")),
@@ -637,9 +639,10 @@ locators = {
     "repo.type": (By.ID, "content_type"),
     "repo.url": (By.ID, "url"),
     "repo.via_http": (By.ID, "unprotected"),
+    "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
     "repo.remove": (
         By.XPATH,
-        "//button[@ng-disabled='!repository.permissions.deletable']"),
+        "//button[contains(@ng-disabled,'repository.permissions.deletable')]"),
     "repo.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'repository')]")),
@@ -661,7 +664,7 @@ locators = {
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
                    "//i[contains(@class,'icon-edit')]")),
     "repo.gpg_key_update": (
-        By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select")}
+        By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select"),
 
     # Activation Keys
 
