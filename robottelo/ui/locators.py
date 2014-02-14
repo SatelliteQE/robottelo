@@ -649,6 +649,6 @@ locators = {
     "content_env.remove": (
         By.XPATH,
         "//button[@ng-click='openModal()']"),
-     "content_env.confirm_remove": (
+    "content_env.confirm_remove": (
         By.XPATH,
         "//div[@class='modal-dialog']//button[@ng-click='ok()']")}
