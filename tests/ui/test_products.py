@@ -20,7 +20,11 @@ class Products(BaseUI):
         self.navigator.go_to_org()
 
     def test_create_prd(self):
-        """Create new product - given a valid org name"""
+        """
+        @Feature: Content Product - Positive Create
+        @Test: Create Content Product minimal input parameters
+        @Assert: Product is created
+        """
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         description = "test 123"
@@ -36,7 +40,11 @@ class Products(BaseUI):
         self.assertIsNotNone(self.products.search(prd_name))
 
     def test_update_prd(self):
-        """Update product - given a valid org name"""
+        """
+        @Feature: Content Product - Positive Update
+        @Test: Update Content Product with minimal input parameters
+        @Assert: Product is updated
+        """
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         new_prd_name = generate_name(8, 8)
@@ -57,7 +65,11 @@ class Products(BaseUI):
         self.assertIsNotNone(self.products.search(new_prd_name))
 
     def test_remove_prd(self):
-        """Remove product - given a valid org name"""
+        """
+        @Feature: Content Product - Positive Delete
+        @Test: Delete Content Product
+        @Assert: Product is deleted
+        """
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         description = "test 123"
