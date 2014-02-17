@@ -134,7 +134,7 @@ class TestOperatingSystem(MetaCLI):
         #Create a new object using factory method
         new_obj = self.factory()
 
-        search_key = "%(name)s %(minor)s.%(major)s" % (new_obj)
+        self.search_key = "%(name)s %(minor)s.%(major)s" % (new_obj)
         # Can we find the new object?
         result = self.factory_obj().exists((self.search_key,
                                             new_obj[self.search_key]))
@@ -146,13 +146,25 @@ class TestOperatingSystem(MetaCLI):
         self.assertEqual(new_obj[self.search_key], name[0])
 
     def test_negative_create(self):
+        """
+         Over-riding the metatest for operating system.
+        """
         self.fails("Please fix these tests.")
 
     def test_positive_update(self):
+        """
+         Over-riding the metatest for operating system.
+        """
         self.fails("Please fix these tests.")
 
     def test_negative_update(self):
+        """
+         Over-riding the metatest for operating system.
+        """
         self.fails("Please fix these tests.")
 
     def test_negative_delete(self):
+        """
+         Over-riding the metatest for operating system.
+        """
         self.fails("Please fix these tests.")
