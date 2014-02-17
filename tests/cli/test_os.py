@@ -4,20 +4,24 @@
 """
 Test class for Operating System CLI
 """
-from robottelo.cli.operatingsys import OperatingSys
+from ddt import data, ddt
 from robottelo.cli.factory import make_os
-from robottelo.common.helpers import generate_name, generate_string
+from robottelo.cli.metatest.default_data import POSITIVE_CREATE_DATA
+from robottelo.cli.operatingsys import OperatingSys
+from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import bzbug
-from tests.cli.basecli import MetaCLI
+from robottelo.common.helpers import generate_name, generate_string
+from tests.cli.basecli import BaseCLI
 
 
-class TestOperatingSystem(MetaCLI):
+@ddt
+class TestOperatingSystem(BaseCLI):
     """
     Test class for Operating System CLI.
     """
 
-    factory = make_os
     factory_obj = OperatingSys
+    search_key = 'name'
 
     # Overide defaults from metaclass
     POSITIVE_UPDATE_DATA = (
@@ -122,19 +126,19 @@ class TestOperatingSystem(MetaCLI):
         self.assertEqual(name, result.stdout['name'])
         self.assertEqual(major, result.stdout['major'])
 
-    def test_positive_create(self):
+    @data(*POSITIVE_CREATE_DATA)
+    def test_positive_create(self, data):
         """
-         Successfully creates object FOREMAN_OBJECT.
+        Successfully creates object FOREMAN_OBJECT.
 
-         1. Create a new Foreman object using the a base factory using
-         2. Assert that the object was created and can be found;
-         @return: Asserts that object can be created.
+        1. Create a new Foreman object using the a base factory using
+        2. Assert that the object was created and can be found;
+        @return: Asserts that object can be created.
         """
 
         #Create a new object using factory method
-        new_obj = self.factory()
+        new_obj = make_os(data)
 
-        self.search_key = "%(name)s %(minor)s.%(major)s" % (new_obj)
         # Can we find the new object?
         result = self.factory_obj().exists((self.search_key,
                                             new_obj[self.search_key]))
@@ -142,29 +146,29 @@ class TestOperatingSystem(MetaCLI):
         self.assertTrue(result.return_code == 0, "Failed to create object")
         self.assertTrue(len(result.stderr) == 0,
                         "There should not be an exception here")
-        name = result.stdout[self.search_key].split(' ')
-        self.assertEqual(new_obj[self.search_key], name[0])
+        name = result.stdout[self.search_key].split(' ')[0]
+        self.assertEqual(new_obj[self.search_key], name)
 
     def test_negative_create(self):
         """
          Over-riding the metatest for operating system.
         """
-        self.fails("Please fix these tests.")
+        self.fail(NOT_IMPLEMENTED)
 
     def test_positive_update(self):
         """
          Over-riding the metatest for operating system.
         """
-        self.fails("Please fix these tests.")
+        self.fail(NOT_IMPLEMENTED)
 
     def test_negative_update(self):
         """
          Over-riding the metatest for operating system.
         """
-        self.fails("Please fix these tests.")
+        self.fail(NOT_IMPLEMENTED)
 
     def test_negative_delete(self):
         """
          Over-riding the metatest for operating system.
         """
-        self.fails("Please fix these tests.")
+        self.fail(NOT_IMPLEMENTED)
