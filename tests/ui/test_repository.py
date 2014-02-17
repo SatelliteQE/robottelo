@@ -23,7 +23,7 @@ class Repos(BaseUI):
     def test_create_repo(self):
         """
         @Feature: Content Repos - Positive Create
-        @Test: Create Content Repos minimal input parameters
+        @Test: Create Content Repos with minimal input parameters
         @Assert: Repos is created
         """
         org_name = generate_name(8, 8)
@@ -47,7 +47,7 @@ class Repos(BaseUI):
     def test_remove_repo(self):
         """
         @Feature: Content Repos - Positive Delete
-        @Test: Create Content Repos minimal input parameters
+        @Test: Create Content Repos with minimal input parameters
         @Assert: Repos is Deleted
         """
         org_name = generate_name(8, 8)
