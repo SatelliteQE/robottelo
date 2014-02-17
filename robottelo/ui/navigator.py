@@ -24,7 +24,7 @@ class Navigator(Base):
 
         if menu_element:
             ActionChains(self.browser).move_to_element(menu_element).perform()
-            submenu_element = self.find_element(sub_menu_locator)
+            submenu_element = self.wait_until_element(sub_menu_locator)
             if submenu_element and not tertiary_menu_locator:
                 submenu_element.click()
             elif submenu_element and tertiary_menu_locator:
@@ -33,10 +33,12 @@ class Navigator(Base):
                 if entity:
                     strategy = tertiary_menu_locator[0]
                     value = tertiary_menu_locator[1]
-                    tertiary_element = self.find_element((strategy,
-                                                          value % entity))
+                    tertiary_element = self.\
+                        wait_until_element((strategy,
+                                            value % entity))
                 else:
-                    tertiary_element = self.find_element(tertiary_menu_locator)
+                    tertiary_element = self.\
+                        wait_until_element(tertiary_menu_locator)
                 if tertiary_element:
                     self.browser.execute_script("arguments[0].click();",
                                                 tertiary_element)
@@ -316,7 +318,8 @@ class Navigator(Base):
             menu_locators['org.nav_current_org'],
             menu_locators['org.select_org'], entity=org
         )
-        current_org = self.find_element(menu_locators['org.current_org']).text
+        current_org = self.wait_until_element(menu_locators
+                                              ['org.current_org']).text
         if org == str(current_org):
             return org
         else:

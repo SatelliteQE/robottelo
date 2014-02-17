@@ -88,3 +88,13 @@ INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 ENVIRONMENT = "Library"
 
 NOT_IMPLEMENTED = 'Test not implemented'
+
+SYNC_INTERVAL = {'hour': "hourly",
+                 'day': "daily",
+                 'week': "weekly"}
+
+REPO_TYPE = {'yum': "yum",
+             'puppet': "puppet"}
+
+REPO_URL = {'rhel65': ("http://download.eng.pnq.redhat.com/pub/"
+                       "rhel/released/RHEL-6/6.5/Server/x86_64/os/")}

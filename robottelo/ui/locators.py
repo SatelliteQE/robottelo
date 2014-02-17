@@ -264,7 +264,12 @@ tab_locators = {
 
     "users.tab_primary": (By.XPATH, "//a[@href='#primary']"),
     "users.tab_roles": (By.XPATH, "//a[@href='#roles']"),
-    "users.tab_filters": (By.XPATH, "//a[@href='#filters']")}
+    "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
+
+    "prd.tab_details": (
+        By.XPATH, "//li[contains(@ng-class,'info')]"),
+    "prd.tab_repos": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
 
 
 common_locators = {
@@ -304,7 +309,22 @@ common_locators = {
     "parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
     "parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
     "parameter_remove": (
-        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i")}
+        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
+
+    # Katello Common Locators
+    "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
+    "create": (By.XPATH, "//button[contains(@ng-click,'Save')]"),
+    "save": (By.XPATH, "//button[contains(@ng-click,'save')]"),
+    "cancel": (By.XPATH, "//button[contains(@ng-click,'Cancel')]"),
+    "name": (By.ID, "name"),
+    "label": (By.ID, "label"),
+    "description": (By.ID, "description"),
+    "kt_search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
+    "kt_search_button": (
+        By.XPATH,
+        "//button[@ng-click='table.search(table.searchTerm)']"),
+    # Katello common Product and Repo locators
+    "gpg_key": (By.ID, "gpg_key_id")}
 
 locators = {
 
@@ -567,7 +587,87 @@ locators = {
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
+    # Products
+    "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),
+    "prd.bulk_actions": (
+        By.XPATH, "//button[contains(@ui-sref,'products.bulk-actions')]"),
+    "prd.repo_discovery": (
+        By.XPATH, "//button[contains(@ui-sref,'products.discovery')]"),
+    "prd.new_provider": (
+        By.XPATH, "//a[@ui-sref='products.new.provider']"),
+    "prd.provider": (By.ID, "provider_id"),
+    "prd.sync_plan": (By.ID, "sync_plan_id"),
+    "prd.new_sync_plan": (
+        By.XPATH, "//a[@ui-sref='products.new.sync-plan']"),
+    "prd.close": (
+        By.XPATH, "//button[@ui-sref='products.index']"),
+    "prd.remove": (
+        By.XPATH,
+        "//button[contains(@ng-disabled,'product.permissions.deletable')]"),
+    "prd.select_checkbox": (
+        By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
+                   "/../../td/input[contains(@ng-model,'product')]")),
+    "prd.select": (
+        By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
+    "prd.sync_interval": (By.ID, "interval"),
+    "prd.sync_startdate": (By.ID, "startDate"),
+    "prd.sync_hrs": (By.XPATH, "//input[@ng-model='hours']"),
+    "prd.sync_mins": (By.XPATH, "//input[@ng-model='minutes']"),
+    "prd.gpg_key_edit": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
+                                    "//i[contains(@class,'icon-edit')]")),
+    "prd.gpg_key_update": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
+                                      "/div/input")),
+    "prd.name_edit": (By.XPATH, ("//form[@alch-edit-text='product.name']"
+                                 "//i[contains(@class,'icon-edit')]")),
+    "prd.name_update": (By.XPATH, ("//form[@alch-edit-text='product.name']"
+                                   "/div/input")),
+    "prd.desc_edit": (
+        By.XPATH, ("//form[@alch-edit-textarea='product.description']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "prd.desc_update": (
+        By.XPATH, ("//form[@alch-edit-textarea='product.description']"
+                   "/div/textarea")),
+    "prd.sync_plan_edit": (
+        By.XPATH, ("//form[@selector='product.sync_plan_id']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "prd.sync_plan_update": (
+        By.XPATH, ("//form[@selector='product.sync_plan_id']"
+                   "/div/select")),
+
+    #Repository
+    "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
+    "repo.type": (By.ID, "content_type"),
+    "repo.url": (By.ID, "url"),
+    "repo.via_http": (By.ID, "unprotected"),
+    "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
+    "repo.remove": (
+        By.XPATH,
+        "//button[contains(@ng-disabled,'repository.permissions.deletable')]"),
+    "repo.select_checkbox": (
+        By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
+                   "/../../td/input[contains(@ng-model,'repository')]")),
+    "repo.select": (
+        By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
+    "repo.discover_url": (By.XPATH, "//input[@type='url']"),
+    "repo.url_edit": (
+        By.XPATH, ("//form[@alch-edit-text='repository.feed']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "repo.url_update": (
+        By.XPATH, "//form[@alch-edit-text='repository.feed']/div/input"),
+    "repo.via_http_edit": (
+        By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "repo.via_http_toggle": (
+        By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
+                   "/div/input")),
+    "repo.gpg_key_edit": (
+        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "//i[contains(@class,'icon-edit')]")),
+    "repo.gpg_key_update": (
+        By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select"),
+
     # Activation Keys
+
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
     "ak.name": (By.ID, "name"),
     "ak.label": (By.ID, "label"),
