@@ -45,9 +45,11 @@ class TestOperatingSystem(MetaCLI):
     def test_create_os_1(self):
         """Successfully creates a new OS."""
         os_res = make_os()
-        os_info = OperatingSys().info({'label': os_res['name']})
-        os_res['name'] = os_info.stdout['name']
-        self.assertEqual(os_res['name'], os_info.stdout['name'])
+        name = os_res['name']
+        os_list = OperatingSys().list({'search': 'name=%s' % name})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        os_res['id'] = os_list.stdout[0]['id']
+        self.assertEqual(os_res['id'], os_info.stdout['id'])
 
     def test_list(self):
         """
@@ -57,9 +59,11 @@ class TestOperatingSystem(MetaCLI):
         self.assertEqual(result.return_code, 0)
         length = len(result.stdout)
         result = make_os()
-        os_info = OperatingSys().info({'label': result['name']})
-        result['name'] = os_info.stdout['name']
-        self.assertEqual(result['name'], os_info.stdout['name'])
+        name = result['name']
+        os_list = OperatingSys().list({'search': 'name=%s' % name})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        result['id'] = os_list.stdout[0]['id']
+        self.assertEqual(result['id'], os_info.stdout['id'])
         result = OperatingSys().list()
         self.assertTrue(len(result.stdout) > length)
         self.assertEqual(result.return_code, 0)
@@ -70,28 +74,28 @@ class TestOperatingSystem(MetaCLI):
         """
 
         result = make_os()
-        os_info = OperatingSys().info({'label': result['name']})
-        result['name'] = os_info.stdout['name']
-        self.assertEqual(result['name'], os_info.stdout['name'])
-
-        name = result['name'].split(" ")
-        result = OperatingSys().info({'label': name[0]})
-        self.assertEqual(result.return_code, 0)
+        name = result['name']
+        os_list = OperatingSys().list({'search': 'name=%s' % name})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        result['id'] = os_list.stdout[0]['id']
+        self.assertEqual(result['id'], os_info.stdout['id'])
 
     def test_delete(self):
         """
         Displays delete for operating system.
         """
         result = make_os()
-        os_info = OperatingSys().info({'label': result['name']})
-        result['name'] = os_info.stdout['name']
-        self.assertEqual(result['name'], os_info.stdout['name'])
+        name = result['name']
+        os_list = OperatingSys().list({'search': 'name=%s' % name})
+        os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
+        result['id'] = os_list.stdout[0]['id']
+        self.assertEqual(result['id'], os_info.stdout['id'])
 
-        name = result['name'].split(" ")
-        result = OperatingSys().delete({'label': name[0]})
+        del_id = os_list.stdout[0]['id']
+        result = OperatingSys().delete({'id': del_id})
         self.assertEqual(result.return_code, 0)
 
-        result = OperatingSys().info({'label': name[0]})
+        result = OperatingSys().info({'id': del_id})
         self.assertEqual(result.return_code, 128)
         self.assertTrue(len(result.stderr) > 0)
 
@@ -117,3 +121,50 @@ class TestOperatingSystem(MetaCLI):
         # this will check the updation of major == 3
         self.assertEqual(name, result.stdout['name'])
         self.assertEqual(major, result.stdout['major'])
+
+    def test_positive_create(self):
+        """
+         Successfully creates object FOREMAN_OBJECT.
+
+         1. Create a new Foreman object using the a base factory using
+         2. Assert that the object was created and can be found;
+         @return: Asserts that object can be created.
+        """
+
+        #Create a new object using factory method
+        new_obj = self.factory()
+
+        self.search_key = "%(name)s %(minor)s.%(major)s" % (new_obj)
+        # Can we find the new object?
+        result = self.factory_obj().exists((self.search_key,
+                                            new_obj[self.search_key]))
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(len(result.stderr) == 0,
+                        "There should not be an exception here")
+        name = result.stdout[self.search_key].split(' ')
+        self.assertEqual(new_obj[self.search_key], name[0])
+
+    def test_negative_create(self):
+        """
+         Over-riding the metatest for operating system.
+        """
+        self.fails("Please fix these tests.")
+
+    def test_positive_update(self):
+        """
+         Over-riding the metatest for operating system.
+        """
+        self.fails("Please fix these tests.")
+
+    def test_negative_update(self):
+        """
+         Over-riding the metatest for operating system.
+        """
+        self.fails("Please fix these tests.")
+
+    def test_negative_delete(self):
+        """
+         Over-riding the metatest for operating system.
+        """
+        self.fails("Please fix these tests.")
