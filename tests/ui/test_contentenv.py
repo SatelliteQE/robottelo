@@ -78,6 +78,8 @@ class ContentEnvironment(BaseUI):
         self.assertTrue(self.contentenv.wait_until_element
                         (common_locators["alert.success"]))
         self.contentenv.delete(name, "true")
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_update_content_environment_1(self):
