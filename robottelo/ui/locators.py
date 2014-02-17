@@ -45,7 +45,7 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='content']"),
     "menu.life_cycle_environments": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_audits']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
     "menu.red_hat_subscriptions": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
@@ -729,4 +729,53 @@ locators = {
         //div/span/i"),
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /select")}
+        /select"),
+
+    # Lifecycle Envionments
+    "content_env.new": (
+        By.XPATH, "//button[@ng-click='initiateCreatePath()']"),
+    "content_env.create_initial": (
+        By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
+    "content_env.name": (By.ID, "name"),
+    "content_env.label": (By.ID, "label"),
+    "content_env.description": (By.ID, "description"),
+    "content_env.create": (
+        By.XPATH,
+        "//button[@ng-click='handleSave(); working = true']"),
+    "content_env.select_name": (
+        By.XPATH,
+        "//div[contains(., '%s')]/parent::label\
+        [@ng-click='selectEnvironment(env.environment)']"),
+    "content_env.remove": (
+        By.XPATH,
+        "//button[@ng-click='openModal()']"),
+    "content_env.confirm_remove": (
+        By.XPATH,
+        "//div[@class='modal-dialog']//button[@ng-click='ok()']"),
+    "content_env.env_link": (
+        By.XPATH,
+        ("//li/label/div[contains(., '%s')]"
+         "/following::li/label[@ng-click='initiateCreateEnvironment()']/i")),
+    "content_env.edit_name": (
+        By.XPATH,
+        "//div[@ng-click='edit()']/span[2]/i"),
+    "content_env.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='workingOn.environment.name']/div/input"),
+    "content_env.save_name": (
+        By.XPATH,
+        ("//form[@alch-edit-text='workingOn.environment.name']"
+         "//button[@ng-click='save()']")),
+    "content_env.edit_description": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "//div/span/i")),
+    "content_env.edit_description_text": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "/div/textarea")),
+    "content_env.save_description": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "//button[@ng-click='save()']")),
+    }
