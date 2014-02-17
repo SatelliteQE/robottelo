@@ -10,7 +10,7 @@ from robottelo.cli.metatest.default_data import POSITIVE_CREATE_DATA
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import bzbug
-from robottelo.common.helpers import generate_name, generate_string
+from robottelo.common.helpers import generate_name
 from tests.cli.basecli import BaseCLI
 
 
@@ -23,31 +23,12 @@ class TestOperatingSystem(BaseCLI):
     factory_obj = OperatingSys
     search_key = 'name'
 
-    # Overide defaults from metaclass
-    POSITIVE_UPDATE_DATA = (
-        ({'name': generate_string("latin1", 10).encode("utf-8")},
-         {'name': generate_string("latin1", 10).encode("utf-8")}),
-        ({'name': generate_string("utf8", 10).encode("utf-8")},
-         {'name': generate_string("utf8", 10).encode("utf-8")}),
-        ({'name': generate_string("alpha", 10)},
-         {'name': generate_string("alpha", 10)}),
-        ({'name': generate_string("alphanumeric", 10)},
-         {'name': generate_string("alphanumeric", 10)}),
-        ({'name': generate_string("numeric", 10)},
-         {'name': generate_string("numeric", 10)}),
-        ({'name': generate_string("utf8", 10).encode("utf-8")},
-         {'name': generate_string("html", 6)}),
-    )
-
-    NEGATIVE_UPDATE_DATA = (
-        ({'name': generate_string("utf8", 10).encode("utf-8")},
-         {'name': generate_string("utf8", 300).encode("utf-8")}),
-        ({'name': generate_string("utf8", 10).encode("utf-8")},
-         {'name': ""}),
-    )
-
     def test_create_os_1(self):
-        """Successfully creates a new OS."""
+        """
+        @feature: Operating System - Create
+        @test: Successfully creates a new Operating System
+        @assert: Operating System is created and can be found
+        """
         os_res = make_os()
         name = os_res['name']
         os_list = OperatingSys().list({'search': 'name=%s' % name})
@@ -57,7 +38,9 @@ class TestOperatingSystem(BaseCLI):
 
     def test_list(self):
         """
-        Displays list for operating system.
+        @feature: Operating System - List
+        @test: Displays list for operating system
+        @assert: Operating System is created and listed
         """
         result = OperatingSys().list()
         self.assertEqual(result.return_code, 0)
@@ -74,7 +57,9 @@ class TestOperatingSystem(BaseCLI):
 
     def test_info(self):
         """
-        Displays info for operating system.
+        @feature: Operating System - Info
+        @test: Displays info for operating system
+        @assert: Operating System is created and have the correct data
         """
 
         result = make_os()
@@ -82,11 +67,14 @@ class TestOperatingSystem(BaseCLI):
         os_list = OperatingSys().list({'search': 'name=%s' % name})
         os_info = OperatingSys().info({'id': os_list.stdout[0]['id']})
         result['id'] = os_list.stdout[0]['id']
+        # FIXME this assertion will aways be True
         self.assertEqual(result['id'], os_info.stdout['id'])
 
     def test_delete(self):
         """
-        Displays delete for operating system.
+        @feature: Operating System - Delete
+        @test: Delete Operating System
+        @assert: Operating System is created and deleted
         """
         result = make_os()
         name = result['name']
@@ -106,7 +94,10 @@ class TestOperatingSystem(BaseCLI):
     @bzbug('1051557')
     def test_update(self):
         """
-         Displays update for operating system.
+        @feature: Operating System - Update
+        @test: Update an Operating System.
+        @assert: Operating System is updated
+        @bz: 1021557
         """
 
         name = generate_name()
@@ -129,11 +120,9 @@ class TestOperatingSystem(BaseCLI):
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create(self, data):
         """
-        Successfully creates object FOREMAN_OBJECT.
-
-        1. Create a new Foreman object using the a base factory using
-        2. Assert that the object was created and can be found;
-        @return: Asserts that object can be created.
+        @feature: Operating System - Positive Create
+        @test: Create Operating System for all variations of name
+        @assert: Operating System is created and can be found
         """
 
         #Create a new object using factory method
@@ -151,24 +140,45 @@ class TestOperatingSystem(BaseCLI):
 
     def test_negative_create(self):
         """
-         Over-riding the metatest for operating system.
+        @feature: Operating System - Negative Create
+        @test: Not create Operating System for all invalid data
+        @assert: Operating System is not created
+        @status: manual
         """
         self.fail(NOT_IMPLEMENTED)
 
     def test_positive_update(self):
         """
-         Over-riding the metatest for operating system.
+        @feature: Operating System - Positive Update
+        @test: Update Operating System for all valid data
+        @assert: Operating System is updated and can be found
+        @status: manual
         """
         self.fail(NOT_IMPLEMENTED)
 
     def test_negative_update(self):
         """
-         Over-riding the metatest for operating system.
+        @feature: Operating System - Negative Update
+        @test: Not update Operating System for invalid data
+        @assert: Operating System is not updated
+        @status: manual
+        """
+        self.fail(NOT_IMPLEMENTED)
+
+    def test_positive_delete(self):
+        """
+        @feature: Operating System - Positive Delete
+        @test: Successfully deletes Operating System
+        @assert: Operating System is deleted
+        @status: manual
         """
         self.fail(NOT_IMPLEMENTED)
 
     def test_negative_delete(self):
         """
-         Over-riding the metatest for operating system.
+        @feature: Operating System - Negative Delete
+        @test: Not delete Operating System for invalid data
+        @assert: Operating System is not deleted
+        @status: manual
         """
         self.fail(NOT_IMPLEMENTED)
