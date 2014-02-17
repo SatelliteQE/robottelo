@@ -20,14 +20,21 @@ class ContentEnvironment(Base):
         """
         self.browser = browser
 
-    def create(self, name, description=None):
+    def create(self, name, description=None, prior=None):
         """
         Creates new life cycle environment
         """
-
-        self.wait_until_element(locators["content_env.new"]).click()
-        self.wait_until_element(locators["content_env.create_initial"]).click()
-
+        if prior == 'Library' or 'None':
+            self.wait_until_element(locators["content_env.new"]).click()
+            self.wait_until_element(locators
+                                    ["content_env.create_initial"]
+                                    ).click()
+        else:
+            strategy = locators["content_env.env_link"][0]
+            value = locators["content_env.env_link"][1]
+            element = self.wait_until_element((strategy, value % prior))
+            if element:
+                element.click()
         if self.wait_until_element(locators["content_env.name"]):
             self.field_update("content_env.name", name)
             if description:
@@ -58,3 +65,25 @@ class ContentEnvironment(Base):
         else:
             raise Exception(
                 "Could not delete the selected environment '%s'." % name)
+
+    def update(self, name, new_name=None, description=None):
+        """
+       Updates an existing environment.
+        """
+
+        strategy = locators["content_env.select_name"][0]
+        value = locators["content_env.select_name"][1]
+        element = self.wait_until_element((strategy, value % name))
+        if element:
+            element.click()
+            if new_name:
+                self.edit_entity("content_env.edit_name",
+                                 "content_env.edit_name_text",
+                                 new_name, "content_env.save_name")
+            if description:
+                self.edit_entity("content_env.edit_description",
+                                 "content_env.edit_description_text",
+                                 description, "content_env.save_description")
+        else:
+            raise Exception(
+                "Could not update the selected environment '%s'." % name)

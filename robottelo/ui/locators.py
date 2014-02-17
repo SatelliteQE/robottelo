@@ -651,4 +651,31 @@ locators = {
         "//button[@ng-click='openModal()']"),
     "content_env.confirm_remove": (
         By.XPATH,
-        "//div[@class='modal-dialog']//button[@ng-click='ok()']")}
+        "//div[@class='modal-dialog']//button[@ng-click='ok()']"),
+    "content_env.env_link": (
+        By.XPATH,
+        ("//li/label/div[contains(., '%s')]"
+         "/following::li/label[@ng-click='initiateCreateEnvironment()']/i")),
+    "content_env.edit_name": (
+        By.XPATH,
+        "//div[@ng-click='edit()']/span[2]/i"),
+    "content_env.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='workingOn.environment.name']/div/input"),
+    "content_env.save_name": (
+        By.XPATH,
+        ("//form[@alch-edit-text='workingOn.environment.name']"
+         "//button[@ng-click='save()']")),
+    "content_env.edit_description": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "//div/span/i")),
+    "content_env.edit_description_text": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "/div/textarea")),
+    "content_env.save_description": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "//button[@ng-click='save()']")),
+    }
