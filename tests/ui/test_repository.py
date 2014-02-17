@@ -21,7 +21,11 @@ class Repos(BaseUI):
         self.navigator.go_to_org()
 
     def test_create_repo(self):
-        """Create new Repository - given a valid org name"""
+        """
+        @Feature: Content Repos - Positive Create
+        @Test: Create Content Repos with minimal input parameters
+        @Assert: Repos is created
+        """
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         repo_name = generate_name(8, 8)
@@ -41,7 +45,11 @@ class Repos(BaseUI):
         self.assertIsNotNone(self.repository.search(repo_name))
 
     def test_remove_repo(self):
-        """Create new Repository - given a valid org name"""
+        """
+        @Feature: Content Repos - Positive Delete
+        @Test: Create Content Repos with minimal input parameters
+        @Assert: Repos is Deleted
+        """
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         repo_name = generate_name(8, 8)
