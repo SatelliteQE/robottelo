@@ -12,6 +12,7 @@ from robottelo.common import conf
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
+from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.hosts import Hosts
@@ -22,6 +23,8 @@ from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
 from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.products import Products
+from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -84,6 +87,7 @@ class BaseUI(unittest.TestCase):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
+        self.contentenv = ContentEnvironment(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)
@@ -96,6 +100,8 @@ class BaseUI(unittest.TestCase):
         self.operatingsys = OperatingSys(self.browser)
         self.org = Org(self.browser)
         self.partitiontable = PartitionTable(self.browser)
+        self.products = Products(self.browser)
+        self.repository = Repos(self.browser)
         self.role = Role(self.browser)
         self.subnet = Subnet(self.browser)
         self.template = Template(self.browser)

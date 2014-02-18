@@ -40,7 +40,8 @@ class Base(object):
                 "Failed to locate element. ERROR: %s" % str(error))
             return None
 
-    def search_entity(self, element_name, element_locator, search_key=None):
+    def search_entity(self, element_name, element_locator, search_key=None,
+                      katello=None):
         """
         Uses the search box to locate an element from a list of elements.
         """
@@ -48,12 +49,21 @@ class Base(object):
         search_key = search_key or "name"
         element = None
 
-        searchbox = self.wait_until_element(common_locators["search"])
-
+        if katello:
+            searchbox = self.wait_until_element(common_locators["kt_search"])
+            search_button = self.wait_until_element(common_locators
+                                                    ["kt_search_button"])
+        else:
+            searchbox = self.wait_until_element(common_locators["search"])
+            search_button = self.wait_until_element(common_locators
+                                                    ["search_button"])
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys(search_key + " = " + element_name)
-            self.find_element(common_locators["search_button"]).click()
+            if search_button:
+                searchbox.send_keys(search_key + " = " + element_name)
+                search_button.click()
+            else:
+                searchbox.send_keys(element_name)
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
         return element
@@ -206,6 +216,14 @@ class Base(object):
         txt_field.clear()
         txt_field.send_keys(newtext)
 
+    def text_field_update(self, locator, newtext):
+        """
+        Function to replace text from textbox using a common locator
+        """
+        txt_field = self.wait_until_element(locator)
+        txt_field.clear()
+        txt_field.send_keys(newtext)
+
     def set_parameter(self, param_name, param_value):
         """
         Function to set parameters for different
@@ -235,3 +253,12 @@ class Base(object):
         if remove_element:
             remove_element.click()
         self.find_element(common_locators["submit"]).click()
+
+    def edit_entity(self, edit_loc, edit_text_loc, entity_value, save_loc):
+        """
+        Function to edit the selected entity's  text and save it
+        """
+
+        self.find_element(locators[edit_loc]).click()
+        self.field_update(edit_text_loc, entity_value)
+        self.find_element(locators[save_loc]).click()
