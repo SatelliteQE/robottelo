@@ -1,11 +1,11 @@
 from robottelo.common import records
-from robottelo.records import Architecture
-from robottelo.records import Domain
-from robottelo.records import Environment
-from robottelo.records import OperatingSystem
-from robottelo.records import PartitionTable
-from robottelo.records import SmartProxy
 from robottelo.api.apicrud import ApiCrud
+from robottelo.records.environment import Environment
+from robottelo.records.architecture import Architecture
+from robottelo.records.domain import Domain
+from robottelo.records.smartproxy import SmartProxy
+from robottelo.records.partitiontable import PartitionTable
+from robottelo.records.operatingsystem import OperatingSystem
 
 class HostApi(ApiCrud):
         api_path = "/api/hosts/"
