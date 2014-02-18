@@ -6,27 +6,28 @@ Module for mixin of basic crud methods based on api_path class method.
 
 import robottelo.api.base as base
 
-from robottelo.common.records.fields import RelatedField
-from robottelo.common.records.fields import load_from_data, convert_to_data
-from robottelo.common.records.fields import RelatedField
-from robottelo.common.records.fields import ManyRelatedField
-from inspect import getmro
+from robottelo.common.records import load_from_data, convert_to_data
+from robottelo.common.records import ManyRelatedField , RelatedField
 
 def resolve_or_create_record(record):
+    """On recieving record, that has api_class implemented,
+    it checks if it exists and if not, creates it.
+    """
     if ApiCrud.record_exists(record):
-       return ApiCrud.record_resolve(record)
+        return ApiCrud.record_resolve(record)
     else:
-       return ApiCrud.record_create_recursive(record)
+        return ApiCrud.record_create_recursive(record)
 
 
 def data_load_transform(instance_cls, data):
-   try:
-       key = instance_cls._meta.api_class.get_json_key()
-       if key in data:
-           return data[key]
-       return data
-   except NotImplementedError:
-       return data
+    """Wraper to strip redundant keys from json """
+    try:
+        key = instance_cls._meta.api_class.get_json_key()
+        if key in data:
+            return data[key]
+        return data
+    except NotImplementedError:
+        return data
 
 class ApiCrud(object):
     """Defines basic crud methods based on api_path class method """
@@ -37,6 +38,7 @@ class ApiCrud(object):
 
     @classmethod
     def get_default_search(cls):
+        """Returns search key to be used in exists and resolve functions """
         if hasattr(cls, 'default_search'):
             return cls.default_search
         return "name"
@@ -153,6 +155,7 @@ class ApiCrud(object):
 
     @classmethod
     def opts(cls, data):
+        """Adds redundant keys for passing as a json into rest functions"""
         try:
             return {cls.get_json_key(): data}
         except NotImplementedError:
@@ -160,30 +163,32 @@ class ApiCrud(object):
 
     @classmethod
     def record_exists(cls, instance):
+        """Checks if record is resolveable."""
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_exists(instance)
 
         if hasattr(instance, "id"):
-            r = cls.show(instance.id)
-            return r.ok
+            res = cls.show(instance.id)
+            return res.ok
         else:
-            r = cls.list(json=dict(search="name="+instance.name))
-            if r.ok and len(r.json()) > 0:
+            res = cls.list(json=dict(search="name="+instance.name))
+            if res.ok and len(res.json()) > 0:
                 return True
             else:
                 return False
 
     @classmethod
     def record_remove(cls, instance):
+        """Removes record by its id, or name"""
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_remove(instance)
 
         if hasattr(instance,"id"):
-            r = cls.delete(instance.id)
-            return r.ok
+            res = cls.delete(instance.id)
+            return res.ok
         else:
-            r = cls.list(json=dict(search="name="+instance.name))
-            if r.ok and len(r.json())==1:
+            res = cls.list(json=dict(search="name="+instance.name))
+            if res.ok and len(res.json())==1:
                 cls.record_remove(cls.record_resolve(instance))
                 return True
             else:
@@ -191,97 +196,140 @@ class ApiCrud(object):
 
     @classmethod
     def record_resolve(cls, instance):
+        """Gets information by records id, or name
+        and parses it into new record
+        """
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_resolve(instance)
 
-        r = None
+        res = None
         json = None
         if hasattr(instance,"id"):
-            r = cls.show(instance.id)
-            if r.ok:
-                json = r.json()
+            res = cls.show(instance.id)
+            if res.ok:
+                json = res.json()
         else:
-            r = cls.list(json=dict(search="name="+instance.name))
-            if r.ok:
-                json = r.json()[0]
+            res = cls.list(json=dict(search="name="+instance.name))
+            if res.ok:
+                json = res.json()[0]
 
-        if r.ok:
-            ninstance = load_from_data(instance.__class__, json, data_load_transform)
+        if res.ok:
+            ninstance = load_from_data(
+                    instance.__class__,
+                    json,
+                    data_load_transform
+                )
             return ninstance
         else:
-            raise Exception(r.status_code, r.content)
+            raise Exception(res.status_code,
+                    res.content,
+                    res.request.url,
+                    res.request.body)
 
     @classmethod
     def record_resolve_recursive(cls, instance):
+        """Gets infromation about record,
+        including all of its related fields
+        """
         if cls != instance._meta.api_class:
-            return instance._meta.api_class.record_resolve_recursive(instance)
+            return instance._meta.api_class \
+                .record_resolve_recursive(instance)
         ninstance = cls.record_resolve(instance)
-        related_fields = [f for f in ninstance._meta.fields if isinstance(f, RelatedField) ]
-        for f in related_fields:
-            if hasattr(ninstance,(f.name + "_id")):
-                related_class = f.record_class
-                related_instance = related_class(CLEAN=True )
-                related_instance.id = instance.__dict__[(f.name + "_id")]
-                related_instance = cls.record_resolve(related_instance)
-                ninstance.__dict__[f.name] = related_instance
-            elif hasattr(ninstance , f.name) :
-                related_instance = ninstance.__dict__[f.name]
-                if isinstance(related_instance,RelatedField):
-                    ninstance.__dict__[f.name] = cls.record_resolve(related_instance)
+        related_fields = [
+                f for f in ninstance._meta.fields
+                    if isinstance(f, RelatedField)
+                ]
+        for fld in related_fields:
+            if hasattr(ninstance,(fld.name + "_id")):
+                related_class = fld.record_class
+                related = related_class(CLEAN = True)
+                related.id = instance.__dict__[(fld.name + "_id")]
+                related = cls.record_resolve(related)
+                ninstance.__dict__[fld.name] = related
+            elif hasattr(ninstance , fld.name) :
+                related = ninstance.__dict__[fld.name]
+                if isinstance(related, RelatedField):
+                    ninstance.__dict__[fld.name] = cls.record_resolve(related)
         return ninstance
 
     @classmethod
     def record_update(cls, instance):
+        """Updates the record, doesn't touch related fields
+        """
         if cls != instance._meta.api_class:
             return instance._meta.api_class.record_update(instance)
 
         if not hasattr(instance,"id"):
-            r = cls.list(json=dict(search="name="+instance.name))
-            if r.ok and len(r.json())==1:
+            res = cls.list(json=dict(search="name="+instance.name))
+            if res.ok and len(res.json())==1:
                 instance.id = cls.record_resolve(instance).id
             else:
-                if len(r.json())==0:
+                if len(res.json())==0:
                     raise KeyError(instance.name + " not found.")
                 else:
                     raise KeyError(instance.name + " not unique.")
 
         data = convert_to_data(instance)
         if hasattr(cls,"create_fields"):
-           data = {name:field for name, field in data.items() if name in cls.create_fields}
+            data = {
+                name:field for name, field in data.items()
+                    if name in cls.create_fields
+                  }
 
-        r = cls.update(instance.id, json=cls.opts(data))
-        if r.ok:
-            ninstance = load_from_data(instance.__class__, r.json(), data_load_transform)
+        res = cls.update(instance.id, json=cls.opts(data))
+        if res.ok:
+            ninstance = load_from_data(instance.__class__,
+                    res.json(),
+                    data_load_transform)
             return ninstance
         else:
-            raise Exception(r.status_code, r.content)
+            raise Exception(res.status_code,
+                    res.content,
+                    res.request.url,
+                    res.request.body)
 
     @classmethod
     def record_create(cls, instance_orig):
+        """Creates the record, doesn't touch related fields
+        """
         if cls != instance_orig._meta.api_class:
             return instance_orig._meta.api_class.record_create(instance_orig)
         instance = instance_orig.copy()
 
         data = convert_to_data(instance)
         if hasattr(cls,"create_fields"):
-           data = {name:field for name, field in data.items() if name in cls.create_fields}
+            data = {
+                name:field for name, field in data.items()
+                    if name in cls.create_fields
+                  }
 
 
-        r = cls.create(json=cls.opts(data))
-        if r.ok:
-            ninstance = load_from_data(instance.__class__, r.json(), data_load_transform)
+        res = cls.create(json=cls.opts(data))
+        if res.ok:
+            ninstance = load_from_data(instance.__class__,
+                    res.json(),
+                    data_load_transform)
             return ninstance
         else:
-            raise Exception(r.status_code, r.content)
+            raise Exception(res.status_code,
+                    res.content,
+                    res.request.url,
+                    res.request.body)
 
     @classmethod
     def record_create_recursive(cls, instance_orig):
+        """Creates the record, even related accounts
+        """
         if cls != instance_orig._meta.api_class:
-            return instance_orig._meta.api_class.record_create_recursive(instance_orig)
+            api = instance_orig._meta.api_class
+            return api.record_create_recursive(instance_orig)
         instance = instance_orig.copy()
 
         #resolve ids
-        related_fields = [f.name for f in instance._meta.fields if isinstance(f, RelatedField) ]
+        related_fields = [
+                fld.name for fld in instance._meta.fields
+                    if isinstance(fld, RelatedField)
+                    ]
 
         for field in related_fields:
             value = resolve_or_create_record(instance.__dict__[field])
@@ -289,7 +337,10 @@ class ApiCrud(object):
             instance.__dict__[field+"_id"] = value.id
 
         #resolve ManyRelated ids
-        related_fields = [f.name for f in instance._meta.fields if isinstance(f, ManyRelatedField) ]
+        related_fields = [
+                fld.name for fld in instance._meta.fields
+                    if isinstance(fld, ManyRelatedField)
+                    ]
 
         for field in related_fields:
             value = instance.__dict__[field]
@@ -303,12 +354,21 @@ class ApiCrud(object):
 
         data = convert_to_data(instance)
         if hasattr(cls,"create_fields"):
-           data = {name:field for name, field in data.items() if name in cls.create_fields}
+            data = {
+                name:field for name, field in data.items()
+                    if name in cls.create_fields
+                }
 
 
-        r = cls.create(json=cls.opts(data))
-        if r.ok:
-            ninstance = load_from_data(instance.__class__, r.json(), data_load_transform)
+        res = cls.create(json=cls.opts(data))
+        if res.ok:
+            ninstance = load_from_data(instance.__class__,
+                    res.json(),
+                    data_load_transform)
             return ninstance
         else:
-            raise Exception(r.status_code, r.content, r.request.url, r.request.body)
+            raise Exception(res.status_code,
+                    res.content,
+                    res.request.url,
+                    res.request.body)
+

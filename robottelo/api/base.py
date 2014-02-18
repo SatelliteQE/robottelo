@@ -67,7 +67,6 @@ def request(method, **kwargs):
     del kwargs['domain']
     del kwargs['schema']
 
-    print method, url, kwargs
     return requests.request(method=method, url=url, **kwargs)
 
 

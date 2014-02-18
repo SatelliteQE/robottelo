@@ -81,7 +81,10 @@ class Record(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    def __init__(self, CLEAN = False, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+
+        CLEAN = "CLEAN" in kwargs and kwargs.pop("CLEAN")
+
         fields_iter = iter(self._meta.fields)
         for val, field in zip(args, fields_iter):
             setattr(self, field.name, val)
