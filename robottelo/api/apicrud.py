@@ -6,7 +6,6 @@ Module for mixin of basic crud methods based on api_path class method.
 
 import robottelo.api.base as base
 
-from robottelo.common.records import load_from_data, convert_to_data
 from robottelo.common.records import ManyRelatedField , RelatedField
 
 def convert_to_data(instance):
