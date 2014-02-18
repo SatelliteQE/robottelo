@@ -1,4 +1,3 @@
-from robottelo.api.smart_proxies import SmartProxyApi
 from robottelo.common import conf, records
 from robottelo.api.apicrud import ApiCrud
 

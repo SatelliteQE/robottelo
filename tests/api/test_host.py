@@ -5,10 +5,9 @@
 Test class for Domain  CLI
 """
 from baseapi import BaseApi
-from positive_crud_tests import PositiveCrudTest
 
 from robottelo.api.apicrud import ApiCrud
-from robottelo.records import Host
+from robottelo.records.host import Host
 
 
 class TestHost(BaseApi):
