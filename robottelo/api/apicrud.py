@@ -9,6 +9,27 @@ import robottelo.api.base as base
 from robottelo.common.records import load_from_data, convert_to_data
 from robottelo.common.records import ManyRelatedField , RelatedField
 
+def convert_to_data(instance):
+    """Converts an instance to a data dictionary"""
+
+    return {k: v for k, v in instance.__dict__.items()
+            if (not k.startswith("_") and k!="")}
+
+
+def load_from_data(cls, data, transform_related = lambda instance_cls, data: args):
+    """Loads instance attributes from a data dictionary"""
+    instance = cls(CLEAN=True)
+    related = {field.name : field for field in instance._meta.fields if isinstance(field, RelatedField)}
+    data = transform_related(cls, data)
+    for k, v in data.items():
+        if k in related:
+            related_class = related[k].record_class
+            related_instance = load_from_data(related_class, v, transform_related)
+            instance.__dict__[k] = related_instance
+        else:
+            instance.__dict__[k] = v
+    return instance
+
 def resolve_or_create_record(record):
     """On recieving record, that has api_class implemented,
     it checks if it exists and if not, creates it.
