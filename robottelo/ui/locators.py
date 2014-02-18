@@ -669,9 +669,6 @@ locators = {
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
-    "ak.name": (By.ID, "name"),
-    "ak.label": (By.ID, "label"),
-    "ak.description": (By.ID, "description"),
     "ak.env": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
@@ -681,16 +678,9 @@ locators = {
         "//input[@ng-checked='isUnlimited(activationKey)']"),
     "ak.usage_limit": (
         By.XPATH, "//input[@ng-model='activationKey.usage_limit']"),
-    "ak.create": (
-        By.XPATH,
-        "//button[@ng-click='handleSave(); working = true']"),
     "ak.close": (
         By.XPATH,
         "//button[@ui-sref='activation-keys.index']"),
-    "ak.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
-    "ak.search_button": (
-        By.XPATH,
-        "//button[@ng-click='table.search(table.searchTerm)']"),
     "ak.ak_name": (
         By.XPATH,
         "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]"),
@@ -736,12 +726,6 @@ locators = {
         By.XPATH, "//button[@ng-click='initiateCreatePath()']"),
     "content_env.create_initial": (
         By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
-    "content_env.name": (By.ID, "name"),
-    "content_env.label": (By.ID, "label"),
-    "content_env.description": (By.ID, "description"),
-    "content_env.create": (
-        By.XPATH,
-        "//button[@ng-click='handleSave(); working = true']"),
     "content_env.select_name": (
         By.XPATH,
         "//div[contains(., '%s')]/parent::label\
@@ -749,9 +733,6 @@ locators = {
     "content_env.remove": (
         By.XPATH,
         "//button[@ng-click='openModal()']"),
-    "content_env.confirm_remove": (
-        By.XPATH,
-        "//div[@class='modal-dialog']//button[@ng-click='ok()']"),
     "content_env.env_link": (
         By.XPATH,
         ("//li/label/div[contains(., '%s')]"
