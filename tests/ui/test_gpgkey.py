@@ -493,7 +493,7 @@ class TestGPGKey(BaseUI):
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository
-        gpg key is associated with product and one of the repositories
+        @assert: gpg key is associated with product and one of the repositories
         @status: manual
         """
 
