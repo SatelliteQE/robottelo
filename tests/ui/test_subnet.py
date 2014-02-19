@@ -37,7 +37,10 @@ class Subnet(BaseUI):
 
     def test_create_subnet(self):
         """
-        Create new subnet - given subnet name, subnet network, subnet mask
+        @Feature: Subnet - Positive Create
+        @Test: Create new subnet - given subnet name, subnet network,
+        subnet mask
+        @Assert: Subnet is created
         """
 
         subnet_name = generate_name(8, 8)
@@ -49,7 +52,9 @@ class Subnet(BaseUI):
 
     def test_remove_subnet_1(self):
         """
-        Delete subnet - Create subnet and delete the same
+        @Feature: Subnet - Positive Delete
+        @Test: Delete a subnet
+        @Assert: Subnet is deleted
         """
 
         subnet_name = generate_name(8, 8)
@@ -62,9 +67,11 @@ class Subnet(BaseUI):
         self.assertFalse(self.subnet.search_subnet(subnet_name))
 
     def test_remove_subnet_2(self):
-        """"
-        Delete subnet - Create subnet. Attempt to delete subnet but cancel
+        """
+        @Feature: Subnet - Negative Delete
+        @Test: Create subnet. Attempt to delete subnet but cancel
         in the confirmation dialog box
+        @Assert: Subnet is not deleted
         """
 
         subnet_name = generate_name(8, 8)
@@ -77,7 +84,9 @@ class Subnet(BaseUI):
 
     def test_update_subnet_1(self):
         """
-        Update subnet name
+        @Feature: Subnet - Positive Update
+        @Test: Update Subnet name
+        @Assert: Subnet name is updated
         """
 
         subnet_name = generate_name(8, 8)
@@ -92,7 +101,9 @@ class Subnet(BaseUI):
 
     def test_update_subnet_2(self):
         """
-        Update subnet network
+        @Feature: Subnet - Positive Update
+        @Test: Update Subnet network
+        @Assert: Subnet network is updated
         """
 
         subnet_name = generate_name(8, 8)
@@ -107,7 +118,9 @@ class Subnet(BaseUI):
 
     def test_update_subnet_3(self):
         """
-        Update subnet mask
+        @Feature: Subnet - Positive Update
+        @Test: Update Subnet mask
+        @Assert: Subnet mask is updated
         """
 
         subnet_name = generate_name(8, 8)
@@ -122,7 +135,9 @@ class Subnet(BaseUI):
 
     def test_search_subnet_1(self):
         """
-        Search subnet - Given the subnet name
+        @Feature: Subnet - Positive Search
+        @Test: Search Subnet with Subnet name
+        @Assert: Subnet is found
         """
 
         subnet_name = generate_name(8, 8)
@@ -137,7 +152,9 @@ class Subnet(BaseUI):
 
     def test_search_subnet_2(self):
         """
-        Search subnet - Search for a non-existent subnet
+        @Feature: Subnet - Negative Search
+        @Test: Search for a non-existent subnet name
+        @Assert: Subnet name is not found
         """
 
         subnet_name = generate_name(8, 8)

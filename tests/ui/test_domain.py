@@ -28,13 +28,21 @@ class Domain(BaseUI):
                         self.domain.search(description))
 
     def test_create_domain(self):
-        """create new Domain"""
+        """
+        @Feature: Domain - Create
+        @Test: Create a new domain
+        @Assert: Domain is created
+        """
         name = DOMAIN % generate_name(4)
         description = name
         self.create_domain(name, description)
 
     def test_remove_domain(self):
-        """Creates new domain and delete it"""
+        """
+        @Feature: Domain - Delete
+        @Test: Delete a domain
+        @Assert: Domain is deleted
+        """
         name = DOMAIN % generate_name(4)
         description = name
         self.create_domain(name, description)
@@ -44,7 +52,11 @@ class Domain(BaseUI):
         self.assertIsNone(self.domain.search(name))
 
     def test_update_domain(self):
-        """Create new domain and update its name, description"""
+        """
+        @Feature: Domain - Update
+        @Test: Update a domain with name and description
+        @Assert: Domain is updated
+        """
         name = DOMAIN % generate_name(4)
         description = name
         new_name = DOMAIN % generate_name(4)
@@ -55,7 +67,11 @@ class Domain(BaseUI):
                              self.domain.search(new_description))
 
     def test_set_parameter(self):
-        """Set domain parameter"""
+        """
+        @Feature: Domain - Misc
+        @Test: Set a paramter in a domain
+        @Assert: Domain is updated
+        """
         name = DOMAIN % generate_name(4)
         description = name
         param_name = generate_name(4)
@@ -64,7 +80,11 @@ class Domain(BaseUI):
         self.domain.set_domain_parameter(description, param_name, param_value)
 
     def test_remove_parameter(self):
-        """Remove selected domain parameter"""
+        """
+        @Feature: Domain - Misc
+        @Test: Remove a selected domain paramter
+        @Assert: Domain parameter is removed
+        """
         name = DOMAIN % generate_name(4)
         description = name
         param_name = generate_name(4)

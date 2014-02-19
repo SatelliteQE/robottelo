@@ -26,7 +26,11 @@ class Org(BaseUI):
         self.navigator.go_to_org()
 
     def test_create_org(self):
-        """Create new org - given a valid org name"""
+        """
+        @Feature: Org - Positive create
+        @Test: Create an org with a valid org name
+        @Assert: Org is created
+        """
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
@@ -36,7 +40,11 @@ class Org(BaseUI):
             self.org.search(org_name))
 
     def test_update_org(self):
-        """Update org name - given a valid new org name"""
+        """
+        @Feature: Org - Positive Update
+        @Test: Update an org with a valid new org name
+        @Assert: Org is updated
+        """
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
@@ -47,7 +55,11 @@ class Org(BaseUI):
             self.org.search(new_name))
 
     def test_remove_org(self):
-        """Remove org name - given a valid existing org name"""
+        """
+        @Feature: Org - Positive Delete
+        @Test: Delete an org given a valid existing org name
+        @Assert: Org is deleted
+        """
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)

@@ -26,7 +26,11 @@ class Medium(BaseUI):
         self.assertIsNotNone(self.medium.search(name))
 
     def test_create_medium(self):
-        "Create new Media"
+        """
+        @Feature: Media - Create
+        @Test: Create a new media
+        @Assert: Media is created
+        """
         name = generate_name(6)
         path = URL % generate_name(6)
         os_family = "Red Hat"
@@ -34,7 +38,11 @@ class Medium(BaseUI):
         self.create_medium(name, path, os_family)
 
     def test_remove_medium(self):
-        "Delete Media"
+        """
+        @Feature: Media - Delete
+        @Test: Delete a media
+        @Assert: Media is deleted
+        """
         name = generate_name(6)
         path = URL % generate_name(6)
         os_family = "Red Hat"
@@ -46,7 +54,11 @@ class Medium(BaseUI):
         self.assertIsNone(self.medium.search(name))
 
     def test_update_medium(self):
-        "Create new Media and update its name, path and OS family"
+        """
+        @Feature: Media - Update
+        @Test: Update a media with name, path, OS family
+        @Assert: Media is updated
+        """
         name = generate_name(6)
         newname = generate_name(4)
         path = URL % generate_name(6)

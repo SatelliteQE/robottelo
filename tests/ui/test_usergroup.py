@@ -27,7 +27,9 @@ class UserGroup(BaseUI):
 
     def test_create_usergroup(self):
         """
-        Creates new usergroup
+        @Feature: Usergroup - Positive Create
+        @Test: Create new Usergroup
+        @Assert: Usergroup is created
         """
 
         user_name = generate_name(6)
@@ -43,7 +45,9 @@ class UserGroup(BaseUI):
 
     def test_remove_usergroup(self):
         """
-        Delete existing usergroup
+        @Feature: Usergroup - Positive Delete
+        @Test: Delete an existing Usergroup
+        @Assert: Usergroup is delete
         """
 
         name = generate_name(6)
@@ -56,7 +60,9 @@ class UserGroup(BaseUI):
 
     def test_update_usergroup(self):
         """
-        Create new usergroup and update its name or users
+        @Feature: Usergroup - Positive Update
+        @Test: Update usergroup with name or users
+        @Assert: Usergroup is updated
         """
 
         name = generate_name(6)

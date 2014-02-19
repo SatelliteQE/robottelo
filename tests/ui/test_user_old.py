@@ -31,7 +31,9 @@ class User(BaseUI):
 
     def test_create_user(self):
         """
-        Create a new User
+        @Feature: User - Create
+        @Test: Create a new user
+        @Assert: User is created
         """
 
         name = generate_name(6)
@@ -43,9 +45,10 @@ class User(BaseUI):
 
     def test_delete_user(self):
         """
-        Create and Delete a User
+        @Feature: User - Delete
+        @Test: Delete a User
+        @Assert: User is deleted
         """
-
         name = generate_name(6)
         password = generate_name(8)
         email = generate_email_address()
@@ -58,7 +61,9 @@ class User(BaseUI):
 
     def test_update_password(self):
         """
-        Creates a User and updates the password
+        @Feature: User - Update
+        @Test: Update password for a user
+        @Assert: User password is updated
         """
 
         name = generate_name(6)
@@ -75,7 +80,9 @@ class User(BaseUI):
 
     def test_update_role(self):
         """
-        Creates a User and updates the password
+        @Feature: User - Update
+        @Test: Update role for a user
+        @Assert: User role is updated
         """
 
         name = generate_name(6)

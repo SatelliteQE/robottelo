@@ -15,7 +15,11 @@ class ComputeResource(BaseUI):
         self.org.create(org_name)
 
     def test_create_resource(self):
-        "Test to create a new libvirt Compute Resource"
+        """
+        @Feature: Compute Resource - Create
+        @Test: Create a new libvirt Compute Resource
+        @Assert: A libvirt Compute Resource is created
+        """
         name = generate_name(8)
         org_name = generate_name(8, 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -30,7 +34,11 @@ class ComputeResource(BaseUI):
         self.assertIsNotNone(search)
 
     def test_update_resource(self):
-        "Test to update existing libvirt Compute Resource"
+        """
+        @Feature: Compute Resource - Update
+        @Test: Update a libvirt Compute Resource
+        @Assert: The libvirt Compute Resource is updated
+        """
         name = generate_name(8)
         newname = generate_name(8)
         org_name = generate_name(8, 8)
@@ -51,7 +59,11 @@ class ComputeResource(BaseUI):
         self.assertIsNotNone(search)
 
     def test_remove_resource(self):
-        "Test to delete a Compute Resource "
+        """
+        @Feature: Compute Resource - Delete
+        @Test: Delete a Compute Resource
+        @Assert: The Compute Resource is deleted
+        """
         name = generate_name(8)
         org_name = generate_name(8, 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
