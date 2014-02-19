@@ -28,7 +28,9 @@ class PartitionTable(BaseUI):
 
     def test_create_partition_table(self):
         """
-        Create new partition table
+        @Feature: Partition table - Positive Create
+        @Test: Create a new partition table
+        @Assert: Partition table is created
         """
 
         name = generate_name(6)
@@ -39,7 +41,9 @@ class PartitionTable(BaseUI):
 
     def test_remove_partition_table(self):
         """
-        Delete Partition table
+        @Feature: Partition table - Positive Delete
+        @Test: Delete a partition table
+        @Assert: Partition table is deleted
         """
 
         name = generate_name(6)
@@ -54,7 +58,9 @@ class PartitionTable(BaseUI):
 
     def test_update_partition_table(self):
         """
-        Creates new partition table and update its name, layout and OS family
+        @Feature: Partition table - Positive Update
+        @Test: Update partition table with its name, layout and OS family
+        @Assert: Partition table is updated
         """
 
         name = generate_name(6)

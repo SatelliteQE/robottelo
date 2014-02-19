@@ -11,6 +11,11 @@ class Host(BaseUI):
 
     @unittest.skip("Test needs to create other required stuff")
     def test_create_host(self):
+        """
+        @Feature: Host - Positive create
+        @Test: Create a new Host
+        @Assert: Host is created
+        """
         # TODO need to create environment architecture domain etc
         name = generate_name(8)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -29,6 +34,11 @@ class Host(BaseUI):
 
     @unittest.skip("Test needs to create other required stuff")
     def test_create_delete(self):
+        """
+        @Feature: Host - Positive Delete
+        @Test: Delete a Host
+        @Assert: Host is deleted
+        """
         # TODO need to create environment architecture domain etc
         name = generate_name(8)
         self.login.login(self.katello_user, self.katello_passwd)

@@ -34,7 +34,9 @@ class OperatingSys(BaseUI):
 
     def test_create_os(self):
         """
-        create new OS
+        @Feature: OS - Positive Create
+        @Test: Create a new OS
+        @Assert: OS is created
         """
 
         name = generate_name(6)
@@ -50,7 +52,9 @@ class OperatingSys(BaseUI):
 
     def test_remove_os(self):
         """
-        Delete an existing OS
+        @Feature: OS - Positive Delete
+        @Test: Delete an existing OS
+        @Assert: OS is deleted
         """
 
         name = generate_name(6)
@@ -66,7 +70,10 @@ class OperatingSys(BaseUI):
 
     def test_update_os(self):
         """
-        Update OS name, major_version, minor_version, os_family and arch
+        @Feature: OS - Positive Update
+        @Test: Update OS name, major_version, minor_version, os_family
+        and arch
+        @Assert: OS is updated
         """
 
         name = generate_name(6)
@@ -90,7 +97,9 @@ class OperatingSys(BaseUI):
 
     def test_update_os_medium(self):
         """
-        Update OS medium
+        @Feature: OS - Positive Update
+        @Test: Update OS medium
+        @Assert: OS is updated
         """
 
         name = generate_name(6)
@@ -106,7 +115,9 @@ class OperatingSys(BaseUI):
 
     def test_update_os_partition_table(self):
         """
-        Update OS partition table
+        @Feature: OS - Positive Update
+        @Test: Update OS partition table
+        @Assert: OS is updated
         """
 
         name = generate_name(6)
@@ -124,7 +135,9 @@ class OperatingSys(BaseUI):
 
     def test_update_os_template(self):
         """
-        Updates Provisioning template
+        @Feature: OS - Positive Update
+        @Test: Update provisioning template
+        @Assert: OS is updated
         """
 
         os_name = generate_name(6)
@@ -143,7 +156,11 @@ class OperatingSys(BaseUI):
         self.operatingsys.update(os_name, template=template_name)
 
     def test_set_parameter(self):
-        "Set OS parameter"
+        """
+        @Feature: OS - Positive Update
+        @Test: Set OS parameter
+        @Assert: OS is updated
+        """
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         param_name = generate_name(4)
@@ -153,7 +170,11 @@ class OperatingSys(BaseUI):
         self.operatingsys.set_os_parameter(name, param_name, param_value)
 
     def test_remove_parameter(self):
-        "Remove selected OS parameter"
+        """
+        @Feature: OS - Positive Update
+        @Test: Remove selected OS parameter
+        @Assert: OS is updated
+        """
         name = generate_name(6)
         major_version = generate_string('numeric', 1)
         param_name = generate_name(4)
