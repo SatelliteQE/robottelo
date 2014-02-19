@@ -15,6 +15,7 @@ from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
+from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.login import Login
@@ -91,6 +92,7 @@ class BaseUI(unittest.TestCase):
         self.compute_resource = ComputeResource(self.browser)
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)
+        self.gpgkey = GPGKey(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
         self.login = Login(self.browser)
