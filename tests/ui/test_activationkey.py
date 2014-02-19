@@ -38,7 +38,6 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT,
