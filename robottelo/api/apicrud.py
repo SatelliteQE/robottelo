@@ -250,9 +250,9 @@ class ApiCrud(object):
             return ninstance
         else:
             raise Exception(res.status_code,
-                        res.content,
-                        res.request.url,
-                        res.request.body)
+                            res.content,
+                            res.request.url,
+                            res.request.body)
 
     @classmethod
     def record_resolve_recursive(cls, instance):
@@ -309,15 +309,17 @@ class ApiCrud(object):
 
         res = cls.update(instance.id, json=cls.opts(data))
         if res.ok:
-            ninstance = load_from_data(instance.__class__,
+            ninstance = load_from_data(
+                instance.__class__,
                 res.json(),
                 data_load_transform)
             return ninstance
         else:
-            raise Exception(res.status_code,
-                        res.content,
-                        res.request.url,
-                        res.request.body)
+            raise Exception(
+                res.status_code,
+                res.content,
+                res.request.url,
+                res.request.body)
 
     @classmethod
     def record_create(cls, instance_orig):
@@ -337,15 +339,17 @@ class ApiCrud(object):
 
         res = cls.create(json=cls.opts(data))
         if res.ok:
-            ninstance = load_from_data(instance.__class__,
-                            res.json(),
-                            data_load_transform)
+            ninstance = load_from_data(
+                instance.__class__,
+                res.json(),
+                data_load_transform)
             return ninstance
         else:
-            raise Exception(res.status_code,
-                        res.content,
-                        res.request.url,
-                        res.request.body)
+            raise Exception(
+                res.status_code,
+                res.content,
+                res.request.url,
+                res.request.body)
 
     @classmethod
     def record_create_recursive(cls, instance_orig):
@@ -369,9 +373,9 @@ class ApiCrud(object):
 
         #resolve ManyRelated ids
         related_fields = [
-                fld.name for fld in instance._meta.fields
-                if isinstance(fld, ManyRelatedField)
-                ]
+            fld.name for fld in instance._meta.fields
+            if isinstance(fld, ManyRelatedField)
+            ]
 
         for field in related_fields:
             value = instance.__dict__[field]
@@ -393,12 +397,14 @@ class ApiCrud(object):
 
         res = cls.create(json=cls.opts(data))
         if res.ok:
-            ninstance = load_from_data(instance.__class__,
+            ninstance = load_from_data(
+                instance.__class__,
                 res.json(),
                 data_load_transform)
             return ninstance
         else:
-            raise Exception(res.status_code,
-                    res.content,
-                    res.request.url,
-                    res.request.body)
+            raise Exception(
+                res.status_code,
+                res.content,
+                res.request.url,
+                res.request.body)
