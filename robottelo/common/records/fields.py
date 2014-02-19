@@ -136,5 +136,3 @@ class ManyRelatedField(Field):
     def generate(self):
         number = randint(self.min, self.max)
         return [self.record_class() for i in range(number)]
-
-

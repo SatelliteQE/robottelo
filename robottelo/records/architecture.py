@@ -4,9 +4,10 @@ from robottelo.records.operatingsystem import OperatingSystem
 
 
 class ArchitectureApi(ApiCrud):
-       api_path = "/api/architectures/"
-       api_json_key = u"architecture"
-       create_fields = ["name", "operatingsystem_ids"]
+    api_path = "/api/architectures/"
+    api_json_key = u"architecture"
+    create_fields = ["name", "operatingsystem_ids"]
+
 
 class Architecture(records.Record):
     name = records.StringField(required=True)
@@ -14,4 +15,3 @@ class Architecture(records.Record):
 
     class Meta:
         api_class = ArchitectureApi
-

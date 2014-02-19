@@ -7,6 +7,7 @@ from robottelo.records.smartproxy import SmartProxy
 from robottelo.records.partitiontable import PartitionTable
 from robottelo.records.operatingsystem import OperatingSystem
 
+
 class HostApi(ApiCrud):
         api_path = "/api/hosts/"
         api_json_key = u"host"
@@ -22,7 +23,7 @@ class HostApi(ApiCrud):
 
 
 class Host(records.Record):
-    name = records.StringField(format=r"host\d\d\d\d\d")
+    name = records.StringField(format = r"host\d\d\d\d\d")
     root_pass = records.StringField(default = "changeme")
     mac = records.MACField()
     environment = records.RelatedField(Environment)

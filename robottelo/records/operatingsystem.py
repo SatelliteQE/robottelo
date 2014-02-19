@@ -13,6 +13,7 @@ class OperatingSystemApi(ApiCrud):
                          "family",
                          "release_name"]
 
+
 class OperatingSystem(records.Record):
     name = records.StringField()
     major = records.IntegerField()

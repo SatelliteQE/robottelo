@@ -2,6 +2,7 @@
 
 import copy
 
+
 class Options(object):
     """
     Option class for the records.
@@ -101,8 +102,6 @@ class Record(object):
                     val = field.get_default()
             else:
                 val = field.get_default() if not CLEAN else None
-
-
             if not CLEAN:
                 setattr(self, field.name, val)
 

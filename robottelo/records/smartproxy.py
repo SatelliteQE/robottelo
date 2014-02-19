@@ -9,10 +9,11 @@ class SmartProxyApi(ApiCrud):
         create_fields = ["name",
                          "url"]
 
+
 class SmartProxy(records.Record):
     name = records.StringField()
     url = records.StringField(
-            default="https://" + conf.properties['main.server.hostname'])
+        default="https://" + conf.properties['main.server.hostname'])
 
     class Meta:
         api_class = SmartProxyApi
