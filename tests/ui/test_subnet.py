@@ -89,7 +89,6 @@ class Subnet(BaseUI):
         @Assert: Subnet name is updated
         """
 
-
         subnet_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
