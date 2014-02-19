@@ -84,7 +84,7 @@ class Record(object):
 
     def __init__(self, *args, **kwargs):
 
-        CLEAN = "CLEAN" in kwargs and kwargs.pop("CLEAN")
+        blank = "BLANK" in kwargs and kwargs.pop("BLANK")
 
         fields_iter = iter(self._meta.fields)
         for val, field in zip(args, fields_iter):
@@ -101,8 +101,8 @@ class Record(object):
                 except KeyError:
                     val = field.get_default()
             else:
-                val = field.get_default() if not CLEAN else None
-            if not CLEAN:
+                val = field.get_default() if not blank else None
+            if not blank:
                 setattr(self, field.name, val)
 
         # Process any property defined on record
@@ -122,6 +122,6 @@ class Record(object):
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
         if hasattr(self, '_post_init'):
-            if not CLEAN:
+            if not blank:
                 post_init = getattr(self, '_post_init')
                 post_init()

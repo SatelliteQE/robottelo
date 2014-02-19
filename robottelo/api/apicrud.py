@@ -18,7 +18,7 @@ def convert_to_data(instance):
 
 def load_from_data(cls, data, transform):
     """Loads instance attributes from a data dictionary"""
-    instance = cls(CLEAN=True)
+    instance = cls(BLANK=True)
     related = {
         field.name: field for field in instance._meta.fields
         if isinstance(field, RelatedField)
@@ -270,7 +270,7 @@ class ApiCrud(object):
         for fld in related_fields:
             if hasattr(ninstance, (fld.name + "_id")):
                 related_class = fld.record_class
-                related = related_class(CLEAN=True)
+                related = related_class(BLANK=True)
                 related.id = instance.__dict__[(fld.name + "_id")]
                 related = cls.record_resolve(related)
                 ninstance.__dict__[fld.name] = related
