@@ -13,6 +13,7 @@ class PTableApi(ApiCrud):
                          "operatingsystem_ids",
                          "os_family"]
 
+
 class PartitionTable(records.Record):
     name = records.StringField()
     layout = records.StringField(default="d-i partman-auto/disk")

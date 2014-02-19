@@ -6,24 +6,28 @@ Module for mixin of basic crud methods based on api_path class method.
 
 import robottelo.api.base as base
 
-from robottelo.common.records import ManyRelatedField , RelatedField
+from robottelo.common.records import ManyRelatedField, RelatedField
+
 
 def convert_to_data(instance):
     """Converts an instance to a data dictionary"""
 
-    return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k!="")}
+    return {k:v for k, v in instance.__dict__.items()
+            if (not k.startswith("_") and k != "")}
 
 
-def load_from_data(cls, data, transform_related = lambda instance_cls, data: args):
+def load_from_data(cls, data, transform):
     """Loads instance attributes from a data dictionary"""
     instance = cls(CLEAN=True)
-    related = {field.name : field for field in instance._meta.fields if isinstance(field, RelatedField)}
-    data = transform_related(cls, data)
+    related = {
+        field.name:field for field in instance._meta.fields
+            if isinstance(field, RelatedField)
+        }
+    data = transform(cls, data)
     for k, v in data.items():
         if k in related:
             related_class = related[k].record_class
-            related_instance = load_from_data(related_class, v, transform_related)
+            related_instance = load_from_data(related_class, v, transform)
             instance.__dict__[k] = related_instance
         else:
             instance.__dict__[k] = v
@@ -185,7 +189,8 @@ class ApiCrud(object):
     def record_exists(cls, instance):
         """Checks if record is resolveable."""
         if cls != instance._meta.api_class:
-            return instance._meta.api_class.record_exists(instance)
+            api = instance._meta.api_class
+            return api.record_exists(instance)
 
         if hasattr(instance, "id"):
             res = cls.show(instance.id)
@@ -201,7 +206,8 @@ class ApiCrud(object):
     def record_remove(cls, instance):
         """Removes record by its id, or name"""
         if cls != instance._meta.api_class:
-            return instance._meta.api_class.record_remove(instance)
+            api = instance._meta.api_class
+            return api.record_remove(instance)
 
         if hasattr(instance,"id"):
             res = cls.delete(instance.id)
@@ -220,7 +226,8 @@ class ApiCrud(object):
         and parses it into new record
         """
         if cls != instance._meta.api_class:
-            return instance._meta.api_class.record_resolve(instance)
+            api = instance._meta.api_class
+            return api.record_resolve(instance)
 
         res = None
         json = None
@@ -269,7 +276,9 @@ class ApiCrud(object):
             elif hasattr(ninstance , fld.name) :
                 related = ninstance.__dict__[fld.name]
                 if isinstance(related, RelatedField):
-                    ninstance.__dict__[fld.name] = cls.record_resolve(related)
+                    resolved = cls.record_resolve(related)
+
+                    ninstance.__dict__[fld.name] = resolved
         return ninstance
 
     @classmethod
@@ -277,7 +286,8 @@ class ApiCrud(object):
         """Updates the record, doesn't touch related fields
         """
         if cls != instance._meta.api_class:
-            return instance._meta.api_class.record_update(instance)
+            api = instance._meta.api_class
+            return api.record_update(instance)
 
         if not hasattr(instance,"id"):
             res = cls.list(json=dict(search="name="+instance.name))
@@ -313,7 +323,8 @@ class ApiCrud(object):
         """Creates the record, doesn't touch related fields
         """
         if cls != instance_orig._meta.api_class:
-            return instance_orig._meta.api_class.record_create(instance_orig)
+            api = instance._meta.api_class
+            return api.record_create(instance_orig)
         instance = instance_orig.copy()
 
         data = convert_to_data(instance)
