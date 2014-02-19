@@ -28,7 +28,9 @@ class TestFact(BaseCLI):
     @attr('cli', 'fact')
     def test_list_success(self, fact):
         """
-        basic `list` operation test.
+        @Feature: Fact - List Positive
+        @Test: Test Fact List
+        @Assert: Fact List is displayed
         """
 
         args = {
@@ -46,7 +48,9 @@ class TestFact(BaseCLI):
     @attr('cli', 'fact')
     def test_list_fail(self, fact):
         """
-        basic `list` operation test.
+        @Feature: Fact - List Negative
+        @Test: Test Fact List failure
+        @Assert: Fact List is not displayed
         """
 
         args = {

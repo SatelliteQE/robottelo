@@ -501,6 +501,7 @@ class TestGPGKey(BaseCLI):
         import then associate it to repository from custom product that has
         more than one repository
         gpg key is associated with product and one of the repositories
+        @assert: gpg key is associated with the repository
         @status: manual
         """
 

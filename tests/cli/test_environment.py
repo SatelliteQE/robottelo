@@ -52,6 +52,11 @@ class TestEnvironment(MetaCLI):
     )
 
     def test_info(self):
+        """
+        @Feature: Environment - Info
+        @Test: Test Environment Info
+        @Assert: Environment Info is displayed
+        """
         name = generate_name()
         Environment().create({'name': name})
         sleep_for_seconds(5)  # give time to appear in the list
@@ -64,6 +69,11 @@ class TestEnvironment(MetaCLI):
                           "Environment info - stdout contains 'Name'")
 
     def test_list(self):
+        """
+        @Feature: Environment - List
+        @Test: Test Environment List
+        @Assert: Environment List is displayed
+        """
         name = generate_name()
         Environment().create({'name': name})
         result = Environment().list({'search': name})

@@ -28,7 +28,9 @@ class TestReport(BaseCLI):
 
     def test_list(self):
         """
-        Displays list for puppet report.
+        @Feature: Puppet Report - list
+        @Test: Test list for Puppet report
+        @Assert: Puppert Report List is displayed
         """
 
         self.run_puppet_agent()
@@ -39,7 +41,9 @@ class TestReport(BaseCLI):
 
     def test_info(self):
         """
-        Displays info for puppet report.
+        @Feature: Puppet Report - Info
+        @Test: Test Info for Puppet report
+        @Assert: Puppet Report Info is displayed
         """
         self.run_puppet_agent()
 
@@ -53,7 +57,9 @@ class TestReport(BaseCLI):
 
     def test_delete(self):
         """
-        Delete a puppet report.
+        @Feature: Puppet Report- Delete
+        @Test: Check if Puppet Report can be deleted
+        @Assert: Puppet Report is deleted
         """
         self.run_puppet_agent()
 

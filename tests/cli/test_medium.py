@@ -46,13 +46,21 @@ class TestMedium(MetaCLI):
         self.assertTrue(Medium().exists(('name', args['name'])).stdout)
 
     def test_create_medium_1(self):
-        "Successfully creates a new medium"
+        """
+        @Feature: Medium - Positive Create
+        @Test: Check if Medium can be created
+        @Assert: Medium is created
+        """
 
         name = generate_name(6)
         self._create_medium(name)
 
     def test_delete_medium_1(self):
-        "Creates and immediately deletes medium."
+        """
+        @Feature: Medium - Positive Delete
+        @Test: Check if Medium can be deleted
+        @Assert: Medium is deleted
+        """
 
         name = generate_name(6)
         self._create_medium(name)
