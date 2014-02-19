@@ -8,10 +8,8 @@ Base class for all cli tests
 import logging
 import unittest
 
-from robottelo.common import conf
 
-
-class BaseApi(unittest.TestCase):
+class BaseAPI(unittest.TestCase):
     """
     Base class for all cli tests
     """

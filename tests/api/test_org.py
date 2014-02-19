@@ -5,11 +5,10 @@ from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
 from tests.api.baseapi import BaseAPI
-from tests.api.positive_crud_tests import PositiveCrudTestMixin
 
 
 @ddt
-class Organization(BaseApi):
+class Organization(BaseAPI):
     """Testing /api/organization entrypoint"""
 
     # Positive Create

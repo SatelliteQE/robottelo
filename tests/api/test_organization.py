@@ -4,21 +4,12 @@
 from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
+from robottelo.api.apicrud import ApiCrud
 from tests.api.baseapi import BaseAPI
-from tests.api.positive_crud_tests import PositiveCrudTestMixin
 
-import rstr
-
-data = {"alpha": "\w+",
-        "numeric": "\d+",
-        "alphanumeric": "\d+",
-        "utf-8" : ["العربية"],
-        "latin1" : ["latin"],
-        "html" : ["<a href=""> test </a>"],
-        }
 
 @ddt
-class Organization(BaseApi):
+class Organization(BaseAPI):
     """Testing /api/organization entrypoint"""
 
     # Positive Create
