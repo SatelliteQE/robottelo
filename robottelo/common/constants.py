@@ -87,6 +87,8 @@ INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 VALID_GPG_KEY_FILE = "valid_gpg_key.txt"
 
+VALID_GPG_KEY_BETA_FILE = "valid_gpg_key_beta.txt"
+
 ENVIRONMENT = "Library"
 
 NOT_IMPLEMENTED = 'Test not implemented'

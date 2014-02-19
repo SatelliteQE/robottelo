@@ -52,7 +52,7 @@ class GPGKey(Base):
 
         element = None
         strategy = locators["gpgkey.key_name"][0]
-        value = locators["gpg.key_name"][1]
+        value = locators["gpgkey.key_name"][1]
         searchbox = self.wait_until_element(common_locators["kt_search"])
         if searchbox:
             searchbox.clear()
@@ -66,23 +66,37 @@ class GPGKey(Base):
         """
         Deletes an existing gpg key.
         """
+        element = self.search(name)
 
-        strategy = locators["gpgkey.key_name"][0]
-        value = locators["gpgkey.key_name"][1]
-        searchbox = self.wait_until_element(common_locators["kt_search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(name)
+        if element:
+            element.click()
             self.wait_for_ajax()
-            self.find_element(common_locators["kt_search_button"]).click()
-            element = self.wait_until_element((strategy, value % name))
-            if element:
-                element.click()
-                self.wait_until_element(locators["gpgkey.remove"]).click()
-                if really:
-                    self.wait_until_element(common_locators
-                                            ["confirm_remove"]
-                                            ).click()
-                else:
-                    raise Exception(
-                        "Could not delete the selected key '%s'." % name)
+            self.wait_until_element(locators["gpgkey.remove"]).click()
+            if really:
+                self.wait_until_element(common_locators["confirm_remove"]
+                                        ).click()
+            else:
+                raise Exception(
+                    "Could not delete the selected key '%s'." % name)
+
+    def update(self, name, new_name=None, new_key=None):
+        """
+        Updates an existing GPG key
+        """
+
+        element = self.search(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            if new_name:
+                self.edit_entity("gpgkey.edit_name", "gpgkey.edit_name_text",
+                                 new_name, "gpgkey.save_name")
+                self.wait_for_ajax()
+            if new_key:
+                self.wait_until_element(locators["gpgkey.file_path"]
+                                        ).send_keys(new_key)
+                self.wait_until_element(locators
+                                        ["gpgkey.upload_button"]).click()
+        else:
+            raise Exception("Could not update the gpg key '%s'" % name)

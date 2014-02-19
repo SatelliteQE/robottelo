@@ -766,10 +766,20 @@ locators = {
     "gpgkey.content": (
         By.XPATH, "//textarea[@placeholder='Paste contents...']"),
     "gpgkey.file_path": (
-        By.XPATH, "//input[@type='file' and @name='file_path']"),
+        By.XPATH, "//input[@type='file']"),
     "gpgkey.key_name": (
         By.XPATH,
         "//tr[@ng-repeat='gpgKey in table.rows']/td/a[contains(., '%s')]"),
     "gpgkey.remove": (
+        By.XPATH, "//button[@ng-click='openModal()']"),
+    "gpgkey.edit_name": (
+        By.XPATH, "//form[@alch-edit-text='gpgKey.name']//div/span/i"),
+    "gpgkey.edit_name_text": (
         By.XPATH,
-        "//button[@ng-click='openModal()']")}
+        "//form[@alch-edit-text='gpgKey.name']/div/input"),
+    "gpgkey.save_name": (
+        By.XPATH,
+        "//form[@alch-edit-text='gpgKey.name']\
+        //button[@ng-click='save()']"),
+    "gpgkey.upload_button": (
+        By.XPATH, "//button[@ng-click='progress.uploading = true']")}

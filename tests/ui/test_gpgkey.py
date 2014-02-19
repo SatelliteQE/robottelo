@@ -11,7 +11,7 @@ from tests.ui.baseui import BaseUI
 
 
 @ddt
-class TestGPGKey(BaseUI):
+class GPGKey(BaseUI):
     """IMplements tests for GPG Keys via UI"""
 
     # Positive Create
