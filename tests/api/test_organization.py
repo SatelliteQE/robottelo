@@ -3,7 +3,6 @@
 
 from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import redminebug
 from robottelo.api.apicrud import ApiCrud
 from tests.api.baseapi import BaseAPI
 
@@ -396,4 +395,3 @@ class Organization(BaseAPI):
         """
 
         self.fail(NOT_IMPLEMENTED)
-
