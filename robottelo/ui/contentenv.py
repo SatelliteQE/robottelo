@@ -6,7 +6,7 @@ Implements Life cycle content environments
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 
 
 class ContentEnvironment(Base):
@@ -35,13 +35,12 @@ class ContentEnvironment(Base):
             element = self.wait_until_element((strategy, value % prior))
             if element:
                 element.click()
-        if self.wait_until_element(locators["content_env.name"]):
-            self.field_update("content_env.name", name)
+        if self.wait_until_element(common_locators["name"]):
+            self.text_field_update(common_locators["name"], name)
             if description:
-                if self.wait_until_element(locators
-                                           ["content_env.description"]):
-                    self.field_update("content_env.description", description)
-            self.wait_until_element(locators["content_env.create"]).click()
+                self.text_field_update(common_locators
+                                       ["description"], description)
+            self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(
@@ -59,16 +58,15 @@ class ContentEnvironment(Base):
             element.click()
             self.wait_until_element(locators["content_env.remove"]).click()
             if really:
-                self.wait_until_element(locators
-                                        ["content_env.confirm_remove"]
-                                        ).click()
+                self.wait_until_element(common_locators
+                                        ["confirm_remove"]).click()
         else:
             raise Exception(
                 "Could not delete the selected environment '%s'." % name)
 
     def update(self, name, new_name=None, description=None):
         """
-       Updates an existing environment.
+        Updates an existing environment.
         """
 
         strategy = locators["content_env.select_name"][0]
