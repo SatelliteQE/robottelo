@@ -44,14 +44,22 @@ class TestTemplate(BaseCLI):
         self.assertTrue(Template().exists(('name', args['name'])).stdout)
 
     def test_create_template_1(self):
-        "Successfully creates a new template"
+        """
+        @Feature: Template - Create
+        @Test: Check if Template can be created
+        @Assert: Template is created
+        """
 
         content = generate_name()
         name = generate_name(6)
         self._create_template(name=name, content=content)
 
     def test_dump_template_1(self):
-        "Creates template with specific content."
+        """
+        @Feature: Template - Create
+        @Test: Check if Template can be created with specific content
+        @Assert: Template is created with specific content
+        """
 
         content = generate_name()
         name = generate_name(6)
@@ -67,7 +75,11 @@ class TestTemplate(BaseCLI):
         self.assertTrue(content in template_content.stdout[0])
 
     def test_delete_medium_1(self):
-        "Creates and immediately deletes template."
+        """
+        @Feature: Template - Delete
+        @Test: Check if Template can be deleted
+        @Assert: Template is deleted
+        """
 
         content = generate_name()
         name = generate_name(6)

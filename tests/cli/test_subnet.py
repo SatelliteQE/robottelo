@@ -30,7 +30,11 @@ class TestSubnet(BaseCLI):
 
     @attr('cli', 'subnet')
     def test_create(self):
-        """ `subnet create` basic test (minimal params required) """
+        """
+        @Feature: Subnet - Create
+        @Test: Check if Subnet can be created
+        @Assert: Subnet is created
+        """
         result = Subnet().create_minimal()
         self.assertTrue(result.return_code == 0,
                         "Subnet create - exit code %d" %
@@ -38,7 +42,11 @@ class TestSubnet(BaseCLI):
 
     @attr('cli', 'subnet')
     def test_info(self):
-        """`subnet info` basic test """
+        """
+        @Feature: Subnet - Info
+        @Test: Check if Subnet Info is displayed
+        @Assert: Subnet Info is displayed
+        """
         options = {}
         options['name'] = generate_name(8, 8)
         options['network'] = generate_ipaddr(ip3=True)
@@ -56,7 +64,11 @@ class TestSubnet(BaseCLI):
 
     @attr('cli', 'subnet')
     def test_list(self):
-        """ `subnet list` basic test """
+        """
+        @Feature: Subnet - List
+        @Test: Check if Subnet can be listed
+        @Assert: Subnet is listed
+        """
         result = Subnet().list({'per-page': '10'})
         self.assertGreater(len(result.stdout), 0,
                            "Subnet list - returns > 0 records")
@@ -76,7 +88,11 @@ class TestSubnet(BaseCLI):
     )
     @attr('cli', 'subnet')
     def test_update_success_ddt(self, option_dict):
-        """ `subnet update` basic test (different options) """
+        """
+        @Feature: Subnet - Update
+        @Test: Check if Subnet can be udpated (with different options)
+        @Assert: Subnet is updated
+        """
         options = {}
         options['name'] = self.subnet_192_168_100
         for option in option_dict:
@@ -88,7 +104,11 @@ class TestSubnet(BaseCLI):
 
     @attr('cli', 'subnet')
     def test_delete(self):
-        """ `subnet delete` basic test """
+        """
+        @Feature: Subnet - Delete
+        @Test: Check if Subnet can be deleted
+        @Assert: Subnet is deleted
+        """
         name = generate_name()
         options = {}
         options['name'] = name

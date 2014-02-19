@@ -15,7 +15,11 @@ class TestProxy(BaseCLI):
 
     @redminebug('3875')
     def test_create_proxy(self):
-        """Create a new proxy"""
+        """
+        @Feature: Proxy - Create
+        @Test: Check if Proxy can be created
+        @Assert: Proxy is created
+        """
 
         result = make_proxy()
         proxy = Proxy().info({'name': result['name']})
