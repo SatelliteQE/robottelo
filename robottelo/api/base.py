@@ -1,8 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-"""
-Module for our utility wrapper around requests library.
-"""
 
 import json as js
 import requests

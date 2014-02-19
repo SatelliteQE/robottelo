@@ -1,5 +1,7 @@
 """Records class definition with its options and metaclass"""
 
+import copy
+
 
 class Options(object):
     """
@@ -77,7 +79,13 @@ class RecordBase(type):
 class Record(object):
     __metaclass__ = RecordBase
 
+    def copy(self):
+        return copy.deepcopy(self)
+
     def __init__(self, *args, **kwargs):
+
+        blank = "BLANK" in kwargs and kwargs.pop("BLANK")
+
         fields_iter = iter(self._meta.fields)
         for val, field in zip(args, fields_iter):
             setattr(self, field.name, val)
@@ -93,9 +101,9 @@ class Record(object):
                 except KeyError:
                     val = field.get_default()
             else:
-                val = field.get_default()
-
-            setattr(self, field.name, val)
+                val = field.get_default() if not blank else None
+            if not blank:
+                setattr(self, field.name, val)
 
         # Process any property defined on record
         if kwargs:
@@ -114,5 +122,6 @@ class Record(object):
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
         if hasattr(self, '_post_init'):
-            post_init = getattr(self, '_post_init')
-            post_init()
+            if not blank:
+                post_init = getattr(self, '_post_init')
+                post_init()
