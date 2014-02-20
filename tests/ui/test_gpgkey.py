@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Test class for GPG Key CLI
+Test class for GPG Key UI
 """
 
 from ddt import data, ddt
@@ -11,8 +11,8 @@ from tests.ui.baseui import BaseUI
 
 
 @ddt
-class TestGPGKey(BaseUI):
-    """Tests for GPG Keys via Hammer CLI"""
+class GPGKey(BaseUI):
+    """IMplements tests for GPG Keys via UI"""
 
     # Positive Create
 

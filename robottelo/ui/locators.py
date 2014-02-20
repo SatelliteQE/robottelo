@@ -759,4 +759,27 @@ locators = {
         By.XPATH,
         ("//form[@alch-edit-textarea='workingOn.environment.description']"
          "//button[@ng-click='save()']")),
-    }
+
+    #GPG Key
+    "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpgKeys.new']"),
+    "gpgkey.upload": (By.XPATH, "//input[@type='radio'and @value='upload']"),
+    "gpgkey.content": (
+        By.XPATH, "//textarea[@placeholder='Paste contents...']"),
+    "gpgkey.file_path": (
+        By.XPATH, "//input[@type='file']"),
+    "gpgkey.key_name": (
+        By.XPATH,
+        "//tr[@ng-repeat='gpgKey in table.rows']/td/a[contains(., '%s')]"),
+    "gpgkey.remove": (
+        By.XPATH, "//button[@ng-click='openModal()']"),
+    "gpgkey.edit_name": (
+        By.XPATH, "//form[@alch-edit-text='gpgKey.name']//div/span/i"),
+    "gpgkey.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='gpgKey.name']/div/input"),
+    "gpgkey.save_name": (
+        By.XPATH,
+        "//form[@alch-edit-text='gpgKey.name']\
+        //button[@ng-click='save()']"),
+    "gpgkey.upload_button": (
+        By.XPATH, "//button[@ng-click='progress.uploading = true']")}
