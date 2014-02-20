@@ -71,11 +71,10 @@ class BaseUI(unittest.TestCase):
             elif self.driver_name.lower() == 'ie':
                 self.browser = webdriver.Ie()
             elif self.driver_name.lower() == 'phantomjs':
+                service_args = ['--ignore-ssl-errors=true']
                 self.browser = webdriver.PhantomJS(
-                    desired_capabilities={
-                        'acceptSslCerts': True,
-                        'javascriptEnabled': True
-                    })
+                    service_args=service_args
+                    )
             else:
                 self.browser = webdriver.Remote()
         else:
