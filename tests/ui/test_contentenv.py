@@ -6,6 +6,7 @@ Test class for Life cycle environments UI
 """
 
 from nose.plugins.attrib import attr
+from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
@@ -67,6 +68,7 @@ class ContentEnvironment(BaseUI):
                         (common_locators["alert.success"]))
 
     @attr('ui', 'contentenv', 'implemented')
+    @bzbug('1063273')
     def test_positive_update_content_environment_1(self):
         """
         @Feature: Content Environment - Positive Update
