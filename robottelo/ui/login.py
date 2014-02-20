@@ -40,7 +40,7 @@ class Login(Base):
                 nav = Navigator(self.browser)
                 nav.go_to_org()
                 nav.select_org(organization)
-            
+
     def logout(self):
         """
         Logout user from UI

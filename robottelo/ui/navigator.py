@@ -340,5 +340,5 @@ class Navigator(Base):
         else:
             org_inst = Org(self.browser)
             org_inst.create(org)
-            self.go_to_org() 
+            self.go_to_org()
             self.go_to_select_org(org)
