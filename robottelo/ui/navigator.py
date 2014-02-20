@@ -7,6 +7,7 @@ Implements Navigator UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import menu_locators
+from robottelo.ui.org import Org
 from selenium.webdriver.common.action_chains import ActionChains
 
 
@@ -325,3 +326,19 @@ class Navigator(Base):
         else:
             raise Exception(
                 "Could not select the org: '%s'" % org)
+
+    def select_org(self, org):
+        self.menu_click(
+            menu_locators['org.any_context'],
+            menu_locators['org.nav_current_org'],
+            menu_locators['org.select_org'], entity=org
+        )
+        current_org = self.wait_until_element(menu_locators
+                                              ['org.current_org']).text
+        if org == str(current_org):
+            return org
+        else:
+            org_inst = Org(self.browser)
+            org_inst.create(org)
+            self.go_to_org() 
+            self.go_to_select_org(org)

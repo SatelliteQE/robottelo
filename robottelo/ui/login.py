@@ -26,7 +26,7 @@ class Login(Base):
         Logins user from UI
         """
 
-        organization = organization or 'ACME_Corporation'
+        organization = organization or 'ACME'
 
         if self.wait_until_element(locators["login.username"]):
             self.field_update("login.username", username)
@@ -36,7 +36,11 @@ class Login(Base):
 
             if self.find_element(common_locators["notif.error"]):
                 return
-
+            if organization:
+                nav = Navigator(self.browser)
+                nav.go_to_org()
+                nav.select_org(organization)
+            
     def logout(self):
         """
         Logout user from UI
