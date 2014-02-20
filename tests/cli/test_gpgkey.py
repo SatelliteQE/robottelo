@@ -9,10 +9,15 @@ from ddt import data, ddt
 #from robottelo.cli.gpgkey import GPGKey
 #from robottelo.cli.factory import make_gpg_key
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import redminebug
 from tests.cli.basecli import BaseCLI
 
 
 @ddt
+@redminebug('4272')
+@redminebug('4271')
+@redminebug('4263')
+@redminebug('4262')
 class TestGPGKey(BaseCLI):
     """Tests for GPG Keys via Hammer CLI"""
 

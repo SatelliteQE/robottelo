@@ -309,7 +309,7 @@ class Navigator(Base):
 
     def go_to_org(self):
         self.menu_click(
-            locators['org.any_context'], locators['org.manage_org'],
+            menu_locators['org.any_context'], menu_locators['org.manage_org'],
         )
 
     def go_to_select_org(self, org):
