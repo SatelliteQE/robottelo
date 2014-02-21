@@ -61,8 +61,7 @@ class Base(object):
         # Do not proceed if searchbox is not found
         if searchbox is None:
             raise Exception("Search box not found.")
-
-        if searchbox:
+        else:
             searchbox.clear()
             if search_button:
                 searchbox.send_keys(search_key + " = " + element_name)
@@ -71,7 +70,7 @@ class Base(object):
                 searchbox.send_keys(element_name)
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
-        return element
+            return element
 
     def handle_alert(self, really):
         """
