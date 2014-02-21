@@ -6,7 +6,11 @@ Test class for GPG Key UI
 """
 
 from ddt import data, ddt
-from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.constants import NOT_IMPLEMENTED, VALID_GPG_KEY_FILE, \
+    VALID_GPG_KEY_BETA_FILE
+from robottelo.common.helpers import generate_name, get_data_file, \
+    read_data_file, valid_names_list
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -16,16 +20,8 @@ class GPGKey(BaseUI):
 
     # Positive Create
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-        """)
-    def test_positive_create_1(self):
+    @data(*valid_names_list())
+    def test_positive_create_1(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file import
@@ -33,18 +29,14 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-        """)
-    def test_positive_create_2(self):
+    @data(*valid_names_list())
+    def test_positive_create_2(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
@@ -53,7 +45,11 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
 
         #Negative Create
 
@@ -161,16 +157,8 @@ class GPGKey(BaseUI):
 
     # Positive Delete
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_positive_delete_1(self):
+    @data(*valid_names_list())
+    def test_positive_delete_1(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
@@ -179,18 +167,16 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-""")
-    def test_positive_delete_2(self):
+    @data(*valid_names_list())
+    def test_positive_delete_2(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
@@ -199,7 +185,13 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
 
     # Negative Delete
 
@@ -249,16 +241,7 @@ class GPGKey(BaseUI):
 
     # Positive Update
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_positive_update_1(self):
+    def test_positive_update_1(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
@@ -267,17 +250,17 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        new_name = generate_name(6)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.update(name, new_name)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.success"]))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
     def test_positive_update_2(self):
         """
         @feature: GPG Keys
@@ -287,17 +270,17 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.update(name, new_key=new_key_path)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.success"]))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-""")
     def test_positive_update_3(self):
         """
         @feature: GPG Keys
@@ -307,17 +290,17 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        new_name = generate_name(6)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.update(name, new_name)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.success"]))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-""")
     def test_positive_update_4(self):
         """
         @feature: GPG Keys
@@ -327,7 +310,16 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.update(name, new_key=new_key_path)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.success"]))
 
     # Negative Update
 
