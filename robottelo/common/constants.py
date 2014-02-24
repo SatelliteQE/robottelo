@@ -98,3 +98,29 @@ REPO_TYPE = {'yum': "yum",
 
 REPO_URL = {'rhel65': ("http://download.eng.pnq.redhat.com/pub/"
                        "rhel/released/RHEL-6/6.5/Server/x86_64/os/")}
+
+FAKE_URL = {'zoo': "http://inecas.fedorapeople.org/fakerepos/zoo3/"}
+
+PRDS = {'rhcf': "Red Hat CloudForms",
+        'rhel': "Red Hat Enterprise Linux Server"}
+
+REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
+           'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)"}
+
+rhcf = [('rhcf', 'rhct6', 'rhct65', 'rhct65_n',
+         'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6.5'),
+        ('rhcf', 'rhct6', 'rhct65', 'rhct65_a', 'x86_64'),
+        ('rhcf', 'rhct6', 'rhct65', 'rhct65_v', '6.5'),
+        ('rhcf', 'rhct6', 'rhct6S', 'rhct6S_n',
+         'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server'),
+        ('rhcf', 'rhct6', 'rhct6S', 'rhct6S_a', 'x86_64'),
+        ('rhcf', 'rhct6', 'rhct6S', 'rhct6S_v', '6Server')]
+
+rhel = [('rhel', 'rhel6', 'rhel65', 'rhel65_n',
+         'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.5'),
+        ('rhel', 'rhel6', 'rhel65', 'rhel65_a', 'x86_64'),
+        ('rhel', 'rhel6', 'rhel65', 'rhel65_v', '6.5'),
+        ('rhel', 'rhel6', 'rhel6S', 'rhel6S_n',
+         'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server'),
+        ('rhel', 'rhel6', 'rhel6S', 'rhel6S_a', 'x86_64'),
+        ('rhel', 'rhel6', 'rhel6S', 'rhel6S_v', '6Server')]

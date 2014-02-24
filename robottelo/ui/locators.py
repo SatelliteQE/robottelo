@@ -594,7 +594,8 @@ locators = {
     "prd.repo_discovery": (
         By.XPATH, "//button[contains(@ui-sref,'products.discovery')]"),
     "prd.new_provider": (
-        By.XPATH, "//a[@ui-sref='products.new.provider']"),
+        By.XPATH, ("//a[@class='ng-scope' and "
+                   "@ui-sref='products.new.provider']")),
     "prd.provider": (By.ID, "provider_id"),
     "prd.sync_plan": (By.ID, "sync_plan_id"),
     "prd.new_sync_plan": (
@@ -729,4 +730,34 @@ locators = {
         //div/span/i"),
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /select")}
+        /select"),
+
+    # Sync Plans
+    "sync.prd_expander": (
+        By.XPATH, "//span[@class='expander']/../../td[contains(.,'%s')]"),
+    "sync.repo_checkbox": (
+        By.XPATH, ("//label[@class='fl' and contains(.,'%s')]/../"
+                   "input[@type='checkbox']")),
+    "sync.sync_now": (
+        By.ID, "sync_button"),
+    "sync.fetch_result": (
+        By.XPATH, "//label[contains(.,'%s')]/../../td[@class='result']/span"),
+    "sync.cancel": (
+        By.XPATH, ("//label[contains(.,'%s')]/../../td[@class='result']"
+                   "/span/a[@class='cancel_sync']")),
+    "sync.verarch_expander": (
+        By.XPATH, "//td[contains(.,'%s')]/span[@class='expander']"),
+
+    # Enable RH Repos expander
+    "rh.prd_expander": (
+        By.XPATH, ("//div[@id='ui-tabs-1']//td[contains(.,'%s')]"
+                   "/span[@class='expander']")),
+    "rh.reposet_expander": (
+        By.XPATH, ("//span[@class='expander_area' and contains(.,'%s')]"
+                   "/span")),
+    "rh.reposet_checkbox": (
+        By.XPATH, ("//span[@class='expander_area' and contains(.,'%s')]"
+                   "/../../td/input[@class='repo_set_enable']")),
+    "rh.repo_checkbox": (
+        By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
+                   "/../td/label/input[@class='repo_enable']"))}

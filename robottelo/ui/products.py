@@ -1,7 +1,7 @@
 """
 Implements Products UI
 """
-
+from time import sleep
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
@@ -31,6 +31,7 @@ class Products(Base):
             type_ele = self.wait_until_element(locators["prd.provider"])
             Select(type_ele).select_by_visible_text(provider)
         elif provider and create_provider:
+            sleep(2)
             self.wait_until_element(locators["prd.new_provider"]).click()
             self.text_field_update(common_locators["name"], name)
             self.wait_until_element(common_locators["create"]).click()
