@@ -13,7 +13,11 @@ class TestGlobalParameter(BaseCLI):
     """ GlobalParameter related CLI tests. """
 
     def test_set(self):
-        """ `global_parameter set` basic test """
+        """
+        @Feature: Global Param - Set
+        @Test: Check if Global Param can be set
+        @Assert: Global Param is set
+        """
         name = "opt-%s" % generate_name(8, 8)
         value = "val-%s" % generate_name(12, 12) + " " + generate_name()
         result = GlobalParameter().set({
@@ -24,7 +28,11 @@ class TestGlobalParameter(BaseCLI):
                           result.return_code)
 
     def test_list(self):
-        """ `global_parameter list` basic test """
+        """
+        @Feature: Global Param - List
+        @Test: Test Global Param List
+        @Assert: Global Param List is displayed
+        """
         name = "opt-%s" % generate_name(8, 8)
         value = "val-%s" % generate_name(12, 12) + " " + generate_name()
         result = GlobalParameter().set({
@@ -43,7 +51,11 @@ class TestGlobalParameter(BaseCLI):
                           "GlobalParameter list - value matches")
 
     def test_delete(self):
-        """ `global_parameter delete` basic test """
+        """
+        @Feature: Global Param - Delete
+        @Test: Check if Global Param can be deleted
+        @Assert: Global Param is deleted
+        """
         name = "opt-%s" % generate_name(8, 8)
         value = "val-%s" % generate_name(12, 12) + " " + generate_name()
         result = GlobalParameter().set({

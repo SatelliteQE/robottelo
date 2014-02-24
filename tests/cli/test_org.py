@@ -30,7 +30,11 @@ class TestOrg(BaseCLI):
 
     @bzbug('1062306')
     def test_create_org(self):
-        """Org Creation - Successfully creates a new org"""
+        """
+        @Feature: Org - Positive Create
+        @Test: Check if Org can be created
+        @Assert: Org is created
+        """
         result = make_org()
         org_info = Org().info({'name': result['name']})
         #TODO: Assert fails currently for an existing bug
@@ -38,7 +42,11 @@ class TestOrg(BaseCLI):
 
     @bzbug('1061658')
     def test_delete_org(self):
-        """Org Deletion - Successfully deletes an org"""
+        """
+        @Feature: Org - Positive Delete
+        @Test: Check if Org can be deleted
+        @Assert: Org is deleted
+        """
         result = make_org()
         return_value = Org().delete({'name': result['name']})
         self.assertTrue(return_value.return_code == 0,
@@ -46,14 +54,22 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_list_org(self):
-        """Org list - Successfully displays the list of available orgs"""
+        """
+        @Feature: Org - List
+        @Test: Check if Org can be listed
+        @Assert: Org is listed
+        """
         return_value = Org().list()
         self.assertTrue(return_value.return_code == 0,
                         "List Org - retcode")
         self.assertFalse(return_value.stderr)
 
     def test_info_org(self):
-        """Org info - Successfully displays the info of an org"""
+        """
+        @Feature: Org - Info
+        @Test: Check if Org info can be retrieved
+        @Assert: Org info is retreived
+        """
         result = make_org()
         return_value = Org().info({'name': result['name']})
         self.assertTrue(return_value.return_code == 0,
@@ -61,7 +77,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_subnet(self):
-        """Add a subnet to an org"""
+        """
+        @Feature: Org - Subnet
+        @Test: Check if a subnet can be added to an Org
+        @Assert: Subnet is added to the org
+        """
         org_result = make_org()
         subnet_result = make_subnet()
         return_value = Org().add_subnet(
@@ -71,7 +91,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_remove_subnet(self):
-        """Remove a subnet from an org"""
+        """
+        @Feature: Org - Subnet
+        @Test: Check if a subnet can be removed from an Org
+        @Assert: Subnet is removed from the org
+        """
         org_result = make_org()
         subnet_result = make_subnet()
         Org().add_subnet(
@@ -83,7 +107,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_domain(self):
-        """Add a domain to an org"""
+        """
+        @Feature: Org - Domain
+        @Test: Check if a domain can be added to an Org
+        @Assert: Domain is added to the org
+        """
         org_result = make_org()
         domain_result = make_domain()
         return_value = Org().add_domain(
@@ -93,7 +121,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_remove_domain(self):
-        """Removes a domain from an org"""
+        """
+        @Feature: Org - Domain
+        @Test: Check if a Domain can be removed from an Org
+        @Assert: Domain is removed from the org
+        """
         org_result = make_org()
         domain_result = make_domain()
         Org().add_domain(
@@ -105,7 +137,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_user(self):
-        """Adds a user in an org"""
+        """
+        @Feature: Org - User
+        @Test: Check if a User can be added to an Org
+        @Assert: User is added to the org
+        """
         org_result = make_org()
         user_result = make_user()
         return_value = Org().add_user(
@@ -115,7 +151,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_remove_user(self):
-        """Removes a user from an org"""
+        """
+        @Feature: Org - User
+        @Test: Check if a User can be removed from an Org
+        @Assert: User is removed from the org
+        """
         org_result = make_org()
         user_result = make_user()
         Org().add_user(
@@ -127,7 +167,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_hostgroup(self):
-        """Adds a hostgroup in an org"""
+        """
+        @Feature: Org - Hostrgroup
+        @Test: Check if a hostgroup can be added to an Org
+        @Assert: Hostgroup is added to the org
+        """
         org_result = make_org()
         hostgroup_result = make_hostgroup()
         return_value = Org().add_hostgroup({
@@ -138,7 +182,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_remove_hostgroup(self):
-        """Removes a hostgroup from an org"""
+        """
+        @Feature: Org - Subnet
+        @Test: Check if a hostgroup can be removed from an Org
+        @Assert: Hostgroup is removed from the org
+        """
         org_result = make_org()
         hostgroup_result = make_hostgroup()
         Org().add_hostgroup({
@@ -152,17 +200,29 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_computeresource(self):
-        """Adds a computeresource in an org"""
+        """
+        @Feature: Org - Compute Resource
+        @Test: Check if a Compute Resource can be added to an Org
+        @Assert: Compute Resource is added to the org
+        """
         #TODO: Test should be done once computeresource base class is added
         self.fail(NOT_IMPLEMENTED)
 
     def test_remove_computeresource(self):
-        """Removes a compute resource in an org"""
+        """
+        @Feature: Org - ComputeResource
+        @Test: Check if a ComputeResource can be removed from an Org
+        @Assert: ComputeResource is removed from the org
+        """
         #TODO: Test should be done once computeresource base class is added
         self.fail(NOT_IMPLEMENTED)
 
     def test_add_medium(self):
-        """Adds a medium in an org"""
+        """
+        @Feature: Org - Medium
+        @Test: Check if a Medium can be added to an Org
+        @Assert: Medium is added to the org
+        """
         org_result = make_org()
         medium_result = make_medium()
         return_value = Org().add_medium({
@@ -173,7 +233,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_remove_medium(self):
-        """Removes a medium from an org"""
+        """
+        @Feature: Org - Medium
+        @Test: Check if a Medium can be removed from an Org
+        @Assert: Medium is removed from the org
+        """
         org_result = make_org()
         medium_result = make_medium()
         Org().add_medium({
@@ -188,7 +252,11 @@ class TestOrg(BaseCLI):
 
     @bzbug('1062295')
     def test_add_configtemplate(self):
-        """Adds a configtemplate to an org"""
+        """
+        @Feature: Org - Config Template
+        @Test: Check if a Config Template can be added to an Org
+        @Assert: Config Template is added to the org
+        """
         org_result = make_org()
         template_result = make_template()
         return_value = Org().add_configtemplate({
@@ -200,7 +268,11 @@ class TestOrg(BaseCLI):
 
     @bzbug('1062295')
     def test_remove_configtemplate(self):
-        """Removes a configtemplate from an org"""
+        """
+        @Feature: Org - ConfigTemplate
+        @Test: Check if a ConfigTemplate can be removed from an Org
+        @Assert: ConfigTemplate is removed from the org
+        """
         org_result = make_org()
         template_result = make_template()
         Org().add_configtemplate({
@@ -214,7 +286,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_add_environment(self):
-        """Adds an environment to an org"""
+        """
+        @Feature: Org - Environment
+        @Test: Check if an environment can be added to an Org
+        @Assert: Environment is added to the org
+        """
         org_result = make_org()
         env_result = make_environment()
         return_value = Org().add_environment({
@@ -225,7 +301,11 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     def test_remove_environment(self):
-        """Removes an environment from an org"""
+        """
+        @Feature: Org - Environment
+        @Test: Check if an Environment can be removed from an Org
+        @Assert: Environment is removed from the org
+        """
         org_result = make_org()
         env_result = make_environment()
         Org().add_environment({
@@ -240,7 +320,11 @@ class TestOrg(BaseCLI):
 
     @bzbug('1062303')
     def test_add_smartproxy(self):
-        """Adds a smartproxy to an org"""
+        """
+        @Feature: Org - Smartproxy
+        @Test: Check if a Smartproxy can be added to an Org
+        @Assert: Smartproxy is added to the org
+        """
         org_result = make_org()
         proxy_result = make_proxy()
         return_value = Org().add_smartproxy({
@@ -252,7 +336,11 @@ class TestOrg(BaseCLI):
 
     @bzbug('1062303')
     def test_remove_smartproxy(self):
-        """Removes a smartproxy from an org"""
+        """
+        @Feature: Org - Smartproxy
+        @Test: Check if a Smartproxy can be removed from an Org
+        @Assert: Smartproxy is removed from the org
+        """
         org_result = make_org()
         proxy_result = make_proxy()
         Org().add_smartproxy({

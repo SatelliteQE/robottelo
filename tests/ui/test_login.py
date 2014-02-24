@@ -14,16 +14,28 @@ class Login(BaseUI):
     """
 
     def test_successful_login(self):
-        "Successfully logs in as admin user"
+        """
+        @Feature: Login - Positive
+        @Test: Login as an admin user
+        @Assert: Successfully logged in as an admin user
+        """
         self.login.login(self.katello_user, self.katello_passwd)
         self.assertTrue(self.login.is_logged())
 
     def test_failed_login_1(self):
-        "Fails to log in as admin user with incorrect credentials"
+        """
+        @Feature: Login - Negative
+        @Test: Login as an admin user with an invalid credentials
+        @Assert: Fails to login
+        """
         self.login.login("admin", "")
         self.assertFalse(self.login.is_logged())
 
     def test_failed_login_2(self):
-        "Fails to log in when no credentials are entered"
+        """
+        @Feature: Login - Negative
+        @Test: Login as an admin user without entering credentails
+        @Assert: Fails to login
+        """
         self.login.login("", "")
         self.assertFalse(self.login.is_logged())

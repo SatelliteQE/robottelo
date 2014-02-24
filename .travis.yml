@@ -1,5 +1,11 @@
 language: python
-install: "pip install flake8"
-script: flake8 .
+install:
+    - "pip install flake8"
+    - "pip install git+https://github.com/sthirugn/testimony.git"
+script:
+    - flake8 .
+    - testimony validate_docstring tests/api
+    - testimony validate_docstring tests/cli
+    - testimony validate_docstring tests/ui
 notifications:
     irc: "chat.freenode.net#robottelo"

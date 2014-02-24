@@ -57,7 +57,11 @@ class Base(object):
             searchbox = self.wait_until_element(common_locators["search"])
             search_button = self.wait_until_element(common_locators
                                                     ["search_button"])
-        if searchbox:
+
+        # Do not proceed if searchbox is not found
+        if searchbox is None:
+            raise Exception("Search box not found.")
+        else:
             searchbox.clear()
             if search_button:
                 searchbox.send_keys(search_key + " = " + element_name)

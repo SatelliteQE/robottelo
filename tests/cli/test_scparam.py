@@ -29,7 +29,9 @@ class TestSmartClassParameter(BaseCLI):
     @bzbug('1047794')
     def test_info(self):
         """
-        Displays info for smart class parameter.
+        @Feature: SmartClass Paramter - Info
+        @Test: Check if SmartClass Paramter Info is displayed
+        @Assert: SmartClass Paramter Info is displayed
         """
         self.run_puppet_module()
         result = SmartClassParameter().list()

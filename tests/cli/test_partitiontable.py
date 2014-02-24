@@ -17,7 +17,11 @@ class TestPartitionTable(MetaCLI):
     factory_obj = PartitionTable
 
     def test_dump_ptable_1(self):
-        """Creates partition table with specific content."""
+        """
+        @Feature: Partition Table - Create
+        @Test: Check if Partition Table can be created with specific content
+        @Assert: Partition Table is created
+        """
 
         content = "Fake ptable"
         name = generate_name(6)
@@ -33,8 +37,12 @@ class TestPartitionTable(MetaCLI):
 
         self.assertTrue(content in ptable_content.stdout[0])
 
-    def test_delete_medium_1(self):
-        """Creates and immediately deletes partition table."""
+    def test_delete_ptable_1(self):
+        """
+        @Feature: Partition Table - Delete
+        @Test: Check if Partition Table can be deleted
+        @Assert: Partition Table is deleted
+        """
 
         content = "Fake ptable"
         name = generate_name(6)

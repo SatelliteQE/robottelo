@@ -20,7 +20,11 @@ class User(BaseAPI, PositiveCrudTestMixin):
         ("password", {u'password_hash': [u"can't be blank"]}),
     )
     def test_create_user_negative(self, data_tuple):
-        """Try to create a new user with missing params"""
+        """
+        @Feature: User - Create
+        @Test: Create new user with missing params
+        @Assert: Appropriate error code received
+        """
         param, result = data_tuple
 
         user = UserApi(generate=True)

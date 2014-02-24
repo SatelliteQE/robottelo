@@ -12,8 +12,10 @@ from robottelo.common import conf
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
+from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
+from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.login import Login
@@ -70,11 +72,10 @@ class BaseUI(unittest.TestCase):
             elif self.driver_name.lower() == 'ie':
                 self.browser = webdriver.Ie()
             elif self.driver_name.lower() == 'phantomjs':
+                service_args = ['--ignore-ssl-errors=true']
                 self.browser = webdriver.PhantomJS(
-                    desired_capabilities={
-                        'acceptSslCerts': True,
-                        'javascriptEnabled': True
-                    })
+                    service_args=service_args
+                    )
             else:
                 self.browser = webdriver.Remote()
         else:
@@ -87,9 +88,11 @@ class BaseUI(unittest.TestCase):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
+        self.contentenv = ContentEnvironment(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)
+        self.gpgkey = GPGKey(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
         self.login = Login(self.browser)
