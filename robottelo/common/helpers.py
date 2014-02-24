@@ -109,6 +109,15 @@ def generate_mac(delimiter=":"):
     return mac
 
 
+class STR:
+    alphanumeric = "alphanumeric"
+    alpha = "alpha"
+    numeric = "numeric"
+    html = "html"
+    latin1 = "latin1"
+    utf8 = "utf8"
+
+
 def generate_string(str_type, length):
     '''
     This function will allow creation of a wide variety of string types,

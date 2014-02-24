@@ -1,5 +1,25 @@
 """Records class definition with its options and metaclass"""
 
+import copy
+import itertools
+from robottelo.common.records.fields import Field
+import collections
+
+
+def convert_to_data(instance):
+    """Converts an instance to a data dictionary"""
+
+    return {k: v for k, v in instance.__dict__.items()
+            if (not k.startswith("_") and k != "")}
+
+
+def evaluate_choice(chosen):
+    if isinstance(chosen, Field):
+        return chosen.generate()
+    if isinstance(chosen, collections.Callable):
+        return chosen.__call__()
+    return chosen
+
 
 class Options(object):
     """
@@ -74,10 +94,64 @@ class RecordBase(type):
             setattr(cls, name, value)
 
 
+def create_choice(enum, fields):
+    d = {k: evaluate_choice(v) for k, v in enum.items()}
+    d.update({k: evaluate_choice(v) for k, v in fields.items()})
+    return d
+
+
 class Record(object):
     __metaclass__ = RecordBase
 
+    def copy(self):
+        return copy.deepcopy(self)
+
+    @classmethod
+    def matrix_enumerate(cls, *args, **kwargs):
+        return enumerate(MATRIX=True)
+
+    @classmethod
+    def enumerate(cls, *args, **kwargs):
+        matrix = True if "MATRIX" in kwargs and kwargs.pop("MATRIX") else False
+        fnames = [f.name for f in iter(cls._meta.fields)]
+        fields = dict(zip(fnames, args))
+        fields.update({k: v for k, v in kwargs.items() if k in fnames})
+        enumerated = {
+            f.name: f.enumerate()
+            for f in iter(cls._meta.fields)
+            if f.enumerable and f.name not in fields
+            }
+
+        enumerated.update({
+            k: v for k, v in fields.items()
+            if isinstance(v, Field) and v.enumerable
+            })
+
+        fields = {
+            k: v for k, v in fields.items()
+            if not isinstance(v, Field) or not v.enumerable
+            }
+
+        e2 = []
+        if matrix:
+            e2 = [
+                dict(zip(enumerated.keys(), y))
+                for y in [x for x in itertools.product(*enumerated.values())]
+                ]
+        else:
+            e2 = [
+                {k: v} for k, v in
+                itertools.chain(*[
+                    [(k, v) for v in vx]
+                    for k, vx in enumerated.items()])
+                ]
+
+        return [cls(**create_choice(enum, fields)) for enum in e2]
+
     def __init__(self, *args, **kwargs):
+
+        blank = "BLANK" in kwargs and kwargs.pop("BLANK")
+
         fields_iter = iter(self._meta.fields)
         for val, field in zip(args, fields_iter):
             setattr(self, field.name, val)
@@ -93,9 +167,9 @@ class Record(object):
                 except KeyError:
                     val = field.get_default()
             else:
-                val = field.get_default()
-
-            setattr(self, field.name, val)
+                val = field.get_default() if not blank else None
+            if not blank:
+                setattr(self, field.name, val)
 
         # Process any property defined on record
         if kwargs:
@@ -114,5 +188,12 @@ class Record(object):
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
         if hasattr(self, '_post_init'):
-            post_init = getattr(self, '_post_init')
-            post_init()
+            if not blank:
+                post_init = getattr(self, '_post_init')
+                post_init()
+
+    def _string_data(self):
+        return convert_to_data(self).items()
+
+    def __str__(self):
+        return self._string_data().__str__()

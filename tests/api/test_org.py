@@ -5,110 +5,15 @@ from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
 from tests.api.baseapi import BaseAPI
-from tests.api.positive_crud_tests import PositiveCrudTestMixin
 
 
 @ddt
-class Organization(BaseAPI, PositiveCrudTestMixin):
+class Organization(BaseAPI):
     """Testing /api/organization entrypoint"""
-
-    def tested_class(self):
-        #return OrganizationApi
-        self.fail(NOT_IMPLEMENTED)
 
     # Positive Create
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha, label and description are blank
-        name is numeric, label and description are blank
-        name is alphanumeric, label and description are blank
-        name is utf-8, label and description are blank
-        name is latin1, label and description are blank
-        name is html, label and description are blank
-        """)
-    def test_positive_create_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid name only
-        @assert: organization is created, label is auto-generated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha and match, description is blank
-        name and label are numeric and match, description is blank
-        name and label are alphanumeric and match, description is blank
-        name and label are utf-8 and match, description is blank
-        name and label are latin1 and match, description is blank
-        name and label are html and match, description is blank
-        """)
-    def test_positive_create_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid matching name and label only
-        @assert: organization is created, label matches name
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha, description is blank
-        name and label are numeric, description is blank
-        name and label are alphanumeric, description is blank
-        name and label are utf-8, description is blank
-        name and label are latin1, description is blank
-        name and label are html, description is blank
-        """)
-    def test_positive_create_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid unmatching name and label only
-        @assert: organization is created, label does not match name
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and description are alpha, label is blank
-        name and description are numeric, label is blank
-        name and description are alphanumeric, label is blank
-        name and description are utf-8, label is blank
-        name and description are latin1, label is blank
-        name and description are html, label is blank
-        """)
-    def test_positive_create_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid name and description only
-        @assert: organization is created, label is auto-generated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha, name and label match
-        name, label and description are numeric, name and label match
-        name, label and description are alphanumeric, name and label match
-        name, label and description are utf-8, name and label match
-        name, label and description are latin1, name and label match
-        name, label and description are html, name and label match
-        """)
-    def test_positive_create_5(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid name, label and description
-        @assert: organization is created
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-        #Negative Create
+    #Negative Create
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, update name is alpha 300 chars
@@ -128,7 +33,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is blank
@@ -147,7 +52,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is whitespace
@@ -166,7 +71,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
@@ -185,7 +90,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Positive Delete
 
@@ -205,7 +110,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Negative Delete
 
@@ -227,7 +132,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is alpha
@@ -245,7 +150,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha
@@ -264,7 +169,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
@@ -282,7 +187,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Negative Update
 
@@ -298,13 +203,13 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
     def test_negative_update_1(self, test_data):
         """
         @feature: Organizations
-        @test: Create organization with valid values then fail to update
+        @test: Create organization with valid values then skip to update
         its name
         @assert: organization name is not updated
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is whitespace
@@ -318,13 +223,13 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
     def test_negative_update_2(self, test_data):
         """
         @feature: Organizations
-        @test: Create organization with valid values then fail to update
+        @test: Create organization with valid values then skip to update
         its label
         @assert: organization label is not updated
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha 300 chars long
@@ -337,13 +242,13 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
     def test_negative_update_3(self, test_data):
         """
         @feature: Organizations
-        @test: Create organization with valid values then fail to update
+        @test: Create organization with valid values then skip to update
         its description
         @assert: organization description is not updated
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     #Miscelaneous
 
@@ -363,7 +268,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -381,7 +286,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -400,7 +305,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Associations
 
@@ -424,7 +329,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -446,7 +351,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -468,7 +373,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -490,7 +395,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -513,7 +418,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -535,7 +440,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -557,7 +462,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -576,7 +481,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -595,7 +500,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -614,7 +519,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -633,7 +538,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -651,7 +556,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -669,7 +574,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -687,7 +592,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -705,7 +610,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -723,7 +628,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -741,7 +646,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -759,7 +664,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -777,7 +682,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -798,7 +703,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -817,7 +722,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -836,7 +741,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -854,7 +759,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -873,7 +778,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -892,7 +797,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -911,7 +816,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -930,7 +835,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -949,7 +854,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -968,7 +873,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -987,7 +892,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1006,7 +911,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1024,7 +929,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1042,7 +947,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1060,7 +965,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1078,7 +983,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1096,7 +1001,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1115,7 +1020,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1134,7 +1039,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1153,7 +1058,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1172,7 +1077,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1190,7 +1095,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1208,7 +1113,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1226,7 +1131,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1244,7 +1149,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1263,7 +1168,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1282,7 +1187,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1301,7 +1206,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1320,7 +1225,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1338,7 +1243,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1356,7 +1261,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1374,7 +1279,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1392,7 +1297,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1411,7 +1316,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1430,7 +1335,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1449,7 +1354,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1468,7 +1373,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1486,7 +1391,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1504,7 +1409,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1522,7 +1427,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1540,7 +1445,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1558,7 +1463,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1576,7 +1481,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1594,7 +1499,7 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1612,4 +1517,4 @@ class Organization(BaseAPI, PositiveCrudTestMixin):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
