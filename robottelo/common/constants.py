@@ -128,3 +128,5 @@ rhel = [('rhel', 'rhel6', 'rhel65', 'rhel65_n',
          'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server'),
         ('rhel', 'rhel6', 'rhel6S', 'rhel6S_a', 'x86_64'),
         ('rhel', 'rhel6', 'rhel6S', 'rhel6S_v', '6Server')]
+
+DEFAULT_ORG = "ACME"
