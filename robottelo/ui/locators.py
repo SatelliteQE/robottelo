@@ -750,7 +750,7 @@ locators = {
                    "/../../td/input[@class='repo_set_enable']")),
     "rh.repo_checkbox": (
         By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
-                   "/../td/label/input[@class='repo_enable']"))}
+                   "/../td/label/input[@class='repo_enable']")),
 
     # Lifecycle Envionments
     "content_env.new": (
@@ -814,4 +814,3 @@ locators = {
         //button[@ng-click='save()']"),
     "gpgkey.upload_button": (
         By.XPATH, "//button[@ng-click='progress.uploading = true']")}
-

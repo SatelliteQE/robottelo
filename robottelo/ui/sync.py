@@ -42,11 +42,11 @@ class Sync(Base):
                 if time.time() > timeout:
                     break
                 sync_cancel = self.wait_until_element((strategy2,
-                                                   value2 % repo))
+                                                       value2 % repo))
             result = self.wait_until_element((strategy1, value1 % repo)).text
             repos_result.append(result)
-        if all([str(result) == "Sync complete." \
-                for result in repos_result]):
+        if all([str(result) == "Sync complete."
+               for result in repos_result]):
             return True
 
     def sync_custom_repos(self, product, repos):
