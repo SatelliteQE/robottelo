@@ -71,10 +71,16 @@ def invalid_names_list():
     List of invalid names for input testing.
     """
     invalid_names = [
-        " ",
+        u" ",
+        generate_string("alpha", 300).decode("utf-8"),
+        generate_string("numeric", 300).decode("utf-8"),
+        generate_string("alphanumeric", 300).decode("utf-8"),
+        generate_string("utf8", 300),
+        generate_string("latin1", 300).decode("utf-8"),
+        generate_string("html", 300).decode("utf-8"),
         generate_name(256),
-        " " + generate_name(),
-        generate_name() + " ",
+        u" " + generate_name(),
+        generate_name() + " ".decode("utf-8")
     ]
 
     return invalid_names

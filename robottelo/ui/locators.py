@@ -288,6 +288,8 @@ common_locators = {
 
     "alert.success": (
         By.XPATH, "//div[contains(@class, 'alert-success')]"),
+    "alert.error": (
+        By.XPATH, "//div[contains(@class, 'alert-danger')]"),
 
     "entity_select": (
         By.XPATH,

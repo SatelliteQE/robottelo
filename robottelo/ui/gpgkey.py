@@ -34,8 +34,8 @@ class GPGKey(Base):
                 self.find_element(locators
                                   ["gpgkey.file_path"]
                                   ).send_keys(key_path)
-            else:
-                self.wait_until_element(locators["gpgkey.content"]).click()
+            elif key_content:
+                self.find_element(locators["gpgkey.content"]).click()
                 self.find_element(locators
                                   ["gpgkey.content"]
                                   ).send_keys(key_content)
