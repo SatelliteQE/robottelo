@@ -6,10 +6,7 @@ Test class for Users CLI
 """
 
 from tests.cli.basecli import BaseCLI
-from robottelo.cli.user import User
-from robottelo.cli.factory import make_user
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.helpers import generate_string
 
 
 class User(BaseCLI):
