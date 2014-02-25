@@ -23,7 +23,9 @@ class Environment(BaseUI):
 
     def test_create_env(self):
         """
-        Creates a new environment from UI
+        @Feature: Environment - Positive Create
+        @Test: Create new environment
+        @Assert: Environment is created
         """
         name = generate_name(6)
         org_name = generate_name(8, 8)
@@ -36,7 +38,9 @@ class Environment(BaseUI):
 
     def test_update_env(self):
         """
-        Updates an environment and associated OS from UI
+        @Feature: Environment - Positive Update
+        @Test: Update an environment and associated OS
+        @Assert: Environment is updated
         """
         name = generate_name(6)
         new_name = generate_name(6)
@@ -55,7 +59,9 @@ class Environment(BaseUI):
 
     def test_remove_env(self):
         """
-        Deletes an environment from UI
+        @Feature: Environment - Positive Delete
+        @Test: Delete an environment
+        @Assert: Environment is deleted
         """
         name = generate_name(6)
         org_name = generate_name(8, 8)

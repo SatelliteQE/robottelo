@@ -17,15 +17,21 @@ class TestModel(MetaCLI):
     factory_obj = Model
 
     def test_create_model_1(self):
-        """Successfully creates a new model"""
-
+        """
+        @Feature: Model - Positive Create
+        @Test: Check if Model can be created
+        @Assert: Model is created
+        """
         result = self.factory()
         model = Model().info({'name': result['name']})
         self.assertEqual(result['name'], model.stdout['name'])
 
     def test_create_model_2(self):
-        """Create model with specific vendor class"""
-
+        """
+        @Feature: Model - Positive Create
+        @Test: Check if Model can be created with specific vendor class
+        @Assert: Model is created with specific vendor class
+        """
         result = self.factory({'vendor-class': generate_name()})
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})

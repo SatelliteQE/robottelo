@@ -6,7 +6,7 @@ Implements Activation keys UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -43,14 +43,13 @@ class ActivationKey(Base):
         self.wait_for_ajax()
         self.wait_until_element(locators["ak.new"]).click()
 
-        if self.wait_until_element(locators["ak.name"]):
-            self.field_update("ak.name", name)
+        if self.wait_until_element(common_locators["name"]):
+            self.text_field_update(common_locators["name"], name)
             if limit:
                 self.set_limit(limit)
             if description:
-                if self.wait_until_element(locators
-                                           ["ak.description"]):
-                    self.field_update("ak.description", description)
+                self.text_field_update(common_locators
+                                       ["description"], description)
             if env:
                 strategy = locators["ak.env"][0]
                 value = locators["ak.env"][1]
@@ -70,7 +69,7 @@ class ActivationKey(Base):
                 Select(self.find_element
                        (locators["ak.content_view"]
                         )).select_by_value("0")
-            self.wait_until_element(locators["ak.create"]).click()
+            self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
         else:
             raise Exception(
@@ -83,13 +82,13 @@ class ActivationKey(Base):
 
         element = None
 
-        searchbox = self.wait_until_element(locators["ak.search"])
+        searchbox = self.wait_until_element(common_locators["kt_search"])
 
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(element_name)
             self.wait_for_ajax()
-            self.find_element(locators["ak.search_button"]).click()
+            self.find_element(common_locators["kt_search_button"]).click()
             strategy = locators["ak.ak_name"][0]
             value = locators["ak.ak_name"][1]
             element = self.wait_until_element((strategy, value % element_name))

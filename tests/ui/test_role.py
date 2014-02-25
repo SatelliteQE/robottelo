@@ -16,7 +16,11 @@ class Role(BaseUI):
     """
 
     def test_create_role(self):
-        """Create new Role"""
+        """
+        @Feature: Role - Positive Create
+        @Test: Create new role
+        @Assert: Role is created
+        """
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_roles()
@@ -24,7 +28,11 @@ class Role(BaseUI):
         self.assertIsNotNone(self.role.search(name))
 
     def test_remove_role(self):
-        """Delete existing role"""
+        """
+        @Feature: Role - Positive Delete
+        @Test: Delete an existing role
+        @Assert: Role is deleted
+        """
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_roles()
@@ -35,7 +43,11 @@ class Role(BaseUI):
         self.assertIsNone(self.role.search(name))
 
     def test_update_role(self):
-        """Create new role and update its name or permission"""
+        """
+        @Feature: Role - Positive Update
+        @Test: Update role with name/permission
+        @Assert: Role is updated
+        """
         name = generate_name(6)
         new_name = generate_name(4)
         perm_type = "Media"

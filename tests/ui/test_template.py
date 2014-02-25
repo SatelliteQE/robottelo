@@ -32,11 +32,9 @@ class Template(BaseUI):
 
     def test_create_template(self):
         """
-        Test:
-        Creates new template
-
-        Expected Result/Assert:
-        New provisioning template of type 'provision'
+        @Feature: Template - Positive Create
+        @Test: Create new template
+        @Assert: New provisioning template of type 'provision'
         should be created successfully
         """
 
@@ -49,11 +47,9 @@ class Template(BaseUI):
 
     def test_create_snippet_template(self):
         """
-        Test:
-        Creates new template of type snippet
-
-        Expected Result/Assert:
-        New provisioning template of type 'snippet'
+        @Feature: Template - Positive Create
+        @Test: Create new template of type snippet
+        @Assert: New provisioning template of type 'snippet'
         should be created successfully
         """
 
@@ -65,11 +61,9 @@ class Template(BaseUI):
 
     def test_remove_template(self):
         """
-        Test:
-        Creates new template and removes it
-
-        Expected Result/Assert:
-        Created template should be removed successfully
+        @Feature: Template - Positive Delete
+        @Test: Remove a template
+        @Assert: Template removed successfully
         """
 
         name = generate_name(6)
@@ -85,11 +79,9 @@ class Template(BaseUI):
 
     def test_update_template(self):
         """
-        Test:
-        Creates new template and update its name and template type
-
-        Expected Result/Assert:
-        The template name and type should be updated successfully
+        @Feature: Template - Positive Update
+        @Test: Update template name and template type
+        @Assert: The template name and type should be updated successfully
         """
 
         name = generate_name(6)
@@ -105,12 +97,11 @@ class Template(BaseUI):
 
     def test_update_template_os(self):
         """
-        Test:
-        Creates new template, along with two OS's
+        @Feature: Template - Positive Update
+        @Test: Creates new template, along with two OS's
         and associate list of OS's with created template
-
-        Expected Result/Assert:
-        The template should be updated with newly created OS's successfully
+        @Assert: The template should be updated with newly created OS's
+        successfully
         """
 
         name = generate_name(6)

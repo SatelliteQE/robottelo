@@ -45,7 +45,7 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='content']"),
     "menu.life_cycle_environments": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_audits']"),
+        "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
     "menu.red_hat_subscriptions": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
@@ -669,9 +669,6 @@ locators = {
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
-    "ak.name": (By.ID, "name"),
-    "ak.label": (By.ID, "label"),
-    "ak.description": (By.ID, "description"),
     "ak.env": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
@@ -681,16 +678,9 @@ locators = {
         "//input[@ng-checked='isUnlimited(activationKey)']"),
     "ak.usage_limit": (
         By.XPATH, "//input[@ng-model='activationKey.usage_limit']"),
-    "ak.create": (
-        By.XPATH,
-        "//button[@ng-click='handleSave(); working = true']"),
     "ak.close": (
         By.XPATH,
         "//button[@ui-sref='activation-keys.index']"),
-    "ak.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
-    "ak.search_button": (
-        By.XPATH,
-        "//button[@ng-click='table.search(table.searchTerm)']"),
     "ak.ak_name": (
         By.XPATH,
         "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]"),
@@ -729,4 +719,67 @@ locators = {
         //div/span/i"),
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /select")}
+        /select"),
+
+    # Lifecycle Envionments
+    "content_env.new": (
+        By.XPATH, "//button[@ng-click='initiateCreatePath()']"),
+    "content_env.create_initial": (
+        By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
+    "content_env.select_name": (
+        By.XPATH,
+        "//div[contains(., '%s')]/parent::label\
+        [@ng-click='selectEnvironment(env.environment)']"),
+    "content_env.remove": (
+        By.XPATH,
+        "//button[@ng-click='openModal()']"),
+    "content_env.env_link": (
+        By.XPATH,
+        ("//li/label/div[contains(., '%s')]"
+         "/following::li/label[@ng-click='initiateCreateEnvironment()']/i")),
+    "content_env.edit_name": (
+        By.XPATH,
+        "//div[@ng-click='edit()']/span[2]/i"),
+    "content_env.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='workingOn.environment.name']/div/input"),
+    "content_env.save_name": (
+        By.XPATH,
+        ("//form[@alch-edit-text='workingOn.environment.name']"
+         "//button[@ng-click='save()']")),
+    "content_env.edit_description": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "//div/span/i")),
+    "content_env.edit_description_text": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "/div/textarea")),
+    "content_env.save_description": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+         "//button[@ng-click='save()']")),
+
+    #GPG Key
+    "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpgKeys.new']"),
+    "gpgkey.upload": (By.XPATH, "//input[@type='radio'and @value='upload']"),
+    "gpgkey.content": (
+        By.XPATH, "//textarea[@placeholder='Paste contents...']"),
+    "gpgkey.file_path": (
+        By.XPATH, "//input[@type='file']"),
+    "gpgkey.key_name": (
+        By.XPATH,
+        "//tr[@ng-repeat='gpgKey in table.rows']/td/a[contains(., '%s')]"),
+    "gpgkey.remove": (
+        By.XPATH, "//button[@ng-click='openModal()']"),
+    "gpgkey.edit_name": (
+        By.XPATH, "//form[@alch-edit-text='gpgKey.name']//div/span/i"),
+    "gpgkey.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='gpgKey.name']/div/input"),
+    "gpgkey.save_name": (
+        By.XPATH,
+        "//form[@alch-edit-text='gpgKey.name']\
+        //button[@ng-click='save()']"),
+    "gpgkey.upload_button": (
+        By.XPATH, "//button[@ng-click='progress.uploading = true']")}

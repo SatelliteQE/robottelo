@@ -17,6 +17,11 @@ class TestHost(BaseCLI):
 
     @unittest.skip("Test needs to create required objects.")
     def test_create_host(self):
+        """
+        @Feature: Host - Positive Create
+        @Test: Check if host can be created
+        @Assert: Host is created
+        """
         # Change delimiter to whatever you want, of course
         # in other tests
         mac_addr = generate_mac(":")

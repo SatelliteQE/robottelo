@@ -27,9 +27,10 @@ class Architecture(BaseUI):
 
     def test_create_arch(self):
         """
-        Create new Arch
+        @Feature: Architecture - Create
+        @Test: Create a new Architecture
+        @Assert: Architecture is created
         """
-
         name = generate_name(4)
         os_name = generate_name(6)
         major_version = generate_string('numeric', 1)
@@ -41,7 +42,9 @@ class Architecture(BaseUI):
 
     def test_remove_arch(self):
         """
-        Delete an existing Arch
+        @Feature: Architecture - Delete
+        @Test: Delete an existing Architecture
+        @Assert: Architecture is deleted
         """
 
         name = generate_name(4)
@@ -57,7 +60,9 @@ class Architecture(BaseUI):
 
     def test_update_arch(self):
         """
-        Update arch with new arch-name and new OS
+        @Feature: Architecture - Update
+        @Test: Update Architecture with new name and OS
+        @Assert: Architecture is updated
         """
 
         old_name = generate_name(6)

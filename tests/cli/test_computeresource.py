@@ -41,7 +41,11 @@ class TestComputeResource(BaseCLI):
             conf.properties['main.server.hostname']})['name']
 
     def test_create(self):
-        """ `compute_resource create` basic test """
+        """
+        @Feature: Compute Resource - Positive Create
+        @Test: Create Compute Resource
+        @Assert: Compute reource is created
+        """
         name = generate_name(8, 8)
         result = ComputeResource().create({
             'name': name,
@@ -53,7 +57,11 @@ class TestComputeResource(BaseCLI):
                           "ComputeResource create - exit code")
 
     def test_info(self):
-        """ `compute_resource info` basic test """
+        """
+        @Feature: Compute Resource - Info
+        @Test: Test Compute Resource Info
+        @Assert: Compute resource Info is displayed
+        """
         result_create = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': "qemu+tcp://%s:16509/system" %
@@ -68,7 +76,11 @@ class TestComputeResource(BaseCLI):
                           "ComputeResource info - check name")
 
     def test_list(self):
-        """ `compute_resource list` basic test """
+        """
+        @Feature: Compute Resource - List
+        @Test: Test Compute Resource List
+        @Assert: Compute resource List is displayed
+        """
         result_create = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': "qemu+tcp://%s:16509/system" %
@@ -98,7 +110,11 @@ class TestComputeResource(BaseCLI):
         }
     )
     def test_update(self, option_dict):
-        """ `compute_resource update` basic test (different options) """
+        """
+        @Feature: Compute Resource - Update
+        @Test: Test Compute Resource Update
+        @Assert: Compute resource List is updated
+        """
         options = {}
         options['name'] = self.compute_res_updates
         for option in option_dict:
@@ -108,7 +124,11 @@ class TestComputeResource(BaseCLI):
                           "ComputeResource update - exit code")
 
     def test_delete(self):
-        """ `compute_resource delete` basic test """
+        """
+        @Feature: Compute Resource - Delete
+        @Test: Test Compute Resource delete
+        @Assert: Compute resource deleted
+        """
         result_create = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': "qemu+tcp://%s:16509/system" %
