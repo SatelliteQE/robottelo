@@ -16,20 +16,26 @@ from robottelo.records.operatingsystem import OperatingSystem
 
 
 class HostApi(ApiCrud):
-        api_path = "/api/hosts/"
-        api_json_key = u"host"
-        create_fields = ["name",
-                         "environment_id",
-                         "architecture_id",
-                         "root_pass",
-                         "mac",
-                         "domain_id",
-                         "puppet_proxy_id",
-                         "ptable_id",
-                         "operatingsystem_id"]
+    """ Implementation of api for  foreman hosts
+    """
+    api_path = "/api/hosts/"
+    api_json_key = u"host"
+    create_fields = ["name",
+                     "environment_id",
+                     "architecture_id",
+                     "root_pass",
+                     "mac",
+                     "domain_id",
+                     "puppet_proxy_id",
+                     "ptable_id",
+                     "operatingsystem_id"]
 
 
 class Host(records.Record):
+    """ Implementation of foreman hosts record
+    Utilizes _post_init to ensure, that name matches domain,
+    operating system matches architecture and partition table
+    """
     name = records.StringField(format=r"host\d\d\d\d\d")
     root_pass = records.StringField(default="changeme")
     mac = records.MACField()
@@ -49,4 +55,6 @@ class Host(records.Record):
         self.ptable.operatingsystem = [self.operatingsystem]
 
     class Meta:
+        """Linking record definition with api implementation.
+        """
         api_class = HostApi

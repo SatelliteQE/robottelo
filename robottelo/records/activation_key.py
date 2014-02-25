@@ -33,4 +33,6 @@ class ActivationKey(records.Record):
     usage_limit = records.IntegerField()
 
     class Meta:
+        """Linking record definition with api implementation.
+        """
         api_class = ActivationKeyApi

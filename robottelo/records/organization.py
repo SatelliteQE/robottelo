@@ -9,7 +9,7 @@ from robottelo.api.apicrud import ApiCrud
 from robottelo.common.helpers import STR
 
 
-label_include = [
+LABELS = [
     STR.alpha,
     STR.alphanumeric,
     STR.numeric
@@ -17,15 +17,21 @@ label_include = [
 
 
 class OrganizationApi(ApiCrud):
+    """ Implementation of api for katello organizations
+    """
     api_path = "/katello/api/organizations/"
     api_json_key = u"organization"
     create_fields = ["name", "label", "description"]
 
 
 class Organization(records.Record):
+    """ Implementation of katello organizaiton record
+    """
     name = records.basic_positive()
-    label = records.basic_positive(include=label_include)
+    label = records.basic_positive(include=LABELS)
     description = records.basic_positive()
 
     class Meta:
+        """Linking record definition with api implementation.
+        """
         api_class = OrganizationApi

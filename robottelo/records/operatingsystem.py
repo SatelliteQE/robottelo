@@ -12,17 +12,21 @@ from robottelo.api.apicrud import ApiCrud
 
 
 class OperatingSystemApi(ApiCrud):
-        api_path = "/api/operatingsystems"
-        api_json_key = u"operatingsystem"
+    """ Implementation of api for foreman operating systems
+    """
+    api_path = "/api/operatingsystems"
+    api_json_key = u"operatingsystem"
 
-        create_fields = ["name",
-                         "major",
-                         "minor",
-                         "family",
-                         "release_name"]
+    create_fields = ["name",
+                     "major",
+                     "minor",
+                     "family",
+                     "release_name"]
 
 
 class OperatingSystem(records.Record):
+    """ Implementation of foreman OS record
+    """
     name = records.ChoiceField(valid_names_list())
     major = records.IntegerField()
     minor = records.IntegerField()
@@ -30,4 +34,6 @@ class OperatingSystem(records.Record):
     release_name = records.StringField(r"osrelease\d\d\d")
 
     class Meta:
+        """Linking record definition with api implementation.
+        """
         api_class = OperatingSystemApi

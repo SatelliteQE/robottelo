@@ -58,7 +58,7 @@ class ApiCrud(object):
     def get_default_search(cls):
         """Returns search key to be used in exists and resolve functions """
         if hasattr(cls, 'default_search'):
-            return cls.default_search
+            return cls.default_search  # pylint: disable=E1101
         return "name"
 
     @classmethod
@@ -73,7 +73,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_path'):
-            return cls.api_path
+            return cls.api_path  # pylint: disable=E1101
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -89,7 +89,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_json_key'):
-            return cls.api_json_key
+            return cls.api_json_key  # pylint: disable=E1101
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -331,7 +331,7 @@ class ApiCrud(object):
         if hasattr(cls, "create_fields"):
             data = {
                 name: field for name, field in data.items()
-                if name in cls.create_fields
+                if name in cls.create_fields  # pylint: disable=E1101
                 }
 
         res = cls.update(instance.id, json=cls.opts(data))
@@ -365,7 +365,7 @@ class ApiCrud(object):
         if hasattr(cls, "create_fields"):
             data = {
                 name: field for name, field in data.items()
-                if name in cls.create_fields
+                if name in cls.create_fields   # pylint: disable=E1101
                 }
 
         res = cls.create(json=cls.opts(data), **path_args)

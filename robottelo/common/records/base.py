@@ -92,6 +92,8 @@ class RecordBase(type):
 
 
 class Record(object):
+    """ Entity definition and generating class
+    """
     __metaclass__ = RecordBase
 
     def copy(self):
