@@ -33,7 +33,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is blank
@@ -52,7 +52,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is whitespace
@@ -71,7 +71,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
@@ -90,7 +90,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     # Positive Delete
 
@@ -110,7 +110,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     # Negative Delete
 
@@ -132,7 +132,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is alpha
@@ -150,7 +150,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha
@@ -169,7 +169,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
@@ -187,7 +187,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     # Negative Update
 
@@ -203,13 +203,13 @@ class Organization(BaseAPI):
     def test_negative_update_1(self, test_data):
         """
         @feature: Organizations
-        @test: Create organization with valid values then skip to update
+        @test: Create organization with valid values then fail to update
         its name
         @assert: organization name is not updated
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is whitespace
@@ -223,13 +223,13 @@ class Organization(BaseAPI):
     def test_negative_update_2(self, test_data):
         """
         @feature: Organizations
-        @test: Create organization with valid values then skip to update
+        @test: Create organization with valid values then fail to update
         its label
         @assert: organization label is not updated
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha 300 chars long
@@ -242,13 +242,13 @@ class Organization(BaseAPI):
     def test_negative_update_3(self, test_data):
         """
         @feature: Organizations
-        @test: Create organization with valid values then skip to update
+        @test: Create organization with valid values then fail to update
         its description
         @assert: organization description is not updated
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     #Miscelaneous
 
@@ -268,7 +268,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -286,7 +286,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -305,7 +305,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     # Associations
 
@@ -329,7 +329,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -351,7 +351,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -373,7 +373,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -395,7 +395,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -418,7 +418,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -440,7 +440,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -462,7 +462,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -481,7 +481,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -500,7 +500,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -519,7 +519,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -538,7 +538,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -556,7 +556,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -574,7 +574,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -592,7 +592,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -610,7 +610,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -628,7 +628,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -646,7 +646,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -664,7 +664,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -682,7 +682,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -703,7 +703,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -722,7 +722,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -741,7 +741,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -759,7 +759,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -778,7 +778,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -797,7 +797,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -816,7 +816,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -835,7 +835,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -854,7 +854,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -873,7 +873,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -892,7 +892,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -911,7 +911,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -929,7 +929,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -947,7 +947,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -965,7 +965,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -983,7 +983,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1001,7 +1001,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1020,7 +1020,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1039,7 +1039,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1058,7 +1058,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1077,7 +1077,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1095,7 +1095,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1113,7 +1113,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1131,7 +1131,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1149,7 +1149,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1168,7 +1168,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1187,7 +1187,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1206,7 +1206,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1225,7 +1225,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1243,7 +1243,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1261,7 +1261,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1279,7 +1279,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1297,7 +1297,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1316,7 +1316,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1335,7 +1335,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1354,7 +1354,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1373,7 +1373,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1391,7 +1391,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1409,7 +1409,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1427,7 +1427,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1445,7 +1445,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1463,7 +1463,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1481,7 +1481,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1499,7 +1499,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1517,4 +1517,4 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        self.fail(NOT_IMPLEMENTED)

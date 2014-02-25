@@ -110,6 +110,9 @@ def generate_mac(delimiter=":"):
 
 
 class STR:
+    """Stores constants to be used in generate_string function
+    """
+
     alphanumeric = "alphanumeric"
     alpha = "alpha"
     numeric = "numeric"

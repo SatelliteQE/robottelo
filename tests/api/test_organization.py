@@ -41,7 +41,7 @@ class Organization(BaseAPI):
         @assert: organization is created, label does not match name
         """
         result = ApiCrud.record_create(test_data)
-        self.assertNotEqual (result.name, result.label)
+        self.assertNotEqual(result.name, result.label)
 
     @data(*Organization.enumerate(label=""))
     def test_positive_create_4(self, test_data):

@@ -10,6 +10,10 @@ from robottelo.common.helpers import STR
 
 
 def evaluate_choice(chosen):
+    """Function used to allow choices to be callables and fields as well,
+    not in ChoiceField, because I need to fake lazy evaluation for enumerate
+    functionality.
+    """
     if isinstance(chosen, Field):
         return chosen.generate()
     if isinstance(chosen, collections.Callable):
@@ -128,6 +132,7 @@ class ChoiceField(Field):
         return evaluate_choice(chosen)
 
     def enumerate(self):
+        """List all the possible values in this choice"""
         return [chosen for chosen in self.choices]
 
 
@@ -155,6 +160,9 @@ class ManyRelatedField(Field):
 
 
 def basic_positive(exclude=[], include=[]):
+    """Often repeated field, that includes all the string types.
+    Utilizing exclude and include to easily filter out types.
+    """
     lst = [
         STR.alpha, STR.alphanumeric, STR.html,
         STR.latin1, STR.numeric, STR.utf8]
@@ -167,3 +175,34 @@ def basic_positive(exclude=[], include=[]):
     return ChoiceField([
         StringField(format="", str_type=i)
         for i in lst])
+
+
+def convert_to_data(instance):
+    """Converts an instance to a data dictionary
+    Recomended to use on Record objects only,
+    though it should work on any object.
+
+    Returns copy of __dict__ of object and filters out private fields
+    """
+
+    return {k: v for k, v in instance.__dict__.items()
+            if (not k.startswith("_") and k != "")}
+
+
+def load_from_data(cls, data, transform):
+    """Loads instance attributes from a data dictionary"""
+
+    instance = cls(BLANK=True)
+    related = {
+        field.name: field for field in instance._meta.fields
+        if isinstance(field, RelatedField)
+        }
+    data = transform(cls, data)
+    for k, v in data.items():
+        if k in related and type(v) is dict:
+            related_class = related[k].record_class
+            related_instance = load_from_data(related_class, v, transform)
+            instance.__dict__[k] = related_instance
+        else:
+            instance.__dict__[k] = v
+    return instance

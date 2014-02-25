@@ -2,23 +2,20 @@
 
 import copy
 import itertools
+
 from robottelo.common.records.fields import Field
-import collections
+from robottelo.common.records.fields import evaluate_choice
+from robottelo.common.records.fields import convert_to_data
 
 
-def convert_to_data(instance):
-    """Converts an instance to a data dictionary"""
-
-    return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k != "")}
-
-
-def evaluate_choice(chosen):
-    if isinstance(chosen, Field):
-        return chosen.generate()
-    if isinstance(chosen, collections.Callable):
-        return chosen.__call__()
-    return chosen
+def create_choice(enum, fields):
+    """Evaluates argument dictionaries to initialize a record object.
+    >>> create_choice({"name":lambda :"n1"},{"label":"l1"})
+    {'name': 'n1', 'label': 'l1'}
+    """
+    d = {k: evaluate_choice(v) for k, v in enum.items()}
+    d.update({k: evaluate_choice(v) for k, v in fields.items()})
+    return d
 
 
 class Options(object):
@@ -94,24 +91,67 @@ class RecordBase(type):
             setattr(cls, name, value)
 
 
-def create_choice(enum, fields):
-    d = {k: evaluate_choice(v) for k, v in enum.items()}
-    d.update({k: evaluate_choice(v) for k, v in fields.items()})
-    return d
-
-
 class Record(object):
     __metaclass__ = RecordBase
 
     def copy(self):
+        """We use deepcopy as our copy implementation"""
         return copy.deepcopy(self)
 
     @classmethod
     def matrix_enumerate(cls, *args, **kwargs):
-        return enumerate(MATRIX=True)
+        """Calls enumerate with matrix option set to True.
+        I believe that most of the time we shall use enumerate instead,
+        passing MATRIX=True only when more thorough testing is required.
+        """
+        return cls.enumerate(MATRIX=True, *args, **kwargs)
 
     @classmethod
     def enumerate(cls, *args, **kwargs):
+        """Generates instances of record so that
+        every item in choice fields will be represented.
+        If MATRIX=True, every combination of items in choice fields
+        will be represented.
+
+        I am utilizing keyword to make this function programable.
+        I.e, most of the time, we might have tests with MATRIX=False,
+        that results in sum(len(choices) for choices in choice_types),
+        while with MATRIX=True it results in
+        product(len(choices) for choices in choice_types)
+        >>> from robottelo.common.records.base import Record
+        >>> from robottelo.common.records import ChoiceField
+        >>> class test(Record):
+        ...      name = ChoiceField(["n1","n2","n3"])
+        ...      label = ChoiceField(["l1","l2","l3"])
+        ...      desc = ChoiceField(["d1","d2","d3"])
+        ...      value = ChoiceField(["v1","v2","v3"])
+        ...
+        >>> len(test.enumerate())
+        12
+        >>> len(test.enumerate(MATRIX=True))
+        81
+
+        Now for some more concrete examples:
+        >>> from robottelo.common.records.base import Record
+        >>> from robottelo.common.records import ChoiceField
+        >>> class test(Record):
+        ...      name = ChoiceField(["n1","n2"])
+        ...      desc = ChoiceField(["d1","d2"])
+        ...
+        >>> [(t.name,t.desc) for t in test.enumerate(MATRIX=True)]
+        [('n1', 'd1'), ('n1', 'd2'), ('n2', 'd1'), ('n2', 'd2')]
+
+        You can override arguments, either positionally,
+        (here setting name to preset)
+        >>> [(t.name,t.desc) for t in test.enumerate("preset")]
+        [('preset', 'd1'), ('preset', 'd2')]
+
+        You can override argument with keywords as well,
+        (here setting desc to preset)
+        >>> [(t.name,t.desc) for t in test.enumerate(desc="preset")]
+        [('n1', 'preset'), ('n2', 'preset')]
+        """
+
         matrix = True if "MATRIX" in kwargs and kwargs.pop("MATRIX") else False
         fnames = [f.name for f in iter(cls._meta.fields)]
         fields = dict(zip(fnames, args))
@@ -149,6 +189,67 @@ class Record(object):
         return [cls(**create_choice(enum, fields)) for enum in e2]
 
     def __init__(self, *args, **kwargs):
+        """Constructs record based on its definition.
+        Definition consists of class ineheriting from Record,
+        that contains fields initialized to some of the
+        robottelo.common.records.fields instances.
+
+        In our example we shall use StringField.
+
+        >>> from robottelo.common.records.base import Record
+        >>> from robottelo.common.records import StringField
+        >>> import re
+        >>> class Test(Record):
+        ...      name = StringField(format=r"abc{y,z}*")
+        ...      number = StringField(str_type="numeric")
+        ...
+
+        On blank creation, each of the fields will be generated,
+        based on the definition.
+        >>> t = Test()
+        >>> re.match(r"abc{y,z}*",t.name) != None
+        True
+        >>> t.number.isdigit()
+        True
+
+        You can set fields by positionall arguments
+        >>> t = Test("name1","doesn't-check-validity")
+        >>> t.name
+        'name1'
+        >>> t.number
+        "doesn't-check-validity"
+
+        You can set fields by keyword arguments
+        >>> t = Test(number="123",name="name1")
+        >>> t.name
+        'name1'
+        >>> t.number
+        '123'
+
+        Specifying Meta subclass will add _meta private field,
+        that can contain various meta-infromation shared among
+        the instances of record definition.
+
+        I utilize it for visitor pattern in api implementation
+        >>> class Test(Record):
+        ...      name = StringField(format=r"abc{y,z}*")
+        ...      number = StringField(str_type="numeric")
+        ...
+        ...      class Meta:
+        ...         meta_data = "meta_information"
+        ...
+        >>> t = Test()
+        >>> t._meta.meta_data
+        'meta_information'
+
+        Last feature is the ability to create blank record,
+        while retaining the meta informaiton.
+        >>> t = Test(BLANK=True)
+        >>> hasattr(t, "name")
+        False
+        >>> t._meta.meta_data
+        'meta_information'
+        """
 
         blank = "BLANK" in kwargs and kwargs.pop("BLANK")
 
@@ -193,7 +294,13 @@ class Record(object):
                 post_init()
 
     def _string_data(self):
+        """Converting to more readable string representation """
         return convert_to_data(self).items()
 
     def __str__(self):
+        """For printout"""
         return self._string_data().__str__()
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(verbose=True)

@@ -7,41 +7,23 @@ Module for mixin of basic crud methods based on api_path class method.
 import robottelo.api.base as base
 
 from robottelo.common.records import ManyRelatedField, RelatedField
+from robottelo.common.records.fields import convert_to_data, load_from_data
 
 
 def resolve_path_arg(arg, data):
+    """Required to add support for path arguments taking from related fields,
+    simple traversal based on the arg string of the data structure.
+
+    >>> resolve_path_arg("org.env.label",{"name":"asd","env":{"label":"env0"}})
+    "env0"
+
+    """
     if "." in arg:
         arg_path = arg.split(".", 1)
         return resolve_path_arg(
             arg_path[1],
             convert_to_data(data[arg_path[0]]))
     return data[arg]
-
-
-def convert_to_data(instance):
-    """Converts an instance to a data dictionary"""
-
-    return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k != "")}
-
-
-def load_from_data(cls, data, transform):
-    """Loads instance attributes from a data dictionary"""
-
-    instance = cls(BLANK=True)
-    related = {
-        field.name: field for field in instance._meta.fields
-        if isinstance(field, RelatedField)
-        }
-    data = transform(cls, data)
-    for k, v in data.items():
-        if k in related and type(v) is dict:
-            related_class = related[k].record_class
-            related_instance = load_from_data(related_class, v, transform)
-            instance.__dict__[k] = related_instance
-        else:
-            instance.__dict__[k] = v
-    return instance
 
 
 def resolve_or_create_record(record):
@@ -387,6 +369,9 @@ class ApiCrud(object):
 
     @classmethod
     def record_create_dependencies(cls, instance_orig):
+        """Ensures that all related fields of the record do exist
+        resolves them and adds their ids to instance.
+        """
         if cls != instance_orig._meta.api_class:
             api = instance_orig._meta.api_class
             return api.record_create_dependencies(instance_orig)

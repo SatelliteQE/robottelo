@@ -6,6 +6,8 @@ from robottelo.records.content_view_definition import ContentViewDefinition
 
 
 class ActivationKeyApi(ApiCrud):
+    """Api implementation for activation keys
+    """
     api_path = "/katello/api/activation_keys/"  # noqa
     api_json_key = u"activation_key"
     create_fields = [
@@ -15,6 +17,8 @@ class ActivationKeyApi(ApiCrud):
 
 
 class ActivationKey(records.Record):
+    """Definition of activation key entity
+    """
     name = records.basic_positive()
     description = records.basic_positive()
     organization = records.RelatedField(Organization)
