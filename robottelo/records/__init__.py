@@ -1,3 +1,6 @@
+"""
+Module specifying generators for entity data
+"""
 from .architecture import Architecture  # noqa
 from .domain import Domain  # noqa
 from .environment import Environment  # noqa

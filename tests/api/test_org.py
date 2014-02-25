@@ -2,113 +2,68 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from ddt import data, ddt
+from robottelo.api.apicrud import ApiCrud
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
+from robottelo.records.organization import Organization
 from tests.api.baseapi import BaseAPI
-from tests.api.positive_crud_tests import PositiveCrudTestMixin
 
 
 @ddt
-class Organization(BaseAPI, PositiveCrudTestMixin):
+class Organization(BaseAPI):
     """Testing /api/organization entrypoint"""
-
-    def tested_class(self):
-        #return OrganizationApi
-        self.fail(NOT_IMPLEMENTED)
 
     # Positive Create
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha, label and description are blank
-        name is numeric, label and description are blank
-        name is alphanumeric, label and description are blank
-        name is utf-8, label and description are blank
-        name is latin1, label and description are blank
-        name is html, label and description are blank
-        """)
+    @data(*Organization.enumerate(label="", description=""))
     def test_positive_create_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid name only
         @assert: organization is created, label is auto-generated
-        @status: manual
         """
+        ApiCrud.record_create(test_data)
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha and match, description is blank
-        name and label are numeric and match, description is blank
-        name and label are alphanumeric and match, description is blank
-        name and label are utf-8 and match, description is blank
-        name and label are latin1 and match, description is blank
-        name and label are html and match, description is blank
-        """)
+    @data(*Organization.enumerate(name="", description=""))
     def test_positive_create_2(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid matching name and label only
         @assert: organization is created, label matches name
-        @status: manual
         """
+        test_data.name = test_data.label
+        result = ApiCrud.record_create(test_data)
+        self.assertEquals(result.name, result.label)
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha, description is blank
-        name and label are numeric, description is blank
-        name and label are alphanumeric, description is blank
-        name and label are utf-8, description is blank
-        name and label are latin1, description is blank
-        name and label are html, description is blank
-        """)
+    @data(*Organization.enumerate(description=""))
     def test_positive_create_3(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid unmatching name and label only
         @assert: organization is created, label does not match name
-        @status: manual
         """
+        result = ApiCrud.record_create(test_data)
+        self.assertNotEqual(result.name, result.label)
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and description are alpha, label is blank
-        name and description are numeric, label is blank
-        name and description are alphanumeric, label is blank
-        name and description are utf-8, label is blank
-        name and description are latin1, label is blank
-        name and description are html, label is blank
-        """)
+    @data(*Organization.enumerate(label=""))
     def test_positive_create_4(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid name and description only
         @assert: organization is created, label is auto-generated
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        ApiCrud.record_create(test_data)
 
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha, name and label match
-        name, label and description are numeric, name and label match
-        name, label and description are alphanumeric, name and label match
-        name, label and description are utf-8, name and label match
-        name, label and description are latin1, name and label match
-        name, label and description are html, name and label match
-        """)
+    @data(*Organization.enumerate())
     def test_positive_create_5(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid name, label and description
         @assert: organization is created
-        @status: manual
         """
-
-        self.fail(NOT_IMPLEMENTED)
-
-        #Negative Create
+        ApiCrud.record_create(test_data)
+    #Negative Create
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, update name is alpha 300 chars

@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 """
-Module for our utility wrapper around requests library.
+Module containing utility wrappers
+around requests library
 """
 
 import json as js
@@ -45,8 +46,9 @@ def request(method, **kwargs):
     kwargs.setdefault('verify', False)
     kwargs.setdefault('domain', conf.properties['main.server.hostname'])
     kwargs.setdefault('schema', "https://")
-    kwargs.setdefault('auth',  (conf.properties['foreman.admin.username'],
-                                conf.properties['foreman.admin.password']))
+    kwargs.setdefault('auth', (
+        conf.properties['foreman.admin.username'],
+        conf.properties['foreman.admin.password']))
     kwargs.setdefault('headers', {'Content-type': 'application/json'})
 
     if kwargs.get('path', None):

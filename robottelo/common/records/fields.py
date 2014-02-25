@@ -1,10 +1,24 @@
 """Record's fields declarations"""
 
 import rstr
+import collections
 
 from random import randint, choice
 from robottelo.common.helpers import (
     generate_mac, generate_string, generate_ipaddr)
+from robottelo.common.helpers import STR
+
+
+def evaluate_choice(chosen):
+    """Function used to allow choices to be callables and fields as well,
+    not in ChoiceField, because I need to fake lazy evaluation for enumerate
+    functionality.
+    """
+    if isinstance(chosen, Field):
+        return chosen.generate()
+    if isinstance(chosen, collections.Callable):
+        return chosen.__call__()
+    return chosen
 
 
 class NOT_PROVIDED:
@@ -18,6 +32,7 @@ class Field(object):
         self.default = default
         self.name = None
         self.record = None
+        self.enumerable = False
         self.required = required
 
     def generate(self):
@@ -110,9 +125,15 @@ class ChoiceField(Field):
     def __init__(self, choices, **kwargs):
         super(ChoiceField, self).__init__(**kwargs)
         self.choices = choices
+        self.enumerable = True
 
     def generate(self):
-        return choice(self.choices)
+        chosen = choice(self.choices)
+        return evaluate_choice(chosen)
+
+    def enumerate(self):
+        """List all the possible values in this choice"""
+        return self.choices
 
 
 class RelatedField(Field):
@@ -136,3 +157,21 @@ class ManyRelatedField(Field):
     def generate(self):
         number = randint(self.min, self.max)
         return [self.record_class() for i in range(number)]
+
+
+def basic_positive(exclude=[], include=[]):
+    """Often repeated field, that includes all the string types.
+    Utilizing exclude and include to easily filter out types.
+    """
+    lst = [
+        STR.alpha, STR.alphanumeric, STR.html,
+        STR.latin1, STR.numeric, STR.utf8]
+
+    if include:
+        lst = include
+    if exclude:
+        lst = [i for i in lst if i not in exclude]
+
+    return ChoiceField([
+        StringField(str_type=i)
+        for i in lst])
