@@ -8,8 +8,10 @@ Test class for Activation key CLI
 
 from tests.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import redminebug
 
 
+@redminebug('4444')
 class ActivationKey(BaseCLI):
     """
     Implements Activation key tests in CLI
