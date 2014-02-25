@@ -5,7 +5,6 @@ import itertools
 
 from robottelo.common.records.fields import Field
 from robottelo.common.records.fields import evaluate_choice
-from robottelo.common.records.fields import convert_to_data
 
 
 def create_choice(enum, fields):
@@ -308,13 +307,9 @@ class Record(object):
                 post_init = getattr(self, '_post_init')
                 post_init()
 
-    def _string_data(self):
-        """Converting to more readable string representation """
-        return convert_to_data(self).items()
-
     def __str__(self):
         """For printout"""
-        return self._string_data().__str__()
+        return "#"+self.__class__ + self.__dict__.__str__()
 
 if __name__ == "__main__":
     import doctest

@@ -133,7 +133,7 @@ class ChoiceField(Field):
 
     def enumerate(self):
         """List all the possible values in this choice"""
-        return [chosen for chosen in self.choices]
+        return self.choices
 
 
 class RelatedField(Field):
@@ -173,36 +173,5 @@ def basic_positive(exclude=[], include=[]):
         lst = [i for i in lst if i not in exclude]
 
     return ChoiceField([
-        StringField(format="", str_type=i)
+        StringField(str_type=i)
         for i in lst])
-
-
-def convert_to_data(instance):
-    """Converts an instance to a data dictionary
-    Recomended to use on Record objects only,
-    though it should work on any object.
-
-    Returns copy of __dict__ of object and filters out private fields
-    """
-
-    return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k != "")}
-
-
-def load_from_data(cls, data, transform):
-    """Loads instance attributes from a data dictionary"""
-
-    instance = cls(BLANK=True)
-    related = {
-        field.name: field for field in instance._meta.fields
-        if isinstance(field, RelatedField)
-        }
-    data = transform(cls, data)
-    for k, v in data.items():
-        if k in related and type(v) is dict:
-            related_class = related[k].record_class
-            related_instance = load_from_data(related_class, v, transform)
-            instance.__dict__[k] = related_instance
-        else:
-            instance.__dict__[k] = v
-    return instance

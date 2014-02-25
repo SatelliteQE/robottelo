@@ -7,8 +7,37 @@ Module for mixin of basic crud methods based on api_path class method.
 import robottelo.api.base as base
 
 from robottelo.common.records import ManyRelatedField, RelatedField
-from robottelo.common.records.fields import convert_to_data, load_from_data
 
+
+def convert_to_data(instance):
+    """Converts an instance to a data dictionary
+    Recomended to use on Record objects only,
+    though it should work on any object.
+
+    Returns copy of __dict__ of object and filters out private fields
+    """
+
+    return {k: v for k, v in instance.__dict__.items()
+            if (not k.startswith("_") and k != "")}
+
+
+def load_from_data(cls, data, transform):
+    """Loads instance attributes from a data dictionary"""
+
+    instance = cls(BLANK=True)
+    related = {
+        field.name: field for field in instance._meta.fields
+        if isinstance(field, RelatedField)
+        }
+    data = transform(cls, data)
+    for k, v in data.items():
+        if k in related and type(v) is dict:
+            related_class = related[k].record_class
+            related_instance = load_from_data(related_class, v, transform)
+            instance.__dict__[k] = related_instance
+        else:
+            instance.__dict__[k] = v
+    return instance
 
 def resolve_path_arg(arg, data):
     """Required to add support for path arguments taking from related fields,
