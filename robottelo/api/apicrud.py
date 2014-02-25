@@ -24,7 +24,7 @@ def convert_to_data(instance):
 def load_from_data(cls, data, transform):
     """Loads instance attributes from a data dictionary"""
 
-    instance = cls(BLANK=True)
+    instance = cls(blank_record=True)
     related = {
         field.name: field for field in instance._meta.fields
         if isinstance(field, RelatedField)
@@ -38,6 +38,7 @@ def load_from_data(cls, data, transform):
         else:
             instance.__dict__[k] = v
     return instance
+
 
 def resolve_path_arg(arg, data):
     """Required to add support for path arguments taking from related fields,
@@ -326,7 +327,7 @@ class ApiCrud(object):
         for fld in related_fields:
             if hasattr(ninstance, (fld.name + "_id")):
                 related_class = fld.record_class
-                related = related_class(BLANK=True)
+                related = related_class(blank_record=True)
                 related.id = instance.__dict__[(fld.name + "_id")]
                 related = cls.record_resolve(related)
                 ninstance.__dict__[fld.name] = related

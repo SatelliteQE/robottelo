@@ -258,14 +258,14 @@ class Record(object):
 
         Last feature is the ability to create blank record,
         while retaining the meta informaiton.
-        >>> t = Test(BLANK=True)
+        >>> t = Test(blank_record=True)
         >>> hasattr(t, "name")
         False
         >>> t._meta.meta_data
         'meta_information'
         """
 
-        blank = "BLANK" in kwargs and kwargs.pop("BLANK")
+        blank = "blank_record" in kwargs and kwargs.pop("blank_record")
 
         fields_iter = iter(self._meta.fields)
         for val, field in zip(args, fields_iter):
