@@ -100,8 +100,6 @@ SYNC_INTERVAL = {'hour': "hourly",
 REPO_TYPE = {'yum': "yum",
              'puppet': "puppet"}
 
-FAKE_URL = {'zoo': "http://inecas.fedorapeople.org/fakerepos/zoo3/"}
-
 PRDS = {'rhcf': "Red Hat CloudForms",
         'rhel': "Red Hat Enterprise Linux Server"}
 
