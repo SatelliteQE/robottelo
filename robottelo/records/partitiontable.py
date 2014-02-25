@@ -1,3 +1,10 @@
+# -*- encoding: utf-8 -*-
+
+"""
+Module for Partition Table api an record implementation
+"""
+
+
 from robottelo.common import records
 from robottelo.common.constants import OPERATING_SYSTEMS
 from robottelo.records.operatingsystem import OperatingSystem

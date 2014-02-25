@@ -103,6 +103,14 @@ class ApiCrud(object):
 
     @classmethod
     def list_path_args(cls):
+        """Lists all path arguments
+
+        >>> class TestApi(ApiCrud):
+        ...     api_path = "/api/org/:org.label/test/:id"
+        ...
+        >>> TestApi.list_path_args()
+        ['org.label','id']
+        """
         path = cls.get_api_path()
         return [
             s[1:] for s in path.split('/') if s.startswith(":")
@@ -110,7 +118,14 @@ class ApiCrud(object):
 
     @classmethod
     def parse_path_arg(cls, args):
-        """Method parsing the api_path for extra arguments"""
+        """Method parsing the api_path for extra arguments
+
+        >>> class TestApi(ApiCrud):
+        ...     api_path = "/api/org/:org.label/test/:id"
+        ...
+        >>> TestApi.parse_path_arg({'org.label':"org123","id":"456"})
+        '/api/org/org123/test/456'
+        """
         path_args = cls.list_path_args()
         path = cls.get_api_path()
         for arg in path_args:

@@ -226,6 +226,19 @@ class Record(object):
         >>> t.number
         '123'
 
+        If record fields have some specific requirements, you are
+        able to set them up with _post_init private function
+
+        >>> from robottelo.common.records import StringField
+        >>> class Test(Record):
+        ...      name = StringField(format=r"abc{y,z}*")
+        ...      def _post_init(self):
+        ...         self.label = self.name
+        >>> t = Test(name='n1')
+        >>> t.label
+        'n1'
+
+
         Specifying Meta subclass will add _meta private field,
         that can contain various meta-infromation shared among
         the instances of record definition.

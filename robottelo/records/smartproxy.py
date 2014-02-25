@@ -1,3 +1,10 @@
+# -*- encoding: utf-8 -*-
+
+"""
+Module for Smart proxy api an record implementation
+"""
+
+
 from robottelo.common import conf, records
 from robottelo.api.apicrud import ApiCrud
 

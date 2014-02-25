@@ -1,3 +1,10 @@
+# -*- encoding: utf-8 -*-
+
+"""
+Module for Host api an record implementation
+"""
+
+
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.environment import Environment
@@ -34,6 +41,9 @@ class Host(records.Record):
     ptable = records.RelatedField(PartitionTable)
 
     def _post_init(self):
+        """Ensures, that certain fields are consistent
+        with api requirements
+        """
         self.name = self.name + "." + self.domain.name
         self.architecture.operatingsystem = [self.operatingsystem]
         self.ptable.operatingsystem = [self.operatingsystem]

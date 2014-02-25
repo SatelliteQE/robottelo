@@ -1,3 +1,9 @@
+# -*- encoding: utf-8 -*-
+
+"""
+Module for Organization api an record implementation
+"""
+
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.helpers import STR

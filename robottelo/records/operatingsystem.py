@@ -1,3 +1,10 @@
+# -*- encoding: utf-8 -*-
+
+"""
+Module for Operating System api an record implementation
+"""
+
+
 from robottelo.common import records
 from robottelo.common.helpers import valid_names_list
 from robottelo.common.constants import OPERATING_SYSTEMS
