@@ -1,4 +1,16 @@
-"""Record's fields declarations"""
+"""
+Record's fields declarations
+
+A field is responsible for handling the random generation of certain types of
+data using its own attributes to control the data generation.
+
+For example, an IntegerField represents an integer type of data and its
+attributes control the range of numbers from which its value will be generated.
+
+Each time that a record instance is created, the field value will be randomly
+generated. Once you've created an instance of an IntegerField, subsequent
+object creations will follow the same range determined previously.
+"""
 
 import rstr
 
@@ -12,7 +24,43 @@ class NOT_PROVIDED:
 
 
 class Field(object):
-    """Base class for all fields"""
+    """
+    Base class for all fields
+
+    It defines the common attributes to all fields:
+
+      * default: the default value, if defined, will be used every time a field
+        value is requested. If not defined, the random generated value will be
+        used. The default value could be a callable and will be called whenever
+        a field value is necessary.
+      * required: defines if a field is required or not. If the field is not
+        required its value will be None when the default value is not defined
+        otherwise will be used the default instead.
+
+    The generate method should be overridden by a Field's subclass and should
+    return a random generated value respecting the type of the field. Also
+    the __init__ method could be overriden to add new attributes to control the
+    value generation.
+
+    Full example:
+
+    class MyField(Field):
+        def __init__(self, custom_arg='default for arg', **kwargs):
+            # super should aways be called to ensure creation of field's
+            # default attributes
+            super(MyField, self).__init__(**kwargs)
+
+            self.custom_arg = custom_arg
+
+        def generate(self):
+            if self.custom_arg == 'some expected value':
+                return 'random value when some expected value is provided'
+            else:
+                return 'random value when some expected value is not provided'
+
+    Each Field subclass should at least override the generate method and return
+    a random value, otherwise a NotImplementedError will be raised.
+    """
 
     def __init__(self, default=NOT_PROVIDED, required=True):
         self.default = default
@@ -21,13 +69,13 @@ class Field(object):
         self.required = required
 
     def generate(self):
-        """Generate a random value for field"""
+        """Override this method to generate a random value for field"""
 
         raise NotImplementedError(
-            'A subclass should create a way to random generate this')
+            'A subclass should create a way to random generate a value')
 
     def contribute_to_class(self, cls, name):
-        """Method used to setup this field on the record"""
+        """Method used to setup this field on the Record class"""
 
         if not self.name:
             self.name = name
@@ -41,8 +89,9 @@ class Field(object):
 
     def get_default(self):
         """
-        Returns the default value for this field.
-        Otherwise generates a value if it is required else returns None
+        Returns the default value for this field, even if the field is not
+        required.
+        Otherwise generates a value if it is required or returns None if not.
         """
 
         if self.has_default():
@@ -56,6 +105,31 @@ class Field(object):
 
 
 class StringField(Field):
+    """
+    A Field subclass that represents the string type and generates random
+    values based on the str_type attribute. The expected values to str_type
+    are:
+
+        * xeger: generates a random string based on a regex specified on the
+          format field attribute. The default value is r'{record_name}_\d\d\d'.
+          The {record_name} is a placeholder that will be replaced by the
+          record class name. This str_type uses the rstr.xeger method which
+          allows users to create a random string from a regular expression.
+          For example, to generate a Canadian postal code, define the format
+          as  r'[A-Z]\d[A-Z] \d[A-Z]\d' which would generate u'R6M 1W5'
+        * alphanumeric: randomly generates alphanumeric strings
+        * alpha: randomly generates alpha strings
+        * numeric: randomly generates numeric strings
+        * latin1: randomly generates latin1 encoded strings
+        * utf8: randomly generates utf8 encoded strings
+        * html: randomly generates a piece of HTML which have the format
+          <tag>random string</tag>. In this case the maxlen controls the len of
+          the tag content
+
+    The maxlen attribute could be specified to limit the length of the
+    generated string and defaults to 20.
+    """
+
     def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20,
                  str_type='xeger', **kwargs):
         super(StringField, self).__init__(**kwargs)
@@ -64,7 +138,7 @@ class StringField(Field):
         self.str_type = str_type
 
     def _parse_field_format(self, fmt):
-        """Parses the format provided and returns the parsed format"""
+        """Replaces the expected placeholders with its value"""
         return fmt.replace('{record_name}', self.record.__name__)
 
     def generate(self):
@@ -77,7 +151,11 @@ class StringField(Field):
 
 
 class IntegerField(Field):
-    """Integer field that generates random values based on a range"""
+    """
+    A Field subclass that represents the integer type and generates random
+    value N such that min <= N <= max. The min defaults to 1 and max defaults
+    to 10.
+    """
 
     def __init__(self, min=1, max=10, **kwargs):
         super(IntegerField, self).__init__(**kwargs)
@@ -89,6 +167,13 @@ class IntegerField(Field):
 
 
 class MACField(Field):
+    """
+    A Field subclass that represents a MAC address type and generates random
+    value in the format XX:XX:XX:XX:XX:XX where XX is a two digit hexadecimal
+    value and : is the delimiter. The delimiter could be changed by defining
+    the delimiter attribute which defaults to :.
+    """
+
     def __init__(self, delimiter=":", **kwargs):
         super(MACField, self).__init__(**kwargs)
         self.delimiter = delimiter
@@ -98,6 +183,13 @@ class MACField(Field):
 
 
 class IpAddrField(Field):
+    """
+    A Field subclass that represents an IP address type and generates random
+    value in the format NNN.NNN.NNN.NNN if ip3 attribute is False or in the
+    format NNN.NNN.NNN.0 if ip3 attribute is True. The ip3 attribute defaults
+    to False.
+    """
+
     def __init__(self, ip3=False, **kwargs):
         super(IpAddrField, self).__init__(**kwargs)
         self.ip3 = ip3
@@ -107,6 +199,13 @@ class IpAddrField(Field):
 
 
 class ChoiceField(Field):
+    """
+    A Field subclass that represents a choice from a sequence. The choices
+    attribute should be defined to a non-empty sequence, or will will otherwise
+    raise an IndexError exception. The value generated will be a random element
+    from the choices sequence.
+    """
+
     def __init__(self, choices, **kwargs):
         super(ChoiceField, self).__init__(**kwargs)
         self.choices = choices
@@ -116,6 +215,13 @@ class ChoiceField(Field):
 
 
 class RelatedField(Field):
+    """
+    A Field subclass that represents a related record type and creates a random
+    related record instance using the related record class fields definition.
+    This field eases the process of creating dependents records when creating a
+    record. The record_class attributes should be defined by a Record subclass.
+    """
+
     def __init__(self, record_class, **kwargs):
         super(RelatedField, self).__init__(**kwargs)
         self.record_class = record_class
@@ -125,8 +231,14 @@ class RelatedField(Field):
 
 
 class ManyRelatedField(Field):
-    """I have decided, that with [] it shall just set it,
-       but with {"+":positive_diff,"-":negative_diff} it will update it"""
+    """
+    A Field subclass that represents a related record list type and creates
+    a list of related record instances. The record_class attribute must be
+    defined by a Record subclass and the min and max attributes controls the
+    list length such that min <= length <= max. Every time a record instance is
+    created a random value will be used to define the length of the list.
+    """
+
     def __init__(self, record_class, min, max, **kwargs):
         super(ManyRelatedField, self).__init__(**kwargs)
         self.record_class = record_class
