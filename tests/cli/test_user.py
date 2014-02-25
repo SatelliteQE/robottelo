@@ -22,63 +22,6 @@ class User(BaseCLI):
     [2] Negative Name Variations -  Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
     """
-    factory = make_user
-    factory_obj = User
-    search_key = 'login'
-
-    POSITIVE_CREATE_DATA = (
-        {'login': generate_string("latin1", 10).encode("utf-8")},
-        {'login': generate_string("utf8", 10).encode("utf-8")},
-        {'login': generate_string("alpha", 10)},
-        {'login': generate_string("alphanumeric", 10)},
-        {'login': generate_string("numeric", 10)},
-    )
-
-    NEGATIVE_CREATE_DATA = (
-        {'login': generate_string("latin1", 300).encode("utf-8")},
-        {'login': " "},
-        {'': generate_string("alpha", 10)},
-        {generate_string("alphanumeric", 10): " "},
-        {'login': generate_string("html", 10)},
-    )
-
-    POSITIVE_UPDATE_DATA = (
-        ({'login': generate_string("latin1", 10).encode("utf-8")},
-         {'login': generate_string("latin1", 10).encode("utf-8")}),
-        ({'login': generate_string("utf8", 10).encode("utf-8")},
-         {'login': generate_string("utf8", 10).encode("utf-8")}),
-        ({'login': generate_string("alpha", 10)},
-         {'login': generate_string("alpha", 10)}),
-        ({'login': generate_string("alphanumeric", 10)},
-         {'login': generate_string("alphanumeric", 10)}),
-        ({'login': generate_string("numeric", 10)},
-         {'login': generate_string("numeric", 10)}),
-        ({'login': generate_string("utf8", 10).encode("utf-8")},
-         {'login': generate_string("html", 6)}),
-    )
-
-    NEGATIVE_UPDATE_DATA = (
-        ({'login': generate_string("utf8", 10).encode("utf-8")},
-         {'login': generate_string("utf8", 300).encode("utf-8")}),
-        ({'login': generate_string("utf8", 10).encode("utf-8")},
-         {'login': " "}),
-    )
-
-    POSITIVE_DELETE_DATA = (
-        {'login': generate_string("latin1", 10).encode("utf-8")},
-        {'login': generate_string("utf8", 10).encode("utf-8")},
-        {'login': generate_string("alpha", 10)},
-        {'login': generate_string("alphanumeric", 10)},
-        {'login': generate_string("numeric", 10)},
-    )
-
-    NEGATIVE_DELETE_DATA = (
-        {'id': generate_string("alpha", 10)},
-        {'id': None},
-        {'id': " "},
-        {},
-        {'id': -1},
-    )
 
     def test_positive_create_user_1(self):
         """
