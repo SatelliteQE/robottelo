@@ -28,6 +28,7 @@ from robottelo.ui.products import Products
 from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.subnet import Subnet
+from robottelo.ui.sync import Sync
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
@@ -105,6 +106,7 @@ class BaseUI(unittest.TestCase):
         self.repository = Repos(self.browser)
         self.role = Role(self.browser)
         self.subnet = Subnet(self.browser)
+        self.sync = Sync(self.browser)
         self.template = Template(self.browser)
         self.user = User(self.browser)
         self.usergroup = UserGroup(self.browser)

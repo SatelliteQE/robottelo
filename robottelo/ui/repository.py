@@ -2,6 +2,7 @@
 Implements Repos UI
 """
 
+from time import sleep
 from robottelo.ui.base import Base
 from robottelo.common.constants import REPO_TYPE
 from robottelo.ui.locators import locators, common_locators
@@ -28,8 +29,8 @@ class Repos(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-        self.find_element(locators["repo.new"]).click()
-        self.find_element(locators["repo.new"]).click()
+        sleep(2)
+        self.wait_until_element(locators["repo.new"]).click()
         self.wait_for_ajax()
         self.text_field_update(common_locators["name"], name)
         if repo_type:
