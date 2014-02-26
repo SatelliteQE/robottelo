@@ -31,8 +31,7 @@ class User(BaseCLI):
           {'login': generate_string("alpha", 10)},
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
-          {'login': generate_string("alphanumeric", 100)},
-    )
+          {'login': generate_string("alphanumeric", 100)})
     def test_positive_create_user_1(self, data):
         """
         @Feature: User - Positive Create
@@ -49,8 +48,7 @@ class User(BaseCLI):
           {'firstname': generate_string("alpha", 10)},
           {'firstname': generate_string("alphanumeric", 10)},
           {'firstname': generate_string("numeric", 10)},
-          {'firstname': generate_string("alphanumeric", 50)},
-    )
+          {'firstname': generate_string("alphanumeric", 50)})
     def test_positive_create_user_2(self, data):
         """
         @Feature: User - Positive Create
@@ -67,8 +65,7 @@ class User(BaseCLI):
           {'lastname': generate_string("alpha", 10)},
           {'lastname': generate_string("alphanumeric", 10)},
           {'lastname': generate_string("numeric", 10)},
-          {'lastname': generate_string("alphanumeric", 50)},
-    )
+          {'lastname': generate_string("alphanumeric", 50)})
     def test_positive_create_user_3(self, data):
         """
         @Feature: User - Positive Create
@@ -88,8 +85,7 @@ class User(BaseCLI):
           {'mail': generate_string("alphanumeric", 10) + "@somemail.com"},
           {'mail': generate_string("numeric", 10) + "@somemail.com"},
           {'mail': generate_string("alphanumeric", 50) +
-           "@somem.com"},  # max 60 (total)
-    )
+           "@somem.com"})  # max 60 chars
     def test_positive_create_user_4(self, data):
         """
         @Feature: User - Positive Create
@@ -106,8 +102,7 @@ class User(BaseCLI):
           {'password': generate_string("alpha", 10)},
           {'password': generate_string("alphanumeric", 10)},
           {'password': generate_string("numeric", 10)},
-          {'password': generate_string("alphanumeric", 3000)},
-    )
+          {'password': generate_string("alphanumeric", 3000)})
     def test_positive_create_user_5(self, data):
         """
         @Feature: User - Positive Create
