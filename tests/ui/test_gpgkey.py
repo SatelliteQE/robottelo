@@ -104,9 +104,10 @@ class GPGKey(BaseUI):
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_gpg_keys()
-        self.gpgkey.create(name)
-        self.assertTrue(self.gpgkey.wait_until_element
-                        (common_locators["alert.error"]))
+        try:
+            self.gpgkey.create(name)
+        except Exception:
+            pass
         self.assertIsNone(self.gpgkey.search(name))
 
     @attr('ui', 'gpgkey', 'implemented')
@@ -321,7 +322,6 @@ class GPGKey(BaseUI):
         @test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
         @assert: gpg key is not updated
-
         """
 
         name = generate_name(6)

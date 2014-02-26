@@ -39,6 +39,9 @@ class GPGKey(Base):
                 self.find_element(locators
                                   ["gpgkey.content"]
                                   ).send_keys(key_content)
+            else:
+                raise Exception(
+                    "Could not create new gpgkey '%s' without contents" % name)
             self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
         else:
