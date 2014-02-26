@@ -62,7 +62,6 @@ class GPGKey(BaseUI):
         @test: Create gpg key with valid name and valid gpg key via file import
         then try to create new one with same name
         @assert: gpg key is not created
-        @status: manual
         """
 
         name = new_name = generate_name(6)
@@ -82,7 +81,6 @@ class GPGKey(BaseUI):
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
         @assert: gpg key is not created
-        @status: manual
         """
 
         name = new_name = generate_name(6)
@@ -101,7 +99,6 @@ class GPGKey(BaseUI):
         @feature: GPG Keys
         @test: Create gpg key with valid name and no gpg key
         @assert: gpg key is not created
-        @status: manual
         """
 
         name = generate_name(6)
@@ -119,7 +116,6 @@ class GPGKey(BaseUI):
         @test: Create gpg key with invalid name and valid gpg key via
         file import
         @assert: gpg key is not created
-        @status: manual
         """
 
         name = generate_name(256)
@@ -138,7 +134,6 @@ class GPGKey(BaseUI):
         @test: Create gpg key with invalid name and valid gpg key text via
         cut and paste/string
         @assert: gpg key is not created
-        @status: manual
         """
 
         name = generate_name(256)
@@ -326,7 +321,7 @@ class GPGKey(BaseUI):
         @test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
         @assert: gpg key is not updated
-        @status: manual
+
         """
 
         name = generate_name(6)
@@ -348,7 +343,6 @@ class GPGKey(BaseUI):
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then fail to update its name
         @assert: gpg key is not updated
-        @status: manual
         """
 
         name = generate_name(6)
