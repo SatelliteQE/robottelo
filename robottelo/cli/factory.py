@@ -121,6 +121,10 @@ def make_gpg_key(options=None):
         os.chmod(key_filename, 0700)
         with open(key_filename, "w") as gpg_key_file:
             gpg_key_file.write(generate_name(minimum=20, maximum=50))
+    else:
+        # If the key is provided get its local path and remove it from options
+        # to not override the remote path
+        key_filename = options.pop('key')
 
     args = {
         'name': generate_name(),
@@ -359,11 +363,16 @@ def make_org(options=None):
         hammer organization create [OPTIONS]
 
     Options:
-        --name NAME
+        --name NAME                   name
+        --label LABEL                 unique label
+        --description DESCRIPTION     description
     """
+
     #Assigning default values for attributes
     args = {
-        'name': generate_name(6)
+        'name': generate_name(6),
+        'label': None,
+        'description': None,
     }
 
     args = update_dictionary(args, options)

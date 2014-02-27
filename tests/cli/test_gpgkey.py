@@ -6,63 +6,103 @@ Test class for GPG Key CLI
 """
 
 from ddt import data, ddt
-#from robottelo.cli.gpgkey import GPGKey
-#from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_gpg_key, make_org
+from robottelo.cli.gpgkey import GPGKey
+from robottelo.cli.org import Org
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
+from robottelo.common.helpers import generate_name, generate_string
 from tests.cli.basecli import BaseCLI
 
 
+POSITIVE_CREATE_DATA = (
+    {'name': generate_string("latin1", 10).encode("utf-8")},
+    {'name': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10)},
+    {'name': generate_string("numeric", 10)},
+    {'name': generate_string("html", 10)},
+)
+
+
 @ddt
-@redminebug('4272')
-@redminebug('4271')
-@redminebug('4263')
 @redminebug('4262')
+@redminebug('4263')
+@redminebug('4271')
+@redminebug('4272')
+@redminebug('4480')
+@redminebug('4486')
 class TestGPGKey(BaseCLI):
     """Tests for GPG Keys via Hammer CLI"""
 
+    search_key = 'name'
+
     # Positive Create
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-        """)
-    def test_positive_create_1(self):
+    @data(*POSITIVE_CREATE_DATA)
+    def test_positive_create_1(self, data):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file import
+        using the default created organization
         @assert: gpg key is created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        result = Org().list()
+        self.assertGreater(len(result.stdout), 0, 'No organization found')
+        org = result.stdout[0]
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-        """)
-    def test_positive_create_2(self):
+        # Setup data to pass to the factory
+        data['key'] = 'tests/data/valid_gpg_key.txt'
+        data['organization-id'] = org['label']
+        new_obj = make_gpg_key(data)
+
+        # Can we find the new object?
+        result = GPGKey().exists(
+            org['label'],
+            (self.search_key, new_obj[self.search_key])
+        )
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(
+            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(
+            new_obj[self.search_key], result.stdout[self.search_key])
+
+    @data(*POSITIVE_CREATE_DATA)
+    def test_positive_create_2(self, data):
         """
         @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string
+        @test: Create gpg key with valid name and valid gpg key via file import
+        using the a new organization
         @assert: gpg key is created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        label = generate_name(6)
+        org = make_org({'label': label})
+        result = Org().exists(('label', org['label']))
+        self.assertTrue(result.return_code == 0,
+                        "Failed to find the created organization")
+        org.update(result.stdout)
 
-        #Negative Create
+        # Setup data to pass to the factory
+        data['key'] = 'tests/data/valid_gpg_key.txt'
+        data['organization-id'] = org['label']
+        new_obj = make_gpg_key(data)
+
+        # Can we find the new object?
+        result = GPGKey().exists(
+            org['label'],
+            (self.search_key, new_obj[self.search_key])
+        )
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(
+            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(
+            new_obj[self.search_key], result.stdout[self.search_key])
+
+    # Negative Create
 
     @data("""DATADRIVENGOESHERE
         name is alpha
