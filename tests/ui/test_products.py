@@ -3,21 +3,13 @@ Test class for Products UI
 """
 
 from robottelo.common.helpers import generate_name
-from tests.ui.baseui import BaseUI
+from tests.ui.commonui import CommonUI
 
 
-class Products(BaseUI):
+class Products(CommonUI):
     """
     Implements Product tests in UI
     """
-
-    def create_org(self, org_name=None):
-        """Creates Org"""
-        org_name = org_name or generate_name(8, 8)
-        self.navigator.go_to_org()  # go to org page
-        self.org.create(org_name)
-        self.navigator.go_to_select_org(org_name)
-        self.navigator.go_to_org()
 
     def test_create_prd(self):
         """
@@ -31,13 +23,8 @@ class Products(BaseUI):
         provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description, provider,
-                             create_provider=True)
-        self.navigator.go_to_select_org(org_name)
-        self.navigator.go_to_products()
-        self.assertIsNotNone(self.products.search(prd_name))
+        self.create_product(prd_name, description, provider,
+                            create_provider=True, org=org_name)
 
     def test_update_prd(self):
         """
@@ -52,13 +39,8 @@ class Products(BaseUI):
         provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description, provider,
-                             create_provider=True)
-        self.navigator.go_to_select_org(org_name)
-        self.navigator.go_to_products()
-        self.assertIsNotNone(self.products.search(prd_name))
+        self.create_product(prd_name, description, provider,
+                            create_provider=True, org=org_name)
         self.products.update(prd_name, new_name=new_prd_name)
         self.navigator.go_to_select_org(org_name)
         self.navigator.go_to_products()
@@ -76,12 +58,7 @@ class Products(BaseUI):
         provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description, provider,
-                             create_provider=True)
-        self.navigator.go_to_select_org(org_name)
-        self.navigator.go_to_products()
-        self.assertIsNotNone(self.products.search(prd_name))
+        self.create_product(prd_name, description, provider,
+                            create_provider=True, org=org_name)
         self.products.delete(prd_name, True)
         self.assertIsNone(self.products.search(prd_name))
