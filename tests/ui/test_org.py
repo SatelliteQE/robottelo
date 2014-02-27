@@ -220,7 +220,6 @@ class Org(BaseUI):
 
         self.fail(NOT_IMPLEMENTED)
 
-
     #Miscelaneous
 
     @data("""DATADRIVENGOESHERE
