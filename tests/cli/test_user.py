@@ -12,6 +12,7 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.cli.factory import make_user
 from robottelo.common.helpers import generate_string
 from robottelo.common.decorators import redminebug
+from robottelo.cli.user import User as UserObj
 
 
 @ddt
@@ -25,6 +26,22 @@ class User(BaseCLI):
     [2] Negative Name Variations -  Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
     """
+
+    def __assert_exists(self, args):
+        """
+        Checks if the object that passed as args parameter really exists
+        in `hammer user list --search args['login']` and has values of:
+        Login,Name,Email
+        """
+        result = UserObj().list({'search': args['login']})
+        self.assertTrue(result.return_code == 0,
+                        "User search - exit code %d" %
+                        result.return_code)
+        self.assertTrue(result.stdout[0]['name'] ==
+                        args['firstname'] + " " + args['lastname'],
+                        "User search - check our value 'Name'")
+        self.assertTrue(result.stdout[0]['email'] == args['mail'],
+                        "User search - check our value 'Email'")
 
     @data({'login': generate_string("latin1", 10).encode("utf-8")},
           {'login': generate_string("utf8", 10).encode("utf-8")},
@@ -41,7 +58,15 @@ class User(BaseCLI):
         valid First Name, Surname, Email Address, Language, authorized by
         @Assert: User is created
         """
-        make_user(data)
+        args = make_user(data)
+        self.__assert_exists(args)
+#         result = UserObj().list({'search': args['login']})
+#         self.assertTrue(result.return_code == 0,
+#                         "User search - exit code %d" %
+#                         result.return_code)
+#         self.assertTrue(result.stdout[0][data.keys()[0]] == data.values()[0],
+#                         "User search - check our value '%s'" %
+#                         data.keys()[0])
 
     @data({'firstname': generate_string("latin1", 10).encode("utf-8")},
           {'firstname': generate_string("utf8", 10).encode("utf-8")},
@@ -58,7 +83,8 @@ class User(BaseCLI):
         valid Username, Surname, Email Address, Language, authorized by
         @Assert: User is created
         """
-        make_user(data)
+        args = make_user(data)
+        self.__assert_exists(args)
 
     @data({'lastname': generate_string("latin1", 10).encode("utf-8")},
           {'lastname': generate_string("utf8", 10).encode("utf-8")},
@@ -75,7 +101,8 @@ class User(BaseCLI):
         valid Username, First Name, Email Address, Language, authorized by
         @Assert: User is created
         """
-        make_user(data)
+        args = make_user(data)
+        self.__assert_exists(args)
 
     @data({'mail': generate_string("latin1", 10).encode("utf-8") +
            "@somemail.com"},
@@ -95,7 +122,8 @@ class User(BaseCLI):
         valid Username, First Name, Surname, Language, authorized by
         @Assert: User is created
         """
-        make_user(data)
+        args = make_user(data)
+        self.__assert_exists(args)
 
     @data({'password': generate_string("latin1", 10).encode("utf-8")},
           {'password': generate_string("utf8", 10).encode("utf-8")},
@@ -112,7 +140,8 @@ class User(BaseCLI):
         Username, First Name, Surname, Email Address, Language, authorized by
         @Assert: User is created
         """
-        make_user(data)
+        args = make_user(data)
+        self.__assert_exists(args)
 
     def test_positive_create_user_6(self):
         """
@@ -120,8 +149,8 @@ class User(BaseCLI):
         @Test: Create an Admin user
         @Assert: Admin User is created
         """
-        data = {'admin': '1'}
-        make_user(data)
+        args = make_user({'admin': '1'})
+        self.__assert_exists(args)
 
     @redminebug('2922')
     def test_positive_create_user_9(self):
