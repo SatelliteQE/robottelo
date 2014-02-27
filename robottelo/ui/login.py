@@ -4,7 +4,6 @@
 """
 Implements Login UI
 """
-import unittest
 
 from robottelo.ui.base import Base
 from robottelo.common.constants import DEFAULT_ORG
@@ -13,7 +12,7 @@ from robottelo.ui.navigator import Navigator
 from robottelo.ui.org import Org
 
 
-class Login(Base, unittest.TestCase):
+class Login(Base):
     """
     Implements login, logout functions for Foreman UI
     """
