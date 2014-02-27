@@ -2,10 +2,11 @@
 Test class for Custom Sync UI
 """
 
+import unittest
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name, valid_names_list
-from robottelo.common.constants import DEFAULT_ORG
+from robottelo.common.constants import DEFAULT_ORG, RHCT
 from tests.ui.baseui import BaseUI
 
 
@@ -37,5 +38,22 @@ class Sync(BaseUI):
         self.repository.create(repo_name, product=prd_name, url=repo_url)
         self.assertIsNotNone(self.repository.search(repo_name))
         self.navigator.go_to_sync_status()
-        self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(self.sync.assert_sync(prd_name, [repo_name]))
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+
+    @unittest.skip("Test needs to create manifests using stageportal stuff")
+    def test_sync_rhrepos(self):
+        """
+        @Feature: Content RedHat Sync - Positive Create
+        @Test: Create Content RedHat Sync with two repos.
+        @Assert: Whether Syncing RedHat Repos is successful
+        """
+
+        repos = self.sync.create_repos_tree(RHCT)
+        self.login.login(self.katello_user, self.katello_passwd)
+        # TODO: Create manifests and import using stageportal stuff.
+        self.navigator.go_to_red_hat_repositories()
+        self.sync.enable_rh_repos(repos)
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_rh_repos(repos)
+        self.assertIsNotNone(sync)
