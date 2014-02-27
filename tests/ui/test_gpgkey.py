@@ -104,10 +104,8 @@ class GPGKey(BaseUI):
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_gpg_keys()
-        try:
+        with self.assertRaises(Exception):
             self.gpgkey.create(name)
-        except Exception:
-            pass
         self.assertIsNone(self.gpgkey.search(name))
 
     @attr('ui', 'gpgkey', 'implemented')
