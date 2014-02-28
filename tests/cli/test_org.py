@@ -52,7 +52,7 @@ class TestOrg(BaseCLI):
     * http://projects.theforeman.org/issues/4296
     """
 
-    #@redminebug('4443')
+    @redminebug('4486')
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):
         """
@@ -61,7 +61,7 @@ class TestOrg(BaseCLI):
         @assert: organization is created, label is auto-generated
         """
 
-        new_obj = make_org(data)
+        new_obj = make_org(test_data)
         # Can we find the new object?
         result = Org().exists(('name', new_obj['name']))
 
@@ -71,7 +71,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    #@redminebug('4443')
+    @redminebug('4486')
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_2(self, test_data):
         """
@@ -80,8 +80,10 @@ class TestOrg(BaseCLI):
         @assert: organization is created, label matches name
         """
 
-        POSITIVE_CREATE_DATA['label'] = POSITIVE_CREATE_DATA['name']
-        new_obj = make_org(data)
+        test_data['label'] = test_data['name']
+        self.assertEqual(test_data['label'],
+                         test_data['name'])
+        new_obj = make_org(test_data)
         # Can we find the new object?
         result = Org().exists(('name', new_obj['name']))
 
@@ -91,7 +93,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    #@redminebug('4443')
+    @redminebug('4486')
     @data(*POSITIVE_NAME_LABEL_DATA)
     def test_positive_create_3(self, test_data):
         """
@@ -100,13 +102,15 @@ class TestOrg(BaseCLI):
         @assert: organization is created, label does not match name
         """
 
-        new_obj = make_org(data)
+        new_obj = make_org(test_data)
+
         # Can we find the new object?
         result = Org().exists(('name', new_obj['name']))
 
         self.assertTrue(result.return_code == 0, "Failed to create object")
         self.assertTrue(len(result.stderr) == 0,
                         "There should not be an exception here")
+        self.assertNotEqual(result.stdout['name'], result.stdout['label'])
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
