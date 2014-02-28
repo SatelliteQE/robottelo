@@ -11,7 +11,7 @@ from robottelo.cli.factory import (
     make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.org import Org
 from tests.cli.basecli import BaseCLI
-from robottelo.common.helpers import generate_name, generate_string
+from robottelo.common.helpers import generate_string
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import (bzbug, redminebug)
 
