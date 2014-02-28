@@ -11,7 +11,7 @@ from tests.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.cli.factory import make_user
 from robottelo.common.helpers import generate_string
-from robottelo.common.decorators import redminebug
+from robottelo.common.decorators import bzbug, redminebug
 from robottelo.cli.user import User as UserObj
 import unittest
 
@@ -364,20 +364,11 @@ class User(BaseCLI):
         """
         unittest.skip(NOT_IMPLEMENTED)
 
-    def test_negative_create_user_1(self):
-        """
-        @Feature: User - Positive Create
-        @Test: [UI ONLY] Attempt to enter all User creation details and Cancel
-        @Steps:
-        1. Enter all valid Username, First Name, Surname, Email Address,
-        Language, authorized by.
-        2. Click Cancel
-        @Assert: User is not created
-        @Status: Manual
-        """
-        unittest.skip(NOT_IMPLEMENTED)
-
-    def test_negative_create_user_2(self):
+    @data({'login': ''},
+          {'login': "space %s" % generate_string("alpha", 10)},
+          {'login': generate_string("alpha", 101)},
+          {'login': generate_string("html", 10)})
+    def test_negative_create_user_1(self, opts):
         """
         @Feature: User - Negative Create
         @Test: Create User with invalid Username
@@ -385,11 +376,21 @@ class User(BaseCLI):
         1. Create User for all invalid Usernames in [2]
         using valid First Name, Surname, Email Address, Language, authorized by
         @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        options = {
+            'login': opts['login'],
+            'mail': "root@localhost",
+            'password': generate_string("alpha", 10),
+            'auth-source-id': 1
+        }
+        self.logger.debug(str(options))
+        result = User().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertTrue(result.stderr)
 
-    def test_negative_create_user_3(self):
+    @data({'firstname': generate_string("alpha", 51)},
+          {'firstname': generate_string("html", 10)})
+    def test_negative_create_user_2(self, opts):
         """
         @Feature: User - Negative Create
         @Test: Create User with invalid Firstname
@@ -397,11 +398,21 @@ class User(BaseCLI):
         1. Create User for all invalid Firstname in [2]
         using valid Username, Surname, Email Address, Language, authorized by
         @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        options = {
+            'login': generate_string("alpha", 10),
+            'firstname': opts['firstname'],
+            'mail': "root@localhost",
+            'password': generate_string("alpha", 10),
+            'auth-source-id': 1
+        }
+        result = User().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertTrue(result.stderr)
 
-    def test_negative_create_user_4(self):
+    @data({'lastname': generate_string("alpha", 51)},
+          {'lastname': generate_string("html", 10)})
+    def test_negative_create_user_3(self, opts):
         """
         @Feature: User - Negative Create
         @Test: Create User with invalid Surname
@@ -409,11 +420,31 @@ class User(BaseCLI):
         1. Create User for all invalid Surname in [2]
         using valid Username, First Name Email Address, Language, authorized by
         @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        options = {
+            'login': generate_string("alpha", 10),
+            'lastname': opts['lastname'],
+            'mail': "root@localhost",
+            'password': generate_string("alpha", 10),
+            'auth-source-id': 1
+        }
+        result = User().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertTrue(result.stderr)
 
-    def test_negative_create_user_5(self):
+    @bzbug('1070730')
+    @data('foreman@',
+          '@foreman',
+          '@',
+          'Abc.example.com',
+          'A@b@c@example.com',
+          'email@brazil.b',
+          '%s@example.com' % generate_string("alpha", 49),  # total length 61
+          '',
+          '%s@example.com' % generate_string("html", 10),
+          's p a c e s@example.com',
+          'dot..dot@example.com')
+    def test_negative_create_user_4(self, email):
         """
         @Feature: User - Negative Create
         @Test: Create User with invalid Email Address
@@ -421,11 +452,20 @@ class User(BaseCLI):
         1. Create User for all invalid Email Address in [2]
         using valid Username, First Name, Surname, Language, authorized by
         @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        options = {
+            'login': generate_string("alpha", 10),
+            'firstname': generate_string("alpha", 10),
+            'lastname': generate_string("alpha", 10),
+            'mail': email,
+            'password': generate_string("alpha", 10),
+            'auth-source-id': 1
+        }
+        result = User().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertTrue(result.stderr)
 
-    def test_negative_create_user_6(self):
+    def test_negative_create_user_5(self):
         """
         @Feature: User - Negative Create
         @Test: Create User with blank Authorized by
@@ -433,11 +473,17 @@ class User(BaseCLI):
         1. Create User with blank Authorized by
         using valid Username, First Name, Surname, Email Address, Language
         @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        options = {
+            'login': generate_string("alpha", 10),
+            'mail': "root@localhost",
+            'auth-source-id': ''
+        }
+        result = User().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertTrue(result.stderr)
 
-    def test_negative_create_user_7(self):
+    def test_negative_create_user_6(self):
         """
         @Feature: User - Negative Create
         @Test: Create User with blank Authorized by but values in
@@ -447,22 +493,16 @@ class User(BaseCLI):
         Password and verify fields and using valid Username, First Name,
         Surname, Email Address, Language
         @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
-
-    def test_negative_create_user_8(self):
-        """
-        @Feature: User - Negative Create
-        @Test: Create User with non-matching values in Password and verify
-        @Steps:
-        1. Create User with non-matching values in Password and verify
-        using valid Username, First Name, Surname, Email Address, Language,
-        authorized by - INTERNAL
-        @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
-        """
-        unittest.skip(NOT_IMPLEMENTED)
+        options = {
+            'login': generate_string("alpha", 10),
+            'mail': "root@localhost",
+            'password': generate_string("alpha", 10),
+            'auth-source-id': ''
+        }
+        result = User().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertTrue(result.stderr)
 
     def test_positive_update_user_1(self):
         """
@@ -788,6 +828,7 @@ class User(BaseCLI):
         """
         unittest.skip(NOT_IMPLEMENTED)
 
+    @bzbug('1061701')
     def test_negative_update_user_1(self):
         """
         @Feature: User - Negative Update
@@ -800,7 +841,9 @@ class User(BaseCLI):
         """
         unittest.skip(NOT_IMPLEMENTED)
 
-    def test_negative_update_user_2(self):
+    @data({'firstname': generate_string("alpha", 51)},
+          {'firstname': generate_string("html", 10)})
+    def test_negative_update_user_2(self, opts):
         """
         @Feature: User - Negative Update
         @Test: Update invalid Firstname in an User
@@ -808,11 +851,21 @@ class User(BaseCLI):
         1. Create User
         2. Update Firstname for all variations in [2]
         @Assert: User is not updated.  Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        new_user = make_user()
+        result = User().update({'login': new_user['login'],
+                                'firstname': opts['firstname']})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
+        # check name have not changed
+        updated_user = User().exists(('login', new_user['login']))
+        self.assertEqual(updated_user.stdout['name'], "%s %s" %
+                                                      (new_user['firstname'],
+                                                       new_user['lastname']))
 
-    def test_negative_update_user_3(self):
+    @data({'lastname': generate_string("alpha", 51)},
+          {'lastname': generate_string("html", 10)})
+    def test_negative_update_user_3(self, opts):
         """
         @Feature: User - Negative Update
         @Test: Update invalid Surname in an User
@@ -820,11 +873,31 @@ class User(BaseCLI):
         1. Create User
         2. Update Surname for all variations in [2]
         @Assert: User is not updated.  Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        new_user = make_user()
+        result = User().update({'login': new_user['login'],
+                                'lastname': opts['lastname']})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
+        # check name have not changed
+        updated_user = User().exists(('login', new_user['login']))
+        self.assertEqual(updated_user.stdout['name'], "%s %s" %
+                                                      (new_user['firstname'],
+                                                       new_user['lastname']))
 
-    def test_negative_update_user_4(self):
+    @bzbug('1070730')
+    @data('foreman@',
+          '@foreman',
+          '@',
+          'Abc.example.com',
+          'A@b@c@example.com',
+          'email@brazil.b',
+          '%s@example.com' % generate_string("alpha", 49),  # total length 61
+          '',
+          '%s@example.com' % generate_string("html", 10),
+          's p a c e s@example.com',
+          'dot..dot@example.com')
+    def test_negative_update_user_4(self, mail):
         """
         @Feature: User - Negative Update
         @Test: Update invalid Email Address in an User
@@ -832,35 +905,15 @@ class User(BaseCLI):
         1. Create User
         2. Update Email Address for all variations in [2]
         @Assert: User is not updated.  Appropriate error shown.
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
-
-    def test_negative_update_user_5(self):
-        """
-        @Feature: User - Negative Update
-        @Test: Update different values in Password and verify fields in an User
-        @Steps:
-        1. Create User
-        2. Update the password by entering different values in Password and
-        verify fields
-        @Assert: User is not updated.  Appropriate error shown.
-        @Status: Manual
-        """
-        unittest.skip(NOT_IMPLEMENTED)
-
-    def test_negative_update_user_6(self):
-        """
-        @Feature: User - Negative Update
-        @Test: [UI ONLY] Attempt to update User info and Cancel
-        @Steps:
-        1. Update Current user with valid Firstname, Surname, Email Address,
-        Language, Password/Verify fields
-        2. Click Cancel
-        @Assert: User is not updated.
-        @Status: Manual
-        """
-        unittest.skip(NOT_IMPLEMENTED)
+        new_user = make_user()
+        result = User().update({'login': new_user['login'],
+                                'mail': mail})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
+        # check name have not changed
+        updated_user = User().exists(('login', new_user['login']))
+        self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
     def test_positive_delete_user_1(self):
         """
@@ -886,30 +939,24 @@ class User(BaseCLI):
         """
         unittest.skip(NOT_IMPLEMENTED)
 
-    def test_negative_delete_user_1(self):
+    @data(make_user({'admin': 'true'}),
+          {'login': 'admin', 'password': 'changeme'})
+    def test_negative_delete_user_1(self, opts):
         """
         @Feature: User - Negative Delete
-        @Test: [UI ONLY] Attempt to delete an User and cancel
+        @Test: Attempt to delete internal admin user
         @Steps:
-        1. Create a User
-        2. ATtempt to delete the user and click Cancel on the confirmation
+        1. Attempt to delete the last admin user
         @Assert: User is not deleted
-        @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
-
-    def test_negative_delete_user_2(self):
-        """
-        @Feature: User - Negative Delete
-        @Test: Attempt to delete the last remaining admin user
-        @Steps:
-        1. Create multiple Users and admin users
-        2. Delete the users except the last admin user
-        3. Attempt to delete the last admin user
-        @Assert: User is not deleted
-        @Status: Manual
-        """
-        unittest.skip(NOT_IMPLEMENTED)
+        user = User()
+        user.katello_user = opts['login']
+        user.katello_passwd = opts['password']
+        result = user.delete({'login': 'admin'})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
+        result = User().exists(('login', 'admin'))
+        self.assertTrue(result.stdout)
 
     def test_list_user_1(self):
         """
