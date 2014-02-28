@@ -52,10 +52,11 @@ class GPGKey(Base):
 
         return result
 
-    def list(self, organization_id,  options=None):
+    def list(self, organization_id, options=None):
         """
         Lists available GPG Keys.
         """
+
         self.command_sub = "list"
 
         if options is None:
@@ -63,7 +64,7 @@ class GPGKey(Base):
             options['per-page'] = 10000
 
         # Katello subcommands require the organization-id
-        options = {"organization-id": organization_id}
+        options['organization-id'] = organization_id
 
         result = self.execute(self._construct_command(options),
                               expect_csv=True)
