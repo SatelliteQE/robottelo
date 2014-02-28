@@ -85,7 +85,7 @@ class Sync(Base):
         Creates a list of dynamic hierarchial dictonary of repositories.
         A sample data which needs to be passed can be fetched from constants:
         RHEL, RHCT e.t.c
-        A Simplified Example : -
+        A Simplified Output Example : -
         ({'rhel': ({'rhct6': ({'rhct65': ({'rhct65_a': 'x86_64',
                                            'rhct65_v': '6.5',
                                            'rhct65_n': 'Red Hat CloudForms.'}),
