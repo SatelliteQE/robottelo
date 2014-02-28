@@ -106,22 +106,4 @@ PRDS = {'rhcf': "Red Hat CloudForms",
 REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
            'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)"}
 
-RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
-         'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6.5'),
-        ('rhel', 'rhct6', 'rhct65', 'repo_arch', 'x86_64'),
-        ('rhel', 'rhct6', 'rhct65', 'repo_ver', '6.5'),
-        ('rhel', 'rhct6', 'rhct6S', 'repo_name',
-         'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server'),
-        ('rhel', 'rhct6', 'rhct6S', 'repo_arch', 'x86_64'),
-        ('rhel', 'rhct6', 'rhct6S', 'repo_ver', '6Server')]
-
-RHEL = [('rhel', 'rhel6', 'rhel65', 'rhel65_n',
-         'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.5'),
-        ('rhel', 'rhel6', 'rhel65', 'rhel65_a', 'x86_64'),
-        ('rhel', 'rhel6', 'rhel65', 'rhel65_v', '6.5'),
-        ('rhel', 'rhel6', 'rhel6S', 'rhel6S_n',
-         'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server'),
-        ('rhel', 'rhel6', 'rhel6S', 'rhel6S_a', 'x86_64'),
-        ('rhel', 'rhel6', 'rhel6S', 'rhel6S_v', '6Server')]
-
 DEFAULT_ORG = "acme"

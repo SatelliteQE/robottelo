@@ -6,8 +6,18 @@ import unittest
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name, valid_names_list
-from robottelo.common.constants import DEFAULT_ORG, RHCT
+from robottelo.common.constants import DEFAULT_ORG
 from tests.ui.baseui import BaseUI
+
+
+RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
+         'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6.5'),
+        ('rhel', 'rhct6', 'rhct65', 'repo_arch', 'x86_64'),
+        ('rhel', 'rhct6', 'rhct65', 'repo_ver', '6.5'),
+        ('rhel', 'rhct6', 'rhct6S', 'repo_name',
+         'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server'),
+        ('rhel', 'rhct6', 'rhct6S', 'repo_arch', 'x86_64'),
+        ('rhel', 'rhct6', 'rhct6S', 'repo_ver', '6Server')]
 
 
 @ddt
