@@ -33,7 +33,7 @@ class User(BaseCLI):
         in `hammer user list --search args['login']` and has values of:
         Login,Name,Email
         """
-        result = UserObj().list({'search': args['login']})
+        result = UserObj().list({'search': 'login=\"%s\"' % args['login']})
         self.assertTrue(result.return_code == 0,
                         "User search - exit code %d" %
                         result.return_code)
@@ -60,13 +60,6 @@ class User(BaseCLI):
         """
         args = make_user(data)
         self.__assert_exists(args)
-#         result = UserObj().list({'search': args['login']})
-#         self.assertTrue(result.return_code == 0,
-#                         "User search - exit code %d" %
-#                         result.return_code)
-#         self.assertTrue(result.stdout[0][data.keys()[0]] == data.values()[0],
-#                         "User search - check our value '%s'" %
-#                         data.keys()[0])
 
     @data({'firstname': generate_string("latin1", 10).encode("utf-8")},
           {'firstname': generate_string("utf8", 10).encode("utf-8")},
