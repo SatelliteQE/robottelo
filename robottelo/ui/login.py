@@ -6,7 +6,7 @@ Implements Login UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.common.constants import DEFAULT_ORG
+from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.org import Org
@@ -28,7 +28,7 @@ class Login(Base):
         Logins user from UI
         """
 
-        organization = organization or DEFAULT_ORG
+        organization = organization or generate_name(8)
 
         if self.wait_until_element(locators["login.username"]):
             self.field_update("login.username", username)
