@@ -5,10 +5,17 @@
 Test class for Users CLI
 """
 
+from ddt import data
+from ddt import ddt
 from tests.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.cli.factory import make_user
+from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import redminebug
+from robottelo.cli.user import User as UserObj
 
 
+@ddt
 class User(BaseCLI):
     """
     Implements Users tests in CLI
@@ -20,7 +27,29 @@ class User(BaseCLI):
     Lesser than Min Length, Greater than Max DB size
     """
 
-    def test_positive_create_user_1(self):
+    def __assert_exists(self, args):
+        """
+        Checks if the object that passed as args parameter really exists
+        in `hammer user list --search args['login']` and has values of:
+        Login,Name,Email
+        """
+        result = UserObj().list({'search': 'login=\"%s\"' % args['login']})
+        self.assertTrue(result.return_code == 0,
+                        "User search - exit code %d" %
+                        result.return_code)
+        self.assertTrue(result.stdout[0]['name'] ==
+                        args['firstname'] + " " + args['lastname'],
+                        "User search - check our value 'Name'")
+        self.assertTrue(result.stdout[0]['email'] == args['mail'],
+                        "User search - check our value 'Email'")
+
+    @data({'login': generate_string("latin1", 10).encode("utf-8")},
+          {'login': generate_string("utf8", 10).encode("utf-8")},
+          {'login': generate_string("alpha", 10)},
+          {'login': generate_string("alphanumeric", 10)},
+          {'login': generate_string("numeric", 10)},
+          {'login': generate_string("alphanumeric", 100)})
+    def test_positive_create_user_1(self, data):
         """
         @Feature: User - Positive Create
         @Test: Create User for all variations of Username
@@ -28,11 +57,17 @@ class User(BaseCLI):
         1. Create User for all valid Username variation in [1] using
         valid First Name, Surname, Email Address, Language, authorized by
         @Assert: User is created
-        @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        args = make_user(data)
+        self.__assert_exists(args)
 
-    def test_positive_create_user_2(self):
+    @data({'firstname': generate_string("latin1", 10).encode("utf-8")},
+          {'firstname': generate_string("utf8", 10).encode("utf-8")},
+          {'firstname': generate_string("alpha", 10)},
+          {'firstname': generate_string("alphanumeric", 10)},
+          {'firstname': generate_string("numeric", 10)},
+          {'firstname': generate_string("alphanumeric", 50)})
+    def test_positive_create_user_2(self, data):
         """
         @Feature: User - Positive Create
         @Test: Create User for all variations of First Name
@@ -40,11 +75,17 @@ class User(BaseCLI):
         1. Create User for all valid First Name variation in [1] using
         valid Username, Surname, Email Address, Language, authorized by
         @Assert: User is created
-        @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        args = make_user(data)
+        self.__assert_exists(args)
 
-    def test_positive_create_user_3(self):
+    @data({'lastname': generate_string("latin1", 10).encode("utf-8")},
+          {'lastname': generate_string("utf8", 10).encode("utf-8")},
+          {'lastname': generate_string("alpha", 10)},
+          {'lastname': generate_string("alphanumeric", 10)},
+          {'lastname': generate_string("numeric", 10)},
+          {'lastname': generate_string("alphanumeric", 50)})
+    def test_positive_create_user_3(self, data):
         """
         @Feature: User - Positive Create
         @Test: Create User for all variations of Surname
@@ -52,11 +93,20 @@ class User(BaseCLI):
         1. Create User for all valid Surname variation in [1] using
         valid Username, First Name, Email Address, Language, authorized by
         @Assert: User is created
-        @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        args = make_user(data)
+        self.__assert_exists(args)
 
-    def test_positive_create_user_4(self):
+    @data({'mail': generate_string("latin1", 10).encode("utf-8") +
+           "@somemail.com"},
+          {'mail': generate_string("utf8", 10).encode("utf-8") +
+           "@somemail.com"},
+          {'mail': generate_string("alpha", 10) + "@somemail.com"},
+          {'mail': generate_string("alphanumeric", 10) + "@somemail.com"},
+          {'mail': generate_string("numeric", 10) + "@somemail.com"},
+          {'mail': generate_string("alphanumeric", 50) +
+           "@somem.com"})  # max 60 chars
+    def test_positive_create_user_4(self, data):
         """
         @Feature: User - Positive Create
         @Test: Create User for all variations of Email Address
@@ -64,35 +114,17 @@ class User(BaseCLI):
         1. Create User for all valid Email Address variation in [1] using
         valid Username, First Name, Surname, Language, authorized by
         @Assert: User is created
-        @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        args = make_user(data)
+        self.__assert_exists(args)
 
-    def test_positive_create_user_5(self):
-        """
-        @Feature: User - Positive Create
-        @Test: Create User for all variations of Language
-        @Steps:
-        1. Create User for all valid Language variations using
-        valid Username, First Name, Surname, Email Address, authorized by
-        @Assert: User is created
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_positive_create_user_6(self):
-        """
-        @Feature: User - Positive Create
-        @Test: Create User by choosing Authorized by - INTERNAL
-        @Steps:
-        1. Create User by choosing Authorized by - INTERNAL using
-        valid Password/Verify fields
-        @Assert: User is created
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_positive_create_user_7(self):
+    @data({'password': generate_string("latin1", 10).encode("utf-8")},
+          {'password': generate_string("utf8", 10).encode("utf-8")},
+          {'password': generate_string("alpha", 10)},
+          {'password': generate_string("alphanumeric", 10)},
+          {'password': generate_string("numeric", 10)},
+          {'password': generate_string("alphanumeric", 3000)})
+    def test_positive_create_user_5(self, data):
         """
         @Feature: User - Positive Create
         @Test: Create User for all variations of Password
@@ -100,19 +132,20 @@ class User(BaseCLI):
         1. Create User for all valid Password variation in [1] using valid
         Username, First Name, Surname, Email Address, Language, authorized by
         @Assert: User is created
-        @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        args = make_user(data)
+        self.__assert_exists(args)
 
-    def test_positive_create_user_8(self):
+    def test_positive_create_user_6(self):
         """
         @Feature: User - Positive Create
         @Test: Create an Admin user
         @Assert: Admin User is created
-        @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        args = make_user({'admin': '1'})
+        self.__assert_exists(args)
 
+    @redminebug('2922')
     def test_positive_create_user_9(self):
         """
         @Feature: User - Positive Create
@@ -124,6 +157,7 @@ class User(BaseCLI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @redminebug('2922')
     def test_positive_create_user_10(self):
         """
         @Feature: User - Positive Create
@@ -135,6 +169,7 @@ class User(BaseCLI):
         """
         self.fail(NOT_IMPLEMENTED)
 
+    @redminebug('2922')
     def test_positive_create_user_11(self):
         """
         @Feature: User - Positive Create
@@ -1100,80 +1135,6 @@ class User(BaseCLI):
         5. Attempt to Add/Remove Users
         6. Attempt to Add/Remove Orgs
         @Assert: All actions failed since the User is not assigned to any Org
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_positive_create_bookmark_1(self):
-        """
-        @Feature: Search bookmark - Positive Create
-        @Test: Create a bookmark with default values
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark with default values
-        @Assert: Search bookmark is created
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_positive_create_bookmark_2(self):
-        """
-        @Feature: Search bookmark - Positive Create
-        @Test: Create a bookmark by altering the default values
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark updating all the default values
-        @Assert: Search bookmark is created
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_positive_create_bookmark_3(self):
-        """
-        @Feature: Search bookmark - Positive Create
-        @Test: Create a bookmark in public mode
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark in public mode
-        @Assert: Search bookmark is created in public mode and is accessible
-        by other users
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_positive_create_bookmark_4(self):
-        """
-        @Feature: Search bookmark - Positive Create
-        @Test: Create a bookmark in private mode
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark in private mode
-        @Assert: Search bookmark is created in private mode and is not
-        accessible by other users
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_negative_create_bookmark_1(self):
-        """
-        @Feature: Search bookmark - Negative Create
-        @Test: Create a bookmark with a blank bookmark name
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark with a blank bookmark name
-        @Assert: Search bookmark not created. Appropriate error shown.
-        @Status: Manual
-        """
-        self.fail(NOT_IMPLEMENTED)
-
-    def test_negative_create_bookmark_2(self):
-        """
-        @Feature: Search bookmark - Negative Create
-        @Test: Create a bookmark with a blank bookmark query
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark with a blank bookmark query
-        @Assert: Search bookmark not created. Appropriate error shown.
         @Status: Manual
         """
         self.fail(NOT_IMPLEMENTED)
