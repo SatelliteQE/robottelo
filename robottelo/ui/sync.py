@@ -1,6 +1,7 @@
 """
 Implements Synchronization for the Repos in the UI
 """
+
 import time
 from collections import defaultdict
 from functools import partial
@@ -50,6 +51,8 @@ class Sync(Base):
         if all([str(result) == "Sync complete."
                 for result in repos_result]):
             return True
+        else:
+            return False
 
     def sync_custom_repos(self, product, repos):
         """
@@ -87,6 +90,9 @@ class Sync(Base):
                                          partial(defaultdict,
                                                  partial(defaultdict, str))))
         # p=prd, rs=reposet, r=repo, ra=repo_attr, value=attr_values
+        # Looping over repos_tree gives product, repos_tree[p] gives reposet,
+        # repos_tree[p][rs] gives repos and repos_tree[p][rs][r] gives 
+        # repo attributes.
         for p, rs, r, ra, value in repos:
             repos_tree[p][rs][r][ra] = value
         return repos_tree
@@ -137,7 +143,7 @@ class Sync(Base):
                                                 value4 % REPOSET[reposet]))
                 for repo in repos_tree[prd][reposet]:
                     repo_values = repos_tree[prd][reposet][repo]
-                    repo_name = repo_values[repo + "_n"]
+                    repo_name = repo_values['repo_name']
                     self.wait_until_element((strategy3,
                                              value3 % repo_name)).click()
                     # Similar to above reposet checkbox spinner
@@ -171,9 +177,9 @@ class Sync(Base):
             for reposet in repos_tree[prd]:
                 for repo in repos_tree[prd][reposet]:
                     repo_values = repos_tree[prd][reposet][repo]
-                    repo_name = repo_values[repo + "_n"]
-                    repo_arch = repo_values[repo + "_a"]
-                    repo_ver = repo_values[repo + "_v"]
+                    repo_name = repo_values['repo_name']
+                    repo_arch = repo_values['repo_arch']
+                    repo_ver = repo_values['repo_ver']
                     repos.append(repo_name)
                     ver_exp = self.wait_until_element((strategy1,
                                                        value1 % repo_ver))
