@@ -24,16 +24,6 @@ POSITIVE_CREATE_DATA = (
     {'name': generate_string("html", 10)},
 )
 
-
-POSITIVELABEL_DATA = (
-    {'name': generate_string("latin1", 10).encode("utf-8")},
-    {'name': generate_string("utf8", 10).encode("utf-8")},
-    {'name': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10)},
-    {'name': generate_string("numeric", 10)},
-    {'name': generate_string("html", 10)},
-)
-
 POSITIVE_NAME_LABEL_DATA = (
     {'name': generate_string("latin1", 10).encode("utf-8"),
      'label': generate_string("latin1", 10).encode("utf-8")},
@@ -62,7 +52,7 @@ class TestOrg(BaseCLI):
     * http://projects.theforeman.org/issues/4296
     """
 
-    @redminebug('4443')
+    #@redminebug('4443')
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):
         """
@@ -81,8 +71,8 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @redminebug('4443')
-    @data(*POSITIVELABEL_DATA)
+    #@redminebug('4443')
+    @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_2(self, test_data):
         """
         @feature: Organizations
@@ -90,7 +80,7 @@ class TestOrg(BaseCLI):
         @assert: organization is created, label matches name
         """
 
-        POSITIVELABEL_DATA['label'] = POSITIVELABEL_DATA['name']
+        POSITIVE_CREATE_DATA['label'] = POSITIVE_CREATE_DATA['name']
         new_obj = make_org(data)
         # Can we find the new object?
         result = Org().exists(('name', new_obj['name']))
@@ -101,7 +91,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @redminebug('4443')
+    #@redminebug('4443')
     @data(*POSITIVE_NAME_LABEL_DATA)
     def test_positive_create_3(self, test_data):
         """
