@@ -109,7 +109,8 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
 
     @attr('ui', 'gpgkey', 'implemented')
-    def test_negative_create_4(self):
+    @data(*invalid_names_list())
+    def test_negative_create_4(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with invalid name and valid gpg key via
@@ -117,7 +118,6 @@ class GPGKey(BaseUI):
         @assert: gpg key is not created
         """
 
-        name = generate_name(256)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_gpg_keys()
@@ -127,7 +127,8 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
 
     @attr('ui', 'gpgkey', 'implemented')
-    def test_negative_create_5(self):
+    @data(*invalid_names_list())
+    def test_negative_create_5(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with invalid name and valid gpg key text via
@@ -135,7 +136,6 @@ class GPGKey(BaseUI):
         @assert: gpg key is not created
         """
 
-        name = generate_name(256)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_gpg_keys()
