@@ -79,8 +79,8 @@ def invalid_names_list():
         generate_string("latin1", 300).encode("utf-8"),
         generate_string("html", 300).decode("utf-8"),
         generate_name(256),
-        u" " + generate_name(),
-        generate_name() + " ".decode("utf-8")
+        u' %s' % generate_name(),
+        u'%s ' % generate_name()
     ]
 
     return invalid_names
