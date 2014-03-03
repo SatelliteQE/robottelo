@@ -42,7 +42,8 @@ menu_locators = {
     # Content Menu
     "menu.content": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='content']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='content']")),
     "menu.life_cycle_environments": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
@@ -70,7 +71,8 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_gpg_keys']"),
     "menu.sync_status": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_sync_status']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_sync_status']")),
     "menu.sync_plans": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_sync_plans']"),
@@ -738,7 +740,8 @@ locators = {
         By.XPATH, ("//label[contains(.,'%s')]/../../td[@class='result']"
                    "/span/a[@class='cancel_sync']")),
     "sync.verarch_expander": (
-        By.XPATH, "//td[contains(.,'%s')]/span[@class='expander']"),
+        By.XPATH, ("//tr[contains(@class,'collapsed')]/td[contains(.,'%s')]"
+                   "/span[@class='expander']")),
 
     # Enable RH Repos expander
     "rh.prd_expander": (
@@ -753,6 +756,12 @@ locators = {
     "rh.repo_checkbox": (
         By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
                    "/../td/label/input[@class='repo_enable']")),
+    "rh.reposet_spinner": (
+        By.XPATH, ("//span[@class='expander_area' and contains(.,'%s')]"
+                   "/../../td/img[@alt='Spinner']")),
+    "rh.repo_spinner": (
+        By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
+                   "/../td/label/img[@alt='Spinner']")),
 
     # Lifecycle Envionments
     "content_env.new": (
