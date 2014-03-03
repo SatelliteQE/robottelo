@@ -328,7 +328,7 @@ common_locators = {
     "name_taken": (
         By.XPATH,
         ("//span[contains(@class,'help-inline') "
-        "and contains(.,'has already been taken')]"))}
+         "and contains(.,'has already been taken')]"))}
 
 locators = {
 

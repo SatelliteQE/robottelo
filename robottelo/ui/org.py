@@ -79,8 +79,7 @@ class Org(Base):
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
             if self.wait_until_element(common_locators["name_taken"]):
-                raise Exception(
-                "Org with name '%s' already exists" % org_name)
+                raise Exception("Org with name '%s' already exists" % org_name)
             else:
                 if edit:
                     self.wait_until_element(locators
