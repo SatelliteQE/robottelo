@@ -5,9 +5,11 @@
 Test class for Organization UI
 """
 
+import unittest
+import random
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.common.helpers import generate_name, valid_names_list
+from robottelo.common.helpers import generate_name, generate_strings_list
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
 from tests.ui.baseui import BaseUI
@@ -22,7 +24,7 @@ class Org(BaseUI):
     # Positive Create
 
     @attr('ui', 'org', 'implemented')
-    @data(*valid_names_list())
+    @data(random.choice(generate_strings_list()))
     def test_positive_create_1(self, org_name):
         """
         @feature: Organizations
@@ -33,8 +35,7 @@ class Org(BaseUI):
                          organization=org_name)
         select_org = self.navigator.go_to_select_org(org_name)
         self.assertIsNotNone(select_org)
-        self.assertIsNotNone(
-            self.org.search(org_name))
+        self.assertIsNotNone(self.org.search(org_name))
 
     def test_negative_create_0(self):
         """
@@ -42,15 +43,11 @@ class Org(BaseUI):
         @test: Create organization with valid label and description, name is
         too long
         @assert: organization is not created
-        @status: manual
         """
         org_name = generate_name(256)
         self.login.login(self.katello_user, self.katello_passwd,
                          organization=org_name)
-        select_org = self.navigator.go_to_select_org(org_name)
-        self.assertIsNotNone(select_org)
-        self.assertIsNotNone(
-            self.org.search(org_name))
+        self.assertIsNone(self.org.search(org_name))
 
     def test_negative_create_1(self):
         """
@@ -58,16 +55,12 @@ class Org(BaseUI):
         @test: Create organization with valid label and description, name is
         blank
         @assert: organization is not created
-        @status: manual
         """
 
         org_name = ""
         self.login.login(self.katello_user, self.katello_passwd,
                          organization=org_name)
-        select_org = self.navigator.go_to_select_org(org_name)
-        self.assertIsNotNone(select_org)
-        self.assertIsNotNone(
-            self.org.search(org_name))
+        self.assertIsNone(self.org.search(org_name))
 
     def test_negative_create_2(self):
         """
@@ -75,16 +68,12 @@ class Org(BaseUI):
         @test: Create organization with valid label and description, name is
         whitespace
         @assert: organization is not created
-        @status: manual
         """
 
         org_name = "    "
         self.login.login(self.katello_user, self.katello_passwd,
                          organization=org_name)
-        select_org = self.navigator.go_to_select_org(org_name)
-        self.assertIsNotNone(select_org)
-        self.assertIsNotNone(
-            self.org.search(org_name))
+        self.assertIsNone(self.org.search(org_name))
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
@@ -93,7 +82,7 @@ class Org(BaseUI):
         name, label and description are utf-8
         name, label and description are latin1
         name, label and description are html
-    """)
+        """)
     def test_negative_create_3(self, test_data):
         """
         @feature: Organizations
@@ -1488,3 +1477,4 @@ class Org(BaseUI):
         """
 
         self.fail(NOT_IMPLEMENTED)
+
