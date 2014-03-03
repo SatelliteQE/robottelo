@@ -27,9 +27,10 @@ class Medium(Base):
     Manipulates Foreman's installation media.
     """
 
+    command_base = "medium"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "medium"

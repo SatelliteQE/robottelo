@@ -24,9 +24,10 @@ class Report(Base):
     Manipulates Foreman's reports.
     """
 
+    command_base = "report"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "report"

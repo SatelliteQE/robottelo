@@ -25,14 +25,16 @@ class GPGKey(Base):
     Manipulates Foreman's GPG Keys.
     """
 
+    command_base = "gpg"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "gpg"
 
-    def exists(self, organization_id, tuple_search=None):
+    @classmethod
+    def exists(cls, organization_id, tuple_search=None):
         """
         Search for a GPG Key.
         """
@@ -45,19 +47,20 @@ class GPGKey(Base):
             options["search"] = search_criteria
         # Katello subcommands require extra arguments such as organization-id
 
-        result = self.list(organization_id, options)
+        result = cls.list(organization_id, options)
 
         if result.stdout:
             result.stdout = result.stdout[0]
 
         return result
 
-    def list(self, organization_id, options=None):
+    @classmethod
+    def list(cls, organization_id, options=None):
         """
         Lists available GPG Keys.
         """
 
-        self.command_sub = "list"
+        cls.command_sub = "list"
 
         if options is None:
             options = {}
@@ -66,7 +69,6 @@ class GPGKey(Base):
         # Katello subcommands require the organization-id
         options['organization-id'] = organization_id
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result

@@ -25,9 +25,10 @@ class Model(Base):
     Manipulates Foreman's hardware model.
     """
 
+    command_base = "model"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "model"

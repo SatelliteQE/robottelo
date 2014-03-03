@@ -43,171 +43,190 @@ class Org(Base):
     Manipulates Foreman's Organizations
     """
 
+    command_base = "organization"
+
     def __init__(self):
         """
         Sets the base command for class
         """
         Base.__init__(self)
-        self.command_base = "organization"
 
-    def add_subnet(self, options=None):
+    @classmethod
+    def add_subnet(cls, options=None):
         """
         Adds existing subnet to an org
         """
 
-        self.command_sub = "add_subnet"
+        cls.command_sub = "add_subnet"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_subnet(self, options=None):
+    @classmethod
+    def remove_subnet(cls, options=None):
         """
         Removes a subnet from an org
         """
 
-        self.command_sub = "remove_subnet"
+        cls.command_sub = "remove_subnet"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_domain(self, options=None):
+    @classmethod
+    def add_domain(cls, options=None):
         """
         Adds a domain to an org
         """
 
-        self.command_sub = "add_domain"
+        cls.command_sub = "add_domain"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_domain(self, options=None):
+    @classmethod
+    def remove_domain(cls, options=None):
         """
         Removes a domain from an org
         """
 
-        self.command_sub = "remove_domain"
+        cls.command_sub = "remove_domain"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_user(self, options=None):
+    @classmethod
+    def add_user(cls, options=None):
         """
         Adds an user to an org
         """
 
-        self.command_sub = "add_user"
+        cls.command_sub = "add_user"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_user(self, options=None):
+    @classmethod
+    def remove_user(cls, options=None):
         """
         Removes an user from an org
         """
 
-        self.command_sub = "remove_user"
+        cls.command_sub = "remove_user"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_hostgroup(self, options=None):
+    @classmethod
+    def add_hostgroup(cls, options=None):
         """
         Adds a hostgroup to an org
         """
 
-        self.command_sub = "add_hostgroup"
+        cls.command_sub = "add_hostgroup"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_hostgroup(self, options=None):
+    @classmethod
+    def remove_hostgroup(cls, options=None):
         """
         Removes a hostgroup from an org
         """
 
-        self.command_sub = "remove_hostgroup"
+        cls.command_sub = "remove_hostgroup"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_computeresource(self, options=None):
+    @classmethod
+    def add_computeresource(cls, options=None):
         """
         Adds a computeresource to an org
         """
 
-        self.command_sub = "add_computeresource"
+        cls.command_sub = "add_computeresource"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_computeresource(self, options=None):
+    @classmethod
+    def remove_computeresource(cls, options=None):
         """
         Removes a computeresource from an org
         """
 
-        self.command_sub = "remove_computeresource"
+        cls.command_sub = "remove_computeresource"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_medium(self, options=None):
+    @classmethod
+    def add_medium(cls, options=None):
         """
         Adds a medium to an org
         """
 
-        self.command_sub = "add_medium"
+        cls.command_sub = "add_medium"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_medium(self, options=None):
+    @classmethod
+    def remove_medium(cls, options=None):
         """
         Removes a medium from an org
         """
 
-        self.command_sub = "remove_medium"
+        cls.command_sub = "remove_medium"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_configtemplate(self, options=None):
+    @classmethod
+    def add_configtemplate(cls, options=None):
         """
         Adds a configtemplate to an org
         """
 
-        self.command_sub = "add_configtemplate"
+        cls.command_sub = "add_configtemplate"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_configtemplate(self, options=None):
+    @classmethod
+    def remove_configtemplate(cls, options=None):
         """
         Removes a configtemplate from an org
         """
 
-        self.command_sub = "remove_configtemplate"
+        cls.command_sub = "remove_configtemplate"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_environment(self, options=None):
+    @classmethod
+    def add_environment(cls, options=None):
         """
         Adds an environment to an org
         """
 
-        self.command_sub = "add_environment"
+        cls.command_sub = "add_environment"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_environment(self, options=None):
+    @classmethod
+    def remove_environment(cls, options=None):
         """
         Removes an environment from an org
         """
 
-        self.command_sub = "remove_environment"
+        cls.command_sub = "remove_environment"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def add_smartproxy(self, options=None):
+    @classmethod
+    def add_smartproxy(cls, options=None):
         """
         Adds a smartproxy to an org
         """
 
-        self.command_sub = "add_smartproxy"
+        cls.command_sub = "add_smartproxy"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
 
-    def remove_smartproxy(self, options=None):
+    @classmethod
+    def remove_smartproxy(cls, options=None):
         """
         Removes a smartproxy from an org
         """
 
-        self.command_sub = "remove_smartproxy"
+        cls.command_sub = "remove_smartproxy"
 
-        return self.execute(self._construct_command(options))
+        return cls.execute(cls._construct_command(options))
