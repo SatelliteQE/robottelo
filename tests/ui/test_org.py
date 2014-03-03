@@ -131,36 +131,11 @@ class Org(BaseUI):
         self.org.update(org_name, new_name)
         self.assertIsNotNone(self.org.search(new_name))
 
-    @data("""DATADRIVENGOESHERE
-        update name, label and description are alpha
-        update name, label and description are numeric
-        update name, label and description are alphanumeric
-        update name, label and description are utf-8
-        update name, label and description are latin1
-        update name, label and description are html
-    """)
-    def test_positive_update_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then update all values
-        @assert: organization name, label and description are updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
     # Negative Update
 
-    @data("""DATADRIVENGOESHERE
-        update name is whitespace
-        update name is alpha 300 chars long
-        update name is numeric 300 chars long
-        update name is alphanumeric 300 chars long
-        update name is utf-8 300 chars long
-        update name is latin1 300 chars long
-        update name is html 300 chars long
-    """)
-    def test_negative_update_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(random.choice(generate_strings_list()))
+    def test_negative_update_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid values then fail to update
@@ -169,76 +144,18 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        update label is whitespace
-        update label is alpha 300 chars long
-        update label is numeric 300 chars long
-        update label is alphanumeric 300 chars long
-        update label is utf-8 300 chars long
-        update label is latin1 300 chars long
-        update label is html 300 chars long
-    """)
-    def test_negative_update_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then fail to update
-        its label
-        @assert: organization label is not updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        update description is alpha 300 chars long
-        update description is numeric 300 chars long
-        update description is alphanumeric 300 chars long
-        update description is utf-8 300 chars long
-        update description is latin1 300 chars long
-        update description is html 300 chars long
-    """)
-    def test_negative_update_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then fail to update
-        its description
-        @assert: organization description is not updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd,
+                         organization=org_name)
+        self.org.search(org_name)
+        new_name = generate_name(8, 8)
+        self.org.update(org_name, new_name)
+        self.assertIsNone(self.org.search(new_name))
 
     #Miscelaneous
 
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_list_key_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization and list it
-        @assert: organization is displayed/listed
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_search_key_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(random.choice(generate_strings_list()))
+    def test_search_key_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization and search/find it
@@ -246,7 +163,9 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd,
+                         organization=org_name)
+        self.assertIsNotNone(self.org.search(org_name))
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
