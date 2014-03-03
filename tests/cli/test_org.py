@@ -81,8 +81,6 @@ class TestOrg(BaseCLI):
         """
 
         test_data['label'] = test_data['name']
-        self.assertEqual(test_data['label'],
-                         test_data['name'])
         new_obj = make_org(test_data)
         # Can we find the new object?
         result = Org().exists(('name', new_obj['name']))
@@ -90,6 +88,7 @@ class TestOrg(BaseCLI):
         self.assertTrue(result.return_code == 0, "Failed to create object")
         self.assertTrue(len(result.stderr) == 0,
                         "There should not be an exception here")
+        self.assertEqual(result.stdout['name'], result.stdout['label'])
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
