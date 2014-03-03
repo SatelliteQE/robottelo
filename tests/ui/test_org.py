@@ -95,25 +95,28 @@ class Org(BaseUI):
 
     # Positive Delete
 
-    def test_positive_delete_1(self):
+    @attr('ui', 'org', 'implemented')
+    @data(random.choice(generate_strings_list()))
+    def test_positive_delete_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid values then delete it
         @assert: organization is deleted
         @status: manual
         """
-        org_name = generate_name(8, 8)
+
         self.login.login(self.katello_user, self.katello_passwd,
                          organization=org_name)
         self.org.remove(org_name, really=True)
-        self.assertIsNone(
-            self.org.search(org_name))
+        self.assertIsNone(self.org.search(org_name))
 
     # Negative Delete
 
     # Positive Update
 
-    def test_positive_update_1(self):
+    @attr('ui', 'org', 'implemented')
+    @data(random.choice(generate_strings_list()))
+    def test_positive_update_1(self, new_name):
         """
         @feature: Organizations
         @test: Create organization with valid values then update its name
@@ -126,8 +129,7 @@ class Org(BaseUI):
         self.org.search(org_name)
         new_name = generate_name(8, 8)
         self.org.update(org_name, new_name)
-        self.assertIsNotNone(
-            self.org.search(new_name))
+        self.assertIsNotNone(self.org.search(new_name))
 
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
