@@ -5,7 +5,6 @@
 Test class for Organization UI
 """
 
-import unittest
 import random
 from ddt import data, ddt
 from nose.plugins.attrib import attr
@@ -1477,4 +1476,3 @@ class Org(BaseUI):
         """
 
         self.fail(NOT_IMPLEMENTED)
-
