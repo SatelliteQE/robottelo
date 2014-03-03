@@ -27,31 +27,34 @@ class Product(Base):
     Manipulates Katello engine's product command.
     """
 
+    command_base = "product"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "product"
 
-    def remove_sync_plan(self, options=None):
+    @classmethod
+    def remove_sync_plan(cls, options=None):
         """
         Delete assignment sync plan and product.
         """
 
-        self.command_sub = "remove_sync_plan"
+        cls.command_sub = "remove_sync_plan"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def set_sync_plan(self, options=None):
+    @classmethod
+    def set_sync_plan(cls, options=None):
         """
         Assign sync plan to product.
         """
 
-        self.command_sub = "set_sync_plan"
+        cls.command_sub = "set_sync_plan"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result

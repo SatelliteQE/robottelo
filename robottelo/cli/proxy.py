@@ -26,20 +26,22 @@ class Proxy(Base):
     Manipulates Foreman's smart proxies.
     """
 
+    command_base = "proxy"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "proxy"
 
-    def import_classes(self, options=None):
+    @classmethod
+    def import_classes(cls, options=None):
         """
         Import puppet classes from puppet proxy.
         """
 
-        self.command_sub = "import_classes"
+        cls.command_sub = "import_classes"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result

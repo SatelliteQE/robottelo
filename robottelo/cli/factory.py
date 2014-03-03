@@ -69,7 +69,7 @@ def create_object(cli_object, args, search_field='name'):
     @return: A dictionary representing the newly created resource.
     """
 
-    result = cli_object().create(args)
+    result = cli_object.create(args)
     # Some methods require a bit of waiting
     sleep_for_seconds(5)
 

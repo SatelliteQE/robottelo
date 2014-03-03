@@ -26,9 +26,10 @@ class Environment(Base):
     Manipulates Foreman's environments.
     """
 
+    command_base = "environment"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "environment"

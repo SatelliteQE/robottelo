@@ -25,9 +25,10 @@ class LifecycleEnvironment(Base):
     Manipulates Katello engine's lifecycle-environment command.
     """
 
+    command_base = "lifecycle-environment"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "lifecycle-environment"

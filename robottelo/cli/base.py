@@ -49,26 +49,28 @@ class Base(object):
     def __init__(self):
         pass
 
-    def add_operating_system(self, options=None):
+    @classmethod
+    def add_operating_system(cls, options=None):
         """
         Adds OS to record.
         """
 
-        self.command_sub = "add_operatingsystem"
+        cls.command_sub = "add_operatingsystem"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def create(self, options=None):
+    @classmethod
+    def create(cls, options=None):
         """
         Creates a new record using the arguments passed via dictionary.
         """
 
-        self.command_sub = "create"
+        cls.command_sub = "create"
 
-        result = self.execute(
-            self._construct_command(options),
+        result = cls.execute(
+            cls._construct_command(options),
             expect_csv=True)
 
         # Extract new object ID if it was successfully created
@@ -76,64 +78,69 @@ class Base(object):
             obj_id = result.stdout[0]['id']
 
             # Fetch new object
-            new_obj = self.info({'id': obj_id})
+            new_obj = cls.info({'id': obj_id})
             # stdout should be a dictionary containing the object
             if len(new_obj.stdout) > 0:
                 result.stdout = new_obj.stdout
 
         return result
 
-    def delete(self, options=None):
+    @classmethod
+    def delete(cls, options=None):
         """
         Deletes existing record.
         """
 
-        self.command_sub = "delete"
+        cls.command_sub = "delete"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def delete_parameter(self, options=None):
+    @classmethod
+    def delete_parameter(cls, options=None):
         """
         Deletes parameter from record.
         """
 
-        self.command_sub = "delete_parameter"
+        cls.command_sub = "delete_parameter"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def dump(self, options=None):
+    @classmethod
+    def dump(cls, options=None):
         """
         Displays the content for existing partition table.
         """
 
-        self.command_sub = "dump"
+        cls.command_sub = "dump"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def execute(self, command, user=None, password=None, expect_csv=False):
+    @classmethod
+    def execute(cls, command, user=None, password=None, expect_csv=False):
         """
         Executes the command
         """
         if user is None:
-            user = self.katello_user
+            user = cls.katello_user
         if password is None:
-            password = self.katello_passwd
+            password = cls.katello_passwd
 
         output_csv = ""
         if expect_csv:
             output_csv = " --output csv"
         shell_cmd = "LANG=%s hammer -v -u %s -p %s" + output_csv + " %s"
-        cmd = shell_cmd % (self.locale, user, password, command)
+        cmd = shell_cmd % (cls.locale, user, password, command)
 
         return ssh.command(cmd, expect_csv=expect_csv)
 
-    def exists(self, tuple_search=None):
+    @classmethod
+    def exists(cls, tuple_search=None):
         """
         Search for record by given: ('name', '<search_value>')
         @return: CSV parsed structure[0] of the list.
@@ -142,22 +149,22 @@ class Base(object):
             options = {"search": "%s=\"%s\"" %
                        (tuple_search[0], tuple_search[1])}
 
-        result = self.list(options)
+        result = cls.list(options)
 
         if result.stdout:
             result.stdout = result.stdout[0]
 
         return result
 
-    def info(self, options=None):
+    @classmethod
+    def info(cls, options=None):
         """
         Gets information by provided: options dictionary.
         @param options: ID (sometimes name or id).
         """
-        self.command_sub = "info"
+        cls.command_sub = "info"
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         if len(result.stdout) == 1:
             result.stdout = result.stdout[0]
@@ -167,79 +174,83 @@ class Base(object):
 
         return result
 
-    def list(self, options=None):
+    @classmethod
+    def list(cls, options=None):
         """
         List information.
         @param options: ID (sometimes name works as well) to retrieve info.
         """
-        self.command_sub = "list"
+        cls.command_sub = "list"
         if options is None:
             options = {}
             options['per-page'] = 10000
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 
-    def puppetclasses(self, options=None):
+    @classmethod
+    def puppetclasses(cls, options=None):
         """
         Lists all puppet classes.
         """
 
-        self.command_sub = "puppet_classes"
+        cls.command_sub = "puppet_classes"
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 
-    def remove_operating_system(self, options=None):
+    @classmethod
+    def remove_operating_system(cls, options=None):
         """
         Removes OS from record.
         """
 
-        self.command_sub = "remove_operatingsystem"
+        cls.command_sub = "remove_operatingsystem"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def sc_params(self, options=None):
+    @classmethod
+    def sc_params(cls, options=None):
         """
         Lists all smart class parameters.
         """
 
-        self.command_sub = "sc_params"
+        cls.command_sub = "sc_params"
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 
-    def set_parameter(self, options=None):
+    @classmethod
+    def set_parameter(cls, options=None):
         """
         Creates or updates parameter for a record.
         """
 
-        self.command_sub = "set_parameter"
+        cls.command_sub = "set_parameter"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def update(self, options=None):
+    @classmethod
+    def update(cls, options=None):
         """
         Updates existing record.
         """
 
-        self.command_sub = "update"
+        cls.command_sub = "update"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def _construct_command(self, options=None):
+    @classmethod
+    def _construct_command(cls, options=None):
         """
         Build a hammer cli command based on the options passed
         """
@@ -253,6 +264,6 @@ class Base(object):
                     tail += " --%s='%s'" % (key, val)
                 else:
                     tail += " --%s=%s" % (key, val)
-        cmd = self.command_base + " " + self.command_sub + " " + tail.strip()
+        cmd = cls.command_base + " " + cls.command_sub + " " + tail.strip()
 
         return cmd

@@ -29,9 +29,10 @@ class HostGroup(Base):
     Manipulates Foreman's hostgroups.
     """
 
+    command_base = "hostgroup"
+
     def __init__(self):
         """
         Sets the base command for class
         """
         Base.__init__(self)
-        self.command_base = "hostgroup"
