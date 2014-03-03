@@ -77,16 +77,21 @@ class Org(Base):
             self.wait_until_element(locators["org.name"])
             self.field_update("org.name", org_name)
             self.wait_until_element(common_locators["submit"]).click()
-            if edit:
-                self.wait_until_element(locators
-                                        ["org.proceed_to_edit"]).click()
-                self._configure_org(users=users, proxies=proxies,
-                                    subnets=subnets, resources=resources,
-                                    medias=medias, templates=templates,
-                                    domains=domains, envs=envs,
-                                    hostgroups=hostgroups, select=select)
-                self.wait_until_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
+            self.wait_for_ajax()
+            if self.wait_until_element(common_locators["name_taken"]):
+                raise Exception(
+                "Org with name '%s' already exists" % org_name)
+            else:
+                if edit:
+                    self.wait_until_element(locators
+                                            ["org.proceed_to_edit"]).click()
+                    self._configure_org(users=users, proxies=proxies,
+                                        subnets=subnets, resources=resources,
+                                        medias=medias, templates=templates,
+                                        domains=domains, envs=envs,
+                                        hostgroups=hostgroups, select=select)
+                    self.wait_until_element(common_locators["submit"]).click()
+                    self.wait_for_ajax()
         else:
             raise Exception(
                 "Unable to create the Organization '%s'" % org_name)

@@ -74,15 +74,9 @@ class Org(BaseUI):
                          organization=org_name)
         self.assertIsNone(self.org.search(org_name))
 
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-        """)
-    def test_negative_create_3(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(random.choice(generate_strings_list()))
+    def test_negative_create_3(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid values, then create a new one
@@ -91,7 +85,10 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd,
+                         organization=org_name)
+        self.assertIsNone(self.org.search(org_name))
+        self.org.create(org_name)
 
     # Positive Delete
 
@@ -102,7 +99,6 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Create organization with valid values then delete it
         @assert: organization is deleted
-        @status: manual
         """
 
         self.login.login(self.katello_user, self.katello_passwd,
@@ -121,7 +117,6 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Create organization with valid values then update its name
         @assert: organization name is updated
-        @status: manual
         """
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd,
@@ -141,7 +136,6 @@ class Org(BaseUI):
         @test: Create organization with valid values then fail to update
         its name
         @assert: organization name is not updated
-        @status: manual
         """
 
         self.login.login(self.katello_user, self.katello_passwd,
@@ -160,7 +154,6 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
-        @status: manual
         """
 
         self.login.login(self.katello_user, self.katello_passwd,
