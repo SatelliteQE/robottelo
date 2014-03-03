@@ -167,25 +167,6 @@ class Org(BaseUI):
                          organization=org_name)
         self.assertIsNotNone(self.org.search(org_name))
 
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_info_key_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create single organization and get its info
-        @assert: specific information for organization matches the
-        creation values
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
     # Associations
 
     @redminebug('4219')
@@ -232,49 +213,8 @@ class Org(BaseUI):
 
         self.fail(NOT_IMPLEMENTED)
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a domain to an organization and remove it by organization
-        name and domain ID
-        @assert: the domain is removed from the organization
-        @status: manual
-        """
 
-        self.fail(NOT_IMPLEMENTED)
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a domain to an organization and remove it by organization
-        ID and domain ID
-        @assert: the domain is removed from the organization
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
