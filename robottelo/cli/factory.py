@@ -64,6 +64,9 @@ def create_object(cli_object, args, search_field='name'):
     attributes for creating a new object.
     @raise Exception: Raise an exception if object cannot be
     created.
+
+    @rtype: dict
+    @return: A dictionary representing the newly created resource.
     """
 
     result = cli_object().create(args)
@@ -74,6 +77,8 @@ def create_object(cli_object, args, search_field='name'):
     if result.return_code != 0:
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
+
+    return result.stdout
 
 
 def make_architecture(options=None):
@@ -94,7 +99,7 @@ def make_architecture(options=None):
 
     # Override default dictionary with updated one
     args = update_dictionary(args, options)
-    create_object(Architecture, args)
+    args.update(create_object(Architecture, args))
 
     return args
 
@@ -137,7 +142,7 @@ def make_gpg_key(options=None):
 
     args = update_dictionary(args, options)
 
-    create_object(GPGKey, args, search_field='organization-id')
+    args.update(create_object(GPGKey, args, search_field='organization-id'))
 
     return args
 
@@ -163,7 +168,7 @@ def make_model(options=None):
 
     # Override default dictionary with updated one
     args = update_dictionary(args, options)
-    create_object(Model, args)
+    args.update(create_object(Model, args))
 
     return args
 
@@ -185,7 +190,7 @@ def make_proxy(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(Proxy, args)
+    args.update(create_object(Proxy, args))
 
     return args
 
@@ -230,7 +235,7 @@ def make_partition_table(options=None):
     ssh.upload_file(local_file=layout, remote_file=args['file'])
 
     args = update_dictionary(args, options)
-    create_object(PartitionTable, args)
+    args.update(create_object(PartitionTable, args))
 
     return args
 
@@ -275,7 +280,7 @@ def make_subnet(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(Subnet, args)
+    args.update(create_object(Subnet, args))
 
     return args
 
@@ -309,7 +314,7 @@ def make_user(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(User, args, 'login')
+    args.update(create_object(User, args, 'login'))
 
     return args
 
@@ -353,7 +358,8 @@ def make_compute_resource(options=None):
         options['provider'] = FOREMAN_PROVIDERS['libvirt']
         if args['url'] is None:
             options['url'] = "qemu+tcp://localhost:16509/system"
-    create_object(ComputeResource, args)
+    args.update(create_object(ComputeResource, args))
+
     return args
 
 
@@ -376,7 +382,7 @@ def make_org(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(Org, args)
+    args.update(create_object(Org, args))
 
     return args
 
@@ -393,7 +399,7 @@ def make_os(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(OperatingSys, args)
+    args.update(create_object(OperatingSys, args))
 
     return args
 
@@ -416,7 +422,7 @@ def make_domain(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(Domain, args)
+    args.update(create_object(Domain, args))
 
     return args
 
@@ -455,7 +461,7 @@ def make_hostgroup(options=None):
         'puppet-proxy-id': None,
     }
     args = update_dictionary(args, options)
-    create_object(HostGroup, args)
+    args.update(create_object(HostGroup, args))
 
     return args
 
@@ -499,7 +505,7 @@ def make_medium(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(Medium, args)
+    args.update(create_object(Medium, args))
 
     return args
 
@@ -518,7 +524,7 @@ def make_environment(options=None):
     }
 
     args = update_dictionary(args, options)
-    create_object(Environment, args)
+    args.update(create_object(Environment, args))
 
     return args
 
@@ -558,6 +564,6 @@ def make_template(options=None):
     #End - Special handling for template factory
 
     args = update_dictionary(args, options)
-    create_object(Template, args)
+    args.update(create_object(Template, args))
 
     return args

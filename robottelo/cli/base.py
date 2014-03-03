@@ -67,7 +67,19 @@ class Base(object):
 
         self.command_sub = "create"
 
-        result = self.execute(self._construct_command(options))
+        result = self.execute(
+            self._construct_command(options),
+            expect_csv=True)
+
+        # Extract new object ID if it was successfully created
+        if len(result.stdout) > 0 and 'id' in result.stdout[0]:
+            obj_id = result.stdout[0]['id']
+
+            # Fetch new object
+            new_obj = self.info({'id': obj_id})
+            # stdout should be a dictionary containing the object
+            if len(new_obj.stdout) > 0:
+                result.stdout = new_obj.stdout
 
         return result
 
