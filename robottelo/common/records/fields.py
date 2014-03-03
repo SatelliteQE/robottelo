@@ -157,9 +157,9 @@ class StringField(Field):
         return fmt.replace('{record_name}', self.record.__name__)
 
     def generate(self):
-        if '{' in self.format:
-            self.format = self._parse_field_format(self.format)
         if self.str_type == 'xeger':
+            if '{' in self.format:
+                self.format = self._parse_field_format(self.format)
             return rstr.xeger(self.format)[:self.maxlen]
         else:
             return generate_string(self.str_type, self.maxlen)
