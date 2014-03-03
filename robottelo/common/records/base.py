@@ -27,7 +27,7 @@ def assert_instance_intersects(first, other):
 
 def assert_list_intersects(first, other):
     """Compares two lists, and determines,
-    and tedermines if each item in first intersects
+    if each item in first intersects
     with at least one item in other
     """
     grievance = []
