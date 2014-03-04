@@ -44,14 +44,14 @@ class Navigator(Base):
                                                 tertiary_element)
                 else:
                     raise Exception(
-                        "tertiary_menu_locator not found:'%s'" % str(
+                        "tertiary_menu_locator not found: '%s'" % str(
                             tertiary_menu_locator))
             elif submenu_element is None:
                 raise Exception(
-                    "sub_menu_locator not found:'%s'" % str(sub_menu_locator))
+                    "sub_menu_locator not found: '%s'" % str(sub_menu_locator))
         else:
             raise Exception(
-                "top_menu_locator not found:'%s'" % str(top_menu_locator))
+                "top_menu_locator not found: '%s'" % str(top_menu_locator))
 
     def go_to_dashboard(self):
         self.menu_click(
