@@ -182,52 +182,6 @@ class GPGKey(BaseUI):
         self.gpgkey.delete(name, True)
         self.assertIsNone(self.gpgkey.search(name))
 
-    # Negative Delete
-
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-        delete using a negative gpg key ID
-        delete using a random string as the gpg key ID
-""")
-    def test_negative_delete_1(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
-        import then fail to delete it
-        @assert: gpg key is not deleted
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-        delete using a negative gpg key ID
-        delete using a random string as the gpg key ID
-""")
-    def test_negative_delete_2(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then fail to delete it
-        @assert: gpg key is not deleted
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
     # Positive Update
 
     @attr('ui', 'gpgkey', 'implemented')
