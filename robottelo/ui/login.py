@@ -23,7 +23,7 @@ class Login(Base):
         """
         self.browser = browser
 
-    def login(self, username, password, organization=None):
+    def login(self, username, password, organization):
         """
         Logins user from UI
         """
@@ -40,14 +40,10 @@ class Login(Base):
                 return
             if organization:
                 nav = Navigator(self.browser)
-                try:
-                    nav.go_to_select_org(organization)
-                except Exception:
-                    org_inst = Org(self.browser)
-                    nav.go_to_org()
-                    org_inst.create(organization)
-                    nav.go_to_org()
-                    nav.go_to_select_org(organization)
+                nav.go_to_select_org(organization)
+            else:
+                raise Exception(
+                    "Please create an organization first")
 
     def logout(self):
         """
