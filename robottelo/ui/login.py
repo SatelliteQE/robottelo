@@ -6,10 +6,8 @@ Implements Login UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
-from robottelo.ui.org import Org
 
 
 class Login(Base):
