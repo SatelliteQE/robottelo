@@ -590,6 +590,7 @@ locators = {
     "subnet.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "subnet.proxies_tab": (By.XPATH, "//a[@href='#proxies']"),
 
     # Products
     "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),
