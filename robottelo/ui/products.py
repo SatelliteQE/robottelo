@@ -1,7 +1,7 @@
 """
 Implements Products UI
 """
-from time import sleep
+
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
@@ -24,7 +24,7 @@ class Products(Base):
         Creates new product from UI
         """
         self.wait_until_element(locators["prd.new"]).click()
-        sleep(2)
+        self.wait_for_ajax()
         self.text_field_update(common_locators["name"], name)
         if sync_plan and not create_sync_plan:
             type_ele = self.find_element(locators["prd.sync_plan"])
