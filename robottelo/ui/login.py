@@ -23,12 +23,10 @@ class Login(Base):
         """
         self.browser = browser
 
-    def login(self, username, password, organization):
+    def login(self, username, password, organization=None):
         """
         Logins user from UI
         """
-
-        organization = organization or generate_name(8)
 
         if self.wait_until_element(locators["login.username"]):
             self.field_update("login.username", username)
@@ -41,9 +39,6 @@ class Login(Base):
             if organization:
                 nav = Navigator(self.browser)
                 nav.go_to_select_org(organization)
-            else:
-                raise Exception(
-                    "Please create an organization first")
 
     def logout(self):
         """
