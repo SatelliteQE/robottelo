@@ -18,24 +18,14 @@ class Products(Base):
         """
         self.browser = browser
 
-    def create(self, name, description=None, provider=None,
-               create_provider=False, sync_plan=None, create_sync_plan=False,
-               gpg_key=None, sync_interval=None, startdate=None):
+    def create(self, name, description=None, sync_plan=None, startdate=None,
+               create_sync_plan=False, gpg_key=None, sync_interval=None):
         """
         Creates new product from UI
         """
         self.wait_until_element(locators["prd.new"]).click()
-        self.wait_for_ajax()
+        sleep(2)
         self.text_field_update(common_locators["name"], name)
-        if provider and not create_provider:
-            type_ele = self.wait_until_element(locators["prd.provider"])
-            Select(type_ele).select_by_visible_text(provider)
-        elif provider and create_provider:
-            sleep(2)
-            self.wait_until_element(locators["prd.new_provider"]).click()
-            self.text_field_update(common_locators["name"], name)
-            self.wait_until_element(common_locators["create"]).click()
-            self.wait_for_ajax()
         if sync_plan and not create_sync_plan:
             type_ele = self.find_element(locators["prd.sync_plan"])
             Select(type_ele).select_by_visible_text(sync_plan)
@@ -98,6 +88,7 @@ class Products(Base):
         self.wait_until_element(locators["prd.remove"]).click()
         if really:
             self.wait_until_element(common_locators["confirm_remove"]).click()
+            self.wait_for_ajax()
         else:
             self.wait_until_element(common_locators["cancel"]).click()
 
