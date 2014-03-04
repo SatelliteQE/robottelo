@@ -27,7 +27,7 @@ class OperatingSystemApi(ApiCrud):
 class OperatingSystem(records.Record):
     """ Implementation of foreman OS record
     """
-    name = records.ChoiceField(valid_names_list())
+    name = records.StringField()
     major = records.IntegerField()
     minor = records.IntegerField()
     family = records.ChoiceField(OPERATING_SYSTEMS)

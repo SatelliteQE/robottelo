@@ -262,11 +262,19 @@ class ApiCrud(object):
 
         if hasattr(instance, "id"):
             res = cls.delete(instance.id)
+            if res.ok:
+                return True
+            else:
+                raise Exception(
+                    res.status_code,
+                    res.content,
+                    res.request.url,
+                    res.request.body)
             return res.ok
         else:
             res = cls.list(json=dict(search="name="+instance.name))
             if res.ok and len(res.json()) == 1:
-                cls.record_remove(cls.record_resolve(instance))
+                res = cls.record_remove(cls.record_resolve(instance))
                 return True
             else:
                 return False
