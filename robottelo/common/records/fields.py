@@ -246,8 +246,6 @@ class RelatedField(Field):
     def __init__(self, record_class, **kwargs):
         super(RelatedField, self).__init__(**kwargs)
         self.record_class = record_class
-        if "default" in kwargs:
-            self.default = kwargs.pop("default")
 
     def generate(self):
         return self.record_class()
