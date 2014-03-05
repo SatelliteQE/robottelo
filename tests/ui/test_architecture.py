@@ -5,8 +5,8 @@
 Test class for Architecture UI
 """
 
-from robottelo.common.helpers import generate_name
-from robottelo.common.helpers import generate_string
+from robottelo.common.helpers import generate_name, generate_string
+from robottelo.ui.navigator import Navigator
 from tests.ui.baseui import BaseUI
 
 
