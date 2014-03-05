@@ -75,7 +75,6 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-
         unittest.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_4(self):

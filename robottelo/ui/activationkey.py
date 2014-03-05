@@ -10,6 +10,7 @@ from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 from time import sleep
 
+
 class ActivationKey(Base):
     """
     Manipulates Activation keys from UI
