@@ -6,7 +6,6 @@ Test class for Users UI
 """
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name, generate_email_address
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
