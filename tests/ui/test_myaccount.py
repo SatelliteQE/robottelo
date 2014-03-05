@@ -7,6 +7,7 @@ Test class for Users UI
 
 from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
+import unittest
 
 
 class MyAccount(BaseUI):
@@ -29,7 +30,7 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_my_account_2(self):
         """
@@ -40,7 +41,7 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_my_account_3(self):
         """
@@ -51,7 +52,7 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_my_account_4(self):
         """
@@ -62,7 +63,7 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_my_account_5(self):
         """
@@ -73,7 +74,7 @@ class MyAccount(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_my_account_1(self):
         """
@@ -84,7 +85,7 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_my_account_2(self):
         """
@@ -95,7 +96,7 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_my_account_3(self):
         """
@@ -106,7 +107,7 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_my_account_4(self):
         """
@@ -118,7 +119,7 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_my_account_5(self):
         """
@@ -131,7 +132,7 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_my_account_6(self):
         """
@@ -145,4 +146,4 @@ class MyAccount(BaseUI):
         @Assert: User is not updated.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
