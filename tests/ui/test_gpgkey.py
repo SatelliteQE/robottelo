@@ -11,7 +11,7 @@ from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
 from robottelo.common.helpers import (generate_name, get_data_file,
                                       read_data_file, valid_names_list,
-                                      invalid_names_list)
+                                      invalid_names_list, valid_data_list)
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -56,7 +56,7 @@ class GPGKey(BaseUI):
         #Negative Create
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_negative_create_1(self, name):
         """
         @feature: GPG Keys
@@ -75,7 +75,7 @@ class GPGKey(BaseUI):
                         (common_locators["alert.error"]))
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_negative_create_2(self, name):
         """
         @feature: GPG Keys
@@ -94,7 +94,7 @@ class GPGKey(BaseUI):
                         (common_locators["alert.error"]))
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_negative_create_3(self, name):
         """
         @feature: GPG Keys
@@ -181,52 +181,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.search(name))
         self.gpgkey.delete(name, True)
         self.assertIsNone(self.gpgkey.search(name))
-
-    # Negative Delete
-
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-        delete using a negative gpg key ID
-        delete using a random string as the gpg key ID
-""")
-    def test_negative_delete_1(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
-        import then fail to delete it
-        @assert: gpg key is not deleted
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-        delete using a negative gpg key ID
-        delete using a random string as the gpg key ID
-""")
-    def test_negative_delete_2(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then fail to delete it
-        @assert: gpg key is not deleted
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
 
     # Positive Update
 

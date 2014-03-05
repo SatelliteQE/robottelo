@@ -7,6 +7,7 @@ Implements Template UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 from robottelo.common.constants import FILTER
 
@@ -70,6 +71,8 @@ class Template(Base):
         """
         Searches existing template from UI
         """
+        nav = Navigator(self.browser)
+        nav.go_to_provisioning_templates()
         element = self.search_entity(name,
                                      locators["provision.template_select"])
         return element

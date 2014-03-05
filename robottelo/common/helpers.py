@@ -66,6 +66,22 @@ def valid_names_list():
     return valid_names
 
 
+def valid_data_list():
+    """
+    List of valid data for input testing.
+    """
+    valid_names = [
+        generate_string("alpha", 8).decode("utf-8"),
+        generate_string("numeric", 8).decode("utf-8"),
+        generate_string("alphanumeric", 300).decode("utf-8"),
+        generate_string("utf8", 8),
+        generate_string("latin1", 8).encode("utf-8"),
+        generate_string("html", 8).decode("utf-8")
+    ]
+
+    return valid_names
+
+
 def invalid_names_list():
     """
     List of invalid names for input testing.
