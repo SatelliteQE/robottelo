@@ -17,6 +17,7 @@ class EnvironmentKatelloApi(ApiCrud):
     api_json_key = u"environment"
     create_fields = ["name", "label", "prior"]
 
+
 class EnvironmentKatello(records.Record):
     """ Implementation of foreman environments record
     """
@@ -30,10 +31,11 @@ class EnvironmentKatello(records.Record):
         """
         api_class = EnvironmentKatelloApi
 
+
 class EnvironmentApi(ApiCrud):
     """ Implementation of api for  foreman environments
     """
-    api_path = "/api/environments/"  # noqa
+    api_path = "/api/environments/"
     api_json_key = u"environment"
     create_fields = ["name"]
 

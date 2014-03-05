@@ -6,7 +6,6 @@ Module for Operating System api an record implementation
 
 
 from robottelo.common import records
-from robottelo.common.helpers import valid_names_list
 from robottelo.common.constants import OPERATING_SYSTEMS
 from robottelo.api.apicrud import ApiCrud
 
