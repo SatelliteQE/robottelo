@@ -854,7 +854,7 @@ class User(BaseCLI):
         """
         new_user = make_user()
         result = UserObj().update({'login': new_user['login'],
-                                'firstname': opts['firstname']})
+                                   'firstname': opts['firstname']})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
@@ -876,7 +876,7 @@ class User(BaseCLI):
         """
         new_user = make_user()
         result = UserObj().update({'login': new_user['login'],
-                                'lastname': opts['lastname']})
+                                   'lastname': opts['lastname']})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
@@ -907,8 +907,7 @@ class User(BaseCLI):
         @Assert: User is not updated.  Appropriate error shown.
         """
         new_user = make_user()
-        result = UserObj().update({'login': new_user['login'],
-                                'mail': mail})
+        result = UserObj().update({'login': new_user['login'], 'mail': mail})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
