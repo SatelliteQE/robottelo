@@ -55,7 +55,7 @@ def update_dictionary(default, updates):
     return default
 
 
-def create_object(cli_object, args, search_field='name'):
+def create_object(cli_object, args):
     """
     Creates <object> with dictionary of arguments.
 
@@ -142,7 +142,9 @@ def make_gpg_key(options=None):
 
     args = update_dictionary(args, options)
 
-    args.update(create_object(GPGKey, args, search_field='organization-id'))
+    # gpg create returns a dict inside a list
+    new_obj = create_object(GPGKey, args)
+    args.update(new_obj[0])
 
     return args
 
