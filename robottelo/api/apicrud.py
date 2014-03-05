@@ -200,8 +200,7 @@ class ApiCrud(object):
         """
 
         path = cls.parse_path_arg(kwargs)
-        res = base.get(path=path, **kwargs)
-        return res
+        return base.get(path=path, **kwargs)
 
     @classmethod
     @classlogger
