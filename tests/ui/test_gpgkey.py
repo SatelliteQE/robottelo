@@ -5,6 +5,8 @@
 Test class for GPG Key UI
 """
 
+import unittest
+
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
@@ -310,6 +312,7 @@ class GPGKey(BaseUI):
 
     # Product association
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -328,8 +331,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -348,8 +352,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -369,8 +374,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -390,8 +396,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -411,8 +418,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -432,8 +440,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -453,8 +462,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -474,8 +484,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -496,8 +507,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -518,8 +530,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -540,8 +553,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -562,8 +576,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -584,8 +599,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -606,8 +622,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -628,8 +645,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -650,8 +668,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -672,8 +691,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -694,8 +714,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -716,8 +737,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -738,8 +760,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -761,8 +784,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -782,8 +806,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -803,8 +828,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -824,8 +850,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -845,8 +872,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -866,8 +894,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -887,8 +916,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -908,8 +938,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -929,8 +960,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -951,8 +983,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -973,8 +1006,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -995,8 +1029,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1017,8 +1052,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1039,8 +1075,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1061,8 +1098,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1083,8 +1121,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1105,8 +1144,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1127,8 +1167,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1149,8 +1190,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1171,8 +1213,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1193,8 +1236,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1216,10 +1260,11 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     # Content
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1238,8 +1283,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1258,8 +1304,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1278,10 +1325,11 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     #Miscelaneous
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1299,8 +1347,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1318,8 +1367,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1337,4 +1387,4 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass

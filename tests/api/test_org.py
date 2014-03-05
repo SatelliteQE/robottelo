@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+import unittest
+
 from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.constants import NOT_IMPLEMENTED
@@ -65,6 +67,7 @@ class Organization(BaseAPI):
         ApiCrud.record_create(test_data)
     #Negative Create
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         label and description are alpha, update name is alpha 300 chars
         label and description are alpha, update name is numeric 300 chars
@@ -83,8 +86,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is blank
         label and description are numeric, name is blank
@@ -102,8 +106,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is whitespace
         label and description are numeric, name is whitespace
@@ -121,8 +126,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
         name, label and description are numeric
@@ -140,10 +146,11 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     # Positive Delete
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
         name, label and description are numeric
@@ -160,12 +167,13 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     # Negative Delete
 
     # Positive Update
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update name is alpha
         update name is numeric
@@ -182,8 +190,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update label is alpha
         update label is numeric
@@ -200,8 +209,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update description is alpha
         update description is numeric
@@ -219,8 +229,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
         update name, label and description are numeric
@@ -237,10 +248,11 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     # Negative Update
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update name is whitespace
         update name is alpha 300 chars long
@@ -259,8 +271,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update label is whitespace
         update label is alpha 300 chars long
@@ -279,8 +292,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         update description is alpha 300 chars long
         update description is numeric 300 chars long
@@ -298,10 +312,11 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     #Miscelaneous
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
         name, label and description are is numeric
@@ -318,8 +333,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
         name, label and description are is numeric
@@ -336,8 +352,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
         name, label and description are is numeric
@@ -355,13 +372,14 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     # Associations
 
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -379,11 +397,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -401,11 +420,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -423,11 +443,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -445,11 +466,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4294')
     @redminebug('4295')
     @redminebug('4296')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -468,11 +490,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4294')
     @redminebug('4295')
     @redminebug('4296')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -490,11 +513,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4294')
     @redminebug('4295')
     @redminebug('4296')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha and admin
         user name is numeric and admin
@@ -512,8 +536,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -531,8 +556,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -550,8 +576,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -569,8 +596,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -588,8 +616,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -606,8 +635,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -624,8 +654,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -642,8 +673,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -660,8 +692,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -678,8 +711,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -696,8 +730,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -714,8 +749,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -732,11 +768,12 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -753,8 +790,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -772,8 +810,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -791,8 +830,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
         user name is numeric and an admin
@@ -809,8 +849,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -828,8 +869,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -847,8 +889,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -866,8 +909,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -885,8 +929,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -904,8 +949,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -923,8 +969,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -942,8 +989,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -961,8 +1009,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -979,8 +1028,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -997,8 +1047,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1015,8 +1066,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1033,8 +1085,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1051,8 +1104,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1070,8 +1124,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1089,8 +1144,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1108,8 +1164,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1127,8 +1184,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1145,8 +1203,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1163,8 +1222,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1181,8 +1241,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1199,8 +1260,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1218,8 +1280,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1237,8 +1300,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1256,8 +1320,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1275,8 +1340,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1293,8 +1359,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1311,8 +1378,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1329,8 +1397,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1347,8 +1416,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1366,8 +1436,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1385,8 +1456,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1404,8 +1476,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1423,8 +1496,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1441,8 +1515,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1459,8 +1534,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1477,8 +1553,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1495,8 +1572,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1513,8 +1591,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1531,8 +1610,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1549,8 +1629,9 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1567,4 +1648,4 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skip(NOT_IMPLEMENTED)
+        pass

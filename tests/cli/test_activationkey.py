@@ -8,6 +8,7 @@ Test class for Activation key CLI
 
 from tests.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
+import unittest
 
 
 class ActivationKey(BaseCLI):
@@ -522,6 +523,7 @@ class ActivationKey(BaseCLI):
         """
         self.skip(NOT_IMPLEMENTED)
 
+    @unittest.skipTest("test")
     def test_end_to_end(self):
         """
         @Feature: Activation key - End to End
@@ -533,3 +535,4 @@ class ActivationKey(BaseCLI):
         @Status: Manual
         """
         self.skip(NOT_IMPLEMENTED)
+        self.sk
