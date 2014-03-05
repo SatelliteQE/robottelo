@@ -384,7 +384,7 @@ class User(BaseCLI):
             'auth-source-id': 1
         }
         self.logger.debug(str(options))
-        result = User().create(options)
+        result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
@@ -406,7 +406,7 @@ class User(BaseCLI):
             'password': generate_string("alpha", 10),
             'auth-source-id': 1
         }
-        result = User().create(options)
+        result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
@@ -428,7 +428,7 @@ class User(BaseCLI):
             'password': generate_string("alpha", 10),
             'auth-source-id': 1
         }
-        result = User().create(options)
+        result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
@@ -461,7 +461,7 @@ class User(BaseCLI):
             'password': generate_string("alpha", 10),
             'auth-source-id': 1
         }
-        result = User().create(options)
+        result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
@@ -479,7 +479,7 @@ class User(BaseCLI):
             'mail': "root@localhost",
             'auth-source-id': ''
         }
-        result = User().create(options)
+        result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
@@ -500,7 +500,7 @@ class User(BaseCLI):
             'password': generate_string("alpha", 10),
             'auth-source-id': ''
         }
-        result = User().create(options)
+        result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
@@ -853,12 +853,12 @@ class User(BaseCLI):
         @Assert: User is not updated.  Appropriate error shown.
         """
         new_user = make_user()
-        result = User().update({'login': new_user['login'],
+        result = UserObj().update({'login': new_user['login'],
                                 'firstname': opts['firstname']})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
-        updated_user = User().exists(('login', new_user['login']))
+        updated_user = UserObj().exists(('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], "%s %s" %
                                                       (new_user['firstname'],
                                                        new_user['lastname']))
@@ -875,12 +875,12 @@ class User(BaseCLI):
         @Assert: User is not updated.  Appropriate error shown.
         """
         new_user = make_user()
-        result = User().update({'login': new_user['login'],
+        result = UserObj().update({'login': new_user['login'],
                                 'lastname': opts['lastname']})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
-        updated_user = User().exists(('login', new_user['login']))
+        updated_user = UserObj().exists(('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], "%s %s" %
                                                       (new_user['firstname'],
                                                        new_user['lastname']))
@@ -907,12 +907,12 @@ class User(BaseCLI):
         @Assert: User is not updated.  Appropriate error shown.
         """
         new_user = make_user()
-        result = User().update({'login': new_user['login'],
+        result = UserObj().update({'login': new_user['login'],
                                 'mail': mail})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
-        updated_user = User().exists(('login', new_user['login']))
+        updated_user = UserObj().exists(('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
     def test_positive_delete_user_1(self):
@@ -949,13 +949,13 @@ class User(BaseCLI):
         1. Attempt to delete the last admin user
         @Assert: User is not deleted
         """
-        user = User()
+        user = UserObj()
         user.katello_user = opts['login']
         user.katello_passwd = opts['password']
         result = user.delete({'login': 'admin'})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
-        result = User().exists(('login', 'admin'))
+        result = UserObj().exists(('login', 'admin'))
         self.assertTrue(result.stdout)
 
     def test_list_user_1(self):
