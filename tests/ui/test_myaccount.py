@@ -7,7 +7,6 @@ Test class for Users UI
 
 from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
-import unittest
 
 
 class MyAccount(BaseUI):
