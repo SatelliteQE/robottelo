@@ -12,6 +12,7 @@ from tests.ui.baseui import BaseUI
 
 import unittest
 
+
 class User(BaseUI):
     """
     Implements Users tests in UI
