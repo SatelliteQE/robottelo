@@ -5,10 +5,10 @@
 Test class for Activation key CLI
 """
 
+import unittest
 
 from tests.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
-import unittest
 
 
 class ActivationKey(BaseCLI):
