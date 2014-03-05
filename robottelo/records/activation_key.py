@@ -27,8 +27,8 @@ class ActivationKey(records.Record):
     organization = records.RelatedField(
         Organization,
         default=Organization(blank_record=True, label="ACME_Corporation"))
-    environment_id = records.IntegerField(min=1, max=1)
-    content_view_id = records.IntegerField(min=1, max=1)
+    environment_id = records.IntegerField(default=1)
+    content_view_id = records.IntegerField(default=1)
     usage_limit = records.IntegerField()
 
     class Meta:
