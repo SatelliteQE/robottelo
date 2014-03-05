@@ -328,7 +328,11 @@ common_locators = {
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
     # Katello common Product and Repo locators
-    "gpg_key": (By.ID, "gpg_key_id")}
+    "gpg_key": (By.ID, "gpg_key_id"),
+    "name_taken": (
+        By.XPATH,
+        ("//span[contains(@class,'help-inline') "
+         "and contains(.,'has already been taken')]"))}
 
 locators = {
 

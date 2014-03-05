@@ -5,8 +5,10 @@
 Test class for Organization UI
 """
 
+import unittest
 from ddt import data, ddt
-from robottelo.common.helpers import generate_name
+from nose.plugins.attrib import attr
+from robottelo.common.helpers import generate_name, generate_strings_list
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
 from tests.ui.baseui import BaseUI
@@ -18,440 +20,159 @@ class Org(BaseUI):
     Implements Organization tests in UI
     """
 
-    def create_org(self, org_name=None):
-        """Creates Org"""
-        org_name = org_name or generate_name(8, 8)
-        self.navigator.go_to_org()  # go to org page
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-
-    def test_create_org(self):
-        """
-        @Feature: Org - Positive create
-        @Test: Create an org with a valid org name
-        @Assert: Org is created
-        """
-        org_name = generate_name(8, 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_org(org_name)
-        select_org = self.navigator.go_to_select_org(org_name)
-        self.assertIsNotNone(select_org)
-        self.assertIsNotNone(
-            self.org.search(org_name))
-
-    def test_update_org(self):
-        """
-        @Feature: Org - Positive Update
-        @Test: Update an org with a valid new org name
-        @Assert: Org is updated
-        """
-        org_name = generate_name(8, 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_org(org_name)
-        self.org.search(org_name)
-        new_name = generate_name(8, 8)
-        self.org.update(org_name, new_name)
-        self.assertIsNotNone(
-            self.org.search(new_name))
-
-    def test_remove_org(self):
-        """
-        @Feature: Org - Positive Delete
-        @Test: Delete an org given a valid existing org name
-        @Assert: Org is deleted
-        """
-        org_name = generate_name(8, 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_org(org_name)
-        self.org.remove(org_name, really=True)
-        self.assertIsNone(
-            self.org.search(org_name))
-
     # Positive Create
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha, label and description are blank
-        name is numeric, label and description are blank
-        name is alphanumeric, label and description are blank
-        name is utf-8, label and description are blank
-        name is latin1, label and description are blank
-        name is html, label and description are blank
-        """)
-    def test_positive_create_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_create_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid name only
         @assert: organization is created, label is auto-generated
-        @status: manual
         """
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        select_org = self.navigator.go_to_select_org(org_name)
+        self.assertIsNotNone(select_org)
+        self.assertIsNotNone(self.org.search(org_name))
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha and match, description is blank
-        name and label are numeric and match, description is blank
-        name and label are alphanumeric and match, description is blank
-        name and label are utf-8 and match, description is blank
-        name and label are latin1 and match, description is blank
-        name and label are html and match, description is blank
-        """)
-    def test_positive_create_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid matching name and label only
-        @assert: organization is created, label matches name
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha, description is blank
-        name and label are numeric, description is blank
-        name and label are alphanumeric, description is blank
-        name and label are utf-8, description is blank
-        name and label are latin1, description is blank
-        name and label are html, description is blank
-        """)
-    def test_positive_create_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid unmatching name and label only
-        @assert: organization is created, label does not match name
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and description are alpha, label is blank
-        name and description are numeric, label is blank
-        name and description are alphanumeric, label is blank
-        name and description are utf-8, label is blank
-        name and description are latin1, label is blank
-        name and description are html, label is blank
-        """)
-    def test_positive_create_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid name and description only
-        @assert: organization is created, label is auto-generated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha, name and label match
-        name, label and description are numeric, name and label match
-        name, label and description are alphanumeric, name and label match
-        name, label and description are utf-8, name and label match
-        name, label and description are latin1, name and label match
-        name, label and description are html, name and label match
-        """)
-    def test_positive_create_5(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid name, label and description
-        @assert: organization is created
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-        #Negative Create
-
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, update name is alpha 300 chars
-        label and description are alpha, update name is numeric 300 chars
-        label and description are alpha, update name is alphanumeric 300 chars
-        label and description are alpha, update name is utf-8 300 chars
-        label and description are alpha, update name is latin1 300 chars
-        label and description are alpha, update name is html 300 chars
-
-    """)
-    def test_negative_create_0(self, test_data):
+    def test_negative_create_0(self):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         too long
         @assert: organization is not created
-        @status: manual
         """
+        org_name = generate_name(256)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNone(self.org.search(org_name))
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, name is blank
-        label and description are numeric, name is blank
-        label and description are alphanumeric, name is blank
-        label and description are utf-8, name is blank
-        label and description are latin1, name is blank
-        label and description are html, name is blank
-    """)
-    def test_negative_create_1(self, test_data):
+    def test_negative_create_1(self):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         blank
         @assert: organization is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        org_name = ""
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNone(self.org.search(org_name))
 
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, name is whitespace
-        label and description are numeric, name is whitespace
-        label and description are alphanumeric, name is whitespace
-        label and description are utf-8, name is whitespace
-        label and description are latin1, name is whitespace
-        label and description are html, name is whitespace
-    """)
-    def test_negative_create_2(self, test_data):
+    def test_negative_create_2(self):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         whitespace
         @assert: organization is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        org_name = "    "
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNone(self.org.search(org_name))
 
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-    """)
-    def test_negative_create_3(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_negative_create_3(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid values, then create a new one
         with same values.
         @assert: organization is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNone(self.org.search(org_name))
+        self.org.create(org_name)
 
     # Positive Delete
 
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-    """)
-    def test_positive_delete_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_delete_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid values then delete it
         @assert: organization is deleted
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.org.remove(org_name, really=True)
+        self.assertIsNone(self.org.search(org_name))
 
     # Negative Delete
 
     # Positive Update
 
-    @data("""DATADRIVENGOESHERE
-        update name is alpha
-        update name is numeric
-        update name is alphanumeric
-        update name is utf-8
-        update name is latin1
-        update name is html
-    """)
-    def test_positive_update_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_update_1(self, new_name):
         """
         @feature: Organizations
         @test: Create organization with valid values then update its name
         @assert: organization name is updated
-        @status: manual
         """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        update label is alpha
-        update label is numeric
-        update label is alphanumeric
-        update label is utf-8
-        update label is latin1
-        update label is html
-    """)
-    def test_positive_update_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then update its label
-        @assert: organization label is updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        update description is alpha
-        update description is numeric
-        update description is alphanumeric
-        update description is utf-8
-        update description is latin1
-        update description is html
-    """)
-    def test_positive_update_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then update its
-        description
-        @assert: organization description is updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        update name, label and description are alpha
-        update name, label and description are numeric
-        update name, label and description are alphanumeric
-        update name, label and description are utf-8
-        update name, label and description are latin1
-        update name, label and description are html
-    """)
-    def test_positive_update_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then update all values
-        @assert: organization name, label and description are updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.org.search(org_name)
+        new_name = generate_name(8, 8)
+        self.org.update(org_name, new_name)
+        self.assertIsNotNone(self.org.search(new_name))
 
     # Negative Update
 
-    @data("""DATADRIVENGOESHERE
-        update name is whitespace
-        update name is alpha 300 chars long
-        update name is numeric 300 chars long
-        update name is alphanumeric 300 chars long
-        update name is utf-8 300 chars long
-        update name is latin1 300 chars long
-        update name is html 300 chars long
-    """)
-    def test_negative_update_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_negative_update_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid values then fail to update
         its name
         @assert: organization name is not updated
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.org.search(org_name)
+        new_name = generate_name(256)
+        self.org.update(org_name, new_name)
+        self.navigator.go_to_org()
+        self.assertIsNone(self.org.search(new_name))
 
-    @data("""DATADRIVENGOESHERE
-        update label is whitespace
-        update label is alpha 300 chars long
-        update label is numeric 300 chars long
-        update label is alphanumeric 300 chars long
-        update label is utf-8 300 chars long
-        update label is latin1 300 chars long
-        update label is html 300 chars long
-    """)
-    def test_negative_update_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then fail to update
-        its label
-        @assert: organization label is not updated
-        @status: manual
-        """
+    # Miscellaneous
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        update description is alpha 300 chars long
-        update description is numeric 300 chars long
-        update description is alphanumeric 300 chars long
-        update description is utf-8 300 chars long
-        update description is latin1 300 chars long
-        update description is html 300 chars long
-    """)
-    def test_negative_update_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then fail to update
-        its description
-        @assert: organization description is not updated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    #Miscelaneous
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_list_key_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization and list it
-        @assert: organization is displayed/listed
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_search_key_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_search_key_1(self, org_name):
         """
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_info_key_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create single organization and get its info
-        @assert: specific information for organization matches the
-        creation values
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.assertIsNotNone(self.org.search(org_name))
 
     # Associations
 
@@ -475,7 +196,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -497,51 +218,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
-
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a domain to an organization and remove it by organization
-        name and domain ID
-        @assert: the domain is removed from the organization
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a domain to an organization and remove it by organization
-        ID and domain ID
-        @assert: the domain is removed from the organization
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -564,7 +241,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -586,7 +263,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -608,7 +285,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -627,7 +304,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -646,7 +323,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -665,7 +342,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -684,7 +361,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -702,7 +379,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -720,7 +397,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -738,7 +415,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -756,7 +433,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -774,7 +451,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -792,7 +469,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -810,7 +487,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -828,7 +505,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -849,7 +526,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -868,7 +545,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -887,7 +564,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -905,7 +582,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -924,7 +601,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -943,7 +620,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -962,7 +639,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -981,7 +658,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1000,7 +677,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1019,7 +696,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1038,7 +715,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1057,7 +734,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1075,7 +752,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1093,7 +770,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1111,7 +788,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1129,7 +806,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1147,7 +824,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1166,7 +843,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1185,7 +862,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1204,7 +881,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1223,7 +900,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1241,7 +918,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1259,7 +936,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1277,7 +954,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1295,7 +972,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1314,7 +991,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1333,7 +1010,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1352,7 +1029,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1371,7 +1048,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1389,7 +1066,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1407,7 +1084,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1425,7 +1102,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1443,7 +1120,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1462,7 +1139,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1481,7 +1158,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1500,7 +1177,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1519,7 +1196,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1537,7 +1214,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1555,7 +1232,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1573,7 +1250,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1591,7 +1268,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1609,7 +1286,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1627,7 +1304,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1645,7 +1322,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1663,4 +1340,4 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
