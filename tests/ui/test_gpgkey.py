@@ -328,7 +328,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -348,7 +348,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -369,7 +369,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -390,7 +390,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -411,7 +411,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -432,7 +432,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -453,7 +453,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -474,7 +474,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -496,7 +496,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -518,7 +518,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -540,7 +540,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -562,7 +562,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -584,7 +584,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -606,7 +606,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -628,7 +628,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -650,7 +650,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -672,7 +672,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -694,7 +694,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -716,7 +716,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -738,7 +738,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -761,7 +761,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -782,7 +782,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -803,7 +803,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -824,7 +824,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -845,7 +845,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -866,7 +866,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -887,7 +887,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -908,7 +908,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -929,7 +929,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -951,7 +951,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -973,7 +973,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -995,7 +995,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1017,7 +1017,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1039,7 +1039,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1061,7 +1061,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1083,7 +1083,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1105,7 +1105,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1127,7 +1127,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1149,7 +1149,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1171,7 +1171,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1193,7 +1193,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1216,7 +1216,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Content
 
@@ -1238,7 +1238,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1258,7 +1258,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1278,7 +1278,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     #Miscelaneous
 
@@ -1299,7 +1299,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1318,7 +1318,7 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1337,4 +1337,4 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)

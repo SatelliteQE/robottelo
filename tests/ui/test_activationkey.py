@@ -204,7 +204,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @bzbug('1063273')
     def test_positive_delete_activation_key_2(self):
@@ -219,7 +219,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @bzbug('1063273')
     def test_positive_delete_activation_key_3(self):
@@ -234,7 +234,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @bzbug('1063273')
     def test_positive_delete_activation_key_4(self):
@@ -249,7 +249,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @bzbug('1063273')
     def test_positive_delete_activation_key_5(self):
@@ -263,7 +263,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @bzbug('1063273')
     def test_positive_delete_activation_key_6(self):
@@ -277,7 +277,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted or updated accordingly
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @bzbug('1063273')
     def test_negative_delete_activation_key_1(self):
@@ -291,7 +291,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())

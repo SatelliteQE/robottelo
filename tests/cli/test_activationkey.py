@@ -31,7 +31,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_2(self):
         """
@@ -43,7 +43,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_3(self):
         """
@@ -55,7 +55,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_4(self):
         """
@@ -67,7 +67,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_5(self):
         """
@@ -79,7 +79,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_6(self):
         """
@@ -91,7 +91,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_7(self):
         """
@@ -103,7 +103,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_create_activation_key_8(self):
         """
@@ -115,7 +115,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_create_activation_key_1(self):
         """
@@ -127,7 +127,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is not created. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_create_activation_key_2(self):
         """
@@ -139,7 +139,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is not created. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_create_activation_key_3(self):
         """
@@ -151,7 +151,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is not created. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_delete_activation_key_1(self):
         """
@@ -165,7 +165,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_delete_activation_key_2(self):
         """
@@ -179,7 +179,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_delete_activation_key_3(self):
         """
@@ -193,7 +193,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_delete_activation_key_4(self):
         """
@@ -207,7 +207,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_delete_activation_key_5(self):
         """
@@ -220,7 +220,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_delete_activation_key_6(self):
         """
@@ -233,7 +233,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is deleted or updated accordingly
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_delete_activation_key_1(self):
         """
@@ -258,7 +258,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_activation_key_2(self):
         """
@@ -270,7 +270,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_activation_key_3(self):
         """
@@ -282,7 +282,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_activation_key_4(self):
         """
@@ -295,7 +295,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_activation_key_5(self):
         """
@@ -307,7 +307,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_positive_update_activation_key_6(self):
         """
@@ -319,7 +319,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_activation_key_1(self):
         """
@@ -331,7 +331,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_activation_key_2(self):
         """
@@ -343,7 +343,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_negative_update_activation_key_3(self):
         """
@@ -355,7 +355,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_usage_limit(self):
         """
@@ -369,7 +369,7 @@ class ActivationKey(BaseCLI):
         @Assert: System Registration fails. Appropriate error shown
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_associate_host(self):
         """
@@ -382,7 +382,7 @@ class ActivationKey(BaseCLI):
         @Assert: Hosts are successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_associate_product_1(self):
         """
@@ -394,7 +394,7 @@ class ActivationKey(BaseCLI):
         @Assert: RH products are successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_associate_product_2(self):
         """
@@ -406,7 +406,7 @@ class ActivationKey(BaseCLI):
         @Assert: Custom products are successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_associate_product_3(self):
         """
@@ -419,7 +419,7 @@ class ActivationKey(BaseCLI):
         @Assert: RH/Custom product is successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_delete_manifest(self):
         """
@@ -432,7 +432,7 @@ class ActivationKey(BaseCLI):
         @Assert: Deleting a manifest removes it from the Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_multiple_activation_keys_to_system(self):
         """
@@ -444,7 +444,7 @@ class ActivationKey(BaseCLI):
         @Assert: Multiple Activation keys are attached to a system
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_list_activation_keys_1(self):
         """
@@ -457,7 +457,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is listed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_list_activation_keys_2(self):
         """
@@ -469,7 +469,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is listed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_search_activation_keys_1(self):
         """
@@ -482,7 +482,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is found
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_search_activation_keys_2(self):
         """
@@ -494,7 +494,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key is found
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_info_activation_keys_1(self):
         """
@@ -508,7 +508,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key info is displayed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_info_activation_keys_2(self):
         """
@@ -520,7 +520,7 @@ class ActivationKey(BaseCLI):
         @Assert: Activation key info is displayed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     def test_end_to_end(self):
         """
@@ -532,4 +532,4 @@ class ActivationKey(BaseCLI):
         @Assert: Systems are successfully provisioned with Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)

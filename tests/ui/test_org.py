@@ -85,7 +85,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name and label are alpha and match, description is blank
@@ -103,7 +103,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name and label are alpha, description is blank
@@ -121,7 +121,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name and description are alpha, label is blank
@@ -139,7 +139,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha, name and label match
@@ -157,7 +157,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
         #Negative Create
 
@@ -179,7 +179,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is blank
@@ -198,7 +198,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is whitespace
@@ -217,7 +217,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
@@ -236,7 +236,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Positive Delete
 
@@ -256,7 +256,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Negative Delete
 
@@ -278,7 +278,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is alpha
@@ -296,7 +296,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha
@@ -315,7 +315,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
@@ -333,7 +333,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Negative Update
 
@@ -355,7 +355,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is whitespace
@@ -375,7 +375,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha 300 chars long
@@ -394,7 +394,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     #Miscelaneous
 
@@ -414,7 +414,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -432,7 +432,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -451,7 +451,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     # Associations
 
@@ -475,7 +475,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -497,7 +497,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -519,7 +519,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -541,7 +541,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -564,7 +564,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -586,7 +586,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -608,7 +608,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -627,7 +627,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -646,7 +646,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -665,7 +665,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -684,7 +684,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -702,7 +702,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -720,7 +720,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -738,7 +738,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -756,7 +756,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -774,7 +774,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -792,7 +792,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -810,7 +810,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -828,7 +828,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -849,7 +849,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -868,7 +868,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -887,7 +887,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -905,7 +905,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -924,7 +924,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -943,7 +943,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -962,7 +962,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -981,7 +981,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1000,7 +1000,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1019,7 +1019,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1038,7 +1038,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1057,7 +1057,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1075,7 +1075,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1093,7 +1093,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1111,7 +1111,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1129,7 +1129,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1147,7 +1147,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1166,7 +1166,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1185,7 +1185,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1204,7 +1204,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1223,7 +1223,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1241,7 +1241,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1259,7 +1259,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1277,7 +1277,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1295,7 +1295,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1314,7 +1314,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1333,7 +1333,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1352,7 +1352,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1371,7 +1371,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1389,7 +1389,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1407,7 +1407,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1425,7 +1425,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1443,7 +1443,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1462,7 +1462,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1481,7 +1481,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1500,7 +1500,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1519,7 +1519,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1537,7 +1537,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1555,7 +1555,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1573,7 +1573,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1591,7 +1591,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1609,7 +1609,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1627,7 +1627,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1645,7 +1645,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1663,4 +1663,4 @@ class Org(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.skip(NOT_IMPLEMENTED)
