@@ -7,6 +7,7 @@ Implements Environment UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from robottelo.common.constants import FILTER
 
 
@@ -52,6 +53,8 @@ class Environment(Base):
         """
         Searches existing env from UI
         """
+        nav = Navigator(self.browser)
+        nav.go_to_environments()
         element = self.search_entity(name,
                                      locators["env.env_name"])
         return element

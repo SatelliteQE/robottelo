@@ -7,6 +7,7 @@ Implements Architecture UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.navigator import Navigator
 from robottelo.common.constants import FILTER
 
 
@@ -41,6 +42,8 @@ class Architecture(Base):
         """
         Searches existing architecture from UI
         """
+        nav = Navigator(self.browser)
+        nav.go_to_architectures()
         element = self.search_entity(name, locators['arch.arch_name'])
         return element
 
