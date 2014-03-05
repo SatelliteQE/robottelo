@@ -117,7 +117,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
-        pass        
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_2(self):
