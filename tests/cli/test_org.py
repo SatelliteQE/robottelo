@@ -11,8 +11,34 @@ from robottelo.cli.factory import (
     make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.org import Org
 from tests.cli.basecli import BaseCLI
+from robottelo.common.helpers import generate_string
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import (bzbug, redminebug)
+import unittest
+
+
+POSITIVE_CREATE_DATA = (
+    {'name': generate_string("latin1", 10).encode("utf-8")},
+    {'name': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10)},
+    {'name': generate_string("numeric", 10)},
+    {'name': generate_string("html", 10)},
+)
+
+POSITIVE_NAME_LABEL_DATA = (
+    {'name': generate_string("latin1", 10).encode("utf-8"),
+     'label': generate_string("latin1", 10).encode("utf-8")},
+    {'name': generate_string("utf8", 10).encode("utf-8"),
+     'label': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("alpha", 10),
+     'label': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10),
+     'label': generate_string("alphanumeric", 10)},
+    {'name': generate_string("numeric", 10),
+     'label': generate_string("numeric", 10)},
+    {'name': generate_string("html", 10),
+     'label': generate_string("numeric", 10)},)
 
 
 @ddt
@@ -27,6 +53,67 @@ class TestOrg(BaseCLI):
     * http://projects.theforeman.org/issues/4295
     * http://projects.theforeman.org/issues/4296
     """
+
+    @redminebug('4486')
+    @data(*POSITIVE_CREATE_DATA)
+    def test_positive_create_1(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid name only
+        @assert: organization is created, label is auto-generated
+        """
+
+        new_obj = make_org(test_data)
+        # Can we find the new object?
+        result = Org().exists(('name', new_obj['name']))
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(len(result.stderr) == 0,
+                        "There should not be an exception here")
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+
+    @redminebug('4486')
+    @data(*POSITIVE_CREATE_DATA)
+    def test_positive_create_2(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid matching name and label only
+        @assert: organization is created, label matches name
+        """
+
+        test_data['label'] = test_data['name']
+        new_obj = make_org(test_data)
+        # Can we find the new object?
+        result = Org().exists(('name', new_obj['name']))
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(len(result.stderr) == 0,
+                        "There should not be an exception here")
+        self.assertEqual(result.stdout['name'], result.stdout['label'])
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+
+    @redminebug('4486')
+    @data(*POSITIVE_NAME_LABEL_DATA)
+    def test_positive_create_3(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid unmatching name and label only
+        @assert: organization is created, label does not match name
+        """
+
+        new_obj = make_org(test_data)
+
+        # Can we find the new object?
+        result = Org().exists(('name', new_obj['name']))
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(len(result.stderr) == 0,
+                        "There should not be an exception here")
+        self.assertNotEqual(result.stdout['name'], result.stdout['label'])
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
 
     @bzbug('1062306')
     def test_create_org(self):
@@ -206,7 +293,7 @@ class TestOrg(BaseCLI):
         @Assert: Compute Resource is added to the org
         """
         #TODO: Test should be done once computeresource base class is added
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     def test_remove_computeresource(self):
         """
@@ -215,7 +302,7 @@ class TestOrg(BaseCLI):
         @Assert: ComputeResource is removed from the org
         """
         #TODO: Test should be done once computeresource base class is added
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     def test_add_medium(self):
         """
@@ -356,60 +443,6 @@ class TestOrg(BaseCLI):
     # Positive Create
 
     @data("""DATADRIVENGOESHERE
-        name is alpha, label and description are blank
-        name is numeric, label and description are blank
-        name is alphanumeric, label and description are blank
-        name is utf-8, label and description are blank
-        name is latin1, label and description are blank
-        name is html, label and description are blank
-        """)
-    def test_positive_create_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid name only
-        @assert: organization is created, label is auto-generated
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha and match, description is blank
-        name and label are numeric and match, description is blank
-        name and label are alphanumeric and match, description is blank
-        name and label are utf-8 and match, description is blank
-        name and label are latin1 and match, description is blank
-        name and label are html and match, description is blank
-        """)
-    def test_positive_create_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid matching name and label only
-        @assert: organization is created, label matches name
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name and label are alpha, description is blank
-        name and label are numeric, description is blank
-        name and label are alphanumeric, description is blank
-        name and label are utf-8, description is blank
-        name and label are latin1, description is blank
-        name and label are html, description is blank
-        """)
-    def test_positive_create_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid unmatching name and label only
-        @assert: organization is created, label does not match name
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
         name and description are alpha, label is blank
         name and description are numeric, label is blank
         name and description are alphanumeric, label is blank
@@ -425,7 +458,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha, name and label match
@@ -443,7 +476,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
         #Negative Create
 
@@ -465,7 +498,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is blank
@@ -484,7 +517,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is whitespace
@@ -503,7 +536,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
@@ -522,7 +555,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     # Positive Delete
 
@@ -542,7 +575,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     # Negative Delete
 
@@ -564,7 +597,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is alpha
@@ -582,7 +615,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha
@@ -601,7 +634,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
@@ -619,7 +652,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     # Negative Update
 
@@ -641,7 +674,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update label is whitespace
@@ -661,7 +694,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         update description is alpha 300 chars long
@@ -680,7 +713,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     #Miscelaneous
 
@@ -700,7 +733,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -718,7 +751,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -737,7 +770,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     # Associations
 
@@ -761,7 +794,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -783,7 +816,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -805,7 +838,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -827,7 +860,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -850,7 +883,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -872,7 +905,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4294')
     @redminebug('4295')
@@ -894,7 +927,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -913,7 +946,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -932,7 +965,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -951,7 +984,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -970,7 +1003,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -988,7 +1021,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1006,7 +1039,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1024,7 +1057,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1042,7 +1075,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1060,7 +1093,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1078,7 +1111,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1096,7 +1129,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1114,7 +1147,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @redminebug('4219')
     @redminebug('4294')
@@ -1135,7 +1168,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -1154,7 +1187,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -1173,7 +1206,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -1191,7 +1224,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1210,7 +1243,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1229,7 +1262,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1248,7 +1281,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1267,7 +1300,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1286,7 +1319,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1305,7 +1338,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1324,7 +1357,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1343,7 +1376,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1361,7 +1394,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1379,7 +1412,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1397,7 +1430,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1415,7 +1448,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1433,7 +1466,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1452,7 +1485,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1471,7 +1504,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1490,7 +1523,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1509,7 +1542,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1527,7 +1560,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1545,7 +1578,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1563,7 +1596,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1581,7 +1614,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1600,7 +1633,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1619,7 +1652,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1638,7 +1671,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1657,7 +1690,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1675,7 +1708,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1693,7 +1726,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1711,7 +1744,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1729,7 +1762,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1748,7 +1781,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1767,7 +1800,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1786,7 +1819,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1805,7 +1838,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1823,7 +1856,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1841,7 +1874,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1859,7 +1892,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1877,7 +1910,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1895,7 +1928,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1913,7 +1946,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1931,7 +1964,7 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1949,4 +1982,4 @@ class TestOrg(BaseCLI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        unittest.skip(NOT_IMPLEMENTED)

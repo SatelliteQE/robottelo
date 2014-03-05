@@ -23,14 +23,16 @@ class GlobalParameter(Base):
     Manipulates Foreman's global parameters.
     """
 
+    command_base = "global_parameter"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "global_parameter"
 
-    def set(self, options=None):
+    @classmethod
+    def set(cls, options=None):
         """ Set global parameter """
-        self.command_sub = "set"
-        return self.execute(self._construct_command(options))
+        cls.command_sub = "set"
+        return cls.execute(cls._construct_command(options))

@@ -29,22 +29,23 @@ class Template(Base):
     Manipulates Foreman's configuration templates.
     """
 
+    command_base = "template"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "template"
 
-    def kinds(self, options=None):
+    @classmethod
+    def kinds(cls, options=None):
         """
         Returns list of types of templates.
         """
 
-        self.command_sub = "kinds"
+        cls.command_sub = "kinds"
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         kinds = []
 

@@ -8,7 +8,6 @@ Implements Login UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
-from robottelo.ui.org import Org
 
 
 class Login(Base):
@@ -27,8 +26,6 @@ class Login(Base):
         Logins user from UI
         """
 
-        organization = organization or 'ACME'
-
         if self.wait_until_element(locators["login.username"]):
             self.field_update("login.username", username)
             self.field_update("login.password", password)
@@ -39,12 +36,7 @@ class Login(Base):
                 return
             if organization:
                 nav = Navigator(self.browser)
-                nav.go_to_org()
-                org = nav.go_to_select_org(organization)
-                if not org:
-                    org_inst = Org(self.browser)
-                    org_inst.create(org)
-                    nav.go_to_select_org(org)
+                nav.go_to_select_org(organization)
 
     def logout(self):
         """

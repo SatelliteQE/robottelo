@@ -13,20 +13,22 @@ class Subscription(Base):
     Manipulates Katello engine's subscription command.
     """
 
+    command_base = "subscription"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "subscription"
 
-    def upload(self, options=None):
+    @classmethod
+    def upload(cls, options=None):
         """
         Upload a subscription manifest
         """
 
-        self.command_sub = "remove_sync_plan"
+        cls.command_sub = "remove_sync_plan"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
