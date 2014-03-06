@@ -211,7 +211,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -227,7 +227,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -243,7 +243,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -259,7 +259,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -274,7 +274,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -289,7 +289,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted or updated accordingly
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -304,7 +304,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not deleted
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
