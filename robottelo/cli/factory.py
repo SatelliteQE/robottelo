@@ -321,7 +321,7 @@ def make_user(options=None):
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(User, args, 'login'))
+    args.update(create_object(User, args))
 
     return args
 
@@ -562,7 +562,7 @@ def make_template(options=None):
         }
 
     # Write content to file or random text
-    if 'content' in options.keys():
+    if options is not None and 'content' in options.keys():
         content = options.pop('content')
     else:
         content = generate_name()
