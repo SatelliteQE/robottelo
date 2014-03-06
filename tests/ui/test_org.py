@@ -51,8 +51,8 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.assertTrue(self.org.\
-            wait_until_element(common_locators["name_haserror"]))
+        error = self.org.wait_until_element(common_locators["name_haserror"])
+        self.assertTrue(error)
 
     def test_negative_create_1(self):
         """
@@ -66,8 +66,8 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.assertTrue(self.org.\
-            wait_until_element(common_locators["name_haserror"]))
+        error = self.org.wait_until_element(common_locators["name_haserror"])
+        self.assertTrue(error)
 
     def test_negative_create_2(self):
         """
@@ -81,8 +81,8 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.assertTrue(self.org.\
-            wait_until_element(common_locators["name_haserror"]))
+        error = self.org.wait_until_element(common_locators["name_haserror"])
+        self.assertTrue(error)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -100,8 +100,8 @@ class Org(BaseUI):
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(org_name))
         self.org.create(org_name)
-        self.assertTrue(self.org.\
-            wait_until_element(common_locators["name_haserror"]))
+        error = self.org.wait_until_element(common_locators["name_haserror"])
+        self.assertTrue(error)
 
     # Positive Delete
 
@@ -162,8 +162,8 @@ class Org(BaseUI):
         self.assertIsNotNone(self.org.search(org_name))
         new_name = generate_name(256)
         self.org.update(org_name, new_name)
-        self.assertTrue(self.org.\
-            wait_until_element(common_locators["name_haserror"]))
+        error = self.org.wait_until_element(common_locators["name_haserror"])
+        self.assertTrue(error)
 
     # Miscellaneous
 
