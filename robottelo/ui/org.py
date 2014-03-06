@@ -77,16 +77,20 @@ class Org(Base):
             self.wait_until_element(locators["org.name"])
             self.field_update("org.name", org_name)
             self.wait_until_element(common_locators["submit"]).click()
-            if edit:
-                self.wait_until_element(locators
-                                        ["org.proceed_to_edit"]).click()
-                self._configure_org(users=users, proxies=proxies,
-                                    subnets=subnets, resources=resources,
-                                    medias=medias, templates=templates,
-                                    domains=domains, envs=envs,
-                                    hostgroups=hostgroups, select=select)
-                self.wait_until_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
+            self.wait_for_ajax()
+            if self.find_element(common_locators["name_taken"]):
+                raise Exception("Org with name '%s' already exists" % org_name)
+            else:
+                if edit:
+                    self.wait_until_element(locators
+                                            ["org.proceed_to_edit"]).click()
+                    self._configure_org(users=users, proxies=proxies,
+                                        subnets=subnets, resources=resources,
+                                        medias=medias, templates=templates,
+                                        domains=domains, envs=envs,
+                                        hostgroups=hostgroups, select=select)
+                    self.wait_until_element(common_locators["submit"]).click()
+                    self.wait_for_ajax()
         else:
             raise Exception(
                 "Unable to create the Organization '%s'" % org_name)
@@ -95,8 +99,19 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
-        element = self.search_entity(name, locators["org.org_name"])
-        return element
+        strategy = locators["org.org_name"][0]
+        value = locators["org.org_name"][1]
+        searchbox = self.wait_until_element(common_locators["search"])
+        if searchbox is None:
+            raise Exception("Search box not found.")
+        else:
+            searchbox.clear()
+            searchbox.send_keys(name)
+            self.wait_until_element(common_locators["search_button"]).click()
+            self.wait_for_ajax()
+            element = self.wait_until_element((strategy,
+                                               value % name))
+            return element
 
     def update(self, org_name, new_name=None, users=None, proxies=None,
                subnets=None, resources=None, medias=None, templates=None,
