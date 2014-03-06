@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+import unittest
+
 from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.constants import NOT_IMPLEMENTED
@@ -82,6 +84,7 @@ class Organization(BaseAPI):
         label and description are alpha, update name is html 300 chars
 
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_0(self, test_data):
         """
         @feature: Organizations
@@ -91,7 +94,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is blank
@@ -101,6 +104,7 @@ class Organization(BaseAPI):
         label and description are latin1, name is blank
         label and description are html, name is blank
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_1(self, test_data):
         """
         @feature: Organizations
@@ -110,7 +114,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         label and description are alpha, name is whitespace
@@ -120,6 +124,7 @@ class Organization(BaseAPI):
         label and description are latin1, name is whitespace
         label and description are html, name is whitespace
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_2(self, test_data):
         """
         @feature: Organizations
@@ -129,7 +134,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         name, label and description are alpha
@@ -139,6 +144,7 @@ class Organization(BaseAPI):
         name, label and description are latin1
         name, label and description are html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_3(self, test_data):
         """
         @feature: Organizations
@@ -148,7 +154,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     # Positive Delete
 
@@ -160,6 +166,7 @@ class Organization(BaseAPI):
         name, label and description are latin1
         name, label and description are html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_1(self, test_data):
         """
         @feature: Organizations
@@ -168,7 +175,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     # Negative Delete
 
@@ -182,6 +189,7 @@ class Organization(BaseAPI):
         update name is latin1
         update name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_1(self, test_data):
         """
         @feature: Organizations
@@ -190,7 +198,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         update label is alpha
@@ -200,6 +208,7 @@ class Organization(BaseAPI):
         update label is latin1
         update label is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_2(self, test_data):
         """
         @feature: Organizations
@@ -208,7 +217,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         update description is alpha
@@ -218,6 +227,7 @@ class Organization(BaseAPI):
         update description is latin1
         update description is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_3(self, test_data):
         """
         @feature: Organizations
@@ -227,7 +237,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         update name, label and description are alpha
@@ -237,6 +247,7 @@ class Organization(BaseAPI):
         update name, label and description are latin1
         update name, label and description are html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_4(self, test_data):
         """
         @feature: Organizations
@@ -245,7 +256,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     # Negative Update
 
@@ -258,6 +269,7 @@ class Organization(BaseAPI):
         update name is latin1 300 chars long
         update name is html 300 chars long
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_1(self, test_data):
         """
         @feature: Organizations
@@ -267,7 +279,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         update label is whitespace
@@ -278,6 +290,7 @@ class Organization(BaseAPI):
         update label is latin1 300 chars long
         update label is html 300 chars long
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_2(self, test_data):
         """
         @feature: Organizations
@@ -287,7 +300,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         update description is alpha 300 chars long
@@ -297,6 +310,7 @@ class Organization(BaseAPI):
         update description is latin1 300 chars long
         update description is html 300 chars long
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_3(self, test_data):
         """
         @feature: Organizations
@@ -306,7 +320,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     #Miscelaneous
 
@@ -318,6 +332,7 @@ class Organization(BaseAPI):
         name, label and description are is latin1
         name, label and description are is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_key_1(self, test_data):
         """
         @feature: Organizations
@@ -326,7 +341,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -336,6 +351,7 @@ class Organization(BaseAPI):
         name, label and description are is latin1
         name, label and description are is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_key_1(self, test_data):
         """
         @feature: Organizations
@@ -344,7 +360,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
@@ -354,6 +370,7 @@ class Organization(BaseAPI):
         name, label and description are is latin1
         name, label and description are is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_key_1(self, test_data):
         """
         @feature: Organizations
@@ -363,7 +380,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     # Associations
 
@@ -378,6 +395,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_1(self, test_data):
         """
         @feature: Organizations
@@ -387,7 +405,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
@@ -400,6 +418,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_2(self, test_data):
         """
         @feature: Organizations
@@ -409,7 +428,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
@@ -422,6 +441,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_3(self, test_data):
         """
         @feature: Organizations
@@ -431,7 +451,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
@@ -444,6 +464,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_4(self, test_data):
         """
         @feature: Organizations
@@ -453,7 +474,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4294')
     @redminebug('4295')
@@ -466,6 +487,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_user_1(self, test_data):
         """
         @feature: Organizations
@@ -476,7 +498,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4294')
     @redminebug('4295')
@@ -489,6 +511,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_user_2(self, test_data):
         """
         @feature: Organizations
@@ -498,7 +521,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4294')
     @redminebug('4295')
@@ -511,6 +534,7 @@ class Organization(BaseAPI):
         user name is latin1 and admin
         user name is html and admin
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_user_3(self, test_data):
         """
         @feature: Organizations
@@ -520,7 +544,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -530,6 +554,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_1(self, test_data):
         """
         @feature: Organizations
@@ -539,7 +564,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -549,6 +574,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_2(self, test_data):
         """
         @feature: Organizations
@@ -558,7 +584,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -568,6 +594,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_3(self, test_data):
         """
         @feature: Organizations
@@ -577,7 +604,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -587,6 +614,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_4(self, test_data):
         """
         @feature: Organizations
@@ -596,7 +624,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -606,6 +634,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -614,7 +643,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -624,6 +653,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_2(self, test_data):
         """
         @feature: Organizations
@@ -632,7 +662,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -642,6 +672,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_3(self, test_data):
         """
         @feature: Organizations
@@ -650,7 +681,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -660,6 +691,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_4(self, test_data):
         """
         @feature: Organizations
@@ -668,7 +700,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -678,6 +710,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_1(self, test_data):
         """
         @feature: Organizations
@@ -686,7 +719,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -696,6 +729,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_2(self, test_data):
         """
         @feature: Organizations
@@ -704,7 +738,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -714,6 +748,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_3(self, test_data):
         """
         @feature: Organizations
@@ -722,7 +757,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -732,6 +767,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_4(self, test_data):
         """
         @feature: Organizations
@@ -740,7 +776,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @redminebug('4219')
     @redminebug('4294')
@@ -753,6 +789,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_domain_1(self, test_data):
         """
         @feature: Organizations
@@ -761,7 +798,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -771,6 +808,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_user_1(self, test_data):
         """
         @feature: Organizations
@@ -780,7 +818,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -790,6 +828,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_user_2(self, test_data):
         """
         @feature: Organizations
@@ -799,7 +838,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -809,6 +848,7 @@ class Organization(BaseAPI):
         user name is latin1 and an admin
         user name is html and an admin
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_user_3(self, test_data):
         """
         @feature: Organizations
@@ -817,7 +857,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -827,6 +867,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_1(self, test_data):
         """
         @feature: Organizations
@@ -836,7 +877,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -846,6 +887,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_2(self, test_data):
         """
         @feature: Organizations
@@ -855,7 +897,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -865,6 +907,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_3(self, test_data):
         """
         @feature: Organizations
@@ -874,7 +917,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -884,6 +927,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_4(self, test_data):
         """
         @feature: Organizations
@@ -893,7 +937,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -903,6 +947,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_1(self, test_data):
         """
         @feature: Organizations
@@ -912,7 +957,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -922,6 +967,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_2(self, test_data):
         """
         @feature: Organizations
@@ -931,7 +977,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -941,6 +987,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_3(self, test_data):
         """
         @feature: Organizations
@@ -950,7 +997,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -960,6 +1007,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_4(self, test_data):
         """
         @feature: Organizations
@@ -969,7 +1017,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -979,6 +1027,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_1(self, test_data):
         """
         @feature: Organizations
@@ -987,7 +1036,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -997,6 +1046,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_2(self, test_data):
         """
         @feature: Organizations
@@ -1005,7 +1055,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1015,6 +1065,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_3(self, test_data):
         """
         @feature: Organizations
@@ -1023,7 +1074,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1033,6 +1084,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_4(self, test_data):
         """
         @feature: Organizations
@@ -1041,7 +1093,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1051,6 +1103,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_configtemplate_1(self, test_data):
         """
         @feature: Organizations
@@ -1059,7 +1112,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1069,6 +1122,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_1(self, test_data):
         """
         @feature: Organizations
@@ -1078,7 +1132,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1088,6 +1142,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_2(self, test_data):
         """
         @feature: Organizations
@@ -1097,7 +1152,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1107,6 +1162,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_3(self, test_data):
         """
         @feature: Organizations
@@ -1116,7 +1172,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1126,6 +1182,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_4(self, test_data):
         """
         @feature: Organizations
@@ -1135,7 +1192,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1145,6 +1202,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -1153,7 +1211,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1163,6 +1221,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_2(self, test_data):
         """
         @feature: Organizations
@@ -1171,7 +1230,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1181,6 +1240,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_3(self, test_data):
         """
         @feature: Organizations
@@ -1189,7 +1249,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1199,6 +1259,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_4(self, test_data):
         """
         @feature: Organizations
@@ -1207,7 +1268,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1217,6 +1278,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_1(self, test_data):
         """
         @feature: Organizations
@@ -1226,7 +1288,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1236,6 +1298,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_2(self, test_data):
         """
         @feature: Organizations
@@ -1245,7 +1308,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1255,6 +1318,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_3(self, test_data):
         """
         @feature: Organizations
@@ -1264,7 +1328,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1274,6 +1338,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_4(self, test_data):
         """
         @feature: Organizations
@@ -1283,7 +1348,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1293,6 +1358,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_1(self, test_data):
         """
         @feature: Organizations
@@ -1301,7 +1367,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1311,6 +1377,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_2(self, test_data):
         """
         @feature: Organizations
@@ -1319,7 +1386,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1329,6 +1396,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_3(self, test_data):
         """
         @feature: Organizations
@@ -1337,7 +1405,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1347,6 +1415,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_4(self, test_data):
         """
         @feature: Organizations
@@ -1355,7 +1424,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1365,6 +1434,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_1(self, test_data):
         """
         @feature: Organizations
@@ -1374,7 +1444,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1384,6 +1454,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_2(self, test_data):
         """
         @feature: Organizations
@@ -1393,7 +1464,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1403,6 +1474,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_3(self, test_data):
         """
         @feature: Organizations
@@ -1412,7 +1484,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1422,6 +1494,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_4(self, test_data):
         """
         @feature: Organizations
@@ -1431,7 +1504,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1441,6 +1514,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_1(self, test_data):
         """
         @feature: Organizations
@@ -1449,7 +1523,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1459,6 +1533,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_2(self, test_data):
         """
         @feature: Organizations
@@ -1467,7 +1542,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1477,6 +1552,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_3(self, test_data):
         """
         @feature: Organizations
@@ -1485,7 +1561,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1495,6 +1571,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_4(self, test_data):
         """
         @feature: Organizations
@@ -1503,7 +1580,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1513,6 +1590,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_1(self, test_data):
         """
         @feature: Organizations
@@ -1521,7 +1599,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1531,6 +1609,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_2(self, test_data):
         """
         @feature: Organizations
@@ -1539,7 +1618,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1549,6 +1628,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_3(self, test_data):
         """
         @feature: Organizations
@@ -1557,7 +1637,7 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
 
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1567,6 +1647,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_4(self, test_data):
         """
         @feature: Organizations
@@ -1575,4 +1656,4 @@ class Organization(BaseAPI):
         @status: manual
         """
 
-        self.skipTest(NOT_IMPLEMENTED)
+        pass
