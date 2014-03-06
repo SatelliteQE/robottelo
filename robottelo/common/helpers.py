@@ -207,6 +207,23 @@ def generate_string(str_type, length):
     return output_string
 
 
+def generate_strings_list(len1=8):
+    """
+    Generates a list of all the input strings
+    """
+    str_types = [STR.alpha,
+                 STR.numeric,
+                 STR.alphanumeric,
+                 STR.html,
+                 STR.latin1,
+                 STR.utf8]
+    str_list = []
+    for str_type in str_types:
+        string1 = generate_string(str_type, len1)
+        str_list.append(string1)
+    return str_list
+
+
 def csv_to_dictionary(data):
     """
     Converts CSV data from Hammer CLI and returns a python dictionary.
