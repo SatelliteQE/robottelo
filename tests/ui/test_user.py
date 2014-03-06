@@ -5,12 +5,12 @@
 Test class for Users UI
 """
 
+import unittest
+
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_name, generate_email_address
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
-
-import unittest
 
 
 class User(BaseUI):
@@ -117,6 +117,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_2(self):
@@ -129,6 +130,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_3(self):
@@ -141,6 +143,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_4(self):
@@ -153,6 +156,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_5(self):
@@ -165,6 +169,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_6(self):
@@ -177,6 +182,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_7(self):
@@ -189,6 +195,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_8(self):
@@ -198,6 +205,7 @@ class User(BaseUI):
         @Assert: Admin User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_9(self):
@@ -209,6 +217,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_10(self):
@@ -220,6 +229,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_11(self):
@@ -231,6 +241,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_12(self):
@@ -242,6 +253,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_13(self):
@@ -253,6 +265,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_14(self):
@@ -264,6 +277,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_15(self):
@@ -275,6 +289,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_16(self):
@@ -286,6 +301,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_17(self):
@@ -297,6 +313,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_18(self):
@@ -308,6 +325,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_19(self):
@@ -319,6 +337,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_20(self):
@@ -330,6 +349,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_21(self):
@@ -341,6 +361,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_22(self):
@@ -352,6 +373,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_23(self):
@@ -363,6 +385,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_24(self):
@@ -372,6 +395,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_25(self):
@@ -381,6 +405,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_26(self):
@@ -390,6 +415,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_27(self):
@@ -401,6 +427,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_28(self):
@@ -413,6 +440,7 @@ class User(BaseUI):
         @Assert: User is created without specifying the password
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_1(self):
@@ -426,6 +454,7 @@ class User(BaseUI):
         @Assert: User is not created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_2(self):
@@ -438,6 +467,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_3(self):
@@ -450,6 +480,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_4(self):
@@ -462,6 +493,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_5(self):
@@ -474,6 +506,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_6(self):
@@ -486,6 +519,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_7(self):
@@ -500,6 +534,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_8(self):
@@ -513,6 +548,7 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_1(self):
@@ -525,6 +561,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_2(self):
@@ -537,6 +574,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_3(self):
@@ -549,6 +587,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_4(self):
@@ -561,6 +600,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_5(self):
@@ -573,6 +613,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_6(self):
@@ -585,6 +626,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_7(self):
@@ -597,6 +639,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_8(self):
@@ -609,6 +652,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_9(self):
@@ -621,6 +665,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_10(self):
@@ -633,6 +678,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_11(self):
@@ -645,6 +691,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_12(self):
@@ -657,6 +704,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_13(self):
@@ -669,6 +717,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_14(self):
@@ -681,6 +730,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_15(self):
@@ -693,6 +743,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_16(self):
@@ -705,6 +756,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_17(self):
@@ -717,6 +769,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_18(self):
@@ -729,6 +782,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_19(self):
@@ -741,6 +795,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_20(self):
@@ -753,6 +808,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_21(self):
@@ -765,6 +821,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_22(self):
@@ -777,6 +834,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_23(self):
@@ -789,6 +847,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_24(self):
@@ -801,6 +860,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_25(self):
@@ -813,6 +873,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_26(self):
@@ -825,6 +886,7 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_28(self):
@@ -837,6 +899,7 @@ class User(BaseUI):
         @Assert: User is update
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_1(self):
@@ -849,6 +912,7 @@ class User(BaseUI):
         @Assert: User is not updated.  Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_2(self):
@@ -861,6 +925,7 @@ class User(BaseUI):
         @Assert: User is not updated.  Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_3(self):
@@ -873,6 +938,7 @@ class User(BaseUI):
         @Assert: User is not updated.  Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_4(self):
@@ -885,6 +951,7 @@ class User(BaseUI):
         @Assert: User is not updated.  Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_5(self):
@@ -898,6 +965,7 @@ class User(BaseUI):
         @Assert: User is not updated.  Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_6(self):
@@ -911,6 +979,7 @@ class User(BaseUI):
         @Assert: User is not updated.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_user_1(self):
@@ -923,6 +992,7 @@ class User(BaseUI):
         @Assert: User is deleted
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_user_2(self):
@@ -935,6 +1005,7 @@ class User(BaseUI):
         @Assert: User is deleted
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_delete_user_1(self):
@@ -947,6 +1018,7 @@ class User(BaseUI):
         @Assert: User is not deleted
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_delete_user_2(self):
@@ -960,6 +1032,7 @@ class User(BaseUI):
         @Assert: User is not deleted
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_1(self):
@@ -973,6 +1046,7 @@ class User(BaseUI):
         @Assert: User is listed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_2(self):
@@ -986,6 +1060,7 @@ class User(BaseUI):
         @Assert: User is listed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_3(self):
@@ -999,6 +1074,7 @@ class User(BaseUI):
         @Assert: User is listed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_4(self):
@@ -1012,6 +1088,7 @@ class User(BaseUI):
         @Assert: User is listed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_5(self):
@@ -1025,6 +1102,7 @@ class User(BaseUI):
         @Assert: User is listed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_1(self):
@@ -1038,6 +1116,7 @@ class User(BaseUI):
         @Assert: User is found
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_2(self):
@@ -1051,6 +1130,7 @@ class User(BaseUI):
         @Assert: User is found
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_3(self):
@@ -1064,6 +1144,7 @@ class User(BaseUI):
         @Assert: User is found
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_4(self):
@@ -1077,6 +1158,7 @@ class User(BaseUI):
         @Assert: User is found
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_5(self):
@@ -1090,6 +1172,7 @@ class User(BaseUI):
         @Assert: User is found
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_1(self):
@@ -1103,6 +1186,7 @@ class User(BaseUI):
         @Assert: User info is displayed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_2(self):
@@ -1116,6 +1200,7 @@ class User(BaseUI):
         @Assert: User info is displayed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_3(self):
@@ -1129,6 +1214,7 @@ class User(BaseUI):
         @Assert: User info is displayed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_4(self):
@@ -1142,6 +1228,7 @@ class User(BaseUI):
         @Assert: User info is displayed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_5(self):
@@ -1155,6 +1242,7 @@ class User(BaseUI):
         @Assert: User info is displayed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_user_1(self):
@@ -1172,6 +1260,7 @@ class User(BaseUI):
         @Assert: All actions passed
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_user_2(self):
@@ -1189,6 +1278,7 @@ class User(BaseUI):
         @Assert: All actions failed since the User is not assigned to any Org
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_bookmark_1(self):
@@ -1201,6 +1291,7 @@ class User(BaseUI):
         @Assert: Search bookmark is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_bookmark_2(self):
@@ -1213,6 +1304,7 @@ class User(BaseUI):
         @Assert: Search bookmark is created
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_bookmark_3(self):
@@ -1226,6 +1318,7 @@ class User(BaseUI):
         by other users
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_bookmark_4(self):
@@ -1239,6 +1332,7 @@ class User(BaseUI):
         accessible by other users
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_bookmark_1(self):
@@ -1251,6 +1345,7 @@ class User(BaseUI):
         @Assert: Search bookmark not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_bookmark_2(self):
@@ -1263,3 +1358,4 @@ class User(BaseUI):
         @Assert: Search bookmark not created. Appropriate error shown.
         @Status: Manual
         """
+        pass
