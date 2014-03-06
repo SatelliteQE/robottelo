@@ -11,6 +11,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name, generate_strings_list
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -34,22 +35,24 @@ class Org(BaseUI):
         self.navigator.go_to_org()
         self.org.create(org_name)
         select_org = self.navigator.go_to_select_org(org_name)
+        self.navigator.go_to_org()
         self.assertIsNotNone(select_org)
         self.assertIsNotNone(self.org.search(org_name))
 
-    def test_negative_create_0(self):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list(len1=256))
+    def test_negative_create_0(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         too long
         @assert: organization is not created
         """
-        org_name = generate_name(256)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNone(self.org.search(org_name))
+        self.assertTrue(self.org.\
+            wait_until_element(common_locators["name_haserror"]))
 
     def test_negative_create_1(self):
         """
@@ -63,8 +66,8 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNone(self.org.search(org_name))
+        self.assertTrue(self.org.\
+            wait_until_element(common_locators["name_haserror"]))
 
     def test_negative_create_2(self):
         """
@@ -78,8 +81,8 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNone(self.org.search(org_name))
+        self.assertTrue(self.org.\
+            wait_until_element(common_locators["name_haserror"]))
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -95,8 +98,10 @@ class Org(BaseUI):
         self.navigator.go_to_org()
         self.org.create(org_name)
         self.navigator.go_to_org()
-        self.assertIsNone(self.org.search(org_name))
+        self.assertIsNotNone(self.org.search(org_name))
         self.org.create(org_name)
+        self.assertTrue(self.org.\
+            wait_until_element(common_locators["name_haserror"]))
 
     # Positive Delete
 
@@ -113,6 +118,7 @@ class Org(BaseUI):
         self.navigator.go_to_org()
         self.org.create(org_name)
         self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
         self.org.remove(org_name, really=True)
         self.assertIsNone(self.org.search(org_name))
 
@@ -132,8 +138,8 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.org.search(org_name)
-        new_name = generate_name(8, 8)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
         self.org.update(org_name, new_name)
         self.assertIsNotNone(self.org.search(new_name))
 
@@ -152,11 +158,12 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        self.org.search(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
         new_name = generate_name(256)
         self.org.update(org_name, new_name)
-        self.navigator.go_to_org()
-        self.assertIsNone(self.org.search(new_name))
+        self.assertTrue(self.org.\
+            wait_until_element(common_locators["name_haserror"]))
 
     # Miscellaneous
 
@@ -172,10 +179,12 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
+        self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(org_name))
 
     # Associations
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
@@ -196,8 +205,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
@@ -218,8 +226,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4294')
     @redminebug('4295')
     @redminebug('4296')
@@ -241,8 +248,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4294')
     @redminebug('4295')
     @redminebug('4296')
@@ -263,8 +269,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4294')
     @redminebug('4295')
     @redminebug('4296')
@@ -285,8 +290,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -304,8 +308,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -323,8 +326,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -342,8 +344,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -361,8 +362,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -379,8 +379,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -397,8 +396,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -415,8 +413,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -433,8 +430,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -451,8 +447,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -469,8 +464,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -487,8 +481,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -505,8 +498,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
@@ -526,8 +518,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -545,8 +536,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -564,8 +554,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
         user name is numeric and an admin
@@ -582,8 +571,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -601,8 +589,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -620,8 +607,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -639,8 +625,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -658,8 +643,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -677,8 +661,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -696,8 +679,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -715,8 +697,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -734,8 +715,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -752,8 +732,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -770,8 +749,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -788,8 +766,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -806,8 +783,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -824,8 +800,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -843,8 +818,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -862,8 +836,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -881,8 +854,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -900,8 +872,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -918,8 +889,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -936,8 +906,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -954,8 +923,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -972,8 +940,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -991,8 +958,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1010,8 +976,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1029,8 +994,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -1048,8 +1012,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1066,8 +1029,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1084,8 +1046,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1102,8 +1063,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -1120,8 +1080,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1139,8 +1098,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1158,8 +1116,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1177,8 +1134,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -1196,8 +1152,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1214,8 +1169,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1232,8 +1186,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1250,8 +1203,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -1268,8 +1220,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1286,8 +1237,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1304,8 +1254,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1322,8 +1271,7 @@ class Org(BaseUI):
         @status: manual
         """
 
-        unittest.skip(NOT_IMPLEMENTED)
-
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1339,5 +1287,3 @@ class Org(BaseUI):
         @assert: subnet is added then removed
         @status: manual
         """
-
-        unittest.skip(NOT_IMPLEMENTED)

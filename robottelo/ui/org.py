@@ -78,19 +78,16 @@ class Org(Base):
             self.field_update("org.name", org_name)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
-            if self.find_element(common_locators["name_taken"]):
-                raise Exception("Org with name '%s' already exists" % org_name)
-            else:
-                if edit:
-                    self.wait_until_element(locators
-                                            ["org.proceed_to_edit"]).click()
-                    self._configure_org(users=users, proxies=proxies,
-                                        subnets=subnets, resources=resources,
-                                        medias=medias, templates=templates,
-                                        domains=domains, envs=envs,
-                                        hostgroups=hostgroups, select=select)
-                    self.wait_until_element(common_locators["submit"]).click()
-                    self.wait_for_ajax()
+            if edit:
+                self.wait_until_element(locators
+                                        ["org.proceed_to_edit"]).click()
+                self._configure_org(users=users, proxies=proxies,
+                                    subnets=subnets, resources=resources,
+                                    medias=medias, templates=templates,
+                                    domains=domains, envs=envs,
+                                    hostgroups=hostgroups, select=select)
+                self.wait_until_element(common_locators["submit"]).click()
+                self.wait_for_ajax()
         else:
             raise Exception(
                 "Unable to create the Organization '%s'" % org_name)
@@ -155,6 +152,20 @@ class Org(Base):
         Remove Organization in UI
         """
 
-        self.delete_entity(org_name, really, locators["org.org_name"],
-                           locators['org.delete'],
-                           drop_locator=locators["org.dropdown"])
+        searched = self.search(org_name)
+        if searched:
+            strategy = locators["org.dropdown"][0]
+            value = locators["org.dropdown"][1]
+            dropdown = self.wait_until_element((strategy, value % org_name))
+            dropdown.click()
+            strategy1 = locators['org.delete'][0]
+            value1 = locators['org.delete'][1]
+            element = self.wait_until_element((strategy1, value1 % org_name))
+            if element:
+                element.click()
+                self.handle_alert(really)
+            else:
+                raise Exception(
+                    "Could not select entity '%s' for deletion." % org_name)
+        else:
+            raise Exception("Could not search the entity '%s'" % org_name)
