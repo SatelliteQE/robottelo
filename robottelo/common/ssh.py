@@ -9,7 +9,7 @@ import sys
 import time
 
 from robottelo.common import conf
-from robottelo.common.constants import PARAMIKO_CHANNEL_READY_TIMEOUT
+from robottelo.common.constants import SSH_CHANNEL_READY_TIMEOUT
 from robottelo.common.helpers import csv_to_dictionary
 from robottelo.common.helpers import sleep_for_seconds
 from select import select
@@ -113,12 +113,12 @@ def command(cmd, hostname=None, expect_csv=False, timeout=50):
             if rlist is not None and len(rlist) > 0:
                 if channel.exit_status_ready():
                     while not channel.recv_ready() and \
-                            sleep_counter < PARAMIKO_CHANNEL_READY_TIMEOUT:
+                            sleep_counter < SSH_CHANNEL_READY_TIMEOUT * 10:
                         sleep_for_seconds(0.1)
                         sleep_counter += 1
                     stdout = channel.recv(1048576)
                     while not channel.recv_stderr_ready() and \
-                            sleep_counter < PARAMIKO_CHANNEL_READY_TIMEOUT:
+                            sleep_counter < SSH_CHANNEL_READY_TIMEOUT * 10:
                         sleep_for_seconds(0.1)
                         sleep_counter += 1
                     stderr = channel.recv_stderr(1048576)

@@ -108,4 +108,4 @@ REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
 
 DEFAULT_ORG = "acme"
 
-PARAMIKO_CHANNEL_READY_TIMEOUT = 100  # (100 * 0.1sec) = 10 sec to get content
+SSH_CHANNEL_READY_TIMEOUT = 10  # 10 sec to get content
