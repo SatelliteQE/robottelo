@@ -43,7 +43,7 @@ menu_locators = {
     "menu.content": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='content']")),
+         "//a[@id='content_menu']")),
     "menu.life_cycle_environments": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
@@ -328,7 +328,11 @@ common_locators = {
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
     # Katello common Product and Repo locators
-    "gpg_key": (By.ID, "gpg_key_id")}
+    "gpg_key": (By.ID, "gpg_key_id"),
+    "name_haserror": (
+        By.XPATH,
+        ("//label[@for='name']/../../"
+         "div[contains(@class,'has-error')]"))}
 
 locators = {
 

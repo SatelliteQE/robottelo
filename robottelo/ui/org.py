@@ -77,6 +77,7 @@ class Org(Base):
             self.wait_until_element(locators["org.name"])
             self.field_update("org.name", org_name)
             self.wait_until_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
             if edit:
                 self.wait_until_element(locators
                                         ["org.proceed_to_edit"]).click()
@@ -95,8 +96,19 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
-        element = self.search_entity(name, locators["org.org_name"])
-        return element
+        strategy = locators["org.org_name"][0]
+        value = locators["org.org_name"][1]
+        searchbox = self.wait_until_element(common_locators["search"])
+        if searchbox is None:
+            raise Exception("Search box not found.")
+        else:
+            searchbox.clear()
+            searchbox.send_keys(name)
+            self.wait_until_element(common_locators["search_button"]).click()
+            self.wait_for_ajax()
+            element = self.wait_until_element((strategy,
+                                               value % name))
+            return element
 
     def update(self, org_name, new_name=None, users=None, proxies=None,
                subnets=None, resources=None, medias=None, templates=None,
@@ -140,6 +152,20 @@ class Org(Base):
         Remove Organization in UI
         """
 
-        self.delete_entity(org_name, really, locators["org.org_name"],
-                           locators['org.delete'],
-                           drop_locator=locators["org.dropdown"])
+        searched = self.search(org_name)
+        if searched:
+            strategy = locators["org.dropdown"][0]
+            value = locators["org.dropdown"][1]
+            dropdown = self.wait_until_element((strategy, value % org_name))
+            dropdown.click()
+            strategy1 = locators['org.delete'][0]
+            value1 = locators['org.delete'][1]
+            element = self.wait_until_element((strategy1, value1 % org_name))
+            if element:
+                element.click()
+                self.handle_alert(really)
+            else:
+                raise Exception(
+                    "Could not select entity '%s' for deletion." % org_name)
+        else:
+            raise Exception("Could not search the entity '%s'" % org_name)

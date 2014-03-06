@@ -4,6 +4,7 @@
 Module for mixin of basic crud methods based on api_path class method.
 """
 
+import logging
 import robottelo.api.base as base
 
 from robottelo.common.records import ManyRelatedField, RelatedField
@@ -77,12 +78,36 @@ def data_load_transform(instance_cls, data):
         return data
 
 
+def classlogger(f):
+    def wrapper(cls, uid=None, **kwargs):
+        cls.logger().debug(f.func_name)
+        res = None
+        if not uid is None:
+            res = f(cls, uid, **kwargs)
+        else:
+            res = f(cls, **kwargs)
+
+        cls.logger().debug(
+            str(res.status_code) + " " +
+            str(res.content) + " " +
+            str(res.request.url) + " " +
+            str(res.request.body))
+        return res
+    return wrapper
+
+
 class ApiCrud(object):
     """Defines basic crud methods based on api_path class method """
 
     def __init__(self):
         """Mixin is not supposed to be instantiated """
         raise NotImplementedError()
+
+    @classmethod
+    def logger(cls):
+        """Robottelo logger
+        """
+        return logging.getLogger("robottelo")
 
     @classmethod
     def get_default_search(cls):
@@ -167,15 +192,18 @@ class ApiCrud(object):
         return path
 
     @classmethod
+    @classlogger
     def list(cls, **kwargs):
         """"Query method,
         args are forwarded to underlying requests.get call
 
         """
+
         path = cls.parse_path_arg(kwargs)
         return base.get(path=path, **kwargs)
 
     @classmethod
+    @classlogger
     def show(cls, uid, **kwargs):
         """Read method,
         args are forwarded to underlying requests.get call,
@@ -187,6 +215,7 @@ class ApiCrud(object):
         return base.get(path=path, **kwargs)
 
     @classmethod
+    @classlogger
     def create(cls, **kwargs):
         """Create method,
         args are forwarded to underlying requests.post call,
@@ -198,6 +227,7 @@ class ApiCrud(object):
         return base.post(path=path, **kwargs)
 
     @classmethod
+    @classlogger
     def update(cls, uid, **kwargs):
         """Update method,
         args are forwarded to underlying requests.put call,
@@ -210,6 +240,7 @@ class ApiCrud(object):
         return base.put(path=path, **kwargs)
 
     @classmethod
+    @classlogger
     def delete(cls, uid, **kwargs):
         """Remove method,
         args are forwarded to underlying requests.put call,
@@ -262,11 +293,15 @@ class ApiCrud(object):
 
         if hasattr(instance, "id"):
             res = cls.delete(instance.id)
+            if res.ok:
+                return True
+            else:
+                raise Exception("Unable to remove", instance)
             return res.ok
         else:
             res = cls.list(json=dict(search="name="+instance.name))
             if res.ok and len(res.json()) == 1:
-                cls.record_remove(cls.record_resolve(instance))
+                res = cls.record_remove(cls.record_resolve(instance))
                 return True
             else:
                 return False
@@ -306,10 +341,7 @@ class ApiCrud(object):
                 )
             return ninstance
         else:
-            raise Exception(res.status_code,
-                            res.content,
-                            res.request.url,
-                            res.request.body)
+            raise Exception("Couldn't resolve record", instance)
 
     @classmethod
     def record_resolve_recursive(cls, instance):
@@ -372,11 +404,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise Exception(
-                res.status_code,
-                res.content,
-                res.request.url,
-                res.request.body)
+            raise Exception("Couldn't update record", instance)
 
     @classmethod
     def record_create(cls, instance_orig):
@@ -406,11 +434,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise Exception(
-                res.status_code,
-                res.content,
-                res.request.url,
-                res.request.body)
+            raise Exception("Couldn't create record", instance)
 
     @classmethod
     def record_create_dependencies(cls, instance_orig):
