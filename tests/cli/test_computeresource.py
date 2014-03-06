@@ -47,7 +47,7 @@ class TestComputeResource(BaseCLI):
         @Assert: Compute reource is created
         """
         name = generate_name(8, 8)
-        result = ComputeResource().create({
+        result = ComputeResource.create({
             'name': name,
             'provider': 'Libvirt',
             'url': "qemu+tcp://%s:16509/system" %
@@ -69,7 +69,7 @@ class TestComputeResource(BaseCLI):
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
         sleep_for_seconds(5)
-        result_info = ComputeResource().info({'name': result_create['name']})
+        result_info = ComputeResource.info({'name': result_create['name']})
         self.assertEquals(result_info.return_code, 0,
                           "ComputeResource info - exit code")
         self.assertEquals(result_info.stdout['name'], result_create['name'],
@@ -87,12 +87,13 @@ class TestComputeResource(BaseCLI):
             conf.properties['main.server.hostname']})
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
-        result_list = ComputeResource().list()
+        result_list = ComputeResource.list({'search': "name=%s" %
+                                            result_create['name']})
         self.assertEquals(result_list.return_code, 0,
                           "ComputeResource list - exit code")
         self.assertTrue(len(result_list.stdout) > 0,
                         "ComputeResource list - stdout has results")
-        stdout = ComputeResource().exists(
+        stdout = ComputeResource.exists(
             ('name', result_create['name'])).stdout
         self.assertTrue(
             stdout,
@@ -119,7 +120,7 @@ class TestComputeResource(BaseCLI):
         options['name'] = self.compute_res_updates
         for option in option_dict:
             options[option] = option_dict[option]
-        result_update = ComputeResource().update(options)
+        result_update = ComputeResource.update(options)
         self.assertEquals(result_update.return_code, 0,
                           "ComputeResource update - exit code")
 
@@ -136,13 +137,13 @@ class TestComputeResource(BaseCLI):
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
         sleep_for_seconds(5)
-        result_delete = ComputeResource().delete(
+        result_delete = ComputeResource.delete(
             {'name': result_create['name']})
         self.assertEquals(
             result_delete.return_code, 0,
             "ComputeResource delete - exit code")
         sleep_for_seconds(5)
-        stdout = ComputeResource().exists(
+        stdout = ComputeResource.exists(
             ('name', result_create['name'])).stdout
         self.assertFalse(
             stdout,

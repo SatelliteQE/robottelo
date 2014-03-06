@@ -107,3 +107,5 @@ REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
            'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)"}
 
 DEFAULT_ORG = "acme"
+
+SSH_CHANNEL_READY_TIMEOUT = 10  # 10 sec to get content
