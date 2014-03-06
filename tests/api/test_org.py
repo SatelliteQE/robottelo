@@ -7,7 +7,6 @@ from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
-from robottelo.common.records.base import assert_intersects
 from robottelo.records.organization import Organization
 from tests.api.baseapi import BaseAPI
 
@@ -27,7 +26,7 @@ class Organization(BaseAPI):
         """
         result = ApiCrud.record_create(test_data)
         test_data.label = result.label
-        assert_intersects(test_data, result)
+        self.assertIntersects(test_data, result)
 
     @data(*Organization.enumerate(name="", description=""))
     def test_positive_create_2(self, test_data):
@@ -38,7 +37,7 @@ class Organization(BaseAPI):
         """
         test_data.name = test_data.label
         result = ApiCrud.record_create(test_data)
-        assert_intersects(test_data, result)
+        self.assertIntersects(test_data, result)
         self.assertEquals(result.name, result.label)
 
     @data(*Organization.enumerate(description=""))
@@ -49,7 +48,7 @@ class Organization(BaseAPI):
         @assert: organization is created, label does not match name
         """
         result = ApiCrud.record_create(test_data)
-        assert_intersects(test_data, result)
+        self.assertIntersects(test_data, result)
         self.assertNotEqual(result.name, result.label)
 
     @data(*Organization.enumerate(label=""))
@@ -62,7 +61,7 @@ class Organization(BaseAPI):
 
         result = ApiCrud.record_create(test_data)
         test_data.label = result.label
-        assert_intersects(test_data, result)
+        self.assertIntersects(test_data, result)
 
     @data(*Organization.enumerate())
     def test_positive_create_5(self, test_data):
@@ -72,7 +71,7 @@ class Organization(BaseAPI):
         @assert: organization is created
         """
         result = ApiCrud.record_create(test_data)
-        assert_intersects(test_data, result)
+        self.assertIntersects(test_data, result)
 #Negative Create
 
     @data("""DATADRIVENGOESHERE
