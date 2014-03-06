@@ -3,7 +3,6 @@ Test class for Repository UI
 """
 
 from robottelo.common.helpers import generate_name
-from robottelo.common.constants import REPO_URL
 from tests.ui.baseui import BaseUI
 
 
@@ -29,7 +28,7 @@ class Repos(BaseUI):
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         repo_name = generate_name(8, 8)
-        repo_url = REPO_URL['rhel65']
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -53,7 +52,7 @@ class Repos(BaseUI):
         org_name = generate_name(8, 8)
         prd_name = generate_name(8, 8)
         repo_name = generate_name(8, 8)
-        repo_url = REPO_URL['rhel65']
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
