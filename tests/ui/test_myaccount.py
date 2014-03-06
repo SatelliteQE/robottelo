@@ -5,6 +5,8 @@
 Test class for Users UI
 """
 
+import unittest
+
 from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
 
@@ -20,6 +22,7 @@ class MyAccount(BaseUI):
     Lesser than Min Length, Greater than Max DB size
     """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_my_account_1(self):
         """
         @Feature: My Account - Positive Update
@@ -29,8 +32,9 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_my_account_2(self):
         """
         @Feature: My Account - Positive Update
@@ -40,8 +44,9 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_my_account_3(self):
         """
         @Feature: My Account - Positive Update
@@ -51,8 +56,9 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_my_account_4(self):
         """
         @Feature: My Account - Positive Update
@@ -62,8 +68,9 @@ class MyAccount(BaseUI):
         @Assert: Current User is updated
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_my_account_5(self):
         """
         @Feature: My Account - Positive Update
@@ -73,8 +80,9 @@ class MyAccount(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_my_account_1(self):
         """
         @Feature: My Account - Negative Update
@@ -84,8 +92,9 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_my_account_2(self):
         """
         @Feature: My Account - Negative Update
@@ -95,8 +104,9 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_my_account_3(self):
         """
         @Feature: My Account - Negative Update
@@ -106,8 +116,9 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_my_account_4(self):
         """
         @Feature: My Account - Negative Update
@@ -118,8 +129,9 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_my_account_5(self):
         """
         @Feature: My Account - Negative Update
@@ -131,8 +143,9 @@ class MyAccount(BaseUI):
         @Assert: User is not updated. Appropriate error shown.
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_my_account_6(self):
         """
         @Feature: My Account - Negative Update
@@ -145,4 +158,4 @@ class MyAccount(BaseUI):
         @Assert: User is not updated.
         @Status: Manual
         """
-        self.skip(NOT_IMPLEMENTED)
+        pass
