@@ -9,10 +9,6 @@ import logging
 import unittest
 
 
-class IntersectionException(Exception):
-    pass
-
-
 def assert_instance_intersects(first, other):
     """Determines if first and other match in type
     """
@@ -88,12 +84,14 @@ def intersection(first, other):
     return ("!=", first, other)
 
 
-def assert_intersects(first, other):
+def assert_intersects(first, other, msg=None):
     """Intersection based assert.
     """
     res = intersection(first, other)
     if not res is True:
-        raise IntersectionException(first, other, res)
+        raise AssertionError(
+            msg or "%r not intersects %r in %r" % (first, other, res)
+            )
 
 
 def is_intersecting(first, other):
@@ -132,8 +130,8 @@ class BaseAPI(unittest.TestCase):
     """
     Base class for all cli tests
     """
-    def assertIntersects(self, first, other):
-        assert_intersects(first, other)
+    def assertIntersects(self, first, other, msg=None):
+        assert_intersects(first, other, msg)
 
     def setUp(self):
         self.logger = logging.getLogger("robottelo")
