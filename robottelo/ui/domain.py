@@ -6,6 +6,7 @@ Implements Domain UI
 """
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -50,6 +51,8 @@ class Domain(Base):
         """
         Searches existing domain from UI
         """
+        nav = Navigator(self.browser)
+        nav.go_to_domains()
         element = self.search_entity(name,
                                      locators['domain.domain_description'])
         return element

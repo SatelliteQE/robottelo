@@ -43,7 +43,7 @@ menu_locators = {
     "menu.content": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='content']")),
+         "//a[@id='content_menu']")),
     "menu.life_cycle_environments": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
@@ -114,7 +114,7 @@ menu_locators = {
             "//a[@id='menu_item_system_groups']")),
     "menu.operating_systems": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
             "//a[@id='menu_item_operatingsystems']")),
     "menu.provisioning_templates": (
         By.XPATH,

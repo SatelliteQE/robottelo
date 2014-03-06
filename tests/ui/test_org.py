@@ -205,6 +205,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4219')
     @redminebug('4294')
@@ -225,6 +227,8 @@ class Org(BaseUI):
         @assert: the domain is removed from the organization
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4294')
@@ -248,6 +252,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4294')
     @redminebug('4295')
@@ -268,6 +274,8 @@ class Org(BaseUI):
         @assert: The user is added then removed from the organization
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4294')
@@ -290,6 +298,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -307,6 +317,8 @@ class Org(BaseUI):
         @assert: hostgroup is added to organization then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -326,6 +338,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -343,6 +357,8 @@ class Org(BaseUI):
         @assert: hostgroup is added to organization then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -362,6 +378,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -378,6 +396,8 @@ class Org(BaseUI):
         @assert: smartproxy is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -396,6 +416,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -412,6 +434,8 @@ class Org(BaseUI):
         @assert: smartproxy is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -430,6 +454,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -446,6 +472,8 @@ class Org(BaseUI):
         @assert: subnet is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -464,6 +492,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -481,6 +511,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -497,6 +529,8 @@ class Org(BaseUI):
         @assert: subnet is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4219')
@@ -518,6 +552,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha
@@ -535,6 +571,8 @@ class Org(BaseUI):
         @assert: User is added to organization
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -554,6 +592,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
@@ -570,6 +610,8 @@ class Org(BaseUI):
         @assert: User is added to organization
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -589,6 +631,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -606,6 +650,8 @@ class Org(BaseUI):
         @assert: hostgroup is added to organization
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -625,6 +671,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -642,6 +690,8 @@ class Org(BaseUI):
         @assert: hostgroup is added to organization
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -661,6 +711,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -678,6 +730,8 @@ class Org(BaseUI):
         @assert: computeresource is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -697,6 +751,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -715,6 +771,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -731,6 +789,8 @@ class Org(BaseUI):
         @assert: medium is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -749,6 +809,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -765,6 +827,8 @@ class Org(BaseUI):
         @assert: medium is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -783,6 +847,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -799,6 +865,8 @@ class Org(BaseUI):
         @assert: configtemplate is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -818,6 +886,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -835,6 +905,8 @@ class Org(BaseUI):
         @assert: environment is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -854,6 +926,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -872,6 +946,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -888,6 +964,8 @@ class Org(BaseUI):
         @assert: smartproxy is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -906,6 +984,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -923,6 +1003,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -939,6 +1021,8 @@ class Org(BaseUI):
         @assert: smartproxy is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -958,6 +1042,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -975,6 +1061,8 @@ class Org(BaseUI):
         @assert: computeresource is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -994,6 +1082,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -1012,6 +1102,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1028,6 +1120,8 @@ class Org(BaseUI):
         @assert: medium is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1046,6 +1140,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1063,6 +1159,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -1079,6 +1177,8 @@ class Org(BaseUI):
         @assert: medium is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1098,6 +1198,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1115,6 +1217,8 @@ class Org(BaseUI):
         @assert: configtemplate is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1134,6 +1238,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -1152,6 +1258,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1168,6 +1276,8 @@ class Org(BaseUI):
         @assert: environment is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1186,6 +1296,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -1202,6 +1314,8 @@ class Org(BaseUI):
         @assert: environment is added
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1220,6 +1334,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1236,6 +1352,8 @@ class Org(BaseUI):
         @assert: subnet is added then removed
         @status: manual
         """
+
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1254,6 +1372,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1271,6 +1391,8 @@ class Org(BaseUI):
         @status: manual
         """
 
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1287,3 +1409,5 @@ class Org(BaseUI):
         @assert: subnet is added then removed
         @status: manual
         """
+
+        pass
