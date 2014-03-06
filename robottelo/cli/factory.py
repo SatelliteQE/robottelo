@@ -562,7 +562,7 @@ def make_template(options=None):
         }
 
     # Write content to file or random text
-    if 'content' in options.keys():
+    if options is not None and 'content' in options.keys():
         content = options.pop('content')
     else:
         content = generate_name()
