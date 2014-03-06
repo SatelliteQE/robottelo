@@ -478,84 +478,80 @@ class TestOrg(BaseCLI):
 
         unittest.skip(NOT_IMPLEMENTED)
 
-        #Negative Create
+    #Negative Create
 
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, update name is alpha 300 chars
-        label and description are alpha, update name is numeric 300 chars
-        label and description are alpha, update name is alphanumeric 300 chars
-        label and description are alpha, update name is utf-8 300 chars
-        label and description are alpha, update name is latin1 300 chars
-        label and description are alpha, update name is html 300 chars
-
-    """)
+    @data({'label': generate_string('alpha', 10),
+           'name': generate_string('alpha', 300)},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('numeric', 300)},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('alphanumeric', 300)},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('utf8', 300).encode('utf8')},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('latin1', 300).encode('utf8')},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('html', 300)})
     def test_negative_create_0(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         too long
         @assert: organization is not created
-        @status: manual
         """
+        result = Org().create({'label': test_data['label'], 'description':
+                               test_data['label'], 'name': test_data['name']})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
 
-        unittest.skip(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, name is blank
-        label and description are numeric, name is blank
-        label and description are alphanumeric, name is blank
-        label and description are utf-8, name is blank
-        label and description are latin1, name is blank
-        label and description are html, name is blank
-    """)
+    @data(generate_string('alpha', 10),
+          generate_string('numeric', 10),
+          generate_string('alphanumeric', 10))
     def test_negative_create_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         blank
         @assert: organization is not created
-        @status: manual
         """
+        result = Org().create({'label': test_data, 'description': test_data,
+                               'name': ''})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
 
-        unittest.skip(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, name is whitespace
-        label and description are numeric, name is whitespace
-        label and description are alphanumeric, name is whitespace
-        label and description are utf-8, name is whitespace
-        label and description are latin1, name is whitespace
-        label and description are html, name is whitespace
-    """)
+    @data(generate_string('alpha', 10),
+          generate_string('numeric', 10),
+          generate_string('alphanumeric', 10))
     def test_negative_create_2(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         whitespace
         @assert: organization is not created
-        @status: manual
         """
+        result = Org().create({'label': test_data, 'description': test_data,
+                               'name': ' \t'})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
 
-        unittest.skip(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-    """)
+    @data(generate_string('alpha', 10),
+          generate_string('numeric', 10),
+          generate_string('alphanumeric', 10))
     def test_negative_create_3(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values, then create a new one
         with same values.
         @assert: organization is not created
-        @status: manual
         """
-
-        unittest.skip(NOT_IMPLEMENTED)
+        result = Org().create({'label': test_data, 'description': test_data,
+                               'name': test_data})
+        self.assertFalse(result.stderr)
+        self.assertEqual(result.return_code, 0)
+        result = Org().create({'label': test_data, 'description': test_data,
+                               'name': test_data})
+        self.assertTrue(result.stderr)
+        self.assertNotEqual(result.return_code, 0)
 
     # Positive Delete
 
