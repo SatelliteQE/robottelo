@@ -9,7 +9,9 @@ import sys
 import time
 
 from robottelo.common import conf
+from robottelo.common.constants import PARAMIKO_CHANNEL_READY_TIMEOUT
 from robottelo.common.helpers import csv_to_dictionary
+from robottelo.common.helpers import sleep_for_seconds
 from select import select
 
 try:
@@ -95,7 +97,7 @@ def command(cmd, hostname=None, expect_csv=False, timeout=50):
     regex = re.compile(r'\x1b\[\d\d?m')
 
     logger = logging.getLogger('robottelo')
-    logger.debug(cmd)
+    logger.debug(">>> %s" % cmd)
 
     hostname = hostname or conf.properties['main.server.hostname']
 
@@ -103,16 +105,23 @@ def command(cmd, hostname=None, expect_csv=False, timeout=50):
     channel.settimeout(timeout)
     channel.exec_command(cmd)
 
+    sleep_counter = 0
     while True:
         try:
             rlist, wlist, elist = select([channel], [], [], float(timeout))
 
             if rlist is not None and len(rlist) > 0:
                 if channel.exit_status_ready():
-                    if channel.recv_ready():
-                        stdout = channel.recv(1048576)
-                    if channel.recv_stderr_ready():
-                        stderr = channel.recv_stderr(1048576)
+                    while not channel.recv_ready() and \
+                        sleep_counter < PARAMIKO_CHANNEL_READY_TIMEOUT:
+                        sleep_for_seconds(0.1)
+                        sleep_counter += 1
+                    stdout = channel.recv(1048576)
+                    while not channel.recv_stderr_ready() and \
+                        sleep_counter < PARAMIKO_CHANNEL_READY_TIMEOUT:
+                        sleep_for_seconds(0.1)
+                        sleep_counter += 1
+                    stderr = channel.recv_stderr(1048576)
                     errorcode = channel.recv_exit_status()
                     break
             elif elist is not None and len(elist) > 0:
@@ -144,10 +153,10 @@ def command(cmd, hostname=None, expect_csv=False, timeout=50):
     errors = [] if errorcode == 0 else stderr
 
     if output:
-        logger.debug(output)
+        logger.debug("<<< %s " % output)
     if errors:
         errors = regex.sub('', "".join(errors))
-        logger.debug(errors)
+        logger.debug("<<< %s " % errors)
 
     return SSHCommandResult(
         output, errors, errorcode, expect_csv)
