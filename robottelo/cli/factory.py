@@ -78,6 +78,11 @@ def create_object(cli_object, args):
         logger.debug(result.stderr)  # Show why creation failed.
         raise Exception("Failed to create object.")
 
+    # Sometimes we get a list with a dictionary and not
+    # a dictionary.
+    if type(result.stdout) is list and len(result.stdout) > 0:
+        result.stdout = result.stdout[0]
+
     return result.stdout
 
 
@@ -144,7 +149,7 @@ def make_gpg_key(options=None):
 
     # gpg create returns a dict inside a list
     new_obj = create_object(GPGKey, args)
-    args.update(new_obj[0])
+    args.update(new_obj)
 
     return args
 
