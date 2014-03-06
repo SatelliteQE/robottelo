@@ -309,7 +309,7 @@ class Record(object):
 
     def __str__(self):
         """For printout"""
-        return "#"+self.__class__ + self.__dict__.__str__()
+        return self.__dict__.items().__str__()
 
 if __name__ == "__main__":
     import doctest

@@ -24,7 +24,9 @@ class Organization(BaseAPI):
         @test: Create organization with valid name only
         @assert: organization is created, label is auto-generated
         """
-        ApiCrud.record_create(test_data)
+        result = ApiCrud.record_create(test_data)
+        test_data.label = result.label
+        self.assertIntersects(test_data, result)
 
     @data(*Organization.enumerate(name="", description=""))
     def test_positive_create_2(self, test_data):
@@ -35,6 +37,7 @@ class Organization(BaseAPI):
         """
         test_data.name = test_data.label
         result = ApiCrud.record_create(test_data)
+        self.assertIntersects(test_data, result)
         self.assertEquals(result.name, result.label)
 
     @data(*Organization.enumerate(description=""))
@@ -45,6 +48,7 @@ class Organization(BaseAPI):
         @assert: organization is created, label does not match name
         """
         result = ApiCrud.record_create(test_data)
+        self.assertIntersects(test_data, result)
         self.assertNotEqual(result.name, result.label)
 
     @data(*Organization.enumerate(label=""))
@@ -55,7 +59,9 @@ class Organization(BaseAPI):
         @assert: organization is created, label is auto-generated
         """
 
-        ApiCrud.record_create(test_data)
+        result = ApiCrud.record_create(test_data)
+        test_data.label = result.label
+        self.assertIntersects(test_data, result)
 
     @data(*Organization.enumerate())
     def test_positive_create_5(self, test_data):
@@ -64,8 +70,9 @@ class Organization(BaseAPI):
         @test: Create organization with valid name, label and description
         @assert: organization is created
         """
-        ApiCrud.record_create(test_data)
-    #Negative Create
+        result = ApiCrud.record_create(test_data)
+        self.assertIntersects(test_data, result)
+#Negative Create
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -77,6 +84,7 @@ class Organization(BaseAPI):
         label and description are alpha, update name is html 300 chars
 
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_0(self, test_data):
         """
         @feature: Organizations
@@ -97,6 +105,7 @@ class Organization(BaseAPI):
         label and description are latin1, name is blank
         label and description are html, name is blank
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_1(self, test_data):
         """
         @feature: Organizations
@@ -117,6 +126,7 @@ class Organization(BaseAPI):
         label and description are latin1, name is whitespace
         label and description are html, name is whitespace
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_2(self, test_data):
         """
         @feature: Organizations
@@ -137,6 +147,7 @@ class Organization(BaseAPI):
         name, label and description are latin1
         name, label and description are html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_3(self, test_data):
         """
         @feature: Organizations
@@ -159,6 +170,7 @@ class Organization(BaseAPI):
         name, label and description are latin1
         name, label and description are html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_1(self, test_data):
         """
         @feature: Organizations
@@ -182,6 +194,7 @@ class Organization(BaseAPI):
         update name is latin1
         update name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_1(self, test_data):
         """
         @feature: Organizations
@@ -201,6 +214,7 @@ class Organization(BaseAPI):
         update label is latin1
         update label is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_2(self, test_data):
         """
         @feature: Organizations
@@ -220,6 +234,7 @@ class Organization(BaseAPI):
         update description is latin1
         update description is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_3(self, test_data):
         """
         @feature: Organizations
@@ -240,6 +255,7 @@ class Organization(BaseAPI):
         update name, label and description are latin1
         update name, label and description are html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_4(self, test_data):
         """
         @feature: Organizations
@@ -262,6 +278,7 @@ class Organization(BaseAPI):
         update name is latin1 300 chars long
         update name is html 300 chars long
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_1(self, test_data):
         """
         @feature: Organizations
@@ -283,6 +300,7 @@ class Organization(BaseAPI):
         update label is latin1 300 chars long
         update label is html 300 chars long
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_2(self, test_data):
         """
         @feature: Organizations
@@ -303,6 +321,7 @@ class Organization(BaseAPI):
         update description is latin1 300 chars long
         update description is html 300 chars long
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_3(self, test_data):
         """
         @feature: Organizations
@@ -325,6 +344,7 @@ class Organization(BaseAPI):
         name, label and description are is latin1
         name, label and description are is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_key_1(self, test_data):
         """
         @feature: Organizations
@@ -344,6 +364,7 @@ class Organization(BaseAPI):
         name, label and description are is latin1
         name, label and description are is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_key_1(self, test_data):
         """
         @feature: Organizations
@@ -363,6 +384,7 @@ class Organization(BaseAPI):
         name, label and description are is latin1
         name, label and description are is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_key_1(self, test_data):
         """
         @feature: Organizations
@@ -388,6 +410,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_1(self, test_data):
         """
         @feature: Organizations
@@ -411,6 +434,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_2(self, test_data):
         """
         @feature: Organizations
@@ -434,6 +458,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_3(self, test_data):
         """
         @feature: Organizations
@@ -457,6 +482,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_domain_4(self, test_data):
         """
         @feature: Organizations
@@ -480,6 +506,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_user_1(self, test_data):
         """
         @feature: Organizations
@@ -504,6 +531,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_user_2(self, test_data):
         """
         @feature: Organizations
@@ -527,6 +555,7 @@ class Organization(BaseAPI):
         user name is latin1 and admin
         user name is html and admin
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_user_3(self, test_data):
         """
         @feature: Organizations
@@ -547,6 +576,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_1(self, test_data):
         """
         @feature: Organizations
@@ -567,6 +597,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_2(self, test_data):
         """
         @feature: Organizations
@@ -587,6 +618,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_3(self, test_data):
         """
         @feature: Organizations
@@ -607,6 +639,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_4(self, test_data):
         """
         @feature: Organizations
@@ -627,6 +660,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -646,6 +680,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_2(self, test_data):
         """
         @feature: Organizations
@@ -665,6 +700,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_3(self, test_data):
         """
         @feature: Organizations
@@ -684,6 +720,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_4(self, test_data):
         """
         @feature: Organizations
@@ -703,6 +740,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_1(self, test_data):
         """
         @feature: Organizations
@@ -722,6 +760,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_2(self, test_data):
         """
         @feature: Organizations
@@ -741,6 +780,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_3(self, test_data):
         """
         @feature: Organizations
@@ -760,6 +800,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_subnet_4(self, test_data):
         """
         @feature: Organizations
@@ -782,6 +823,7 @@ class Organization(BaseAPI):
         domain name is latin1
         domain name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_domain_1(self, test_data):
         """
         @feature: Organizations
@@ -801,6 +843,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_user_1(self, test_data):
         """
         @feature: Organizations
@@ -821,6 +864,7 @@ class Organization(BaseAPI):
         user name is latin1
         user name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_user_2(self, test_data):
         """
         @feature: Organizations
@@ -841,6 +885,7 @@ class Organization(BaseAPI):
         user name is latin1 and an admin
         user name is html and an admin
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_user_3(self, test_data):
         """
         @feature: Organizations
@@ -860,6 +905,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_1(self, test_data):
         """
         @feature: Organizations
@@ -880,6 +926,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_2(self, test_data):
         """
         @feature: Organizations
@@ -900,6 +947,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_3(self, test_data):
         """
         @feature: Organizations
@@ -920,6 +968,7 @@ class Organization(BaseAPI):
         hostgroup name is latin1
         hostgroup name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_hostgroup_4(self, test_data):
         """
         @feature: Organizations
@@ -940,6 +989,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_1(self, test_data):
         """
         @feature: Organizations
@@ -960,6 +1010,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_2(self, test_data):
         """
         @feature: Organizations
@@ -980,6 +1031,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_3(self, test_data):
         """
         @feature: Organizations
@@ -1000,6 +1052,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_computeresource_4(self, test_data):
         """
         @feature: Organizations
@@ -1020,6 +1073,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_1(self, test_data):
         """
         @feature: Organizations
@@ -1039,6 +1093,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_2(self, test_data):
         """
         @feature: Organizations
@@ -1058,6 +1113,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_3(self, test_data):
         """
         @feature: Organizations
@@ -1077,6 +1133,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
         """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_4(self, test_data):
         """
         @feature: Organizations
@@ -1096,6 +1153,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_configtemplate_1(self, test_data):
         """
         @feature: Organizations
@@ -1115,6 +1173,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_1(self, test_data):
         """
         @feature: Organizations
@@ -1135,6 +1194,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_2(self, test_data):
         """
         @feature: Organizations
@@ -1155,6 +1215,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_3(self, test_data):
         """
         @feature: Organizations
@@ -1175,6 +1236,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_environment_4(self, test_data):
         """
         @feature: Organizations
@@ -1195,6 +1257,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -1214,6 +1277,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_2(self, test_data):
         """
         @feature: Organizations
@@ -1233,6 +1297,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_3(self, test_data):
         """
         @feature: Organizations
@@ -1252,6 +1317,7 @@ class Organization(BaseAPI):
         smartproxy name is latin1
         smartproxy name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_4(self, test_data):
         """
         @feature: Organizations
@@ -1271,6 +1337,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_1(self, test_data):
         """
         @feature: Organizations
@@ -1291,6 +1358,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_2(self, test_data):
         """
         @feature: Organizations
@@ -1311,6 +1379,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_3(self, test_data):
         """
         @feature: Organizations
@@ -1331,6 +1400,7 @@ class Organization(BaseAPI):
         computeresource is latin1
         computeresource is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_computeresource_4(self, test_data):
         """
         @feature: Organizations
@@ -1351,6 +1421,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_1(self, test_data):
         """
         @feature: Organizations
@@ -1370,6 +1441,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_2(self, test_data):
         """
         @feature: Organizations
@@ -1389,6 +1461,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_3(self, test_data):
         """
         @feature: Organizations
@@ -1408,6 +1481,7 @@ class Organization(BaseAPI):
         medium name is latin1
         medium name is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_medium_4(self, test_data):
         """
         @feature: Organizations
@@ -1427,6 +1501,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_1(self, test_data):
         """
         @feature: Organizations
@@ -1447,6 +1522,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_2(self, test_data):
         """
         @feature: Organizations
@@ -1467,6 +1543,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_3(self, test_data):
         """
         @feature: Organizations
@@ -1487,6 +1564,7 @@ class Organization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_configtemplate_4(self, test_data):
         """
         @feature: Organizations
@@ -1507,6 +1585,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_1(self, test_data):
         """
         @feature: Organizations
@@ -1526,6 +1605,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_2(self, test_data):
         """
         @feature: Organizations
@@ -1545,6 +1625,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_3(self, test_data):
         """
         @feature: Organizations
@@ -1564,6 +1645,7 @@ class Organization(BaseAPI):
         environment name is latin1
         environment name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_add_environment_4(self, test_data):
         """
         @feature: Organizations
@@ -1583,6 +1665,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_1(self, test_data):
         """
         @feature: Organizations
@@ -1602,6 +1685,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_2(self, test_data):
         """
         @feature: Organizations
@@ -1621,6 +1705,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_3(self, test_data):
         """
         @feature: Organizations
@@ -1640,6 +1725,7 @@ class Organization(BaseAPI):
         subnet name is latin1
         subnet name  is html
     """)
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_subnet_4(self, test_data):
         """
         @feature: Organizations
