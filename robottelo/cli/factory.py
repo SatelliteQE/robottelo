@@ -321,7 +321,7 @@ def make_user(options=None):
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(User, args, 'login'))
+    args.update(create_object(User, args))
 
     return args
 
