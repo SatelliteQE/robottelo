@@ -556,11 +556,17 @@ def make_template(options=None):
         'operatingsystem-ids': None,
         }
 
+    # Write content to file or random text
+    if 'content' in options.keys():
+        content = options.pop('content')
+    else:
+        content = generate_name()
+
     #Special handling for template factory
     (file_handle, layout) = mkstemp(text=True)
     chmod(layout, 0700)
     with open(layout, "w") as ptable:
-        ptable.write(generate_name())
+        ptable.write(content)
     #Upload file to server
     ssh.upload_file(local_file=layout, remote_file=args['file'])
     #End - Special handling for template factory
