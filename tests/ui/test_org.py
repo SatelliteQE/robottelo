@@ -8,9 +8,10 @@ Test class for Organization UI
 import unittest
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.common.helpers import generate_name, generate_strings_list
+from robottelo.common.helpers import (generate_name, generate_strings_list,
+                                      generate_string)
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import redminebug
+from robottelo.common.decorators import bzbug, redminebug
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -34,9 +35,9 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        select_org = self.navigator.go_to_select_org(org_name)
+        #select_org = self.navigator.go_to_select_org(org_name)
         self.navigator.go_to_org()
-        self.assertIsNotNone(select_org)
+        #self.assertIsNotNone(select_org)  TODO: Add scroll logic Bug: 1053587
         self.assertIsNotNone(self.org.search(org_name))
 
     @attr('ui', 'org', 'implemented')
@@ -176,6 +177,21 @@ class Org(BaseUI):
         @assert: organization can be found
         """
 
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+
+    @bzbug('1073601')
+    def test_search_org_html(self):
+        """
+        @feature: Organizations
+        @test: Create organization and search/find with html data
+        @assert: organization with html data can be found
+        """
+
+        org_name = generate_string("html", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
