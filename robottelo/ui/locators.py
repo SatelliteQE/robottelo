@@ -536,6 +536,10 @@ locators = {
     #Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
     "roles.name": (By.ID, "role_name"),
+    "roles.dropdown": (
+        By.XPATH,
+        ("//td/span/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.delete": (By.XPATH,
                      "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
