@@ -5,8 +5,7 @@ Test class for Custom Sync UI
 import unittest
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.common.helpers import generate_name, valid_names_list
-from robottelo.common.constants import DEFAULT_ORG
+from robottelo.common.helpers import generate_name, generate_strings_list
 from tests.ui.baseui import BaseUI
 
 
@@ -26,8 +25,10 @@ class Sync(BaseUI):
     Implements Custom Sync tests in UI
     """
 
+    org_name = generate_name(8, 8)
+
     @attr('ui', 'sync', 'implemented')
-    @data(*valid_names_list())
+    @data(*generate_strings_list())
     def test_sync_repos(self, repo_name):
         """
         @Feature: Content Custom Sync - Positive Create
@@ -37,12 +38,11 @@ class Sync(BaseUI):
         prd_name = generate_name(8, 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.handle_org(self.org_name)
         self.navigator.go_to_products()
-        self.products.create(prd_name, description, provider,
-                             create_provider=True)
-        self.navigator.go_to_select_org(DEFAULT_ORG)
+        self.products.create(prd_name, description)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.repository.create(repo_name, product=prd_name, url=repo_url)

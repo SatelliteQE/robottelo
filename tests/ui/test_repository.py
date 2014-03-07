@@ -11,13 +11,7 @@ class Repos(BaseUI):
     Implements Repos tests in UI
     """
 
-    def create_org(self, org_name=None):
-        """Creates Org"""
-        org_name = org_name or generate_name(8, 8)
-        self.navigator.go_to_org()  # go to org page
-        self.org.create(org_name)
-        self.navigator.go_to_select_org(org_name)
-        self.navigator.go_to_org()
+    org_name = generate_name(8, 8)
 
     def test_create_repo(self):
         """
@@ -25,19 +19,16 @@ class Repos(BaseUI):
         @Test: Create Content Repos with minimal input parameters
         @Assert: Repos is created
         """
-        org_name = generate_name(8, 8)
+
         prd_name = generate_name(8, 8)
         repo_name = generate_name(8, 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_org(org_name)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.handle_org(self.org_name)
         self.navigator.go_to_products()
-        self.products.create(prd_name, description, provider,
-                             create_provider=True)
-        self.navigator.go_to_select_org(org_name)
+        self.products.create(prd_name, description)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -49,19 +40,16 @@ class Repos(BaseUI):
         @Test: Create Content Repos with minimal input parameters
         @Assert: Repos is Deleted
         """
-        org_name = generate_name(8, 8)
+
         prd_name = generate_name(8, 8)
         repo_name = generate_name(8, 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        provider = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_org(org_name)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.handle_org(self.org_name)
         self.navigator.go_to_products()
-        self.products.create(prd_name, description, provider,
-                             create_provider=True)
-        self.navigator.go_to_select_org(org_name)
+        self.products.create(prd_name, description)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.repository.create(repo_name, product=prd_name, url=repo_url)

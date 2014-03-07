@@ -2,7 +2,6 @@
 Test class for Products UI
 """
 
-from robottelo.common.constants import DEFAULT_ORG
 from robottelo.common.helpers import generate_name
 from tests.ui.baseui import BaseUI
 
@@ -11,6 +10,8 @@ class Products(BaseUI):
     """
     Implements Product tests in UI
     """
+
+    org_name = generate_name(8, 8)
 
     def test_create_prd(self):
         """
@@ -21,9 +22,10 @@ class Products(BaseUI):
         prd_name = generate_name(8, 8)
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
+        self.handle_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(DEFAULT_ORG)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
 
@@ -37,13 +39,14 @@ class Products(BaseUI):
         new_prd_name = generate_name(8, 8)
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
+        self.handle_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(DEFAULT_ORG)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.products.update(prd_name, new_name=new_prd_name)
-        self.navigator.go_to_select_org(DEFAULT_ORG)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(new_prd_name))
 
@@ -56,10 +59,10 @@ class Products(BaseUI):
         prd_name = generate_name(8, 8)
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.assertIsNotNone(self.org.search(DEFAULT_ORG))
+        self.handle_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(DEFAULT_ORG)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.products.delete(prd_name, True)

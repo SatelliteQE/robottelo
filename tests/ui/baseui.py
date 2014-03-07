@@ -118,3 +118,14 @@ class BaseUI(unittest.TestCase):
 
         self.browser.quit()
         self.browser = None
+
+    def handle_org(self, org_name):
+        nav = Navigator(self.browser)
+        try:
+            nav.go_to_select_org(org_name)
+        except Exception:
+            org = Org(self.browser)
+            nav.go_to_org()
+            org.create(org_name)
+            nav.go_to_org()
+            nav.go_to_select_org(org_name)
