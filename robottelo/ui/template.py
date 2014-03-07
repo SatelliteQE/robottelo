@@ -71,6 +71,7 @@ class Template(Base):
         """
         Searches existing template from UI
         """
+        self.scroll_page()
         nav = Navigator(self.browser)
         nav.go_to_provisioning_templates()
         element = self.search_entity(name,
