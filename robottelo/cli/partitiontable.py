@@ -28,9 +28,10 @@ class PartitionTable(Base):
     Manipulates Foreman's partition tables.
     """
 
+    command_base = "partition_table"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "partition_table"

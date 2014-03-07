@@ -7,18 +7,15 @@ Module for Activation Key api an record implementation
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.organization import Organization
-from robottelo.records.environment import Environment
-from robottelo.records.content_view_definition import ContentViewDefinition
 
 
 class ActivationKeyApi(ApiCrud):
     """Api implementation for activation keys
     """
-    api_path = "/katello/api/activation_keys/"  # noqa
-    api_json_key = u"activation_key"
+    api_path = "/katello/api/v2/activation_keys"
     create_fields = [
         "name", "label", "description", "environment_id",
-        "content_view_id", "usage_limit"
+        "content_view_id", "usage_limit", "organization_id"
         ]
 
 
@@ -27,9 +24,11 @@ class ActivationKey(records.Record):
     """
     name = records.basic_positive()
     description = records.basic_positive()
-    organization = records.RelatedField(Organization)
-    environment = records.RelatedField(Environment)
-    content_view = records.RelatedField(ContentViewDefinition)
+    organization = records.RelatedField(
+        Organization,
+        default=Organization(blank_record=True, label="ACME_Corporation"))
+    environment_id = records.IntegerField(default=1)
+    content_view_id = records.IntegerField(default=1)
     usage_limit = records.IntegerField()
 
     class Meta:

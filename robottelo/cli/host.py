@@ -36,14 +36,16 @@ class Host(Base):
     Manipulates Foreman's hosts.
     """
 
+    command_base = "host"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "host"
 
-    def facts(self, options=None):
+    @classmethod
+    def facts(cls, options=None):
         """
         List all fact values.
 
@@ -59,10 +61,9 @@ class Host(Base):
             --name NAME                   resource name
             -h, --help                    print help
         """
-        self.command_sub = "facts"
+        cls.command_sub = "facts"
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         facts = []
 
@@ -71,7 +72,8 @@ class Host(Base):
 
         return facts
 
-    def puppetrun(self, options=None):
+    @classmethod
+    def puppetrun(cls, options=None):
         """
         Force a puppet run on the agent.
 
@@ -84,13 +86,14 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        self.command_sub = "puppetrun"
+        cls.command_sub = "puppetrun"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def reboot(self, options=None):
+    @classmethod
+    def reboot(cls, options=None):
         """
         Reboot a host
 
@@ -103,13 +106,14 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        self.command_sub = "reboot"
+        cls.command_sub = "reboot"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def reports(self, options=None):
+    @classmethod
+    def reports(cls, options=None):
         """
         List all reports.
 
@@ -125,10 +129,9 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        self.command_sub = "reports"
+        cls.command_sub = "reports"
 
-        result = self.execute(self._construct_command(options),
-                              expect_csv=True)
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         reports = []
 
@@ -137,7 +140,8 @@ class Host(Base):
 
         return reports
 
-    def start(self, options=None):
+    @classmethod
+    def start(cls, options=None):
         """
         Power a host on
 
@@ -150,13 +154,14 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        self.command_sub = "stop"
+        cls.command_sub = "stop"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def status(self, options=None):
+    @classmethod
+    def status(cls, options=None):
         """
         Get status of host
 
@@ -169,13 +174,14 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        self.command_sub = "status"
+        cls.command_sub = "status"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def stop(self, options=None):
+    @classmethod
+    def stop(cls, options=None):
         """
         Power a host off
 
@@ -189,8 +195,8 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        self.command_sub = "stop"
+        cls.command_sub = "stop"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result

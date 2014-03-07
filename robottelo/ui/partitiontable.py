@@ -7,6 +7,7 @@ Implements Partition Table UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -56,6 +57,8 @@ class PartitionTable(Base):
         """
         Searches existing partition table from UI
         """
+        nav = Navigator(self.browser)
+        nav.go_to_partition_tables()
         element = self.search_entity(name, locators["ptable.ptable_name"])
         return element
 

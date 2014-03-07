@@ -159,4 +159,5 @@ class Subnet(BaseUI):
 
         subnet_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_subnets()  # go to subnet page
         self.assertFalse(self.subnet.search_subnet(subnet_name))

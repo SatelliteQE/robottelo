@@ -5,12 +5,15 @@
 Test class for GPG Key UI
 """
 
+import unittest
+
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
 from robottelo.common.helpers import (generate_name, get_data_file,
-                                      read_data_file, valid_names_list)
+                                      read_data_file, valid_names_list,
+                                      invalid_names_list, valid_data_list)
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -54,107 +57,94 @@ class GPGKey(BaseUI):
 
         #Negative Create
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-    """)
-    def test_negative_create_1(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*valid_data_list())
+    def test_negative_create_1(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file import
         then try to create new one with same name
         @assert: gpg key is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.error"]))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-    """)
-    def test_negative_create_2(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*valid_data_list())
+    def test_negative_create_2(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
         @assert: gpg key is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.error"]))
 
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is always empty/not provided
-""")
-    def test_negative_create_3(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*valid_data_list())
+    def test_negative_create_3(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and no gpg key
         @assert: gpg key is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        with self.assertRaises(Exception):
+            self.gpgkey.create(name)
+        self.assertIsNone(self.gpgkey.search(name))
 
-    @data("""DATADRIVENGOESHERE
-        name is blank
-        name is alpha 300 characters long
-        name is numeric 300 characters long
-        name is alphanumeric 300 characters long
-        name is utf-8 300 characters long
-        name is latin1 300 characters long
-        name is html 300 characters long
-        gpg key file is valid always
-        submitted name = already existing key name?
-""")
-    def test_negative_create_4(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*invalid_names_list())
+    def test_negative_create_4(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with invalid name and valid gpg key via
         file import
         @assert: gpg key is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.error"]))
+        self.assertIsNone(self.gpgkey.search(name))
 
-    @data("""DATADRIVENGOESHERE
-        name is blank
-        name is alpha 300 characters long
-        name is numeric 300 characters long
-        name is alphanumeric 300 characters long
-        name is utf-8 300 characters long
-        name is latin1 300 characters long
-        name is html 300 characters long
-        gpg key text is valid text from gpg key file always
-""")
-    def test_negative_create_5(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*invalid_names_list())
+    def test_negative_create_5(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with invalid name and valid gpg key text via
         cut and paste/string
         @assert: gpg key is not created
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.error"]))
+        self.assertIsNone(self.gpgkey.search(name))
 
     # Positive Delete
 
@@ -193,52 +183,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.search(name))
         self.gpgkey.delete(name, True)
         self.assertIsNone(self.gpgkey.search(name))
-
-    # Negative Delete
-
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-        delete using a negative gpg key ID
-        delete using a random string as the gpg key ID
-""")
-    def test_negative_delete_1(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
-        import then fail to delete it
-        @assert: gpg key is not deleted
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
-
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key text is valid text from a valid gpg key file
-        delete using a negative gpg key ID
-        delete using a random string as the gpg key ID
-""")
-    def test_negative_delete_2(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then fail to delete it
-        @assert: gpg key is not deleted
-        @status: manual
-        """
-
-        self.fail(NOT_IMPLEMENTED)
 
     # Positive Update
 
@@ -324,50 +268,51 @@ class GPGKey(BaseUI):
 
     # Negative Update
 
-    @data("""DATADRIVENGOESHERE
-        update name is blank
-        update name is alpha 300 characters long
-        update name is numeric 300 characters long
-        update name is alphanumeric 300 characters long
-        update name is utf-8 300 characters long
-        update name is latin1 300 characters long
-        update name is html 300 characters long
-        gpg key file is valid always
-""")
-    def test_negative_update_1(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*invalid_names_list())
+    def test_negative_update_1(self, new_name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
         @assert: gpg key is not updated
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.update(name, new_name)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.error"]))
+        self.assertIsNone(self.gpgkey.search(new_name))
 
-    @data("""DATADRIVENGOESHERE
-        update name is blank
-        update name is alpha 300 characters long
-        update name is numeric 300 characters long
-        update name is alphanumeric 300 characters long
-        update name is utf-8 300 characters long
-        update name is latin1 300 characters long
-        update name is html 300 characters long
-        gpg key text is valid text from a valid gpg key file
-""")
-    def test_negative_update_2(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*invalid_names_list())
+    def test_negative_update_2(self, new_name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then fail to update its name
         @assert: gpg key is not updated
-        @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        name = generate_name(6)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.gpgkey.update(name, new_name)
+        self.assertTrue(self.gpgkey.wait_until_element
+                        (common_locators["alert.error"]))
+        self.assertIsNone(self.gpgkey.search(new_name))
 
     # Product association
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -386,8 +331,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -406,8 +352,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -427,8 +374,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -448,8 +396,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -469,8 +418,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -490,8 +440,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -511,8 +462,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -532,8 +484,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -554,8 +507,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -576,8 +530,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -598,8 +553,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -620,8 +576,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -642,8 +599,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -664,8 +622,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -686,8 +645,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -708,8 +668,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -730,8 +691,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -752,8 +714,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -774,8 +737,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -796,8 +760,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -819,8 +784,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -840,8 +806,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -861,8 +828,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -882,8 +850,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -903,8 +872,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -924,8 +894,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -945,8 +916,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -966,8 +938,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -987,8 +960,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1009,8 +983,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1031,8 +1006,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1053,8 +1029,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1075,8 +1052,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1097,8 +1075,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1119,8 +1098,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1141,8 +1121,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1163,8 +1144,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1185,8 +1167,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1207,8 +1190,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1229,8 +1213,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1251,8 +1236,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1274,10 +1260,11 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     # Content
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1296,8 +1283,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1316,8 +1304,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1336,10 +1325,11 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     #Miscelaneous
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1357,8 +1347,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1376,8 +1367,9 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1395,4 +1387,4 @@ class GPGKey(BaseUI):
         @status: manual
         """
 
-        self.fail(NOT_IMPLEMENTED)
+        pass

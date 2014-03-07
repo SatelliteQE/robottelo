@@ -34,75 +34,82 @@ class OperatingSys(Base):
     Manipulates Foreman's operating systems.
     """
 
+    command_base = "os"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "os"
 
-    def add_architecture(self, options=None):
+    @classmethod
+    def add_architecture(cls, options=None):
         """
         Adds existing architecture to OS.
         """
 
-        self.command_sub = "add_architecture"
+        cls.command_sub = "add_architecture"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def add_configtemplate(self, options=None):
+    @classmethod
+    def add_configtemplate(cls, options=None):
         """
         Adds existing template to OS.
         """
 
-        self.command_sub = "add_configtemplate "
+        cls.command_sub = "add_configtemplate "
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def add_ptable(self, options=None):
+    @classmethod
+    def add_ptable(cls, options=None):
         """
         Adds existing partitioning table to OS.
         """
 
-        self.command_sub = "add_ptable"
+        cls.command_sub = "add_ptable"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def remove_architecture(self, options=None):
+    @classmethod
+    def remove_architecture(cls, options=None):
         """
         Removes architecture from OS.
         """
 
-        self.command_sub = "remove_architecture"
+        cls.command_sub = "remove_architecture"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def remove_configtemplate(self, options=None):
+    @classmethod
+    def remove_configtemplate(cls, options=None):
         """
         Removes template from OS.
         """
 
-        self.command_sub = "remove_configtemplate"
+        cls.command_sub = "remove_configtemplate"
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result
 
-    def remove_ptable(self, options=None):
+    @classmethod
+    def remove_ptable(cls, options=None):
         """
         Removes partitioning table from OS.
         """
 
-        self.command_sub = "os remove_ptable "
+        cls.command_sub = "os remove_ptable "
 
-        result = self.execute(self._construct_command(options))
+        result = cls.execute(cls._construct_command(options))
 
         return result

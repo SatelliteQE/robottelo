@@ -7,6 +7,7 @@ Implements Operating System UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 from robottelo.common.constants import FILTER
 
@@ -95,6 +96,8 @@ class OperatingSys(Base):
         """
         Searches existing operating system from UI
         """
+        nav = Navigator(self.browser)
+        nav.go_to_operating_systems()
         element = self.search_entity(
             name, locators['operatingsys.operatingsys_name'])
         return element

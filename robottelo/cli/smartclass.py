@@ -23,9 +23,10 @@ class SmartClassParameter(Base):
     Manipulates smart class parameters in Foreman
     """
 
+    command_base = "sc_param"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "sc_param"

@@ -47,7 +47,8 @@ class Role(Base):
         Delete existing role
         """
         self.delete_entity(name, really, locators["roles.role"],
-                           locators['roles.delete'])
+                           locators['roles.delete'],
+                           locators['roles.dropdown'])
 
     def update(self, old_name, new_name=None,
                perm_type=None, permissions=None):

@@ -66,15 +66,37 @@ def valid_names_list():
     return valid_names
 
 
+def valid_data_list():
+    """
+    List of valid data for input testing.
+    """
+    valid_names = [
+        generate_string("alpha", 8).decode("utf-8"),
+        generate_string("numeric", 8).decode("utf-8"),
+        generate_string("alphanumeric", 300).decode("utf-8"),
+        generate_string("utf8", 8),
+        generate_string("latin1", 8).encode("utf-8"),
+        generate_string("html", 8).decode("utf-8")
+    ]
+
+    return valid_names
+
+
 def invalid_names_list():
     """
     List of invalid names for input testing.
     """
     invalid_names = [
-        " ",
+        u" ",
+        generate_string("alpha", 300).decode("utf-8"),
+        generate_string("numeric", 300).decode("utf-8"),
+        generate_string("alphanumeric", 300).decode("utf-8"),
+        generate_string("utf8", 300),
+        generate_string("latin1", 300).encode("utf-8"),
+        generate_string("html", 300).decode("utf-8"),
         generate_name(256),
-        " " + generate_name(),
-        generate_name() + " ",
+        u' %s' % generate_name(),
+        u'%s ' % generate_name()
     ]
 
     return invalid_names
@@ -183,6 +205,23 @@ def generate_string(str_type, length):
             'Unexpected output type, valid types are \"alpha\", \
             \"alphanumeric\", \"html\", \"latin1\", \"numeric\" or \"utf8\".')
     return output_string
+
+
+def generate_strings_list(len1=8):
+    """
+    Generates a list of all the input strings
+    """
+    str_types = [STR.alpha,
+                 STR.numeric,
+                 STR.alphanumeric,
+                 STR.html,
+                 STR.latin1,
+                 STR.utf8]
+    str_list = []
+    for str_type in str_types:
+        string1 = generate_string(str_type, len1)
+        str_list.append(string1)
+    return str_list
 
 
 def csv_to_dictionary(data):

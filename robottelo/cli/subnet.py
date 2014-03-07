@@ -27,15 +27,17 @@ class Subnet(Base):
     Manipulates Foreman's subnets.
     """
 
+    command_base = "subnet"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "subnet"
 
     #TODO: switch to use factory make_subnet
-    def create_minimal(self, name=None, network=None):
+    @classmethod
+    def create_minimal(cls, name=None, network=None):
         """
         Creates a minimal subnet object.
         """
@@ -43,4 +45,4 @@ class Subnet(Base):
         options['name'] = name if name else generate_name(8, 8)
         options['network'] = network if network else generate_ipaddr(ip3=True)
         options['mask'] = '255.255.255.0'
-        return self.create(options)
+        return cls.create(options)

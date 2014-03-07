@@ -25,9 +25,10 @@ class User(Base):
     Manipulates Foreman's users.
     """
 
+    command_base = "user"
+
     def __init__(self):
         """
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "user"

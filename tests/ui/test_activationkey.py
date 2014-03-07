@@ -4,6 +4,7 @@
 """
 Test class for Activation key UI
 """
+import unittest
 
 from ddt import data, ddt
 from nose.plugins.attrib import attr
@@ -64,6 +65,7 @@ class ActivationKey(BaseUI):
                                   description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_3(self):
         """
         @Feature: Activation key - Positive Create
@@ -74,8 +76,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_4(self):
         """
         @Feature: Activation key - Positive Create
@@ -86,8 +89,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_5(self):
         """
         @Feature: Activation key - Positive Create
@@ -98,7 +102,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
@@ -154,6 +158,7 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_activation_key_1(self):
         """
         @Feature: Activation key - Negative Create
@@ -164,8 +169,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not created. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
@@ -176,8 +182,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not created. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_activation_key_3(self):
         """
         @Feature: Activation key - Negative Create
@@ -188,9 +195,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not created. Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -203,9 +211,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_2(self):
         """
         @Feature: Activation key - Positive Delete
@@ -218,9 +227,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_3(self):
         """
         @Feature: Activation key - Positive Delete
@@ -233,9 +243,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_4(self):
         """
         @Feature: Activation key - Positive Delete
@@ -248,9 +259,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_5(self):
         """
         @Feature: Activation key - Positive Delete
@@ -262,9 +274,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_6(self):
         """
         @Feature: Activation key - Positive Delete
@@ -276,9 +289,10 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted or updated accordingly
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @bzbug('1063273')
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -290,7 +304,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not deleted
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
@@ -336,6 +350,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_activation_key_3(self):
         """
         @Feature: Activation key - Positive Update
@@ -346,8 +361,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_activation_key_4(self):
         """
         @Feature: Activation key - Positive Update
@@ -359,7 +375,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
@@ -406,6 +422,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_activation_key_1(self):
         """
         @Feature: Activation key - Negative Update
@@ -416,8 +433,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
@@ -428,8 +446,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_activation_key_3(self):
         """
         @Feature: Activation key - Negative Update
@@ -440,8 +459,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_usage_limit(self):
         """
         @Feature: Activation key - Usage limit
@@ -454,8 +474,9 @@ class ActivationKey(BaseUI):
         @Assert: System Registration fails. Appropriate error shown
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
         """
         @Feature: Activation key - Host
@@ -467,8 +488,9 @@ class ActivationKey(BaseUI):
         @Assert: Hosts are successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_1(self):
         """
         @Feature: Activation key - Product
@@ -479,8 +501,9 @@ class ActivationKey(BaseUI):
         @Assert: RH products are successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_2(self):
         """
         @Feature: Activation key - Product
@@ -491,8 +514,9 @@ class ActivationKey(BaseUI):
         @Assert: Custom products are successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
         """
         @Feature: Activation key - Product
@@ -504,8 +528,9 @@ class ActivationKey(BaseUI):
         @Assert: RH/Custom product is successfully associated to Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_delete_manifest(self):
         """
         @Feature: Activation key - Manifest
@@ -517,8 +542,9 @@ class ActivationKey(BaseUI):
         @Assert: Deleting a manifest removes it from the Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_multiple_activation_keys_to_system(self):
         """
         @Feature: Activation key - System
@@ -529,8 +555,9 @@ class ActivationKey(BaseUI):
         @Assert: Multiple Activation keys are attached to a system
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_activation_keys_1(self):
         """
         @Feature: Activation key - list
@@ -542,8 +569,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is listed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_activation_keys_2(self):
         """
         @Feature: Activation key - list
@@ -554,8 +582,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is listed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_activation_keys_1(self):
         """
         @Feature: Activation key - search
@@ -567,8 +596,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is found
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_activation_keys_2(self):
         """
         @Feature: Activation key - search
@@ -579,8 +609,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is found
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_activation_keys_1(self):
         """
         @Feature: Activation key - info
@@ -593,8 +624,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key info is displayed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_activation_keys_2(self):
         """
         @Feature: Activation key - info
@@ -605,8 +637,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key info is displayed
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):
         """
         @Feature: Activation key - End to End
@@ -617,4 +650,4 @@ class ActivationKey(BaseUI):
         @Assert: Systems are successfully provisioned with Activation key
         @Status: Manual
         """
-        self.fail(NOT_IMPLEMENTED)
+        pass

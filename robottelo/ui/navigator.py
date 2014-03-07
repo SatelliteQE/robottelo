@@ -42,6 +42,16 @@ class Navigator(Base):
                 if tertiary_element:
                     self.browser.execute_script("arguments[0].click();",
                                                 tertiary_element)
+                else:
+                    raise Exception(
+                        "tertiary_menu_locator not found: '%s'" % str(
+                            tertiary_menu_locator))
+            elif submenu_element is None:
+                raise Exception(
+                    "sub_menu_locator not found: '%s'" % str(sub_menu_locator))
+        else:
+            raise Exception(
+                "top_menu_locator not found: '%s'" % str(top_menu_locator))
 
     def go_to_dashboard(self):
         self.menu_click(
@@ -310,6 +320,11 @@ class Navigator(Base):
     def go_to_org(self):
         self.menu_click(
             menu_locators['org.any_context'], menu_locators['org.manage_org'],
+        )
+
+    def go_to_logout(self):
+        self.menu_click(
+            menu_locators['menu.account'], menu_locators['menu.sign_out'],
         )
 
     def go_to_select_org(self, org):
