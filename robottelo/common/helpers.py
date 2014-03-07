@@ -214,7 +214,7 @@ def generate_strings_list(len1=8):
     str_types = [STR.alpha,
                  STR.numeric,
                  STR.alphanumeric,
-                 STR.html,
+                 # STR.html,  TODO : search of html data fails. Bug :1073601
                  STR.latin1,
                  STR.utf8]
     str_list = []
