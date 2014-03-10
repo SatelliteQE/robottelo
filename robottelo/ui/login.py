@@ -26,6 +26,10 @@ class Login(Base):
         Logins user from UI
         """
 
+        nav = Navigator(self.browser)
+        if self.find_element(locators["login.gravatar"]):
+            nav.go_to_sign_out()
+
         if self.wait_until_element(locators["login.username"]):
             self.field_update("login.username", username)
             self.field_update("login.password", password)
@@ -35,7 +39,6 @@ class Login(Base):
             if self.find_element(common_locators["notif.error"]):
                 return
             if organization:
-                nav = Navigator(self.browser)
                 nav.go_to_select_org(organization)
 
     def logout(self):
