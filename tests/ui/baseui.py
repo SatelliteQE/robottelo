@@ -50,6 +50,7 @@ class BaseUI(unittest.TestCase):
         """
 
         cls.host = conf.properties['main.server.hostname']
+        cls.port = conf.properties['main.server.port']
         cls.katello_user = conf.properties['foreman.admin.username']
         cls.katello_passwd = conf.properties['foreman.admin.password']
         cls.driver_name = conf.properties['saucelabs.driver']
@@ -83,7 +84,7 @@ class BaseUI(unittest.TestCase):
                 job_name=self.id(), show_session_id=True)
 
         self.browser.maximize_window()
-        self.browser.get("https://" + self.host)
+        self.browser.get("https://%s:%s" % (self.host, self.port))
 
         # Library methods
         self.activationkey = ActivationKey(self.browser)
