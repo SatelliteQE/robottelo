@@ -271,7 +271,7 @@ class ManyRelatedField(Field):
         return [self.record_class() for i in range(number)]
 
 
-def basic_positive(exclude=[], include=[]):
+def basic_positive(exclude=[], include=[], maxlen=20):
     """Often repeated field, that includes all the string types.
     Utilizing exclude and include to easily filter out types.
     """
@@ -285,5 +285,5 @@ def basic_positive(exclude=[], include=[]):
         lst = [i for i in lst if i not in exclude]
 
     return ChoiceField([
-        StringField(str_type=i)
+        StringField(str_type=i, maxlen=maxlen)
         for i in lst])

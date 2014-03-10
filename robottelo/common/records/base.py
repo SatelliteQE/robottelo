@@ -1,8 +1,10 @@
 """Records class definition with its options and metaclass"""
 
 import copy
+import random
 import itertools
 
+from robottelo.common import conf
 from robottelo.common.records.fields import Field
 from robottelo.common.records.fields import evaluate_choice
 
@@ -124,6 +126,8 @@ class RecordBase(type):
         else:
             setattr(cls, name, value)
 
+class NoEnum:
+    pass
 
 class Record(object):
     """ Entity definition and generating class
@@ -173,7 +177,7 @@ class Record(object):
         I believe that most of the time we shall use enumerate instead,
         passing MATRIX=True only when more thorough testing is required.
         """
-        return cls.enumerate(MATRIX=True, *args, **kwargs)
+        return cls.enumerate(MATRIX=2, *args, **kwargs)
 
     @classmethod
     def enumerate(cls, *args, **kwargs):
@@ -221,28 +225,34 @@ class Record(object):
         [('n1', 'preset'), ('n2', 'preset')]
         """
 
-        matrix = True if "MATRIX" in kwargs and kwargs.pop("MATRIX") else False
+        conf.properties.setdefault("main.matrix", 1)
+        matrix_conf = conf.properties["main.matrix"]
+        matrix = kwargs.pop("MATRIX") if "MATRIX" in kwargs else matrix_conf
+        matrix = int(matrix)
+
         fnames = [f.name for f in iter(cls._meta.fields)]
         fields = dict(zip(fnames, args))
         fields.update({k: v for k, v in kwargs.items() if k in fnames})
         enumerated = {
             f.name: f.enumerate()
-            for f in iter(cls._meta.fields)
+            for f in cls._meta.fields
             if f.enumerable and f.name not in fields
             }
 
         enumerated.update({
-            k: v for k, v in fields.items()
+            k: v.enumerate() for k, v in fields.items()
             if isinstance(v, Field) and v.enumerable
             })
 
         fields = {
             k: v for k, v in fields.items()
-            if not isinstance(v, Field) or not v.enumerable
+            if not v is NoEnum and
+            (not isinstance(v, Field) or not v.enumerable)
             }
 
         e2 = []
-        if matrix:
+
+        if matrix > 1:
             e2 = [
                 dict(zip(enumerated.keys(), y))
                 for y in [x for x in itertools.product(*enumerated.values())]
@@ -255,7 +265,11 @@ class Record(object):
                     for k, vx in enumerated.items()])
                 ]
 
-        return [cls(**create_choice(enum, fields)) for enum in e2]
+        if matrix == 0:
+            c = [random.choice([cls(**create_choice(enum, fields)) for enum in e2])]
+            return c
+        else:
+            return [cls(**create_choice(enum, fields)) for enum in e2]
 
     def __init__(self, *args, **kwargs):
         """Constructs record based on its definition.

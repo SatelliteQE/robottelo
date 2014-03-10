@@ -4,11 +4,12 @@
 Module for mixin of basic crud methods based on api_path class method.
 """
 
-import logging
 import robottelo.api.base as base
 
 from robottelo.common.records import ManyRelatedField, RelatedField
 
+class ApiException(Exception):
+    pass
 
 def load_from_data(cls, data, transform):
     """Loads instance attributes from a data dictionary"""
@@ -66,22 +67,9 @@ def data_load_transform(instance_cls, data):
         return data
 
 
-def classlogger(f):
-    def wrapper(cls, uid=None, **kwargs):
-        cls.logger().debug(f.func_name)
-        res = None
-        if not uid is None:
-            res = f(cls, uid, **kwargs)
-        else:
-            res = f(cls, **kwargs)
+def default_data_transform(instance_cls, data):
+    return data
 
-        cls.logger().debug(
-            str(res.status_code) + " " +
-            str(res.content) + " " +
-            str(res.request.url) + " " +
-            str(res.request.body))
-        return res
-    return wrapper
 
 
 class ApiCrud(object):
@@ -91,11 +79,6 @@ class ApiCrud(object):
         """Mixin is not supposed to be instantiated """
         raise NotImplementedError()
 
-    @classmethod
-    def logger(cls):
-        """Robottelo logger
-        """
-        return logging.getLogger("robottelo")
 
     # Either true, or list of fields to filter by
     create_fields = True
@@ -176,7 +159,6 @@ class ApiCrud(object):
         return path
 
     @classmethod
-    @classlogger
     def list(cls, **kwargs):
         """"Query method,
         args are forwarded to underlying requests.get call
@@ -187,7 +169,6 @@ class ApiCrud(object):
         return base.get(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def show(cls, uid, **kwargs):
         """Read method,
         args are forwarded to underlying requests.get call,
@@ -199,7 +180,6 @@ class ApiCrud(object):
         return base.get(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def create(cls, **kwargs):
         """Create method,
         args are forwarded to underlying requests.post call,
@@ -211,7 +191,6 @@ class ApiCrud(object):
         return base.post(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def update(cls, uid, **kwargs):
         """Update method,
         args are forwarded to underlying requests.put call,
@@ -224,7 +203,6 @@ class ApiCrud(object):
         return base.put(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def delete(cls, uid, **kwargs):
         """Remove method,
         args are forwarded to underlying requests.put call,
@@ -280,7 +258,7 @@ class ApiCrud(object):
             if res.ok:
                 return True
             else:
-                raise Exception("Unable to remove", instance)
+                raise ApiException("Unable to remove", instance)
             return res.ok
         else:
             res = cls.list(json=dict(search="name="+instance.name))
@@ -300,7 +278,7 @@ class ApiCrud(object):
             return api.record_resolve(instance)
 
         if not cls.record_exists(instance):
-            raise Exception("Record doesn't exist")
+            raise ApiException("Record doesn't exist")
 
         res = None
         json = None
@@ -325,7 +303,26 @@ class ApiCrud(object):
                 )
             return ninstance
         else:
-            raise Exception("Couldn't resolve record", instance)
+            raise ApiException("Couldn't resolve record", instance)
+
+    @classmethod
+    def record_list(cls, instance):
+        if cls != instance._meta.api_class:
+            api = instance._meta.api_class
+            return api.record_list(instance)
+        counting_response = cls.list()
+        if counting_response.ok:
+            count = int(counting_response.json()["total"])
+            if count > 0:
+                listing_response = cls.list(json=dict(per_page=count))
+                if listing_response.ok:
+                    return [load_from_data(
+                        instance.__class__,
+                        js,
+                        default_data_transform
+                        ) for js in listing_response.json()["results"]
+                        ]
+
 
     @classmethod
     def record_resolve_recursive(cls, instance):
@@ -384,7 +381,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise Exception("Couldn't update record", instance)
+            raise ApiException("Couldn't update record", instance)
 
     @classmethod
     def record_create(cls, instance_orig):
@@ -412,7 +409,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise Exception("Couldn't create record", instance)
+            raise ApiException("Couldn't create record", instance)
 
     @classmethod
     def record_create_dependencies(cls, instance_orig):
