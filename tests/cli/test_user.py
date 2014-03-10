@@ -146,6 +146,7 @@ class User(BaseCLI):
         args = make_user({'admin': '1'})
         self.__assert_exists(args)
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('2922')
     def test_positive_create_user_9(self):
         """
@@ -156,8 +157,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('2922')
     def test_positive_create_user_10(self):
         """
@@ -168,8 +170,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('2922')
     def test_positive_create_user_11(self):
         """
@@ -180,8 +183,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_12(self):
         """
         @Test: Create User with one owned host
@@ -191,8 +195,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_13(self):
         """
         @Test: Create User with mutiple owned hosts
@@ -202,8 +207,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_14(self):
         """
         @Test: Create User with all owned hosts
@@ -213,8 +219,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_15(self):
         """
         @Test: Create User with one Domain host
@@ -224,8 +231,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_16(self):
         """
         @Test: Create User with mutiple Domain hosts
@@ -235,8 +243,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_17(self):
         """
         @Test: Create User with all Domain hosts
@@ -246,8 +255,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_18(self):
         """
         @Test: Create User with one Compute Resource
@@ -257,8 +267,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_19(self):
         """
         @Test: Create User with mutiple Compute Resources
@@ -268,8 +279,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_20(self):
         """
         @Test: Create User with all Compute Resources
@@ -279,8 +291,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_21(self):
         """
         @Test: Create User with one Host group
@@ -290,8 +303,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_22(self):
         """
         @Test: Create User with multiple Host groups
@@ -301,8 +315,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_23(self):
         """
         @Test: Create User with all Host groups
@@ -312,8 +327,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_24(self):
         """
         @Test: Create User associated to one Org
@@ -321,8 +337,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_25(self):
         """
         @Test: Create User associated to multiple Orgs
@@ -330,8 +347,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_26(self):
         """
         @Test: Create User associated to all available Orgs
@@ -339,8 +357,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_27(self):
         """
         @Test: Create User with a new Fact filter
@@ -350,8 +369,9 @@ class User(BaseCLI):
         @Assert: User is created
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_28(self):
         """
         @Test: Create User in supported ldap modes
@@ -362,7 +382,7 @@ class User(BaseCLI):
         @Assert: User is created without specifying the password
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
     @data({'login': ''},
           {'login': "space %s" % generate_string("alpha", 10)},
@@ -504,6 +524,7 @@ class User(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_1(self):
         """
         @Test: Update Username in User
@@ -514,8 +535,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_2(self):
         """
         @Test: Update Firstname in User
@@ -526,8 +548,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_3(self):
         """
         @Test: Update Surname in User
@@ -538,8 +561,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_4(self):
         """
         @Test: Update Email Address in User
@@ -550,8 +574,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_5(self):
         """
         @Test: Update Language in User
@@ -562,8 +587,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_6(self):
         """
         @Test: Update Password/Verify fields in User
@@ -574,8 +600,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_7(self):
         """
         @Test: Convert an user from an admin user to non-admin user
@@ -586,8 +613,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_8(self):
         """
         @Test: Convert a user to an admin user
@@ -598,8 +626,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_9(self):
         """
         @Test: Update User with one role
@@ -610,8 +639,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_10(self):
         """
         @Test: Update User with multiple roles
@@ -622,8 +652,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_11(self):
         """
         @Test: Update User with all roles
@@ -634,8 +665,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_12(self):
         """
         @Test: Update User with one owned host
@@ -646,8 +678,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_13(self):
         """
         @Test: Update User with multiple owned hosts
@@ -658,8 +691,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_14(self):
         """
         @Test: Update User with all owned hosts
@@ -670,8 +704,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_15(self):
         """
         @Test: Update User with one Domain host
@@ -682,8 +717,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_16(self):
         """
         @Test: Update User with multiple Domain hosts
@@ -694,8 +730,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_17(self):
         """
         @Test: Update User with all Domain hosts
@@ -706,8 +743,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_18(self):
         """
         @Test: Update User with one Compute Resource
@@ -718,8 +756,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_19(self):
         """
         @Test: Update User with multiple Compute Resources
@@ -730,8 +769,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_20(self):
         """
         @Test: Update User with all Compute Resources
@@ -742,8 +782,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_21(self):
         """
         @Test: Update User with one Host group
@@ -754,8 +795,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_22(self):
         """
         @Test: Update User with multiple Host groups
@@ -766,8 +808,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_23(self):
         """
         @Test: Update User with all Host groups
@@ -778,8 +821,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_24(self):
         """
         @Test: Assign a User to an Org
@@ -790,8 +834,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_25(self):
         """
         @Test: Assign a User to multiple Orgs
@@ -802,8 +847,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_26(self):
         """
         @Test: Assign a User to all available Orgs
@@ -814,8 +860,9 @@ class User(BaseCLI):
         @Assert: User is updated
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_28(self):
         """
         @Test: Update User with a new Fact filter
@@ -826,8 +873,9 @@ class User(BaseCLI):
         @Assert: User is update
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @bzbug('1061701')
     def test_negative_update_user_1(self):
         """
@@ -839,7 +887,7 @@ class User(BaseCLI):
         @Assert: User is not updated.  Appropriate error shown.
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
     @data({'firstname': generate_string("alpha", 51)},
           {'firstname': generate_string("html", 10)})
@@ -914,6 +962,7 @@ class User(BaseCLI):
         updated_user = UserObj().exists(('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_user_1(self):
         """
         @Test: Delete a user
@@ -924,8 +973,9 @@ class User(BaseCLI):
         @Assert: User is deleted
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_user_2(self):
         """
         @Test: Delete an admin user
@@ -936,7 +986,7 @@ class User(BaseCLI):
         @Assert: User is deleted
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
     @data(make_user({'admin': 'true'}),
           {'login': 'admin', 'password': 'changeme'})
@@ -957,6 +1007,7 @@ class User(BaseCLI):
         result = UserObj().exists(('login', 'admin'))
         self.assertTrue(result.stdout)
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_1(self):
         """
         @Test: List User for all variations of Username
@@ -968,8 +1019,9 @@ class User(BaseCLI):
         @Assert: User is listed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_2(self):
         """
         @Test: List User for all variations of Firstname
@@ -981,8 +1033,9 @@ class User(BaseCLI):
         @Assert: User is listed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_3(self):
         """
         @Test: List User for all variations of Surname
@@ -994,8 +1047,9 @@ class User(BaseCLI):
         @Assert: User is listed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_4(self):
         """
         @Test: List User for all variations of Email Address
@@ -1007,8 +1061,9 @@ class User(BaseCLI):
         @Assert: User is listed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_list_user_5(self):
         """
         @Test: List User for all variations of Language
@@ -1020,8 +1075,9 @@ class User(BaseCLI):
         @Assert: User is listed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_1(self):
         """
         @Test: Search User for all variations of Username
@@ -1033,8 +1089,9 @@ class User(BaseCLI):
         @Assert: User is found
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_2(self):
         """
         @Test: Search User for all variations of Firstname
@@ -1046,8 +1103,9 @@ class User(BaseCLI):
         @Assert: User is found
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_3(self):
         """
         @Test: Search User for all variations of Surname
@@ -1059,8 +1117,9 @@ class User(BaseCLI):
         @Assert: User is found
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_4(self):
         """
         @Test: Search User for all variations of Email Address
@@ -1072,8 +1131,9 @@ class User(BaseCLI):
         @Assert: User is found
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_5(self):
         """
         @Test: Search User for all variations of Language
@@ -1085,8 +1145,9 @@ class User(BaseCLI):
         @Assert: User is found
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_1(self):
         """
         @Test: Get User info for all variations of Username
@@ -1098,8 +1159,9 @@ class User(BaseCLI):
         @Assert: User info is displayed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_2(self):
         """
         @Test: Search User for all variations of Firstname
@@ -1111,8 +1173,9 @@ class User(BaseCLI):
         @Assert: User info is displayed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_3(self):
         """
         @Test: Search User for all variations of Surname
@@ -1124,8 +1187,9 @@ class User(BaseCLI):
         @Assert: User info is displayed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_4(self):
         """
         @Test: Search User for all variations of Email Address
@@ -1137,8 +1201,9 @@ class User(BaseCLI):
         @Assert: User info is displayed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_info_user_5(self):
         """
         @Test: Search User for all variations of Language
@@ -1150,8 +1215,9 @@ class User(BaseCLI):
         @Assert: User info is displayed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_user_1(self):
         """
         @Test: Create User and perform different operations
@@ -1167,8 +1233,9 @@ class User(BaseCLI):
         @Assert: All actions passed
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_user_2(self):
         """
         @Test: Create User with no Org assigned and attempt different
@@ -1184,4 +1251,4 @@ class User(BaseCLI):
         @Assert: All actions failed since the User is not assigned to any Org
         @Status: Manual
         """
-        unittest.skip(NOT_IMPLEMENTED)
+        pass
