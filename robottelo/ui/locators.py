@@ -46,7 +46,9 @@ menu_locators = {
          "//a[@id='content_menu']")),
     "menu.life_cycle_environments": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//li[contains(@class,'menu_tab_katello')]"
+         "/a[@id='menu_item_environments']")),
     "menu.red_hat_subscriptions": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
@@ -146,7 +148,9 @@ menu_locators = {
             "//a[@id='menu_item_common_parameters']")),
     "menu.environments": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_environments']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//li[contains(@class,'menu_tab_environments')]"
+         "/a[@id='menu_item_environments']")),
     "menu.puppet_classes": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_puppetclasses']"),
