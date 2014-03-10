@@ -17,6 +17,45 @@ def create_choice(enum, fields):
     return d
 
 
+class FieldsOpts(object):
+    """
+    Fields class for the Options meta information in Records
+    """
+
+    def __init__(self, meta):
+        self.fields = []
+        self.fieldsd = {}
+
+    def append(self, item):
+        self.fields.append(item)
+        self.fieldsd[item.name] = item
+        self.__dict__[item.name] = item
+
+    def __getitem__(self, key):
+        return self.fieldsd[key]
+
+    def __iter__(self):
+        return iter(self.fields)
+
+    def __contains__(self, key):
+        return key in self.fieldsd
+
+    def keys(self, cls=None, are=[]):
+        """Adding dict functionality to records
+        """
+        return [i.name for i in self.items(cls, are)]
+
+    def items(self, cls=None, are=[]):
+        """Adding dict functionality to records
+        """
+        return [
+            item
+            for item in self.fields
+            if all(hasattr(attr, item) and getattr(attr, item) for attr in are)
+            and (cls is None or isinstance(item, cls))
+            ]
+
+
 class Options(object):
     """
     Option class for the records.
@@ -24,8 +63,7 @@ class Options(object):
     """
 
     def __init__(self, meta):
-        self.fields = []
-        self.required_fields = []
+        self.fields = FieldsOpts(meta)
         self.meta = meta
         self.record = None
 
@@ -45,25 +83,22 @@ class Options(object):
 
         self.fields.append(field)
 
-        if field.required:
-            self.required_fields.append(field)
-
 
 class RecordBase(type):
     """Metaclass for Record class"""
 
-    def __new__(cls, name, bases, attrs):
-        super_new = super(RecordBase, cls).__new__
+    def __new__(mcs, name, bases, attrs):
+        super_new = super(RecordBase, mcs).__new__
 
         # Ensure initialization is only performed for subclasses of Record
         # (excluding Record class itself).
         parents = [b for b in bases if isinstance(b, RecordBase)]
         if not parents:
-            return super_new(cls, name, bases, attrs)
+            return super_new(mcs, name, bases, attrs)
 
         # Creates the class
         module = attrs.pop('__module__')
-        new_class = super_new(cls, name, bases, {'__module__': module})
+        new_class = super_new(mcs, name, bases, {'__module__': module})
         attr_meta = attrs.pop('Meta', None)
         if not attr_meta:
             meta = getattr(new_class, 'Meta', None)
@@ -94,6 +129,39 @@ class Record(object):
     """ Entity definition and generating class
     """
     __metaclass__ = RecordBase
+
+    def __getitem__(self, key):
+        if key in self.keys():
+            return self.__dict__[key]
+        else:
+            raise KeyError("Not found in record,", key)
+
+    def __delitem__(self, key):
+        if key in self.keys():
+            del self.__dict__[key]
+        else:
+            raise KeyError("Not found in record,", key)
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __contains__(self, key):
+        return key in self.keys()
+
+    def keys(self):
+        """Adding dict functionality to records
+        """
+        return [k for k, v in self.__dict__.items()
+                if not k.startswith("_") and k != ""]
+
+    def items(self):
+        """Adding dict functionality to records
+        """
+        return [(k, v) for k, v in self.__dict__.items()
+                if not k.startswith("_") and k != ""]
 
     def copy(self):
         """We use deepcopy as our copy implementation"""
@@ -289,16 +357,7 @@ class Record(object):
         # Process any property defined on record
         if kwargs:
             for prop in list(kwargs):
-                try:
-                    if isinstance(getattr(self.__class__, prop), property):
-                        setattr(self, prop, kwargs.pop(prop))
-                except AttributeError:
-                    pass
-            if kwargs:
-                raise TypeError(
-                    "'%s' is an invalid keyword argument for this function"
-                    % list(kwargs)[0])
-        super(Record, self).__init__()
+                setattr(self, prop, kwargs.pop(prop))
 
         # Checks if has a _post_init method and calls it to do additional
         # setup for this instance
