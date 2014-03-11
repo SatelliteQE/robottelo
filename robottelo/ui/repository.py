@@ -29,21 +29,21 @@ class Repos(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-        sleep(2)
-        self.wait_until_element(locators["repo.new"]).click()
-        self.wait_for_ajax()
-        self.text_field_update(common_locators["name"], name)
-        if repo_type:
-            type_ele = self.find_element(locators["repo.type"])
-            Select(type_ele).select_by_visible_text(repo_type)
-        if gpg_key:
-            type_ele = self.find_element(common_locators["gpg_key"])
-            Select(type_ele).select_by_visible_text(gpg_key)
-        if url:
-            self.text_field_update(locators["repo.url"], url)
-        if http:
-            self.find_element(locators["repo.via_http"]).click()
-        self.find_element(common_locators["create"]).click()
+            sleep(2)
+            self.wait_until_element(locators["repo.new"]).click()
+            self.wait_for_ajax()
+            self.text_field_update(common_locators["name"], name)
+            if repo_type:
+                type_ele = self.find_element(locators["repo.type"])
+                Select(type_ele).select_by_visible_text(repo_type)
+            if gpg_key:
+                type_ele = self.find_element(common_locators["gpg_key"])
+                Select(type_ele).select_by_visible_text(gpg_key)
+            if url:
+                self.text_field_update(locators["repo.url"], url)
+            if http:
+                self.find_element(locators["repo.via_http"]).click()
+            self.find_element(common_locators["create"]).click()
 
     def update(self, name, new_url=None, new_gpg_key=None, http=False):
         """
@@ -53,19 +53,20 @@ class Repos(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-        if new_url:
-            self.wait_until_element(locators["repo.url_edit"]).click()
-            self.text_field_update(locators["repo.url_update"], new_url)
-            self.find_element(common_locators["create"]).click()
-        if new_gpg_key:
-            self.wait_until_element(locators["repo.gpg_key_edit"]).click()
-            type_ele = self.find_element(locators["repo.gpg_key_update"])
-            Select(type_ele).select_by_visible_text(new_gpg_key)
-            self.find_element(common_locators["create"]).click()
-        if http:
-            self.wait_until_element(locators["repo.via_http_edit"]).click()
-            self.wait_until_element(locators["repo.via_http_update"]).click()
-            self.find_element(common_locators["create"]).click()
+            if new_url:
+                self.wait_until_element(locators["repo.url_edit"]).click()
+                self.text_field_update(locators["repo.url_update"], new_url)
+                self.find_element(common_locators["create"]).click()
+            if new_gpg_key:
+                self.wait_until_element(locators["repo.gpg_key_edit"]).click()
+                type_ele = self.find_element(locators["repo.gpg_key_update"])
+                Select(type_ele).select_by_visible_text(new_gpg_key)
+                self.find_element(common_locators["create"]).click()
+            if http:
+                self.wait_until_element(locators["repo.via_http_edit"]).click()
+                self.wait_until_element(locators["repo.via_http_update"]).\
+                    click()
+                self.find_element(common_locators["create"]).click()
 
     def delete(self, repo, really=True):
         """
