@@ -395,13 +395,11 @@ class ApiCrud(object):
             k: resolve_path_arg(k, instance) for k in cls.list_path_args()
             }
 
-        print cls.create_fields
         data = {
             name: field for name, field in instance.items()
             if cls.create_fields == [] or name in cls.create_fields
             }
 
-        print data
         res = cls.create(json=cls.opts(data), **path_args)
         if res.ok:
             ninstance = load_from_data(
