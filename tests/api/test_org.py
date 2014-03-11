@@ -172,7 +172,6 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization with valid values then update its name
         @assert: organization name is updated
-        @status: manual
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -189,7 +188,6 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization with valid values then update its label
         @assert: organization label is updated
-        @status: manual
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -206,7 +204,6 @@ class TestOrganization(BaseAPI):
         @test: Create organization with valid values then update its
         description
         @assert: organization description is updated
-        @status: manual
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -220,7 +217,6 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization with valid values then update all values
         @assert: organization name, label and description are updated
-        @status: manual
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -243,7 +239,6 @@ class TestOrganization(BaseAPI):
         @test: Create organization with valid values then fail to update
         its name
         @assert: organization name is not updated
-        @status: manual
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -268,7 +263,6 @@ class TestOrganization(BaseAPI):
         @test: Create organization with valid values then fail to update
         its label
         @assert: organization label is not updated
-        @status: manual
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -290,7 +284,6 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization and list it
         @assert: organization is displayed/listed
-        @status: manual
         """
         org = ApiCrud.record_create(test_data)
         orgs = ApiCrud.record_list(org)
@@ -303,7 +296,6 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
-        @status: manual
         """
 
         ApiCrud.record_create(test_data)
@@ -317,7 +309,6 @@ class TestOrganization(BaseAPI):
         @test: Create single organization and get its info
         @assert: specific information for organization matches the
         creation values
-        @status: manual
         """
 
         org = ApiCrud.record_create(test_data)
