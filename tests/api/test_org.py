@@ -213,6 +213,7 @@ class TestOrganization(BaseAPI):
         org.description = test_data.description
         ApiCrud.record_update(org)
 
+    @bzbug('1061658')
     @data(*Organization.enumerate())
     def test_positive_update_4(self, test_data):
         """
@@ -281,31 +282,6 @@ class TestOrganization(BaseAPI):
 
         self.assertTrue(correctly_failing)
 
-#    @data(*Organization.enumerate(
-#        name=NoEnum,
-#        label=NoEnum,
-#        description=basic_positive(maxlen=1000),
-#        ))
-#    def test_negative_update_3(self, test_data):
-#        """
-#        @feature: Organizations
-#        @test: Create organization with valid values then fail to update
-#        its description
-#        @assert: organization description is not updated
-#        @status: manual
-#        """
-#        org = Organization()
-#        org = ApiCrud.record_create(org)
-#        org.description = test_data.description
-#        correctly_failing = True
-#        try:
-#            ApiCrud.record_update(org)
-#            correctly_failing = False
-#        except ApiException:
-#            correctly_failing = correctly_failing and True
-#
-#        self.assertTrue(correctly_failing)
-#
     #Miscelaneous
 
     @data(*Organization.enumerate())
@@ -320,6 +296,7 @@ class TestOrganization(BaseAPI):
         orgs = ApiCrud.record_list(org)
         self.assertTrue(any(org.name == ol.name for ol in orgs))
 
+    @bzbug('1072905')
     @data(*Organization.enumerate())
     def test_search_key_1(self, test_data):
         """
@@ -333,7 +310,7 @@ class TestOrganization(BaseAPI):
         org_res = ApiCrud.record_resolve(test_data)
         self.assertEqual(org_res.name, test_data.name)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate())
     def test_info_key_1(self, test_data):
         """
         @feature: Organizations
