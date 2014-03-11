@@ -9,6 +9,9 @@ from nose.plugins.attrib import attr
 from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import common_locators
+from robottelo.ui.login import Login
+from robottelo.ui.navigator import Navigator
+from robottelo.ui.org import Org
 from tests.ui.baseui import BaseUI
 
 
@@ -16,6 +19,21 @@ class ContentEnvironment(BaseUI):
     """
     Implements Life cycle content environment tests in UI
     """
+
+    org_name = None
+
+    def setUp(self):
+        super(ContentEnvironment, self).setUp()
+        # Make sure to use the Class' org_name instance
+        if ContentEnvironment.org_name is None:
+            ContentEnvironment.org_name = generate_name(8, 8)
+            login = Login(self.browser)
+            nav = Navigator(self.browser)
+            org = Org(self.browser)
+            login.login(self.katello_user, self.katello_passwd)
+            nav.go_to_org()
+            org.create(ContentEnvironment.org_name)
+            login.logout()
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_create_content_environment_1(self):
@@ -27,6 +45,7 @@ class ContentEnvironment(BaseUI):
         name = generate_name(6)
         description = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ContentEnvironment.org_name)
         self.navigator.go_to_life_cycle_environments()
         self.contentenv.create(name, description)
         self.assertTrue(self.contentenv.wait_until_element
@@ -43,6 +62,7 @@ class ContentEnvironment(BaseUI):
         env_name2 = generate_name(6)
         description = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ContentEnvironment.org_name)
         self.navigator.go_to_life_cycle_environments()
         self.contentenv.create(env_name1, description)
         self.contentenv.create(env_name2, description, prior=env_name1)
@@ -59,6 +79,7 @@ class ContentEnvironment(BaseUI):
         name = generate_name(6)
         description = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ContentEnvironment.org_name)
         self.navigator.go_to_life_cycle_environments()
         self.contentenv.create(name, description)
         self.assertTrue(self.contentenv.wait_until_element
@@ -79,6 +100,7 @@ class ContentEnvironment(BaseUI):
         new_name = generate_name(6)
         description = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ContentEnvironment.org_name)
         self.navigator.go_to_life_cycle_environments()
         self.contentenv.create(name)
         self.assertTrue(self.contentenv.wait_until_element
