@@ -4,22 +4,13 @@
 Module for mixin of basic crud methods based on api_path class method.
 """
 
-import logging
 import robottelo.api.base as base
 
 from robottelo.common.records import ManyRelatedField, RelatedField
 
 
-def convert_to_data(instance):
-    """Converts an instance to a data dictionary
-    Recomended to use on Record objects only,
-    though it should work on any object.
-
-    Returns copy of __dict__ of object and filters out private fields
-    """
-
-    return {k: v for k, v in instance.__dict__.items()
-            if (not k.startswith("_") and k != "")}
+class ApiException(Exception):
+    pass
 
 
 def load_from_data(cls, data, transform):
@@ -35,9 +26,9 @@ def load_from_data(cls, data, transform):
         if k in related and type(v) is dict:
             related_class = related[k].record_class
             related_instance = load_from_data(related_class, v, transform)
-            instance.__dict__[k] = related_instance
+            instance[k] = related_instance
         else:
-            instance.__dict__[k] = v
+            instance[k] = v
     return instance
 
 
@@ -53,7 +44,7 @@ def resolve_path_arg(arg, data):
         arg_path = arg.split(".", 1)
         return resolve_path_arg(
             arg_path[1],
-            convert_to_data(data[arg_path[0]]))
+            data[arg_path[0]])
     return data[arg]
 
 
@@ -78,22 +69,8 @@ def data_load_transform(instance_cls, data):
         return data
 
 
-def classlogger(f):
-    def wrapper(cls, uid=None, **kwargs):
-        cls.logger().debug(f.func_name)
-        res = None
-        if not uid is None:
-            res = f(cls, uid, **kwargs)
-        else:
-            res = f(cls, **kwargs)
-
-        cls.logger().debug(
-            str(res.status_code) + " " +
-            str(res.content) + " " +
-            str(res.request.url) + " " +
-            str(res.request.body))
-        return res
-    return wrapper
+def default_data_transform(instance_cls, data):
+    return data
 
 
 class ApiCrud(object):
@@ -103,18 +80,8 @@ class ApiCrud(object):
         """Mixin is not supposed to be instantiated """
         raise NotImplementedError()
 
-    @classmethod
-    def logger(cls):
-        """Robottelo logger
-        """
-        return logging.getLogger("robottelo")
-
-    @classmethod
-    def get_default_search(cls):
-        """Returns search key to be used in exists and resolve functions """
-        if hasattr(cls, 'default_search'):
-            return cls.default_search  # pylint: disable=E1101
-        return "name"
+    # Either true, or list of fields to filter by
+    create_fields = True
 
     @classmethod
     def get_api_path(cls):
@@ -192,7 +159,6 @@ class ApiCrud(object):
         return path
 
     @classmethod
-    @classlogger
     def list(cls, **kwargs):
         """"Query method,
         args are forwarded to underlying requests.get call
@@ -203,7 +169,6 @@ class ApiCrud(object):
         return base.get(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def show(cls, uid, **kwargs):
         """Read method,
         args are forwarded to underlying requests.get call,
@@ -215,7 +180,6 @@ class ApiCrud(object):
         return base.get(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def create(cls, **kwargs):
         """Create method,
         args are forwarded to underlying requests.post call,
@@ -227,7 +191,6 @@ class ApiCrud(object):
         return base.post(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def update(cls, uid, **kwargs):
         """Update method,
         args are forwarded to underlying requests.put call,
@@ -240,7 +203,6 @@ class ApiCrud(object):
         return base.put(path=path, **kwargs)
 
     @classmethod
-    @classlogger
     def delete(cls, uid, **kwargs):
         """Remove method,
         args are forwarded to underlying requests.put call,
@@ -267,7 +229,7 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_exists(instance)
 
-        if hasattr(instance, "id"):
+        if "id" in instance:
             res = cls.show(instance.id)
             return res.ok
         else:
@@ -291,12 +253,12 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_remove(instance)
 
-        if hasattr(instance, "id"):
+        if "id" in instance:
             res = cls.delete(instance.id)
             if res.ok:
                 return True
             else:
-                raise Exception("Unable to remove", instance)
+                raise ApiException("Unable to remove", instance)
             return res.ok
         else:
             res = cls.list(json=dict(search="name="+instance.name))
@@ -316,11 +278,11 @@ class ApiCrud(object):
             return api.record_resolve(instance)
 
         if not cls.record_exists(instance):
-            raise Exception("Record doesn't exist")
+            raise ApiException("Record doesn't exist")
 
         res = None
         json = None
-        if hasattr(instance, "id"):
+        if "id" in instance:
             res = cls.show(instance.id)
             if res.ok:
                 json = res.json()
@@ -341,7 +303,25 @@ class ApiCrud(object):
                 )
             return ninstance
         else:
-            raise Exception("Couldn't resolve record", instance)
+            raise ApiException("Couldn't resolve record", instance)
+
+    @classmethod
+    def record_list(cls, instance):
+        if cls != instance._meta.api_class:
+            api = instance._meta.api_class
+            return api.record_list(instance)
+        counting_response = cls.list()
+        if counting_response.ok:
+            count = int(counting_response.json()["total"])
+            if count > 0:
+                listing_response = cls.list(json=dict(per_page=count))
+                if listing_response.ok:
+                    return [load_from_data(
+                        instance.__class__,
+                        js,
+                        default_data_transform
+                        ) for js in listing_response.json()["results"]
+                        ]
 
     @classmethod
     def record_resolve_recursive(cls, instance):
@@ -352,23 +332,20 @@ class ApiCrud(object):
             return instance._meta.api_class \
                 .record_resolve_recursive(instance)
         ninstance = cls.record_resolve(instance)
-        related_fields = [
-            f for f in ninstance._meta.fields
-            if isinstance(f, RelatedField)
-            ]
+        related_fields = ninstance._meta.fields.items(cls=RelatedField)
         for fld in related_fields:
-            if hasattr(ninstance, (fld.name + "_id")):
+            if fld.name + "_id" in ninstance:
                 related_class = fld.record_class
-                related = related_class(blank_record=True)
-                related.id = instance.__dict__[(fld.name + "_id")]
-                related = cls.record_resolve(related)
-                ninstance.__dict__[fld.name] = related
-            elif hasattr(ninstance, fld.name):
-                related = ninstance.__dict__[fld.name]
+                related = related_class(
+                    blank_record=True,
+                    id=ninstance[(fld.name + "_id")]
+                    )
+                ninstance[fld.name] = cls.record_resolve(related)
+            elif fld.name in ninstance:
+                related = ninstance[fld.name]
                 if isinstance(related, RelatedField):
                     resolved = cls.record_resolve(related)
-
-                    ninstance.__dict__[fld.name] = resolved
+                    ninstance[fld.name] = resolved
         return ninstance
 
     @classmethod
@@ -379,7 +356,7 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_update(instance)
 
-        if not hasattr(instance, "id"):
+        if not "id" in instance:
             res = cls.list(json=dict(search="name="+instance.name))
             if res.ok and len(res.json()) == 1:
                 instance.id = cls.record_resolve(instance).id
@@ -389,12 +366,11 @@ class ApiCrud(object):
                 else:
                     raise KeyError(instance.name + " not unique.")
 
-        data = convert_to_data(instance)
-        if hasattr(cls, "create_fields"):
-            data = {
-                name: field for name, field in data.items()
-                if name in cls.create_fields  # pylint: disable=E1101
-                }
+        data = {
+            name: field for name, field in instance.items()
+            if cls.create_fields is []
+            or name in cls.create_fields
+            }
 
         res = cls.update(instance.id, json=cls.opts(data))
         if res.ok:
@@ -404,7 +380,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise Exception("Couldn't update record", instance)
+            raise ApiException("Couldn't update record", instance)
 
     @classmethod
     def record_create(cls, instance_orig):
@@ -415,16 +391,14 @@ class ApiCrud(object):
             return api.record_create(instance_orig)
         instance = instance_orig.copy()
 
-        data = convert_to_data(instance)
         path_args = {
-            k: resolve_path_arg(k, data) for k in cls.list_path_args()
+            k: resolve_path_arg(k, instance) for k in cls.list_path_args()
             }
 
-        if hasattr(cls, "create_fields"):
-            data = {
-                name: field for name, field in data.items()
-                if name in cls.create_fields   # pylint: disable=E1101
-                }
+        data = {
+            name: field for name, field in instance.items()
+            if cls.create_fields == [] or name in cls.create_fields
+            }
 
         res = cls.create(json=cls.opts(data), **path_args)
         if res.ok:
@@ -434,7 +408,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise Exception("Couldn't create record", instance)
+            raise ApiException("Couldn't create record", instance)
 
     @classmethod
     def record_create_dependencies(cls, instance_orig):
@@ -447,32 +421,26 @@ class ApiCrud(object):
         instance = instance_orig.copy()
 
         #resolve ids
-        related_fields = [
-            fld.name for fld in instance._meta.fields
-            if isinstance(fld, RelatedField)
-            ]
+        related_fields = instance._meta.fields.keys(cls=RelatedField)
 
         for field in related_fields:
-            value = resolve_or_create_record(instance.__dict__[field])
-            instance.__dict__[field] = value
-            instance.__dict__[field+"_id"] = value.id
+            value = resolve_or_create_record(instance[field])
+            instance[field] = value
+            instance[field+"_id"] = value.id
 
         #resolve ManyRelated ids
-        related_fields = [
-            fld.name for fld in instance._meta.fields
-            if isinstance(fld, ManyRelatedField)
-            ]
+        related_fields = instance._meta.fields.keys(cls=ManyRelatedField)
 
         for field in related_fields:
-            value = instance.__dict__[field]
+            value = instance[field]
             if type(value) == type(list()):
                 values = [
                     resolve_or_create_record(i)
                     for i in value
                     ]
                 ids = [val.id for val in values]
-                instance.__dict__[field] = values
-                instance.__dict__[field+"_ids"] = ids
+                instance[field] = values
+                instance[field+"_ids"] = ids
         return instance
 
     @classmethod

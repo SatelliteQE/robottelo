@@ -4,15 +4,17 @@
 import unittest
 
 from ddt import data, ddt
-from robottelo.api.apicrud import ApiCrud
+from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import redminebug
+from robottelo.common.decorators import redminebug, bzbug
 from robottelo.records.organization import Organization
+from robottelo.common.records.base import NoEnum
+from robottelo.common.records.fields import basic_positive
 from tests.api.baseapi import BaseAPI
 
 
 @ddt
-class Organization(BaseAPI):
+class TestOrganization(BaseAPI):
     """Testing /api/organization entrypoint"""
 
     # Positive Create
@@ -74,327 +76,244 @@ class Organization(BaseAPI):
         self.assertIntersects(test_data, result)
 #Negative Create
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, update name is alpha 300 chars
-        label and description are alpha, update name is numeric 300 chars
-        label and description are alpha, update name is alphanumeric 300 chars
-        label and description are alpha, update name is utf-8 300 chars
-        label and description are alpha, update name is latin1 300 chars
-        label and description are alpha, update name is html 300 chars
-
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(
+        *Organization.enumerate(
+            name=basic_positive(maxlen=300),
+            label=NoEnum,
+            description=NoEnum)
+    )
     def test_negative_create_0(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         too long
         @assert: organization is not created
-        @status: manual
         """
+        correctly_failing = True
+        try:
+            ApiCrud.record_create(test_data)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = True
+        self.assertTrue(correctly_failing)
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, name is blank
-        label and description are numeric, name is blank
-        label and description are alphanumeric, name is blank
-        label and description are utf-8, name is blank
-        label and description are latin1, name is blank
-        label and description are html, name is blank
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate(name=""))
     def test_negative_create_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         blank
         @assert: organization is not created
-        @status: manual
         """
+        try:
+            ApiCrud.record_create(test_data)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = True
 
-        pass
+        self.assertTrue(correctly_failing)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        label and description are alpha, name is whitespace
-        label and description are numeric, name is whitespace
-        label and description are alphanumeric, name is whitespace
-        label and description are utf-8, name is whitespace
-        label and description are latin1, name is whitespace
-        label and description are html, name is whitespace
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate(name="   "))
     def test_negative_create_2(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid label and description, name is
         whitespace
         @assert: organization is not created
-        @status: manual
         """
+        try:
+            ApiCrud.record_create(test_data)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = True
+        self.assertTrue(correctly_failing)
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate())
     def test_negative_create_3(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values, then create a new one
         with same values.
         @assert: organization is not created
-        @status: manual
         """
-
-        pass
+        ApiCrud.record_create(test_data)
+        try:
+            ApiCrud.record_create(test_data)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = True
+        self.assertTrue(correctly_failing)
 
     # Positive Delete
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @bzbug('1061658')
+    @data(*Organization.enumerate())
     def test_positive_delete_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then delete it
         @assert: organization is deleted
-        @status: manual
         """
-
-        pass
+        t = ApiCrud.record_create(test_data)
+        self.assertTrue(ApiCrud.record_exists(t))
+        ApiCrud.record_remove(t)
+        self.assertFalse(ApiCrud.record_exists(t))
 
     # Negative Delete
 
     # Positive Update
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update name is alpha
-        update name is numeric
-        update name is alphanumeric
-        update name is utf-8
-        update name is latin1
-        update name is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate(
+        label=NoEnum,
+        description=NoEnum)
+    )
     def test_positive_update_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then update its name
         @assert: organization name is updated
-        @status: manual
         """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.name = test_data.name
+        ApiCrud.record_update(org)
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update label is alpha
-        update label is numeric
-        update label is alphanumeric
-        update label is utf-8
-        update label is latin1
-        update label is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @bzbug('1061658')
+    @data(*Organization.enumerate(
+        name=NoEnum,
+        description=NoEnum)
+    )
     def test_positive_update_2(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then update its label
         @assert: organization label is updated
-        @status: manual
         """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.label = test_data.label
+        ApiCrud.record_update(org)
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update description is alpha
-        update description is numeric
-        update description is alphanumeric
-        update description is utf-8
-        update description is latin1
-        update description is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate(
+        name=NoEnum,
+        label=NoEnum)
+    )
     def test_positive_update_3(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then update its
         description
         @assert: organization description is updated
-        @status: manual
         """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.description = test_data.description
+        ApiCrud.record_update(org)
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update name, label and description are alpha
-        update name, label and description are numeric
-        update name, label and description are alphanumeric
-        update name, label and description are utf-8
-        update name, label and description are latin1
-        update name, label and description are html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @bzbug('1061658')
+    @data(*Organization.enumerate())
     def test_positive_update_4(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then update all values
         @assert: organization name, label and description are updated
-        @status: manual
         """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.name = test_data.name
+        org.label = test_data.label
+        org.description = test_data.description
 
-        pass
+        ApiCrud.record_update(org)
 
     # Negative Update
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update name is whitespace
-        update name is alpha 300 chars long
-        update name is numeric 300 chars long
-        update name is alphanumeric 300 chars long
-        update name is utf-8 300 chars long
-        update name is latin1 300 chars long
-        update name is html 300 chars long
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate(
+        name=basic_positive(maxlen=300),
+        label=NoEnum,
+        description=NoEnum
+        ))
     def test_negative_update_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then fail to update
         its name
         @assert: organization name is not updated
-        @status: manual
         """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.name = test_data.name
+        correctly_failing = True
+        try:
+            ApiCrud.record_update(org)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = correctly_failing and True
 
-        pass
+        self.assertTrue(correctly_failing)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update label is whitespace
-        update label is alpha 300 chars long
-        update label is numeric 300 chars long
-        update label is alphanumeric 300 chars long
-        update label is utf-8 300 chars long
-        update label is latin1 300 chars long
-        update label is html 300 chars long
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate(
+        name=NoEnum,
+        label=basic_positive(maxlen=300),
+        description=NoEnum
+        ))
     def test_negative_update_2(self, test_data):
         """
         @feature: Organizations
         @test: Create organization with valid values then fail to update
         its label
         @assert: organization label is not updated
-        @status: manual
         """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.label = test_data.label
+        correctly_failing = True
+        try:
+            ApiCrud.record_update(org)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = correctly_failing and True
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update description is alpha 300 chars long
-        update description is numeric 300 chars long
-        update description is alphanumeric 300 chars long
-        update description is utf-8 300 chars long
-        update description is latin1 300 chars long
-        update description is html 300 chars long
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_update_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create organization with valid values then fail to update
-        its description
-        @assert: organization description is not updated
-        @status: manual
-        """
-
-        pass
+        self.assertTrue(correctly_failing)
 
     #Miscelaneous
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate())
     def test_list_key_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization and list it
         @assert: organization is displayed/listed
-        @status: manual
         """
+        org = ApiCrud.record_create(test_data)
+        orgs = ApiCrud.record_list(org)
+        self.assertTrue(any(org.name == ol.name for ol in orgs))
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @bzbug('1072905')
+    @data(*Organization.enumerate())
     def test_search_key_1(self, test_data):
         """
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
-        @status: manual
         """
 
-        pass
+        ApiCrud.record_create(test_data)
+        org_res = ApiCrud.record_resolve(test_data)
+        self.assertEqual(org_res.name, test_data.name)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @data(*Organization.enumerate())
     def test_info_key_1(self, test_data):
         """
         @feature: Organizations
         @test: Create single organization and get its info
         @assert: specific information for organization matches the
         creation values
-        @status: manual
         """
 
-        pass
+        org = ApiCrud.record_create(test_data)
+        org_res = ApiCrud.record_resolve(org)
+        self.assertEqual(org_res.name, test_data.name)
 
     # Associations
 

@@ -6,9 +6,12 @@ around requests library
 """
 
 import json as js
+import logging
 import requests
 
 from robottelo.common import conf
+
+logger = logging.getLogger("robottelo")
 
 
 def request(method, **kwargs):
@@ -72,7 +75,13 @@ def request(method, **kwargs):
     del kwargs['domain']
     del kwargs['schema']
 
-    return requests.request(method=method, url=url, **kwargs)
+    logger.debug("{0} {1} -> {2}".format(method, url, kwargs))
+    res = requests.request(method=method, url=url, **kwargs)
+    logger.debug(
+        str(res.status_code) + " " +
+        str(res.content))
+
+    return res
 
 
 def get(**kwargs):
