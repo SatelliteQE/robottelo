@@ -13,10 +13,6 @@ from robottelo.common import conf
 
 logger = logging.getLogger("robottelo")
 
-def classlogger(f):
-    def wrapper(cls, uid=None, **kwargs):
-             return res
-    return wrapper
 
 def request(method, **kwargs):
     """Wrapper around requests.request function, that adds default domain,
@@ -79,7 +75,7 @@ def request(method, **kwargs):
     del kwargs['domain']
     del kwargs['schema']
 
-    logger.debug("{0} {1} -> {2}".format(method,url,kwargs))
+    logger.debug("{0} {1} -> {2}".format(method, url, kwargs))
     res = requests.request(method=method, url=url, **kwargs)
     logger.debug(
         str(res.status_code) + " " +

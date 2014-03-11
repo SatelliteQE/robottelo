@@ -8,8 +8,10 @@ import robottelo.api.base as base
 
 from robottelo.common.records import ManyRelatedField, RelatedField
 
+
 class ApiException(Exception):
     pass
+
 
 def load_from_data(cls, data, transform):
     """Loads instance attributes from a data dictionary"""
@@ -71,14 +73,12 @@ def default_data_transform(instance_cls, data):
     return data
 
 
-
 class ApiCrud(object):
     """Defines basic crud methods based on api_path class method """
 
     def __init__(self):
         """Mixin is not supposed to be instantiated """
         raise NotImplementedError()
-
 
     # Either true, or list of fields to filter by
     create_fields = True
@@ -323,7 +323,6 @@ class ApiCrud(object):
                         ) for js in listing_response.json()["results"]
                         ]
 
-
     @classmethod
     def record_resolve_recursive(cls, instance):
         """Gets infromation about record,
@@ -335,7 +334,7 @@ class ApiCrud(object):
         ninstance = cls.record_resolve(instance)
         related_fields = ninstance._meta.fields.items(cls=RelatedField)
         for fld in related_fields:
-            if (fld.name + "_id") in ninstance:
+            if fld.name + "_id" in ninstance:
                 related_class = fld.record_class
                 related = related_class(
                     blank_record=True,

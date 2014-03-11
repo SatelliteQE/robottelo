@@ -126,8 +126,10 @@ class RecordBase(type):
         else:
             setattr(cls, name, value)
 
+
 class NoEnum:
     pass
+
 
 class Record(object):
     """ Entity definition and generating class
@@ -266,8 +268,10 @@ class Record(object):
                 ]
 
         if matrix == 0:
-            c = [random.choice([cls(**create_choice(enum, fields)) for enum in e2])]
-            return c
+            chosen = [random.choice(
+                [cls(**create_choice(enum, fields)) for enum in e2]
+                )]
+            return chosen
         else:
             return [cls(**create_choice(enum, fields)) for enum in e2]
 

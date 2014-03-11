@@ -6,7 +6,6 @@ Module for Activation Key api an record implementation
 
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
-from robottelo.records.organization import Organization
 
 
 class ActivationKeyApi(ApiCrud):
