@@ -40,6 +40,20 @@ POSITIVE_NAME_LABEL_DATA = (
     {'name': generate_string("html", 10),
      'label': generate_string("numeric", 10)},)
 
+POSITIVE_NAME_DESC_DATA = (
+    {'name': generate_string("latin1", 10).encode("utf-8"),
+     'description': generate_string("latin1", 10).encode("utf-8")},
+    {'name': generate_string("utf8", 10).encode("utf-8"),
+     'description': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("alpha", 10),
+     'description': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10),
+     'description': generate_string("alphanumeric", 10)},
+    {'name': generate_string("numeric", 10),
+     'description': generate_string("numeric", 10)},
+    {'name': generate_string("html", 10),
+     'description': generate_string("numeric", 10)},)
+
 
 @ddt
 class TestOrg(BaseCLI):
@@ -111,7 +125,53 @@ class TestOrg(BaseCLI):
         self.assertTrue(result.return_code == 0, "Failed to create object")
         self.assertTrue(len(result.stderr) == 0,
                         "There should not be an exception here")
-        self.assertNotEqual(result.stdout['name'], result.stdout['label'])
+        self.assertNotEqual(result.stdout['name'],
+                            result.stdout['label'])
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+
+    @redminebug('4486')
+    @data(*POSITIVE_NAME_DESC_DATA)
+    def test_positive_create_4(self, test_data):
+        """
+        @test: Create organization with valid name and description only
+        @feature: Organizations
+        @assert: organization is created, label is auto-generated
+        """
+        test_data['label'] = ""
+        new_obj = make_org(test_data)
+
+        # Can we find the new object?
+        result = Org().exists(('name', new_obj['name']))
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(len(result.stderr) == 0,
+                        "There should not be an exception here")
+        self.assertNotEqual(result.stdout['name'],
+                            result.stdout['description'])
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+
+    @redminebug('4486')
+    @data(*POSITIVE_NAME_DESC_DATA)
+    def test_positive_create_5(self, test_data):
+        """
+        @test: Create organization with valid name, label and description
+        @feature: Organizations
+        @assert: organization is created
+        @status: manual
+        """
+
+        test_data['label'] = test_data['name']
+        new_obj = make_org(test_data)
+
+        # Can we find the new object?
+        result = Org().exists(('name', new_obj['name']))
+
+        self.assertTrue(result.return_code == 0, "Failed to create object")
+        self.assertTrue(len(result.stderr) == 0,
+                        "There should not be an exception here")
+        self.assertEqual(result.stdout['name'], result.stdout['label'])
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
@@ -445,45 +505,6 @@ class TestOrg(BaseCLI):
         self.assertFalse(return_value.stderr)
 
     # Positive Create
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name and description are alpha, label is blank
-        name and description are numeric, label is blank
-        name and description are alphanumeric, label is blank
-        name and description are utf-8, label is blank
-        name and description are latin1, label is blank
-        name and description are html, label is blank
-        """)
-    def test_positive_create_4(self, test_data):
-        """
-        @test: Create organization with valid name and description only
-        @feature: Organizations
-        @assert: organization is created, label is auto-generated
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha, name and label match
-        name, label and description are numeric, name and label match
-        name, label and description are alphanumeric, name and label match
-        name, label and description are utf-8, name and label match
-        name, label and description are latin1, name and label match
-        name, label and description are html, name and label match
-        """)
-    def test_positive_create_5(self, test_data):
-        """
-        @test: Create organization with valid name, label and description
-        @feature: Organizations
-        @assert: organization is created
-        @status: manual
-        """
-
-        pass
-
     #Negative Create
 
     @data({'label': generate_string('alpha', 10),
