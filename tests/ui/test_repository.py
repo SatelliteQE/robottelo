@@ -30,6 +30,7 @@ class Repos(BaseUI):
             login.login(self.katello_user, self.katello_passwd)
             nav.go_to_org()
             org.create(Repos.org_name)
+            login.logout()
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())

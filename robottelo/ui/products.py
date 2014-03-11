@@ -2,6 +2,7 @@
 Implements Products UI
 """
 
+import time
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
@@ -42,6 +43,7 @@ class Products(Base):
             type_ele = self.find_element(common_locators["gpg_key"])
             Select(type_ele).select_by_visible_text(gpg_key)
         self.text_field_update(common_locators["description"], description)
+        time.sleep(2)
         self.wait_until_element(common_locators["create"]).click()
         self.wait_for_ajax()
 

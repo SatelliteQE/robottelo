@@ -41,6 +41,7 @@ class Sync(BaseUI):
             login.login(self.katello_user, self.katello_passwd)
             nav.go_to_org()
             org.create(Sync.org_name)
+            login.logout()
 
     @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())
