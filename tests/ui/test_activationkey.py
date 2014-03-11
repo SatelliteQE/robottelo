@@ -12,6 +12,9 @@ from robottelo.common.constants import NOT_IMPLEMENTED, ENVIRONMENT
 from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name, valid_names_list
 from robottelo.ui.locators import common_locators
+from robottelo.ui.login import Login
+from robottelo.ui.navigator import Navigator
+from robottelo.ui.org import Org
 from tests.ui.baseui import BaseUI
 
 
@@ -27,6 +30,21 @@ class ActivationKey(BaseUI):
     Lesser than Min Length, Greater than Max DB size
     """
 
+    org_name = None
+
+    def setUp(self):
+        super(ActivationKey, self).setUp()
+        # Make sure to use the Class' org_name instance
+        if ActivationKey.org_name is None:
+            ActivationKey.org_name = generate_name(8, 8)
+            login = Login(self.browser)
+            nav = Navigator(self.browser)
+            org = Org(self.browser)
+            login.login(self.katello_user, self.katello_passwd)
+            nav.go_to_org()
+            org.create(ActivationKey.org_name)
+            login.logout()
+
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_1(self, name):
@@ -40,6 +58,7 @@ class ActivationKey(BaseUI):
         @Status: Manual
         """
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT,
                                   description=generate_name(16))
@@ -60,6 +79,7 @@ class ActivationKey(BaseUI):
 
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT,
                                   description=description)
@@ -118,6 +138,7 @@ class ActivationKey(BaseUI):
         name = generate_name(6)
         description = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -137,6 +158,7 @@ class ActivationKey(BaseUI):
         description = generate_name(6)
         limit = "6"
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, limit, description)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -154,6 +176,7 @@ class ActivationKey(BaseUI):
         """
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -321,6 +344,7 @@ class ActivationKey(BaseUI):
 
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -343,6 +367,7 @@ class ActivationKey(BaseUI):
         name = generate_name(6)
         description = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -392,6 +417,7 @@ class ActivationKey(BaseUI):
         name = generate_name(6)
         limit = "8"
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -415,6 +441,7 @@ class ActivationKey(BaseUI):
         limit = "6"
         new_limit = "Unlimited"
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, limit=limit)
         self.assertIsNotNone(self.activationkey.search_key(name))
