@@ -15,12 +15,31 @@ from robottelo.common.helpers import (generate_name, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list)
 from robottelo.ui.locators import common_locators
+from robottelo.ui.login import Login
+from robottelo.ui.navigator import Navigator
+from robottelo.ui.org import Org
 from tests.ui.baseui import BaseUI
 
 
 @ddt
 class GPGKey(BaseUI):
     """IMplements tests for GPG Keys via UI"""
+
+    org_name = None
+
+    def setUp(self):
+        super(GPGKey, self).setUp()
+
+        # Make sure to use the Class' org_name instance
+        if GPGKey.org_name is None:
+            GPGKey.org_name = generate_name(8, 8)
+            login = Login(self.browser)
+            org = Org(self.browser)
+            nav = Navigator(self.browser)
+            login.login(self.katello_user, self.katello_passwd)
+            nav.go_to_org()
+            org.create(GPGKey.org_name)
+            login.logout()
 
     # Positive Create
 
@@ -35,6 +54,7 @@ class GPGKey(BaseUI):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -51,6 +71,7 @@ class GPGKey(BaseUI):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -69,6 +90,7 @@ class GPGKey(BaseUI):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -88,6 +110,7 @@ class GPGKey(BaseUI):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -105,6 +128,7 @@ class GPGKey(BaseUI):
         """
 
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         with self.assertRaises(Exception):
             self.gpgkey.create(name)
@@ -122,6 +146,7 @@ class GPGKey(BaseUI):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertTrue(self.gpgkey.wait_until_element
@@ -140,6 +165,7 @@ class GPGKey(BaseUI):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertTrue(self.gpgkey.wait_until_element
@@ -160,6 +186,7 @@ class GPGKey(BaseUI):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -178,6 +205,7 @@ class GPGKey(BaseUI):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -199,6 +227,7 @@ class GPGKey(BaseUI):
         new_name = generate_name(6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -219,6 +248,7 @@ class GPGKey(BaseUI):
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -239,6 +269,7 @@ class GPGKey(BaseUI):
         new_name = generate_name(6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -259,6 +290,7 @@ class GPGKey(BaseUI):
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -281,6 +313,7 @@ class GPGKey(BaseUI):
         name = generate_name(6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, upload_key=True, key_path=key_path)
         self.assertIsNotNone(self.gpgkey.search(name))
@@ -302,6 +335,7 @@ class GPGKey(BaseUI):
         name = generate_name(6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(GPGKey.org_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
