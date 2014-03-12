@@ -16,6 +16,7 @@ from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.org import Org
@@ -532,6 +533,48 @@ def make_environment(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(Environment, args))
+
+    return args
+
+
+def make_lifecycle_environment(options=None):
+    """
+    Usage:
+    hammer lifecycle-environment create [OPTIONS]
+
+    Options:
+        --organization-id ORGANIZATION_ID name of organization
+        --name NAME                   name of the environment
+        --description DESCRIPTION     description of the environment
+        --prior PRIOR                 Name of an environment that is prior to
+    the new environment in the chain. It has to be either ‘Library’ or an
+    environment at the end of a chain.
+
+
+    """
+
+    # Organization ID is required
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+    if not options.get('prior', None):
+        result = LifecycleEnvironment.list(
+            {
+                'organization-id': options['organization-id'],
+                'library': 1,
+            }
+        )
+        options['prior'] = result.stdout[0]['id']
+
+    #Assigning default values for attributes
+    args = {
+        'organization-id': None,
+        'name': generate_name(6),
+        'description': None,
+        'prior': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(LifecycleEnvironment, args))
 
     return args
 

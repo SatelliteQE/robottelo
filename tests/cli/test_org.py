@@ -7,8 +7,9 @@ Test class for Organization CLI
 
 from ddt import data, ddt
 from robottelo.cli.factory import (
-    make_domain, make_environment, make_hostgroup, make_medium, make_org,
-    make_proxy, make_subnet, make_template, make_user)
+    make_domain, make_hostgroup, make_lifecycle_environment,
+    make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from tests.cli.basecli import BaseCLI
 from robottelo.common.helpers import generate_string
@@ -442,14 +443,26 @@ class TestOrg(BaseCLI):
         @Feature: Org - Environment
         @Assert: Environment is added to the org
         """
-        org_result = make_org()
-        env_result = make_environment()
-        return_value = Org().add_environment({
-            'name': org_result['name'],
-            'environment': env_result['name']})
-        self.assertTrue(return_value.return_code == 0,
-                        "Add Environment - retcode")
-        self.assertFalse(return_value.stderr)
+        new_obj = make_org()
+        env_result = make_lifecycle_environment({
+            'organization-id': new_obj['label'],
+        })
+
+        # Can we list the new environment?
+        environment = LifecycleEnvironment.list(
+            {
+                'organization-id': new_obj['label'],
+                'name': env_result['name']
+            })
+        # Result is a list of one item
+        new_env = environment.stdout[0]
+
+        self.assertEqual(
+            environment.return_code, 0, "Could not fetch list of environments")
+        self.assertEqual(
+            new_env['name'],
+            env_result['name']
+        )
 
     def test_remove_environment(self):
         """
@@ -457,17 +470,44 @@ class TestOrg(BaseCLI):
         @Feature: Org - Environment
         @Assert: Environment is removed from the org
         """
-        org_result = make_org()
-        env_result = make_environment()
-        Org().add_environment({
-            'name': org_result['name'],
-            'environment': env_result['name']})
-        return_value = Org().remove_environment({
-            'name': org_result['name'],
-            'environment': env_result['name']})
-        self.assertTrue(return_value.return_code == 0,
-                        "Remove Environment - retcode")
-        self.assertFalse(return_value.stderr)
+
+        new_obj = make_org()
+        env_result = make_lifecycle_environment({
+            'organization-id': new_obj['label'],
+        })
+
+        # Can we list the new environment?
+        environment = LifecycleEnvironment.list(
+            {
+                'organization-id': new_obj['label'],
+                'name': env_result['name']
+            })
+        # Result is a list of one item
+        new_env = environment.stdout[0]
+
+        self.assertEqual(
+            environment.return_code, 0, "Could not fetch list of environments")
+        self.assertEqual(new_env['name'], env_result['name'])
+
+        # Delete it now
+        return_value = LifecycleEnvironment.delete({
+            'organization-id': new_obj['label'],
+            'id': env_result['id']})
+        self.assertEqual(return_value.return_code, 0,
+                         "Add Environment - retcode")
+        self.assertEqual(
+            len(return_value.stderr), 0, "There should not be an error here.")
+
+        # Can we list the new environment?
+        environment = LifecycleEnvironment.list(
+            {
+                'organization-id': new_obj['label'],
+                'name': env_result['name']
+            })
+        self.assertEqual(
+            environment.return_code, 0, "Could not fetch list of environments")
+        self.assertEqual(
+            len(environment.stdout), 0, "Environment was not removed")
 
     @bzbug('1062303')
     def test_add_smartproxy(self):
