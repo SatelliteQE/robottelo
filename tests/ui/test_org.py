@@ -11,8 +11,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.helpers import (generate_name, generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
-from robottelo.common.constants import (NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE,
-                                        SNIPPET_DATA_FILE)
+from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import bzbug, redminebug
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
