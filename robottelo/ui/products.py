@@ -25,7 +25,6 @@ class Products(Base):
         Creates new product from UI
         """
         self.wait_until_element(locators["prd.new"]).click()
-        self.wait_for_ajax()
         time.sleep(5)
         self.text_field_update(common_locators["name"], name)
         if sync_plan and not create_sync_plan:
