@@ -9,6 +9,7 @@ from basecli import BaseCLI
 
 class TestSSOCLI(BaseCLI):
 
+
 # Notes for SSO testing:
 # Of interest... In some testcases I've placed a few comments prefaced with
 # "devnote:" These are -- obviously -- notes from developers that might help
@@ -44,3 +45,4 @@ class TestSSOCLI(BaseCLI):
         @assert: Log in to hammer cli successfully
         @status: Manual
         """
+        

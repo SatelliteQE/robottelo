@@ -107,4 +107,3 @@ class TestSSOCLI(BaseCLI):
         @bz: 1072780
         @status: Manual
         """
-        

@@ -8,7 +8,6 @@ Test class for installer (UI)
 from tests.ui.baseui import BaseUI
 
 
-
 class TestSSOUI(BaseUI):
 
 # Notes for SSO testing:
@@ -274,4 +273,3 @@ class TestSSOUI(BaseUI):
         usergroup of which he is a part.
         @status: Manual
         """
-        
