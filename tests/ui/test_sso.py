@@ -4,8 +4,9 @@
 """
 Test class for installer (UI)
 """
-import unittest
+#import unittest
 from tests.ui.baseui import BaseUI
+
 
 
 class TestSSOUI(BaseUI):
@@ -164,7 +165,7 @@ class TestSSOUI(BaseUI):
         """
 
     def test_sso_ldap_user_named_admin(self):
-        # devnote:  
+        # devnote:
         # shouldn't be a problem since admin from internal DB will be used at
         # first, worth of testing thou, however if authentication is done by
         # external system (IPA, ...) which can create users in foreman,
@@ -174,7 +175,8 @@ class TestSSOUI(BaseUI):
         @test: SSO - what happens when we have an ldap user named "admin"?
         @steps:
         1. Try to login with ldap user "admin"
-        @assert: Login from local db user "admin" overrides any ldap user "admin"
+        @assert: Login from local db user "admin" overrides any ldap user
+        "admin"
         @status: Manual
         """
 
@@ -272,3 +274,4 @@ class TestSSOUI(BaseUI):
         usergroup of which he is a part.
         @status: Manual
         """
+        

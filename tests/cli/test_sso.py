@@ -5,7 +5,7 @@
 Test class for SSO (CLI)
 """
 from basecli import BaseCLI
-import unittest
+#import unittest
 
 class TestSSOCLI(BaseCLI):
 
