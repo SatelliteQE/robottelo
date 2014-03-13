@@ -135,7 +135,8 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_models']"),
     "menu.architectures": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_architectures']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_architectures']")),
 
     # Configure Menu
     "menu.configure": (
