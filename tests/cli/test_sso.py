@@ -7,8 +7,8 @@ Test class for SSO (CLI)
 from basecli import BaseCLI
 #import unittest
 
-class TestSSOCLI(BaseCLI):
 
+class TestSSOCLI(BaseCLI):
 
 # Notes for SSO testing:
 # Of interest... In some testcases I've placed a few comments prefaced with
@@ -45,4 +45,3 @@ class TestSSOCLI(BaseCLI):
         @assert: Log in to hammer cli successfully
         @status: Manual
         """
-        
