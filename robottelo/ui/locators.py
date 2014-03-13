@@ -180,14 +180,16 @@ menu_locators = {
     # Administer Menu
     "menu.administer": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='administer_menu']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='administer_menu']")),
     "menu.ldap_auth": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
             "//a[@id='menu_item_auth_source_ldaps']")),
     "menu.users": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_users']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_users']")),
     "menu.user_groups": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_usergroups']"),
@@ -343,7 +345,7 @@ locators = {
     # Login
     "login.username": (By.ID, "login_login"),
     "login.password": (By.ID, "login_password"),
-    "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
+    "login.gravatar": (By.XPATH, "//img[contains(@class, 'avatar')]"),
 
     # Organizations
     "org.new": (
