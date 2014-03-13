@@ -124,10 +124,12 @@ menu_locators = {
             "//a[@id='menu_item_config_templates']")),
     "menu.partition_tables": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_ptables']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_ptables']")),
     "menu.installation_media": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_media']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_media']")),
     "menu.hardware_models": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_models']"),
