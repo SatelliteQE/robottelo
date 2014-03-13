@@ -2,7 +2,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-import unittest
+#import unittest
+
 
 class TestSSOCLI(BaseCLI):
 
@@ -106,3 +107,4 @@ class TestSSOCLI(BaseCLI):
         @bz: 1072780
         @status: Manual
         """
+        
