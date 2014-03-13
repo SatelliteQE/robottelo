@@ -46,6 +46,9 @@ class Login(Base):
         if self.find_element(locators["login.gravatar"]):
             nav = Navigator(self.browser)
             nav.go_to_sign_out()
+        else:
+            raise Exception(
+                "could not find login.gravatar to sign out")
 
     def is_logged(self):
         """
