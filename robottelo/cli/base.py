@@ -245,7 +245,7 @@ class Base(object):
 
         cls.command_sub = "update"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 
