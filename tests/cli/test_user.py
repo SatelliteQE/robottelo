@@ -44,8 +44,8 @@ class User(BaseCLI):
         self.assertTrue(result.stdout[0]['email'] == args['mail'],
                         "User search - check our value 'Email'")
 
-    @data({'login': generate_string("latin1", 10).encode("utf-8")},
-          {'login': generate_string("utf8", 10).encode("utf-8")},
+    @data({'login': generate_string("latin1", 10)},
+          {'login': generate_string("utf8", 10)},
           {'login': generate_string("alpha", 10)},
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
@@ -62,8 +62,8 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'firstname': generate_string("latin1", 10).encode("utf-8")},
-          {'firstname': generate_string("utf8", 10).encode("utf-8")},
+    @data({'firstname': generate_string("latin1", 10)},
+          {'firstname': generate_string("utf8", 10)},
           {'firstname': generate_string("alpha", 10)},
           {'firstname': generate_string("alphanumeric", 10)},
           {'firstname': generate_string("numeric", 10)},
@@ -80,8 +80,8 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'lastname': generate_string("latin1", 10).encode("utf-8")},
-          {'lastname': generate_string("utf8", 10).encode("utf-8")},
+    @data({'lastname': generate_string("latin1", 10)},
+          {'lastname': generate_string("utf8", 10)},
           {'lastname': generate_string("alpha", 10)},
           {'lastname': generate_string("alphanumeric", 10)},
           {'lastname': generate_string("numeric", 10)},
@@ -98,9 +98,9 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'mail': generate_string("latin1", 10).encode("utf-8") +
+    @data({'mail': generate_string("latin1", 10) +
            "@somemail.com"},
-          {'mail': generate_string("utf8", 10).encode("utf-8") +
+          {'mail': generate_string("utf8", 10) +
            "@somemail.com"},
           {'mail': generate_string("alpha", 10) + "@somemail.com"},
           {'mail': generate_string("alphanumeric", 10) + "@somemail.com"},
@@ -119,8 +119,8 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'password': generate_string("latin1", 10).encode("utf-8")},
-          {'password': generate_string("utf8", 10).encode("utf-8")},
+    @data({'password': generate_string("latin1", 10)},
+          {'password': generate_string("utf8", 10)},
           {'password': generate_string("alpha", 10)},
           {'password': generate_string("alphanumeric", 10)},
           {'password': generate_string("numeric", 10)},

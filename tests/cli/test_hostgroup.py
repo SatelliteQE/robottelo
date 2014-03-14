@@ -17,23 +17,23 @@ class TestHostGroup(MetaCLI):
     factory_obj = HostGroup
 
     POSITIVE_UPDATE_DATA = (
-        ({'id': generate_string("latin1", 10).encode("utf-8")},
-         {'name': generate_string("latin1", 10).encode("utf-8")}),
-        ({'id': generate_string("utf8", 10).encode("utf-8")},
-         {'name': generate_string("utf8", 10).encode("utf-8")}),
+        ({'id': generate_string("latin1", 10)},
+         {'name': generate_string("latin1", 10)}),
+        ({'id': generate_string("utf8", 10)},
+         {'name': generate_string("utf8", 10)}),
         ({'id': generate_string("alpha", 10)},
          {'name': generate_string("alpha", 10)}),
         ({'id': generate_string("alphanumeric", 10)},
          {'name': generate_string("alphanumeric", 10)}),
         ({'id': generate_string("numeric", 10)},
          {'name': generate_string("numeric", 10)}),
-        ({'id': generate_string("utf8", 10).encode("utf-8")},
+        ({'id': generate_string("utf8", 10)},
          {'name': generate_string("html", 6)}),
     )
 
     NEGATIVE_UPDATE_DATA = (
-        ({'id': generate_string("utf8", 10).encode("utf-8")},
-         {'name': generate_string("utf8", 300).encode("utf-8")}),
-        ({'id': generate_string("utf8", 10).encode("utf-8")},
+        ({'id': generate_string("utf8", 10)},
+         {'name': generate_string("utf8", 300)}),
+        ({'id': generate_string("utf8", 10)},
          {'name': ""}),
     )
