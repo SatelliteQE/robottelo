@@ -19,8 +19,8 @@ import unittest
 
 
 POSITIVE_CREATE_DATA_1 = (
-    {'name': generate_string("latin1", 10).encode("utf-8")},
-    {'name': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("latin1", 10)},
+    {'name': generate_string("utf8", 10)},
     {'name': generate_string("alpha", 10)},
     {'name': generate_string("alphanumeric", 10)},
     {'name': generate_string("numeric", 10)},
@@ -42,10 +42,10 @@ POSITIVE_CREATE_DATA_2 = (
 )
 
 POSITIVE_NAME_LABEL_DATA = (
-    {'name': generate_string("latin1", 10).encode("utf-8"),
-     'label': generate_string("latin1", 10).encode("utf-8")},
-    {'name': generate_string("utf8", 10).encode("utf-8"),
-     'label': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("latin1", 10),
+     'label': generate_string("latin1", 10)},
+    {'name': generate_string("utf8", 10),
+     'label': generate_string("utf8", 10)},
     {'name': generate_string("alpha", 10),
      'label': generate_string("alpha", 10)},
     {'name': generate_string("alphanumeric", 10),
@@ -56,10 +56,10 @@ POSITIVE_NAME_LABEL_DATA = (
      'label': generate_string("numeric", 10)},)
 
 POSITIVE_NAME_DESC_DATA = (
-    {'name': generate_string("latin1", 10).encode("utf-8"),
-     'description': generate_string("latin1", 10).encode("utf-8")},
-    {'name': generate_string("utf8", 10).encode("utf-8"),
-     'description': generate_string("utf8", 10).encode("utf-8")},
+    {'name': generate_string("latin1", 10),
+     'description': generate_string("latin1", 10)},
+    {'name': generate_string("utf8", 10),
+     'description': generate_string("utf8", 10)},
     {'name': generate_string("alpha", 10),
      'description': generate_string("alpha", 10)},
     {'name': generate_string("alphanumeric", 10),
@@ -736,9 +736,9 @@ class TestOrg(BaseCLI):
           {'label': generate_string('alpha', 10),
            'name': generate_string('alphanumeric', 300)},
           {'label': generate_string('alpha', 10),
-           'name': generate_string('utf8', 300).encode('utf8')},
+           'name': generate_string('utf8', 300)},
           {'label': generate_string('alpha', 10),
-           'name': generate_string('latin1', 300).encode('utf8')},
+           'name': generate_string('latin1', 300)},
           {'label': generate_string('alpha', 10),
            'name': generate_string('html', 300)})
     def test_negative_create_0(self, test_data):
@@ -842,8 +842,8 @@ class TestOrg(BaseCLI):
 
     # Positive Update
 
-    @data({'name': generate_string("latin1", 10).encode("utf-8")},
-          {'name': generate_string("utf8", 10).encode("utf-8")},
+    @data({'name': generate_string("latin1", 10)},
+          {'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
           {'name': generate_string("alphanumeric", 10)},
           {'name': generate_string("numeric", 10)},
