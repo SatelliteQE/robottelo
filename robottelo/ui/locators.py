@@ -281,20 +281,16 @@ tab_locators = {
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
-<<<<<<< HEAD
-=======
 
     #Roles
     #Third level UI
     "roles.tab_filter": (
         By.XPATH, "//a[@href='#primary']"),
     "roles.tab_org": (
-        By.XPATH, "//a[@href='#organizations']")}
->>>>>>> master
+        By.XPATH, "//a[@href='#organizations']"),
 
     #GPG key
     #Third level UI
-
     "gpgkey.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "gpgkey.tab_products": (
