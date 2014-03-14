@@ -46,39 +46,52 @@ def bzbug(bz_id):
             return lambda func: func
 
 
+_redmine = {
+    'closed_statuses': None,
+    'issues': {},
+}
+
+
 def _redmine_closed_issue_statuses():
     """Returns the Foreman's closed issue statuses IDs as a list"""
-    result = requests.get('%s/issue_statuses.json' % REDMINE_URL).json()
-    closed_statuses_ids = []
 
-    for issue_status in result['issue_statuses']:
-        if issue_status.get('is_closed', False):
-            closed_statuses_ids.append(issue_status['id'])
+    if _redmine['closed_statuses'] is None:
+        result = requests.get('%s/issue_statuses.json' % REDMINE_URL).json()
+        _redmine['closed_statuses'] = []
 
-    return closed_statuses_ids
+        for issue_status in result['issue_statuses']:
+            if issue_status.get('is_closed', False):
+                _redmine['closed_statuses'].append(issue_status['id'])
+
+    return _redmine['closed_statuses']
 
 
 def redminebug(bug_id):
     """Decorator that skips the test if the redmine's bug is open"""
-    result = requests.get('%s/issues/%s.json' % (REDMINE_URL, bug_id))
 
-    if result.status_code != 200:
-        logging.warning('Invalid Redmine issue #%s' % bug_id)
-        return lambda func: func
+    if not bug_id in _redmine['issues']:
+        result = requests.get('%s/issues/%s.json' % (REDMINE_URL, bug_id))
 
-    result = result.json()
-
-    try:
-        issue = result['issue']
-        status_id = issue['status']['id']
-    except KeyError, e:
-        logging.warning('Could not get info about Redmine issue #%s' % bug_id)
-        logging.exception(e)
-        return lambda func: func
-    else:
-        closed_issue_statuses = _redmine_closed_issue_statuses()
-        if status_id not in closed_issue_statuses:
-            return unittest.skip(
-                'Test skipped due to Redmine issue #%s' % bug_id)
-        else:
+        if result.status_code != 200:
+            logging.warning('Invalid Redmine issue #%s' % bug_id)
             return lambda func: func
+
+        result = result.json()
+
+        try:
+            issue = result['issue']
+            status_id = issue['status']['id']
+            _redmine['issues'][bug_id] = status_id
+        except KeyError, e:
+            logging.warning(
+                'Could not get info about Redmine issue #%s' % bug_id)
+            logging.exception(e)
+            return lambda func: func
+    else:
+        status_id = _redmine['issues'][bug_id]
+
+    if status_id not in _redmine_closed_issue_statuses():
+        return unittest.skip(
+            'Test skipped due to Redmine issue #%s' % bug_id)
+    else:
+        return lambda func: func
