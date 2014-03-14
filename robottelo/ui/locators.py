@@ -280,7 +280,14 @@ tab_locators = {
     "prd.tab_details": (
         By.XPATH, "//li[contains(@ng-class,'info')]"),
     "prd.tab_repos": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
+
+    #Roles
+    #Third level UI
+    "roles.tab_filter": (
+        By.XPATH, "//a[@href='#primary']"),
+    "roles.tab_org": (
+        By.XPATH, "//a[@href='#organizations']")}
 
 
 common_locators = {
@@ -551,6 +558,10 @@ locators = {
          "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.delete": (By.XPATH,
                      "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "roles.add_permission": (
+        By.XPATH, "//a[@data-id='aid_filters_new']"),
+    "roles.select_resource_type": (
+        By.ID, "filter_resource_type"),
     "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
     "roles.perm_filter": (By.XPATH,
                           "//input[@placeholder='Filter permissions']"),
