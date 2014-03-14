@@ -31,7 +31,6 @@ class Repos(Base):
             prd_element.click()
             sleep(2)
             self.wait_until_element(locators["repo.new"]).click()
-            self.wait_for_ajax()
             sleep(5)
             self.text_field_update(common_locators["name"], name)
             if repo_type:
