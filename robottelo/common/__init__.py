@@ -4,9 +4,11 @@ Configuration class for the Framework
 
 import ConfigParser
 import logging
+import logging.config  # required for the logging configuration
 import os
 import sys
 
+from ConfigParser import NoSectionError
 from robottelo.common.constants import ROBOTTELO_PROPERTIES
 
 
@@ -71,7 +73,7 @@ class Configs(object):
 
         try:
             logging.config.fileConfig("%s/logging.conf" % self.get_root_path())
-        except Exception:
+        except NoSectionError:
             log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
             logging.basicConfig(format=log_format)
 
