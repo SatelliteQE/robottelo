@@ -42,18 +42,47 @@ class Role(BaseUI):
                         (common_locators["notif.success"]))
         self.assertIsNone(self.role.search(name))
 
-    def test_update_role(self):
+    def test_update_role_name(self):
         """
         @Feature: Role - Positive Update
-        @Test: Update role with name/permission
+        @Test: Update role name
         @Assert: Role is updated
         """
         name = generate_name(6)
         new_name = generate_name(4)
-        perm_type = "Media"
-        permissions = ['create_media', 'edit_media']  # List of permissions
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
         self.role.create(name)
-        self.role.update(name, new_name, perm_type, permissions)
+        self.role.update(name, new_name)
         self.assertIsNotNone(self.role.search(new_name))
+
+    def test_update_role_permission(self):
+        """
+        @Feature: Role - Positive Update
+        @Test: Update role permissions
+        @Assert: Role is updated
+        """
+        name = generate_name(6)
+        resource_type = 'Architecture'
+        permission_list = ['access_dashboard', 'access_settings']
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.navigator.go_to_roles()
+        self.role.create(name)
+        self.role.update(name, add_permission=True,
+                         resource_type=resource_type,
+                         permission_list=permission_list)
+
+    def test_update_role_org(self):
+        """
+        @Feature: Role - Positive Update
+        @Test: Update organization under selected role
+        @Assert: Role is updated
+        """
+        name = generate_name(6)
+        org_name = generate_name(6)
+        self.login.login(self.katello_user, self.katello_passwd)  # login
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_roles()
+        self.role.create(name)
+        self.role.update(name, add_permission=True, organization=[org_name])
