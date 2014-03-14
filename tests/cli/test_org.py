@@ -69,6 +69,20 @@ POSITIVE_NAME_DESC_DATA = (
     {'name': generate_string("html", 10),
      'description': generate_string("numeric", 10)},)
 
+POSITIVE_NAME_DESC_LABEL_DATA = (
+    {'name': generate_string("alpha", 10),
+     'description': generate_string("alpha", 10),
+     'label': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10),
+     'description': generate_string("alphanumeric", 10),
+     'label': generate_string("alpha", 10)},
+    {'name': generate_string("numeric", 10),
+     'description': generate_string("numeric", 10),
+     'label': generate_string("alpha", 10)},
+    {'name': generate_string("html", 10),
+     'description': generate_string("numeric", 10),
+     'label': generate_string("alpha", 10)},)
+
 
 @ddt
 class TestOrg(BaseCLI):
@@ -97,6 +111,34 @@ class TestOrg(BaseCLI):
                          "There should not be an exception here")
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
+
+    @redminebug('1076541')
+    @data({'name': generate_string("latin1", 10).encode("utf-8")},
+          {'name': generate_string("utf8", 10).encode("utf-8")},
+          {'name': generate_string("alpha", 10)},
+          {'name': generate_string("alphanumeric", 10)},
+          {'name': generate_string("numeric", 10)},
+          {'name': generate_string("html", 10)})
+    def test_redmine_1076541(self, test_data):
+        """
+        @test: Create organization with valid values then update its name
+        @feature: Organizations
+        @assert: organization name is updated
+        @bz : redmine#1076541
+        """
+
+        new_obj = make_org()
+        # Can we find the new object?
+        result = Org().info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+        result = Org().update({'id': new_obj['id'],
+                               'new-name': test_data['name']})
+
+        self.assertEqual(result.return_code, 0)
+        self.assertFalse(result.stderr)
 
     @redminebug('4295')
     def test_remove_domain(self):
@@ -722,25 +764,27 @@ class TestOrg(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
 
     # Positive Delete
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name, label and description are alpha
-        name, label and description are numeric
-        name, label and description are alphanumeric
-        name, label and description are utf-8
-        name, label and description are latin1
-        name, label and description are html
-    """)
+    @bzbug('1076568')
+    @data(*POSITIVE_NAME_DESC_LABEL_DATA)
     def test_positive_delete_1(self, test_data):
         """
         @test: Create organization with valid values then delete it
         @feature: Organizations
         @assert: organization is deleted
-        @status: manual
         """
 
-        pass
+        new_obj = make_org(test_data)
+
+        # Can we find the new object?
+        result = Org().info({'id': new_obj['id']})
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+        return_value = Org().delete({'name': result.stdout['name']})
+        self.assertEqual(return_value.return_code, 0)
+        self.assertFalse(return_value.stderr)
 
     # Negative Delete
 
