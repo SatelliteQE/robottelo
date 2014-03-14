@@ -9,11 +9,14 @@ import unittest
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import (generate_name, generate_strings_list,
-                                      generate_string)
-from robottelo.common.constants import NOT_IMPLEMENTED
+                                      generate_string, generate_ipaddr,
+                                      generate_email_address, get_data_file)
+from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import bzbug, redminebug
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
+
+URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
 @ddt
@@ -472,24 +475,32 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_subnet_1(self, subnet_name):
         """
         @feature: Organizations
         @test: Add a subnet by using organization name and subnet name
         @assert: subnet is added
-        @status: manual
         """
 
-        pass
+        org_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        subnet_network = generate_ipaddr(ip3=True)
+        subnet_mask = "255.255.255.0"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_subnets()
+        self.subnet.create([org_name], subnet_name, subnet_network,
+                           subnet_mask)
+        self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
+        self.navigator.go_to_org()
+        self.org.update(org_name, new_name=new_name,
+                        new_subnets=[subnet_name])
+        self.assertIsNotNone(self.org.search(new_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -548,27 +559,28 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_add_domain_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_domain_1(self, domain):
         """
         @feature: Organizations
         @test: Add a domain to an organization
         @assert: Domain is added to organization
-        @status: manual
         """
-
-        pass
+        org_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_domains()
+        self.domain.create(domain)
+        self.assertIsNotNone(self.domain.search(domain))
+        self.navigator.go_to_org()
+        self.org.update(org_name, new_name=new_name,
+                        new_domains=[domain])
+        self.assertIsNotNone(self.org.search(new_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -590,25 +602,33 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_add_user_2(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_user_2(self, user):
         """
         @feature: Organizations
         @test: Create different types of users then add user
         by using the organization name
         @assert: User is added to organization
-        @status: manual
         """
 
-        pass
+        org_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        password = generate_name(8)
+        email = generate_email_address()
+        search_key = "login"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_users()
+        self.user.create(user, email, password, password)
+        self.assertIsNotNone(self.user.search(user, search_key))
+        self.navigator.go_to_org()
+        self.org.update(org_name, new_name=new_name,
+                        new_users=[user])
+        self.assertIsNotNone(self.org.search(new_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1120,24 +1140,31 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_medium_1(self, medium):
         """
         @feature: Organizations
         @test: Add medium by using the organization name and medium name
         @assert: medium is added
-        @status: manual
         """
 
-        pass
+        org_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        path = URL % generate_name(6)
+        os_family = "Red Hat"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_installation_media()
+        self.medium.create(medium, path, os_family)
+        self.assertIsNotNone(self.medium.search(medium))
+        self.navigator.go_to_org()
+        self.org.update(org_name, new_name=new_name,
+                        new_medias=[medium])
+        self.assertIsNotNone(self.org.search(new_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1196,25 +1223,33 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_configtemplate_1(self, template):
         """
         @feature: Organizations
         @test: Add config template by using organization name and
         configtemplate name
         @assert: configtemplate is added
-        @status: manual
         """
 
-        pass
+        org_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_provisioning_templates()
+        self.template.create(template, template_path, True,
+                             temp_type, None)
+        self.assertIsNotNone(self.template.search(template))
+        self.navigator.go_to_org()
+        self.org.update(org_name, new_name=new_name,
+                        new_templates=[template])
+        self.assertIsNotNone(self.org.search(new_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE

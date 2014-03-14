@@ -124,16 +124,19 @@ menu_locators = {
             "//a[@id='menu_item_config_templates']")),
     "menu.partition_tables": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_ptables']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_ptables']")),
     "menu.installation_media": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_media']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_media']")),
     "menu.hardware_models": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_models']"),
     "menu.architectures": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_architectures']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_architectures']")),
 
     # Configure Menu
     "menu.configure": (
@@ -180,14 +183,16 @@ menu_locators = {
     # Administer Menu
     "menu.administer": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='administer_menu']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='administer_menu']")),
     "menu.ldap_auth": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
             "//a[@id='menu_item_auth_source_ldaps']")),
     "menu.users": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_users']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_users']")),
     "menu.user_groups": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_usergroups']"),
@@ -276,6 +281,16 @@ tab_locators = {
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
+<<<<<<< HEAD
+=======
+
+    #Roles
+    #Third level UI
+    "roles.tab_filter": (
+        By.XPATH, "//a[@href='#primary']"),
+    "roles.tab_org": (
+        By.XPATH, "//a[@href='#organizations']")}
+>>>>>>> master
 
     #GPG key
     #Third level UI
@@ -352,7 +367,7 @@ locators = {
     # Login
     "login.username": (By.ID, "login_login"),
     "login.password": (By.ID, "login_password"),
-    "login.gravatar": (By.XPATH, "//img[contains(@class, 'gravatar')]"),
+    "login.gravatar": (By.XPATH, "//img[contains(@class, 'avatar')]"),
 
     # Organizations
     "org.new": (
@@ -555,6 +570,10 @@ locators = {
          "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.delete": (By.XPATH,
                      "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "roles.add_permission": (
+        By.XPATH, "//a[@data-id='aid_filters_new']"),
+    "roles.select_resource_type": (
+        By.ID, "filter_resource_type"),
     "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
     "roles.perm_filter": (By.XPATH,
                           "//input[@placeholder='Filter permissions']"),
