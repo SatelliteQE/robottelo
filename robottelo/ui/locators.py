@@ -278,9 +278,11 @@ tab_locators = {
     "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
 
     "prd.tab_details": (
-        By.XPATH, "//li[contains(@ng-class,'info')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
+<<<<<<< HEAD
+=======
 
     #Roles
     #Third level UI
@@ -288,7 +290,17 @@ tab_locators = {
         By.XPATH, "//a[@href='#primary']"),
     "roles.tab_org": (
         By.XPATH, "//a[@href='#organizations']")}
+>>>>>>> master
 
+    #GPG key
+    #Third level UI
+
+    "gpgkey.tab_details": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "gpgkey.tab_products": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'products')]"),
+    "gpgkey.tab_repos": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
 
 common_locators = {
 
@@ -853,4 +865,9 @@ locators = {
         "//form[@alch-edit-text='gpgKey.name']\
         //button[@ng-click='save()']"),
     "gpgkey.upload_button": (
-        By.XPATH, "//button[@ng-click='progress.uploading = true']")}
+        By.XPATH, "//button[@ng-click='progress.uploading = true']"),
+    "gpgkey.product_repo_search": (
+        By.XPATH,
+        ("//input[@placeholder='Filter' and contains(@ng-model, 'Search']")),
+    "gpgkey.product_repo": (
+        By.XPATH, "//td/a[contains(@href, 'repositories')]")}

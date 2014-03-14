@@ -25,7 +25,7 @@ class Products(Base):
         Creates new product from UI
         """
         self.wait_until_element(locators["prd.new"]).click()
-        self.wait_for_ajax()
+        time.sleep(5)
         self.text_field_update(common_locators["name"], name)
         if sync_plan and not create_sync_plan:
             type_ele = self.find_element(locators["prd.sync_plan"])
@@ -42,8 +42,9 @@ class Products(Base):
         if gpg_key:
             type_ele = self.find_element(common_locators["gpg_key"])
             Select(type_ele).select_by_visible_text(gpg_key)
-        self.text_field_update(common_locators["description"], description)
-        time.sleep(2)
+        if description:
+            self.text_field_update(common_locators["description"], description)
+            time.sleep(2)
         self.wait_until_element(common_locators["create"]).click()
         self.wait_for_ajax()
 
@@ -58,7 +59,7 @@ class Products(Base):
             prd_element.click()
             self.wait_for_ajax()
             self.wait_until_element(tab_locators["prd.tab_details"]).click()
-            self.wait_until_element(tab_locators["prd.tab_details"]).click()
+            self.wait_for_ajax()
             if new_name:
                 self.wait_until_element(locators["prd.name_edit"]).click()
                 self.text_field_update(locators["prd.name_update"], new_name)
@@ -71,6 +72,7 @@ class Products(Base):
                 self.wait_until_element(locators["prd.gpg_key_edit"]).click()
                 type_ele = self.find_element(locators["prd.gpg_key_update"])
                 Select(type_ele).select_by_visible_text(new_gpg_key)
+                self.wait_for_ajax()
                 self.find_element(common_locators["create"]).click()
             if new_sync_plan:
                 self.wait_until_element(locators["prd.sync_plan_edit"]).click()
