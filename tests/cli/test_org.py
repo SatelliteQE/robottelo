@@ -130,7 +130,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    #@bzbug('1076568')
+    @bzbug('1076568')
     def test_bugzilla_1076568(self):
         """
         @test: Hammer Cli : Org delete fails
