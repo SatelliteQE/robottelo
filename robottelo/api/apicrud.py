@@ -28,7 +28,7 @@ def load_from_data(cls, data, transform):
             related_instance = load_from_data(related_class, v, transform)
             instance[k] = related_instance
         elif isinstance(v, basestring):
-            instance[k] = v #.decode('unicode_escape')
+            instance[k] = v
         else:
             instance[k] = v
     return instance
