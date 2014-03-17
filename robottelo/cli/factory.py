@@ -77,7 +77,8 @@ def create_object(cli_object, args):
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0:
         logger.debug(result.stderr)  # Show why creation failed.
-        raise Exception("Failed to create object.")
+        raise Exception(
+            'Failed to create %s with %r data.' % (cli_object.__name__, args))
 
     # Sometimes we get a list with a dictionary and not
     # a dictionary.
