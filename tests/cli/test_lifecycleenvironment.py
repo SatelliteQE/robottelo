@@ -36,8 +36,7 @@ class TestLifeCycleEnvironment(BaseCLI):
     @bzbug('1077333')
     def test_bugzilla_1077333(self):
         """
-        @Test: Cannot search lifecycle environment via its name if using UTF-8
-        characters
+        @Test: Search lifecycle environment via its name containing UTF-8 chars
         @Feature: Lifecycle Environment
         @Assert: Can get info for lifecycle by its name
         @BZ: 1077333
