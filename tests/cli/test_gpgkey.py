@@ -86,7 +86,7 @@ class TestGPGKey(BaseCLI):
     @redminebug('4271')
     def test_redmine_4271(self):
         """
-        @Test: cvs output for gpg subcommand doesn\'t work\'
+        @Test: cvs output for gpg subcommand doesn\'t work
         @Feature: GPG Keys
         @Assert: cvs output for gpg info works
         @BZ: Redmine#4271
@@ -98,16 +98,20 @@ class TestGPGKey(BaseCLI):
 
         # Setup a new key file
         data['key'] = VALID_GPG_KEY_FILE_PATH
-        new_obj = make_gpg_key(data)
+        try:
+            new_obj = make_gpg_key(data)
+        except Exception, e:
+            self.fail(e)
 
         # Can we find the new object?
         result = GPGKey().info(
             {'id': new_obj['id']}
         )
 
-        self.assertTrue(result.return_code == 0, "Failed to create object")
-        self.assertTrue(
-            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(result.return_code, 0,
+                         "Failed to get object information")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
@@ -125,21 +129,24 @@ class TestGPGKey(BaseCLI):
         data['organization-id'] = self.org['label']
 
         # Setup a new key file
-        data['key'] = '/tmp/%s' % generate_name()
         content = generate_name()
         gpg_key = self.create_gpg_key_file(content=content)
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
-        ssh.upload_file(local_file=gpg_key, remote_file=data['key'])
-        new_obj = make_gpg_key(data)
+        data['key'] = gpg_key
+        try:
+            new_obj = make_gpg_key(data)
+        except Exception, e:
+            self.fail(e)
 
         # Can we find the new object?
         result = GPGKey().info(
             {'id': new_obj['id']}
         )
 
-        self.assertTrue(result.return_code == 0, "Failed to create object")
-        self.assertTrue(
-            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(result.return_code, 0,
+                         "Failed to get object information")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
         self.assertEqual(
             result.stdout['content'], content)
 
@@ -158,16 +165,19 @@ class TestGPGKey(BaseCLI):
 
         # Setup a new key file
         data['key'] = VALID_GPG_KEY_FILE_PATH
-        new_obj = make_gpg_key(data)
+        try:
+            new_obj = make_gpg_key(data)
+        except Exception, e:
+            self.fail(e)
 
         # Can we find the new object?
         result = GPGKey().info(
             {'name': new_obj['name']}
         )
 
-        self.assertTrue(result.return_code == 0, "Failed to create object")
-        self.assertTrue(
-            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
@@ -190,7 +200,10 @@ class TestGPGKey(BaseCLI):
         data = data.copy()
         data['key'] = VALID_GPG_KEY_FILE_PATH
         data['organization-id'] = org['label']
-        new_obj = make_gpg_key(data)
+        try:
+            new_obj = make_gpg_key(data)
+        except Exception, e:
+            self.fail(e)
 
         # Can we find the new object?
         result = GPGKey().exists(
@@ -198,9 +211,9 @@ class TestGPGKey(BaseCLI):
             (self.search_key, new_obj[self.search_key])
         )
 
-        self.assertTrue(result.return_code == 0, "Failed to create object")
-        self.assertTrue(
-            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
@@ -217,7 +230,10 @@ class TestGPGKey(BaseCLI):
         data = data.copy()
         data['key'] = VALID_GPG_KEY_FILE_PATH
         data['organization-id'] = self.org['label']
-        new_obj = make_gpg_key(data)
+        try:
+            new_obj = make_gpg_key(data)
+        except Exception, e:
+            self.fail(e)
 
         # Can we find the new object?
         result = GPGKey().exists(
@@ -225,9 +241,9 @@ class TestGPGKey(BaseCLI):
             (self.search_key, new_obj[self.search_key])
         )
 
-        self.assertTrue(result.return_code == 0, "Failed to create object")
-        self.assertTrue(
-            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
@@ -245,7 +261,10 @@ class TestGPGKey(BaseCLI):
         # Setup data to pass to the factory
         data = data.copy()
         data['organization-id'] = self.org['label']
-        new_obj = make_gpg_key(data)
+        try:
+            new_obj = make_gpg_key(data)
+        except Exception, e:
+            self.fail(e)
 
         # Can we find the new object?
         result = GPGKey().exists(
@@ -253,9 +272,9 @@ class TestGPGKey(BaseCLI):
             (self.search_key, new_obj[self.search_key])
         )
 
-        self.assertTrue(result.return_code == 0, "Failed to create object")
-        self.assertTrue(
-            len(result.stderr) == 0, "There should not be an exception here")
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
