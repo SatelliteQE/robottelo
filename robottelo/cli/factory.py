@@ -558,13 +558,7 @@ def make_lifecycle_environment(options=None):
     if not options or not options.get('organization-id', None):
         raise Exception("Please provide a valid ORG ID.")
     if not options.get('prior', None):
-        result = LifecycleEnvironment.list(
-            {
-                'organization-id': options['organization-id'],
-                'library': 1,
-            }
-        )
-        options['prior'] = result.stdout[0]['id']
+        options['prior'] = 'Library'
 
     #Assigning default values for attributes
     args = {
