@@ -57,7 +57,7 @@ class LifecycleEnvironment(Base):
     @classmethod
     def list(cls, organization_id, options=None):
         """
-        Lists available GPG Keys.
+        Lists available Lifecycle Environments for organization.
         """
 
         cls.command_sub = "list"
