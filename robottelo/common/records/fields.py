@@ -17,7 +17,7 @@ import collections
 
 from random import randint, choice
 from robottelo.common.helpers import (
-    generate_mac, generate_string, generate_ipaddr)
+    generate_mac, generate_string, generate_ipaddr, generate_email_address)
 from robottelo.common.helpers import STR
 
 
@@ -181,6 +181,25 @@ class IntegerField(Field):
 
     def generate(self):
         return randint(self.min, self.max)
+
+class EmailField(Field):
+    """
+    A Field subclass that represents a MAC address type and generates random
+    value in the format XX:XX:XX:XX:XX:XX where XX is a two digit hexadecimal
+    value and : is the delimiter. The delimiter could be changed by defining
+    the delimiter attribute which defaults to :.
+    """
+
+    def __init__(self, name_length=8, domain_length=6, **kwargs):
+        super(EmailField, self).__init__(**kwargs)
+        self.name_length = name_length
+        self.domain_length = domain_length
+
+    def generate(self):
+        return generate_email_address(
+            name_length=self.name_length,
+            domain_length=self.domain_length)
+
 
 
 class MACField(Field):
