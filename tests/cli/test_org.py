@@ -963,6 +963,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
+        self.assertEqual(new_obj['description'], result.stdout['description'])
 
         # Update the org name
         result = Org.update({'id': new_obj['id'],
