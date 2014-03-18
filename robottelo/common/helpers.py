@@ -74,8 +74,8 @@ def valid_data_list():
         generate_string("alpha", 8).decode("utf-8"),
         generate_string("numeric", 8).decode("utf-8"),
         generate_string("alphanumeric", 300).decode("utf-8"),
-        generate_string("utf8", 8),
-        generate_string("latin1", 8),
+        generate_string("utf8", 8).decode('utf-8'),
+        generate_string("latin1", 8).decode('utf-8'),
         generate_string("html", 8).decode("utf-8")
     ]
 
@@ -91,10 +91,10 @@ def invalid_names_list():
         generate_string("alpha", 300).decode("utf-8"),
         generate_string("numeric", 300).decode("utf-8"),
         generate_string("alphanumeric", 300).decode("utf-8"),
-        generate_string("utf8", 300),
-        generate_string("latin1", 300),
+        generate_string("utf8", 300).decode("utf-8"),
+        generate_string("latin1", 300).decode("utf-8"),
         generate_string("html", 300).decode("utf-8"),
-        generate_name(256),
+        generate_name(256).decode("utf-8"),
         u' %s' % generate_name(),
         u'%s ' % generate_name()
     ]
