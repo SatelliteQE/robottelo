@@ -278,7 +278,7 @@ tab_locators = {
     "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
 
     "prd.tab_details": (
-        By.XPATH, "//li[contains(@ng-class,'info')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
 
@@ -312,8 +312,23 @@ tab_locators = {
         "//a[@data-toggle='tab' and contains(@href,'hostgroups')]"),
     "orgs.tab_parameters": (
         By.XPATH,
-        "//a[@data-toggle='tab' and contains(@href,'params')]")}
+        "//a[@data-toggle='tab' and contains(@href,'params')]"),
 
+    #Roles
+    #Third level UI
+    "roles.tab_filter": (
+        By.XPATH, "//a[@href='#primary']"),
+    "roles.tab_org": (
+        By.XPATH, "//a[@href='#organizations']"),
+
+    #GPG key
+    #Third level UI
+    "gpgkey.tab_details": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "gpgkey.tab_products": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'products')]"),
+    "gpgkey.tab_repos": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
 
 common_locators = {
 
@@ -583,6 +598,10 @@ locators = {
          "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.delete": (By.XPATH,
                      "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "roles.add_permission": (
+        By.XPATH, "//a[@data-id='aid_filters_new']"),
+    "roles.select_resource_type": (
+        By.ID, "filter_resource_type"),
     "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
     "roles.perm_filter": (By.XPATH,
                           "//input[@placeholder='Filter permissions']"),
@@ -874,4 +893,9 @@ locators = {
         "//form[@alch-edit-text='gpgKey.name']\
         //button[@ng-click='save()']"),
     "gpgkey.upload_button": (
-        By.XPATH, "//button[@ng-click='progress.uploading = true']")}
+        By.XPATH, "//button[@ng-click='progress.uploading = true']"),
+    "gpgkey.product_repo_search": (
+        By.XPATH,
+        ("//input[@placeholder='Filter' and contains(@ng-model, 'Search']")),
+    "gpgkey.product_repo": (
+        By.XPATH, "//td/a[contains(@href, 'repositories')]")}

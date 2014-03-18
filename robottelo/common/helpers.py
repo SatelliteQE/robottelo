@@ -74,8 +74,8 @@ def valid_data_list():
         generate_string("alpha", 8).decode("utf-8"),
         generate_string("numeric", 8).decode("utf-8"),
         generate_string("alphanumeric", 300).decode("utf-8"),
-        generate_string("utf8", 8),
-        generate_string("latin1", 8).encode("utf-8"),
+        generate_string("utf8", 8).decode('utf-8'),
+        generate_string("latin1", 8).decode('utf-8'),
         generate_string("html", 8).decode("utf-8")
     ]
 
@@ -91,10 +91,10 @@ def invalid_names_list():
         generate_string("alpha", 300).decode("utf-8"),
         generate_string("numeric", 300).decode("utf-8"),
         generate_string("alphanumeric", 300).decode("utf-8"),
-        generate_string("utf8", 300),
-        generate_string("latin1", 300).encode("utf-8"),
+        generate_string("utf8", 300).decode("utf-8"),
+        generate_string("latin1", 300).decode("utf-8"),
         generate_string("html", 300).decode("utf-8"),
-        generate_name(256),
+        generate_name(256).decode("utf-8"),
         u' %s' % generate_name(),
         u'%s ' % generate_name()
     ]
@@ -186,7 +186,7 @@ def generate_string(str_type, length):
             output_array.append(i)
         output_string = ''.join(
             unichr(random.choice(output_array)) for x in xrange(length))
-        output_string.encode('utf-8')
+        output_string = output_string.encode('utf-8')
     elif str_type == "utf8":
         cjk_range = []
         cjk_range = ['4E00', '9FFF']
@@ -195,7 +195,7 @@ def generate_string(str_type, length):
             output_array.append(i)
         output_string = ''.join(
             unichr(random.choice(output_array)) for x in xrange(length))
-        output_string.encode('utf-8')
+        output_string = output_string.encode('utf-8')
     elif str_type == "html":
         html_tag = random.choice(HTML_TAGS).lower()
         output_string = "<%s>%s</%s>" % (

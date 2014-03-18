@@ -6,7 +6,7 @@ Implements GPG keys UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 
 
 class GPGKey(Base):
@@ -103,3 +103,33 @@ class GPGKey(Base):
                                         ["gpgkey.upload_button"]).click()
         else:
             raise Exception("Could not update the gpg key '%s'" % name)
+
+    def assert_product_repo(self, key_name, product):
+        """
+        To validate product and repo association with gpg keys
+
+        Here product is a boolean variable
+        when product = True; validation assert product tab
+        otherwise assert repo tab
+        """
+
+        element = self.search(key_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            if product:
+                self.find_element(tab_locators
+                                  ["gpgkey.tab_products"]).click()
+            else:
+                self.find_element(tab_locators
+                                  ["gpgkey.tab_repos"]).click()
+            if self.wait_until_element(locators["gpgkey.product_repo"]):
+                element = self.find_element(locators
+                                            ["gpgkey.product_repo"]
+                                            ).get_attribute('innerHTML')
+                string = element.strip(' \t\n\r')
+                return string
+        else:
+            raise Exception(
+                "Couldn't search the given gpg key '%s'" % key_name)

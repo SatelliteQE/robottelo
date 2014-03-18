@@ -77,7 +77,8 @@ def create_object(cli_object, args):
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0:
         logger.debug(result.stderr)  # Show why creation failed.
-        raise Exception("Failed to create object.")
+        raise Exception(
+            'Failed to create %s with %r data.' % (cli_object.__name__, args))
 
     # Sometimes we get a list with a dictionary and not
     # a dictionary.
@@ -557,13 +558,7 @@ def make_lifecycle_environment(options=None):
     if not options or not options.get('organization-id', None):
         raise Exception("Please provide a valid ORG ID.")
     if not options.get('prior', None):
-        result = LifecycleEnvironment.list(
-            {
-                'organization-id': options['organization-id'],
-                'library': 1,
-            }
-        )
-        options['prior'] = result.stdout[0]['id']
+        options['prior'] = 'Library'
 
     #Assigning default values for attributes
     args = {

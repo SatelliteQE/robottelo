@@ -32,3 +32,42 @@ class LifecycleEnvironment(Base):
         Sets the base command for class.
         """
         Base.__init__(self)
+
+    @classmethod
+    def exists(cls, organization_id, tuple_search=None):
+        """
+        Search for a lifecycle environment.
+        """
+
+        # Katello subcommands require the organization-id
+        options = {}
+
+        if tuple_search:
+            search_criteria = "%s:\"%s\"" % (tuple_search[0], tuple_search[1])
+            options["search"] = search_criteria
+        # Katello subcommands require extra arguments such as organization-id
+
+        result = cls.list(organization_id, options)
+
+        if result.stdout:
+            result.stdout = result.stdout[0]
+
+        return result
+
+    @classmethod
+    def list(cls, organization_id, options=None):
+        """
+        Lists available Lifecycle Environments for organization.
+        """
+
+        cls.command_sub = "list"
+
+        if options is None:
+            options = {}
+
+        # Katello subcommands require the organization-id
+        options['organization-id'] = organization_id
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result

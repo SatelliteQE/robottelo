@@ -19,8 +19,8 @@ class TestEnvironment(MetaCLI):
 
     POSITIVE_CREATE_DATA = (
         {'name': generate_string("alpha", 10)},
-        {'name': generate_string("alphanumeric", 10).encode("utf-8")},
-        {'name': generate_string("numeric", 10).encode("utf-8")},
+        {'name': generate_string("alphanumeric", 10)},
+        {'name': generate_string("numeric", 10)},
     )
 
     POSITIVE_UPDATE_DATA = (
@@ -33,15 +33,15 @@ class TestEnvironment(MetaCLI):
     )
 
     NEGATIVE_UPDATE_DATA = (
-        ({'name': generate_string("alphanumeric", 10).encode("utf-8")},
-         {'new-name': generate_string("alphanumeric", 300).encode("utf-8")}),
-        ({'name': generate_string("alphanumeric", 10).encode("utf-8")},
-         {'new-name': generate_string("latin1", 10).encode("utf-8")}),
-        ({'name': generate_string("alphanumeric", 10).encode("utf-8")},
-         {'new-name': generate_string("utf8", 10).encode("utf-8")}),
-        ({'name': generate_string("alphanumeric", 10).encode("utf-8")},
+        ({'name': generate_string("alphanumeric", 10)},
+         {'new-name': generate_string("alphanumeric", 300)}),
+        ({'name': generate_string("alphanumeric", 10)},
+         {'new-name': generate_string("latin1", 10)}),
+        ({'name': generate_string("alphanumeric", 10)},
+         {'new-name': generate_string("utf8", 10)}),
+        ({'name': generate_string("alphanumeric", 10)},
          {'new-name': generate_string("html", 6)}),
-        ({'name': generate_string("alphanumeric", 10).encode("utf-8")},
+        ({'name': generate_string("alphanumeric", 10)},
          {'new-name': ""}),
     )
 

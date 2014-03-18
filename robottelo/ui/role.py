@@ -6,7 +6,9 @@ Implements Roles UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.common.constants import FILTER
+from selenium.webdriver.support.select import Select
 
 
 class Role(Base):
@@ -50,40 +52,37 @@ class Role(Base):
                            locators['roles.delete'],
                            locators['roles.dropdown'])
 
-    def update(self, old_name, new_name=None,
-               perm_type=None, permissions=None):
+    def update(self, name, new_name=None, add_permission=False,
+               resource_type=None, permission_list=None, organization=None):
         """
-        Update role name and permission
+        Update role name/permissions/org
         """
-        element = self.search(old_name)
+        element = self.search(name)
 
         if element:
-            element.click()
             if new_name:
+                element.click()
                 if self.wait_until_element(locators["roles.name"]):
                     self.field_update("roles.name", new_name)
-            if perm_type:
-                self.find_element(locators
-                                  ["roles.perm_filter"]).send_keys(perm_type)
-                strategy = locators["roles.perm_type"][0]
-                value = locators["roles.perm_type"][1]
-                element = self.wait_until_element((strategy,
-                                                   value % perm_type))
-                if element:
-                    element.click()
-                    self.wait_for_ajax()
-                    for permission in permissions:
-                        strategy = locators["roles.permission"][0]
-                        value = locators["roles.permission"][1]
-                        element = self.wait_until_element((strategy,
-                                                           value % permission))
-                        if element:
-                            element.click()
-                        else:
-                            raise Exception(
-                                "Could not find the permission '%s'"
-                                % permission)
-                    self.find_element(common_locators["submit"]).click()
-                    self.wait_for_ajax()
+            if add_permission:
+                strategy = locators['roles.dropdown'][0]
+                value = locators['roles.dropdown'][1]
+                dropdown = self.wait_until_element((strategy, value % name))
+                dropdown.click()
+                self.wait_until_element(locators
+                                        ["roles.add_permission"]).click()
+                if resource_type:
+                    Select(self.find_element
+                           (locators["roles.select_resource_type"])
+                           ).select_by_visible_text(resource_type)
+                    if permission_list:
+                        self.configure_entity(permission_list,
+                                              FILTER['role_permission'])
+                if organization:
+                    self.wait_until_element(tab_locators
+                                            ["roles.tab_org"]).click()
+                    self.configure_entity(organization, FILTER['role_org'])
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
-            raise Exception("Could not find role '%s'" % old_name)
+            raise Exception("Could not find role '%s'" % name)
