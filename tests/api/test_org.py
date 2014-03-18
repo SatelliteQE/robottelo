@@ -6,7 +6,7 @@ import unittest
 from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import redminebug, bzbug
+from robottelo.common.decorators import bzbug
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import basic_positive
@@ -419,4 +419,3 @@ class TestOrganization(BaseAPI):
         """
 
         pass
-

@@ -182,6 +182,7 @@ class IntegerField(Field):
     def generate(self):
         return randint(self.min, self.max)
 
+
 class EmailField(Field):
     """
     A Field subclass that represents a MAC address type and generates random
@@ -199,7 +200,6 @@ class EmailField(Field):
         return generate_email_address(
             name_length=self.name_length,
             domain_length=self.domain_length)
-
 
 
 class MACField(Field):
