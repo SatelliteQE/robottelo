@@ -935,7 +935,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             result.stdout['description'],
             test_data['description'],
-            "Org name was not updated"
+            "Org desc was updated"
         )
 
     @data({'description': generate_string("latin1", 10),
@@ -980,12 +980,12 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             result.stdout['description'],
             test_data['description'],
-            "Org name was not updated"
+            "Org desc was updated"
         )
         self.assertEqual(
             result.stdout['name'],
             test_data['name'],
-            "Org name was not updated"
+            "Org name was updated"
         )
 
     # Negative Update
