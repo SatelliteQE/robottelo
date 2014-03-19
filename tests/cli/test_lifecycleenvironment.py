@@ -306,3 +306,66 @@ class TestLifeCycleEnvironment(BaseCLI):
             result.stdout['name'],
             "Name should have been updated"
         )
+
+    @data(
+        {'description': generate_string("alpha", 15)},
+        {'description': generate_string("alphanumeric", 15)},
+        {'description': generate_string("numeric", 15)},
+        {'description': generate_string("latin1", 15)},
+        {'description': generate_string("utf8", 15)},
+        {'description': generate_string("html", 15)},
+    )
+    def test_positive_update_2(self, test_data):
+        """
+        @Test: Create lifecycle environment then update its description
+        @Feature: Lifecycle Environment
+        @Assert: Lifecycle environment description is updated
+        """
+
+        payload = {
+            'organization-id': self.org['label'],
+            }
+
+        new_obj = make_lifecycle_environment(payload)
+        self.assertIsNotNone(
+            new_obj, "Could not create lifecycle environment.")
+
+        # Update its description
+        result = LifecycleEnvironment.update(
+            {
+                'organization-id': self.org['label'],
+                'id': new_obj['id'],
+                'description': test_data['description'],
+            }
+        )
+        self.assertEqual(
+            result.return_code, 0, "Could find the lifecycle environment"
+        )
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here.")
+
+        # Fetch the object
+        result = LifecycleEnvironment.info(
+            {
+                'organization-id': self.org['label'],
+                'id': new_obj['id'],
+            }
+        )
+        self.assertEqual(
+            result.return_code, 0, "Could find the lifecycle environment"
+        )
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here.")
+        self.assertGreater(
+            len(result.stdout), 0, "No output was returned"
+        )
+        self.assertEqual(
+            test_data['description'],
+            result.stdout['description'],
+            "Description was not updated"
+        )
+        self.assertNotEqual(
+            new_obj['description'],
+            result.stdout['description'],
+            "Description should have been updated"
+        )
