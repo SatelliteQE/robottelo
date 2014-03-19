@@ -4,8 +4,8 @@
 """
 Test class for Host/System Unification
 """
-from robottelo.common.constants import NOT_IMPLEMENTED
 from basecli import BaseCLI
+from robottelo.common.constants import NOT_IMPLEMENTED
 import unittest
 
 
@@ -33,6 +33,8 @@ class TestHostSystemUnificationCLI(BaseCLI):
         @assert: Hosts/Systems created in both places return in list
         @status: Manual
         """
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     def all_hosts_appear_in_katello(self):
         """
@@ -45,3 +47,4 @@ class TestHostSystemUnificationCLI(BaseCLI):
         @assert: Hosts/Systems created in both places return in list
         @status: Manual
         """
+        pass
