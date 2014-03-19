@@ -972,6 +972,7 @@ class User(BaseCLI):
         @Assert: User is deleted
         """
         user = make_user()
+        self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
         self.assertTrue(result.stdout)
@@ -989,6 +990,7 @@ class User(BaseCLI):
         @Assert: User is deleted
         """
         user = make_user({'admin': 'true'})
+        self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
         self.assertTrue(result.stdout)
