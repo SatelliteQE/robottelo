@@ -863,7 +863,6 @@ class Org(BaseUI):
                                                value % medium))
         self.assertTrue(element)
 
-
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         medium name is alpha
