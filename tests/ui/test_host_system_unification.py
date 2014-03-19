@@ -5,9 +5,8 @@
 Test class for Host/System Unification
 """
 from robottelo.common.constants import NOT_IMPLEMENTED
-import unittest
-
 from tests.ui.baseui import BaseUI
+import unittest
 
 
 class TestHostSystemUnificationUI(BaseUI):
@@ -31,6 +30,7 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places
         @status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_foreman_host_in_katello(self):
@@ -44,6 +44,8 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places
         @status: Manual
         """
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_renamed_host_foreman(self):
         """
@@ -56,6 +58,8 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places despite being renamed
         @status: Manual
         """
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_renamed_host_katello(self):
         """
@@ -68,6 +72,8 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places despite being renamed
         @status: Manual
         """
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_deleted_host_foreman(self):
         """
@@ -80,6 +86,8 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host no longer aappears in either place once removed
         @status: Manual
         """
+        pass
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_deleted_host_katello(self):
         """
@@ -92,3 +100,4 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host no longer aappears in either place once removed
         @status: Manual
         """
+        pass
