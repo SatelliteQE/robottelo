@@ -29,18 +29,18 @@ def generate_name(minimum=4, maximum=8):
     rand = random.SystemRandom()
     pool1 = string.ascii_lowercase + string.digits
 
-    name = str().join(
+    name = u''.join(
         rand.choice(pool1) for x in range(random.randint(minimum, maximum)))
 
-    return name
+    return unicode(name)
 
 
 def generate_email_address(name_length=8, domain_length=6):
     """
     Generates a random email address.
     """
-    return "%s@%s.com" % (generate_name(name_length),
-                          generate_name(domain_length))
+    return u'%s@%s.com' % (generate_name(name_length),
+                           generate_name(domain_length))
 
 
 def valid_names_list():
@@ -48,8 +48,8 @@ def valid_names_list():
     List of valid names for input testing.
     """
     valid_names = [
-        generate_name(5, 5).decode('utf-8'),
-        generate_name(255).decode('utf-8'),
+        generate_name(5, 5),
+        generate_name(255),
         u"%s-%s" % (generate_name(4), generate_name(4)),
         u"%s.%s" % (generate_name(4), generate_name(4)),
         u"նոր օգտվող-%s" % generate_name(2),
@@ -71,12 +71,12 @@ def valid_data_list():
     List of valid data for input testing.
     """
     valid_names = [
-        generate_string("alpha", 8).decode("utf-8"),
-        generate_string("numeric", 8).decode("utf-8"),
-        generate_string("alphanumeric", 300).decode("utf-8"),
-        generate_string("utf8", 8).decode('utf-8'),
-        generate_string("latin1", 8).decode('utf-8'),
-        generate_string("html", 8).decode("utf-8")
+        generate_string("alpha", 8),
+        generate_string("numeric", 8),
+        generate_string("alphanumeric", 300),
+        generate_string("utf8", 8),
+        generate_string("latin1", 8),
+        generate_string("html", 8)
     ]
 
     return valid_names
@@ -88,13 +88,13 @@ def invalid_names_list():
     """
     invalid_names = [
         u" ",
-        generate_string("alpha", 300).decode("utf-8"),
-        generate_string("numeric", 300).decode("utf-8"),
-        generate_string("alphanumeric", 300).decode("utf-8"),
-        generate_string("utf8", 300).decode("utf-8"),
-        generate_string("latin1", 300).decode("utf-8"),
-        generate_string("html", 300).decode("utf-8"),
-        generate_name(256).decode("utf-8"),
+        generate_string("alpha", 300),
+        generate_string("numeric", 300),
+        generate_string("alphanumeric", 300),
+        generate_string("utf8", 300),
+        generate_string("latin1", 300),
+        generate_string("html", 300),
+        generate_name(256),
         u' %s' % generate_name(),
         u'%s ' % generate_name()
     ]
@@ -107,12 +107,12 @@ def generate_ipaddr(ip3=False):
     Generates a random IP address.
     """
     rng = 3 if ip3 else 4
-    ipaddr = ".".join(str(random.randrange(0, 255, 1)) for x in range(rng))
+    ipaddr = u'.'.join(str(random.randrange(0, 255, 1)) for x in range(rng))
 
-    return ipaddr if not ip3 else ipaddr + ".0"
+    return unicode(ipaddr if not ip3 else ipaddr + u'.0')
 
 
-def generate_mac(delimiter=":"):
+def generate_mac(delimiter=u':'):
     """
     Generates a random MAC address.
     """
@@ -128,7 +128,7 @@ def generate_mac(delimiter=":"):
         chars[random.randrange(0, len(chars), 1)]+chars[random.randrange(
             0, len(chars), 1)] for x in range(6))
 
-    return mac
+    return unicode(mac)
 
 
 class STR:
@@ -160,16 +160,16 @@ def generate_string(str_type, length):
     str_type = str_type.lower()
 
     if str_type == "alphanumeric":
-        output_string = ''.join(
+        output_string = u''.join(
             random.choice(
                 string.ascii_letters + string.digits
             ) for i in range(length))
     elif str_type == "alpha":
-        output_string = ''.join(
+        output_string = u''.join(
             random.choice(string.ascii_letters) for i in range(length)
         )
     elif str_type == "numeric":
-        output_string = ''.join(
+        output_string = u''.join(
             random.choice(string.digits) for i in range(length)
         )
     elif str_type == "latin1":
@@ -184,9 +184,8 @@ def generate_string(str_type, length):
             output_array.append(i)
         for i in range(int(range2[0], 16), int(range2[1], 16)):
             output_array.append(i)
-        output_string = ''.join(
+        output_string = u''.join(
             unichr(random.choice(output_array)) for x in xrange(length))
-        output_string = output_string.encode('utf-8')
     elif str_type == "utf8":
         cjk_range = []
         cjk_range = ['4E00', '9FFF']
@@ -195,16 +194,15 @@ def generate_string(str_type, length):
             output_array.append(i)
         output_string = ''.join(
             unichr(random.choice(output_array)) for x in xrange(length))
-        output_string = output_string.encode('utf-8')
     elif str_type == "html":
         html_tag = random.choice(HTML_TAGS).lower()
-        output_string = "<%s>%s</%s>" % (
+        output_string = u'<%s>%s</%s>' % (
             html_tag, generate_string("alpha", length), html_tag)
     else:
         raise Exception(
             'Unexpected output type, valid types are \"alpha\", \
             \"alphanumeric\", \"html\", \"latin1\", \"numeric\" or \"utf8\".')
-    return output_string
+    return unicode(output_string)
 
 
 def generate_strings_list(len1=8):
@@ -219,7 +217,7 @@ def generate_strings_list(len1=8):
                  STR.utf8]
     str_list = []
     for str_type in str_types:
-        string1 = generate_string(str_type, len1).decode('utf-8')
+        string1 = generate_string(str_type, len1)
         str_list.append(string1)
     return str_list
 
