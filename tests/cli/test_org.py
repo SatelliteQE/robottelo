@@ -900,44 +900,93 @@ class TestOrg(BaseCLI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update description is alpha
-        update description is numeric
-        update description is alphanumeric
-        update description is utf-8
-        update description is latin1
-        update description is html
-    """)
+    @data({'description': generate_string("latin1", 10)},
+          {'description': generate_string("utf8", 10)},
+          {'description': generate_string("alpha", 10)},
+          {'description': generate_string("alphanumeric", 10)},
+          {'description': generate_string("numeric", 10)},
+          {'description': generate_string("html", 10)})
     def test_positive_update_3(self, test_data):
         """
         @test: Create organization with valid values then update its
         description
         @feature: Organizations
         @assert: organization description is updated
-        @status: manual
         """
 
-        pass
+        new_obj = make_org()
+        # Can we find the new object?
+        result = Org.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update name, label and description are alpha
-        update name, label and description are numeric
-        update name, label and description are alphanumeric
-        update name, label and description are utf-8
-        update name, label and description are latin1
-        update name, label and description are html
-    """)
+        # Update the org name
+        result = Org.update({'id': new_obj['id'],
+                             'description': test_data['description']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+
+        # Fetch the org again
+        result = Org.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(
+            result.stdout['description'],
+            test_data['description'],
+            "Org desc was not updated"
+        )
+
+    @data({'description': generate_string("latin1", 10),
+           'name': generate_string("latin1", 10)},
+          {'description': generate_string("utf8", 10),
+           'name': generate_string("utf8", 10)},
+          {'description': generate_string("alpha", 10),
+           'name': generate_string("alpha", 10)},
+          {'description': generate_string("alphanumeric", 10),
+           'name': generate_string("alphanumeric", 10)},
+          {'description': generate_string("numeric", 10),
+           'name': generate_string("numeric", 10)},
+          {'description': generate_string("html", 10),
+           'name': generate_string("html", 10)})
     def test_positive_update_4(self, test_data):
         """
         @test: Create organization with valid values then update all values
         @feature: Organizations
-        @assert: organization name, label and description are updated
-        @status: manual
+        @assert: organization name and description are updated
         """
 
-        pass
+        new_obj = make_org()
+        # Can we find the new object?
+        result = Org.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+        self.assertEqual(new_obj['description'], result.stdout['description'])
+
+        # Update the org name
+        result = Org.update({'id': new_obj['id'],
+                             'new-name': test_data['name'],
+                             'description': test_data['description']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+
+        # Fetch the org again
+        result = Org.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(
+            result.stdout['description'],
+            test_data['description'],
+            "Org desc was not updated"
+        )
+        self.assertEqual(
+            result.stdout['name'],
+            test_data['name'],
+            "Org name was not updated"
+        )
 
     # Negative Update
 
