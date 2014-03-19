@@ -4,9 +4,9 @@
 """
 Test class for Host/System Unification
 """
-
+from robottelo.common.constants import NOT_IMPLEMENTED
 from basecli import BaseCLI
-#import unittest
+import unittest
 
 
 class TestHostSystemUnificationCLI(BaseCLI):
@@ -21,6 +21,7 @@ class TestHostSystemUnificationCLI(BaseCLI):
 # (the link/join will) "Most likely an internal UUID, not something
 # fuzzy like hostname"
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_all_hosts_appear_in_foreman(self):
         """
         @feature: Host/System Unification
@@ -32,7 +33,7 @@ class TestHostSystemUnificationCLI(BaseCLI):
         @assert: Hosts/Systems created in both places return in list
         @status: Manual
         """
-
+    @unittest.skip(NOT_IMPLEMENTED)
     def all_hosts_appear_in_katello(self):
         """
         @feature: Host/System Unification

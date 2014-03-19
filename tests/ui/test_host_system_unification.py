@@ -4,6 +4,8 @@
 """
 Test class for Host/System Unification
 """
+from robottelo.common.constants import NOT_IMPLEMENTED
+import unittest
 
 from tests.ui.baseui import BaseUI
 
@@ -17,6 +19,7 @@ class TestHostSystemUnificationUI(BaseUI):
 # (the link/join will) "Most likely an internal UUID, not something
 # fuzzy like hostname"
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_katello_host_in_foreman(self):
         """
         @feature: Host/System Unification
@@ -29,6 +32,7 @@ class TestHostSystemUnificationUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_foreman_host_in_katello(self):
         """
         @feature: Host/System Unification
@@ -40,6 +44,7 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places
         @status: Manual
         """
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_renamed_host_foreman(self):
         """
         @feature: Host/System Unification
@@ -51,7 +56,7 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places despite being renamed
         @status: Manual
         """
-
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_renamed_host_katello(self):
         """
         @feature: Host/System Unification
@@ -63,7 +68,7 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host appears in both places despite being renamed
         @status: Manual
         """
-
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_deleted_host_foreman(self):
         """
         @feature: Host/System Unification
@@ -75,7 +80,7 @@ class TestHostSystemUnificationUI(BaseUI):
         @assert: Host no longer aappears in either place once removed
         @status: Manual
         """
-
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_deleted_host_katello(self):
         """
         @feature: Host/System Unification
