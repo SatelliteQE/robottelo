@@ -14,7 +14,7 @@ from robottelo.common.helpers import (generate_name, generate_strings_list,
                                       generate_email_address, get_data_file)
 from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import bzbug, redminebug
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, tab_locators
 from tests.ui.baseui import BaseUI
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -214,21 +214,22 @@ class Org(BaseUI):
         @assert: the domain is removed from the organization
         """
 
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
         self.navigator.go_to_domains()
         self.domain.create(domain)
         self.assertIsNotNone(self.domain.search(domain))
         self.navigator.go_to_org()
-        self.org.update(org_name, new_name=new_name,
-                        new_domains=[domain])
-        self.org.update(new_name, domains=[domain])
-        self.assertIsNotNone(self.org.search(new_name))
+        self.org.create(org_name, domains=[domain], edit=True)
+        self.assertIsNotNone(self.org.search(org_name))
+        self.org.update(org_name, domains=[domain])
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % domain))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @redminebug('4219')
@@ -302,7 +303,7 @@ class Org(BaseUI):
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
-    def test_remove_user_3(self, user):
+    def test_remove_user_3(self, user_name):
         """
         @feature: Organizations
         @test: Create admin users then add user and remove it
@@ -310,24 +311,25 @@ class Org(BaseUI):
         @assert: The user is added then removed from the organization
         """
 
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
         password = generate_name(8)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
         self.navigator.go_to_users()
-        self.user.create(user, email, password, password)
-        self.assertIsNotNone(self.user.search(user, search_key))
+        self.user.create(user_name, email, password, password)
+        self.assertIsNotNone(self.user.search(user_name, search_key))
         self.navigator.go_to_org()
-        self.org.update(org_name, new_name=new_name,
-                        new_users=[user])
-        self.org.update(new_name, users=[user])
-        self.assertIsNotNone(self.org.search(new_name))
+        self.org.create(org_name, users=[user_name], edit=True)
+        self.assertIsNotNone(self.org.search(org_name))
+        self.org.update(org_name, users=[user_name], new_users=None)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % user_name))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -749,26 +751,28 @@ class Org(BaseUI):
         @assert: computeresource is added then removed
         """
 
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
         self.navigator.go_to_compute_resources()
-        self.compute_resource.create(resource_name, [org_name],
+        self.compute_resource.create(resource_name, None,
                                      provider_type="Libvirt",
                                      url=url)
         self.navigator.go_to_compute_resources()
         self.assertIsNotNone(self.compute_resource.search(resource_name))
         self.navigator.go_to_org()
-        self.org.update(org_name, new_name=new_name,
-                        new_resources=[resource_name])
-        self.org.update(new_name, resources=[resource_name])
-        self.assertIsNotNone(self.org.search(new_name))
+        self.org.create(org_name, resources=[resource_name], edit=True)
+        self.assertIsNotNone(self.org.search(org_name))
+        self.org.update(org_name, resources=[resource_name],
+                        new_resources=None)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % resource_name))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -839,23 +843,26 @@ class Org(BaseUI):
         @assert: medium is added then removed
         """
 
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
         path = URL % generate_name(6)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
         self.navigator.go_to_installation_media()
         self.medium.create(medium, path, os_family)
         self.assertIsNotNone(self.medium.search(medium))
         self.navigator.go_to_org()
-        self.org.update(org_name, new_name=new_name,
-                        new_medias=[medium])
-        self.org.update(new_name, medias=[medium])
-        self.assertIsNotNone(self.org.search(new_name))
+        self.org.create(org_name, medias=[medium], edit=True)
+        self.assertIsNotNone(self.org.search(org_name))
+        self.org.update(org_name, medias=[medium],
+                        new_medias=None)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % medium))
+        self.assertTrue(element)
+
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -923,24 +930,26 @@ class Org(BaseUI):
         @assert: configtemplate is added then removed
         """
 
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
         self.navigator.go_to_provisioning_templates()
         self.template.create(template, template_path, True,
                              temp_type, None)
         self.assertIsNotNone(self.template.search(template))
         self.navigator.go_to_org()
-        self.org.update(org_name, new_name=new_name,
-                        new_templates=[template])
-        self.org.update(new_name, templates=[template])
-        self.assertIsNotNone(self.org.search(new_name))
+        self.org.create(org_name, templates=[template],
+                        edit=True)
+        self.assertIsNotNone(self.org.search(org_name))
+        self.org.update(org_name, templates=[template])
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % template))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1444,24 +1453,25 @@ class Org(BaseUI):
         @assert: subnet is added then removed
         """
 
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
         self.navigator.go_to_subnets()
-        self.subnet.create([org_name], subnet_name, subnet_network,
+        self.subnet.create(None, subnet_name, subnet_network,
                            subnet_mask)
         self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
         self.navigator.go_to_org()
-        self.org.update(org_name, new_name=new_name,
-                        new_subnets=[subnet_name])
-        self.org.update(new_name, subnets=[subnet_name])
-        self.assertIsNotNone(self.org.search(new_name))
+        self.org.create(org_name, subnets=[subnet_name], edit=True)
+        self.assertIsNotNone(self.org.search(org_name))
+        self.org.update(org_name, subnets=[subnet_name], new_subnets=None)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % subnet_name))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
