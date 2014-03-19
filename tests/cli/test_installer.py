@@ -2,7 +2,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from basecli import BaseCLI
-#import unittest
+from robottelo.common.constants import NOT_IMPLEMENTED
+import unittest
 
 
 class TestSSOCLI(BaseCLI):
@@ -12,6 +13,7 @@ class TestSSOCLI(BaseCLI):
 # that can parse logs? It would be better (and possibly less
 # error-prone) than simply grepping for ERROR/FATAL
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_check_services(self):
         # devnote:
         # maybe `hammer ping` command might be useful here to check
@@ -24,7 +26,9 @@ class TestSSOCLI(BaseCLI):
         mongod} are started
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_logfile_check(self):
         """
         @feature: Installer
@@ -36,7 +40,9 @@ class TestSSOCLI(BaseCLI):
         postgresql, mongod} logfiles.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_check_progress_meter(self):
         """
         @feature: Installer
@@ -46,7 +52,9 @@ class TestSSOCLI(BaseCLI):
         through to completion
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_from_iso(self):
         """
         @feature: Installer
@@ -54,7 +62,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Install from ISO is sucessful.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_server_install(self):
         """
         @feature: Installer
@@ -62,7 +72,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Install of main instance successful.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_node_install(self):
         """
         @feature: Installer
@@ -70,7 +82,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Install of node successful.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_smartproxy_install(self):
         """
         @feature: Installer
@@ -78,7 +92,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Install of smart-proxy successful.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_disconnected_util_install(self):
         """
         @feature: Installer
@@ -87,7 +103,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Install of disconnected utility successful.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_smartproxy_registers(self):
         """
         @feature: Installer
@@ -97,7 +115,9 @@ class TestSSOCLI(BaseCLI):
         following install.
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_clear_data(self):
         """
         @feature: Installer
@@ -107,3 +127,4 @@ class TestSSOCLI(BaseCLI):
         @bz: 1072780
         @status: Manual
         """
+        pass

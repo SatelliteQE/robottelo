@@ -5,7 +5,8 @@
 Test class for SSO (CLI)
 """
 from basecli import BaseCLI
-#import unittest
+from robottelo.common.constants import NOT_IMPLEMENTED
+import unittest
 
 
 class TestSSOCLI(BaseCLI):
@@ -19,6 +20,7 @@ class TestSSOCLI(BaseCLI):
 # possibly other LDAP types. These (in particular, the LDAP variations)
 # can be easily added later.
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_kerberos_cli(self):
         """
         @feature: SSO
@@ -27,7 +29,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Log in to hammer cli successfully
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ipa_cli(self):
         """
         @feature: SSO
@@ -36,7 +40,9 @@ class TestSSOCLI(BaseCLI):
         @assert: Log in to hammer cli successfully
         @status: Manual
         """
+        pass
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_openldap_cli(self):
         """
         @feature: SSO
@@ -45,3 +51,4 @@ class TestSSOCLI(BaseCLI):
         @assert: Log in to hammer cli successfully
         @status: Manual
         """
+        pass
