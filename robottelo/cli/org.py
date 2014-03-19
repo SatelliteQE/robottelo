@@ -10,28 +10,28 @@ Parameters:
     [ARG] ...                     subcommand arguments
 
 Subcommands:
-    add_subnet                    Associate a resource
+    add-subnet                    Associate a resource
     update                        Update an organization
-    add_domain                    Associate a resource
-    add_user                      Associate a resource
-    add_hostgroup                 Associate a resource
+    add-domain                    Associate a resource
+    add-user                      Associate a resource
+    add-hostgroup                 Associate a resource
     remove_computeresource        Disassociate a resource
     remove_medium                 Disassociate a resource
     remove_configtemplate         Disassociate a resource
     delete                        Delete an organization
     remove_environment            Disassociate a resource
     remove_smartproxy             Disassociate a resource
-    add_computeresource           Associate a resource
-    add_medium                    Associate a resource
-    add_configtemplate            Associate a resource
+    add-computeresource           Associate a resource
+    add-medium                    Associate a resource
+    add-configtemplate            Associate a resource
     create                        Create an organization
-    add_environment               Associate a resource
+    add-environment               Associate a resource
     info                          Show an organization
     remove_subnet                 Disassociate a resource
     remove_domain                 Disassociate a resource
     remove_user                   Disassociate a resource
     remove_hostgroup              Disassociate a resource
-    add_smartproxy                Associate a resource
+    add-smartproxy                Associate a resource
     list                          List all organizations
 """
 
@@ -57,7 +57,7 @@ class Org(Base):
         Adds existing subnet to an org
         """
 
-        cls.command_sub = "add_subnet"
+        cls.command_sub = "add-subnet"
 
         return cls.execute(cls._construct_command(options))
 
@@ -67,7 +67,7 @@ class Org(Base):
         Removes a subnet from an org
         """
 
-        cls.command_sub = "remove_subnet"
+        cls.command_sub = "remove-subnet"
 
         return cls.execute(cls._construct_command(options))
 
@@ -77,7 +77,7 @@ class Org(Base):
         Adds a domain to an org
         """
 
-        cls.command_sub = "add_domain"
+        cls.command_sub = "add-domain"
 
         return cls.execute(cls._construct_command(options))
 
@@ -87,7 +87,7 @@ class Org(Base):
         Removes a domain from an org
         """
 
-        cls.command_sub = "remove_domain"
+        cls.command_sub = "remove-domain"
 
         return cls.execute(cls._construct_command(options))
 
@@ -97,7 +97,7 @@ class Org(Base):
         Adds an user to an org
         """
 
-        cls.command_sub = "add_user"
+        cls.command_sub = "add-user"
 
         return cls.execute(cls._construct_command(options))
 
@@ -107,7 +107,7 @@ class Org(Base):
         Removes an user from an org
         """
 
-        cls.command_sub = "remove_user"
+        cls.command_sub = "remove-user"
 
         return cls.execute(cls._construct_command(options))
 
@@ -117,7 +117,7 @@ class Org(Base):
         Adds a hostgroup to an org
         """
 
-        cls.command_sub = "add_hostgroup"
+        cls.command_sub = "add-hostgroup"
 
         return cls.execute(cls._construct_command(options))
 
@@ -127,7 +127,7 @@ class Org(Base):
         Removes a hostgroup from an org
         """
 
-        cls.command_sub = "remove_hostgroup"
+        cls.command_sub = "remove-hostgroup"
 
         return cls.execute(cls._construct_command(options))
 
@@ -137,7 +137,7 @@ class Org(Base):
         Adds a computeresource to an org
         """
 
-        cls.command_sub = "add_computeresource"
+        cls.command_sub = "add-computeresource"
 
         return cls.execute(cls._construct_command(options))
 
@@ -147,7 +147,7 @@ class Org(Base):
         Removes a computeresource from an org
         """
 
-        cls.command_sub = "remove_computeresource"
+        cls.command_sub = "remove-computeresource"
 
         return cls.execute(cls._construct_command(options))
 
@@ -157,7 +157,7 @@ class Org(Base):
         Adds a medium to an org
         """
 
-        cls.command_sub = "add_medium"
+        cls.command_sub = "add-medium"
 
         return cls.execute(cls._construct_command(options))
 
@@ -167,7 +167,7 @@ class Org(Base):
         Removes a medium from an org
         """
 
-        cls.command_sub = "remove_medium"
+        cls.command_sub = "remove-medium"
 
         return cls.execute(cls._construct_command(options))
 
@@ -177,7 +177,7 @@ class Org(Base):
         Adds a configtemplate to an org
         """
 
-        cls.command_sub = "add_configtemplate"
+        cls.command_sub = "add-configtemplate"
 
         return cls.execute(cls._construct_command(options))
 
@@ -187,7 +187,7 @@ class Org(Base):
         Removes a configtemplate from an org
         """
 
-        cls.command_sub = "remove_configtemplate"
+        cls.command_sub = "remove-configtemplate"
 
         return cls.execute(cls._construct_command(options))
 
@@ -197,7 +197,7 @@ class Org(Base):
         Adds an environment to an org
         """
 
-        cls.command_sub = "add_environment"
+        cls.command_sub = "add-environment"
 
         return cls.execute(cls._construct_command(options))
 
@@ -207,7 +207,7 @@ class Org(Base):
         Removes an environment from an org
         """
 
-        cls.command_sub = "remove_environment"
+        cls.command_sub = "remove-environment"
 
         return cls.execute(cls._construct_command(options))
 
@@ -217,7 +217,7 @@ class Org(Base):
         Adds a smartproxy to an org
         """
 
-        cls.command_sub = "add_smartproxy"
+        cls.command_sub = "add-smartproxy"
 
         return cls.execute(cls._construct_command(options))
 
@@ -227,6 +227,6 @@ class Org(Base):
         Removes a smartproxy from an org
         """
 
-        cls.command_sub = "remove_smartproxy"
+        cls.command_sub = "remove-smartproxy"
 
         return cls.execute(cls._construct_command(options))

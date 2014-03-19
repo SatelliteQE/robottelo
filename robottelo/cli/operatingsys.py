@@ -48,7 +48,7 @@ class OperatingSys(Base):
         Adds existing architecture to OS.
         """
 
-        cls.command_sub = "add_architecture"
+        cls.command_sub = "add-architecture"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -60,7 +60,7 @@ class OperatingSys(Base):
         Adds existing template to OS.
         """
 
-        cls.command_sub = "add_configtemplate "
+        cls.command_sub = "add-configtemplate "
 
         result = cls.execute(cls._construct_command(options))
 
@@ -72,7 +72,7 @@ class OperatingSys(Base):
         Adds existing partitioning table to OS.
         """
 
-        cls.command_sub = "add_ptable"
+        cls.command_sub = "add-ptable"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -84,7 +84,7 @@ class OperatingSys(Base):
         Removes architecture from OS.
         """
 
-        cls.command_sub = "remove_architecture"
+        cls.command_sub = "remove-architecture"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -96,7 +96,7 @@ class OperatingSys(Base):
         Removes template from OS.
         """
 
-        cls.command_sub = "remove_configtemplate"
+        cls.command_sub = "remove-configtemplate"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -108,7 +108,7 @@ class OperatingSys(Base):
         Removes partitioning table from OS.
         """
 
-        cls.command_sub = "os remove_ptable "
+        cls.command_sub = "remove-ptable "
 
         result = cls.execute(cls._construct_command(options))
 

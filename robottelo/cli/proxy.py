@@ -35,12 +35,12 @@ class Proxy(Base):
         Base.__init__(self)
 
     @classmethod
-    def import_classes(cls, options=None):
+    def importclasses(cls, options=None):
         """
         Import puppet classes from puppet proxy.
         """
 
-        cls.command_sub = "import_classes"
+        cls.command_sub = "import-classes"
 
         result = cls.execute(cls._construct_command(options))
 

@@ -28,4 +28,4 @@ class Puppet(Base):
         Sets the base command for class.
         """
         Base.__init__(self)
-        self.command_base = "puppet_class"
+        self.command_base = "puppet-class"
