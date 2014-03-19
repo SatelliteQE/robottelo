@@ -62,6 +62,7 @@ class TestSSOCLI(BaseCLI):
         @assert: Install from ISO is sucessful.
         @status: Manual
         """
+        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_server_install(self):
