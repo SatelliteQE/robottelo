@@ -7,6 +7,7 @@ Implements Life cycle content environments
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.common.helpers import sleep_for_seconds
 
 
 class ContentEnvironment(Base):
@@ -40,6 +41,7 @@ class ContentEnvironment(Base):
             if description:
                 self.text_field_update(common_locators
                                        ["description"], description)
+            sleep_for_seconds(5)
             self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
         else:
