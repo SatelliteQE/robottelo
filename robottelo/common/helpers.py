@@ -219,7 +219,7 @@ def generate_strings_list(len1=8):
                  STR.utf8]
     str_list = []
     for str_type in str_types:
-        string1 = generate_string(str_type, len1)
+        string1 = generate_string(str_type, len1).decode('utf-8')
         str_list.append(string1)
     return str_list
 
