@@ -46,7 +46,7 @@ class Products(Base):
             self.text_field_update(common_locators["description"], description)
             time.sleep(2)
         self.wait_until_element(common_locators["create"]).click()
-        self.wait_for_ajax()
+        time.sleep(5)
 
     def update(self, name, new_name=None, new_desc=None,
                new_sync_plan=None, new_gpg_key=None):
@@ -58,6 +58,7 @@ class Products(Base):
         if prd_element:
             prd_element.click()
             self.wait_for_ajax()
+            self.wait_until_element(tab_locators["prd.tab_details"]).click()
             self.wait_until_element(tab_locators["prd.tab_details"]).click()
             self.wait_for_ajax()
             if new_name:
