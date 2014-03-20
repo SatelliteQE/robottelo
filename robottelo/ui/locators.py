@@ -141,7 +141,8 @@ menu_locators = {
     # Configure Menu
     "menu.configure": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='configure_menu']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='configure_menu']")),
     "menu.host_groups": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_hostgroups']"),
