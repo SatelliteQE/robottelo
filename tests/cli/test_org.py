@@ -999,7 +999,7 @@ class TestOrg(BaseCLI):
                              'new-name': test_data['name']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
+                           "There should be error - hammer expects error")
 
     @data({'description': generate_string('alpha', 3000)},
           {'description': generate_string('numeric', 3000)},
@@ -1027,7 +1027,7 @@ class TestOrg(BaseCLI):
                              'description': test_data['description']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
+                           "There should be error - hammer expects error")
 
     #Miscelaneous
 
