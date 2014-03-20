@@ -265,8 +265,6 @@ class Base(object):
                 if isinstance(val, str):
                     tail += u" --%s='%s'" % (key, val)
                 elif type(val) == unicode:
-                    print type(val)
-                    print val.encode('utf-8')
                     tail += u" --%s='%s'" % (key, val)
                 else:
                     tail += u" --%s=%s" % (key, val)
