@@ -23,7 +23,7 @@ class GlobalParameter(Base):
     Manipulates Foreman's global parameters.
     """
 
-    command_base = "global_parameter"
+    command_base = "global-parameter"
 
     def __init__(self):
         """

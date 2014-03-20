@@ -55,7 +55,7 @@ class Base(object):
         Adds OS to record.
         """
 
-        cls.command_sub = "add_operatingsystem"
+        cls.command_sub = "add-operatingsystem"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -103,7 +103,7 @@ class Base(object):
         Deletes parameter from record.
         """
 
-        cls.command_sub = "delete_parameter"
+        cls.command_sub = "delete-parameter"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -195,7 +195,7 @@ class Base(object):
         Lists all puppet classes.
         """
 
-        cls.command_sub = "puppet_classes"
+        cls.command_sub = "puppet-classes"
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -207,7 +207,7 @@ class Base(object):
         Removes OS from record.
         """
 
-        cls.command_sub = "remove_operatingsystem"
+        cls.command_sub = "remove-operatingsystem"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -219,7 +219,7 @@ class Base(object):
         Lists all smart class parameters.
         """
 
-        cls.command_sub = "sc_params"
+        cls.command_sub = "sc-params"
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -231,7 +231,7 @@ class Base(object):
         Creates or updates parameter for a record.
         """
 
-        cls.command_sub = "set_parameter"
+        cls.command_sub = "set-parameter"
 
         result = cls.execute(cls._construct_command(options))
 
