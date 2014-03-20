@@ -2,9 +2,9 @@
 Implements Repos UI
 """
 
-from time import sleep
 from robottelo.ui.base import Base
 from robottelo.common.constants import REPO_TYPE
+from robottelo.common.helpers import sleep_for_seconds
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
@@ -29,9 +29,9 @@ class Repos(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-            sleep(2)
+            sleep_for_seconds(5)
             self.wait_until_element(locators["repo.new"]).click()
-            sleep(5)
+            sleep_for_seconds(5)
             self.text_field_update(common_locators["name"], name)
             if repo_type:
                 type_ele = self.find_element(locators["repo.type"])
@@ -75,6 +75,7 @@ class Repos(Base):
         strategy = locators["repo.select"][0]
         value = locators["repo.select"][1]
         self.wait_until_element((strategy, value % repo)).click()
+        sleep_for_seconds(5)
         self.wait_until_element(locators["repo.remove"]).click()
         if really:
             self.wait_until_element(common_locators["confirm_remove"]).click()
