@@ -55,11 +55,9 @@ class Sync(BaseUI):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(Sync.org_name)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(Sync.org_name)
-        self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.repository.create(repo_name, product=prd_name, url=repo_url)
         self.assertIsNotNone(self.repository.search(repo_name))
