@@ -192,7 +192,7 @@ def generate_string(str_type, length):
         output_array = []
         for i in range(int(cjk_range[0], 16), int(cjk_range[1], 16)):
             output_array.append(i)
-        output_string = ''.join(
+        output_string = u''.join(
             unichr(random.choice(output_array)) for x in xrange(length))
     elif str_type == "html":
         html_tag = random.choice(HTML_TAGS).lower()
