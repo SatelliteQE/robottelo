@@ -60,7 +60,7 @@ class Products(BaseUI):
         new_prd_name = generate_name(8, 8)
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(Products.org_name)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -78,7 +78,7 @@ class Products(BaseUI):
 
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(Products.org_name)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
