@@ -881,25 +881,6 @@ class TestOrg(BaseCLI):
             "Org name was not updated"
         )
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update label is alpha
-        update label is numeric
-        update label is alphanumeric
-        update label is utf-8
-        update label is latin1
-        update label is html
-    """)
-    def test_positive_update_2(self, test_data):
-        """
-        @test: Create organization with valid values then update its label
-        @feature: Organizations
-        @assert: organization label is updated
-        @status: manual
-        """
-
-        pass
-
     @data({'description': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10)},
           {'description': generate_string("alpha", 10)},
@@ -990,67 +971,63 @@ class TestOrg(BaseCLI):
 
     # Negative Update
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update name is whitespace
-        update name is alpha 300 chars long
-        update name is numeric 300 chars long
-        update name is alphanumeric 300 chars long
-        update name is utf-8 300 chars long
-        update name is latin1 300 chars long
-        update name is html 300 chars long
-    """)
+    @data({'name': ' '},
+          {'name': generate_string('alpha', 300)},
+          {'name': generate_string('numeric', 300)},
+          {'name': generate_string('alphanumeric', 300)},
+          {'name': generate_string('utf8', 300)},
+          {'name': generate_string('latin1', 300)},
+          {'name': generate_string('html', 300)})
     def test_negative_update_1(self, test_data):
         """
         @test: Create organization with valid values then fail to update
         its name
         @feature: Organizations
         @assert: organization name is not updated
-        @status: manual
+        @bz:1076541
         """
 
-        pass
+        new_obj = make_org()
+        # Can we find the new object?
+        result = Org.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update label is whitespace
-        update label is alpha 300 chars long
-        update label is numeric 300 chars long
-        update label is alphanumeric 300 chars long
-        update label is utf-8 300 chars long
-        update label is latin1 300 chars long
-        update label is html 300 chars long
-    """)
-    def test_negative_update_2(self, test_data):
-        """
-        @test: Create organization with valid values then fail to update
-        its label
-        @feature: Organizations
-        @assert: organization label is not updated
-        @status: manual
-        """
+        # Update the org name
+        result = Org.update({'id': new_obj['id'],
+                             'new-name': test_data['name']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be error - hammer expects error")
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        update description is alpha 300 chars long
-        update description is numeric 300 chars long
-        update description is alphanumeric 300 chars long
-        update description is utf-8 300 chars long
-        update description is latin1 300 chars long
-        update description is html 300 chars long
-    """)
+    @data({'description': generate_string('alpha', 3000)},
+          {'description': generate_string('numeric', 3000)},
+          {'description': generate_string('alphanumeric', 3000)},
+          {'description': generate_string('utf8', 3000)},
+          {'description': generate_string('latin1', 3000)},
+          {'description': generate_string('html', 3000)})
     def test_negative_update_3(self, test_data):
         """
         @test: Create organization with valid values then fail to update
         its description
         @feature: Organizations
         @assert: organization description is not updated
-        @status: manual
         """
 
-        pass
+        new_obj = make_org()
+        # Can we find the new object?
+        result = Org.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+
+        # Update the org name
+        result = Org.update({'id': new_obj['id'],
+                             'description': test_data['description']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be error - hammer expects error")
 
     #Miscelaneous
 
