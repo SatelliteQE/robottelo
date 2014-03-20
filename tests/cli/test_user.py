@@ -975,10 +975,11 @@ class User(BaseCLI):
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
-        self.assertTrue(result.stdout)
+        self.assertEqual(len(result.stderr), 0)
         # make sure user was removed
-        result = UserObj.exists(('login', user['login']))
-        self.assertFalse(result.stdout)
+        result = UserObj().info({'login': user['login']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     def test_positive_delete_user_2(self):
         """
@@ -993,10 +994,11 @@ class User(BaseCLI):
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
-        self.assertTrue(result.stdout)
+        self.assertEqual(len(result.stderr), 0)
         # make sure user was removed
-        result = UserObj.exists(('login', user['login']))
-        self.assertFalse(result.stdout)
+        result = UserObj().info({'login': user['login']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     @data(make_user({'admin': 'true'}),
           {'login': 'admin', 'password': 'changeme'})
