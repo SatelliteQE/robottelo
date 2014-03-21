@@ -41,19 +41,20 @@ POSITIVE_CREATE_DATA_2 = (
         generate_string("alpha", 5), generate_string("alpha", 5))},
 )
 
+# Label cannot contain characters other than ascii alpha numerals, '_', '-'.
 POSITIVE_NAME_LABEL_DATA = (
     {'name': generate_string("latin1", 10),
-     'label': generate_string("latin1", 10)},
+     'label': generate_string("alpha", 10)},
     {'name': generate_string("utf8", 10),
-     'label': generate_string("utf8", 10)},
+     'label': generate_string("alpha", 10)},
     {'name': generate_string("alpha", 10),
      'label': generate_string("alpha", 10)},
     {'name': generate_string("alphanumeric", 10),
-     'label': generate_string("alphanumeric", 10)},
+     'label': generate_string("alpha", 10)},
     {'name': generate_string("numeric", 10),
-     'label': generate_string("numeric", 10)},
+     'label': generate_string("alpha", 10)},
     {'name': generate_string("html", 10),
-     'label': generate_string("numeric", 10)},)
+     'label': generate_string("alpha", 10)},)
 
 POSITIVE_NAME_DESC_DATA = (
     {'name': generate_string("latin1", 10),
@@ -370,7 +371,7 @@ class TestOrg(BaseCLI):
         new_obj = make_org(test_data)
 
          # Can we find the new object?
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.exists(('name', new_obj['name']))
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
