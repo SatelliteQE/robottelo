@@ -962,7 +962,6 @@ class User(BaseCLI):
         updated_user = UserObj().exists(('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_user_1(self):
         """
         @Test: Delete a user
@@ -971,11 +970,17 @@ class User(BaseCLI):
         1. Create User
         2. Delete the User
         @Assert: User is deleted
-        @Status: Manual
         """
-        pass
+        user = make_user()
+        self.__assert_exists(user)
+        result = UserObj().delete({'login': user['login']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user was removed
+        result = UserObj().info({'login': user['login']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_user_2(self):
         """
         @Test: Delete an admin user
@@ -984,9 +989,16 @@ class User(BaseCLI):
         1. Create an admin user
         2. Delete the User
         @Assert: User is deleted
-        @Status: Manual
         """
-        pass
+        user = make_user({'admin': 'true'})
+        self.__assert_exists(user)
+        result = UserObj().delete({'login': user['login']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user was removed
+        result = UserObj().info({'login': user['login']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     @data(make_user({'admin': 'true'}),
           {'login': 'admin', 'password': 'changeme'})

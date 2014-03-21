@@ -25,7 +25,7 @@ class ComputeResource(Base):
     Manipulates Foreman's compute resources.
     """
 
-    command_base = "compute_resource"
+    command_base = "compute-resource"
 
     def __init__(self):
         """

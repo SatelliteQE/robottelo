@@ -44,11 +44,9 @@ class Products(BaseUI):
 
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(Products.org_name)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(Products.org_name)
-        self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
 
     @attr('ui', 'prd', 'implemented')
@@ -137,15 +135,11 @@ class Products(BaseUI):
         new_prd_name = generate_name(8, 8)
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(Products.org_name)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(Products.org_name)
-        self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.products.update(prd_name, new_name=new_prd_name)
-        self.navigator.go_to_select_org(Products.org_name)
-        self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(new_prd_name))
 
     @attr('ui', 'prd', 'implemented')
@@ -182,11 +176,9 @@ class Products(BaseUI):
 
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(Products.org_name)
+        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
-        self.navigator.go_to_select_org(Products.org_name)
-        self.navigator.go_to_products()
         self.assertIsNotNone(self.products.search(prd_name))
         self.products.delete(prd_name, True)
         self.assertIsNone(self.products.search(prd_name))
