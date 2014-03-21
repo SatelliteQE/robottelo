@@ -129,6 +129,26 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @bzbug('1079587')
+    @data(*POSITIVE_CREATE_DATA_1)
+    def test_bugzilla_1079587(self, test_data):
+        """
+        @test: Search for an organization by label
+        @feature: Organizations
+        @assert: organization is created and can be searched by label
+        @bz: 1079587
+        """
+
+        new_obj = make_org(test_data)
+        # Can we find the new object?
+        result = Org.exists(('label', new_obj['label']))
+
+        self.assertEqual(result.return_code, 0, "Failed to find the object")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+        self.assertEqual(new_obj['name'],
+                         result.stdout['name'])
+
     @bzbug('1076568')
     def test_bugzilla_1076568(self):
         """
