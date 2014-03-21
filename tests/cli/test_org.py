@@ -634,8 +634,8 @@ class TestOrg(BaseCLI):
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list(
+            new_obj['label'],
             {
-                'organization-id': new_obj['label'],
                 'name': env_result['name']
             })
         # Result is a list of one item
@@ -659,8 +659,8 @@ class TestOrg(BaseCLI):
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list(
+            new_obj['label'],
             {
-                'organization-id': new_obj['label'],
                 'name': env_result['name']
             })
         # Result is a list of one item
@@ -681,8 +681,8 @@ class TestOrg(BaseCLI):
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list(
+            new_obj['label'],
             {
-                'organization-id': new_obj['label'],
                 'name': env_result['name']
             })
         self.assertEqual(
