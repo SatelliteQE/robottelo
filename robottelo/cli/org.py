@@ -137,7 +137,7 @@ class Org(Base):
         Adds a computeresource to an org
         """
 
-        cls.command_sub = "add-computeresource"
+        cls.command_sub = "add-compute-resource"
 
         return cls.execute(cls._construct_command(options))
 
@@ -147,7 +147,7 @@ class Org(Base):
         Removes a computeresource from an org
         """
 
-        cls.command_sub = "remove-computeresource"
+        cls.command_sub = "remove-compute-resource"
 
         return cls.execute(cls._construct_command(options))
 
@@ -177,7 +177,7 @@ class Org(Base):
         Adds a configtemplate to an org
         """
 
-        cls.command_sub = "add-configtemplate"
+        cls.command_sub = "add-config-template"
 
         return cls.execute(cls._construct_command(options))
 
@@ -187,7 +187,7 @@ class Org(Base):
         Removes a configtemplate from an org
         """
 
-        cls.command_sub = "remove-configtemplate"
+        cls.command_sub = "remove-config-template"
 
         return cls.execute(cls._construct_command(options))
 
@@ -217,7 +217,7 @@ class Org(Base):
         Adds a smartproxy to an org
         """
 
-        cls.command_sub = "add-smartproxy"
+        cls.command_sub = "add-smart-proxy"
 
         return cls.execute(cls._construct_command(options))
 
@@ -227,6 +227,6 @@ class Org(Base):
         Removes a smartproxy from an org
         """
 
-        cls.command_sub = "remove-smartproxy"
+        cls.command_sub = "remove-smart-proxy"
 
         return cls.execute(cls._construct_command(options))
