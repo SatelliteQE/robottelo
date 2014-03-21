@@ -93,14 +93,12 @@ class TestOrg(BaseCLI):
 
     # Tests for issues
 
-    @redminebug('4486')
     @data(*POSITIVE_CREATE_DATA_1)
     def test_redmine_4486(self, test_data):
         """
-        @test: Cannot search for an organization by name, only label
+        @test: Can search for an organization by name
         @feature: Organizations
         @assert: organization is created and can be searched by name
-        @bz: redmine#4486
         """
 
         new_obj = make_org(test_data)
