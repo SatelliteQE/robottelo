@@ -393,6 +393,16 @@ common_locators = {
 
 locators = {
 
+    # Locations
+    "location.new": (By.XPATH, "//a[@data-id='aid_locations_new']"),
+    "location.parent": (By.ID, "location_parent_id"),
+    "location.name": (By.ID, "location_name"),
+    "location.assign_all": (
+        By.XPATH, "//a[contains(@data-id,'assign_all_hosts')]"),
+    "location.proceed_to_edit": (
+        By.XPATH,
+        "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
+
     # Login
     "login.username": (By.ID, "login_login"),
     "login.password": (By.ID, "login_password"),
