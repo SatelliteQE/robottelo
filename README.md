@@ -36,7 +36,7 @@ All tests are written so that it is possible to run them using Python [Nosetests
 
 Initial Configuration
 ---------------------
-The first thing you need to do is copy the existing **robottello.properties.sample** files and save it as **robottelo.properties** inside of the checkout directory. Then, edit it so that at least the following attributes are set:
+The first thing you need to do is copy the existing **robottelo.properties.sample** files and save it as **robottelo.properties** inside of the checkout directory. Then, edit it so that at least the following attributes are set:
 
 ```INI
 server.hostname=[FULLY QUALIFIED DOMAIN NAME]
