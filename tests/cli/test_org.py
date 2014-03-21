@@ -18,71 +18,80 @@ from robottelo.common.decorators import (bzbug, redminebug)
 import unittest
 
 
-POSITIVE_CREATE_DATA_1 = (
-    {'name': generate_string("latin1", 10)},
-    {'name': generate_string("utf8", 10)},
-    {'name': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10)},
-    {'name': generate_string("numeric", 10)},
-    {'name': generate_string("html", 10)},
-)
+def positive_create_data_1():
+    return (
+        {'name': generate_string("latin1", 10)},
+        {'name': generate_string("utf8", 10)},
+        {'name': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10)},
+        {'name': generate_string("numeric", 10)},
+        {'name': generate_string("html", 10)},
+        )
+
 
 # Use this when name and label must match. Labels cannot
 # contain the same data type as names, so this is a bit limited
 # compared to other tests.
 # Label cannot contain characters other than ascii alpha numerals, '_', '-'.
-POSITIVE_CREATE_DATA_2 = (
-    {'name': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10)},
-    {'name': generate_string("numeric", 10)},
-    {'name': "%s-%s" % (
-        generate_string("alpha", 5), generate_string("alpha", 5))},
-    {'name': "%s_%s" % (
-        generate_string("alpha", 5), generate_string("alpha", 5))},
-)
+def positive_create_data_2():
+    return (
+        {'name': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10)},
+        {'name': generate_string("numeric", 10)},
+        {'name': "%s-%s" % (
+            generate_string("alpha", 5), generate_string("alpha", 5))},
+        {'name': "%s_%s" % (
+            generate_string("alpha", 5), generate_string("alpha", 5))},
+    )
+
 
 # Label cannot contain characters other than ascii alpha numerals, '_', '-'.
-POSITIVE_NAME_LABEL_DATA = (
-    {'name': generate_string("latin1", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("utf8", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("alpha", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("numeric", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("html", 10),
-     'label': generate_string("alpha", 10)},)
+def positive_name_label_data():
+    return (
+        {'name': generate_string("latin1", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("utf8", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("alpha", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("numeric", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("html", 10),
+         'label': generate_string("alpha", 10)},)
 
-POSITIVE_NAME_DESC_DATA = (
-    {'name': generate_string("latin1", 10),
-     'description': generate_string("latin1", 10)},
-    {'name': generate_string("utf8", 10),
-     'description': generate_string("utf8", 10)},
-    {'name': generate_string("alpha", 10),
-     'description': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10),
-     'description': generate_string("alphanumeric", 10)},
-    {'name': generate_string("numeric", 10),
-     'description': generate_string("numeric", 10)},
-    {'name': generate_string("html", 10),
-     'description': generate_string("numeric", 10)},)
 
-POSITIVE_NAME_DESC_LABEL_DATA = (
-    {'name': generate_string("alpha", 10),
-     'description': generate_string("alpha", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10),
-     'description': generate_string("alphanumeric", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("numeric", 10),
-     'description': generate_string("numeric", 10),
-     'label': generate_string("alpha", 10)},
-    {'name': generate_string("html", 10),
-     'description': generate_string("numeric", 10),
-     'label': generate_string("alpha", 10)},)
+def positive_name_desc_data():
+    return (
+        {'name': generate_string("latin1", 10),
+         'description': generate_string("latin1", 10)},
+        {'name': generate_string("utf8", 10),
+         'description': generate_string("utf8", 10)},
+        {'name': generate_string("alpha", 10),
+         'description': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10),
+         'description': generate_string("alphanumeric", 10)},
+        {'name': generate_string("numeric", 10),
+         'description': generate_string("numeric", 10)},
+        {'name': generate_string("html", 10),
+         'description': generate_string("numeric", 10)},)
+
+
+def positive_name_desc_label_data():
+    return (
+        {'name': generate_string("alpha", 10),
+         'description': generate_string("alpha", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10),
+         'description': generate_string("alphanumeric", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("numeric", 10),
+         'description': generate_string("numeric", 10),
+         'label': generate_string("alpha", 10)},
+        {'name': generate_string("html", 10),
+         'description': generate_string("numeric", 10),
+         'label': generate_string("alpha", 10)},)
 
 
 @ddt
@@ -93,7 +102,7 @@ class TestOrg(BaseCLI):
 
     # Tests for issues
 
-    @data(*POSITIVE_CREATE_DATA_1)
+    @data(*positive_create_data_1())
     def test_redmine_4486(self, test_data):
         """
         @test: Can search for an organization by name
@@ -130,7 +139,7 @@ class TestOrg(BaseCLI):
             len(return_value.stderr), 0, "There should not be an error here")
 
     @bzbug('1079587')
-    @data(*POSITIVE_CREATE_DATA_1)
+    @data(*positive_create_data_1())
     def test_bugzilla_1079587(self, test_data):
         """
         @test: Search for an organization by label
@@ -270,7 +279,7 @@ class TestOrg(BaseCLI):
             "There should not be an exception here"
         )
 
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.info({'id': new_obj['id']})
         self.assertNotEqual(result.return_code, 0, "Org was not deleted")
         self.assertGreater(len(result.stderr), 0,
                            "There should not be an exception here")
@@ -288,7 +297,7 @@ class TestOrg(BaseCLI):
         template_result = make_template()
         return_value = Org.add_configtemplate({
             'name': org_result['name'],
-            'configtemplate': template_result['name']})
+            'config-template': template_result['name']})
         self.assertEqual(return_value.return_code, 0,
                          "Add ConfigTemplate- retcode")
         self.assertEqual(
@@ -306,10 +315,10 @@ class TestOrg(BaseCLI):
         template_result = make_template()
         Org.add_configtemplate({
             'name': org_result['name'],
-            'configtemplate': template_result['name']})
+            'config-template': template_result['name']})
         return_value = Org.remove_configtemplate({
             'name': org_result['name'],
-            'configtemplate': template_result['name']})
+            'config-template': template_result['name']})
         self.assertEqual(return_value.return_code, 0,
                          "Remove ConfigTemplate- retcode")
         self.assertEqual(
@@ -325,7 +334,7 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org()
 
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
@@ -338,7 +347,7 @@ class TestOrg(BaseCLI):
 
     # CRUD
 
-    @data(*POSITIVE_CREATE_DATA_1)
+    @data(*positive_create_data_1())
     def test_positive_create_1(self, test_data):
         """
         @test: Create organization with valid name only
@@ -348,7 +357,7 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org(test_data)
         # Can we find the new object?
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.info({'id': new_obj['id']})
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -357,7 +366,7 @@ class TestOrg(BaseCLI):
             len(result.stdout), 0, "Failed to fetch organization")
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @data(*POSITIVE_CREATE_DATA_2)
+    @data(*positive_create_data_2())
     def test_positive_create_2(self, test_data):
         """
         @test: Create organization with valid matching name and label only
@@ -367,8 +376,9 @@ class TestOrg(BaseCLI):
 
         test_data['label'] = test_data['name']
         new_obj = make_org(test_data)
+
         # Can we find the new object?
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.info({'id': new_obj['id']})
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -378,7 +388,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(result.stdout['name'], result.stdout['label'])
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @data(*POSITIVE_NAME_LABEL_DATA)
+    @data(*positive_name_label_data())
     def test_positive_create_3(self, test_data):
         """
         @test: Create organization with valid unmatching name and label only
@@ -389,7 +399,7 @@ class TestOrg(BaseCLI):
         new_obj = make_org(test_data)
 
          # Can we find the new object?
-        result = Org.exists(('name', new_obj['name']))
+        result = Org.info({'id': new_obj['id']})
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -401,7 +411,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @data(*POSITIVE_NAME_DESC_DATA)
+    @data(*positive_name_desc_data())
     def test_positive_create_4(self, test_data):
         """
         @test: Create organization with valid name and description only
@@ -413,7 +423,7 @@ class TestOrg(BaseCLI):
         new_obj = make_org(test_data)
 
         # Can we find the new object?
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.info({'id': new_obj['id']})
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -425,7 +435,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @data(*POSITIVE_NAME_DESC_DATA)
+    @data(*positive_name_desc_data())
     def test_positive_create_5(self, test_data):
         """
         @test: Create organization with valid name, label and description
@@ -438,7 +448,7 @@ class TestOrg(BaseCLI):
         new_obj = make_org(test_data)
 
         # Can we find the new object?
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.info({'id': new_obj['id']})
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -720,7 +730,7 @@ class TestOrg(BaseCLI):
         proxy_result = make_proxy()
         return_value = Org.add_smartproxy({
             'name': org_result['name'],
-            'proxy': proxy_result['name']})
+            'smart-proxy': proxy_result['name']})
         self.assertEqual(return_value.return_code, 0,
                          "Add smartproxy - retcode")
         self.assertEqual(
@@ -737,10 +747,10 @@ class TestOrg(BaseCLI):
         proxy_result = make_proxy()
         Org.add_smartproxy({
             'name': org_result['name'],
-            'proxy': proxy_result['name']})
+            'smart-proxy': proxy_result['name']})
         return_value = Org.remove_smartproxy({
             'name': org_result['name'],
-            'proxy': proxy_result['name']})
+            'smart-proxy': proxy_result['name']})
         self.assertEqual(return_value.return_code, 0,
                          "Remove smartproxy - retcode")
         self.assertEqual(
@@ -825,7 +835,7 @@ class TestOrg(BaseCLI):
 
     # Positive Delete
 
-    @data(*POSITIVE_NAME_DESC_LABEL_DATA)
+    @data(*positive_name_desc_label_data())
     def test_positive_delete_1(self, test_data):
         """
         @test: Create organization with valid values then delete it
@@ -999,7 +1009,7 @@ class TestOrg(BaseCLI):
           {'name': generate_string('html', 300)})
     def test_negative_update_1(self, test_data):
         """
-        @test: Create organization with valid values then fail to update
+        @test: Create organization then fail to update
         its name
         @feature: Organizations
         @assert: organization name is not updated
@@ -1028,7 +1038,7 @@ class TestOrg(BaseCLI):
           {'description': generate_string('html', 3000)})
     def test_negative_update_3(self, test_data):
         """
-        @test: Create organization with valid values then fail to update
+        @test: Create organization then fail to update description
         its description
         @feature: Organizations
         @assert: organization description is not updated
