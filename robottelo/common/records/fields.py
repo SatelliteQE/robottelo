@@ -160,11 +160,9 @@ class StringField(Field):
         if self.str_type == 'xeger':
             if '{' in self.format:
                 self.format = self._parse_field_format(self.format)
-            r = rstr.xeger(self.format)[:self.maxlen].decode('unicode_escape')
-            return r.decode('unicode_escape')
+            return rstr.xeger(self.format)[:self.maxlen]
         else:
-            r = generate_string(self.str_type, self.maxlen)
-            return r.decode('unicode_escape')
+            return generate_string(self.str_type, self.maxlen)
 
 
 class IntegerField(Field):

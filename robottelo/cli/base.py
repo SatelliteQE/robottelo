@@ -131,13 +131,15 @@ class Base(object):
         if password is None:
             password = cls.katello_passwd
 
-        output_csv = ""
-        if expect_csv:
-            output_csv = " --output csv"
-        shell_cmd = "LANG=%s hammer -v -u %s -p %s" + output_csv + " %s"
-        cmd = shell_cmd % (cls.locale, user, password, command)
+        output_csv = u""
 
-        return ssh.command(cmd, expect_csv=expect_csv)
+        if expect_csv:
+            output_csv = u" --output csv"
+        shell_cmd = u"LANG=%s hammer -v -u %s -p %s %s %s"
+
+        cmd = shell_cmd % (cls.locale, user, password, output_csv, command)
+
+        return ssh.command(cmd.encode('utf-8'), expect_csv=expect_csv)
 
     @classmethod
     def exists(cls, tuple_search=None):
@@ -254,16 +256,13 @@ class Base(object):
         """
         Build a hammer cli command based on the options passed
         """
-        tail = ""
+        tail = u""
 
         options = options or {}
 
         for key, val in options.items():
             if val is not None:
-                if isinstance(val, str):
-                    tail += " --%s='%s'" % (key, val)
-                else:
-                    tail += " --%s=%s" % (key, val)
-        cmd = cls.command_base + " " + cls.command_sub + " " + tail.strip()
+                tail += u" --%s='%s'" % (key, val)
+        cmd = u"%s %s %s" % (cls.command_base, cls.command_sub, tail.strip())
 
         return cmd
