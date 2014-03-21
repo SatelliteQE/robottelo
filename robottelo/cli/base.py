@@ -262,12 +262,7 @@ class Base(object):
 
         for key, val in options.items():
             if val is not None:
-                if isinstance(val, str):
-                    tail += u" --%s='%s'" % (key, val)
-                elif type(val) == unicode:
-                    tail += u" --%s='%s'" % (key, val)
-                else:
-                    tail += u" --%s=%s" % (key, val)
+                tail += u" --%s='%s'" % (key, val)
         cmd = u"%s %s %s" % (cls.command_base, cls.command_sub, tail.strip())
 
         return cmd
