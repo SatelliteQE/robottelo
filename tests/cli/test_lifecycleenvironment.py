@@ -33,6 +33,33 @@ class TestLifeCycleEnvironment(BaseCLI):
 
     # Issues validation
 
+    @bzbug('1077386')
+    def test_bugzilla_1077386(self):
+        """
+        @Test: List subcommand returns standard output
+        @Feature: Lifecycle Environment
+        @Assert: There should not be an error returned
+        """
+
+        # List avaialble lifecycle environments using default Table
+        # output
+        cmd = u"lifecycle-environment list --organization-id=\"%s\""
+        result = LifecycleEnvironment.execute(
+            cmd % self.org['label'],
+            None,
+            None,
+            False
+        )
+
+        self.assertEqual(
+            result.return_code, 0, "Could not find the lifecycle environment"
+        )
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here.")
+        self.assertGreater(
+            len(result.stdout), 0, "No output was returned"
+        )
+
     @bzbug('1077333')
     def test_bugzilla_1077333(self):
         """
