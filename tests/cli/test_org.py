@@ -441,7 +441,6 @@ class TestOrg(BaseCLI):
         @test: Create organization with valid name, label and description
         @feature: Organizations
         @assert: organization is created
-        @status: manual
         """
 
         test_data['label'] = generate_string('alpha', 10)
@@ -835,6 +834,7 @@ class TestOrg(BaseCLI):
 
     # Positive Delete
 
+    @bzbug('1076568')
     @data(*positive_name_desc_label_data())
     def test_positive_delete_1(self, test_data):
         """
@@ -871,6 +871,7 @@ class TestOrg(BaseCLI):
 
     # Positive Update
 
+    @bzbug('1076541')
     @data({'name': generate_string("latin1", 10)},
           {'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
@@ -882,7 +883,6 @@ class TestOrg(BaseCLI):
         @test: Create organization with valid values then update its name
         @feature: Organizations
         @assert: organization name is updated
-        @status: manual
         @bz:1076541
         """
 
@@ -948,6 +948,7 @@ class TestOrg(BaseCLI):
             "Org desc was not updated"
         )
 
+    @bzbug('1076541')
     @data({'description': generate_string("latin1", 10),
            'name': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10),
@@ -965,6 +966,7 @@ class TestOrg(BaseCLI):
         @test: Create organization with valid values then update all values
         @feature: Organizations
         @assert: organization name and description are updated
+        @bz: 1076541
         """
 
         new_obj = make_org()
@@ -1000,6 +1002,7 @@ class TestOrg(BaseCLI):
 
     # Negative Update
 
+    @bzbug('1076541')
     @data({'name': ' '},
           {'name': generate_string('alpha', 300)},
           {'name': generate_string('numeric', 300)},
@@ -1121,9 +1124,6 @@ class TestOrg(BaseCLI):
     # Associations
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1144,9 +1144,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1167,9 +1164,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1190,9 +1184,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1213,9 +1204,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4294')
-    @redminebug('4295')
-    @redminebug('4296')
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -1236,9 +1224,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4294')
-    @redminebug('4295')
-    @redminebug('4296')
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -1259,9 +1244,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4294')
-    @redminebug('4295')
-    @redminebug('4296')
     @data("""DATADRIVENGOESHERE
         user name is alpha and admin
         user name is numeric and admin
@@ -1514,9 +1496,6 @@ class TestOrg(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
