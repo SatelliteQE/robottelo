@@ -44,6 +44,54 @@ class User(BaseCLI):
         self.assertTrue(result.stdout[0]['email'] == args['mail'],
                         "User search - check our value 'Email'")
 
+    # Issues
+
+    @bzbug('1079649')
+    def test_bugzilla_1079649_1(self):
+        """
+        @Test: Delete a user by it's name
+        @Feature: User
+        @Steps:
+        1. Create User
+        2. Delete the User
+        @Assert: User is deleted
+        @BZ: 1079649
+        """
+
+        user = make_user()
+        self.__assert_exists(user)
+        result = UserObj().delete({'login': user['login']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user was removed
+        result = UserObj().info({'login': user['login']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+
+    @bzbug('1079649')
+    def test_bugzilla_1079649_2(self):
+        """
+        @Test: Delete a user by it's ID
+        @Feature: User
+        @Steps:
+        1. Create User
+        2. Delete the User
+        @Assert: User is deleted
+        @BZ: 1079649
+        """
+
+        user = make_user()
+        self.__assert_exists(user)
+        result = UserObj().delete({'id': user['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user was removed
+        result = UserObj().info({'login': user['login']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+
+    # CRUD
+
     @data({'login': generate_string("latin1", 10)},
           {'login': generate_string("utf8", 10)},
           {'login': generate_string("alpha", 10)},
@@ -962,7 +1010,14 @@ class User(BaseCLI):
         updated_user = UserObj().exists(('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
-    def test_positive_delete_user_1(self):
+    @bzbug('1079649')
+    @data({'login': generate_string("latin1", 10)},
+          {'login': generate_string("utf8", 10)},
+          {'login': generate_string("alpha", 10)},
+          {'login': generate_string("alphanumeric", 10)},
+          {'login': generate_string("numeric", 10)},
+          {'login': generate_string("alphanumeric", 10)})
+    def test_positive_delete_user_1(self, login):
         """
         @Test: Delete a user
         @Feature: User - Positive Delete
@@ -970,8 +1025,9 @@ class User(BaseCLI):
         1. Create User
         2. Delete the User
         @Assert: User is deleted
+        @BZ: 1079649
         """
-        user = make_user()
+        user = make_user({'login': login})
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
@@ -981,7 +1037,14 @@ class User(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    def test_positive_delete_user_2(self):
+    @bzbug('1079649')
+    @data({'login': generate_string("latin1", 10)},
+          {'login': generate_string("utf8", 10)},
+          {'login': generate_string("alpha", 10)},
+          {'login': generate_string("alphanumeric", 10)},
+          {'login': generate_string("numeric", 10)},
+          {'login': generate_string("alphanumeric", 10)})
+    def test_positive_delete_user_2(self, login):
         """
         @Test: Delete an admin user
         @Feature: User - Positive Delete
@@ -990,7 +1053,7 @@ class User(BaseCLI):
         2. Delete the User
         @Assert: User is deleted
         """
-        user = make_user({'admin': 'true'})
+        user = make_user({'admin': 'true', 'login': login})
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
