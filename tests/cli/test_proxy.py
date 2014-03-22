@@ -7,20 +7,20 @@ Test class for Smart proxy CLI
 
 from tests.cli.basecli import BaseCLI
 from robottelo.cli.factory import make_proxy
-from robottelo.cli.proxy import Proxy
+#from robottelo.cli.proxy import Proxy
 from robottelo.common.decorators import redminebug
 
 
 class TestProxy(BaseCLI):
 
     @redminebug('3875')
-    def test_create_proxy(self):
+    def test_redmine_3875(self):
         """
-        @Feature: Proxy - Create
-        @Test: Check if Proxy can be created
-        @Assert: Proxy is created
+        @Test: Proxy creation with random URL
+        @Feature: Smart Proxy
+        @Assert: Proxy is not created
         """
 
-        result = make_proxy()
-        proxy = Proxy().info({'name': result['name']})
-        self.assertEqual(result['name'], proxy.stdout['name'])
+        # Create a random proxy
+        with self.assertRaises(Exception):
+            make_proxy()
