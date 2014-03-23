@@ -55,6 +55,39 @@ class GPGKey(Base):
         return result
 
     @classmethod
+    def info(cls, options=None):
+        """
+        Gets information for GPG Key
+        """
+
+        cls.command_sub = "info"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        # Need to rebuild the returned object
+        # First check for content key
+        # id, name, content, organization, repositories
+
+        if len(result.stdout) > 0:
+            key_record = {}
+
+            #First item should contain most fields
+            key_record = result.stdout.pop(0)
+            #TODO: check that it does have organization field
+            if not 'organization' in key_record:
+                raise ValueError('Could not find GPG Key')
+
+            # Remaining items belong to content
+
+            for item in result.stdout:
+                for key, val in item.items():
+                    key_record['content'] += val
+            # Update stdout with dictionary
+            result.stdout = key_record
+
+        return result
+
+    @classmethod
     def list(cls, organization_id, options=None):
         """
         Lists available GPG Keys.

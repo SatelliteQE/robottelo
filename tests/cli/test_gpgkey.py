@@ -20,24 +20,32 @@ import unittest
 
 VALID_GPG_KEY_FILE_PATH = 'tests/data/%s' % VALID_GPG_KEY_FILE
 
-POSITIVE_CREATE_DATA = (
-    {'name': generate_string("latin1", 10)},
-    {'name': generate_string("utf8", 10)},
-    {'name': generate_string("alpha", 10)},
-    {'name': generate_string("alphanumeric", 10)},
-    {'name': generate_string("numeric", 20)},
-    {'name': generate_string("html", 10)},
-)
 
-NEGATIVE_CREATE_DATA = (
-    {'name': ' '},
-    {'name': generate_string('alpha', 300)},
-    {'name': generate_string('numeric', 300)},
-    {'name': generate_string('alphanumeric', 300)},
-    {'name': generate_string('utf8', 300)},
-    {'name': generate_string('latin1', 300)},
-    {'name': generate_string('html', 300)},
-)
+def positive_create_data():
+    """Random data for positive creation"""
+
+    return (
+        {'name': generate_string("latin1", 10)},
+        {'name': generate_string("utf8", 10)},
+        {'name': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10)},
+        {'name': generate_string("numeric", 20)},
+        {'name': generate_string("html", 10)},
+    )
+
+
+def negative_create_data():
+    """Random data for negative creation"""
+
+    return (
+        {'name': ' '},
+        {'name': generate_string('alpha', 300)},
+        {'name': generate_string('numeric', 300)},
+        {'name': generate_string('alphanumeric', 300)},
+        {'name': generate_string('utf8', 300)},
+        {'name': generate_string('latin1', 300)},
+        {'name': generate_string('html', 300)},
+    )
 
 
 @ddt
@@ -60,7 +68,7 @@ class TestGPGKey(BaseCLI):
         """Creates and returns an organization"""
         label = generate_name(6)
         org = make_org({'label': label})
-        result = Org().exists(('label', org['label']))
+        result = Org.exists(('id', org['id']))
 
         org.update(result.stdout)
 
@@ -183,7 +191,7 @@ class TestGPGKey(BaseCLI):
 
     # Positive Create
 
-    @data(*POSITIVE_CREATE_DATA)
+    @data(*positive_create_data())
     def test_positive_create_1(self, data):
         """
         @test: Create gpg key with valid name and valid gpg key via file import
@@ -192,7 +200,7 @@ class TestGPGKey(BaseCLI):
         @assert: gpg key is created
         """
 
-        result = Org().list()
+        result = Org.list()
         self.assertGreater(len(result.stdout), 0, 'No organization found')
         org = result.stdout[0]
 
@@ -200,6 +208,7 @@ class TestGPGKey(BaseCLI):
         data = data.copy()
         data['key'] = VALID_GPG_KEY_FILE_PATH
         data['organization-id'] = org['label']
+
         try:
             new_obj = make_gpg_key(data)
         except Exception, e:
@@ -217,7 +226,7 @@ class TestGPGKey(BaseCLI):
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
-    @data(*POSITIVE_CREATE_DATA)
+    @data(*positive_create_data())
     def test_positive_create_2(self, data):
         """
         @test: Create gpg key with valid name and valid gpg key via file import
@@ -249,7 +258,7 @@ class TestGPGKey(BaseCLI):
 
     # Negative Create
 
-    @data(*POSITIVE_CREATE_DATA)
+    @data(*positive_create_data())
     def test_negative_create_1(self, data):
         """
         @test: Create gpg key with valid name and valid gpg key via file import
@@ -291,7 +300,7 @@ class TestGPGKey(BaseCLI):
         self.assertGreater(
             len(new_obj.stderr), 0, "Should have raised an exception")
 
-    @data(*POSITIVE_CREATE_DATA)
+    @data(*positive_create_data())
     def test_negative_create_2(self, data):
         """
         @test: Create gpg key with valid name and no gpg key
@@ -310,7 +319,7 @@ class TestGPGKey(BaseCLI):
         self.assertGreater(
             len(new_obj.stderr), 0, "Should have raised an exception")
 
-    @data(*NEGATIVE_CREATE_DATA)
+    @data(*negative_create_data())
     def test_negative_create_3(self, data):
         """
         @test: Create gpg key with invalid name and valid gpg key via
