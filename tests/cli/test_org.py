@@ -19,6 +19,8 @@ import unittest
 
 
 def positive_create_data_1():
+    """Random data for positive creation"""
+
     return (
         {'name': generate_string("latin1", 10)},
         {'name': generate_string("utf8", 10)},
@@ -26,7 +28,7 @@ def positive_create_data_1():
         {'name': generate_string("alphanumeric", 10)},
         {'name': generate_string("numeric", 10)},
         {'name': generate_string("html", 10)},
-        )
+    )
 
 
 # Use this when name and label must match. Labels cannot
@@ -34,6 +36,8 @@ def positive_create_data_1():
 # compared to other tests.
 # Label cannot contain characters other than ascii alpha numerals, '_', '-'.
 def positive_create_data_2():
+    """Random simpler data for positive creation"""
+
     return (
         {'name': generate_string("alpha", 10)},
         {'name': generate_string("alphanumeric", 10)},
@@ -47,6 +51,8 @@ def positive_create_data_2():
 
 # Label cannot contain characters other than ascii alpha numerals, '_', '-'.
 def positive_name_label_data():
+    """Random data for Label tests"""
+
     return (
         {'name': generate_string("latin1", 10),
          'label': generate_string("alpha", 10)},
@@ -59,10 +65,13 @@ def positive_name_label_data():
         {'name': generate_string("numeric", 10),
          'label': generate_string("alpha", 10)},
         {'name': generate_string("html", 10),
-         'label': generate_string("alpha", 10)},)
+         'label': generate_string("alpha", 10)},
+    )
 
 
 def positive_name_desc_data():
+    """Random data for Descriptions tests"""
+
     return (
         {'name': generate_string("latin1", 10),
          'description': generate_string("latin1", 10)},
@@ -75,10 +84,13 @@ def positive_name_desc_data():
         {'name': generate_string("numeric", 10),
          'description': generate_string("numeric", 10)},
         {'name': generate_string("html", 10),
-         'description': generate_string("numeric", 10)},)
+         'description': generate_string("numeric", 10)},
+    )
 
 
 def positive_name_desc_label_data():
+    """Random data for Labels and Description"""
+
     return (
         {'name': generate_string("alpha", 10),
          'description': generate_string("alpha", 10),
@@ -91,7 +103,8 @@ def positive_name_desc_label_data():
          'label': generate_string("alpha", 10)},
         {'name': generate_string("html", 10),
          'description': generate_string("numeric", 10),
-         'label': generate_string("alpha", 10)},)
+         'label': generate_string("alpha", 10)},
+    )
 
 
 @ddt
