@@ -15,26 +15,6 @@ from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 
 
-class SubnetData(dict):
-    """
-    Dumb class to hold a subnet dictionary object
-    """
-    pass
-
-
-def fix_test_name(subnet_data):
-    """Dynamically updates the test name for DDT tests"""
-
-    annotated_data = SubnetData(subnet_data)
-
-    # Updates the DDT name to a random value plus the ID of the data object
-    setattr(
-        annotated_data,
-        "__name__", "%d" % int(id(annotated_data)))
-
-    return annotated_data
-
-
 @ddt
 class TestSubnet(BaseCLI):
     """
@@ -96,20 +76,20 @@ class TestSubnet(BaseCLI):
         self.assertGreater(len(result.stdout), 0,
                            "Subnet list - returns > 0 records")
 
-    @attr('cli', 'subnet')
     @data(
-        fix_test_name({'network': generate_ipaddr(ip3=True)}),
-        fix_test_name({'mask': '255.255.0.0'}),
-        fix_test_name({'gateway': '192.168.101.54'}),
-        fix_test_name({'dns-primary': '192.168.100.0'}),
-        fix_test_name({'dns-secondary': '10.17.100.0'}),
-        fix_test_name({
-            'network': '192.168.100.0',
-            'from': '192.168.100.1',
-            'to': '192.168.100.255',
-        }),
-        fix_test_name({'vlanid': '1'}),
+        {u'network': generate_ipaddr(ip3=True)},
+        {u'mask': '255.255.0.0'},
+        {u'gateway': u'192.168.101.54'},
+        {u'dns-primary': u'192.168.100.0'},
+        {u'dns-secondary': u'10.17.100.0'},
+        {
+            u'network': u'192.168.100.0',
+            u'from': u'192.168.100.1',
+            u'to': u'192.168.100.255',
+        },
+        {u'vlanid': u'1'},
     )
+    @attr('cli', 'subnet')
     def test_update_success_ddt(self, option_dict):
         """
         @Feature: Subnet - Update
