@@ -5,8 +5,6 @@
 Test class for Smart Class Parameter CLI.
 """
 
-import random
-
 from tests.cli.basecli import BaseCLI
 from robottelo.cli.smartclass import SmartClassParameter
 from robottelo.common import ssh
@@ -27,19 +25,17 @@ class TestSmartClassParameter(BaseCLI):
         ssh.command('puppet module install --force puppetlabs/ntp')
 
     @bzbug('1047794')
-    def test_info(self):
+    def test_bugzilla_1047794(self):
         """
+        @Test: Check if SmartClass Paramter Info generates an error
         @Feature: SmartClass Paramter - Info
-        @Test: Check if SmartClass Paramter Info is displayed
-        @Assert: SmartClass Paramter Info is displayed
+        @Assert: SmartClass Paramter Info does not generate an error
+        @BZ: 1047794
         """
+
         self.run_puppet_module()
         result = SmartClassParameter().list()
-
-        self.assertTrue(len(result.stdout) > 0)
-        self.assertEqual(result.return_code, 0)
-
-        sc_param = random.choice(result.stdout)
-        res = SmartClassParameter().info({'id': sc_param['id']})
-        self.assertEqual(sc_param['id'], res.stdout['id'])
-        self.assertEqual(res.return_code, 0)
+        self.assertEqual(
+            result.return_code, 0, "Command should have succeeded")
+        self.assertEqual(
+            len(result.stderr), 0, "Should not have raised an error")
