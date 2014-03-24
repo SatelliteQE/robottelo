@@ -33,6 +33,7 @@ class Repos(Base):
             self.wait_until_element(locators["repo.new"]).click()
             sleep_for_seconds(5)
             self.text_field_update(common_locators["name"], name)
+            sleep_for_seconds(3)
             if repo_type:
                 type_ele = self.find_element(locators["repo.type"])
                 Select(type_ele).select_by_visible_text(repo_type)
@@ -44,6 +45,7 @@ class Repos(Base):
             if http:
                 self.find_element(locators["repo.via_http"]).click()
             self.find_element(common_locators["create"]).click()
+            sleep_for_seconds(5)
 
     def update(self, name, new_url=None, new_gpg_key=None, http=False):
         """
