@@ -18,8 +18,8 @@ class TestContentViewsUI(BaseUI):
         # variations (subject to change):
         # ascii string, alphanumeric, latin-1, utf8, etc.
         """
-        @feature: Content Views
         @test: create content views (positive)
+        @feature: Content Views
         @assert: content views are created
         @status: Manual
         """
@@ -29,8 +29,8 @@ class TestContentViewsUI(BaseUI):
         # variations (subject to change):
         # zero length, symbols, html, etc.
         """
-        @feature: Content Views
         @test: create content views (negative)
+        @feature: Content Views
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
         @status: Manual
@@ -38,8 +38,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
         """
-        @feature: Content Views
         @test: edit content views - name, description, etc.
+        @feature: Content Views
         @assert: edited content view save is successful and info is
         updated
         @status: Manual
@@ -53,8 +53,8 @@ class TestContentViewsUI(BaseUI):
         #   * A filter on severity (only content of specific errata
         # severity.
         """
-        @feature: Content Views
         @test: edit content views for a custom rh spin.  For example,
+        @feature: Content Views
         modify a filter
         @assert: edited content view save is successful and info is
         updated
@@ -64,8 +64,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_delete(self):
         """
-        @feature: Content Views
         @test: delete content views
+        @feature: Content Views
         @assert: edited content view can be deleted and no longer
         appears in any content view UI
         updated
@@ -79,8 +79,8 @@ class TestContentViewsUI(BaseUI):
         # Individual modules from a puppet repo, however, are a valid
         # variation.
         """
-        @feature: Content Views
         @test: create a composite content views
+        @feature: Content Views
         @setup: sync multiple content source/types (RH, custom, etc.)
         @assert: Composite content views are created
         @status: Manual
@@ -89,8 +89,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh(self):
         """
-        @feature: Content Views
         @test: associate Red Hat content in a view
+        @feature: Content Views
         @setup: Sync RH content
         @assert: RH Content can be seen in a view
         @status: Manual
@@ -104,8 +104,8 @@ class TestContentViewsUI(BaseUI):
         #   * A filter on severity (only content of specific errata
         # severity.
         """
-        @feature: Content Views
         @test: associate Red Hat content in a view
+        @feature: Content Views
         @setup: Sync RH content
         @steps: 1. Assure filter(s) applied to associated content
         @assert: Filtered RH content only is available/can be seen in a view
@@ -115,8 +115,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_custom_content(self):
         """
-        @feature: Content Views
         @test: associate Red Hat content in a view
+        @feature: Content Views
         @setup: Sync custom content
         @assert: Custom content can be seen in a view
         @status: Manual
@@ -126,9 +126,9 @@ class TestContentViewsUI(BaseUI):
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
         """
-        @feature: Content Views
         @test: attempt to associate puppet repos within a custom
         content view
+        @feature: Content Views
         @assert: User cannot create a composite content view
         that contains direct puppet repos.
         @status: Manual
@@ -137,9 +137,9 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_components_composite_negative(self):
         """
-        @feature: Content Views
         @test: attempt to associate components n a non-composite
         content view
+        @feature: Content Views
         @assert: User cannot add components to the view
         @status: Manual
         """
@@ -147,9 +147,9 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_composite_dupe_repos_negative(self):
         """
-        @feature: Content Views
         @test: attempt to associate the same repo multiple times within a
         content view
+        @feature: Content Views
         @assert: User cannot add repos multiple times to the view
         @status: Manual
         """
@@ -157,9 +157,9 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_composite_dupe_modules_negative(self):
         """
-        @feature: Content Views
         @test: attempt to associate duplicate puppet module(s) within a
         content view
+        @feature: Content Views
         @assert: User cannot add modules multiple times to the view
         @status: Manual
         """
@@ -167,8 +167,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh(self):
         """
-        @feature: Content Views
         @test: attempt to promote a content view containing RH content
+        @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be promoted
         @status: Manual
@@ -177,9 +177,9 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
         """
-        @feature: Content Views
         @test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
+        @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be promoted
         @status: Manual
@@ -188,8 +188,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_custom_content(self):
         """
-        @feature: Content Views
         @test: attempt to promote a content view containing custom content
+        @feature: Content Views
         @setup: Multiple environments for an org; custom content synced
         @assert: Content view can be promoted
         @status: Manual
@@ -202,8 +202,8 @@ class TestContentViewsUI(BaseUI):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
         """
-        @feature: Content Views
         @test: attempt to promote a content view containing custom content
+        @feature: Content Views
         @setup: Multiple environments for an org; custom content synced
         @steps: create a composite view containing multiple content types
         @assert: Content view can be promoted
@@ -213,8 +213,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_default_negative(self):
         """
-        @feature: Content Views
         @test: attempt to promote a the default content views
+        @feature: Content Views
         @assert: Default content views cannot be promoted
         @status: Manual
         """
@@ -222,8 +222,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh(self):
         """
-        @feature: Content Views
         @test: attempt to publish a content view containing RH content
+        @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
         @status: Manual
@@ -232,9 +232,9 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
         """
-        @feature: Content Views
         @test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
+        @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
         @status: Manual
@@ -243,8 +243,8 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_custom_content(self):
         """
-        @feature: Content Views
         @test: attempt to publish a content view containing custom content
+        @feature: Content Views
         @setup: Multiple environments for an org; custom content synced
         @assert: Content view can be published
         @status: Manual
@@ -257,8 +257,8 @@ class TestContentViewsUI(BaseUI):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
         """
-        @feature: Content Views
         @test: attempt to publish  a content view containing custom content
+        @feature: Content Views
         @setup: Multiple environments for an org; custom content synced
         @assert: Content view can be published
         @status: Manual
@@ -271,9 +271,9 @@ class TestContentViewsUI(BaseUI):
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
         """
-        @feature: Content Views
         @test: when publishing new version to environment, version
         gets updated
+        @feature: Content Views
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
         @steps:
@@ -289,9 +289,9 @@ class TestContentViewsUI(BaseUI):
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
         """
-        @feature: Content Views
         @test: when publishing new version to environment, version
         gets updated
+        @feature: Content Views
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
         @steps:
@@ -305,9 +305,9 @@ class TestContentViewsUI(BaseUI):
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
         """
-        @feature: Content Views
         @test: attempt to create new content view based on existing
         view within environment
+        @feature: Content Views
         @assert: Content view can be published
         @status: Manual
         """
@@ -316,9 +316,9 @@ class TestContentViewsUI(BaseUI):
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
         """
-        @feature: Content Views
         @test: attempt to create new content view based on existing
         view, inside a different environment
+        @feature: Content Views
         @assert: Content view can be published
         @status: Manual
         """
@@ -326,9 +326,9 @@ class TestContentViewsUI(BaseUI):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
         """
-        @feature: Content Views
         @test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
+        @feature: Content Views
         @assert: Content view can be published
         @status: Manual
         """
@@ -346,8 +346,8 @@ class TestContentViewsUI(BaseUI):
         # * composite
         # * CVs with puppet modules
         """
-        @feature: Content Views
         @test: attempt to  subscribe systems to content view(s)
+        @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
         @status: Manual
         """
@@ -363,8 +363,8 @@ class TestContentViewsUI(BaseUI):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
         """
-        @feature: Content Views
         @test: attempt to view content views
+        @feature: Content Views
         @setup: create a user with the Content View admin role
         @assert: User with admin role for content view can perform all
         Variations above
@@ -386,8 +386,8 @@ class TestContentViewsUI(BaseUI):
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
         """
-        @feature: Content Views
         @test: attempt to view content views
+        @feature: Content Views
         @setup: create a user with the Content View read-only role
         @assert: User with read-only role for content view can perform all
         Variations above
@@ -405,8 +405,8 @@ class TestContentViewsUI(BaseUI):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
         """
-        @feature: Content Views
         @test: attempt to view content views
+        @feature: Content Views
         @setup: create a user with the Content View admin role
         @assert: User withOUT admin role for content view canNOT perform any
         Variations above
@@ -425,8 +425,8 @@ class TestContentViewsUI(BaseUI):
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
         """
-        @feature: Content Views
         @test: attempt to view content views
+        @feature: Content Views
         @setup: create a user withOUT the Content View read-only role
         @assert: User withOUT read-only role for content view can perform all
         Variations above
