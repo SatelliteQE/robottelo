@@ -327,6 +327,17 @@ common_locators = {
     "entity_checkbox": (
         By.XPATH,
         "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
+    "name_haserror": (
+        By.XPATH,
+        ("//label[@for='name']/../../"
+         "div[contains(@class,'has-error')]")),
+    "common_haserror": (
+        By.XPATH,
+        ("//span[@class='help-block']/ul/"
+         "li[contains(@ng-repeat,'error.messages')]")),
+    "common_invalid": (
+        By.XPATH,
+        "//input[@id='name' and contains(@class,'ng-invalid')]"),
 
     "search": (By.ID, "search"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
@@ -353,11 +364,7 @@ common_locators = {
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
     # Katello common Product and Repo locators
-    "gpg_key": (By.ID, "gpg_key_id"),
-    "name_haserror": (
-        By.XPATH,
-        ("//label[@for='name']/../../"
-         "div[contains(@class,'has-error')]"))}
+    "gpg_key": (By.ID, "gpg_key_id")}
 
 locators = {
 
