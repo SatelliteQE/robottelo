@@ -19,7 +19,6 @@ Subcommands:
 """
 
 from robottelo.cli.base import Base
-from robottelo.common.helpers import generate_ipaddr, generate_name
 
 
 class Subnet(Base):
