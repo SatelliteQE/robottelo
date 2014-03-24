@@ -3,6 +3,7 @@
 
 from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud
+from robottelo.common.decorators import redminebug
 from robottelo.records.activation_key import ActivationKey
 from tests.api.baseapi import BaseAPI
 
@@ -13,6 +14,7 @@ class ActivationKeys(BaseAPI):
 
     # Positive Create
 
+    @redminebug('4793')
     @data(*ActivationKey.enumerate())
     def test_positive_create_1(self, test_data):
         """
@@ -23,6 +25,7 @@ class ActivationKeys(BaseAPI):
         result = ApiCrud.record_create(test_data)
         self.assertIntersects(test_data, result)
 
+    @redminebug('4793')
     @data(*ActivationKey.enumerate())
     def test_update(self, ak):
         """
