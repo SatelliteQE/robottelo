@@ -572,8 +572,12 @@ class User(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_user_1(self):
+    @data({'firstname': generate_string("latin1", 10)},
+          {'firstname': generate_string("utf8", 10)},
+          {'firstname': generate_string("alpha", 10)},
+          {'firstname': generate_string("alphanumeric", 10)},
+          {'firstname': generate_string("numeric", 10)},)
+    def test_positive_update_user_1(self, test_data):
         """
         @Test: Update Username in User
         @Feature: User - Positive Update
@@ -581,9 +585,32 @@ class User(BaseCLI):
         1. Create User
         2. Update User name for all variations in [1]
         @Assert: User is updated
-        @Status: Manual
         """
-        pass
+
+        new_obj = make_user()
+        # Can we find the new object?
+        result = UserObj().info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+
+        # Update the org name
+        result = UserObj().update({'id': new_obj['id'],
+                                   'firstname': test_data['firstname']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+
+        # Fetch the org again
+        result = UserObj().info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        var = result.stdout['name'].split(' ')
+        self.assertEqual(
+            var[0],
+            test_data['firstname'],
+            "Org name was not updated"
+        )
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_2(self):
