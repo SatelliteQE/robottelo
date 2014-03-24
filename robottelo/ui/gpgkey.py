@@ -5,8 +5,10 @@
 Implements GPG keys UI
 """
 
+from robottelo.common.helpers import sleep_for_seconds
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.navigator import Navigator
 
 
 class GPGKey(Base):
@@ -43,7 +45,7 @@ class GPGKey(Base):
                 raise Exception(
                     "Could not create new gpgkey '%s' without contents" % name)
             self.wait_until_element(common_locators["create"]).click()
-            self.wait_for_ajax()
+            sleep_for_seconds(2)
         else:
             raise Exception(
                 "Could not create new gpg key '%s'" % name)
@@ -60,7 +62,7 @@ class GPGKey(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(element_name)
-            self.wait_for_ajax()
+            sleep_for_seconds(5)
             self.find_element(common_locators["kt_search_button"]).click()
             element = self.wait_until_element((strategy, value % element_name))
             return element
@@ -73,8 +75,9 @@ class GPGKey(Base):
 
         if element:
             element.click()
-            self.wait_for_ajax()
+            sleep_for_seconds(3)
             self.wait_until_element(locators["gpgkey.remove"]).click()
+            sleep_for_seconds(2)
             if really:
                 self.wait_until_element(common_locators["confirm_remove"]
                                         ).click()
@@ -91,7 +94,7 @@ class GPGKey(Base):
 
         if element:
             element.click()
-            self.wait_for_ajax()
+            sleep_for_seconds(5)
             if new_name:
                 self.edit_entity("gpgkey.edit_name", "gpgkey.edit_name_text",
                                  new_name, "gpgkey.save_name")
@@ -133,3 +136,25 @@ class GPGKey(Base):
         else:
             raise Exception(
                 "Couldn't search the given gpg key '%s'" % key_name)
+
+    def assert_key_from_product(self, key_name, product):
+        """
+        Assert the key association after deletion from product tab
+        """
+
+        nav = Navigator(self.browser)
+        nav.go_to_products()
+        prd_element = self.search_entity(product, locators["prd.select"],
+                                         katello=True)
+        if prd_element:
+            prd_element.click()
+            sleep_for_seconds(2)
+            self.wait_until_element(tab_locators["prd.tab_details"]).click()
+            element = self.find_element(locators
+                                        ["prd.gpg_key"]
+                                        ).get_attribute('innerHTML')
+            if element == '':
+                return None
+        else:
+            raise Exception(
+                "Couldn't find the product '%s'" % product)
