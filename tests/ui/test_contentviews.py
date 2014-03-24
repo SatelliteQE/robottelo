@@ -35,6 +35,7 @@ class TestContentViewsUI(BaseUI):
         system handles it gracefully
         @status: Manual
         """
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
         """
@@ -353,6 +354,33 @@ class TestContentViewsUI(BaseUI):
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
+    def test_cv_dynflow_restart_promote(self):
+        """
+        @test: attempt to restart a promotion
+        @feature: Content Views
+        @steps:
+        1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
+        2. Via Dynflow, restart promotion
+        @assert: Promotion is restarted.
+        @status: Manual
+        """
+
+    @unittest.skip(NOT_IMPLEMENTED)
+    def test_cv_dynflow_restart_publish(self):
+        """
+        @test: attempt to restart a publish
+        @feature: Content Views
+        @steps:
+        1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
+        2. Via Dynflow, restart promotion
+        @assert: Publish is restarted.
+        @status: Manual
+        """
+
+    # ROLES TESTING
+    # All this stuff is speculative at best.
+
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_roles_admin_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -370,9 +398,6 @@ class TestContentViewsUI(BaseUI):
         Variations above
         @status: Manual
         """
-
-    # ROLES TESTING
-    # All this stuff is speculative at best.
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_roles_readonly_user(self):
