@@ -594,22 +594,22 @@ class User(BaseCLI):
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-        # Update the org name
+        # Update the user name
         result = UserObj().update({'id': new_obj['id'],
                                    'firstname': test_data['firstname']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(
             len(result.stderr), 0, "There should not be an error here")
 
-        # Fetch the org again
+        # Fetch the user again
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        var = result.stdout['name'].split(' ')
+        user_name = result.stdout['name'].split(' ')
         self.assertEqual(
-            var[0],
+            user_name[0],
             test_data['firstname'],
-            "Org name was not updated"
+            "User first name was not updated"
         )
 
     @unittest.skip(NOT_IMPLEMENTED)
