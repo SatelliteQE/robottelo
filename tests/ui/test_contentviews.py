@@ -372,7 +372,7 @@ class TestContentViewsUI(BaseUI):
         @feature: Content Views
         @steps:
         1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
-        2. Via Dynflow, restart promotion
+        2. Via Dynflow, restart publish
         @assert: Publish is restarted.
         @status: Manual
         """
