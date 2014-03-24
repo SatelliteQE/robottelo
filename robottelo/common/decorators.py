@@ -11,6 +11,7 @@ import requests
 import unittest
 
 from robottelo.common import conf
+from xml.parsers.expat import ExpatError
 
 
 bugzilla_log = logging.getLogger("bugzilla")
@@ -34,16 +35,27 @@ def bzbug(bz_id):
     try:
         mybz = bugzilla.RHBugzilla()
         mybz.connect(BUGZILLA_URL)
-        mybug = mybz.getbugsimple(bz_id)
     except (TypeError, ValueError):
         logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
         return lambda func: func
-    else:
+
+    attempts = 0
+    mybug = None
+    while attempts < 3 and mybug is None:
+        try:
+            mybug = mybz.getbugsimple(bz_id)
+        except ExpatError:
+            attempts += 1
+
+    if not mybug is None:
         if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
             logging.debug(mybug)
             return unittest.skip("Test skipped due to %s" % mybug)
         else:
             return lambda func: func
+    else:
+        return unittest.skip(
+            "Test skipped due to not being able to fetch bug #%s info" % bz_id)
 
 
 _redmine = {
