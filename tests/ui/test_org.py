@@ -249,13 +249,14 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % domain))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
-        self.navigator.go_to_org()
         self.org.update(org_name, domains=[domain])
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % domain))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -357,6 +358,7 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % user_name))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
         self.navigator.go_to_org()
         self.org.update(org_name, users=[user_name], new_users=None)
@@ -364,6 +366,7 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % user_name))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -823,6 +826,7 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % resource_name))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
         self.org.update(org_name, resources=[resource_name],
                         new_resources=None)
@@ -830,6 +834,7 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % resource_name))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -919,6 +924,7 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % medium))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
         self.org.update(org_name, medias=[medium],
                         new_medias=None)
@@ -926,6 +932,7 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % medium))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -1014,12 +1021,14 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % template))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
         self.org.update(org_name, templates=[template])
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % template))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -1558,12 +1567,14 @@ class Org(BaseUI):
         self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % subnet_name))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
         self.org.update(org_name, subnets=[subnet_name], new_subnets=None)
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % subnet_name))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
