@@ -45,7 +45,7 @@ class Org(BaseUI):
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
-    def test_positive_create_2(self):
+    def test_positive_create_2(self, org_name):
         """
         @feature: Organizations
         @test: Create organization with valid name, label, parent_org, desc
@@ -55,7 +55,6 @@ class Org(BaseUI):
         parent = "ACME_Corporation"
         desc = "All Values"
         label = generate_name(8, 8)
-        org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name, label=label, desc=desc, parent_org=parent)
