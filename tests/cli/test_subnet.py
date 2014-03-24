@@ -47,7 +47,7 @@ class TestSubnet(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         self.assertEqual(
-            result.stdout['name'], new_subnet['name'], "Names don\'t\' match")
+            result.stdout['name'], new_subnet['name'], "Names don't match")
 
     @attr('cli', 'subnet')
     def test_list(self):
