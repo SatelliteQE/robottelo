@@ -382,6 +382,9 @@ locators = {
         ("//a[@class='btn btn-success'"
             "and contains(@href, '/organizations/new')]")),
     "org.name": (By.ID, "organization_name"),
+    "org.parent": (By.ID, "organization_parent_id"),
+    "org.label": (By.ID, "organization_label"),
+    "org.desc": (By.ID, "organization_description"),
     "org.proceed_to_edit": (
         By.XPATH,
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
