@@ -204,6 +204,7 @@ class Org(BaseUI):
 
     # Associations
 
+    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain):
@@ -216,6 +217,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
         org_name = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_domains()
@@ -223,7 +226,12 @@ class Org(BaseUI):
         self.assertIsNotNone(self.domain.search(domain))
         self.navigator.go_to_org()
         self.org.create(org_name, domains=[domain], edit=True)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % domain))
+        self.assertTrue(element)
+        self.navigator.go_to_org()
         self.org.update(org_name, domains=[domain])
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
@@ -301,6 +309,7 @@ class Org(BaseUI):
 
         pass
 
+    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_user_3(self, user_name):
@@ -313,6 +322,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_select"][0]
+        value1 = common_locators["entity_select"][1]
         org_name = generate_name(8, 8)
         password = generate_name(8)
         email = generate_email_address()
@@ -323,7 +334,12 @@ class Org(BaseUI):
         self.assertIsNotNone(self.user.search(user_name, search_key))
         self.navigator.go_to_org()
         self.org.create(org_name, users=[user_name], edit=True)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % user_name))
+        self.assertTrue(element)
+        self.navigator.go_to_org()
         self.org.update(org_name, users=[user_name], new_users=None)
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
@@ -757,6 +773,7 @@ class Org(BaseUI):
 
         pass
 
+    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
@@ -769,6 +786,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
         org_name = generate_name(8, 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
@@ -781,7 +800,11 @@ class Org(BaseUI):
         self.assertIsNotNone(self.compute_resource.search(resource_name))
         self.navigator.go_to_org()
         self.org.create(org_name, resources=[resource_name], edit=True)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % resource_name))
+        self.assertTrue(element)
         self.org.update(org_name, resources=[resource_name],
                         new_resources=None)
         self.org.search(org_name).click()
@@ -850,6 +873,7 @@ class Org(BaseUI):
 
         pass
 
+    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium):
@@ -861,6 +885,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
         org_name = generate_name(8, 8)
         path = URL % generate_name(6)
         os_family = "Red Hat"
@@ -870,7 +896,11 @@ class Org(BaseUI):
         self.assertIsNotNone(self.medium.search(medium))
         self.navigator.go_to_org()
         self.org.create(org_name, medias=[medium], edit=True)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % medium))
+        self.assertTrue(element)
         self.org.update(org_name, medias=[medium],
                         new_medias=None)
         self.org.search(org_name).click()
@@ -936,6 +966,7 @@ class Org(BaseUI):
 
         pass
 
+    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
@@ -947,6 +978,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
         org_name = generate_name(8, 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -958,7 +991,11 @@ class Org(BaseUI):
         self.navigator.go_to_org()
         self.org.create(org_name, templates=[template],
                         edit=True)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % template))
+        self.assertTrue(element)
         self.org.update(org_name, templates=[template])
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
@@ -1474,6 +1511,7 @@ class Org(BaseUI):
 
         pass
 
+    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
@@ -1485,6 +1523,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
         org_name = generate_name(8, 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -1495,7 +1535,11 @@ class Org(BaseUI):
         self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
         self.navigator.go_to_org()
         self.org.create(org_name, subnets=[subnet_name], edit=True)
-        self.assertIsNotNone(self.org.search(org_name))
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % subnet_name))
+        self.assertTrue(element)
         self.org.update(org_name, subnets=[subnet_name], new_subnets=None)
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
