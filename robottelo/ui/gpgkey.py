@@ -153,7 +153,7 @@ class GPGKey(Base):
             element = self.find_element(locators
                                         ["prd.gpg_key"]
                                         ).get_attribute('innerHTML')
-            if element == '':
+            if element is None:
                 return None
             else:
                 raise Exception(
