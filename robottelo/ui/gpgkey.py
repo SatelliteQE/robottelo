@@ -155,6 +155,9 @@ class GPGKey(Base):
                                         ).get_attribute('innerHTML')
             if element == '':
                 return None
+            else:
+                raise Exception(
+                    "GPGKey '%s' is still associated with product" % key_name)
         else:
             raise Exception(
                 "Couldn't find the product '%s'" % product)
