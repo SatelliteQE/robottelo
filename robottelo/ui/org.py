@@ -6,7 +6,7 @@ Implements Org UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.common.constants import FILTER
 from selenium.webdriver.support.select import Select
 
@@ -29,41 +29,51 @@ class Org(Base):
                        new_resources=None, new_medias=None,
                        new_templates=None, new_domains=None,
                        new_envs=None, new_hostgroups=None, select=None):
+        loc = tab_locators
 
         if users or new_users:
             self.configure_entity(users, FILTER['org_user'],
+                                  tab_locator=loc["orgs.tab_users"],
                                   new_entity_list=new_users,
                                   entity_select=select)
         if proxies or new_proxies:
             self.configure_entity(proxies, FILTER['org_proxy'],
+                                  tab_locator=loc["orgs.tab_sm_prx"],
                                   new_entity_list=new_proxies,
                                   entity_select=select)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['org_subnet'],
+                                  tab_locator=loc["orgs.tab_subnets"],
                                   new_entity_list=new_subnets,
                                   entity_select=select)
         if resources or new_resources:
             self.configure_entity(resources, FILTER['org_resource'],
+                                  tab_locator=loc["orgs.tab_resources"],
                                   new_entity_list=new_resources,
                                   entity_select=select)
         if medias or new_medias:
             self.configure_entity(medias, FILTER['org_media'],
+                                  tab_locator=loc["orgs.tab_media"],
                                   new_entity_list=new_medias,
                                   entity_select=select)
         if templates or new_templates:
             self.configure_entity(templates, FILTER['org_template'],
+                                  tab_locator=loc["orgs.tab_template"],
                                   new_entity_list=new_templates,
                                   entity_select=select)
         if domains or new_domains:
             self.configure_entity(domains, FILTER['org_domain'],
+                                  tab_locator=loc["orgs.tab_domains"],
                                   new_entity_list=new_domains,
                                   entity_select=select)
         if envs or new_envs:
             self.configure_entity(envs, FILTER['org_envs'],
+                                  tab_locator=loc["orgs.tab_env"],
                                   new_entity_list=new_envs,
                                   entity_select=select)
         if hostgroups or new_hostgroups:
             self.configure_entity(hostgroups, FILTER['org_hostrgroup'],
+                                  tab_locator=loc["orgs.tab_hostgrps"],
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
 
