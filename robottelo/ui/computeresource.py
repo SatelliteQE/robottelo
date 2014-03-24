@@ -65,9 +65,10 @@ class ComputeResource(Base):
             self.find_element(locators["resource.name"]).send_keys(name)
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd)
-        self.configure_entity(orgs, FILTER['cr_org'],
-                              tab_locator=tab_locators["tab_org"],
-                              entity_select=org_select)
+        if orgs:
+            self.configure_entity(orgs, FILTER['cr_org'],
+                                  tab_locator=tab_locators["tab_org"],
+                                  entity_select=org_select)
         self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
@@ -97,10 +98,11 @@ class ComputeResource(Base):
             self._configure_resource(provider_type, url, user, password,
                                      region, libvirt_display, tenant,
                                      libvirt_set_passwd)
-            self.configure_entity(orgs, FILTER['cr_org'],
-                                  tab_locator=tab_locators["tab_org"],
-                                  new_entity_list=new_orgs,
-                                  entity_select=org_select)
+            if orgs is not None or new_orgs is not None:
+                self.configure_entity(orgs, FILTER['cr_org'],
+                                      tab_locator=tab_locators["tab_org"],
+                                      new_entity_list=new_orgs,
+                                      entity_select=org_select)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
