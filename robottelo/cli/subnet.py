@@ -34,15 +34,3 @@ class Subnet(Base):
         Sets the base command for class.
         """
         Base.__init__(self)
-
-    #TODO: switch to use factory make_subnet
-    @classmethod
-    def create_minimal(cls, name=None, network=None):
-        """
-        Creates a minimal subnet object.
-        """
-        options = {}
-        options['name'] = name if name else generate_name(8, 8)
-        options['network'] = network if network else generate_ipaddr(ip3=True)
-        options['mask'] = '255.255.255.0'
-        return cls.create(options)
