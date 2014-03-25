@@ -173,7 +173,7 @@ class GPGKey(Base):
                     return None
                 else:
                     raise Exception(
-                        "GPGKey '%s' is still assoc with product" % name)
+                        "GPG key '%s' is still assoc with product" % name)
         else:
             raise Exception(
                 "Couldn't find the product '%s'" % product)
