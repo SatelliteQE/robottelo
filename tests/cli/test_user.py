@@ -617,7 +617,7 @@ class User(BaseCLI):
           {'lastname': generate_string("alpha", 10)},
           {'lastname': generate_string("alphanumeric", 10)},
           {'lastname': generate_string("numeric", 10)},)
-    def test_positive_update_user_3(self,test_data):
+    def test_positive_update_user_3(self, test_data):
         """
         @Test: Update Surname in User
         @Feature: User - Positive Update
@@ -626,7 +626,7 @@ class User(BaseCLI):
         2. Update Surname for all variations in [1]
         @Assert: User is updated
         """
-        
+
         new_obj = make_user()
         # Can we find the new object?
         result = UserObj().info({'id': new_obj['id']})
@@ -657,7 +657,7 @@ class User(BaseCLI):
           {'mail': generate_string("alpha", 10)},
           {'mail': generate_string("alphanumeric", 10)},
           {'mail': generate_string("numeric", 10)},)
-    def test_positive_update_user_4(self,test_data):
+    def test_positive_update_user_4(self, test_data):
         """
         @Test: Update Email Address in User
         @Feature: User - Positive Update
@@ -666,7 +666,7 @@ class User(BaseCLI):
         2. Update Email Address for all variations in [1]
         @Assert: User is updated
         """
-        
+
         new_obj = make_user()
         # Can we find the new object?
         result = UserObj().info({'id': new_obj['id']})
