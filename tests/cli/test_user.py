@@ -649,7 +649,7 @@ class User(BaseCLI):
         new_obj_user_last_name = new_obj['name'].split(' ')
         self.assertNotEqual(user_last_name[1], new_obj_user_last_name[1])
         self.assertEqual(
-            user_name[1],
+            user_last_name[1],
             test_data['lastname'],
             "User last name was not updated"
         )
