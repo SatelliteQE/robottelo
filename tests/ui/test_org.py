@@ -53,12 +53,16 @@ class Org(BaseUI):
         @assert: organization is created
         """
 
-        parent = "ACME_Corporation"
-        desc = "All Values"
+        parent = generate_name(8, 8)
+        desc = generate_name(8, 8)
         label = generate_name(8, 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
-        self.org.create(org_name, label=label, desc=desc, parent_org=parent)
+        # If parent org is not required to be static.
+        self.org.create(parent)
+        self.navigator.go_to_org()
+        self.org.create(org_name, label=label, desc=desc,
+                        parent_org=parent)
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(parent + "/" + org_name))
 
