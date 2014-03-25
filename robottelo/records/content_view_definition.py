@@ -21,8 +21,8 @@ class ContentViewDefinitionApi(ApiCrud):
 class ContentViewDefinition(records.Record):
     """ Implementation of kattelo content view definition record
     """
-    name = records.basic_positive()
-    description = records.basic_positive()
+    name = records.BasicPositiveField()
+    description = records.BasicPositiveField()
     organization = records.RelatedField(Organization)
 
     class Meta:

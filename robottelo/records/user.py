@@ -32,11 +32,11 @@ class UserApi(ApiCrud):
 class User(records.Record):
     """ Implementation of foreman user record
     """
-    login = records.basic_positive(include=CONSERVATIVE)
-    password = records.basic_positive(include=CONSERVATIVE)
+    login = records.BasicPositiveField(include=CONSERVATIVE)
+    password = records.BasicPositiveField(include=CONSERVATIVE)
     mail = records.EmailField()
-    firstname = records.basic_positive(include=CONSERVATIVE)
-    lastname = records.basic_positive(include=CONSERVATIVE)
+    firstname = records.BasicPositiveField(include=CONSERVATIVE)
+    lastname = records.BasicPositiveField(include=CONSERVATIVE)
     auth_source_id = records.IntegerField(default=1)
     organization = records.ManyRelatedField(Organization, 1, 2)
 
