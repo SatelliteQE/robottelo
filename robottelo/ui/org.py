@@ -8,6 +8,7 @@ Implements Org UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.common.constants import FILTER
+from selenium.webdriver.support.select import Select
 
 
 class Org(Base):
@@ -76,16 +77,24 @@ class Org(Base):
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
 
-    def create(self, org_name=None, users=None, proxies=None, subnets=None,
-               resources=None, medias=None, templates=None, domains=None,
-               envs=None, hostgroups=None, edit=False, select=True):
+    def create(self, org_name=None, parent_org=None, label=None, desc=None,
+               users=None, proxies=None, subnets=None, resources=None,
+               medias=None, templates=None, domains=None, envs=None,
+               hostgroups=None, edit=False, select=True):
         """
         Create Organization in UI
         """
         if self.wait_until_element(locators["org.new"]):
             self.wait_until_element(locators["org.new"]).click()
-            self.wait_until_element(locators["org.name"])
-            self.field_update("org.name", org_name)
+            if parent_org:
+                type_ele = self.find_element(locators["org.parent"])
+                Select(type_ele).select_by_visible_text(parent_org)
+            if self.wait_until_element(locators["org.name"]):
+                self.field_update("org.name", org_name)
+            if label:
+                self.field_update("org.label", label)
+            if desc:
+                self.field_update("org.desc", desc)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
             if edit:
@@ -106,6 +115,9 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
+
+        # latin1 and html requires double quotes for search, Bug: 1071253
+        qname = "\"" + name + "\""
         strategy = locators["org.org_name"][0]
         value = locators["org.org_name"][1]
         searchbox = self.wait_until_element(common_locators["search"])
@@ -113,19 +125,20 @@ class Org(Base):
             raise Exception("Search box not found.")
         else:
             searchbox.clear()
-            searchbox.send_keys(name)
+            searchbox.send_keys(qname)
             self.wait_until_element(common_locators["search_button"]).click()
             self.wait_for_ajax()
             element = self.wait_until_element((strategy,
                                                value % name))
             return element
 
-    def update(self, org_name, new_name=None, users=None, proxies=None,
-               subnets=None, resources=None, medias=None, templates=None,
-               domains=None, envs=None, hostgroups=None, new_users=None,
-               new_proxies=None, new_subnets=None, new_resources=None,
-               new_medias=None, new_templates=None, new_domains=None,
-               new_envs=None, new_hostgroups=None, select=False):
+    def update(self, org_name, new_parent_org=None, new_name=None, users=None,
+               proxies=None, subnets=None, resources=None, medias=None,
+               templates=None, domains=None, envs=None, hostgroups=None,
+               new_users=None, new_proxies=None, new_subnets=None,
+               new_resources=None, new_medias=None, new_templates=None,
+               new_domains=None, new_envs=None, new_hostgroups=None,
+               select=False, new_desc=None):
         """
         Update Organization in UI
         """
@@ -136,6 +149,11 @@ class Org(Base):
             if new_name:
                 if self.wait_until_element(locators["org.name"]):
                     self.field_update("org.name", new_name)
+            if new_parent_org:
+                type_ele = self.find_element(locators["org.parent"])
+                Select(type_ele).select_by_visible_text(new_parent_org)
+            if new_desc:
+                self.field_update("org.desc", new_desc)
             self._configure_org(users=users, proxies=proxies,
                                 subnets=subnets, resources=resources,
                                 medias=medias, templates=templates,

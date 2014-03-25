@@ -421,10 +421,16 @@ locators = {
         ("//a[@class='btn btn-success'"
             "and contains(@href, '/organizations/new')]")),
     "org.name": (By.ID, "organization_name"),
+    "org.parent": (By.ID, "organization_parent_id"),
+    "org.label": (By.ID, "organization_label"),
+    "org.desc": (By.ID, "organization_description"),
     "org.proceed_to_edit": (
         By.XPATH,
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
-    "org.org_name": (By.LINK_TEXT, "%s"),
+    # By.XPATH works also with latin1 and html chars, so removed By.LINK_TEXT
+    "org.org_name": (
+        By.XPATH,
+        "//a[contains(@href,'organizations')]/span[contains(.,'%s')]"),
     "org.dropdown": (
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
@@ -432,6 +438,12 @@ locators = {
     "org.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "org.name_value": (
+        By.XPATH,
+        "//input[@id='organization_name' and @value='%s']"),
+    "org.label_value": (
+        By.XPATH,
+        "//input[@id='organization_label' and @value='%s']"),
 
     #Operating system (OS)
     "operatingsys.new": (

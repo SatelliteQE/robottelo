@@ -14,7 +14,7 @@ from robottelo.common.helpers import (generate_name, generate_strings_list,
                                       generate_email_address, get_data_file)
 from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import bzbug, redminebug
-from robottelo.ui.locators import common_locators, tab_locators
+from robottelo.ui.locators import common_locators, tab_locators, locators
 from tests.ui.baseui import BaseUI
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -43,6 +43,132 @@ class Org(BaseUI):
         self.navigator.go_to_org()
         #self.assertIsNotNone(select_org)  TODO: Add scroll logic Bug: 1053587
         self.assertIsNotNone(self.org.search(org_name))
+
+    @attr('ui', 'org', 'implemented')
+    @data({'label': generate_string('alpha', 10),
+           'name': generate_string('alpha', 10),
+           'desc': generate_string('alpha', 10)},
+          {'label': generate_string('numeric', 10),
+           'name': generate_string('numeric', 10),
+           'desc': generate_string('numeric', 10)},
+          {'label': generate_string('alphanumeric', 10),
+           'name': generate_string('alphanumeric', 10),
+           'desc': generate_string('alphanumeric', 10)},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('utf8', 10),
+           'desc': generate_string('utf8', 10)},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('latin1', 20),
+           'desc': generate_string('latin1', 10)},
+          {'label': generate_string('alpha', 10),
+           'name': generate_string('html', 20),
+           'desc': generate_string('html', 10)})
+    def test_positive_create_2(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid name, label, parent_org, desc
+        @assert: organization is created
+        """
+
+        parent = generate_name(8, 8)
+        desc = test_data['desc']
+        label = test_data['label']
+        org_name = test_data['name']
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        # If parent org is not required to be static.
+        self.org.create(parent)
+        self.navigator.go_to_org()
+        self.org.create(org_name, label=label, desc=desc,
+                        parent_org=parent)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+
+    @attr('ui', 'org', 'implemented')
+    @data({'name': generate_string('alpha', 10),
+           'label': generate_string('alpha', 10)},
+          {'name': generate_string('numeric', 10),
+           'label': generate_string('numeric', 10)},
+          {'name': generate_string('alphanumeric', 10),
+           'label': generate_string('alphanumeric', 10)})
+    # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
+    def test_positive_create_3(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid unmatching name and label only
+        @assert: organization is created, label does not match name
+        """
+
+        name_loc = locators["org.name"]
+        label_loc = locators["org.label"]
+        org_name = test_data['name']
+        org_label = test_data['label']
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name, label=org_label)
+        self.navigator.go_to_org()
+        self.org.search(org_name).click()
+        name = self.org.wait_until_element(name_loc).get_attribute("value")
+        label = self.org.wait_until_element(label_loc).get_attribute("value")
+        self.assertNotEqual(name, label)
+
+    @attr('ui', 'org', 'implemented')
+    @data({'data': generate_string('alpha', 10)},
+          {'data': generate_string('numeric', 10)},
+          {'data': generate_string('alphanumeric', 10)})
+    # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
+    def test_positive_create_4(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid matching name and label only
+        @assert: organization is created, label matches name
+        """
+        name_loc = locators["org.name"]
+        label_loc = locators["org.label"]
+        org_name = org_label = test_data['data']
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name, label=org_label)
+        self.navigator.go_to_org()
+        self.org.search(org_name).click()
+        name = self.org.wait_until_element(name_loc).get_attribute("value")
+        label = self.org.wait_until_element(label_loc).get_attribute("value")
+        self.assertEqual(name, label)
+
+    @bzbug("1079482")
+    @attr('ui', 'org', 'implemented')
+    @data({'name': generate_string('alpha', 10),
+           'desc': generate_string('alpha', 10)},
+          {'name': generate_string('numeric', 10),
+           'desc': generate_string('numeric', 10)},
+          {'name': generate_string('alphanumeric', 10),
+           'desc': generate_string('alphanumeric', 10)},
+          {'name': generate_string('utf8', 10),
+           'desc': generate_string('utf8', 10)},
+          {'name': generate_string('latin1', 20),
+           'desc': generate_string('latin1', 10)},
+          {'name': generate_string('html', 20),
+           'desc': generate_string('html', 10)})
+    def test_positive_create_5(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid name and description only
+        @assert: organization is created, label is auto-generated
+        """
+
+        desc = test_data['desc']
+        org_name = test_data['name']
+        label_loc = locators["org.label"]
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name, desc=desc)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_org()
+        self.org.search(org_name).click()
+        label_ele = self.org.wait_until_element(label_loc)
+        label_value = label_ele.get_attribute("value")
+        self.assertTrue(label_value)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list(len1=256))
@@ -181,21 +307,6 @@ class Org(BaseUI):
         @assert: organization can be found
         """
 
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-
-    @bzbug('1073601')
-    def test_search_org_html(self):
-        """
-        @feature: Organizations
-        @test: Create organization and search/find with html data
-        @assert: organization with html data can be found
-        """
-
-        org_name = generate_string("html", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
