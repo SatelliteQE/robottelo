@@ -429,6 +429,8 @@ class ApiCrud(object):
             value = resolve_or_create_record(instance[field])
             instance[field] = value
             instance[field+"_id"] = value.id
+            if instance._meta.fields[field].record_label:
+                instance[field+"_id"] = value.label
 
         #resolve ManyRelated ids
         related_fields = instance._meta.fields.keys(cls=ManyRelatedField)
@@ -454,3 +456,17 @@ class ApiCrud(object):
             return api.record_create_recursive(instance_orig)
         res_instance = cls.record_create_dependencies(instance_orig)
         return cls.record_create(res_instance)
+
+
+class Task(object):
+
+    def __init__(self, json):
+        self.json = json
+
+    def refresh(self):
+        id = self.json["id"]
+        r = base.get(path="/katello/api/v2/tasks/{0}".format(id))
+        self.json = r.json()
+
+    def result(self):
+        return self.json["result"]
