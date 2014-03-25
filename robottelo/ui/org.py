@@ -115,6 +115,9 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
+
+        # latin1 and html requires double quotes for search, Bug: 1071253
+        qname = "\"" + name + "\""
         strategy = locators["org.org_name"][0]
         value = locators["org.org_name"][1]
         searchbox = self.wait_until_element(common_locators["search"])
@@ -122,7 +125,7 @@ class Org(Base):
             raise Exception("Search box not found.")
         else:
             searchbox.clear()
-            searchbox.send_keys(name)
+            searchbox.send_keys(qname)
             self.wait_until_element(common_locators["search_button"]).click()
             self.wait_for_ajax()
             element = self.wait_until_element((strategy,
