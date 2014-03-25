@@ -44,10 +44,6 @@ class Subnet(Base):
             self.configure_entity(orgs, FILTER['subnet_org'],
                                   tab_locator=tab_locators["tab_org"],
                                   entity_select=org_select)
-        #TODO: The next 2 lines of code is a temporary work around to find and
-        #click the submit button.  Here Proxies tab is being clicked for now.
-        obj = self.wait_until_element(locators["subnet.proxies_tab"])
-        obj.click()
         self.wait_until_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
