@@ -110,7 +110,7 @@ class Org(BaseUI):
         self.org.search(org_name).click()
         name = self.org.wait_until_element(name_loc).get_attribute("value")
         label = self.org.wait_until_element(label_loc).get_attribute("value")
-        self.assertTrue(name != label)
+        self.assertNotEqual(name, label)
 
     @attr('ui', 'org', 'implemented')
     @data({'data': generate_string('alpha', 10)},
@@ -133,7 +133,7 @@ class Org(BaseUI):
         self.org.search(org_name).click()
         name = self.org.wait_until_element(name_loc).get_attribute("value")
         label = self.org.wait_until_element(label_loc).get_attribute("value")
-        self.assertTrue(name == label)
+        self.assertEqual(name, label)
 
     @bzbug("1079482")
     @attr('ui', 'org', 'implemented')
