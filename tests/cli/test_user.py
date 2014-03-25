@@ -645,8 +645,9 @@ class User(BaseCLI):
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertNotEqual(result.stdout['name'], new_obj['name'])
         user_name = result.stdout['name'].split(' ')
+        new_obj_user_name = new_obj['name'].split(' ')
+        self.assertNotEqual(user_name[1], new_obj_user_name[1])
         self.assertEqual(
             user_name[1],
             test_data['lastname'],
