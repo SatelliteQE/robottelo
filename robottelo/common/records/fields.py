@@ -291,19 +291,26 @@ class ManyRelatedField(Field):
         return [self.record_class() for i in range(number)]
 
 
-def basic_positive(exclude=[], include=[], maxlen=20):
+class BasicPositiveField(ChoiceField):
     """Often repeated field, that includes all the string types.
     Utilizing exclude and include to easily filter out types.
     """
-    lst = [
-        STR.alpha, STR.alphanumeric, STR.html,
-        STR.latin1, STR.numeric, STR.utf8]
 
-    if include:
-        lst = include
-    if exclude:
-        lst = [i for i in lst if i not in exclude]
+    def __init__(self, exclude=[], include=[], maxlen=20, **kwargs):
+        """Often repeated field, that includes all the string types.
+        Utilizing exclude and include to easily filter out types.
+        """
+        super(ChoiceField, self).__init__(**kwargs)
+        lst = [
+            STR.alpha, STR.alphanumeric, STR.html,
+            STR.latin1, STR.numeric, STR.utf8]
 
-    return ChoiceField([
-        StringField(str_type=i, maxlen=maxlen)
-        for i in lst])
+        if include:
+            lst = include
+        if exclude:
+            lst = [i for i in lst if i not in exclude]
+
+        self.choices = [
+            StringField(str_type=i, maxlen=maxlen)
+            for i in lst]
+        self.enumerable = True

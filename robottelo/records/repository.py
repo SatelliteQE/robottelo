@@ -13,7 +13,7 @@ from robottelo.api.base import request
 class CustomRepositoryApi(ApiCrud):
     """Api implementation for activation keys
     """
-    api_path = "/katello/api/v2/repositories/"  # noqa
+    api_path = "/katello/api/v2/repositories/"
     create_fields = [
         "name", "description", "product_id",
         "url", "enabled", "content_type"
@@ -32,8 +32,8 @@ class CustomRepositoryApi(ApiCrud):
 class CustomRepository(records.Record):
     """Definition of activation key entity
     """
-    name = records.basic_positive()
-    description = records.basic_positive()
+    name = records.BasicPositiveField()
+    description = records.BasicPositiveField()
     product = records.RelatedField(CustomProduct)
     url = records.StringField(
         default="http://inecas.fedorapeople.org/fakerepos/zoo/"
