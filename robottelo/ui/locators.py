@@ -755,6 +755,9 @@ locators = {
                    "//i[contains(@class,'icon-edit')]")),
     "repo.gpg_key_update": (
         By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select"),
+    "repo.gpg_key": (
+        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "//div/span")),
 
     # Activation Keys
 

@@ -137,7 +137,7 @@ class GPGKey(Base):
             raise Exception(
                 "Couldn't search the given gpg key '%s'" % key_name)
 
-    def assert_key_from_product(self, key_name, product):
+    def assert_key_from_product(self, name, product, repo=None):
         """
         Assert the key association after deletion from product tab
         """
@@ -148,16 +148,32 @@ class GPGKey(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-            sleep_for_seconds(2)
-            self.wait_until_element(tab_locators["prd.tab_details"]).click()
-            element = self.find_element(locators
-                                        ["prd.gpg_key"]
-                                        ).get_attribute('innerHTML')
-            if element is None:
-                return None
+            sleep_for_seconds(3)
+            if repo is not None:
+                self.wait_until_element(tab_locators["prd.tab_repos"]).click()
+                strategy = locators["repo.select"][0]
+                value = locators["repo.select"][1]
+                self.wait_until_element((strategy, value % repo)).click()
+                sleep_for_seconds(3)
+                element = self.wait_until_element(locators
+                                                  ["repo.gpg_key"]
+                                                  ).get_attribute('innerHTML')
+                if element == '':
+                    return None
+                else:
+                    raise Exception(
+                        "GPGKey '%s' is still assoc with selected repo" % name)
             else:
-                raise Exception(
-                    "GPGKey '%s' is still associated with product" % key_name)
+                self.wait_until_element(tab_locators
+                                        ["prd.tab_details"]).click()
+                element = self.find_element(locators
+                                            ["prd.gpg_key"]
+                                            ).get_attribute('innerHTML')
+                if element == '':
+                    return None
+                else:
+                    raise Exception(
+                        "GPGKey '%s' is still assoc with product" % name)
         else:
             raise Exception(
                 "Couldn't find the product '%s'" % product)
