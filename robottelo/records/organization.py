@@ -27,9 +27,9 @@ class OrganizationApi(ApiCrud):
 class Organization(records.Record):
     """ Implementation of katello organizaiton record
     """
-    name = records.basic_positive()
-    label = records.basic_positive(include=LABELS)
-    description = records.basic_positive()
+    name = records.BasicPositiveField()
+    label = records.BasicPositiveField(include=LABELS)
+    description = records.BasicPositiveField()
 
     class Meta:
         """Linking record definition with api implementation.

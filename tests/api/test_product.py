@@ -24,16 +24,16 @@ class Products(BaseAPI):
         self.assertIntersects(test_data, result)
 
     @data(*CustomProduct.enumerate())
-    def test_update(self, ak):
+    def test_update(self, test_data):
         """
         @feature: CustomProduct
         @test: Verify, that update funkcionality works as intended
         @assert: different description is created after update.
         """
-        update_desc = ak.description
-        ak.description = "empty"
-        ak_cr = ApiCrud.record_create_recursive(ak)
-        self.assertIntersects(ak_cr, ak)
+        update_desc = test_data.description
+        test_data.description = "empty"
+        ak_cr = ApiCrud.record_create_recursive(test_data)
+        self.assertIntersects(ak_cr, test_data)
         ak_cr.description = update_desc
         ak_u = ApiCrud.record_update(ak_cr)
         self.assertEquals(ak_u.description, ak_cr.description)
