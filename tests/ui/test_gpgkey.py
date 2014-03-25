@@ -350,14 +350,14 @@ class GPGKey(BaseUI):
 
     # Product association
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_1(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
         @assert: gpg key is associated with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -374,7 +374,8 @@ class GPGKey(BaseUI):
         self.assertEqual(prd_name,
                          self.gpgkey.assert_product_repo(name, product=True))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_2(self, name):
         """
         @feature: GPG Keys
@@ -382,7 +383,6 @@ class GPGKey(BaseUI):
         import then associate it with custom product that has one repository
         @assert: gpg key is associated with product
                 as well as with the repository
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -404,7 +404,8 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_3(self, name):
         """
         @feature: GPG Keys
@@ -413,7 +414,6 @@ class GPGKey(BaseUI):
         repository
         @assert: gpg key is associated with product
                 as well as with the repositories
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -460,7 +460,8 @@ class GPGKey(BaseUI):
 
         pass
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_5(self, name):
         """
         @feature: GPG Keys
@@ -468,7 +469,6 @@ class GPGKey(BaseUI):
         import then associate it to repository from custom product that has
         one repository
         @assert: gpg key is associated with repository but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -491,7 +491,8 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_6(self, name):
         """
         @feature: GPG Keys
@@ -500,7 +501,6 @@ class GPGKey(BaseUI):
         more than one repository
         @assert: gpg key is associated with the selected
         repository but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -548,7 +548,8 @@ class GPGKey(BaseUI):
 
         pass
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_8(self, name):
         """
         @feature: GPG Keys
@@ -556,7 +557,6 @@ class GPGKey(BaseUI):
         import then associate it with empty (no repos) custom product then
         update the key
         @assert: gpg key is associated with product before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -577,7 +577,8 @@ class GPGKey(BaseUI):
         self.assertEqual(prd_name, self.gpgkey.assert_product_repo
                          (new_name, product=True))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_9(self, name):
         """
         @feature: GPG Keys
@@ -586,7 +587,6 @@ class GPGKey(BaseUI):
         then update the key
         @assert: gpg key is associated with product
         and repository before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -614,6 +614,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_10(self, name):
         """
@@ -623,7 +624,6 @@ class GPGKey(BaseUI):
         repository then update the key
         @assert: gpg key is associated with product as well as
         with repositories before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -678,6 +678,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_12(self, name):
         """
@@ -687,7 +688,6 @@ class GPGKey(BaseUI):
         one repository then update the key
         @assert: gpg key is associated with the repository
         before/after update but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -716,6 +716,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_13(self, name):
         """
@@ -725,7 +726,6 @@ class GPGKey(BaseUI):
         more than one repository then update the key
         @assert: gpg key is associated with single repository
         before/after update but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -780,6 +780,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_15(self, name):
         """
@@ -789,7 +790,6 @@ class GPGKey(BaseUI):
         then delete it
         @assert: gpg key is associated with product during creation but removed
         from product after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -809,6 +809,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_16(self, name):
         """
@@ -819,7 +820,6 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product as well as with
         the repository during creation but removed from product
         after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -845,6 +845,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_17(self, name):
         """
@@ -855,7 +856,6 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product as well as with
         the repositories during creation but removed from product
         after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -907,6 +907,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_19(self, name):
         """
@@ -915,9 +916,8 @@ class GPGKey(BaseUI):
         import then associate it to repository from custom product that has
         one repository then delete the key
         @assert: gpg key is associated with single repository but
-        not with product during creation, and removed from product and
+        not with product during creation, and removed from
         repository after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -941,8 +941,10 @@ class GPGKey(BaseUI):
                              (name, product=False))
         self.gpgkey.delete(name, True)
         self.assertIsNone(self.gpgkey.search(name))
-        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product
+                          (name, prd_name, repo_name))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_20(self, name):
         """
@@ -951,9 +953,8 @@ class GPGKey(BaseUI):
         import then associate it to repository from custom product that has
         more than one repository then delete the key
         @assert: gpg key is associated with single repository but not
-        with product during creation but removed from product and
+        with product during creation but removed from
         repository after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -980,7 +981,8 @@ class GPGKey(BaseUI):
                              (name, product=False))
         self.gpgkey.delete(name, True)
         self.assertIsNone(self.gpgkey.search(name))
-        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product
+                          (name, prd_name, repo_name1))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1006,6 +1008,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_22(self, name):
         """
@@ -1014,7 +1017,6 @@ class GPGKey(BaseUI):
         cut and paste/string then associate it with empty (no repos)
         custom product
         @assert: gpg key is associated with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1031,6 +1033,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=True))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_23(self, name):
         """
@@ -1040,7 +1043,6 @@ class GPGKey(BaseUI):
         one repository
         @assert: gpg key is associated with product as well as
         with the repository
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1063,6 +1065,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_24(self, name):
         """
@@ -1072,7 +1075,6 @@ class GPGKey(BaseUI):
         more than one repository
         @assert: gpg key is associated with product as well as with
         the repositories
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1121,6 +1123,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_26(self, name):
         """
@@ -1130,7 +1133,6 @@ class GPGKey(BaseUI):
         product that has one repository
         @assert: gpg key is associated with the repository but not with
         the product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1153,6 +1155,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_27(self, name):
         """
@@ -1162,7 +1165,6 @@ class GPGKey(BaseUI):
         product that has more than one repository
         @assert: gpg key is associated with one of the repositories but
         not with the product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1211,6 +1213,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_29(self, name):
         """
@@ -1219,7 +1222,6 @@ class GPGKey(BaseUI):
         cut and paste/string then associate it with empty (no repos)
         custom product then update the key
         @assert: gpg key is associated with product before/after update
-        @status: manual
         """
 
         new_name = generate_name(8, 8)
@@ -1240,6 +1242,7 @@ class GPGKey(BaseUI):
         self.assertEqual(prd_name, self.gpgkey.assert_product_repo
                          (new_name, product=True))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_30(self, name):
         """
@@ -1249,7 +1252,6 @@ class GPGKey(BaseUI):
         one repository then update the key
         @assert: gpg key is associated with product as well as with
         reposiotry before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1278,6 +1280,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_31(self, name):
         """
@@ -1287,7 +1290,6 @@ class GPGKey(BaseUI):
         more than one repository then update the key
         @assert: gpg key is associated with product as well as with
         reposiories before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1343,6 +1345,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_33(self, name):
         """
@@ -1352,7 +1355,6 @@ class GPGKey(BaseUI):
         product that has one repository then update the key
         @assert: gpg key is associated with repository
         before/after update but not with product.
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1381,6 +1383,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_34(self, name):
         """
@@ -1390,7 +1393,6 @@ class GPGKey(BaseUI):
         product that has more than one repository then update the key
         @assert: gpg key is associated with single repository
         before/after update but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1446,6 +1448,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_36(self, name):
         """
@@ -1455,7 +1458,6 @@ class GPGKey(BaseUI):
         product then delete it
         @assert: gpg key is associated with product during creation but
         removed from product after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1475,6 +1477,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_37(self, name):
         """
@@ -1484,7 +1487,6 @@ class GPGKey(BaseUI):
         one repository then delete it
         @assert: gpg key is associated with product as well as with the
         repository during creation but removed from product after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1510,6 +1512,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_38(self, name):
         """
@@ -1519,7 +1522,6 @@ class GPGKey(BaseUI):
         more than one repository then delete it
         @assert: gpg key is associated with product as well as with
         repositories during creation but removed from product after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1572,6 +1574,7 @@ class GPGKey(BaseUI):
 
         pass
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_40(self, name):
         """
@@ -1581,7 +1584,6 @@ class GPGKey(BaseUI):
         product that has one repository then delete the key
         @assert: gpg key is associated with single repository
         during creation but removed from repository after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -1608,6 +1610,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name))
 
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_41(self, name):
         """
@@ -1617,7 +1620,6 @@ class GPGKey(BaseUI):
         product that has more than one repository then delete the key
         @assert: gpg key is associated with single repository
         during creation but removed from repository after deletion
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
