@@ -673,6 +673,7 @@ class User(BaseCLI):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
+        self.assertEqual(result.stdout['email'], new_obj['email'])
 
         # Update the mail
         email = test_data['mail'] + "@example.com"
@@ -686,6 +687,7 @@ class User(BaseCLI):
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
+        self.assertNotEqual(result.stdout['email'], new_obj['email'])
         self.assertEqual(
             result.stdout['email'],
             email,
