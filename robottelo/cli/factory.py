@@ -275,7 +275,7 @@ def make_subnet(options=None):
     args = {
         'name': generate_name(8, 8),
         'network': generate_ipaddr(ip3=True),
-        'mask': '255.255.255.0',
+        'mask': u'255.255.255.0',
         'gateway': None,
         'dns-primary': None,
         'dns-secondary': None,
