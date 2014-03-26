@@ -6,7 +6,12 @@ Test class for Host/System Unification
 """
 from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+	import unittest
+else:
+	import unittest2
+	unittest=unittest2
 
 
 class TestHostSystemUnificationUI(BaseUI):
