@@ -28,7 +28,7 @@ class Host(BaseUI):
                           custom_ptable=None, root_pwd="redhat", cpus="1",
                           memory="768 MB")
         self.navigator.go_to_hosts()
-        #confirm the Host appears in the UI
+        # confirm the Host appears in the UI
         search = self.hosts.search(name)
         self.assertIsNotNone(search)
 
@@ -51,7 +51,7 @@ class Host(BaseUI):
                           custom_ptable=None, root_pwd="redhat", cpus="1",
                           memory="768 MB")
         self.navigator.go_to_hosts()
-        #confirm the Host appears in the UI
+        # confirm the Host appears in the UI
         self.hosts.delete(name, really=True)
         self.assertTrue(
             self.user.wait_until_element(common_locators["notif.success"]))

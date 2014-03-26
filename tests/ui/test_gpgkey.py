@@ -80,7 +80,7 @@ class GPGKey(BaseUI):
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
 
-        #Negative Create
+    # Negative Create
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*valid_data_list())
@@ -1739,7 +1739,7 @@ class GPGKey(BaseUI):
 
         pass
 
-    #Miscelaneous
+    # Miscelaneous
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE

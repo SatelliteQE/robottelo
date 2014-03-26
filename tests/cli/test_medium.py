@@ -36,7 +36,7 @@ class TestMedium(MetaCLI):
             'name': name or generate_name(),
             'path': path or URL % generate_name(5),
             'os-family': os_family or OSES[random.randint(0, len(OSES) - 1)],
-            #TODO: if operating_system_id is None then fetch
+            # TODO: if operating_system_id is None then fetch
             # list of available OSes from system.
             'operatingsystem-ids': operating_system_id or "1",
         }

@@ -39,9 +39,9 @@ class Org(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
-        #select_org = self.navigator.go_to_select_org(org_name)
+        # select_org = self.navigator.go_to_select_org(org_name)
         self.navigator.go_to_org()
-        #self.assertIsNotNone(select_org)  TODO: Add scroll logic Bug: 1053587
+        # self.assertIsNotNone(select_org)  TODO: Add scroll logic Bug: 1053587
         self.assertIsNotNone(self.org.search(org_name))
 
     @attr('ui', 'org', 'implemented')

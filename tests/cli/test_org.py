@@ -411,7 +411,7 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org(test_data)
 
-         # Can we find the new object?
+        # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
@@ -592,7 +592,7 @@ class TestOrg(BaseCLI):
         @Feature: Org - Compute Resource
         @Assert: Compute Resource is added to the org
         """
-        #TODO: Test should be done once computeresource base class is added
+        # TODO: Test should be done once computeresource base class is added
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -602,7 +602,7 @@ class TestOrg(BaseCLI):
         @Feature: Org - ComputeResource
         @Assert: ComputeResource is removed from the org
         """
-        #TODO: Test should be done once computeresource base class is added
+        # TODO: Test should be done once computeresource base class is added
         pass
 
     def test_add_medium(self):
@@ -768,7 +768,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    #Negative Create
+    # Negative Create
 
     @data({'label': generate_string('alpha', 10),
            'name': generate_string('alpha', 300)},
@@ -1074,7 +1074,7 @@ class TestOrg(BaseCLI):
         self.assertGreater(len(result.stderr), 0,
                            "There should be error - hammer expects error")
 
-    #Miscelaneous
+    # Miscelaneous
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE

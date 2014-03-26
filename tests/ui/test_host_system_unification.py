@@ -10,13 +10,13 @@ import unittest
 
 
 class TestHostSystemUnificationUI(BaseUI):
-# Testing notes for host/system unification in katello/foreman
-# Basically assuring that hosts in foreman/katello bits are joined
-# and information can be associated across both parts of product.
-#
-# Devnote:
-# (the link/join will) "Most likely an internal UUID, not something
-# fuzzy like hostname"
+    # Testing notes for host/system unification in katello/foreman
+    # Basically assuring that hosts in foreman/katello bits are joined
+    # and information can be associated across both parts of product.
+    #
+    # Devnote:
+    # (the link/join will) "Most likely an internal UUID, not something
+    # fuzzy like hostname"
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_katello_host_in_foreman(self):
