@@ -21,6 +21,7 @@ from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
+from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
@@ -182,28 +183,6 @@ def make_model(options=None):
     return args
 
 
-def make_proxy(options=None):
-    """
-    Usage:
-        hammer proxy create [OPTIONS]
-
-    Options:
-        --name NAME
-        --url URL
-    """
-
-    args = {
-        'name': generate_name(),
-        'url': 'http://%s:%s' % (generate_string('alpha', 6),
-                                 generate_string('numeric', 4)),
-    }
-
-    args = update_dictionary(args, options)
-    args.update(create_object(Proxy, args))
-
-    return args
-
-
 def make_partition_table(options=None):
     """
     Usage:
@@ -245,6 +224,62 @@ def make_partition_table(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(PartitionTable, args))
+
+    return args
+
+
+def make_product(options=None):
+    """
+    Usage:
+        hammer product create [OPTIONS]
+
+    Options:
+        --description DESCRIPTION     Product description
+        --gpg-key-id GPG_KEY_ID       Identifier of the GPG key
+        --label LABEL
+        --name NAME
+        --organization-id ORGANIZATION_ID ID of the organization
+        --sync-plan-id SYNC_PLAN_ID   Plan numeric identifier
+        -h, --help                    print help
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    args = {
+        'name': generate_string('alpha', 20),
+        'label': generate_string('alpha', 20),
+        'description': generate_string('alpha', 20),
+        'organization-id': None,
+        'gpg-key-id': None,
+        'sync-plan-id': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Product, args))
+
+    return args
+
+
+def make_proxy(options=None):
+    """
+    Usage:
+        hammer proxy create [OPTIONS]
+
+    Options:
+        --name NAME
+        --url URL
+    """
+
+    args = {
+        'name': generate_name(),
+        'url': 'http://%s:%s' % (generate_string('alpha', 6),
+                                 generate_string('numeric', 4)),
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Proxy, args))
 
     return args
 
