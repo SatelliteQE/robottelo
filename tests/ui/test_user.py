@@ -7,10 +7,10 @@ Test class for Users UI
 
 import sys
 if sys.hexversion >= 0x2070000:
-	import unittest
+    import unittest
 else:
-	import unittest2
-	unittest=unittest2
+    import unittest2
+    unittest=unittest2
 
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_name, generate_email_address

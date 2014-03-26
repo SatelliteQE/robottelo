@@ -15,10 +15,10 @@ from robottelo.common.decorators import bzbug, redminebug
 from robottelo.cli.user import User as UserObj
 import sys
 if sys.hexversion >= 0x2070000:
-	import unittest
+    import unittest
 else:
-	import unittest2
-	unittest=unittest2
+    import unittest2
+    unittest=unittest2
 
 
 @ddt
