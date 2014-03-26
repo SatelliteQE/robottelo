@@ -204,6 +204,7 @@ class TestProduct(BaseCLI):
             new_gpg_key['id'],
             "GPG Keys don't match")
 
+    @unittest.skip(NOT_IMPLEMENTED)
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -215,9 +216,193 @@ class TestProduct(BaseCLI):
     @attr('cli', 'product')
     def test_positive_create_5(self, test_name):
         """
-        @Test: Check if product can be created with many gpg keys
+        @Test: Check if product can be created with sync plan
         @Feature: Product
-        @Assert: Product is created and has many gpg keys
+        @Assert: Product is created and has random sync plan
+        """
+
+        pass
+
+    @data(
+        {'name': generate_string('alpha', 300)},
+        {'name': generate_string('alphanumeric', 300)},
+        {'name': generate_string('numeric', 300)},
+        {'name': generate_string('latin1', 300)},
+        {'name': generate_string('utf8', 300)},
+        {'name': generate_string('html', 300)},
+    )
+    @attr('cli', 'product')
+    def test_negative_create_1(self, test_name):
+        """
+        @Test: Check that only valid names can be used
+        @Feature: Product
+        @Assert: Product is not created
+        """
+
+        with self.assertRaises(Exception):
+            make_product(
+                {
+                    'name': test_name['name'],
+                    'organization-id': self.org['label']
+                }
+            )
+
+    @data(
+        {'name': generate_string('latin1', 15),
+         'label': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15),
+         'label': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15),
+         'label': generate_string('html', 15)},
+    )
+    @attr('cli', 'product')
+    def test_negative_create_2(self, test_name):
+        """
+        @Test: Check that only valid labels can be used
+        @Feature: Product
+        @Assert: Product is not created
+        """
+
+        with self.assertRaises(Exception):
+            make_product(
+                {
+                    'name': test_name['name'],
+                    'label': test_name['label'],
+                    'organization-id': self.org['label']
+                }
+            )
+
+    @data(
+        {'description': generate_string('alpha', 15)},
+        {'description': generate_string('alphanumeric', 15)},
+        {'description': generate_string('numeric', 15)},
+        {'description': generate_string('latin1', 15)},
+        {'description': generate_string('utf8', 15)},
+        {'description': generate_string('html', 15)},
+    )
+    @attr('cli', 'product')
+    def test_positive_update_1(self, test_data):
+        """
+        @Test: Update the description of a product
+        @Feature: Product
+        @Assert: Product description is updated
+        """
+
+        new_product = make_product(
+            {
+                'organization-id': self.org['label']
+            }
+        )
+
+        # Fetch it
+        result = Product.info({'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Update the Descriptions
+        result = Product.update(
+            {'id': new_product['id'],
+             'name': new_product['name'],
+             'description': test_data['description']}
+        )
+
+        # Fetch it
+        result = Product.info({'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['description'],
+            test_data['description'],
+            "Description was not updated"
+        )
+        self.assertNotEqual(
+            result.stdout['description'],
+            new_product['description'],
+            "Descriptions should not match"
+        )
+
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'product')
+    def test_positive_update_2(self, test_data):
+        """
+        @Test: Update the label of a product
+        @Feature: Product
+        @Assert: Product label is updated
+        """
+
+        new_product = make_product(
+            {
+                'name': test_data['name'],
+                'organization-id': self.org['label']
+            }
+        )
+
+        # Fetch it
+        result = Product.info({'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        new_label = generate_string('alpha', 20)
+
+        # Update the label
+        result = Product.update(
+            {'id': new_product['id'],
+             'name': new_product['name'],
+             'label': new_label}
+        )
+
+        # Fetch it
+        result = Product.info({'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['label'],
+            new_label,
+            "Description was not updated"
+        )
+        self.assertNotEqual(
+            result.stdout['label'],
+            new_product['label'],
+            "Labels should not match"
+        )
+
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'product')
+    def test_positive_update_3(self, test_name):
+        """
+        @Test: Update product's gpg keys
+        @Feature: Product
+        @Assert: Product gpg key is updated
         """
 
         first_gpg_key = make_gpg_key(
@@ -284,7 +469,8 @@ class TestProduct(BaseCLI):
         self.assertEqual(
             result.stdout['gpg-key-id'],
             second_gpg_key['id'],
-            "GPG Keys don't match")
+            "GPG Keys don't match"
+        )
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data(
@@ -296,11 +482,29 @@ class TestProduct(BaseCLI):
         {'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
-    def test_positive_create_6(self, test_name):
+    def test_positive_update_4(self, test_name):
         """
-        @Test: Check if product can be created with sync plan
+        @Test: Update product's sync plan
         @Feature: Product
-        @Assert: Product is created and has random sync plan
+        @Assert: Product sync plan is updated
+        """
+
+        pass
+
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'product')
+    def test_positive_delete_1(self, test_name):
+        """
+        @Test: Check if product can be deleted
+        @Feature: Product
+        @Assert: Product is deleted
         """
 
         new_product = make_product(
@@ -324,27 +528,20 @@ class TestProduct(BaseCLI):
             len(result.stdout['label']), 0, "Label not automatically created"
         )
 
-    @data(
-        {'name': generate_string('latin1', 15),
-         'label': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15),
-         'label': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15),
-         'label': generate_string('html', 15)},
-    )
-    @attr('cli', 'product')
-    def test_negative_create_2(self, test_name):
-        """
-        @Test: Check that only valid labels can be used
-        @Feature: Product
-        @Assert: Product is not created
-        """
+        # Delete it
+        result = Product.delete({'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not deleted")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
 
-        with self.assertRaises(Exception):
-            make_product(
-                {
-                    'name': test_name['name'],
-                    'label': test_name['label'],
-                    'organization-id': self.org['label']
-                }
-            )
+        # Fetch it
+        result = Product.info({'id': new_product['id']})
+        self.assertNotEqual(
+            result.return_code,
+            0,
+            "Product should not be found")
+        self.assertGreater(
+            len(result.stderr), 0, "Error was expected")
