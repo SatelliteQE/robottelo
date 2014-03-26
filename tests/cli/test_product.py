@@ -450,6 +450,10 @@ class TestProduct(BaseCLI):
             result.stdout['gpg-key-id'],
             first_gpg_key['id'],
             "GPG Keys don't match")
+        self.assertNotEqual(
+            result.stdout['gpg-key-id'],
+            second_gpg_key['id'],
+            "GPG Keys don't match")
 
         # Remove first key by updating product to use second key
         result = Product.update(
@@ -471,6 +475,10 @@ class TestProduct(BaseCLI):
             second_gpg_key['id'],
             "GPG Keys don't match"
         )
+        self.assertNotEqual(
+            result.stdout['gpg-key-id'],
+            first_gpg_key['id'],
+            "GPG Keys don't match")
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data(
