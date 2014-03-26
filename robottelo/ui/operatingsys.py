@@ -163,3 +163,77 @@ class OperatingSys(Base):
             self.remove_parameter(param_name)
         else:
             raise Exception("Could not remove parameter '%s'" % param_name)
+
+    def assert_os(self, os_name, entity_name=None):
+        """
+        Assert OS name, minor, major_version, os_family,
+        template, media, and partition table to validate results
+        """
+
+        result = None
+        os_object = self.search_entity(os_name,
+                                       locators
+                                       ['operatingsys.operatingsys_name'])
+        if os_object:
+            os_object.click()
+            if self.wait_until_element(locators["operatingsys.name"]):
+                result = dict([('name', None), ('major_version', None),
+                               ('minor_version', None), ('os_family', None)])
+                result['name'] = self.find_element(locators
+                                                   ["operatingsys.name"]
+                                                   ).get_attribute("value")
+                result['major_version'] =
+                self.find_element(locators
+                                  ["operatingsys.major_version"]
+                                  ).get_attribute("value")
+                result['minor_version'] =
+                self.find_element(locators
+                                  ["operatingsys.minor_version"]
+                                  ).get_attribute("value")
+                result['os_family'] =
+                Select(self.find_element(locators
+                                         ['operatingsys.family']
+                                         )).first_selected_option.text
+                selected_element = self.wait_until_element(common_locators
+                                                           ['selected_entity'])
+                if entity_name == "ptable":
+                    result = dict([('ptable', None)])
+                    self.wait_until_element(tab_locators
+                                            ["operatingsys.tab_ptable"]
+                                            ).click()
+                    self.wait_for_ajax()
+                    if selected_element:
+                        result['ptable'] = selected_element.text
+                    else:
+                        result['ptable'] = self.find_element(common_locators
+                                                             ['checked_entity']
+                                                             ).text
+                    return result
+                if entity_name == "medium":
+                    result = dict([('medium', None)])
+                    self.wait_until_element(tab_locators
+                                            ["operatingsys.tab_medium"]
+                                            ).click()
+                    self.wait_for_ajax()
+                    if selected_element:
+                        result['medium'] = selected_element.text
+                    else:
+                        result['medium'] = self.find_element(common_locators
+                                                             ['checked_entity']
+                                                             ).text
+                    print result
+                    return result
+                if entity_name == "template":
+                    result = dict([('template', None)])
+                    self.wait_until_element(tab_locators
+                                            ["operatingsys.tab_templates"]
+                                            ).click()
+                    self.wait_for_ajax()
+                    result['template'] = Select(self.find_element
+                                                (locators
+                                                 ["operatingsys.template"]
+                                                 )).first_selected_option.text
+                    return result
+        else:
+            raise Exception(
+                "Could not find the operating system '%s'" % os_name)
