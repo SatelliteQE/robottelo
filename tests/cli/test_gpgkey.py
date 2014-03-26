@@ -16,7 +16,12 @@ from robottelo.common.helpers import generate_name, generate_string
 from tempfile import mkstemp
 from tests.cli.basecli import BaseCLI
 
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+	import unittest
+else:
+	import unittest2
+	unittest=unittest2
 
 VALID_GPG_KEY_FILE_PATH = 'tests/data/%s' % VALID_GPG_KEY_FILE
 

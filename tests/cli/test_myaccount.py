@@ -7,7 +7,12 @@ Test class for Users CLI
 
 from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.cli.basecli import BaseCLI
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+	import unittest
+else:
+	import unittest2
+	unittest=unittest2
 
 
 class MyAccount(BaseCLI):
