@@ -33,7 +33,7 @@ class Subnet(BaseUI):
         self.navigator.go_to_subnets()  # go to subnet page
         self.subnet.create([org_name], subnet_name, subnet_network,
                            subnet_mask)
-        #TODO: Unable to capture the success message for now
+        # TODO: Unable to capture the success message for now
 
     def test_create_subnet(self):
         """
@@ -63,7 +63,7 @@ class Subnet(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
         self.subnet.delete(subnet_name, True)
-        #TODO: Unable to capture the success message for now
+        # TODO: Unable to capture the success message for now
         self.assertFalse(self.subnet.search_subnet(subnet_name))
 
     def test_remove_subnet_2(self):

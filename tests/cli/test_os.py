@@ -177,7 +177,7 @@ class TestOperatingSystem(BaseCLI):
         @assert: Operating System is created and can be found
         """
 
-        #Create a new object using factory method
+        # Create a new object using factory method
         new_obj = make_os(test_data)
 
         # Can we find the new object?

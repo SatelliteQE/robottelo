@@ -41,8 +41,8 @@ class UserGroup(Base):
         """
         Delete existing usergroup
         """
-        #No search bar available for usergroup; Issue:3953
-        #element = self.search(name, locators['usergroups.delete'])
+        # No search bar available for usergroup; Issue:3953
+        # element = self.search(name, locators['usergroups.delete'])
         strategy = locators["usergroups.delete"][0]
         value = locators["usergroups.delete"][1]
         element = self.wait_until_element((strategy, value % name))
@@ -59,8 +59,8 @@ class UserGroup(Base):
         Update usergroup name and its users
         """
 
-        #No search bar available for usergroup; Issue:3953
-        #element = self.search(old_name, locators['usergroups.usergroup'])
+        # No search bar available for usergroup; Issue:3953
+        # element = self.search(old_name, locators['usergroups.usergroup'])
         strategy = locators["usergroups.usergroup"][0]
         value = locators["usergroups.usergroup"][1]
         element = self.wait_until_element((strategy, value % old_name))
