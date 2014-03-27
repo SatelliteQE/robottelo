@@ -11,6 +11,7 @@ import requests
 import unittest
 
 from robottelo.common import conf
+from xml.parsers.expat import ExpatError
 
 
 bugzilla_log = logging.getLogger("bugzilla")
@@ -34,16 +35,27 @@ def bzbug(bz_id):
     try:
         mybz = bugzilla.RHBugzilla()
         mybz.connect(BUGZILLA_URL)
-        mybug = mybz.getbugsimple(bz_id)
     except (TypeError, ValueError):
         logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
         return lambda func: func
-    else:
+
+    attempts = 0
+    mybug = None
+    while attempts < 3 and mybug is None:
+        try:
+            mybug = mybz.getbugsimple(bz_id)
+        except ExpatError:
+            attempts += 1
+
+    if mybug is not None:
         if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
             logging.debug(mybug)
             return unittest.skip("Test skipped due to %s" % mybug)
         else:
             return lambda func: func
+    else:
+        return unittest.skip(
+            "Test skipped due to not being able to fetch bug #%s info" % bz_id)
 
 
 _redmine = {
@@ -69,7 +81,7 @@ def _redmine_closed_issue_statuses():
 def redminebug(bug_id):
     """Decorator that skips the test if the redmine's bug is open"""
 
-    if not bug_id in _redmine['issues']:
+    if bug_id not in _redmine['issues']:
         result = requests.get('%s/issues/%s.json' % (REDMINE_URL, bug_id))
 
         if result.status_code != 200:

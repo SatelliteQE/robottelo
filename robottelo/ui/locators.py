@@ -241,21 +241,21 @@ menu_locators = {
 
 tab_locators = {
 
-    #common
+    # common
     "tab_primary": (By.XPATH, "//a[@href='#primary']"),
-    #Third level UI
+    # Third level UI
     "tab_org": (By.XPATH, "//a[@href='#organizations']"),
 
-    #Operating System
-    #Third level UI
+    # Operating System
+    # Third level UI
     "operatingsys.tab_primary": (By.XPATH, "//a[@href='#primary']"),
     "operatingsys.tab_ptable": (By.XPATH, "//a[@href='#ptable']"),
     "operatingsys.tab_medium": (By.XPATH, "//a[@href='#media']"),
     "operatingsys.tab_templates": (By.XPATH, "//a[@href='#templates']"),
     "operatingsys.tab_parameters": (By.XPATH, "//a[@href='#params']"),
 
-    #Host
-    #Third level UI
+    # Host
+    # Third level UI
 
     "host.tab_network": (By.XPATH, "//a[@href='#network']"),
     "host.tab_os": (By.XPATH, "//a[@href='#os']"),
@@ -263,16 +263,16 @@ tab_locators = {
     "host.tab_params": (By.XPATH, "//a[@href='#params']"),
     "host.tab_info": (By.XPATH, "//a[@href='#info']"),
 
-    #Provisioning Templates
-    #Third level UI
+    # Provisioning Templates
+    # Third level UI
 
     "provision.tab_type": (By.XPATH, "//a[@href='#template_type']"),
     "provision.tab_association": (By.XPATH,
                                   "//a[@href='#template_associations']"),
     "provision.tab_history": (By.XPATH, "//a[@href='#history']"),
 
-    #Users
-    #Third level UI
+    # Users
+    # Third level UI
 
     "users.tab_primary": (By.XPATH, "//a[@href='#primary']"),
     "users.tab_roles": (By.XPATH, "//a[@href='#roles']"),
@@ -283,15 +283,47 @@ tab_locators = {
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
 
-    #Roles
-    #Third level UI
+    # Orgs
+    "orgs.tab_users": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'users')]"),
+    "orgs.tab_sm_prx": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'smart_proxies')]"),
+    "orgs.tab_subnets": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'subnets')]"),
+    "orgs.tab_resources": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'resources')]"),
+    "orgs.tab_media": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'media')]"),
+    "orgs.tab_template": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'template')]"),
+    "orgs.tab_domains": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'domains')]"),
+    "orgs.tab_env": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'environments')]"),
+    "orgs.tab_hostgrps": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'hostgroups')]"),
+    "orgs.tab_parameters": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'params')]"),
+
+    # Roles
+    # Third level UI
     "roles.tab_filter": (
         By.XPATH, "//a[@href='#primary']"),
     "roles.tab_org": (
         By.XPATH, "//a[@href='#organizations']"),
 
-    #GPG key
-    #Third level UI
+    # GPG key
+    # Third level UI
     "gpgkey.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "gpgkey.tab_products": (
@@ -301,7 +333,7 @@ tab_locators = {
 
 common_locators = {
 
-    #common locators
+    # common locators
 
     # Notifications
     "notif.error": (
@@ -327,6 +359,17 @@ common_locators = {
     "entity_checkbox": (
         By.XPATH,
         "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
+    "name_haserror": (
+        By.XPATH,
+        ("//label[@for='name']/../../"
+         "div[contains(@class,'has-error')]")),
+    "common_haserror": (
+        By.XPATH,
+        ("//span[@class='help-block']/ul/"
+         "li[contains(@ng-repeat,'error.messages')]")),
+    "common_invalid": (
+        By.XPATH,
+        "//input[@id='name' and contains(@class,'ng-invalid')]"),
 
     "search": (By.ID, "search"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
@@ -353,11 +396,7 @@ common_locators = {
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
     # Katello common Product and Repo locators
-    "gpg_key": (By.ID, "gpg_key_id"),
-    "name_haserror": (
-        By.XPATH,
-        ("//label[@for='name']/../../"
-         "div[contains(@class,'has-error')]"))}
+    "gpg_key": (By.ID, "gpg_key_id")}
 
 locators = {
 
@@ -382,10 +421,16 @@ locators = {
         ("//a[@class='btn btn-success'"
             "and contains(@href, '/organizations/new')]")),
     "org.name": (By.ID, "organization_name"),
+    "org.parent": (By.ID, "organization_parent_id"),
+    "org.label": (By.ID, "organization_label"),
+    "org.desc": (By.ID, "organization_description"),
     "org.proceed_to_edit": (
         By.XPATH,
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
-    "org.org_name": (By.LINK_TEXT, "%s"),
+    # By.XPATH works also with latin1 and html chars, so removed By.LINK_TEXT
+    "org.org_name": (
+        By.XPATH,
+        "//a[contains(@href,'organizations')]/span[contains(.,'%s')]"),
     "org.dropdown": (
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
@@ -393,8 +438,14 @@ locators = {
     "org.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "org.name_value": (
+        By.XPATH,
+        "//input[@id='organization_name' and @value='%s']"),
+    "org.label_value": (
+        By.XPATH,
+        "//input[@id='organization_label' and @value='%s']"),
 
-    #Operating system (OS)
+    # Operating system (OS)
     "operatingsys.new": (
         By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
     "operatingsys.name": (By.ID, "operatingsystem_name"),
@@ -409,7 +460,7 @@ locators = {
         "operatingsystem_os_default_templates_attributes_0_config_template_id"
     ),
 
-    #Compute Resource
+    # Compute Resource
 
     "resource.new": (
         By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
@@ -435,17 +486,17 @@ locators = {
     "resource.edit": (
         By.XPATH, "//a[contains(.,'Edit') and contains(@href,'%s')]"),
 
-    #resource - libvirt
+    # resource - libvirt
     "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
     "resource.libvirt_console_passwd": (
         By.ID, "compute_resource_set_console_password"),
 
-    #resource - openstack
+    # resource - openstack
     "resource.rhos_tenant": (By.ID, "compute_resource_tenant"),
 
-    #Hosts
+    # Hosts
 
-    #host.primary
+    # host.primary
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new')]"),
     "host.name": (By.ID, "host_name"),
     "host.clone": (
@@ -464,13 +515,13 @@ locators = {
         ("//input[contains(@id,'host_ids')]"
             "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
 
-    #host.network
+    # host.network
     "host.mac": (By.ID, "host_mac"),
     "host.domain": (By.ID, "host_domain_id"),
     "host.subnet": (By.ID, "host_subnet_id"),
     "host.ip": (By.ID, "host_ip"),
 
-    #host.os
+    # host.os
     "host.arch": (By.ID, "host_architecture_id"),
     "host.os": (By.ID, "host_operatingsystem_id"),
     "host.org": (By.ID, "host_organization_id"),
@@ -487,7 +538,7 @@ locators = {
         By.XPATH,
         "//div[contains(.,'Provisioning Templates')]/../div/a[@class='btn']"),
 
-    #host.vm (NOTE:- visible only when selecting a compute resource)
+    # host.vm (NOTE:- visible only when selecting a compute resource)
     "host.vm_cpus": (By.ID, "host_compute_attributes_cpus"),
     "host.vm_memory": (By.ID, "host_compute_attributes_memory"),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
@@ -497,9 +548,9 @@ locators = {
         By.XPATH, "//fieldset[@id='network_interfaces']/a"),
 
 
-    #Provisions
+    # Provisions
 
-    #provision.primary
+    # provision.primary
     "provision.template_new": (
         By.XPATH, "//a[contains(@href, '/config_templates/new')]"),
     "provision.template_select": (
@@ -513,13 +564,13 @@ locators = {
     "provision.template_delete": (
         By.XPATH, "//a[contains(@data-confirm, '%s')]"),
 
-    #provision.type
+    # provision.type
     "provision.template_type": (
         By.ID, "config_template_template_kind_id"),
     "provision.template_snippet": (
         By.ID, "config_template_snippet"),
 
-    #provision.association
+    # provision.association
     "provision.select_os": (
         By.XPATH, "//li/span[contains(., '%s')]"),
     "provision.associate_os": (
@@ -542,7 +593,7 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(@class,'delete')]"),
 
-    #Users
+    # Users
 
     # Users.primary
     "users.new": (By.XPATH, "//a[contains(@href, '/users/new')]"),
@@ -558,17 +609,17 @@ locators = {
     "users.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
-    #users.roles
+    # users.roles
     "users.admin_role": (By.ID, "user_admin"),
 
-    #User Groups
+    # User Groups
     "usergroups.new": (By.XPATH, "//a[contains(@href, '/usergroups/new')]"),
     "usergroups.name": (By.ID, "usergroup_name"),
     "usergroups.usergroup": (By.XPATH, "//a[contains(., '%s')]"),
     "usergroups.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
-    #Roles
+    # Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
     "roles.name": (By.ID, "role_name"),
     "roles.dropdown": (
@@ -587,13 +638,13 @@ locators = {
     "roles.perm_type": (By.XPATH, "//label[contains(., '%s')]"),
     "roles.permission": (By.XPATH, "//input[@value='%s']"),
 
-    #Architecture
+    # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
     "arch.name": (By.ID, "architecture_name"),
     "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
 
-    #Medium
+    # Medium
     "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
     "medium.name": (By.ID, "medium_name"),
     "medium.path": (By.ID, "medium_path"),
@@ -601,7 +652,7 @@ locators = {
     "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
 
-    #Domain
+    # Domain
     "domain.new": (By.XPATH, "//a[contains(@href, '/domains/new')]"),
     "domain.name": (By.ID, "domain_name"),
     "domain.description": (By.ID, "domain_fullname"),
@@ -609,7 +660,7 @@ locators = {
     "domain.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "domain.domain_description": (By.XPATH, "//a[contains(., '%s')]"),
 
-    #Environment
+    # Environment
     "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
     "env.name": (By.ID, "environment_name"),
     "env.delete": (
@@ -620,7 +671,7 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
 
-    #Partition Table
+    # Partition Table
     "ptable.new": (By.XPATH, "//a[contains(@href, '/ptables/new')]"),
     "ptable.name": (By.ID, "ptable_name"),
     "ptable.layout": (By.ID, "ptable_layout"),
@@ -670,6 +721,8 @@ locators = {
                                     "//i[contains(@class,'icon-edit')]")),
     "prd.gpg_key_update": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
                                       "/div/input")),
+    "prd.gpg_key": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
+                               "//div/span")),
     "prd.name_edit": (By.XPATH, ("//form[@alch-edit-text='product.name']"
                                  "//i[contains(@class,'icon-edit')]")),
     "prd.name_update": (By.XPATH, ("//form[@alch-edit-text='product.name']"
@@ -687,7 +740,7 @@ locators = {
         By.XPATH, ("//form[@selector='product.sync_plan_id']"
                    "/div/select")),
 
-    #Repository
+    # Repository
     "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
     "repo.type": (By.ID, "content_type"),
     "repo.url": (By.ID, "url"),
@@ -718,6 +771,9 @@ locators = {
                    "//i[contains(@class,'icon-edit')]")),
     "repo.gpg_key_update": (
         By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select"),
+    "repo.gpg_key": (
+        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "//div/span")),
 
     # Activation Keys
 
@@ -850,7 +906,7 @@ locators = {
         ("//form[@alch-edit-textarea='workingOn.environment.description']"
          "//button[@ng-click='save()']")),
 
-    #GPG Key
+    # GPG Key
     "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpgKeys.new']"),
     "gpgkey.upload": (By.XPATH, "//input[@type='radio'and @value='upload']"),
     "gpgkey.content": (

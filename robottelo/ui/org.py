@@ -6,8 +6,9 @@ Implements Org UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.common.constants import FILTER
+from selenium.webdriver.support.select import Select
 
 
 class Org(Base):
@@ -28,54 +29,72 @@ class Org(Base):
                        new_resources=None, new_medias=None,
                        new_templates=None, new_domains=None,
                        new_envs=None, new_hostgroups=None, select=None):
+        loc = tab_locators
 
         if users or new_users:
             self.configure_entity(users, FILTER['org_user'],
+                                  tab_locator=loc["orgs.tab_users"],
                                   new_entity_list=new_users,
                                   entity_select=select)
         if proxies or new_proxies:
             self.configure_entity(proxies, FILTER['org_proxy'],
+                                  tab_locator=loc["orgs.tab_sm_prx"],
                                   new_entity_list=new_proxies,
                                   entity_select=select)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['org_subnet'],
+                                  tab_locator=loc["orgs.tab_subnets"],
                                   new_entity_list=new_subnets,
                                   entity_select=select)
         if resources or new_resources:
             self.configure_entity(resources, FILTER['org_resource'],
+                                  tab_locator=loc["orgs.tab_resources"],
                                   new_entity_list=new_resources,
                                   entity_select=select)
         if medias or new_medias:
             self.configure_entity(medias, FILTER['org_media'],
+                                  tab_locator=loc["orgs.tab_media"],
                                   new_entity_list=new_medias,
                                   entity_select=select)
         if templates or new_templates:
             self.configure_entity(templates, FILTER['org_template'],
+                                  tab_locator=loc["orgs.tab_template"],
                                   new_entity_list=new_templates,
                                   entity_select=select)
         if domains or new_domains:
             self.configure_entity(domains, FILTER['org_domain'],
+                                  tab_locator=loc["orgs.tab_domains"],
                                   new_entity_list=new_domains,
                                   entity_select=select)
         if envs or new_envs:
             self.configure_entity(envs, FILTER['org_envs'],
+                                  tab_locator=loc["orgs.tab_env"],
                                   new_entity_list=new_envs,
                                   entity_select=select)
         if hostgroups or new_hostgroups:
             self.configure_entity(hostgroups, FILTER['org_hostrgroup'],
+                                  tab_locator=loc["orgs.tab_hostgrps"],
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
 
-    def create(self, org_name=None, users=None, proxies=None, subnets=None,
-               resources=None, medias=None, templates=None, domains=None,
-               envs=None, hostgroups=None, edit=False, select=True):
+    def create(self, org_name=None, parent_org=None, label=None, desc=None,
+               users=None, proxies=None, subnets=None, resources=None,
+               medias=None, templates=None, domains=None, envs=None,
+               hostgroups=None, edit=False, select=True):
         """
         Create Organization in UI
         """
         if self.wait_until_element(locators["org.new"]):
             self.wait_until_element(locators["org.new"]).click()
-            self.wait_until_element(locators["org.name"])
-            self.field_update("org.name", org_name)
+            if parent_org:
+                type_ele = self.find_element(locators["org.parent"])
+                Select(type_ele).select_by_visible_text(parent_org)
+            if self.wait_until_element(locators["org.name"]):
+                self.field_update("org.name", org_name)
+            if label:
+                self.field_update("org.label", label)
+            if desc:
+                self.field_update("org.desc", desc)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
             if edit:
@@ -96,6 +115,9 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
+
+        # latin1 and html requires double quotes for search, Bug: 1071253
+        qname = "\"" + name + "\""
         strategy = locators["org.org_name"][0]
         value = locators["org.org_name"][1]
         searchbox = self.wait_until_element(common_locators["search"])
@@ -103,19 +125,20 @@ class Org(Base):
             raise Exception("Search box not found.")
         else:
             searchbox.clear()
-            searchbox.send_keys(name)
+            searchbox.send_keys(qname)
             self.wait_until_element(common_locators["search_button"]).click()
             self.wait_for_ajax()
             element = self.wait_until_element((strategy,
                                                value % name))
             return element
 
-    def update(self, org_name, new_name=None, users=None, proxies=None,
-               subnets=None, resources=None, medias=None, templates=None,
-               domains=None, envs=None, hostgroups=None, new_users=None,
-               new_proxies=None, new_subnets=None, new_resources=None,
-               new_medias=None, new_templates=None, new_domains=None,
-               new_envs=None, new_hostgroups=None, select=False):
+    def update(self, org_name, new_parent_org=None, new_name=None, users=None,
+               proxies=None, subnets=None, resources=None, medias=None,
+               templates=None, domains=None, envs=None, hostgroups=None,
+               new_users=None, new_proxies=None, new_subnets=None,
+               new_resources=None, new_medias=None, new_templates=None,
+               new_domains=None, new_envs=None, new_hostgroups=None,
+               select=False, new_desc=None):
         """
         Update Organization in UI
         """
@@ -126,21 +149,26 @@ class Org(Base):
             if new_name:
                 if self.wait_until_element(locators["org.name"]):
                     self.field_update("org.name", new_name)
-                    self._configure_org(users=users, proxies=proxies,
-                                        subnets=subnets, resources=resources,
-                                        medias=medias, templates=templates,
-                                        domains=domains, envs=envs,
-                                        hostgroups=hostgroups,
-                                        new_users=new_users,
-                                        new_proxies=new_proxies,
-                                        new_subnets=new_subnets,
-                                        new_resources=new_resources,
-                                        new_medias=new_medias,
-                                        new_templates=new_templates,
-                                        new_domains=new_domains,
-                                        new_envs=new_envs,
-                                        new_hostgroups=new_hostgroups,
-                                        select=select)
+            if new_parent_org:
+                type_ele = self.find_element(locators["org.parent"])
+                Select(type_ele).select_by_visible_text(new_parent_org)
+            if new_desc:
+                self.field_update("org.desc", new_desc)
+            self._configure_org(users=users, proxies=proxies,
+                                subnets=subnets, resources=resources,
+                                medias=medias, templates=templates,
+                                domains=domains, envs=envs,
+                                hostgroups=hostgroups,
+                                new_users=new_users,
+                                new_proxies=new_proxies,
+                                new_subnets=new_subnets,
+                                new_resources=new_resources,
+                                new_medias=new_medias,
+                                new_templates=new_templates,
+                                new_domains=new_domains,
+                                new_envs=new_envs,
+                                new_hostgroups=new_hostgroups,
+                                select=select)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:

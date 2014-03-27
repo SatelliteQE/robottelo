@@ -13,7 +13,8 @@ from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
 from robottelo.common.helpers import (generate_name, get_data_file,
                                       read_data_file, valid_names_list,
-                                      invalid_names_list, valid_data_list)
+                                      invalid_names_list, valid_data_list,
+                                      generate_strings_list)
 from robottelo.ui.locators import common_locators
 from robottelo.ui.login import Login
 from robottelo.ui.navigator import Navigator
@@ -79,7 +80,7 @@ class GPGKey(BaseUI):
         self.gpgkey.create(name, key_content=key_content)
         self.assertIsNotNone(self.gpgkey.search(name))
 
-        #Negative Create
+    # Negative Create
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*valid_data_list())
@@ -349,14 +350,14 @@ class GPGKey(BaseUI):
 
     # Product association
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_1(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
         @assert: gpg key is associated with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -373,7 +374,8 @@ class GPGKey(BaseUI):
         self.assertEqual(prd_name,
                          self.gpgkey.assert_product_repo(name, product=True))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_2(self, name):
         """
         @feature: GPG Keys
@@ -381,7 +383,6 @@ class GPGKey(BaseUI):
         import then associate it with custom product that has one repository
         @assert: gpg key is associated with product
                 as well as with the repository
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -403,7 +404,8 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_3(self, name):
         """
         @feature: GPG Keys
@@ -412,7 +414,6 @@ class GPGKey(BaseUI):
         repository
         @assert: gpg key is associated with product
                 as well as with the repositories
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -459,7 +460,8 @@ class GPGKey(BaseUI):
 
         pass
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_5(self, name):
         """
         @feature: GPG Keys
@@ -467,7 +469,6 @@ class GPGKey(BaseUI):
         import then associate it to repository from custom product that has
         one repository
         @assert: gpg key is associated with repository but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -490,7 +491,8 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_6(self, name):
         """
         @feature: GPG Keys
@@ -499,7 +501,6 @@ class GPGKey(BaseUI):
         more than one repository
         @assert: gpg key is associated with the selected
         repository but not with product
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -547,7 +548,8 @@ class GPGKey(BaseUI):
 
         pass
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_8(self, name):
         """
         @feature: GPG Keys
@@ -555,7 +557,6 @@ class GPGKey(BaseUI):
         import then associate it with empty (no repos) custom product then
         update the key
         @assert: gpg key is associated with product before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -576,7 +577,8 @@ class GPGKey(BaseUI):
         self.assertEqual(prd_name, self.gpgkey.assert_product_repo
                          (new_name, product=True))
 
-    @data(*valid_data_list())
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
     def test_key_associate_9(self, name):
         """
         @feature: GPG Keys
@@ -585,7 +587,6 @@ class GPGKey(BaseUI):
         then update the key
         @assert: gpg key is associated with product
         and repository before/after update
-        @status: manual
         """
 
         prd_name = generate_name(8, 8)
@@ -613,28 +614,46 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_10(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_10(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository then update the key
-        @assert: gpg key is associated with product before/after update but
-        not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as
+        with repositories before/after update
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name, url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -659,51 +678,84 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_12(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_12(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository then update the key
-        @assert: gpg key is associated with product and repository
-        before/after update
-        @status: manual
+        @assert: gpg key is associated with the repository
+        before/after update but not with product
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_13(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_13(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository then update the key
-        @assert: gpg key is associated with product and single repository
-        before/after update
-        @status: manual
+        @assert: gpg key is associated with single repository
+        before/after update but not with product
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name, url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -728,17 +780,9 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_15(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_15(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
@@ -746,56 +790,99 @@ class GPGKey(BaseUI):
         then delete it
         @assert: gpg key is associated with product during creation but removed
         from product after deletion
-        @status: manual
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_16(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_16(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
         then delete it
-        @assert: gpg key is associated with product but not the repository
-        during creation but removed from product after deletion
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        the repository during creation but removed from product
+        after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_17(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_17(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository then delete it
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        the repositories during creation but removed from product
+        after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name, url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -820,51 +907,82 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_19(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_19(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository then delete the key
-        @assert: gpg key is associated with product and single repository
-        during creation but removed from product and repository after deletion
-        @status: manual
+        @assert: gpg key is associated with single repository but
+        not with product during creation, and removed from
+        repository after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product
+                          (name, prd_name, repo_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_20(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_20(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository then delete the key
-        @assert: gpg key is associated with product and single repository
-        during creation but removed from product and repository after deletion
-        @status: manual
+        @assert: gpg key is associated with single repository but not
+        with product during creation but removed from
+        repository after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name, url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product
+                          (name, prd_name, repo_name1))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -890,71 +1008,98 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_22(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_22(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with empty (no repos)
         custom product
         @assert: gpg key is associated with product
-        @status: manual
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_23(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_23(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
         one repository
-        @assert: gpg key is associated with product but not the repository
-        @status: manual
+        @assert: gpg key is associated with product as well as
+        with the repository
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_24(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_24(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
         more than one repository
-        @assert: gpg key is associated with product but not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        the repositories
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name,
+                               url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -978,49 +1123,73 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_26(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_26(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
         product that has one repository
-        @assert: gpg key is associated with product and the repository
-        @status: manual
+        @assert: gpg key is associated with the repository but not with
+        the product
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_27(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_27(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
         product that has more than one repository
-        @assert: gpg key is associated with product and one of the repositories
-        @status: manual
+        @assert: gpg key is associated with one of the repositories but
+        not with the product
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name,
+                               url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1044,73 +1213,114 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_29(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_29(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with empty (no repos)
         custom product then update the key
         @assert: gpg key is associated with product before/after update
-        @status: manual
         """
 
-        pass
+        new_name = generate_name(8, 8)
+        prd_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.gpgkey.update(name, new_name)
+        self.assertEqual(prd_name, self.gpgkey.assert_product_repo
+                         (new_name, product=True))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_30(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_30(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
         one repository then update the key
-        @assert: gpg key is associated with product before/after update
-        but not the repository
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        reposiotry before/after update
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_31(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_31(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
         more than one repository then update the key
-        @assert: gpg key is associated with product before/after update
-        but not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        reposiories before/after update
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name,
+                               url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1135,51 +1345,85 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_33(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_33(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
         product that has one repository then update the key
-        @assert: gpg key is associated with product and repository
-        before/after update
-        @status: manual
+        @assert: gpg key is associated with repository
+        before/after update but not with product.
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_34(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_34(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
         product that has more than one repository then update the key
-        @assert: gpg key is associated with product and single repository
-        before/after update
-        @status: manual
+        @assert: gpg key is associated with single repository
+        before/after update but not with product
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name,
+                               url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1204,17 +1448,9 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_36(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_36(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1222,56 +1458,98 @@ class GPGKey(BaseUI):
         product then delete it
         @assert: gpg key is associated with product during creation but
         removed from product after deletion
-        @status: manual
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_37(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_37(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
         one repository then delete it
-        @assert: gpg key is associated with product but not the repository
-        during creation but removed from product after deletion
-        @status: manual
+        @assert: gpg key is associated with product as well as with the
+        repository during creation but removed from product after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_38(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_38(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
         more than one repository then delete it
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        repositories during creation but removed from product after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name, gpg_key=name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name,
+                               url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1296,51 +1574,81 @@ class GPGKey(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_40(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_40(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
         product that has one repository then delete the key
-        @assert: gpg key is associated with product and single repository
-        during creation but removed from product and repository after deletion
-        @status: manual
+        @assert: gpg key is associated with single repository
+        during creation but removed from repository after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product
+                          (name, prd_name, repo_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_41(self):
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_41(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
         product that has more than one repository then delete the key
-        @assert: gpg key is associated with product and single repository
-        during creation but removed from product and repository after deletion
-        @status: manual
+        @assert: gpg key is associated with single repository
+        during creation but removed from repository after deletion
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        repo_name1 = generate_name(8, 8)
+        repo_name2 = generate_name(8, 8)
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name1, product=prd_name,
+                               gpg_key=name, url=REPO_URL)
+        self.assertIsNotNone(self.repository.search(repo_name1))
+        self.repository.create(repo_name2, product=prd_name,
+                               url=REPO2_URL)
+        self.assertIsNotNone(self.repository.search(repo_name2))
+        self.navigator.go_to_gpg_keys()
+        self.assertIsNone(self.gpgkey.assert_product_repo
+                          (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product
+                          (name, prd_name, repo_name1))
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1431,7 +1739,7 @@ class GPGKey(BaseUI):
 
         pass
 
-    #Miscelaneous
+    # Miscelaneous
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE

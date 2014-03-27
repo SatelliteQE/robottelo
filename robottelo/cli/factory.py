@@ -21,6 +21,7 @@ from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
+from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.template import Template
@@ -183,28 +184,6 @@ def make_model(options=None):
     return args
 
 
-def make_proxy(options=None):
-    """
-    Usage:
-        hammer proxy create [OPTIONS]
-
-    Options:
-        --name NAME
-        --url URL
-    """
-
-    args = {
-        'name': generate_name(),
-        'url': 'http://%s:%s' % (generate_string('alpha', 6),
-                                 generate_string('numeric', 4)),
-    }
-
-    args = update_dictionary(args, options)
-    args.update(create_object(Proxy, args))
-
-    return args
-
-
 def make_partition_table(options=None):
     """
     Usage:
@@ -250,6 +229,62 @@ def make_partition_table(options=None):
     return args
 
 
+def make_product(options=None):
+    """
+    Usage:
+        hammer product create [OPTIONS]
+
+    Options:
+        --description DESCRIPTION     Product description
+        --gpg-key-id GPG_KEY_ID       Identifier of the GPG key
+        --label LABEL
+        --name NAME
+        --organization-id ORGANIZATION_ID ID of the organization
+        --sync-plan-id SYNC_PLAN_ID   Plan numeric identifier
+        -h, --help                    print help
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    args = {
+        'name': generate_string('alpha', 20),
+        'label': generate_string('alpha', 20),
+        'description': generate_string('alpha', 20),
+        'organization-id': None,
+        'gpg-key-id': None,
+        'sync-plan-id': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Product, args))
+
+    return args
+
+
+def make_proxy(options=None):
+    """
+    Usage:
+        hammer proxy create [OPTIONS]
+
+    Options:
+        --name NAME
+        --url URL
+    """
+
+    args = {
+        'name': generate_name(),
+        'url': 'http://%s:%s' % (generate_string('alpha', 6),
+                                 generate_string('numeric', 4)),
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Proxy, args))
+
+    return args
+
+
 def make_subnet(options=None):
     """
     Usage:
@@ -276,7 +311,7 @@ def make_subnet(options=None):
     args = {
         'name': generate_name(8, 8),
         'network': generate_ipaddr(ip3=True),
-        'mask': '255.255.255.0',
+        'mask': u'255.255.255.0',
         'gateway': None,
         'dns-primary': None,
         'dns-secondary': None,
@@ -312,7 +347,7 @@ def make_user(options=None):
 
     login = generate_name(6)
 
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'login': login,
         'firstname': generate_name(),
@@ -384,7 +419,7 @@ def make_org(options=None):
         --description DESCRIPTION     description
     """
 
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'label': None,
@@ -401,7 +436,7 @@ def make_os(options=None):
     """
         Creates the operating system
         """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'major': random.randint(0, 10),
@@ -424,7 +459,7 @@ def make_domain(options=None):
         --dns-id DNS_ID               DNS Proxy to use within this domain
         --description DESC            Full name describing the domain
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'dns-id': None,
@@ -456,7 +491,7 @@ def make_hostgroup(options=None):
         --puppet-proxy-id PUPPET_PROXY_ID
 
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'parent-id': None,
@@ -506,7 +541,7 @@ def make_medium(options=None):
                                   Comma separated list of values.
 
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'path': 'http://%s' % (generate_string('alpha', 6)),
@@ -528,7 +563,7 @@ def make_environment(options=None):
     Options:
     --name NAME
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
     }
@@ -561,7 +596,7 @@ def make_lifecycle_environment(options=None):
     if not options.get('prior', None):
         options['prior'] = 'Library'
 
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'organization-id': None,
         'name': generate_name(6),
@@ -591,7 +626,7 @@ def make_template(options=None):
                                 Comma separated list of values.
 
     """
-    #Assigning default values for attribute
+    # Assigning default values for attribute
     args = {
         'file': "/tmp/%s" % generate_name(),
         'type': random.choice(TEMPLATE_TYPES),
@@ -606,14 +641,14 @@ def make_template(options=None):
     else:
         content = generate_name()
 
-    #Special handling for template factory
+    # Special handling for template factory
     (file_handle, layout) = mkstemp(text=True)
     chmod(layout, 0700)
     with open(layout, "w") as ptable:
         ptable.write(content)
-    #Upload file to server
+    # Upload file to server
     ssh.upload_file(local_file=layout, remote_file=args['file'])
-    #End - Special handling for template factory
+    # End - Special handling for template factory
 
     args = update_dictionary(args, options)
     args.update(create_object(Template, args))

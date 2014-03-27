@@ -11,14 +11,15 @@ import unittest
 
 class TestSSOCLI(BaseCLI):
 
-# Notes for SSO testing:
-# Of interest... In some testcases I've placed a few comments prefaced with
-# "devnote:" These are -- obviously -- notes from developers that might help
-# reiterate something important or a reminder of way(s) to test something.
+    # Notes for SSO testing:
+    # Of interest... In some testcases I've placed a few comments prefaced with
+    # "devnote:" These are -- obviously -- notes from developers that might
+    # help reiterate something important or a reminder of way(s) to test
+    # something.
 
-# There may well be more cases that I have missed for this feature, and
-# possibly other LDAP types. These (in particular, the LDAP variations)
-# can be easily added later.
+    # There may well be more cases that I have missed for this feature, and
+    # possibly other LDAP types. These (in particular, the LDAP variations)
+    # can be easily added later.
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_kerberos_cli(self):

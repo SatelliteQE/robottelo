@@ -10,16 +10,16 @@ import unittest
 
 
 class TestHostSystemUnificationCLI(BaseCLI):
-# Testing notes for host/system unification in katello/foreman:
-# Basically assuring that hosts in foreman/katello bits are joined
-# and information can be associated across both parts of product.
-#
-# Wondering if these commands might should be condensed to just one
-# command in the future?
-#
-# Devnote:
-# (the link/join will) "Most likely an internal UUID, not something
-# fuzzy like hostname"
+    # Testing notes for host/system unification in katello/foreman:
+    # Basically assuring that hosts in foreman/katello bits are joined
+    # and information can be associated across both parts of product.
+    #
+    # Wondering if these commands might should be condensed to just one
+    # command in the future?
+    #
+    # Devnote:
+    # (the link/join will) "Most likely an internal UUID, not something
+    # fuzzy like hostname"
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_all_hosts_appear_in_foreman(self):

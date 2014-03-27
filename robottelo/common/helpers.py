@@ -151,6 +151,9 @@ def generate_string(str_type, length):
     '''
     # approximate range of CJK Unified Ideographs
     # It does not include extensions: '4E00- 9FFF'
+    # (note: big block of unused -- possibly reserved -- characters
+    # at the end of range above.  Code below does not include these
+    # as they are, in the end, invalid unicode for now)
     # Latin 1 range: '00C0-00F0'
     # (note: includes some mathematical symbol, which sort of wreaks
     # havoc with using full range.  See range broken outto avoid these,
@@ -188,7 +191,7 @@ def generate_string(str_type, length):
             unichr(random.choice(output_array)) for x in xrange(length))
     elif str_type == "utf8":
         cjk_range = []
-        cjk_range = ['4E00', '9FFF']
+        cjk_range = ['4E00', '9FCC']
         output_array = []
         for i in range(int(cjk_range[0], 16), int(cjk_range[1], 16)):
             output_array.append(i)
@@ -212,7 +215,7 @@ def generate_strings_list(len1=8):
     str_types = [STR.alpha,
                  STR.numeric,
                  STR.alphanumeric,
-                 # STR.html,  TODO: search of html data fails. Bug :1073601
+                 STR.html,
                  STR.latin1,
                  STR.utf8]
     str_list = []

@@ -21,8 +21,8 @@ class ActivationKeyApi(ApiCrud):
 class ActivationKey(records.Record):
     """Definition of activation key entity
     """
-    name = records.basic_positive()
-    description = records.basic_positive()
+    name = records.BasicPositiveField()
+    description = records.BasicPositiveField()
     organization_id = records.IntegerField(default=1)
     environment_id = records.IntegerField(default=1)
     content_view_id = records.IntegerField(default=1)

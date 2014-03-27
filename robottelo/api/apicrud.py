@@ -240,7 +240,7 @@ class ApiCrud(object):
             except NameError:
                 return False
 
-            #TODO better separete kattelo and formam api
+            # TODO better separete kattelo and formam api
             if res.ok:
                 if "results" in res.json():
                     return len(res.json()["results"]) > 0
@@ -291,7 +291,7 @@ class ApiCrud(object):
         else:
             res = cls.list(json=dict(search="name="+instance.name))
             if res.ok:
-                #TODO better separete kattelo and formam api
+                # TODO better separete kattelo and formam api
                 if "results" in res.json():
                     json = res.json()["results"][0]
                 else:
@@ -358,7 +358,7 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_update(instance)
 
-        if not "id" in instance:
+        if "id" not in instance:
             res = cls.list(json=dict(search="name="+instance.name))
             if res.ok and len(res.json()) == 1:
                 instance.id = cls.record_resolve(instance).id
@@ -422,15 +422,17 @@ class ApiCrud(object):
             return api.record_create_dependencies(instance_orig)
         instance = instance_orig.copy()
 
-        #resolve ids
+        # resolve ids
         related_fields = instance._meta.fields.keys(cls=RelatedField)
 
         for field in related_fields:
             value = resolve_or_create_record(instance[field])
             instance[field] = value
             instance[field+"_id"] = value.id
+            if instance._meta.fields[field].record_label:
+                instance[field+"_id"] = value.label
 
-        #resolve ManyRelated ids
+        # resolve ManyRelated ids
         related_fields = instance._meta.fields.keys(cls=ManyRelatedField)
 
         for field in related_fields:
@@ -454,3 +456,17 @@ class ApiCrud(object):
             return api.record_create_recursive(instance_orig)
         res_instance = cls.record_create_dependencies(instance_orig)
         return cls.record_create(res_instance)
+
+
+class Task(object):
+
+    def __init__(self, json):
+        self.json = json
+
+    def refresh(self):
+        id = self.json["id"]
+        r = base.get(path="/katello/api/v2/tasks/{0}".format(id))
+        self.json = r.json()
+
+    def result(self):
+        return self.json["result"]
