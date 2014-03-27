@@ -89,7 +89,7 @@ class TestGPGKey(BaseCLI):
 
         return None
 
-    ## Bug verification
+    # Bug verification
 
     @redminebug('4271')
     def test_redmine_4271(self):
@@ -1585,7 +1585,7 @@ class TestGPGKey(BaseCLI):
 
         pass
 
-    #Miscelaneous
+    # Miscelaneous
 
     """DATADRIVENGOESHERE
         name is alpha

@@ -248,7 +248,7 @@ class Record(object):
 
         fields = {
             k: v for k, v in fields.items()
-            if not v is NoEnum and
+            if v is not NoEnum and
             (not isinstance(v, Field) or not v.enumerable)
             }
 

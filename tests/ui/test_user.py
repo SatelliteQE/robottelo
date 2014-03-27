@@ -104,7 +104,7 @@ class User(BaseUI):
         self.assertIsNotNone(self, self.role.search(role))
         self.create_user(name, password, email, search_key)
         self.user.update(search_key, name, new_roles=[role])
-        #TODO assert newly added role/permissions for user
+        # TODO assert newly added role/permissions for user
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_1(self):

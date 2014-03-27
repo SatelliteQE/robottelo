@@ -47,7 +47,7 @@ def assert_dict_intersects(first, other):
             self_v = first[k]
             other_v = other[k]
             res = intersection(self_v, other_v)
-            if not res is True:
+            if res is not True:
                 grievance[k] = res
     if grievance == {}:
         return True
@@ -88,7 +88,7 @@ def assert_intersects(first, other, msg=None):
     """Intersection based assert.
     """
     res = intersection(first, other)
-    if not res is True:
+    if res is not True:
         raise AssertionError(
             msg or "%r not intersects %r in %r" % (first, other, res)
             )

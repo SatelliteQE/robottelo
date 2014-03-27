@@ -47,7 +47,7 @@ def bzbug(bz_id):
         except ExpatError:
             attempts += 1
 
-    if not mybug is None:
+    if mybug is not None:
         if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
             logging.debug(mybug)
             return unittest.skip("Test skipped due to %s" % mybug)
@@ -81,7 +81,7 @@ def _redmine_closed_issue_statuses():
 def redminebug(bug_id):
     """Decorator that skips the test if the redmine's bug is open"""
 
-    if not bug_id in _redmine['issues']:
+    if bug_id not in _redmine['issues']:
         result = requests.get('%s/issues/%s.json' % (REDMINE_URL, bug_id))
 
         if result.status_code != 200:

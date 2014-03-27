@@ -71,10 +71,10 @@ class GPGKey(Base):
         if len(result.stdout) > 0:
             key_record = {}
 
-            #First item should contain most fields
+            # First item should contain most fields
             key_record = result.stdout.pop(0)
-            #TODO: check that it does have organization field
-            if not 'organization' in key_record:
+            # TODO: check that it does have organization field
+            if 'organization' not in key_record:
                 raise ValueError('Could not find GPG Key')
 
             # Remaining items belong to content
