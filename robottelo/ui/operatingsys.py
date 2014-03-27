@@ -180,7 +180,7 @@ class OperatingSys(Base):
             entity_value = checked_element.text
         return entity_value
 
-    def assert_os(self, os_name, entity_name=None):
+    def get_os_entities(self, os_name, entity_name=None):
         """
         Assert OS name, minor, major_version, os_family,
         template, media, and partition table to validate results
@@ -232,6 +232,9 @@ class OperatingSys(Base):
                                                  ["operatingsys.template"]
                                                  )).first_selected_option.text
                 return result
+            else:
+                raise Exception(
+                    "Couldn't find the OS name '%s'" % os_name)
         else:
             raise Exception(
                 "Could not find the operating system '%s'" % os_name)

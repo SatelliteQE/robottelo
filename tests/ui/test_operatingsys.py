@@ -112,7 +112,7 @@ class OperatingSys(BaseUI):
         self.assertIsNotNone(self.medium.search(medium))
         self.create_os(name, major_version)
         self.operatingsys.update(name, new_mediums=[medium])
-        result_object = self.operatingsys.assert_os(name, "medium")
+        result_object = self.operatingsys.get_os_entities(name, "medium")
         self.assertEqual(medium, result_object['medium'])
 
     def test_update_os_partition_table(self):
@@ -134,7 +134,7 @@ class OperatingSys(BaseUI):
         self.assertIsNotNone(self.partitiontable.search(ptable))
         self.create_os(name, major_version)
         self.operatingsys.update(name, new_ptables=[ptable])
-        result_object = self.operatingsys.assert_os(name, "ptable")
+        result_object = self.operatingsys.get_os_entities(name, "ptable")
         self.assertEqual(ptable, result_object['ptable'])
 
     def test_update_os_template(self):
@@ -158,7 +158,7 @@ class OperatingSys(BaseUI):
         self.assertIsNotNone(self.template.search(template_name))
         self.navigator.go_to_operating_systems()
         self.operatingsys.update(os_name, template=template_name)
-        result_object = self.operatingsys.assert_os(os_name, "template")
+        result_object = self.operatingsys.get_os_entities(os_name, "template")
         self.assertEqual(template_name, result_object['template'])
 
     def test_set_parameter(self):
