@@ -26,9 +26,10 @@ class Environment(Base):
         self.wait_until_element(locators["env.new"]).click()
         if self.wait_until_element(locators["env.name"]):
             self.find_element(locators["env.name"]).send_keys(name)
-        self.configure_entity(orgs, FILTER['env_org'],
-                              tab_locator=tab_locators["tab_org"],
-                              entity_select=org_select)
+        if orgs:
+            self.configure_entity(orgs, FILTER['env_org'],
+                                  tab_locator=tab_locators["tab_org"],
+                                  entity_select=org_select)
         self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
