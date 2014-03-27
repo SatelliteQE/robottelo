@@ -17,10 +17,10 @@ def load_from_data(cls, data, transform):
     """Loads instance attributes from a data dictionary"""
 
     instance = cls(blank_record=True)
-    related = {
-        field.name: field for field in instance._meta.fields
+    related = dict(
+        (field.name, field) for field in instance._meta.fields
         if isinstance(field, RelatedField)
-        }
+        )
     data = transform(cls, data)
     for k, v in data.items():
         if k in related and type(v) is dict:
@@ -368,11 +368,11 @@ class ApiCrud(object):
                 else:
                     raise KeyError(instance.name + " not unique.")
 
-        data = {
-            name: field for name, field in instance.items()
+        data = dict(
+            (name, field) for name, field in instance.items()
             if cls.create_fields is []
             or name in cls.create_fields
-            }
+            )
 
         res = cls.update(instance.id, json=cls.opts(data))
         if res.ok:
@@ -393,14 +393,14 @@ class ApiCrud(object):
             return api.record_create(instance_orig)
         instance = instance_orig.copy()
 
-        path_args = {
-            k: resolve_path_arg(k, instance) for k in cls.list_path_args()
-            }
+        path_args = dict(
+            (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
+            )
 
-        data = {
-            name: field for name, field in instance.items()
+        data = dict(
+            (name, field) for name, field in instance.items()
             if cls.create_fields == [] or name in cls.create_fields
-            }
+            )
 
         res = cls.create(json=cls.opts(data), **path_args)
         if res.ok:
