@@ -28,11 +28,12 @@ from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common import ssh
-from robottelo.common.constants import FOREMAN_PROVIDERS, OPERATING_SYSTEMS, \
-    TEMPLATE_TYPES
-from robottelo.common.helpers import generate_ipaddr, generate_name, \
-    generate_string, sleep_for_seconds
+from robottelo.common.constants import (
+    FOREMAN_PROVIDERS, OPERATING_SYSTEMS, TEMPLATE_TYPES)
+from robottelo.common.helpers import (
+    generate_ipaddr, generate_name, generate_string, sleep_for_seconds)
 from tempfile import mkstemp
+from robottelo.cli.systemgroup import Systemgroup
 
 logger = logging.getLogger("robottelo")
 
@@ -651,5 +652,38 @@ def make_template(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(Template, args))
+
+    return args
+
+
+def make_systemgroup(options=None):
+    """
+Usage:
+    hammer systemgroup create [OPTIONS]
+
+Options:
+    --description DESCRIPTION
+    --max-systems MAX_SYSTEMS     Maximum number of systems in the group
+    --name NAME                   System group name
+    --organization-id ORGANIZATION_ID organization identifier
+    --system-ids SYSTEM_IDS       List of system uuids to be in the group
+                                  Comma separated list of values.
+    """
+
+    # Organization ID is required
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORGANIZATION_ID.")
+
+    #Assigning default values for attributes
+    args = {
+        'description': None,
+        'max-systems': None,
+        'name': generate_name(6),
+        'organization-id': None,
+        'system-ids': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Systemgroup, args))
 
     return args
