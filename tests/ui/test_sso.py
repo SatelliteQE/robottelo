@@ -4,21 +4,25 @@
 """
 Test class for installer (UI)
 """
-#import unittest
+
+import unittest
+
+from robottelo.common.constants import NOT_IMPLEMENTED
 from tests.ui.baseui import BaseUI
 
 
 class TestSSOUI(BaseUI):
+    # Notes for SSO testing:
+    # Of interest... In some test cases I've placed a few comments prefaced
+    # with "devnote:" These are -- obviously -- notes from developers that
+    # might help reiterate something important or a reminder of way(s) to test
+    # something.
 
-# Notes for SSO testing:
-# Of interest... In some test cases I've placed a few comments prefaced with
-# "devnote:" These are -- obviously -- notes from developers that might help
-# reiterate something important or a reminder of way(s) to test something.
+    # There may well be more cases that I have missed for this feature, and
+    # possibly other LDAP types. These (in particular, the LDAP variations)
+    # can be easily added later.
 
-# There may well be more cases that I have missed for this feature, and
-# possibly other LDAP types. These (in particular, the LDAP variations)
-# can be easily added later.
-
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_kerberos_basic_no_roles(self):
         """
         @feature: SSO
@@ -31,6 +35,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_kerberos_basic_roles(self):
         """
         @feature: SSO
@@ -43,6 +48,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_kerberos_user_disabled(self):
         """
         @feature: SSO
@@ -56,6 +62,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ipa_basic_no_roles(self):
         """
         @feature: SSO
@@ -68,6 +75,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ipa_basic_roles(self):
         """
         @feature: SSO
@@ -80,6 +88,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ipa_user_disabled(self):
         """
         @feature: SSO
@@ -93,6 +102,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_openldap_basic_no_roles(self):
         """
         @feature: SSO
@@ -105,6 +115,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_openldap_basic_roles(self):
         """
         @feature: SSO
@@ -117,6 +128,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_openldap_user_disabled(self):
         """
         @feature: SSO
@@ -130,6 +142,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_multiple_ldap_backends(self):
         """
         @feature: SSO
@@ -145,6 +158,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_multiple_ldap_namespace_collision(self):
         # devnote:
         # users have auth_source which could distinguish them, but validation
@@ -163,6 +177,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ldap_user_named_admin(self):
         # devnote:
         # shouldn't be a problem since admin from internal DB will be used at
@@ -179,6 +194,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ldap_server_down_before_session(self):
         """
         @feature: SSO
@@ -191,6 +207,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ldap_server_down_during_session(self):
         """
         @feature: SSO
@@ -204,6 +221,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_usergroup_roles_read(self):
         """
         @feature: SSO
@@ -217,6 +235,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_usergroup_roles_update(self):
         """
         @feature: SSO
@@ -230,6 +249,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_usergroup_roles_delete(self):
         """
         @feature: SSO
@@ -243,6 +263,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_usergroup_additional_user_roles(self):
         """
         @feature: SSO
@@ -260,6 +281,7 @@ class TestSSOUI(BaseUI):
         @status: Manual
         """
 
+    @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_usergroup_user_add(self):
         """
         @feature: SSO

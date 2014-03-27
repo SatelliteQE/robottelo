@@ -311,7 +311,7 @@ def make_user(options=None):
 
     login = generate_name(6)
 
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'login': login,
         'firstname': generate_name(),
@@ -383,7 +383,7 @@ def make_org(options=None):
         --description DESCRIPTION     description
     """
 
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'label': None,
@@ -400,7 +400,7 @@ def make_os(options=None):
     """
         Creates the operating system
         """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'major': random.randint(0, 10),
@@ -423,7 +423,7 @@ def make_domain(options=None):
         --dns-id DNS_ID               DNS Proxy to use within this domain
         --description DESC            Full name describing the domain
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'dns-id': None,
@@ -455,7 +455,7 @@ def make_hostgroup(options=None):
         --puppet-proxy-id PUPPET_PROXY_ID
 
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'parent-id': None,
@@ -505,7 +505,7 @@ def make_medium(options=None):
                                   Comma separated list of values.
 
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
         'path': 'http://%s' % (generate_string('alpha', 6)),
@@ -527,7 +527,7 @@ def make_environment(options=None):
     Options:
     --name NAME
     """
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'name': generate_name(6),
     }
@@ -560,7 +560,7 @@ def make_lifecycle_environment(options=None):
     if not options.get('prior', None):
         options['prior'] = 'Library'
 
-    #Assigning default values for attributes
+    # Assigning default values for attributes
     args = {
         'organization-id': None,
         'name': generate_name(6),
@@ -590,7 +590,7 @@ def make_template(options=None):
                                 Comma separated list of values.
 
     """
-    #Assigning default values for attribute
+    # Assigning default values for attribute
     args = {
         'file': "/tmp/%s" % generate_name(),
         'type': random.choice(TEMPLATE_TYPES),
@@ -605,14 +605,14 @@ def make_template(options=None):
     else:
         content = generate_name()
 
-    #Special handling for template factory
+    # Special handling for template factory
     (file_handle, layout) = mkstemp(text=True)
     chmod(layout, 0700)
     with open(layout, "w") as ptable:
         ptable.write(content)
-    #Upload file to server
+    # Upload file to server
     ssh.upload_file(local_file=layout, remote_file=args['file'])
-    #End - Special handling for template factory
+    # End - Special handling for template factory
 
     args = update_dictionary(args, options)
     args.update(create_object(Template, args))

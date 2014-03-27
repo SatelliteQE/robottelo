@@ -74,7 +74,8 @@ class TestOrganization(BaseAPI):
         """
         result = ApiCrud.record_create(test_data)
         self.assertIntersects(test_data, result)
-#Negative Create
+
+    # Negative Create
 
     @data(
         *Organization.enumerate(
@@ -276,7 +277,7 @@ class TestOrganization(BaseAPI):
 
         self.assertTrue(correctly_failing)
 
-    #Miscelaneous
+    # Miscelaneous
 
     @data(*Organization.enumerate())
     def test_list_key_1(self, test_data):

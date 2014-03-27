@@ -8,10 +8,10 @@ import unittest
 
 class TestSSOCLI(BaseCLI):
 
-# Notes for installer testing:
-# Perhaps there is a convenient log analyzer library out there
-# that can parse logs? It would be better (and possibly less
-# error-prone) than simply grepping for ERROR/FATAL
+    # Notes for installer testing:
+    # Perhaps there is a convenient log analyzer library out there
+    # that can parse logs? It would be better (and possibly less
+    # error-prone) than simply grepping for ERROR/FATAL
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_installer_check_services(self):

@@ -67,7 +67,7 @@ class MetaCLITest(type):
         for name in NAMES:
             test_name = 'test_%s' % name
 
-            if not test_name in attributes.keys():
+            if test_name not in attributes.keys():
                 data_name = '%s_data' % name
 
                 # The data provided is a tuple so we need to unpack to pass to
