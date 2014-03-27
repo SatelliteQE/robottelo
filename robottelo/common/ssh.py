@@ -137,6 +137,8 @@ def command(cmd, hostname=None, expect_csv=False, timeout=50):
     # information, so strip it out.
 
     if stdout:
+        # Empty fields are returned as "" which gives us u'""'
+        stdout = stdout.replace('""', '')
         stdout = stdout.decode('utf-8')
         stdout = u"".join(stdout).split("\n")
         output = [
