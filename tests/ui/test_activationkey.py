@@ -181,6 +181,7 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_activation_key_1(self):
         """
@@ -194,6 +195,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_activation_key_2(self):
         """
@@ -207,6 +209,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_activation_key_3(self):
         """
@@ -375,6 +378,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_activation_key_3(self):
         """
@@ -388,6 +392,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_activation_key_4(self):
         """
@@ -449,6 +454,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_activation_key_1(self):
         """
@@ -462,6 +468,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_activation_key_2(self):
         """
@@ -475,6 +482,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_activation_key_3(self):
         """
@@ -488,6 +496,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_usage_limit(self):
         """
@@ -503,6 +512,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
         """
@@ -517,6 +527,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_1(self):
         """
@@ -530,6 +541,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_2(self):
         """
@@ -543,6 +555,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
         """
@@ -557,6 +570,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_delete_manifest(self):
         """
@@ -571,6 +585,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_multiple_activation_keys_to_system(self):
         """
@@ -584,6 +599,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_activation_keys_1(self):
         """
@@ -598,6 +614,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_list_activation_keys_2(self):
         """
@@ -611,6 +628,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_activation_keys_1(self):
         """
@@ -625,6 +643,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_activation_keys_2(self):
         """
@@ -638,6 +657,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_activation_keys_1(self):
         """
@@ -653,6 +673,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_info_activation_keys_2(self):
         """
@@ -666,6 +687,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):
         """
