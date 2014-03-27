@@ -163,3 +163,78 @@ class OperatingSys(Base):
             self.remove_parameter(param_name)
         else:
             raise Exception("Could not remove parameter '%s'" % param_name)
+
+    def get_selected_entities(self):
+        """
+        Function to get selected elements
+        (either it is a check-box or selection list)
+        """
+
+        entity_value = None
+        selected_element = self.wait_until_element(common_locators
+                                                   ['selected_entity'])
+        checked_element = self.find_element(common_locators['checked_entity'])
+        if selected_element:
+            entity_value = selected_element.text
+        else:
+            entity_value = checked_element.text
+        return entity_value
+
+    def get_os_entities(self, os_name, entity_name=None):
+        """
+        Assert OS name, minor, major_version, os_family,
+        template, media, and partition table to validate results
+        """
+
+        result = None
+        name_loc = locators["operatingsys.name"]
+        major_ver_loc = locators["operatingsys.major_version"]
+        minor_ver_loc = locators["operatingsys.minor_version"]
+        os_family_loc = locators["operatingsys.family"]
+        os_object = self.search_entity(os_name,
+                                       locators
+                                       ["operatingsys.operatingsys_name"])
+        if os_object:
+            os_object.click()
+            if self.wait_until_element(locators["operatingsys.name"]):
+                result = dict([('name', None), ('major', None),
+                               ('minor', None), ('os_family', None),
+                               ('ptable', None), ('template', None),
+                               ('medium', None)])
+                result['name'] = self.find_element(name_loc
+                                                   ).get_attribute("value")
+                result['major'] = self.find_element(major_ver_loc
+                                                    ).get_attribute("value")
+                result['minor'] = self.find_element(minor_ver_loc
+                                                    ).get_attribute("value")
+                result['os_family'] = Select(self.find_element
+                                             (os_family_loc
+                                              )).first_selected_option.text
+                if entity_name == "ptable":
+                    self.wait_until_element(tab_locators
+                                            ["operatingsys.tab_ptable"]
+                                            ).click()
+                    self.wait_for_ajax()
+                    result['ptable'] = self.get_selected_entities()
+                elif entity_name == "medium":
+                    self.wait_until_element(tab_locators
+                                            ["operatingsys.tab_medium"]
+                                            ).click()
+                    self.wait_for_ajax()
+                    result['medium'] = self.get_selected_entities()
+                elif entity_name == "template":
+                    self.wait_until_element(tab_locators
+                                            ["operatingsys.tab_templates"]
+                                            ).click()
+                    self.wait_for_ajax()
+                    result['template'] = Select(self.find_element
+                                                (locators
+                                                 ["operatingsys.template"]
+                                                 )).first_selected_option.text
+                return result
+            else:
+                raise Exception(
+                    "Couldn't find the OS name '%s'" % os_name)
+        else:
+            raise Exception(
+                "Could not find the operating system '%s'" % os_name)

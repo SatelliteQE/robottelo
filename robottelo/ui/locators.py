@@ -350,6 +350,12 @@ common_locators = {
     "alert.error": (
         By.XPATH, "//div[contains(@class, 'alert-danger')]"),
 
+    "selected_entity": (
+        By.XPATH,
+        ("//div[@class='ms-selection']/ul[@class='ms-list']"
+         "/li[@class='ms-elem-selection ms-selected']")),
+    "checked_entity": (
+        By.XPATH, "//input[@checked='checked']/parent::label"),
     "entity_select": (
         By.XPATH,
         "//div[@class='ms-selectable']//span[contains(.,'%s')]"),
