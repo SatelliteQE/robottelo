@@ -8,10 +8,10 @@ Base class for all UI tests
 import logging
 import sys
 if sys.hexversion >= 0x2070000:
-	import unittest
+    import unittest
 else:
-	import unittest2
-	unittest=unittest2
+    import unittest2
+    unittest=unittest2
 
 from robottelo.common import conf
 from robottelo.ui.activationkey import ActivationKey
