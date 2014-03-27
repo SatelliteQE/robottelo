@@ -3,7 +3,11 @@
 
 from basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 
 class TestSSOCLI(BaseCLI):

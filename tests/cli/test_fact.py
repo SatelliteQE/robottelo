@@ -12,7 +12,11 @@ from robottelo.common.helpers import generate_name
 from nose.plugins.attrib import attr
 from tests.cli.basecli import BaseCLI
 
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 
 @ddt

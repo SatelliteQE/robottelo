@@ -6,7 +6,11 @@ Base classes for all cli tests
 """
 
 import logging
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 from robottelo.common import conf
 from robottelo.cli.metatest import MetaCLITest
