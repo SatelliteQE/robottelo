@@ -10,7 +10,11 @@ from robottelo.cli.host import Host
 from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_mac
 
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 
 class TestHost(BaseCLI):

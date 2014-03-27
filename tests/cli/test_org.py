@@ -15,7 +15,11 @@ from tests.cli.basecli import BaseCLI
 from robottelo.common.helpers import generate_string
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import (bzbug, redminebug)
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 
 def positive_create_data_1():
