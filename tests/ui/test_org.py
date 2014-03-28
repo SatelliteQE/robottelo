@@ -441,8 +441,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_select"][0]
-        value1 = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
         org_name = generate_name(8, 8)
         password = generate_name(8)
         email = generate_email_address()
@@ -468,25 +468,43 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_1(self, test_data):
+    @bzbug('1076562')
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_hostgroup_1(self, host_grp):
         """
         @feature: Organizations
         @test: Add a hostgroup and remove it by using the organization
         name and hostgroup name
         @assert: hostgroup is added to organization then removed
-        @status: manual
+        @BZ: 1076562
         """
 
-        pass
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_host_groups()
+        self.hostgroup.create(host_grp)
+        self.assertIsNotNone(self.hostgroup.search(host_grp))
+        self.navigator.go_to_org()
+        self.org.create(org_name, hostgroups=[host_grp], edit=True)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_hostgrps"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % host_grp))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
+        self.assertTrue(element)
+        self.navigator.go_to_org()
+        self.org.update(org_name, hostgroups=[host_grp], new_hostgroups=None)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_hostgrps"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % host_grp))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -817,25 +835,65 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_1(self, test_data):
+    @bzbug('1076562')
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_hostgroup_1(self, host_grp):
         """
         @feature: Organizations
         @test: Add a hostgroup by using the organization
         name and hostgroup name
         @assert: hostgroup is added to organization
-        @status: manual
+        @BZ: 1076562
         """
 
-        pass
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_host_groups()
+        self.hostgroup.create(host_grp)
+        self.assertIsNotNone(self.hostgroup.search(host_grp))
+        self.org.update(org_name, new_hostgroups=[host_grp])
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_hostgrps"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % host_grp))
+        self.assertTrue(element)
+
+    @bzbug('1076562')
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_location_1(self, location):
+        """
+        @feature: Organizations
+        @test: Add a location by using the organization
+        name and location name
+        @assert: location is added to organization
+        @BZ: 1076562
+        """
+
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_host_groups()
+        self.location.create(location)
+        self.assertIsNotNone(self.location.search(location))
+        self.org.update(org_name, new_locations=[location])
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_locations"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % location))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE

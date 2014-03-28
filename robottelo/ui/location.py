@@ -43,3 +43,19 @@ class Location(Base):
             self.wait_until_element(common_locators["submit"]).click()
         else:
             raise Exception("Could not create new location.")
+
+    def search(self, name):
+        """
+        Searches existing location from UI
+        """
+        element = self.search_entity(name, locators["location.select_name"])
+        return element
+
+    def delete(self, name, really):
+        """
+        Deletes a location.
+        """
+
+        self.delete_entity(name, really, locators["location.select_name"],
+                           locators['location.delete'],
+                           drop_locator=locators["location.dropdown"])

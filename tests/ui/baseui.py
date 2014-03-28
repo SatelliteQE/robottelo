@@ -22,6 +22,7 @@ from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
+from robottelo.ui.location import Location
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
 from robottelo.ui.navigator import Navigator
@@ -100,6 +101,7 @@ class BaseUI(unittest.TestCase):
         self.gpgkey = GPGKey(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
+        self.location = Location(self.browser)
         self.login = Login(self.browser)
         self.medium = Medium(self.browser)
         self.navigator = Navigator(self.browser)
