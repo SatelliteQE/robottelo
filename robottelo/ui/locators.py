@@ -895,7 +895,7 @@ locators = {
     "content_env.select_name": (
         By.XPATH,
         "//div[contains(., '%s')]/parent::label\
-        [@ng-click='selectEnvironment(env.environment)']"),
+        [@ng-click='selectEnvironment(env)']"),
     "content_env.remove": (
         By.XPATH,
         "//button[@ng-click='openModal()']"),
