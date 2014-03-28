@@ -7,12 +7,11 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
+
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.ui.navigator import Navigator
-from robottelo.ui.org import Org
-from robottelo.ui.login import Login
 from robottelo.common.helpers import generate_name, generate_strings_list
+from robottelo.ui.factory import make_org
 from tests.ui.baseui import BaseUI
 
 
@@ -39,13 +38,7 @@ class Sync(BaseUI):
         # Make sure to use the Class' org_name instance
         if Sync.org_name is None:
             Sync.org_name = generate_name(8, 8)
-            login = Login(self.browser)
-            nav = Navigator(self.browser)
-            org = Org(self.browser)
-            login.login(self.katello_user, self.katello_passwd)
-            nav.go_to_org()
-            org.create(Sync.org_name)
-            login.logout()
+            make_org(Sync.org_name)
 
     @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())

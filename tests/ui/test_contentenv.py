@@ -7,10 +7,8 @@ Test class for Life cycle environments UI
 
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name
+from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
-from robottelo.ui.login import Login
-from robottelo.ui.navigator import Navigator
-from robottelo.ui.org import Org
 from tests.ui.baseui import BaseUI
 
 
@@ -26,13 +24,7 @@ class ContentEnvironment(BaseUI):
         # Make sure to use the Class' org_name instance
         if ContentEnvironment.org_name is None:
             ContentEnvironment.org_name = generate_name(8, 8)
-            login = Login(self.browser)
-            nav = Navigator(self.browser)
-            org = Org(self.browser)
-            login.login(self.katello_user, self.katello_passwd)
-            nav.go_to_org()
-            org.create(ContentEnvironment.org_name)
-            login.logout()
+            make_org(ContentEnvironment.org_name)
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_create_content_environment_1(self):
