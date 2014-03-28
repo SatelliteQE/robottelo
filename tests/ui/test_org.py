@@ -158,6 +158,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Create organization with valid name and description only
         @assert: organization is created, label is auto-generated
+        @BZ: 1079482
         """
 
         desc = test_data['desc']
@@ -328,6 +329,7 @@ class Org(BaseUI):
         @test: Add a domain to an organization and remove it by organization
         name and domain name
         @assert: the domain is removed from the organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -434,6 +436,7 @@ class Org(BaseUI):
         @test: Create admin users then add user and remove it
         by using the organization name
         @assert: The user is added then removed from the organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -629,6 +632,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Add a subnet by using organization name and subnet name
         @assert: subnet is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -718,6 +722,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Add a domain to an organization
         @assert: Domain is added to organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -768,6 +773,7 @@ class Org(BaseUI):
         @test: Create different types of users then add user
         by using the organization name
         @assert: User is added to organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -900,6 +906,7 @@ class Org(BaseUI):
         @test: Remove computeresource by using the organization
         name and computeresource name
         @assert: computeresource is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1001,6 +1008,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove medium by using organization name and medium name
         @assert: medium is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1096,6 +1104,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove config template
         @assert: configtemplate is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1127,25 +1136,35 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_1(self, test_data):
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_environment_1(self, env):
         """
         @feature: Organizations
-        @test: Remove environment by using organization name and
-        evironment name
-        @assert: environment is added then removed
+        @test: Add environment by using organization name and evironment name
+        @assert: environment is added
         @status: manual
         """
 
-        pass
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.search(org_name))
+        self.navigator.go_to_environments()
+        self.environment.create(env, None)
+        search = self.environment.search(env)
+        self.assertIsNotNone(search)
+        self.navigator.go_to_org()
+        self.org.update(org_name, new_envs=[env])
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % env))
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1292,6 +1311,7 @@ class Org(BaseUI):
         @test: Add compute resource using the organization
         name and computeresource name
         @assert: computeresource is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -1386,6 +1406,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Add medium by using the organization name and medium name
         @assert: medium is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -1475,6 +1496,7 @@ class Org(BaseUI):
         @test: Add config template by using organization name and
         configtemplate name
         @assert: configtemplate is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -1559,24 +1581,42 @@ class Org(BaseUI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_1(self, test_data):
+    @bzbug('1076562')
+    @attr('ui', 'org', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_environment_1(self, env):
         """
         @feature: Organizations
-        @test: Add environment by using organization name and evironment name
-        @assert: environment is added
-        @status: manual
+        @test: Remove environment by using organization name & evironment name
+        @assert: environment is removed from Organization
+        @BZ: 1076562
         """
 
-        pass
+        strategy = common_locators["entity_select"][0]
+        value = common_locators["entity_select"][1]
+        strategy1 = common_locators["entity_deselect"][0]
+        value1 = common_locators["entity_deselect"][1]
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_environments()
+        self.environment.create(env, None)
+        search = self.environment.search(env)
+        self.assertIsNotNone(search)
+        self.navigator.go_to_org()
+        self.org.create(org_name, envs=[env], edit=True)
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
+        element = self.org.wait_until_element((strategy1,
+                                               value1 % env))
+        # Item is listed in 'Selected Items' list and not 'All Items' list.
+        self.assertTrue(element)
+        self.org.update(org_name, new_envs=[env])
+        self.org.search(org_name).click()
+        self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
+        element = self.org.wait_until_element((strategy,
+                                               value % env))
+        # Item is listed in 'All Items' list and not 'Selected Items' list.
+        self.assertTrue(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
@@ -1643,6 +1683,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove subnet by using organization name and subnet name
         @assert: subnet is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
