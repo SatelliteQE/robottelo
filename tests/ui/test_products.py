@@ -4,11 +4,9 @@ Test class for Products UI
 
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.ui.navigator import Navigator
-from robottelo.ui.org import Org
-from robottelo.ui.login import Login
-from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name, generate_strings_list
+from robottelo.ui.factory import make_org
+from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
 
@@ -25,13 +23,7 @@ class Products(BaseUI):
         # Make sure to use the Class' org_name instance
         if Products.org_name is None:
             Products.org_name = generate_name(8, 8)
-            login = Login(self.browser)
-            nav = Navigator(self.browser)
-            org = Org(self.browser)
-            login.login(self.katello_user, self.katello_passwd)
-            nav.go_to_org()
-            org.create(Products.org_name)
-            login.logout()
+            make_org(Products.org_name)
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())

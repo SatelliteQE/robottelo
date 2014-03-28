@@ -5,9 +5,9 @@
 Test class for Subnet UI
 """
 
-from tests.ui.baseui import BaseUI
-from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_ipaddr
+from robottelo.common.helpers import generate_name
+from tests.ui.baseui import BaseUI
 
 
 class Subnet(BaseUI):
