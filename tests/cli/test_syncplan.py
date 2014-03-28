@@ -191,6 +191,7 @@ class TestSyncPlan(BaseCLI):
         @Test: Check if syncplan description can be updated
         @Feature: Sync Plan
         @Assert: Sync plan is created and description is updated
+        @BZ: 1082157
         """
 
         new_sync_plan = self._make_sync_plan()
@@ -439,6 +440,7 @@ class TestSyncPlan(BaseCLI):
         @Test: Check if syncplan can be created and deleted
         @Feature: Sync Plan
         @Assert: Sync plan is created and then deleted
+        @BZ: 1082169
         """
 
         new_sync_plan = self._make_sync_plan({'name': test_data['name']})
