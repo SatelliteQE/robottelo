@@ -7,8 +7,9 @@ Test class for Life cycle environments UI
 
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name
-from robottelo.ui.factory import Session, make_org
+from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 from tests.ui.baseui import BaseUI
 
 

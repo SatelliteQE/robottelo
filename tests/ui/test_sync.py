@@ -11,7 +11,8 @@ else:
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name, generate_strings_list
-from robottelo.ui.factory import Session, make_org
+from robottelo.ui.factory import make_org
+from robottelo.ui.session import Session
 from tests.ui.baseui import BaseUI
 
 
