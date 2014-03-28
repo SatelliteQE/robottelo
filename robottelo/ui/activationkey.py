@@ -87,7 +87,7 @@ class ActivationKey(Base):
 
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys(element_name)
+            searchbox.send_keys('"' + element_name + '"')
             sleep(5)
             self.find_element(common_locators["kt_search_button"]).click()
             strategy = locators["ak.ak_name"][0]
