@@ -713,8 +713,12 @@ class User(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_user_6(self):
+    @data({'password': generate_string("latin1", 10)},
+          {'password': generate_string("utf8", 10)},
+          {'password': generate_string("alpha", 10)},
+          {'password': generate_string("alphanumeric", 10)},
+          {'password': generate_string("numeric", 10)},)
+    def test_positive_update_user_6(self, test_data):
         """
         @Test: Update Password/Verify fields in User
         @Feature: User - Positive Update
@@ -722,9 +726,21 @@ class User(BaseCLI):
         1. Create User
         2. Update Password/Verify fields
         @Assert: User is updated
-        @Status: Manual
         """
-        pass
+
+        new_obj = make_user()
+        # Can we find the new object?
+        result = UserObj().info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+
+        # Update the password
+        result = UserObj().update({'id': new_obj['id'],
+                                   'password': test_data['password']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_7(self):
