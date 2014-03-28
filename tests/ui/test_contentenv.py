@@ -6,7 +6,6 @@ Test class for Life cycle environments UI
 """
 
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import common_locators
 from robottelo.ui.login import Login
