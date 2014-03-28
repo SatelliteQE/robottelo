@@ -49,6 +49,7 @@ class ActivationKey(BaseUI):
             org.create(ActivationKey.org_name)
             login.logout()
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_1(self, name):
@@ -68,6 +69,7 @@ class ActivationKey(BaseUI):
                                   description=generate_name(16))
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_2(self, description):
@@ -89,6 +91,7 @@ class ActivationKey(BaseUI):
                                   description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_3(self):
         """
@@ -102,6 +105,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_4(self):
         """
@@ -115,6 +119,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_5(self):
         """
@@ -128,6 +133,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """
@@ -147,6 +153,7 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """
@@ -167,6 +174,7 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT, limit, description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """
@@ -336,6 +344,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_1(self, new_name):
@@ -358,6 +367,7 @@ class ActivationKey(BaseUI):
         self.activationkey.update(name, new_name)
         self.assertIsNotNone(self.activationkey.search_key(new_name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_2(self, new_description):
@@ -411,6 +421,7 @@ class ActivationKey(BaseUI):
         """
         pass
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """
@@ -434,6 +445,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """
