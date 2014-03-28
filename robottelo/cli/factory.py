@@ -5,6 +5,7 @@
 Factory object creation for all CLI methods
 """
 
+import datetime
 import logging
 import os
 import random
@@ -21,16 +22,18 @@ from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
+from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
+from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common import ssh
-from robottelo.common.constants import FOREMAN_PROVIDERS, OPERATING_SYSTEMS, \
-    TEMPLATE_TYPES
-from robottelo.common.helpers import generate_ipaddr, generate_name, \
-    generate_string, sleep_for_seconds
+from robottelo.common.constants import (FOREMAN_PROVIDERS, OPERATING_SYSTEMS,
+                                        SYNC_INTERVAL, TEMPLATE_TYPES)
+from robottelo.common.helpers import (generate_ipaddr, generate_name,
+                                      generate_string, sleep_for_seconds)
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -182,28 +185,6 @@ def make_model(options=None):
     return args
 
 
-def make_proxy(options=None):
-    """
-    Usage:
-        hammer proxy create [OPTIONS]
-
-    Options:
-        --name NAME
-        --url URL
-    """
-
-    args = {
-        'name': generate_name(),
-        'url': 'http://%s:%s' % (generate_string('alpha', 6),
-                                 generate_string('numeric', 4)),
-    }
-
-    args = update_dictionary(args, options)
-    args.update(create_object(Proxy, args))
-
-    return args
-
-
 def make_partition_table(options=None):
     """
     Usage:
@@ -249,6 +230,62 @@ def make_partition_table(options=None):
     return args
 
 
+def make_product(options=None):
+    """
+    Usage:
+        hammer product create [OPTIONS]
+
+    Options:
+        --description DESCRIPTION     Product description
+        --gpg-key-id GPG_KEY_ID       Identifier of the GPG key
+        --label LABEL
+        --name NAME
+        --organization-id ORGANIZATION_ID ID of the organization
+        --sync-plan-id SYNC_PLAN_ID   Plan numeric identifier
+        -h, --help                    print help
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    args = {
+        'name': generate_string('alpha', 20),
+        'label': generate_string('alpha', 20),
+        'description': generate_string('alpha', 20),
+        'organization-id': None,
+        'gpg-key-id': None,
+        'sync-plan-id': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Product, args))
+
+    return args
+
+
+def make_proxy(options=None):
+    """
+    Usage:
+        hammer proxy create [OPTIONS]
+
+    Options:
+        --name NAME
+        --url URL
+    """
+
+    args = {
+        'name': generate_name(),
+        'url': 'http://%s:%s' % (generate_string('alpha', 6),
+                                 generate_string('numeric', 4)),
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Proxy, args))
+
+    return args
+
+
 def make_subnet(options=None):
     """
     Usage:
@@ -290,6 +327,43 @@ def make_subnet(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(Subnet, args))
+
+    return args
+
+
+def make_sync_plan(options=None):
+    """
+    Usage:
+        hammer sync-plan create [OPTIONS]
+
+    Options:
+        --description DESCRIPTION     sync plan description
+        --interval INTERVAL           how often synchronization should run
+                                      One of ''none',', ''hourly',',
+                                      ''daily',', ''weekly''
+                                      Default: "none"
+        --name NAME                   sync plan name
+        --organization-id ORGANIZATION_ID Filter products by organization
+                                      name or label
+        --sync-date SYNC_DATE         start date and time of the
+                                      synchronization Date and time
+                                      in YYYY-MM-DD HH:MM:SS or ISO 8601 format
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    args = {
+        'name': generate_string('alpha', 20),
+        'description': generate_string('alpha', 20),
+        'organization-id': None,
+        'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'interval': random.choice(SYNC_INTERVAL.values()),
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(SyncPlan, args))
 
     return args
 

@@ -1,7 +1,11 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI

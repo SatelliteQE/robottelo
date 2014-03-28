@@ -1,7 +1,11 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
@@ -9,7 +13,7 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import bzbug
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
-from robottelo.common.records.fields import basic_positive
+from robottelo.common.records.fields import BasicPositiveField
 from tests.api.baseapi import BaseAPI
 
 
@@ -79,7 +83,7 @@ class TestOrganization(BaseAPI):
 
     @data(
         *Organization.enumerate(
-            name=basic_positive(maxlen=300),
+            name=BasicPositiveField(maxlen=300),
             label=NoEnum,
             description=NoEnum)
     )
@@ -230,7 +234,7 @@ class TestOrganization(BaseAPI):
     # Negative Update
 
     @data(*Organization.enumerate(
-        name=basic_positive(maxlen=300),
+        name=BasicPositiveField(maxlen=300),
         label=NoEnum,
         description=NoEnum
         ))
@@ -255,7 +259,7 @@ class TestOrganization(BaseAPI):
 
     @data(*Organization.enumerate(
         name=NoEnum,
-        label=basic_positive(maxlen=300),
+        label=BasicPositiveField(maxlen=300),
         description=NoEnum
         ))
     def test_negative_update_2(self, test_data):

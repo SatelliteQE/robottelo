@@ -1,7 +1,12 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import unittest
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
+
 
 from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED

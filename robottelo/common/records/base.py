@@ -14,8 +14,8 @@ def create_choice(enum, fields):
     >>> create_choice({"name":lambda :"n1"},{"label":"l1"})
     {'name': 'n1', 'label': 'l1'}
     """
-    d = {k: evaluate_choice(v) for k, v in enum.items()}
-    d.update({k: evaluate_choice(v) for k, v in fields.items()})
+    d = dict((k, evaluate_choice(v)) for k, v in enum.items())
+    d.update(dict((k, evaluate_choice(v)) for k, v in fields.items()))
     return d
 
 
@@ -234,23 +234,23 @@ class Record(object):
 
         fnames = [f.name for f in iter(cls._meta.fields)]
         fields = dict(zip(fnames, args))
-        fields.update({k: v for k, v in kwargs.items() if k in fnames})
-        enumerated = {
-            f.name: f.enumerate()
+        fields.update(dict((k, v) for k, v in kwargs.items() if k in fnames))
+        enumerated = dict(
+            (f.name, f.enumerate())
             for f in cls._meta.fields
             if f.enumerable and f.name not in fields
-            }
+            )
 
-        enumerated.update({
-            k: v.enumerate() for k, v in fields.items()
+        enumerated.update(dict(
+            (k, v.enumerate()) for k, v in fields.items()
             if isinstance(v, Field) and v.enumerable
-            })
+            ))
 
-        fields = {
-            k: v for k, v in fields.items()
+        fields = dict(
+            (k, v) for k, v in fields.items()
             if v is not NoEnum and
             (not isinstance(v, Field) or not v.enumerable)
-            }
+            )
 
         e2 = []
 

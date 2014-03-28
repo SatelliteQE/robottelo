@@ -8,7 +8,13 @@ Implements various decorators
 import bugzilla
 import logging
 import requests
-import unittest
+
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
+
 
 from robottelo.common import conf
 from xml.parsers.expat import ExpatError
