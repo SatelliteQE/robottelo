@@ -104,6 +104,7 @@ class Repos(BaseUI):
         @Feature: Content Repos - Negative Create with same name
         @Test: Create Content Repos with same name input parameter
         @Assert: Repos is not created
+        @BZ: 1081059
         """
 
         locator = common_locators["common_invalid"]

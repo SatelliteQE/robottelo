@@ -158,6 +158,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Create organization with valid name and description only
         @assert: organization is created, label is auto-generated
+        @BZ: 1079482
         """
 
         desc = test_data['desc']
@@ -328,6 +329,7 @@ class Org(BaseUI):
         @test: Add a domain to an organization and remove it by organization
         name and domain name
         @assert: the domain is removed from the organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -434,6 +436,7 @@ class Org(BaseUI):
         @test: Create admin users then add user and remove it
         by using the organization name
         @assert: The user is added then removed from the organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -629,6 +632,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Add a subnet by using organization name and subnet name
         @assert: subnet is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -718,6 +722,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Add a domain to an organization
         @assert: Domain is added to organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -768,6 +773,7 @@ class Org(BaseUI):
         @test: Create different types of users then add user
         by using the organization name
         @assert: User is added to organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -900,6 +906,7 @@ class Org(BaseUI):
         @test: Remove computeresource by using the organization
         name and computeresource name
         @assert: computeresource is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1001,6 +1008,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove medium by using organization name and medium name
         @assert: medium is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1096,6 +1104,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove config template
         @assert: configtemplate is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1302,6 +1311,7 @@ class Org(BaseUI):
         @test: Add compute resource using the organization
         name and computeresource name
         @assert: computeresource is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -1396,6 +1406,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Add medium by using the organization name and medium name
         @assert: medium is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -1485,6 +1496,7 @@ class Org(BaseUI):
         @test: Add config template by using organization name and
         configtemplate name
         @assert: configtemplate is added
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -1577,6 +1589,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove environment by using organization name & evironment name
         @assert: environment is removed from Organization
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -1670,6 +1683,7 @@ class Org(BaseUI):
         @feature: Organizations
         @test: Remove subnet by using organization name and subnet name
         @assert: subnet is added then removed
+        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
