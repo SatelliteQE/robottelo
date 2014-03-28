@@ -19,7 +19,7 @@ from robottelo.common.helpers import (generate_name, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list,
                                       generate_strings_list)
-from robottelo.ui.factory import make_org
+from robottelo.ui.factory import Session, make_org
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -39,7 +39,8 @@ class GPGKey(BaseUI):
         # Make sure to use the Class' org_name instance
         if GPGKey.org_name is None:
             GPGKey.org_name = generate_name(8, 8)
-            make_org(self.browser, org_name=GPGKey.org_name)
+            with Session(self.browser) as session:
+                make_org(session, org_name=GPGKey.org_name)
 
     # Positive Create
 

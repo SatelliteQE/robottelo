@@ -10,7 +10,7 @@ class Session(object):
 
     def __init__(self, browser, user=None, password=None):
         self.browser = browser
-        self.login = Login(browser)
+        self._login = Login(browser)
         self.nav = Navigator(browser)
 
         if user is None:
@@ -24,14 +24,22 @@ class Session(object):
             self.password = password
 
     def __enter__(self):
-        self.login.login(self.user, self.password)
+        self.login()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.login.logout()
+        self.logout()
+
+    def login(self):
+        """Utility funtion to call Login instance login method"""
+        self._login.login(self.user, self.password)
+
+    def logout(self):
+        """Utility function to call Login instance logout method"""
+        self._login.logout()
 
 
-def make_org(browser, **kwargs):
+def make_org(session, **kwargs):
     create_args = {
         'org_name': None,
         'parent_org': None,
@@ -53,6 +61,5 @@ def make_org(browser, **kwargs):
     create_args = update_dictionary(create_args, kwargs)
     create_args.update(kwargs)
 
-    with Session(browser) as session:
-        session.nav.go_to_org()
-        Org(session.browser).create(**create_args)
+    session.nav.go_to_org()
+    Org(session.browser).create(**create_args)
