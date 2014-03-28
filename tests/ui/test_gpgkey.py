@@ -21,6 +21,7 @@ from robottelo.common.helpers import (generate_name, get_data_file,
                                       generate_strings_list)
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 from tests.ui.baseui import BaseUI
 
 REPO_URL = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
@@ -39,7 +40,8 @@ class GPGKey(BaseUI):
         # Make sure to use the Class' org_name instance
         if GPGKey.org_name is None:
             GPGKey.org_name = generate_name(8, 8)
-            make_org(self.browser, org_name=GPGKey.org_name)
+            with Session(self.browser) as session:
+                make_org(session, org_name=GPGKey.org_name)
 
     # Positive Create
 

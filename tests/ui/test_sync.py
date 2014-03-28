@@ -12,6 +12,7 @@ from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_name, generate_strings_list
 from robottelo.ui.factory import make_org
+from robottelo.ui.session import Session
 from tests.ui.baseui import BaseUI
 
 
@@ -38,7 +39,8 @@ class Sync(BaseUI):
         # Make sure to use the Class' org_name instance
         if Sync.org_name is None:
             Sync.org_name = generate_name(8, 8)
-            make_org(Sync.org_name)
+            with Session(self.browser) as session:
+                make_org(session, org_name=Sync.org_name)
 
     @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())

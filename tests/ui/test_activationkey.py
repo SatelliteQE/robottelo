@@ -16,6 +16,7 @@ from robottelo.common.constants import NOT_IMPLEMENTED, ENVIRONMENT
 from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_name, valid_names_list
 from robottelo.ui.factory import make_org
+from robottelo.ui.session import Session
 from robottelo.ui.locators import common_locators
 from tests.ui.baseui import BaseUI
 
@@ -39,7 +40,8 @@ class ActivationKey(BaseUI):
         # Make sure to use the Class' org_name instance
         if ActivationKey.org_name is None:
             ActivationKey.org_name = generate_name(8, 8)
-            make_org(ActivationKey.org_name)
+            with Session(self.browser) as session:
+                make_org(session, org_name=ActivationKey.org_name)
 
     @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
