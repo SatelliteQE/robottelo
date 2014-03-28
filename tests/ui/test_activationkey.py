@@ -49,6 +49,7 @@ class ActivationKey(BaseUI):
             org.create(ActivationKey.org_name)
             login.logout()
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_1(self, name):
@@ -59,7 +60,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all valid Activation Key name variation
         in [1] using valid Description, Environment, Content View, Usage limit
         @Assert: Activation key is created
-        @Status: Manual
+        @BZ: 1078676
         """
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
@@ -68,6 +69,7 @@ class ActivationKey(BaseUI):
                                   description=generate_name(16))
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_2(self, description):
@@ -78,7 +80,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all valid Description variation in [1]
         using valid Name, Environment, Content View and Usage limit
         @Assert: Activation key is created
-        @Status: Manual
+        @BZ: 1078676
         """
 
         name = generate_name(6)
@@ -89,6 +91,7 @@ class ActivationKey(BaseUI):
                                   description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_3(self):
         """
@@ -99,9 +102,11 @@ class ActivationKey(BaseUI):
         using valid Name, Description, Content View and Usage limit
         @Assert: Activation key is created
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_4(self):
         """
@@ -112,9 +117,11 @@ class ActivationKey(BaseUI):
         using valid Name, Description, Environment and Usage limit
         @Assert: Activation key is created
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
+    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_5(self):
         """
@@ -125,9 +132,11 @@ class ActivationKey(BaseUI):
         using valid Name, Description, Environment, Content View, Usage limit
         @Assert: Activation key is created
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """
@@ -137,7 +146,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key with default Usage Limit (Unlimited)
         using valid Name, Description, Environment and Content View
         @Assert: Activation key is created
-        @Status: Manual
+        @BZ: 1078676
         """
         name = generate_name(6)
         description = generate_name(6)
@@ -147,6 +156,7 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """
@@ -156,7 +166,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key with finite Usage Limit (Not Unlimited)
         using valid Name, Description, Environment and Content View
         @Assert: Activation key is created
-        @Status: Manual
+        @BZ: 1078676
         """
         name = generate_name(6)
         description = generate_name(6)
@@ -167,6 +177,7 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT, limit, description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """
@@ -176,7 +187,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key by entering Activation Key Name alone
         leaving Description, Content View and Usage Limit as default values
         @Assert: Activation key is created
-        @Status: Manual
+        @BZ: 1078676
         """
         name = generate_name(6)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -318,6 +329,7 @@ class ActivationKey(BaseUI):
         2. Delete the Content View
         @Assert: Activation key is deleted or updated accordingly
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -333,9 +345,11 @@ class ActivationKey(BaseUI):
         3. Click Cancel in the confirmation dialog box
         @Assert: Activation key is not deleted
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_1(self, new_name):
@@ -346,7 +360,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
+        @BZ: 1078676
         """
 
         name = generate_name(6)
@@ -358,6 +372,7 @@ class ActivationKey(BaseUI):
         self.activationkey.update(name, new_name)
         self.assertIsNotNone(self.activationkey.search_key(new_name))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_2(self, new_description):
@@ -368,7 +383,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Description for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
+        @BZ: 1078676
         """
 
         name = generate_name(6)
@@ -393,6 +408,7 @@ class ActivationKey(BaseUI):
         2. Update Environment for all variations in [1]
         @Assert: Activation key is updated
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -408,9 +424,11 @@ class ActivationKey(BaseUI):
         RH and custom products
         @Assert: Activation key is updated
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """
@@ -420,7 +438,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Usage limit from Unlimited to a definite number
         @Assert: Activation key is updated
-        @Status: Manual
+        @BZ: 1078676
         """
 
         name = generate_name(6)
@@ -434,6 +452,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """
@@ -443,7 +462,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Usage limit from definite number to Unlimited
         @Assert: Activation key is updated
-        @Status: Manual
+        @BZ: 1078676
         """
 
         name = generate_name(6)
@@ -469,6 +488,7 @@ class ActivationKey(BaseUI):
         2. Update Activation key name for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -483,6 +503,7 @@ class ActivationKey(BaseUI):
         2. Update Description for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -497,6 +518,7 @@ class ActivationKey(BaseUI):
         2. Update Usage Limit for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -513,6 +535,7 @@ class ActivationKey(BaseUI):
         4. Attempt to register an other system after reaching the Usage Limit
         @Assert: System Registration fails. Appropriate error shown
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -528,6 +551,7 @@ class ActivationKey(BaseUI):
         3. Associate the hosts to Activation key
         @Assert: Hosts are successfully associated to Activation key
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -542,6 +566,7 @@ class ActivationKey(BaseUI):
         2. Associate RH product(s) to Activation Key
         @Assert: RH products are successfully associated to Activation key
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -556,6 +581,7 @@ class ActivationKey(BaseUI):
         2. Associate custom product(s) to Activation Key
         @Assert: Custom products are successfully associated to Activation key
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -571,6 +597,7 @@ class ActivationKey(BaseUI):
         3. Associate custom product(s) to Activation Key
         @Assert: RH/Custom product is successfully associated to Activation key
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -586,6 +613,7 @@ class ActivationKey(BaseUI):
         3. Delete the manifest
         @Assert: Deleting a manifest removes it from the Activation key
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -600,6 +628,7 @@ class ActivationKey(BaseUI):
         2. Attach all the created Activation keys to a System
         @Assert: Multiple Activation keys are attached to a system
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -615,6 +644,7 @@ class ActivationKey(BaseUI):
         2. List Activation key
         @Assert: Activation key is listed
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -629,6 +659,7 @@ class ActivationKey(BaseUI):
         2. List Activation key
         @Assert: Activation key is listed
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -658,6 +689,7 @@ class ActivationKey(BaseUI):
         2. Search/find Activation key
         @Assert: Activation key is found
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -674,6 +706,7 @@ class ActivationKey(BaseUI):
         2. Get info of the Activation key
         @Assert: Activation key info is displayed
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -688,6 +721,7 @@ class ActivationKey(BaseUI):
         2. Get info of the Activation key
         @Assert: Activation key info is displayed
         @Status: Manual
+        @BZ: 1078676
         """
         pass
 
@@ -702,5 +736,6 @@ class ActivationKey(BaseUI):
         2. Provision systems with Activation key
         @Assert: Systems are successfully provisioned with Activation key
         @Status: Manual
+        @BZ: 1078676
         """
         pass
