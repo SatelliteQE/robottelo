@@ -37,3 +37,15 @@ class Products(BaseAPI):
         ak_cr.description = update_desc
         ak_u = ApiCrud.record_update(ak_cr)
         self.assertEquals(ak_u.description, ak_cr.description)
+
+    @data(*CustomProduct.enumerate())
+    def test_positive_remove_1(self, test_data):
+        """
+        @feature: CustomProduct
+        @test: Try creating custom repository with valid name/desc
+        @assert: Product iscreated, sent and recieved data intersects
+        """
+        result = ApiCrud.record_create_recursive(test_data)
+        self.assertTrue(ApiCrud.record_exists(result))
+        ApiCrud.record_remove(result)
+        self.assertFalse(ApiCrud.record_exists(result))
