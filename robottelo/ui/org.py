@@ -25,10 +25,11 @@ class Org(Base):
     def _configure_org(self, users=None, proxies=None, subnets=None,
                        resources=None, medias=None, templates=None,
                        domains=None, envs=None, hostgroups=None,
-                       new_users=None, new_proxies=None, new_subnets=None,
-                       new_resources=None, new_medias=None,
+                       locations=None, new_users=None, new_proxies=None,
+                       new_subnets=None, new_resources=None, new_medias=None,
                        new_templates=None, new_domains=None,
-                       new_envs=None, new_hostgroups=None, select=None):
+                       new_envs=None, new_hostgroups=None, new_locations=None,
+                       select=None):
         loc = tab_locators
 
         if users or new_users:
@@ -76,11 +77,16 @@ class Org(Base):
                                   tab_locator=loc["orgs.tab_hostgrps"],
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
+        if locations or new_locations:
+            self.configure_entity(hostgroups, FILTER['org_location'],
+                                  tab_locator=loc["orgs.tab_locations"],
+                                  new_entity_list=new_locations,
+                                  entity_select=select)
 
     def create(self, org_name=None, parent_org=None, label=None, desc=None,
                users=None, proxies=None, subnets=None, resources=None,
                medias=None, templates=None, domains=None, envs=None,
-               hostgroups=None, edit=False, select=True):
+               hostgroups=None, locations=None, edit=False, select=True):
         """
         Create Organization in UI
         """
@@ -104,7 +110,8 @@ class Org(Base):
                                     subnets=subnets, resources=resources,
                                     medias=medias, templates=templates,
                                     domains=domains, envs=envs,
-                                    hostgroups=hostgroups, select=select)
+                                    hostgroups=hostgroups, locations=locations,
+                                    select=select)
                 self.wait_until_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
         else:
@@ -135,6 +142,7 @@ class Org(Base):
     def update(self, org_name, new_parent_org=None, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,
                templates=None, domains=None, envs=None, hostgroups=None,
+               locations=None, new_locations=None,
                new_users=None, new_proxies=None, new_subnets=None,
                new_resources=None, new_medias=None, new_templates=None,
                new_domains=None, new_envs=None, new_hostgroups=None,
@@ -159,6 +167,8 @@ class Org(Base):
                                 medias=medias, templates=templates,
                                 domains=domains, envs=envs,
                                 hostgroups=hostgroups,
+                                locations=locations,
+                                new_locations=new_locations,
                                 new_users=new_users,
                                 new_proxies=new_proxies,
                                 new_subnets=new_subnets,
