@@ -14,7 +14,7 @@ else:
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_name, generate_email_address
 from robottelo.ui.locators import common_locators
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 
 class User(BaseUI):

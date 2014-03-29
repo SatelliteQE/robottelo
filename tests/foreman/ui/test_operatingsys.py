@@ -10,7 +10,7 @@ from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, \
     PARTITION_SCRIPT_DATA_FILE, INSTALL_MEDIUM_URL
 from robottelo.common.helpers import generate_name, generate_string, \
     get_data_file
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 
 class OperatingSys(BaseUI):

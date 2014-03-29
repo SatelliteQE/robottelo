@@ -10,7 +10,7 @@ else:
 from ddt import data, ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import redminebug
-from tests.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import BaseAPI
 
 
 @ddt

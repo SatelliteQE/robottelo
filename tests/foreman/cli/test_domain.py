@@ -7,7 +7,7 @@ Test class for Domain  CLI
 
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import make_domain
-from tests.cli.basecli import MetaCLI
+from tests.foreman.cli.basecli import MetaCLI
 
 
 class TestDomain(MetaCLI):

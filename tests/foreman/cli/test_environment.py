@@ -9,7 +9,7 @@ from robottelo.cli.environment import Environment
 from robottelo.common.helpers import (
     generate_name, generate_string, sleep_for_seconds)
 from robottelo.cli.factory import make_environment
-from tests.cli.basecli import MetaCLI
+from tests.foreman.cli.basecli import MetaCLI
 
 
 class TestEnvironment(MetaCLI):

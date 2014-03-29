@@ -7,7 +7,7 @@ Test class for Users CLI
 
 from ddt import data
 from ddt import ddt
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.cli.factory import make_user
 from robottelo.common.helpers import generate_string

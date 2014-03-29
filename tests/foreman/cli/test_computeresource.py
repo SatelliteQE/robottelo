@@ -23,7 +23,7 @@ from robottelo.common import conf
 from robottelo.common.helpers import generate_name, sleep_for_seconds
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 
 @ddt

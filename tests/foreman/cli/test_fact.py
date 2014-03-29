@@ -10,7 +10,7 @@ from ddt import ddt
 from robottelo.cli.fact import Fact
 from robottelo.common.helpers import generate_name
 from nose.plugins.attrib import attr
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 import sys
 if sys.hexversion >= 0x2070000:

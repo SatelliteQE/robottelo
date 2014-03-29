@@ -10,7 +10,7 @@ import random
 from robottelo.cli.medium import Medium
 from robottelo.cli.factory import make_medium
 from robottelo.common.helpers import generate_name
-from tests.cli.basecli import MetaCLI
+from tests.foreman.cli.basecli import MetaCLI
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = [

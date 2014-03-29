@@ -5,12 +5,12 @@
 Test class for Host CLI
 """
 
-from basecli import BaseCLI
 from ddt import data, ddt
 from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_string
+from tests.foreman.cli.basecli import BaseCLI
 
 
 @ddt

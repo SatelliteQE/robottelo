@@ -9,7 +9,7 @@ from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.helpers import generate_name, generate_string, \
     get_data_file
 from robottelo.ui.locators import common_locators
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 
 class Template(BaseUI):

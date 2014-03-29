@@ -5,7 +5,7 @@
 Test class for Smart Class Parameter CLI.
 """
 
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 from robottelo.cli.smartclass import SmartClassParameter
 from robottelo.common import ssh
 from robottelo.common.decorators import bzbug

@@ -4,7 +4,7 @@
 from robottelo.common import conf
 from robottelo.common.helpers import generate_name
 from robottelo.ui.locators import common_locators
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 
 class ComputeResource(BaseUI):

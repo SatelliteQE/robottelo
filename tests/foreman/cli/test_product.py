@@ -12,7 +12,7 @@ from robottelo.cli.product import Product
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 import unittest
 

@@ -305,7 +305,7 @@ def get_data_file(filename):
 
     path = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                          os.pardir, os.pardir))
-    data_file = os.path.join(path, "tests", "data", filename)
+    data_file = os.path.join(path, "tests", "foreman", "data", filename)
     if os.path.isfile(data_file):
         return data_file
     else:

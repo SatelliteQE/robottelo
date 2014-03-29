@@ -4,7 +4,7 @@
 from ddt import data, ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.product import CustomProduct
-from tests.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import BaseAPI
 
 
 @ddt

@@ -8,7 +8,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 from robottelo.common.constants import NOT_IMPLEMENTED
 import unittest
 
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 
 class TestContentViewsUI(BaseUI):

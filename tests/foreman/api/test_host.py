@@ -4,10 +4,10 @@
 """
 Test class for Domain  CLI
 """
-from baseapi import BaseAPI
 
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.host import Host
+from tests.foreman.api.baseapi import BaseAPI
 
 
 class TestHost(BaseAPI):

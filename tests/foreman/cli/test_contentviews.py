@@ -8,7 +8,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
 import unittest
 
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 
 class TestComputeResource(BaseCLI):

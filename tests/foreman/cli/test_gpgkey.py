@@ -14,7 +14,7 @@ from robottelo.common.constants import NOT_IMPLEMENTED, VALID_GPG_KEY_FILE
 from robottelo.common.decorators import redminebug
 from robottelo.common.helpers import generate_name, generate_string
 from tempfile import mkstemp
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 import sys
 if sys.hexversion >= 0x2070000:

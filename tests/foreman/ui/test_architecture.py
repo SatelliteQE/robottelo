@@ -6,7 +6,7 @@ Test class for Architecture UI
 """
 
 from robottelo.common.helpers import generate_name, generate_string
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 
 class Architecture(BaseUI):

@@ -5,7 +5,7 @@
 Test class for Environment UI
 """
 
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
 

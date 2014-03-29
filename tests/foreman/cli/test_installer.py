@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from basecli import BaseCLI
-from robottelo.common.constants import NOT_IMPLEMENTED
 import sys
+
+from robottelo.common.constants import NOT_IMPLEMENTED
+from tests.foreman.cli.basecli import BaseCLI
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:

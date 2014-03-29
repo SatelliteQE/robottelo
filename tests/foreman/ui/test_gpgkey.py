@@ -22,7 +22,7 @@ from robottelo.common.helpers import (generate_name, get_data_file,
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 REPO_URL = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
 REPO2_URL = "http://inecas.fedorapeople.org/fakerepos/zoo3/"

@@ -19,7 +19,7 @@ from robottelo.common.helpers import (generate_name, generate_strings_list,
 from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import bzbug, redminebug
 from robottelo.ui.locators import common_locators, tab_locators, locators
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 

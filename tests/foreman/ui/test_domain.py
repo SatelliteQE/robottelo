@@ -7,7 +7,7 @@ Test class for Domain UI
 
 from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_name
-from tests.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import BaseUI
 
 DOMAIN = "lab.dom.%s.com"
 

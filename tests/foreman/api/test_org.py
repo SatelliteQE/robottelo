@@ -14,7 +14,7 @@ from robottelo.common.decorators import bzbug
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import BasicPositiveField
-from tests.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import BaseAPI
 
 
 @ddt

@@ -11,7 +11,7 @@ from robottelo.cli.factory import make_subnet
 from robottelo.cli.subnet import Subnet
 from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 
 @ddt

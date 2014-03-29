@@ -5,10 +5,10 @@
 Test class for Host CLI
 """
 
-from basecli import BaseCLI
 from robottelo.cli.host import Host
-from robottelo.common.helpers import generate_name
 from robottelo.common.helpers import generate_mac
+from robottelo.common.helpers import generate_name
+from tests.foreman.cli.basecli import BaseCLI
 
 import sys
 if sys.hexversion >= 0x2070000:

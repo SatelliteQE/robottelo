@@ -9,7 +9,7 @@ from robottelo.cli.factory import make_os
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common.decorators import bzbug, redminebug
 from robottelo.common.helpers import generate_string
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 
 POSITIVE_CREATE_DATA = (

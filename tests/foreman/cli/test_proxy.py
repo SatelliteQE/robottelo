@@ -5,7 +5,7 @@
 Test class for Smart proxy CLI
 """
 
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 from robottelo.cli.factory import make_proxy
 # from robottelo.cli.proxy import Proxy
 from robottelo.common.decorators import redminebug

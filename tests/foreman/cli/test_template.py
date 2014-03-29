@@ -9,7 +9,7 @@ from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
 from robottelo.common.decorators import redminebug
 from robottelo.common.helpers import generate_name
-from tests.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import BaseCLI
 
 
 @redminebug('4560')
