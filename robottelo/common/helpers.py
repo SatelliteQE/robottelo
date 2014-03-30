@@ -244,6 +244,11 @@ def csv_to_dictionary(data):
     return records
 
 
+def escape_search(term):
+    """Wraps a search term in " and escape term's " and \\ characters"""
+    return u'"%s"' % term.replace('\\', '\\\\').replace('"', '\\"')
+
+
 def sleep_for_seconds(guaranteed_sleep=1):
     """
     Sleeps for provided seconds + random(0,1). Defaults to 1 sec.
