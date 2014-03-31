@@ -78,13 +78,12 @@ menu_locators = {
     "menu.sync_plans": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_sync_plans']"),
+    "menu.content_views": (
+        By.XPATH,
+        "//div[contains(@style,'static')]//a[@id='menu_item_content_views']"),
     "menu.sync_schedules": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_sync_schedules']"),
-    "menu.content_view_definitions": (
-        By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_content_view_definitions']")),
     "menu.content_search": (
         By.XPATH,
         "//div[contains(@style,'static')]//a[@id='menu_item_content_search']"),
@@ -332,7 +331,13 @@ tab_locators = {
     "gpgkey.tab_products": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'products')]"),
     "gpgkey.tab_repos": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]")}
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
+
+    # Content Views
+    # Third level UI
+    "contentviews.tab_details": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+}
 
 common_locators = {
 
@@ -953,4 +958,36 @@ locators = {
         By.XPATH,
         ("//input[@placeholder='Filter' and contains(@ng-model, 'Search']")),
     "gpgkey.product_repo": (
-        By.XPATH, "//td/a[contains(@href, 'repositories')]")}
+        By.XPATH, "//td/a[contains(@href, 'repositories')]"),
+
+    # Content views
+    "contentviews.new": (By.XPATH, "//a[@ui-sref='content-views.new']"),
+    "contentviews.composite": (By.ID, "composite"),
+    "contentviews.key_name": (
+        By.XPATH,
+        "//tr[@ng-repeat='contentView in table.rows']"
+        "/td/a[contains(., '%s')]"),
+    "contentviews.edit_name": (
+        By.XPATH, "//form[@alch-edit-text='contentView.name']//div/span/i"),
+    "contentviews.edit_name_text": (
+        By.XPATH,
+        "//form[@alch-edit-text='contentView.name']/div/input"),
+    "contentviews.save_name": (
+        By.XPATH,
+        "//form[@alch-edit-text='contentView.name']\
+        //button[@ng-click='save()']"),
+    "contentviews.edit_description": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='contentView.description']//div/span/i"),
+    "contentviews.edit_description_text": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='contentView.description']\
+        /div/textarea"),
+    "contentviews.save_description": (
+        By.XPATH,
+        "//form[@alch-edit-textarea='contentView.description']\
+        //button[@ng-click='save()']"),
+    "contentviews.has_error": (
+        By.XPATH, "//div[contains(@class, 'has-error') and "
+                  "contains(@class, 'form-group')]"),
+}
