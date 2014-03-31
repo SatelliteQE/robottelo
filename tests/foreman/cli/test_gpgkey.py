@@ -12,7 +12,8 @@ from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import NOT_IMPLEMENTED, VALID_GPG_KEY_FILE
 from robottelo.common.decorators import redminebug
-from robottelo.common.helpers import generate_name, generate_string
+from robottelo.common.helpers import (generate_name, generate_string,
+                                      get_data_file)
 from tempfile import mkstemp
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -22,7 +23,7 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-VALID_GPG_KEY_FILE_PATH = 'tests/data/%s' % VALID_GPG_KEY_FILE
+VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
 
 
 def positive_create_data():
