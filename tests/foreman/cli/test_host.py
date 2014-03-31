@@ -11,13 +11,6 @@ from robottelo.records.host import Host as HostRecord
 from robottelo.api.apicrud import ApiCrud as Api
 
 
-#import sys
-#if sys.hexversion >= 0x2070000:
-#    import unittest
-#else:
-#    import unittest2 as unittes
-
-
 class TestHost(BaseCLI):
 
     def test_create_host(self):
