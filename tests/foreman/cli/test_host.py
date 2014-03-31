@@ -6,20 +6,20 @@ Test class for Host CLI
 """
 
 from robottelo.cli.host import Host
-from robottelo.common.helpers import generate_mac
-from robottelo.common.helpers import generate_name
 from tests.foreman.cli.basecli import BaseCLI
+from robottelo.records.host import Host as HostRecord
+from robottelo.api.apicrud import ApiCrud as Api
 
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
+
+#import sys
+#if sys.hexversion >= 0x2070000:
+#    import unittest
+#else:
+#    import unittest2 as unittes
 
 
 class TestHost(BaseCLI):
 
-    @unittest.skip("Test needs to create required objects.")
     def test_create_host(self):
         """
         @Feature: Host - Positive Create
@@ -28,17 +28,21 @@ class TestHost(BaseCLI):
         """
         # Change delimiter to whatever you want, of course
         # in other tests
-        mac_addr = generate_mac(":")
+        host = Api.record_create_dependencies(HostRecord())
+
         "Create new host"
         # TODO need to create env, architecture, domain etc.
         args = {
-            "name": generate_name(6),
-            "environment-id": 1,
-            "architecture-id": 1,
-            "domain-id": 1,
-            "puppet-proxy-id": 1,
-            "operatingsystem-id": 1,
-            "partition-table-id": 1,
-            "mac": mac_addr()
+            "name": host.name,
+            "environment-id": host.environment_id,
+            "architecture-id": host.architecture_id,
+            "domain-id":  host.domain_id,
+            "puppet-proxy-id": host.puppet_proxy_id,
+            "operatingsystem-id": host.operatingsystem_id,
+            "partition-table-id": host.ptable_id,
+            "root-password": host.root_pass,
+            "mac":  host.mac
         }
-        Host().create(args)
+        r = Host().create(args)
+        self.assertEqual(r.return_code, 0)
+        self.assertEqual(r.stdout['name'], host.name)
