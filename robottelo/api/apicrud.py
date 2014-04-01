@@ -4,9 +4,9 @@
 Module for mixin of basic crud methods based on api_path class method.
 """
 
-import time
 import robottelo.api.base as base
 
+from robottelo.common.helpers import sleep_for_seconds
 from robottelo.common.records import ManyRelatedField, RelatedField
 
 
@@ -473,7 +473,7 @@ class Task(object):
         current = 0
         finished = False
         while (not finished) and current < timeout:
-            time.sleep(delay)
+            sleep_for_seconds(delay)
             current += delay
             self.refresh()
             finished = (self.json["result"] != 'pending')
