@@ -5,7 +5,7 @@
 Implements GPG keys UI
 """
 
-from robottelo.common.helpers import sleep_for_seconds
+from robottelo.common.helpers import sleep_for_seconds, escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -61,7 +61,7 @@ class GPGKey(Base):
         searchbox = self.wait_until_element(common_locators["kt_search"])
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys(element_name)
+            searchbox.send_keys(escape_search(element_name))
             sleep_for_seconds(5)
             self.find_element(common_locators["kt_search_button"]).click()
             element = self.wait_until_element((strategy, value % element_name))

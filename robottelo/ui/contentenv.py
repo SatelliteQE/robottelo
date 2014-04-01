@@ -25,23 +25,20 @@ class ContentEnvironment(Base):
         """
         Creates new life cycle environment
         """
-        if prior == 'Library' or 'None':
-            self.wait_until_element(locators["content_env.new"]).click()
-            self.wait_until_element(locators
-                                    ["content_env.create_initial"]
-                                    ).click()
-        else:
+        if prior:
             strategy = locators["content_env.env_link"][0]
             value = locators["content_env.env_link"][1]
             element = self.wait_until_element((strategy, value % prior))
             if element:
                 element.click()
+        else:
+            sleep_for_seconds(2)
+            self.find_element(locators["content_env.new"]).click()
         if self.wait_until_element(common_locators["name"]):
             self.text_field_update(common_locators["name"], name)
             if description:
                 self.text_field_update(common_locators
                                        ["description"], description)
-            sleep_for_seconds(5)
             self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
         else:

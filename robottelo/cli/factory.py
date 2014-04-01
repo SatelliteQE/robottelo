@@ -33,39 +33,21 @@ from robottelo.common import ssh
 from robottelo.common.constants import (FOREMAN_PROVIDERS, OPERATING_SYSTEMS,
                                         SYNC_INTERVAL, TEMPLATE_TYPES)
 from robottelo.common.helpers import (generate_ipaddr, generate_name,
-                                      generate_string, sleep_for_seconds)
+                                      generate_string, sleep_for_seconds,
+                                      update_dictionary)
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
 
 
-def update_dictionary(default, updates):
-    """
-    Updates default dictionary with elements from
-    optional dictionary.
-
-    @param default: A python dictionary containing the minimal
-    required arguments to create a CLI object.
-    @param updates: A python dictionary containing attributes
-    to overwrite on default dictionary.
-
-    @return default: The modified default python dictionary.
-    """
-
-    if updates:
-        for key in set(default.keys()).intersection(set(updates.keys())):
-            default[key] = updates[key]
-
-    return default
-
-
-def create_object(cli_object, args):
+def create_object(cli_object, args, organization_id=None):
     """
     Creates <object> with dictionary of arguments.
 
     @param cli_object: A valid CLI object.
     @param args: A python dictionary containing all valid
     attributes for creating a new object.
+    @param organization_id: A Katello organization id
     @raise Exception: Raise an exception if object cannot be
     created.
 
@@ -73,7 +55,7 @@ def create_object(cli_object, args):
     @return: A dictionary representing the newly created resource.
     """
 
-    result = cli_object.create(args)
+    result = cli_object.create(args, organization_id)
     # Some methods require a bit of waiting
     sleep_for_seconds(5)
 
@@ -363,7 +345,7 @@ def make_sync_plan(options=None):
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(SyncPlan, args))
+    args.update(create_object(SyncPlan, args, args['organization-id']))
 
     return args
 

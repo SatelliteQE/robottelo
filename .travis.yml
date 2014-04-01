@@ -4,8 +4,8 @@ install:
     - "pip install git+https://github.com/sthirugn/testimony.git"
 script:
     - flake8 .
-    - testimony validate_docstring tests/api
-    - testimony validate_docstring tests/cli
-    - testimony validate_docstring tests/ui
+    - testimony validate_docstring tests/foreman/api
+    - testimony validate_docstring tests/foreman/cli
+    - testimony validate_docstring tests/foreman/ui
 notifications:
     irc: "chat.freenode.net#robottelo"

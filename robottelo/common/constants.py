@@ -76,7 +76,8 @@ FILTER = {'arch_os': "architecture_operatingsystem",
           'org_template': "organization_config_template",
           'org_domain': "organization_domain",
           'org_envs': "organization_environment",
-          'org_hostgroup': "organization_hostgroup"}
+          'org_hostgroup': "organization_hostgroup",
+          'org_location': "organization_location"}
 
 RESOURCE_DEFAULT = "baremetal"
 

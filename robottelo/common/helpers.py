@@ -244,12 +244,37 @@ def csv_to_dictionary(data):
     return records
 
 
+def escape_search(term):
+    """Wraps a search term in " and escape term's " and \\ characters"""
+    return u'"%s"' % term.replace('\\', '\\\\').replace('"', '\\"')
+
+
 def sleep_for_seconds(guaranteed_sleep=1):
     """
     Sleeps for provided seconds + random(0,1). Defaults to 1 sec.
     @param guaranteed_sleep: Guaranteed sleep in seconds.
     """
     time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
+
+
+def update_dictionary(default, updates):
+    """
+    Updates default dictionary with elements from
+    optional dictionary.
+
+    @param default: A python dictionary containing the minimal
+    required arguments to create a CLI object.
+    @param updates: A python dictionary containing attributes
+    to overwrite on default dictionary.
+
+    @return default: The modified default python dictionary.
+    """
+
+    if updates:
+        for key in set(default.keys()).intersection(set(updates.keys())):
+            default[key] = updates[key]
+
+    return default
 
 
 def download_template(url):
@@ -285,7 +310,7 @@ def get_data_file(filename):
 
     path = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                          os.pardir, os.pardir))
-    data_file = os.path.join(path, "tests", "data", filename)
+    data_file = os.path.join(path, "tests", "foreman", "data", filename)
     if os.path.isfile(data_file):
         return data_file
     else:

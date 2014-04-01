@@ -3,7 +3,7 @@ import unittest
 from robottelo.common.helpers import (
     generate_name, generate_email_address, valid_names_list, valid_data_list,
     invalid_names_list, generate_ipaddr, generate_mac, generate_string,
-    generate_strings_list)
+    generate_strings_list, escape_search)
 
 
 class GenerateNameTestCase(unittest.TestCase):
@@ -83,3 +83,28 @@ class GenerateStringListTestCase(unittest.TestCase):
         """Tests if generate string list returns a unicode string"""
         for string in generate_strings_list():
             self.assertIsInstance(string, unicode)
+
+
+class EscapeSearchTestCase(unittest.TestCase):
+    def test_return_type(self):
+        """Tests if escape search returns a unicode string"""
+        self.assertIsInstance(escape_search('search term'), unicode)
+
+    def test_escapes_double_quotes(self):
+        """Tests if escape search escapes double quotes"""
+        self.assertEqual(escape_search('termwith"')[1:-1], 'termwith\\"')
+
+    def test_escapes_backslash(self):
+        """Tests if escape search escapes backslashes"""
+        self.assertEqual(escape_search('termwith\\')[1:-1], 'termwith\\\\')
+
+    def test_escapes_double_quotes_and_backslash(self):
+        """Tests if escape search escapes backslashes"""
+        self.assertEqual(escape_search('termwith"and\\')[1:-1],
+                         'termwith\\"and\\\\')
+
+    def test_wraps_in_double_quotes(self):
+        """Tests if escape search wraps the term in double quotes"""
+        term = escape_search('term')
+        self.assertEqual(term[0], '"')
+        self.assertEqual(term[-1], '"')

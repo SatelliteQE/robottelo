@@ -311,6 +311,9 @@ tab_locators = {
     "orgs.tab_hostgrps": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'hostgroups')]"),
+    "orgs.tab_locations": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'locations')]"),
     "orgs.tab_parameters": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'params')]"),
@@ -415,6 +418,17 @@ locators = {
     "location.proceed_to_edit": (
         By.XPATH,
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
+    "location.select_name": (
+        By.XPATH,
+        "//a[contains(@href,'locations')]/span[contains(.,'%s')]"),
+    "location.delete": (
+        By.XPATH,
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "location.dropdown": (
+        By.XPATH,
+        ("//a[normalize-space(.)='%s' and contains(@href,'locations')]"
+         "/../../td/div/a[@data-toggle='dropdown']")),
+
 
     # Login
     "login.username": (By.ID, "login_login"),
@@ -881,7 +895,7 @@ locators = {
     "content_env.select_name": (
         By.XPATH,
         "//div[contains(., '%s')]/parent::label\
-        [@ng-click='selectEnvironment(env.environment)']"),
+        [@ng-click='selectEnvironment(env)']"),
     "content_env.remove": (
         By.XPATH,
         "//button[@ng-click='openModal()']"),

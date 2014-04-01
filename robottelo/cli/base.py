@@ -62,7 +62,7 @@ class Base(object):
         return result
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, organization_id=None):
         """
         Creates a new record using the arguments passed via dictionary.
         """
@@ -78,7 +78,11 @@ class Base(object):
             obj_id = result.stdout[0]['id']
 
             # Fetch new object
-            new_obj = cls.info({'id': obj_id})
+            # Some Katello obj require the organization-id for subcommands
+            if organization_id:
+                new_obj = cls.info(organization_id, {'id': obj_id})
+            else:
+                new_obj = cls.info({'id': obj_id})
             # stdout should be a dictionary containing the object
             if len(new_obj.stdout) > 0:
                 result.stdout = new_obj.stdout
