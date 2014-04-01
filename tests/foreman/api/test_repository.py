@@ -37,6 +37,11 @@ class Repository(BaseAPI):
 
     @data(*CustomRepository.enumerate())
     def test_positive_sync_1(self, test_data):
+        """
+        @feature: CustomYumRepo
+        @test: Create and sync repo
+        @assert: repo should have more than 0 packages
+        """
         result = ApiCrud.record_create_recursive(test_data)
         self.assertEqual({}, result.content_counts)
         task = result._meta.api_class.synchronize(result)
