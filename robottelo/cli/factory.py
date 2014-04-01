@@ -24,6 +24,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy
+from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
@@ -264,6 +265,46 @@ def make_proxy(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(Proxy, args))
+
+    return args
+
+
+def make_repository(options=None):
+    """
+    Usage:
+        hammer repository create [OPTIONS]
+
+    Options:
+        --content-type CONTENT_TYPE   type of repo (either 'yum' or 'puppet',
+                                      defaults to 'yum')
+        --enabled ENABLED             flag that enables/disables the repository
+        --url FEED_URL               repository source url
+        --gpg-key-name GPG_KEY_NAME   name of a gpg key that will be assigned
+                                      to the new repository
+        --label LABEL
+        --name NAME
+        --product-id PRODUCT_ID       Product the repository belongs to
+        --publish-via-http ENABLE     Publish Via HTTP
+                                      One of true/false, yes/no, 1/0.
+    """
+
+    # Product ID is a required field.
+    if not options or not options.get('product-id', None):
+        raise Exception("Please provide a valid Product ID.")
+
+    args = {
+        'name': generate_string('alpha', 15),
+        'label': None,
+        'content-type': u'yum',
+        'enabled': u'true',
+        'product-id': None,
+        'publish-via-http': u'true',
+        'feed': u'http://omaciel.fedorapeople.org/fakerepo01/',
+        'gpg-key-name': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Repository, args))
 
     return args
 
