@@ -48,8 +48,8 @@ class Sync(Base):
         # Checks whether every item(sync result) in the list is "Sync complete"
         # This function returns None if it encounters any of the below:
         # "Error Syncing", "Queued", "None" or "Cancel".
-        if all([str(result) == "Sync complete."
-                for result in repos_result]):
+        if all([str(_result) == "Sync complete."
+                for _result in repos_result]):
             return True
         else:
             return False
