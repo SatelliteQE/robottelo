@@ -16,6 +16,7 @@ from ddt import ddt, data
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import (generate_name, valid_names_list,
                                       invalid_names_list)
+from robottelo.common.decorators import bzbug
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import locators
 from robottelo.ui.session import Session
@@ -35,12 +36,14 @@ class TestContentViewsUI(BaseUI):
             with Session(self.browser) as session:
                 make_org(session, org_name=TestContentViewsUI.org_name)
 
+    @bzbug('1083086')
     @data(*valid_names_list())
     def test_cv_create(self, name):
         """
         @test: create content views (positive)
         @feature: Content Views
         @assert: content views are created
+        @BZ: 1083086
         """
 
         with Session(self.browser) as session:
@@ -52,6 +55,7 @@ class TestContentViewsUI(BaseUI):
                 'Failed to find content view %s from %s org' % (
                     name, self.org_name))
 
+    @bzbug('1083086')
     @data(*invalid_names_list())
     def test_cv_create_negative(self, name):
         # variations (subject to change):
@@ -61,6 +65,7 @@ class TestContentViewsUI(BaseUI):
         @feature: Content Views
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
+        @BZ: 1083086
         """
 
         with Session(self.browser) as session:
