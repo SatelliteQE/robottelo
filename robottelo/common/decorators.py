@@ -17,6 +17,7 @@ else:
 
 
 from robottelo.common import conf
+from robottelo.common.constants import NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError
 
 
@@ -25,6 +26,11 @@ bugzilla_log.setLevel(logging.WARNING)
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 REDMINE_URL = 'http://projects.theforeman.org'
+
+
+def stubbed(func):
+    """Skips test since they're not yet implemented"""
+    return unittest.skip(NOT_IMPLEMENTED)(func)
 
 
 def runIf(project):
