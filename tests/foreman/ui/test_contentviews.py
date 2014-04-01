@@ -5,27 +5,59 @@
 Test class for Host/System Unification
 Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 """
-from robottelo.common.constants import NOT_IMPLEMENTED
-import unittest
 
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
+
+from ddt import ddt, data
+from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.helpers import (generate_name, valid_names_list,
+                                      invalid_names_list)
+from robottelo.common.decorators import bzbug
+from robottelo.ui.factory import make_org
+from robottelo.ui.locators import locators
+from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
 
+@ddt
 class TestContentViewsUI(BaseUI):
+    org_name = None
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_create(self):
-        # variations (subject to change):
-        # ascii string, alphanumeric, latin-1, utf8, etc.
+    def setUp(self):
+        super(TestContentViewsUI, self).setUp()
+
+        # Make sure to use the Class' org_name instance
+        if TestContentViewsUI.org_name is None:
+            TestContentViewsUI.org_name = generate_name(8, 8)
+            with Session(self.browser) as session:
+                make_org(session, org_name=TestContentViewsUI.org_name)
+
+    @bzbug('1083086')
+    @data(*valid_names_list())
+    def test_cv_create(self, name):
         """
         @test: create content views (positive)
         @feature: Content Views
         @assert: content views are created
-        @status: Manual
+        @BZ: 1083086
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_create_negative(self):
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name)
+            self.assertIsNotNone(
+                self.content_views.search(name),
+                'Failed to find content view %s from %s org' % (
+                    name, self.org_name))
+
+    @bzbug('1083086')
+    @data(*invalid_names_list())
+    def test_cv_create_negative(self, name):
         # variations (subject to change):
         # zero length, symbols, html, etc.
         """
@@ -33,8 +65,19 @@ class TestContentViewsUI(BaseUI):
         @feature: Content Views
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
-        @status: Manual
+        @BZ: 1083086
         """
+
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name)
+            self.assertTrue(
+                self.content_views.wait_until_element(
+                    locators['contentviews.has_error']),
+                'No validation error found for "%s" from %s org' % (
+                    name, self.org_name))
+            self.assertIsNone(self.content_views.search(name))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):

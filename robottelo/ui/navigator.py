@@ -145,10 +145,10 @@ class Navigator(Base):
             menu_locators['menu.sync_schedules'],
         )
 
-    def go_to_content_view_definitions(self):
+    def go_to_content_views(self):
         self.menu_click(
             menu_locators['menu.content'],
-            menu_locators['menu.content_view_definitions'],
+            menu_locators['menu.content_views'],
         )
 
     def go_to_content_search(self):

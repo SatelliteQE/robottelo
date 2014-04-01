@@ -17,6 +17,7 @@ from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.contentenv import ContentEnvironment
+from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
@@ -96,6 +97,7 @@ class BaseUI(unittest.TestCase):
         self.architecture = Architecture(self.browser)
         self.contentenv = ContentEnvironment(self.browser)
         self.compute_resource = ComputeResource(self.browser)
+        self.content_views = ContentViews(self.browser)
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)
         self.gpgkey = GPGKey(self.browser)
