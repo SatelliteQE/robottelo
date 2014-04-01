@@ -6,6 +6,7 @@ Module for mixin of basic crud methods based on api_path class method.
 
 import robottelo.api.base as base
 
+from robottelo.common.helpers import sleep_for_seconds
 from robottelo.common.records import ManyRelatedField, RelatedField
 
 
@@ -260,7 +261,7 @@ class ApiCrud(object):
             if res.ok:
                 return True
             else:
-                raise ApiException("Unable to remove", instance)
+                raise ApiException("Unable to remove", instance.items())
             return res.ok
         else:
             res = cls.list(json=dict(search="name="+instance.name))
@@ -305,7 +306,7 @@ class ApiCrud(object):
                 )
             return ninstance
         else:
-            raise ApiException("Couldn't resolve record", instance)
+            raise ApiException("Couldn't resolve record", instance.items())
 
     @classmethod
     def record_list(cls, instance):
@@ -382,7 +383,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise ApiException("Couldn't update record", instance)
+            raise ApiException("Couldn't update record", instance.items())
 
     @classmethod
     def record_create(cls, instance_orig):
@@ -410,7 +411,7 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise ApiException("Couldn't create record", instance)
+            raise ApiException("Couldn't create record", instance.items())
 
     @classmethod
     def record_create_dependencies(cls, instance_orig):
@@ -465,8 +466,17 @@ class Task(object):
 
     def refresh(self):
         id = self.json["id"]
-        r = base.get(path="/katello/api/v2/tasks/{0}".format(id))
+        r = base.get(path="/foreman_tasks/api/tasks/{0}".format(id))
         self.json = r.json()
+
+    def poll(self, delay, timeout):
+        current = 0
+        finished = False
+        while (not finished) and current < timeout:
+            sleep_for_seconds(delay)
+            current += delay
+            self.refresh()
+            finished = (self.json["result"] != 'pending')
 
     def result(self):
         return self.json["result"]
