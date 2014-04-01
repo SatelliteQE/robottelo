@@ -105,7 +105,7 @@ class TestContentViewsUI(BaseUI):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @bzbug('1079145')
     def test_cv_delete(self):
         """
         @test: delete content views
@@ -114,7 +114,11 @@ class TestContentViewsUI(BaseUI):
         appears in any content view UI
         updated
         @status: Manual
+        @BZ: 1079145
         """
+
+        self.fail('Test is not blocked anymore by bz 1079145 and should be '
+                  'implemented')
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_composite_create(self):
