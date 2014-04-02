@@ -1,9 +1,9 @@
 ddt
 git+https://github.com/RedHatQE/python-stageportal.git#egg=stageportal
 git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFactory
+git+https://github.com/blrm/nose_xunitmp.git#egg=nose_xunitmp
 iniparse
 nose
-nose_xunitmp
 paramiko
 pylint
 python-bugzilla
