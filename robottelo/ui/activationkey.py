@@ -47,6 +47,7 @@ class ActivationKey(Base):
 
         if self.wait_until_element(common_locators["name"]):
             self.text_field_update(common_locators["name"], name)
+            sleep(10)
             if limit:
                 self.set_limit(limit)
             if description:

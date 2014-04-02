@@ -812,6 +812,9 @@ locators = {
         "//input[@ng-checked='isUnlimited(activationKey)']"),
     "ak.usage_limit": (
         By.XPATH, "//input[@ng-model='activationKey.usage_limit']"),
+    "ak.invalid_limit": (
+        By.XPATH,
+        "//input[@id='usage_limit' and contains(@class, 'ng-invalid')]"),
     "ak.close": (
         By.XPATH,
         "//button[@ui-sref='activation-keys.index']"),
