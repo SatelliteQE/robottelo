@@ -37,17 +37,17 @@ class Org(BaseUI):
         @test: Can auto-complete search for an organization by partial name
         @feature: Organizations
         @assert: Created organization can be auto search by its partial name
+        @BZ: redmine #4443
         """
 
         org_name = generate_name(8)
-        cnt = 3  # Count of characters in partial string
-        part_string = [org_name[i:i+cnt] for i in range(0, len(org_name), cnt)]
+        part_string = org_name[:3]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.auto_complete_search
-                             (part_string[0], org_name, search_key='name'))
+                             (part_string, org_name, search_key='name'))
 
     # Positive Create
 

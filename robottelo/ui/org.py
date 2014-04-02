@@ -163,6 +163,7 @@ class Org(Base):
             element = self.wait_until_element((strategy, value % name))
             if element:
                 element.click()
+                sleep_for_seconds(2)
                 org_elem = self.wait_until_element((strategy1, value1 % name))
                 return org_elem
             else:
