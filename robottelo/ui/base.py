@@ -189,18 +189,30 @@ class Base(object):
         Checks whether an ajax call is completed.
         """
 
+        jquery_active = False
+        angular_active = False
+
         try:
-            return 0 == driver.execute_script("return jQuery.active")
+            jquery_active = driver.execute_script("return jQuery.active") > 0
         except WebDriverException:
             pass
 
-    def wait_for_ajax(self):
+        try:
+            angular_active = driver.execute_script(
+                'return angular.element("*[ng-app]").injector().get("$http")'
+                '.pendingRequests.length') > 0
+        except WebDriverException:
+            pass
+
+        return not (jquery_active or angular_active)
+
+    def wait_for_ajax(self, timeout=30):
         """
-        Waits for an ajax call to complete.
+        Waits for an ajax call to complete until timeout.
         """
 
         WebDriverWait(
-            self.browser, 30
+            self.browser, timeout
         ).until(
             self.ajax_complete, "Timeout waiting for page to load"
         )
