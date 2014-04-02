@@ -8,6 +8,7 @@ Implements Org UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.common.constants import FILTER
+from robottelo.common.helpers import sleep_for_seconds
 from selenium.webdriver.support.select import Select
 
 
@@ -30,6 +31,10 @@ class Org(Base):
                        new_templates=None, new_domains=None,
                        new_envs=None, new_hostgroups=None, new_locations=None,
                        select=None):
+        """
+        Configures different entities of selected organization
+        """
+
         loc = tab_locators
 
         if users or new_users:
@@ -138,6 +143,31 @@ class Org(Base):
             element = self.wait_until_element((strategy,
                                                value % name))
             return element
+
+    def auto_complete_search(self, partial_name, name, search_key):
+        """
+        Auto complete search by giving partial name of org
+        """
+
+        strategy1 = locators["org.org_name"][0]
+        value1 = locators["org.org_name"][1]
+        searchbox = self.wait_until_element(common_locators["search"])
+        if searchbox is None:
+            raise Exception("Search box not found.")
+        else:
+            searchbox.clear()
+            searchbox.send_keys(search_key + " = " + partial_name)
+            sleep_for_seconds(5)
+            strategy = common_locators["auto_search"][0]
+            value = common_locators["auto_search"][1]
+            element = self.wait_until_element((strategy, value % name))
+            if element:
+                element.click()
+                org_elem = self.wait_until_element((strategy1, value1 % name))
+                return org_elem
+            else:
+                raise Exception(
+                    "Couldn't find any entity via auto search completion")
 
     def update(self, org_name, new_parent_org=None, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,

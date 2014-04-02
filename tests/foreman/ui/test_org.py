@@ -30,6 +30,25 @@ class Org(BaseUI):
     Implements Organization tests in UI
     """
 
+    # Tests for issues
+
+    def test_redmine_4443(self):
+        """
+        @test: Can auto-complete search for an organization by partial name
+        @feature: Organizations
+        @assert: Created organization can be auto search by its partial name
+        """
+
+        org_name = generate_name(8)
+        cnt = 3  # Count of characters in partial string
+        part_string = [org_name[i:i+cnt] for i in range(0, len(org_name), cnt)]
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_org()
+        self.org.create(org_name)
+        self.navigator.go_to_org()
+        self.assertIsNotNone(self.org.auto_complete_search
+                             (part_string[0], org_name, search_key='name'))
+
     # Positive Create
 
     @attr('ui', 'org', 'implemented')
