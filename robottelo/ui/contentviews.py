@@ -22,6 +22,8 @@ class ContentViews(Base):
         if self.wait_until_element(common_locators["name"]):
             self.find_element(common_locators
                               ["name"]).send_keys(name)
+            timeout = 60 if len(name) > 50 else 30
+            self.wait_for_ajax(timeout)
 
             if label is not None:
                 self.find_element(common_locators["label"]).send_keys(label)
@@ -34,9 +36,10 @@ class ContentViews(Base):
                 self.find_element(
                     locators["contentviews.composite"]).click()
 
-            sleep_for_seconds(5)  # Sleep is needed to be able to click on save
+            self.wait_for_ajax()
             self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
+            self.wait_until_element(locators['contentviews.publish'])
         else:
             raise Exception(
                 "Could not create new content view '%s'" % name)

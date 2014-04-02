@@ -991,4 +991,6 @@ locators = {
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
+    "contentviews.publish": (
+        By.XPATH, "//a[ui-sref='content-views.details.publish']")
 }
