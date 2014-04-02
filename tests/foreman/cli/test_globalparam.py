@@ -5,7 +5,7 @@ Test class for Global parameters CLI
 """
 
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.common.helpers import generate_name, sleep_for_seconds
+from robottelo.common.helpers import generate_name
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -68,7 +68,6 @@ class TestGlobalParameter(BaseCLI):
         self.assertEquals(result.return_code, 0,
                           "GlobalParameter delete - exit code %d" %
                           result.return_code)
-        sleep_for_seconds(5)
         result = GlobalParameter().list({'search': name})
         self.assertTrue(len(result.stdout) == 0,
                         "GlobalParameter list - deleted item is not listed")

@@ -4,7 +4,6 @@ Implements Repos UI
 
 from robottelo.ui.base import Base
 from robottelo.common.constants import REPO_TYPE
-from robottelo.common.helpers import sleep_for_seconds
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
@@ -29,11 +28,11 @@ class Repos(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             self.wait_until_element(locators["repo.new"]).click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             self.text_field_update(common_locators["name"], name)
-            sleep_for_seconds(3)
+            self.wait_for_ajax()
             if repo_type:
                 type_ele = self.find_element(locators["repo.type"])
                 Select(type_ele).select_by_visible_text(repo_type)
@@ -45,7 +44,7 @@ class Repos(Base):
             if http:
                 self.find_element(locators["repo.via_http"]).click()
             self.find_element(common_locators["create"]).click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
 
     def update(self, name, new_url=None, new_gpg_key=None, http=False):
         """
@@ -77,7 +76,7 @@ class Repos(Base):
         strategy = locators["repo.select"][0]
         value = locators["repo.select"][1]
         self.wait_until_element((strategy, value % repo)).click()
-        sleep_for_seconds(5)
+        self.wait_for_ajax()
         self.wait_until_element(locators["repo.remove"]).click()
         if really:
             self.wait_until_element(common_locators["confirm_remove"]).click()

@@ -8,7 +8,6 @@ Implements Org UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.common.constants import FILTER
-from robottelo.common.helpers import sleep_for_seconds
 from selenium.webdriver.support.select import Select
 
 
@@ -157,13 +156,13 @@ class Org(Base):
         else:
             searchbox.clear()
             searchbox.send_keys(search_key + " = " + partial_name)
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             strategy = common_locators["auto_search"][0]
             value = common_locators["auto_search"][1]
             element = self.wait_until_element((strategy, value % name))
             if element:
                 element.click()
-                sleep_for_seconds(2)
+                self.wait_for_ajax()
                 org_elem = self.wait_until_element((strategy1, value1 % name))
                 return org_elem
             else:
