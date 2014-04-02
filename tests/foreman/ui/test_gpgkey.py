@@ -15,6 +15,7 @@ from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
+from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import (generate_name, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list,
@@ -436,6 +437,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -524,6 +526,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -653,6 +656,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -755,6 +759,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -882,6 +887,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -982,6 +988,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name1))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1099,6 +1106,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1189,6 +1197,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1320,6 +1329,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1423,6 +1433,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1549,6 +1560,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1648,6 +1660,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name1))
 
+    @bzbug('1082927')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
