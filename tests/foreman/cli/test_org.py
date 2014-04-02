@@ -362,6 +362,29 @@ class TestOrg(BaseCLI):
         with self.assertRaises(Exception):
             make_org({'name': new_obj['name']})
 
+    # @bzbug('1078866') this is private bug, decorator does not work
+    @unittest.skip('bz 1078866')
+    def test_bugzilla_1078866(self):
+        """
+        @Test: hammer organization <info,list> --help types information doubled
+        @Feature: org info/list
+        @Assert: no duplicated lines in usage message
+        """
+        # org list --help:
+        result = Org.list({'help': ''})
+        # get list of lines and check they all are unique
+        lines = [line['message'] for line in result.stdout]
+        self.assertEqual(len(set(lines)), len(lines))
+
+        # org info --help:info returns more lines (obviously), ignore exception
+        try:
+            result = Org.info({'help': ''})
+        except Exception:
+            pass
+        # get list of lines and check they all are unique
+        lines = [line['message'] for line in result.stdout]
+        self.assertEqual(len(set(lines)), len(lines))
+
     # CRUD
 
     @data(*positive_create_data_1())
