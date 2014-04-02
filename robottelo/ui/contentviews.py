@@ -4,7 +4,7 @@
 Implements Content Views UI
 """
 
-from robottelo.common.helpers import sleep_for_seconds, escape_search
+from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 
@@ -54,7 +54,7 @@ class ContentViews(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             self.find_element(common_locators["kt_search_button"]).click()
             element = self.wait_until_element((strategy, value % element_name))
             return element
@@ -66,7 +66,7 @@ class ContentViews(Base):
 
         if element:
             element.click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             self.find_element(tab_locators['contentviews.info']).click()
 
             if new_name:

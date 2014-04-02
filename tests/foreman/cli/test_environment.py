@@ -6,8 +6,7 @@ Test class for Environment  CLI
 """
 
 from robottelo.cli.environment import Environment
-from robottelo.common.helpers import (
-    generate_name, generate_string, sleep_for_seconds)
+from robottelo.common.helpers import generate_name, generate_string
 from robottelo.cli.factory import make_environment
 from tests.foreman.cli.basecli import MetaCLI
 
@@ -59,7 +58,6 @@ class TestEnvironment(MetaCLI):
         """
         name = generate_name()
         Environment().create({'name': name})
-        sleep_for_seconds(5)  # give time to appear in the list
         result = Environment().info({'name': name})
 
         self.assertTrue(result.return_code == 0,

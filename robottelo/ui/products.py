@@ -2,7 +2,6 @@
 Implements Products UI
 """
 
-from robottelo.common.helpers import sleep_for_seconds
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
@@ -25,7 +24,7 @@ class Products(Base):
         Creates new product from UI
         """
         self.wait_until_element(locators["prd.new"]).click()
-        sleep_for_seconds(5)
+        self.wait_for_ajax()
         self.text_field_update(common_locators["name"], name)
         if sync_plan and not create_sync_plan:
             type_ele = self.find_element(locators["prd.sync_plan"])
@@ -44,9 +43,9 @@ class Products(Base):
             Select(type_ele).select_by_visible_text(gpg_key)
         if description:
             self.text_field_update(common_locators["description"], description)
-            sleep_for_seconds(2)
+            self.wait_for_ajax()
         self.wait_until_element(common_locators["create"]).click()
-        sleep_for_seconds(5)
+        self.wait_for_ajax()
 
     def update(self, name, new_name=None, new_desc=None,
                new_sync_plan=None, new_gpg_key=None):
@@ -57,14 +56,14 @@ class Products(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             self.wait_until_element(tab_locators["prd.tab_details"]).click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             if new_name:
                 self.wait_until_element(locators["prd.name_edit"]).click()
                 self.text_field_update(locators["prd.name_update"], new_name)
                 self.find_element(common_locators["save"]).click()
-                sleep_for_seconds(5)
+                self.wait_for_ajax()
             if new_desc:
                 self.wait_until_element(locators["prd.desc_edit"]).click()
                 self.text_field_update(locators["prd.desc_update"], new_name)
@@ -88,11 +87,11 @@ class Products(Base):
         strategy = locators["prd.select"][0]
         value = locators["prd.select"][1]
         self.wait_until_element((strategy, value % product)).click()
-        sleep_for_seconds(5)
+        self.wait_for_ajax()
         self.wait_until_element(locators["prd.remove"]).click()
         if really:
             self.wait_until_element(common_locators["confirm_remove"]).click()
-            sleep_for_seconds(2)
+            self.wait_for_ajax()
         else:
             self.wait_until_element(common_locators["cancel"]).click()
 

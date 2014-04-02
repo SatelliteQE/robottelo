@@ -5,7 +5,7 @@
 Implements GPG keys UI
 """
 
-from robottelo.common.helpers import sleep_for_seconds, escape_search
+from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -45,7 +45,7 @@ class GPGKey(Base):
                 raise Exception(
                     "Could not create new gpgkey '%s' without contents" % name)
             self.wait_until_element(common_locators["create"]).click()
-            sleep_for_seconds(2)
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new gpg key '%s'" % name)
@@ -62,7 +62,7 @@ class GPGKey(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             self.find_element(common_locators["kt_search_button"]).click()
             element = self.wait_until_element((strategy, value % element_name))
             return element
@@ -75,9 +75,9 @@ class GPGKey(Base):
 
         if element:
             element.click()
-            sleep_for_seconds(3)
+            self.wait_for_ajax()
             self.wait_until_element(locators["gpgkey.remove"]).click()
-            sleep_for_seconds(2)
+            self.wait_for_ajax()
             if really:
                 self.wait_until_element(common_locators["confirm_remove"]
                                         ).click()
@@ -94,7 +94,7 @@ class GPGKey(Base):
 
         if element:
             element.click()
-            sleep_for_seconds(5)
+            self.wait_for_ajax()
             if new_name:
                 self.edit_entity("gpgkey.edit_name", "gpgkey.edit_name_text",
                                  new_name, "gpgkey.save_name")
@@ -148,13 +148,13 @@ class GPGKey(Base):
                                          katello=True)
         if prd_element:
             prd_element.click()
-            sleep_for_seconds(3)
+            self.wait_for_ajax()
             if repo is not None:
                 self.wait_until_element(tab_locators["prd.tab_repos"]).click()
                 strategy = locators["repo.select"][0]
                 value = locators["repo.select"][1]
                 self.wait_until_element((strategy, value % repo)).click()
-                sleep_for_seconds(3)
+                self.wait_for_ajax()
                 element = self.wait_until_element(locators
                                                   ["repo.gpg_key"]
                                                   ).get_attribute('innerHTML')

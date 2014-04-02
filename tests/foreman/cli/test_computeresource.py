@@ -20,7 +20,7 @@ from ddt import data
 from ddt import ddt
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
-from robottelo.common.helpers import generate_name, sleep_for_seconds
+from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from tests.foreman.cli.basecli import BaseCLI
@@ -68,7 +68,6 @@ class TestComputeResource(BaseCLI):
             conf.properties['main.server.hostname']})
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
-        sleep_for_seconds(5)
         result_info = ComputeResource.info({'name': result_create['name']})
         self.assertEquals(result_info.return_code, 0,
                           "ComputeResource info - exit code")
@@ -136,13 +135,11 @@ class TestComputeResource(BaseCLI):
             conf.properties['main.server.hostname']})
         self.assertTrue(result_create['name'],
                         "ComputeResource create - has name")
-        sleep_for_seconds(5)
         result_delete = ComputeResource.delete(
             {'name': result_create['name']})
         self.assertEquals(
             result_delete.return_code, 0,
             "ComputeResource delete - exit code")
-        sleep_for_seconds(5)
         stdout = ComputeResource.exists(
             ('name', result_create['name'])).stdout
         self.assertFalse(
