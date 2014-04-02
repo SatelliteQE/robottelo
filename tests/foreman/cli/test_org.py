@@ -371,18 +371,18 @@ class TestOrg(BaseCLI):
         @Assert: no duplicated lines in usage message
         """
         # org list --help:
-        result = Org().list({'help': ''})
+        result = Org.list({'help': ''})
         # get list of lines and check they all are unique
-        lines = [x['message'] for x in result.stdout]
+        lines = [line['message'] for line in result.stdout]
         self.assertEqual(len(set(lines)), len(lines))
 
-        # org info --help: info returns more lines (obviously), ignore exception
+        # org info --help:info returns more lines (obviously), ignore exception
         try:
-            result = Org().info({'help': ''})
+            result = Org.info({'help': ''})
         except Exception:
             pass
         # get list of lines and check they all are unique
-        lines = [x['message'] for x in result.stdout]
+        lines = [line['message'] for line in result.stdout]
         self.assertEqual(len(set(lines)), len(lines))
 
     # CRUD
