@@ -386,6 +386,7 @@ common_locators = {
         "//input[@id='name' and contains(@class,'ng-invalid')]"),
 
     "search": (By.ID, "search"),
+    "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
     "submit": (By.NAME, "commit"),
     "filter": (By.XPATH, "//div[@id='ms-%s_ids']//input[@class='ms-filter']"),
