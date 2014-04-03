@@ -14,10 +14,11 @@ from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import NOT_IMPLEMENTED, ENVIRONMENT
 from robottelo.common.decorators import bzbug
-from robottelo.common.helpers import generate_name, valid_names_list
+from robottelo.common.helpers import (generate_name, generate_string,
+                                      valid_names_list, invalid_names_list)
 from robottelo.ui.factory import make_org
 from robottelo.ui.session import Session
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import locators, common_locators
 from tests.foreman.ui.baseui import BaseUI
 
 
@@ -190,9 +191,9 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_create_activation_key_1(self):
+    @bzbug('1083471')
+    @data(*invalid_names_list())
+    def test_negative_create_activation_key_1(self, name):
         """
         @Feature: Activation key - Negative Create
         @Test: Create Activation key with invalid Name
@@ -200,12 +201,18 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all invalid Activation Key Names in [2]
         using valid Description, Environment, Content View, Usage limit
         @Assert: Activation key is not created. Appropriate error shown.
-        @Status: Manual
         """
-        pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT)
+        invalid = self.products.wait_until_element(common_locators
+                                                   ["common_invalid"])
+        self.assertTrue(invalid)
+        self.assertIsNone(self.activationkey.search_key(name))
+
+    @bzbug('1083438')
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
@@ -214,13 +221,21 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all invalid Description in [2]
         using valid Name, Environment, Content View, Usage limit
         @Assert: Activation key is not created. Appropriate error shown.
-        @Status: Manual
         """
-        pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_create_activation_key_3(self):
+        name = generate_name(8)
+        description = generate_string("alpha", 256)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT, description=description)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.error"]))
+        self.assertIsNone(self.activationkey.search_key(name))
+
+    @bzbug('1083027')
+    @data(*invalid_names_list())
+    def test_negative_create_activation_key_3(self, limit):
         """
         @Feature: Activation key - Negative Create
         @Test: Create Activation key with invalid Usage Limit
@@ -228,9 +243,16 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all invalid Usage Limit in [2]
         using valid Name, Description, Environment, Content View
         @Assert: Activation key is not created. Appropriate error shown.
-        @Status: Manual
         """
-        pass
+        name = generate_name(8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT, limit)
+        invalid = self.activationkey.wait_until_element(locators
+                                                        ["ak.invalid_limit"])
+        self.assertTrue(invalid)
+        self.assertIsNone(self.activationkey.search_key(name))
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -264,8 +286,6 @@ class ActivationKey(BaseUI):
         """
         pass
 
-    @bzbug('1063273')
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_3(self):
         """
         @Feature: Activation key - Positive Delete
@@ -471,9 +491,9 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_update_activation_key_1(self):
+    @bzbug('1083471')
+    @data(*invalid_names_list())
+    def test_negative_update_activation_key_1(self, new_name):
         """
         @Feature: Activation key - Negative Update
         @Test: Update invalid name in an activation key
@@ -481,14 +501,23 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Activation key name for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_update_activation_key_2(self):
+        name = generate_name(6)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, new_name)
+        invalid = self.products.wait_until_element(common_locators
+                                                   ["common_invalid"])
+        self.assertTrue(invalid)
+        self.assertIsNone(self.activationkey.search_key(new_name))
+
+    @bzbug('1083438')
+    def test_negative_update_activation_key_2(self, new_description):
         """
         @Feature: Activation key - Negative Update
         @Test: Update invalid Description in an activation key
@@ -496,14 +525,24 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Description for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_update_activation_key_3(self):
+        name = generate_name(6)
+        description = generate_name(8)
+        new_description = generate_name(256)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT, description=description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, new_description)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.error"]))
+
+    @bzbug('1083027')
+    @data(*invalid_names_list())
+    def test_negative_update_activation_key_3(self, limit):
         """
         @Feature: Activation key - Negative Update
         @Test: Update invalid Usage Limit in an activation key
@@ -511,10 +550,19 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Usage Limit for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_name(8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, limit)
+        invalid = self.activationkey.wait_until_element(locators
+                                                        ["ak.invalid_limit"])
+        self.assertTrue(invalid)
 
     @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)

@@ -9,7 +9,6 @@ from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
-from time import sleep
 
 
 class ActivationKey(Base):
@@ -47,6 +46,7 @@ class ActivationKey(Base):
 
         if self.wait_until_element(common_locators["name"]):
             self.text_field_update(common_locators["name"], name)
+            self.wait_for_ajax()
             if limit:
                 self.set_limit(limit)
             if description:
@@ -58,7 +58,7 @@ class ActivationKey(Base):
                 element = self.wait_until_element((strategy, value % env))
                 if element:
                     element.click()
-                    sleep(5)
+                    self.wait_for_ajax()
             else:
                 raise Exception(
                     "Could not create new activation key '%s', \
@@ -89,7 +89,7 @@ class ActivationKey(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
-            sleep(5)
+            self.wait_for_ajax()
             self.find_element(common_locators["kt_search_button"]).click()
             strategy = locators["ak.ak_name"][0]
             value = locators["ak.ak_name"][1]
@@ -106,7 +106,7 @@ class ActivationKey(Base):
 
         if element:
             element.click()
-            sleep(5)
+            self.wait_for_ajax()
             if new_name:
                 self.edit_entity("ak.edit_name", "ak.edit_name_text",
                                  new_name, "ak.save_name")
