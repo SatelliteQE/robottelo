@@ -212,7 +212,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    #@bzbug('1083438')
+    @bzbug('1083438')
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
