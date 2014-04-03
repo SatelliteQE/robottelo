@@ -212,7 +212,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @bzbug('1083438')
+    #@bzbug('1083438')
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
@@ -511,8 +511,10 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
         self.activationkey.update(name, new_name)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.error"]))
+        invalid = self.products.wait_until_element(common_locators
+                                                   ["common_invalid"])
+        self.assertTrue(invalid)
+        self.assertIsNone(self.activationkey.search_key(new_name))
 
     @bzbug('1083438')
     def test_negative_update_activation_key_2(self, new_description):
@@ -561,7 +563,6 @@ class ActivationKey(BaseUI):
         invalid = self.activationkey.wait_until_element(locators
                                                         ["ak.invalid_limit"])
         self.assertTrue(invalid)
-        self.assertIsNone(self.activationkey.search_key(name))
 
     @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
