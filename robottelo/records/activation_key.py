@@ -6,6 +6,7 @@ Module for Activation Key api an record implementation
 
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
+from robottelo.api.base import request
 
 
 class ActivationKeyApi(ApiCrud):
@@ -16,6 +17,17 @@ class ActivationKeyApi(ApiCrud):
         "name", "label", "description", "environment_id",
         "content_view_id", "usage_limit", "organization_id"
         ]
+
+    @classmethod
+    def add_sysgroups(cls, instance, group_ids):
+        """Add sysgroups
+        """
+        i = instance.id
+        url = "/katello/api/v2/activation_keys/{0}/system_groups".format(i)
+        return request(
+            'post',
+            path=url,
+            json={'activation_key': {'system_group_ids': group_ids}})
 
 
 class ActivationKey(records.Record):
