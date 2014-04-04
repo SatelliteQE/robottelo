@@ -701,19 +701,6 @@ class User(BaseCLI):
         )
 
     @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_user_5(self):
-        """
-        @Test: Update Language in User
-        @Feature: User - Positive Update
-        @Steps:
-        1. Create User
-        2. Update User with all different Language options
-        @Assert: User is updated
-        @Status: Manual
-        """
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_6(self):
         """
         @Test: Update Password/Verify fields in User
@@ -721,32 +708,6 @@ class User(BaseCLI):
         @Steps:
         1. Create User
         2. Update Password/Verify fields
-        @Assert: User is updated
-        @Status: Manual
-        """
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_user_7(self):
-        """
-        @Test: Convert an user from an admin user to non-admin user
-        @Feature: User - Positive Update
-        @Steps:
-        1. Create User with Administrator rights
-        2. Update the User to remove Administrator rights
-        @Assert: User is updated
-        @Status: Manual
-        """
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_user_8(self):
-        """
-        @Test: Convert a user to an admin user
-        @Feature: User - Positive Update
-        @Steps:
-        1. Create a regular (non-admin) user
-        2. Update the User to add Administrator rights
         @Assert: User is updated
         @Status: Manual
         """
