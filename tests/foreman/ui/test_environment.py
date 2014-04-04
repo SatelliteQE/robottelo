@@ -21,6 +21,22 @@ class Environment(BaseUI):
         self.navigator.go_to_org()  # go to org page
         self.org.create(org_name)
 
+    def test_bugzilla_1079999(self):
+        """
+        @Feature: Environment - Positive Create
+        @Test: Create new environment
+        @Assert: Environment is created
+        @BZ: Bugzilla 1079999
+        """
+        name = generate_name(6)
+        org_name = generate_name(8, 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.create_org(org_name)
+        self.navigator.go_to_environments()
+        self.environment.create(name, [org_name])
+        search = self.environment.search(name)
+        self.assertIsNotNone(search)
+
     def test_create_env(self):
         """
         @Feature: Environment - Positive Create
