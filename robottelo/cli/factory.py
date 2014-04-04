@@ -26,6 +26,7 @@ from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
+from robottelo.cli.systemgroup import SystemGroup
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.operatingsys import OperatingSys
@@ -346,6 +347,39 @@ def make_sync_plan(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(SyncPlan, args, args['organization-id']))
+
+    return args
+
+
+def make_system_group(options=None):
+    """
+    Usage:
+        hammer systemgroup create [OPTIONS]
+
+    Options:
+        --description DESCRIPTION
+        --max-systems MAX_SYSTEMS      Maximum number of systems in the group
+        --name NAME                    System group name
+        --organization-id ORGANIZATION_ID organization identifier
+         --system-ids SYSTEM_IDS       List of system uuids to be in the group
+                                       Comma separated list of values.
+    """
+
+    # Organization ID is required
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORGANIZATION_ID.")
+
+    # Assigning default values for attributes
+    args = {
+        'description': None,
+        'max-systems': None,
+        'name': generate_string('alpha', 15),
+        'organization-id': None,
+        'system-ids': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(SystemGroup, args))
 
     return args
 
