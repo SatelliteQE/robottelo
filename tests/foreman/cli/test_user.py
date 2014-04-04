@@ -1158,8 +1158,13 @@ class User(BaseCLI):
         result = UserObj().exists(('login', 'admin'))
         self.assertTrue(result.stdout)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_user_1(self):
+    @data({'login': generate_string("alpha", 10)},
+          {'login': generate_string("alphanumeric", 10)},
+          {'login': generate_string("numeric", 10)},
+          {'login': generate_string("latin1", 10)},
+          {'login': generate_string("utf8", 10)},
+          {'login': generate_string("alphanumeric", 100)})
+    def test_list_user_1(self, test_data):
         """
         @Test: List User for all variations of Username
         @Feature: User - list
@@ -1168,12 +1173,26 @@ class User(BaseCLI):
         First Name, Surname, Email Address, Language, authorized by
         2. List User
         @Assert: User is listed
-        @Status: Manual
         """
-        pass
+        user = make_user(test_data)
+        self.__assert_exists(user)
+        result = UserObj.list({'search': 'login = %s' % test_data['login']})
+        self.assertEqual(len(result.stdout), 1)
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user is in list result
+        self.assertEqual({
+            'name': user['name'],
+            'login': user['login'],
+            'id': user['id'],
+            'email': user['mail']}, result.stdout[0])
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_user_2(self):
+    @data({'firstname': generate_string("latin1", 10)},
+          {'firstname': generate_string("utf8", 10)},
+          {'firstname': generate_string("alpha", 10)},
+          {'firstname': generate_string("alphanumeric", 10)},
+          {'firstname': generate_string("numeric", 10)},
+          {'firstname': generate_string("alphanumeric", 50)})
+    def test_list_user_2(self, test_data):
         """
         @Test: List User for all variations of Firstname
         @Feature: User - list
@@ -1182,12 +1201,26 @@ class User(BaseCLI):
         Username, Surname, Email Address, Language, authorized by
         2. List User
         @Assert: User is listed
-        @Status: Manual
         """
-        pass
+        user = make_user(test_data)
+        self.__assert_exists(user)
+        result = UserObj.list(
+            {'search': 'firstname = %s' % test_data['firstname']})
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user is in list result
+        self.assertTrue({
+            'name': user['name'],
+            'login': user['login'],
+            'id': user['id'],
+            'email': user['mail']} in result.stdout)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_user_3(self):
+    @data({'lastname': generate_string("latin1", 10)},
+          {'lastname': generate_string("utf8", 10)},
+          {'lastname': generate_string("alpha", 10)},
+          {'lastname': generate_string("alphanumeric", 10)},
+          {'lastname': generate_string("numeric", 10)},
+          {'lastname': generate_string("alphanumeric", 50)})
+    def test_list_user_3(self, test_data):
         """
         @Test: List User for all variations of Surname
         @Feature: User - list
@@ -1196,12 +1229,26 @@ class User(BaseCLI):
         Username, First Name, Email Address, Language, authorized by
         2. List User
         @Assert: User is listed
-        @Status: Manual
         """
-        pass
+        user = make_user(test_data)
+        self.__assert_exists(user)
+        result = UserObj.list(
+            {'search': 'lastname = %s' % test_data['lastname']})
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user is in list result
+        self.assertTrue({
+            'name': user['name'],
+            'login': user['login'],
+            'id': user['id'],
+            'email': user['mail']} in result.stdout)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_user_4(self):
+    @data({'mail': generate_string("latin1", 10) + "@somemail.com"},
+          {'mail': generate_string("utf8", 10) + "@somemail.com"},
+          {'mail': generate_string("alpha", 10) + "@somemail.com"},
+          {'mail': generate_string("alphanumeric", 10) + "@somemail.com"},
+          {'mail': generate_string("numeric", 10) + "@somemail.com"},
+          {'mail': generate_string("alphanumeric", 50) + "@somem.com"})
+    def test_list_user_4(self, test_data):
         """
         @Test: List User for all variations of Email Address
         @Feature: User - list
@@ -1210,23 +1257,17 @@ class User(BaseCLI):
         valid Username, First Name, Surname, Language, authorized by
         2. List User
         @Assert: User is listed
-        @Status: Manual
         """
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_user_5(self):
-        """
-        @Test: List User for all variations of Language
-        @Feature: User - list
-        @Steps:
-        1. Create User for all Language variations using valid
-        Username, First Name, Surname, Email Address, authorized by
-        2. List User
-        @Assert: User is listed
-        @Status: Manual
-        """
-        pass
+        user = make_user(test_data)
+        self.__assert_exists(user)
+        result = UserObj.list({'search': 'mail = %s' % test_data['mail']})
+        self.assertEqual(len(result.stderr), 0)
+        # make sure user is in list result
+        self.assertTrue({
+            'name': user['name'],
+            'login': user['login'],
+            'id': user['id'],
+            'email': user['mail']} in result.stdout)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_1(self):
