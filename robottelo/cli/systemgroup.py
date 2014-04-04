@@ -26,12 +26,6 @@ class SystemGroup(Base):
 
     command_base = "system-group"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def list(cls, organization_id, options=None):
         """
