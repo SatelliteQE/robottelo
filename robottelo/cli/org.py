@@ -45,12 +45,6 @@ class Org(Base):
 
     command_base = "organization"
 
-    def __init__(self):
-        """
-        Sets the base command for class
-        """
-        Base.__init__(self)
-
     @classmethod
     def add_subnet(cls, options=None):
         """

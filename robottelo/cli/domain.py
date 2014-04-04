@@ -28,9 +28,3 @@ class Domain(Base):
     """
 
     command_base = "domain"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

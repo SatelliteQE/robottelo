@@ -29,12 +29,6 @@ class Product(Base):
 
     command_base = "product"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def list(cls, organization_id, options=None):
         """

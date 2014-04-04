@@ -28,12 +28,6 @@ class Proxy(Base):
 
     command_base = "proxy"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def importclasses(cls, options=None):
         """

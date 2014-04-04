@@ -36,12 +36,6 @@ class OperatingSys(Base):
 
     command_base = "os"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def add_architecture(cls, options=None):
         """
