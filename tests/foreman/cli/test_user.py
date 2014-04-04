@@ -1177,7 +1177,8 @@ class User(BaseCLI):
         user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({'search': 'login = %s' % test_data['login']})
-        self.assertTrue(len(result.stdout) == 1)
+        self.assertEqual(len(result.stdout), 1)
+        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertEqual({
             'name': user['name'],
@@ -1205,6 +1206,7 @@ class User(BaseCLI):
         self.__assert_exists(user)
         result = UserObj.list(
             {'search': 'firstname = %s' % test_data['firstname']})
+        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
@@ -1232,6 +1234,7 @@ class User(BaseCLI):
         self.__assert_exists(user)
         result = UserObj.list(
             {'search': 'lastname = %s' % test_data['lastname']})
+        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
@@ -1258,26 +1261,13 @@ class User(BaseCLI):
         user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({'search': 'mail = %s' % test_data['mail']})
+        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
             'login': user['login'],
             'id': user['id'],
             'email': user['mail']} in result.stdout)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_user_5(self):
-        """
-        @Test: List User for all variations of Language
-        @Feature: User - list
-        @Steps:
-        1. Create User for all Language variations using valid
-        Username, First Name, Surname, Email Address, authorized by
-        2. List User
-        @Assert: User is listed
-        @Status: Manual
-        """
-        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_1(self):
