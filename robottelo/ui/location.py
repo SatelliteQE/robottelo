@@ -16,12 +16,6 @@ class Location(Base):
     Implements CRUD functions for UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def create(self, name, parent=None, user_names=None):
         """
         Creates new Location from UI

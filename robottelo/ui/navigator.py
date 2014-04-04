@@ -15,9 +15,6 @@ class Navigator(Base):
     Quickly navigate through menus and tabs.
     """
 
-    def __init__(self, browser):
-        self.browser = browser
-
     def menu_click(self, top_menu_locator, sub_menu_locator,
                    tertiary_menu_locator=None, entity=None):
         menu_element = self.find_element(top_menu_locator)

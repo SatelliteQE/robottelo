@@ -16,12 +16,6 @@ class ActivationKey(Base):
     Manipulates Activation keys from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def set_limit(self, limit):
         """
         Sets the finite limit of activation key

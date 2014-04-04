@@ -16,9 +16,6 @@ class Environment(Base):
     Provides the CRUD functionality for Environment.
     """
 
-    def __init__(self, browser):
-        self.browser = browser
-
     def create(self, name, orgs, org_select=True):
         """
         Creates the environment.

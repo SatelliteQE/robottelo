@@ -13,12 +13,6 @@ class Repos(Base):
     Manipulates Repos from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def create(self, name, product=None, gpg_key=None, http=False, url=None,
                repo_type=REPO_TYPE['yum']):
         """

@@ -15,12 +15,6 @@ class Sync(Base):
     Synchronizes products and repos from UI.
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def assert_sync(self, repos):
         """
         Asserts the sync of Repos, loops over until cancel is visible,

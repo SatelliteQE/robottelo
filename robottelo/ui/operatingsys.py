@@ -17,12 +17,6 @@ class OperatingSys(Base):
     Manipulates Foreman's operating system from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def _configure_os(self, archs, ptables, mediums, select,
                       minor_version=None, os_family=None, template=None,
                       arch_list=None, ptable_list=None, medium_list=None):

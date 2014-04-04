@@ -17,12 +17,6 @@ class Login(Base):
     Implements login, logout functions for Foreman UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def login(self, username, password, organization=None):
         """
         Logins user from UI
