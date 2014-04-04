@@ -27,12 +27,6 @@ class GPGKey(Base):
 
     command_base = "gpg"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def exists(cls, organization_id, tuple_search=None):
         """

@@ -38,12 +38,6 @@ class Host(Base):
 
     command_base = "host"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def facts(cls, options=None):
         """

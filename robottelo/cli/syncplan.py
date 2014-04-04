@@ -27,12 +27,6 @@ class SyncPlan(Base):
 
     command_base = "sync-plan"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def info(cls, organization_id, options=None):
         """
