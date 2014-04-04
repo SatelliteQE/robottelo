@@ -15,12 +15,6 @@ class Hostgroup(Base):
     Manipulates hostgroup from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def create(self, name, parent=None, environment=None):
         """
         Creates a new hostgroup from UI

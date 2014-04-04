@@ -16,12 +16,6 @@ class Medium(Base):
     Implements the CRUD functions for Installation media
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def _configure_medium(self, os_family=None):
         """
         Configures Installation media's OS family

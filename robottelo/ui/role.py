@@ -16,12 +16,6 @@ class Role(Base):
     Implements the CRUD functions for Roles
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def create(self, name):
         """
         Creates new Role with default permissions

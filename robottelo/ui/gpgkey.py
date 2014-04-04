@@ -16,12 +16,6 @@ class GPGKey(Base):
     Manipulates GPG keys from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def create(self, name, upload_key=False, key_path=None, key_content=None):
         """
         Creates a gpg key from UI.

@@ -21,12 +21,6 @@ class Base(object):
 
     logger = logging.getLogger("robottelo")
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def find_element(self, locator):
         """
         Wrapper around Selenium's WebDriver that allows you to search for an

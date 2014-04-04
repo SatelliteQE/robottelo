@@ -13,12 +13,6 @@ from selenium.webdriver.support.select import Select
 class Domain(Base):
     "Manipulates Foreman's domain from UI"
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def _configure_domain(self, description=None, dns_proxy=None):
         """
         Configures domain description and dns proxy

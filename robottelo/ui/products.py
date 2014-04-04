@@ -12,12 +12,6 @@ class Products(Base):
     Manipulates Products from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def create(self, name, description=None, sync_plan=None, startdate=None,
                create_sync_plan=False, gpg_key=None, sync_interval=None):
         """
