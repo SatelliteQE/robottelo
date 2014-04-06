@@ -297,10 +297,9 @@ def make_repository(options=None):
         'name': generate_string('alpha', 15),
         'label': None,
         'content-type': u'yum',
-        'enabled': u'true',
         'product-id': None,
         'publish-via-http': u'true',
-        'feed': u'http://omaciel.fedorapeople.org/fakerepo01/',
+        'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
         'gpg-key-name': None,
     }
 
