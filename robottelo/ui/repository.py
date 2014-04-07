@@ -96,3 +96,46 @@ class Repos(Base):
             searchbox.send_keys(element_name)
             element = self.wait_until_element((strategy, value % element_name))
             return element
+
+    def discover_repo(self, url_to_discover, discovered_urls,
+                      product, new_product=False, gpg_key=None):
+        """
+        Discovers all repos from the given URL and creates selected repos.
+        Here if new_product=True; then it creates New Product instead
+        of adding repos under existing product.
+        """
+
+        self.wait_until_element(locators["repo.repo_discover"]).click()
+        self.text_field_update(locators["repo.discover_url"], url_to_discover)
+        self.find_element(locators["repo.discover_button"]).click()
+        self.wait_for_ajax()
+        discover_cancel = self.wait_until_element(locators
+                                                  ["repo.cancel_discover"])
+        while discover_cancel:
+            discover_cancel = self.wait_until_element(locators
+                                                      ["repo.cancel_discover"])
+        for url in discovered_urls:
+            strategy = locators["repo.discovered_url_checkbox"][0]
+            value = locators["repo.discovered_url_checkbox"][1]
+            url_element = self.wait_until_element((strategy, value % url))
+            if url_element:
+                url_element.click()
+            else:
+                raise Exception(
+                    "Couldn't select the provided URL '%s'" % url)
+        self.find_element(locators["repo.create_selected"]).click()
+        self.wait_for_ajax()
+        if new_product:
+            self.find_element(locators["repo.new_product"]).click()
+            self.text_field_update(locators["repo.new_product_name"], product)
+            if gpg_key:
+                Select(self.find_element(locators
+                                         ["repo.gpgkey_in_discover"]
+                                         )).select_by_visible_text(gpg_key)
+        else:
+            self.wait_until_element(locators["repo.existing_product"]).click()
+            Select(self.find_element(locators
+                                     ["repo.select_exist_product"]
+                                     )).select_by_visible_text(product)
+        self.wait_until_element(locators["repo.create"]).click()
+        self.wait_for_ajax()

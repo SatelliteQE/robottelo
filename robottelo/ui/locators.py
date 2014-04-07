@@ -780,7 +780,32 @@ locators = {
                    "/../../td/input[contains(@ng-model,'repository')]")),
     "repo.select": (
         By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
+    "repo.repo_discover": (
+        By.XPATH, "//button[@ui-sref='products.discovery.scan']"),
     "repo.discover_url": (By.XPATH, "//input[@type='url']"),
+    "repo.discover_button": (By.XPATH, "//button[@type='submit']"),
+    "repo.discovered_url_checkbox": (
+        By.XPATH, ("//table[@alch-table='discoveryTable']"
+                   "//td[normalize-space(.)='%s']"
+                   "/../td/input[@type='checkbox']")),
+    "repo.cancel_discover": (
+        By.XPATH, "//button[@ng-show='discovery.pending']"),
+    "repo.create_selected": (
+        By.XPATH, "//button[@ng-click='setupSelected()']"),
+    "repo.create": (By.XPATH, "//button[@ng-click='createRepos()']"),
+    "repo.existing_product": (
+        By.XPATH, "//input[@type='radio' and @value='false']"),
+    "repo.select_exist_product": (
+        By.XPATH, "//select[@ng-model='createRepoChoices.existingProductId']"),
+    "repo.new_product": (
+        By.XPATH, "//input[@type='radio' and @value='true']"),
+    "repo.new_product_name": (
+        By.XPATH, "//input[@ng-model='createRepoChoices.product.name']"),
+    "repo.gpgkey_in_discover": (
+        By.XPATH,
+        "//select[@ng-model='createRepoChoices.product.gpg_key_id']"),
+    "repo.new_discover_name": (
+        By.XPATH, "//input[@ng-model='repo.name']"),
     "repo.url_edit": (
         By.XPATH, ("//form[@alch-edit-text='repository.feed']"
                    "//i[contains(@class,'icon-edit')]")),
