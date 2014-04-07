@@ -27,6 +27,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
+from robottelo.cli.system import System
 from robottelo.cli.systemgroup import SystemGroup
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
@@ -387,6 +388,51 @@ def make_sync_plan(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(SyncPlan, args, args['organization-id']))
+
+    return args
+
+
+def make_system(options=None):
+    """
+    Usage:
+        hammer system create [OPTIONS]
+
+    Options:
+        --content-view-id CONTENT_VIEW_ID Specify the content view
+        --description DESCRIPTION     Description of the system
+        --environment-id ENVIRONMENT_ID Specify the environment
+        --guest-ids GUEST_IDS         IDs of the guests running on this system
+                                      Comma separated list of values.
+        --last-checkin LAST_CHECKIN   Last check-in time of this system
+        --location LOCATION           Physical location of the system
+        --name NAME                   Name of the system
+        --organization-id ORGANIZATION_ID Specify the organization
+        --release-ver RELEASE_VER     Release version of the system
+        --service-level SERVICE_LEVEL A service level for auto-healing
+                                      process, e.g. SELF-SUPPORT
+        --system-group-id SYSTEM_GROUP_ID Specify the system group
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    args = {
+        'name': generate_string('alpha', 20),
+        'description': generate_string('alpha', 20),
+        'organization-id': None,
+        'content-view-id': None,
+        'environment-id': None,
+        'guest-ids': None,
+        'last-checking': None,
+        'location': None,
+        'release-ver': None,
+        'service-level': None,
+        'system-group-id': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(System, args, args['organization-id']))
 
     return args
 
