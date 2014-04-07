@@ -784,21 +784,6 @@ class User(BaseUI):
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_negative_create_user_7(self):
-        """
-        @Feature: User - Negative Create
-        @Test: Create User with blank Authorized by but values in
-        Password and verify
-        @Steps:
-        1. Create User with blank Authorized by but having matching values in
-        Password and verify fields and using valid Username, First Name,
-        Surname, Email Address, Language
-        @Assert: User is not created. Appropriate error shown.
-        @Status: Manual
-        """
-        pass
-
     @attr('ui', 'user', 'implemented')
     def test_negative_create_user_8(self):
         """
