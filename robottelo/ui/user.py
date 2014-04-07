@@ -24,7 +24,8 @@ class User(Base):
         self.browser = browser
 
     def _configure_user(self, roles=None, locations=None, organizations=None,
-                        new_locations=None, new_roles=None, new_organizations=None,
+                        new_locations=None, new_roles=None,
+                        new_organizations=None,
                         select=None):
         """
         Configures different entities of selected User
@@ -66,8 +67,8 @@ class User(Base):
             if last_name:
                 self.field_update("users.lastname", last_name)
             if self.wait_until_element(locators["users.authorized_by"]):
-                Select(self.find_element(locators["users.authorized_by"]
-                                        )).select_by_visible_text(authorized_by)
+                Select(self.find_element(locators["users.authorized_by"])
+                       ).select_by_visible_text(authorized_by)
             # The following fields are not available via LDAP auth
             if self.wait_until_element(locators["users.email"]):
                 self.field_update("users.email", email)
@@ -81,7 +82,7 @@ class User(Base):
                     self.field_update("users.password", password1)
                 if self.wait_until_element(locators
                                            ["users.password_confirmation"]):
-                    self.field_update("users.password_confirmation",password2)
+                    self.field_update("users.password_confirmation", password2)
                 if locale:
                     Select(self.find_element(locators["users.language"]
                                              )).select_by_value(locale)
@@ -151,4 +152,5 @@ class User(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
-            raise Exception("Unable to find the username '%s' for update." % username)
+            raise Exception("Unable to find the username '%s' for update."
+                            % username)

@@ -64,8 +64,8 @@ FILTER = {'arch_os': "architecture_operatingsystem",
           'subnet_org': "subnet_organization",
           'template_os': "config_template_operatingsystem",
           'user_role': "user_role",
-		  'user_location': "user_location",
-		  'user_org': "user_organization",
+          'user_location': "user_location",
+          'user_org': "user_organization",
           'role_permission': "filter_permission",
           'role_org': "filter_organization",
           'usergroup_user': "usergroup_user",
@@ -119,5 +119,5 @@ DEFAULT_ORG = "acme"
 SSH_CHANNEL_READY_TIMEOUT = 10  # 10 sec to get content
 
 LANGUAGES = ["de", "en", "en_GB",
-			 "es", "fr", "gl",
-			 "ja", "sv_SE", "zh_CN"]
+             "es", "fr", "gl",
+             "ja", "sv_SE", "zh_CN"]

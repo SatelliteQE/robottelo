@@ -19,6 +19,7 @@ from robottelo.common.helpers import (generate_name, generate_email_address,
 from robottelo.ui.locators import common_locators, tab_locators
 from tests.foreman.ui.baseui import BaseUI
 
+
 def gen_valid_strings(len1=255):
     """
     Generates a list of all the input strings,
@@ -40,6 +41,7 @@ def gen_valid_strings(len1=255):
     ]
 
     return valid_names
+
 
 def gen_invalid_strings():
     """
@@ -76,7 +78,7 @@ class User(BaseUI):
                     lastname=None,
                     locale=None, roles=None,
                     organizations=None,
-                    locations=None,authorized_by="INTERNAL",
+                    locations=None, authorized_by="INTERNAL",
                     password2=None):
         """
         Function to create a new User
@@ -202,7 +204,6 @@ class User(BaseUI):
         self.create_user(user_name, password, email, search_key)
         self.assertIsNotNone(self.user.search(user_name, search_key))
 
-
     @attr('ui', 'user', 'implemented')
     @data(*gen_valid_strings())
     def test_positive_create_user_2(self, first):
@@ -224,7 +225,6 @@ class User(BaseUI):
                          email, search_key, first)
         self.assertIsNotNone(self.user.search(name, search_key))
 
-
     @attr('ui', 'user', 'implemented')
     @data(*gen_valid_strings())
     def test_positive_create_user_3(self, last_name):
@@ -245,7 +245,6 @@ class User(BaseUI):
         self.create_user(name, password,
                          email, search_key, lastname=last_name)
         self.assertIsNotNone(self.user.search(name, search_key))
-
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_4(self):
@@ -384,7 +383,6 @@ class User(BaseUI):
                                                 value % role2))
         self.assertTrue(element1)
         self.assertTrue(element2)
-
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_11(self):
@@ -561,9 +559,11 @@ class User(BaseUI):
         self.navigator.go_to_org()
         self.org.create(org_name)
         self.navigator.go_to_org()
-        self.create_user(name, password, email, search_key, organizations=[org_name])
+        self.create_user(name, password, email,
+                         search_key, organizations=[org_name])
         self.user.search(name, search_key).click()
-        self.user.wait_until_element(tab_locators["users.tab_organizations"]).click()
+        self.user.wait_until_element(
+            tab_locators["users.tab_organizations"]).click()
         element = self.user.wait_until_element((strategy,
                                                 value % org_name))
         self.assertTrue(element)
@@ -589,9 +589,11 @@ class User(BaseUI):
         self.org.create(org_name1)
         self.navigator.go_to_org()
         self.org.create(org_name2)
-        self.create_user(name, password, email, search_key, organizations=[org_name1, org_name2])
+        self.create_user(name, password, email,
+                         search_key, organizations=[org_name1, org_name2])
         self.user.search(name, search_key).click()
-        self.user.wait_until_element(tab_locators["users.tab_organizations"]).click()
+        self.user.wait_until_element(
+            tab_locators["users.tab_organizations"]).click()
         element1 = self.user.wait_until_element((strategy,
                                                 value % org_name1))
         element2 = self.user.wait_until_element((strategy,
@@ -690,7 +692,6 @@ class User(BaseUI):
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
-
     @attr('ui', 'user', 'implemented')
     @data(*gen_invalid_strings())
     def test_negative_create_user_4(self, last_name):
@@ -712,7 +713,6 @@ class User(BaseUI):
                          lastname=last_name)
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
-
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_5(self):
@@ -748,7 +748,6 @@ class User(BaseUI):
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
-
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_7(self):
         """
@@ -782,7 +781,8 @@ class User(BaseUI):
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(name, password, email, search_key, password2=password2)
+        self.create_user(name, password, email,
+                         search_key, password2=password2)
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
