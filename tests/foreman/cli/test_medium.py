@@ -45,18 +45,7 @@ class TestMedium(BaseCLI):
         }
 
         Medium().create(args)
-
         self.assertTrue(Medium().exists(('name', args['name'])).stdout)
-
-    def test_create_medium_1(self):
-        """
-        @Feature: Medium - Positive Create
-        @Test: Check if Medium can be created
-        @Assert: Medium is created
-        """
-
-        name = generate_name(6)
-        self._create_medium(name)
 
     @data({'name': generate_string("latin1", 10)},
           {'name': generate_string("utf8", 10)},
@@ -90,7 +79,7 @@ class TestMedium(BaseCLI):
           {'name': generate_string("alphanumeric", 10)},
           {'name': generate_string("numeric", 10)},
           {'name': generate_string("html", 10)})
-    def test_delete_medium_1(self, test_data):
+    def test_positive_delete_1(self, test_data):
         """
         @Feature: Medium - Positive Delete
         @Test: Check if Medium can be deleted
