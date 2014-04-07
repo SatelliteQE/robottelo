@@ -17,7 +17,6 @@ class User(Base):
     Implements CRUD functions from UI
     """
 
-
     def _configure_user(self, roles=None, locations=None, organizations=None,
                         new_locations=None, new_roles=None,
                         new_organizations=None,
