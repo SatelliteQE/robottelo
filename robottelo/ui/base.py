@@ -5,11 +5,11 @@
 Base class for all UI operations
 """
 import logging.config
-
 from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
+from robottelo.common.helpers import escape_search
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -70,7 +70,8 @@ class Base(object):
         else:
             searchbox.clear()
             if search_button:
-                searchbox.send_keys(search_key + " = " + element_name)
+                searchbox.send_keys(search_key + " = " +
+                                    escape_search(element_name))
                 search_button.click()
             else:
                 searchbox.send_keys(element_name)
