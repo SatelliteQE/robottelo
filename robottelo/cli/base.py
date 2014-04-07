@@ -46,9 +46,6 @@ class Base(object):
     katello_user = conf.properties['foreman.admin.username']
     katello_passwd = conf.properties['foreman.admin.password']
 
-    def __init__(self):
-        pass
-
     @classmethod
     def add_operating_system(cls, options=None):
         """

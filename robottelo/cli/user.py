@@ -26,9 +26,3 @@ class User(Base):
     """
 
     command_base = "user"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

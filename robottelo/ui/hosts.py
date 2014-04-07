@@ -9,8 +9,6 @@ class Hosts(Base):
     """
     Provides the CRUD functionality for Host.
     """
-    def __init__(self, browser):
-        self.browser = browser
 
     def _configure_hosts(self, domain, subnet, puppet_ca=None,
                          puppet_master=None, host_group=None,

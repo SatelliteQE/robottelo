@@ -15,12 +15,6 @@ class UserGroup(Base):
     Implements the CRUD functions for User groups
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def create(self, name, users=None):
         """
         Creates new usergroup

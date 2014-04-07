@@ -16,12 +16,6 @@ class Architecture(Base):
     Manipulates architecture from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def create(self, name, os_names=None):
         """
         Creates new architecture from UI with existing OS

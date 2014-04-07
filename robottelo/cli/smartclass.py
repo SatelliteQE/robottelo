@@ -24,9 +24,3 @@ class SmartClassParameter(Base):
     """
 
     command_base = "sc-param"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

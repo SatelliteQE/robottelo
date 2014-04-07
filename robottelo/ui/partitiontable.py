@@ -16,12 +16,6 @@ class PartitionTable(Base):
     Implements the CRUD functions for partition table
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
-
     def _configure_partition_table(self, os_family=None):
         """
         Configures the os family of partition table

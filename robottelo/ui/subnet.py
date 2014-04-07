@@ -15,12 +15,6 @@ class Subnet(Base):
     Provides the CRUD functionality for Subnet
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def _configure_subnet(self, subnet_network, subnet_mask):
         if subnet_network:
             if self.wait_until_element(locators["subnet.network"]):

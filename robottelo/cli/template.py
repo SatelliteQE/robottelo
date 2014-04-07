@@ -31,12 +31,6 @@ class Template(Base):
 
     command_base = "template"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def kinds(cls, options=None):
         """

@@ -16,12 +16,6 @@ class Org(Base):
     Provides the CRUD functionality for Organization
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def _configure_org(self, users=None, proxies=None, subnets=None,
                        resources=None, medias=None, templates=None,
                        domains=None, envs=None, hostgroups=None,

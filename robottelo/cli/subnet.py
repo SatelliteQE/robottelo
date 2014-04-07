@@ -27,9 +27,3 @@ class Subnet(Base):
     """
 
     command_base = "subnet"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

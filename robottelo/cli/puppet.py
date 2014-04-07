@@ -23,9 +23,4 @@ class Puppet(Base):
     Search Foreman's puppet modules.
     """
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-        self.command_base = "puppet-class"
+    command_base = "puppet-class"
