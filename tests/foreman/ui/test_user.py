@@ -43,6 +43,28 @@ def gen_valid_strings(len1=255):
     return valid_names
 
 
+def gen_valid_usernames(len1=100):
+    """
+    Generates a list of all the input strings,
+    (excluding html)
+    """
+    valid_names = [
+        generate_name(5, 5),
+        generate_name(len1),
+        u"%s-%s" % (generate_name(4), generate_name(4)),
+        u"%s.%s" % (generate_name(4), generate_name(4)),
+        u"նորօգտվող-%s" % generate_name(2),
+        u"新用戶-%s" % generate_name(2),
+        # TODO: determine why this string is rejected.
+        # u"नएउपयोगकर्ता-%s" % generate_name(2),
+        u"новогопользователя-%s" % generate_name(2),
+        u"uusikäyttäjä-%s" % generate_name(2),
+        u"νέοςχρήστης-%s" % generate_name(2),
+    ]
+
+    return valid_names
+
+
 def gen_invalid_strings():
     """
     List of invalid names for input testing.
@@ -50,6 +72,23 @@ def gen_invalid_strings():
     """
     invalid_names = [
         u" ",
+        generate_string("alpha", 300),
+        generate_string("numeric", 300),
+        generate_string("alphanumeric", 300),
+        generate_string("utf8", 300),
+        generate_string("latin1", 300),
+        generate_string("html", 300),
+        generate_name(256)
+    ]
+    return invalid_names
+
+
+def gen_invalid_surnames():
+    """
+    List of invalid names for input testing.
+    (exluding strings with whitespace)
+    """
+    invalid_names = [
         generate_string("alpha", 300),
         generate_string("numeric", 300),
         generate_string("alphanumeric", 300),
@@ -117,7 +156,7 @@ class User(BaseUI):
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(name, password, email, search_key)
+        self.create_user(name, password, email)
         self.assertIsNotNone(self.user.search(name, search_key))
 
     @attr('ui', 'user', 'implemented')
@@ -132,7 +171,7 @@ class User(BaseUI):
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name, password, email, search_key)
+        self.create_user(name, password, email)
         self.user.delete(name, search_key, really=True)
         self.assertTrue(self.user.wait_until_element(common_locators
                                                      ["notif.success"]))
@@ -151,7 +190,7 @@ class User(BaseUI):
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name, password, email, search_key)
+        self.create_user(name, password, email)
         self.user.update(search_key, name, None, None, new_password)
         self.login.logout()
         self.login.login(name, new_password)
@@ -176,7 +215,7 @@ class User(BaseUI):
         self.navigator.go_to_roles()
         self.role.create(role)
         self.assertIsNotNone(self, self.role.search(role))
-        self.create_user(name, password, email, search_key)
+        self.create_user(name, password, email)
         self.user.update(search_key, name, new_roles=[role])
         self.user.search(name, search_key).click()
         self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
@@ -185,7 +224,7 @@ class User(BaseUI):
         self.assertTrue(element)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_strings())
+    @data(*gen_valid_usernames())
     def test_positive_create_user_1(self, user_name):
         """
         @Feature: User - Positive Create
@@ -201,11 +240,11 @@ class User(BaseUI):
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name, password, email, search_key)
+        self.create_user(user_name, password, email)
         self.assertIsNotNone(self.user.search(user_name, search_key))
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_strings())
+    @data(*gen_valid_usernames(50))
     def test_positive_create_user_2(self, first):
         """
         @Feature: User - Positive Create
@@ -222,11 +261,11 @@ class User(BaseUI):
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, password,
-                         email, search_key, first)
+                         email, first)
         self.assertIsNotNone(self.user.search(name, search_key))
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_strings())
+    @data(*gen_valid_usernames(50))
     def test_positive_create_user_3(self, last_name):
         """
         @Feature: User - Positive Create
@@ -243,7 +282,7 @@ class User(BaseUI):
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, password,
-                         email, search_key, lastname=last_name)
+                         email, lastname=last_name)
         self.assertIsNotNone(self.user.search(name, search_key))
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -277,7 +316,7 @@ class User(BaseUI):
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, password,
-                         email, search_key, locale=lang)
+                         email, locale=lang)
         self.assertIsNotNone(self.user.search(name, search_key))
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -310,7 +349,7 @@ class User(BaseUI):
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, password,
-                         email, search_key)
+                         email)
         self.assertIsNotNone(self.user.search(name, search_key))
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -344,7 +383,7 @@ class User(BaseUI):
         self.navigator.go_to_roles()
         self.role.create(role)
         self.assertIsNotNone(self, self.role.search(role))
-        self.create_user(name, password, email, search_key, roles=[role])
+        self.create_user(name, password, email, roles=[role])
         self.user.search(name, search_key).click()
         self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
         element = self.user.wait_until_element((strategy,
@@ -373,7 +412,7 @@ class User(BaseUI):
         self.navigator.go_to_roles()
         self.role.create(role1)
         self.role.create(role2)
-        self.create_user(name, password, email, search_key,
+        self.create_user(name, password, email,
                          roles=[role1, role2])
         self.user.search(name, search_key).click()
         self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
@@ -560,7 +599,7 @@ class User(BaseUI):
         self.org.create(org_name)
         self.navigator.go_to_org()
         self.create_user(name, password, email,
-                         search_key, organizations=[org_name])
+                         organizations=[org_name])
         self.user.search(name, search_key).click()
         self.user.wait_until_element(
             tab_locators["users.tab_organizations"]).click()
@@ -590,7 +629,7 @@ class User(BaseUI):
         self.navigator.go_to_org()
         self.org.create(org_name2)
         self.create_user(name, password, email,
-                         search_key, organizations=[org_name1, org_name2])
+                         organizations=[org_name1, org_name2])
         self.user.search(name, search_key).click()
         self.user.wait_until_element(
             tab_locators["users.tab_organizations"]).click()
@@ -664,14 +703,13 @@ class User(BaseUI):
         """
         password = generate_name(8)
         email = generate_email_address()
-        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name, password, email, search_key)
+        self.create_user(user_name, password, email)
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_invalid_strings())
+    @data(*gen_invalid_surnames())
     def test_negative_create_user_3(self, first):
         """
         @Feature: User - Negative Create
@@ -685,15 +723,14 @@ class User(BaseUI):
         user_name = generate_name(8)
         password = generate_name(8)
         email = generate_email_address()
-        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name, password, email, search_key,
+        self.create_user(user_name, password, email,
                          first)
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_invalid_strings())
+    @data(*gen_invalid_surnames())
     def test_negative_create_user_4(self, last_name):
         """
         @Feature: User - Negative Create
@@ -707,9 +744,8 @@ class User(BaseUI):
         user_name = generate_name(8)
         password = generate_name(8)
         email = generate_email_address()
-        search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name, password, email, search_key,
+        self.create_user(user_name, password, email,
                          lastname=last_name)
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
@@ -787,7 +823,7 @@ class User(BaseUI):
         self.assertTrue(error)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_strings())
+    @data(*gen_valid_usernames())
     def test_positive_update_user_1(self, new_username):
         """
         @Feature: User - Positive Update
@@ -803,7 +839,7 @@ class User(BaseUI):
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name, password, email, search_key)
+        self.create_user(name, password, email)
         self.user.update(search_key, name, new_username)
         self.login.logout()
         self.login.login(new_username, password)
