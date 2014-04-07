@@ -56,8 +56,8 @@ class Repos(Base):
             if new_gpg_key:
                 self.wait_until_element(locators["repo.gpg_key_edit"]).click()
                 self.wait_for_ajax()
-                type_ele = self.\
-                            wait_until_element(locators["repo.gpg_key_update"])
+                gpgkey_update_loc = locators["repo.gpg_key_update"]
+                type_ele = self.wait_until_element(gpgkey_update_loc)
                 Select(type_ele).select_by_visible_text(new_gpg_key)
                 self.wait_until_element(common_locators["save"]).click()
             if http:
