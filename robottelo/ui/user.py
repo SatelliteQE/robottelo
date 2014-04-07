@@ -17,11 +17,6 @@ class User(Base):
     Implements CRUD functions from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets the browser object
-        """
-        self.browser = browser
 
     def _configure_user(self, roles=None, locations=None, organizations=None,
                         new_locations=None, new_roles=None,
