@@ -29,9 +29,3 @@ class PartitionTable(Base):
     """
 
     command_base = "partition-table"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

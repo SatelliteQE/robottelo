@@ -119,6 +119,7 @@ class TestOrg(BaseCLI):
 
     # Tests for issues
 
+    # This test also covers the redmine bug 4443
     @data(*positive_create_data_1())
     def test_redmine_4486(self, test_data):
         """

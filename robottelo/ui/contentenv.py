@@ -14,12 +14,6 @@ class ContentEnvironment(Base):
     Manipulates content environments from UI
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object.
-        """
-        self.browser = browser
-
     def create(self, name, description=None, prior=None):
         """
         Creates new life cycle environment

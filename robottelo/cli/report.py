@@ -25,9 +25,3 @@ class Report(Base):
     """
 
     command_base = "report"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

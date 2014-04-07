@@ -12,9 +12,6 @@ class ComputeResource(Base):
     Provides the CRUD functionality for Compute Resources.
     """
 
-    def __init__(self, browser):
-        self.browser = browser
-
     def _configure_resource(self, provider_type, url,
                             user, password, region,
                             libvirt_display, tenant,

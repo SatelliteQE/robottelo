@@ -17,12 +17,6 @@ class Template(Base):
     Provides the CRUD functionality for Templates.
     """
 
-    def __init__(self, browser):
-        """
-        Sets up the browser object
-        """
-        self.browser = browser
-
     def create(self, name, template_path, custom_really,
                template_type, snippet, os_list=None):
         """

@@ -28,9 +28,3 @@ class Medium(Base):
     """
 
     command_base = "medium"
-
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)

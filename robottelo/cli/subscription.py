@@ -15,12 +15,6 @@ class Subscription(Base):
 
     command_base = "subscription"
 
-    def __init__(self):
-        """
-        Sets the base command for class.
-        """
-        Base.__init__(self)
-
     @classmethod
     def upload(cls, options=None):
         """
