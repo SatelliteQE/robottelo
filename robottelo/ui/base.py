@@ -74,7 +74,7 @@ class Base(object):
                                     escape_search(element_name))
                 search_button.click()
             else:
-                searchbox.send_keys(element_name)
+                searchbox.send_keys(escape_search(element_name))
             element = self.wait_until_element(
                 (element_locator[0], element_locator[1] % element_name))
         return element
