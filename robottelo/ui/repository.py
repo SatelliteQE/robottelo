@@ -26,7 +26,8 @@ class Repos(Base):
             self.wait_until_element(locators["repo.new"]).click()
             self.wait_for_ajax()
             self.text_field_update(common_locators["name"], name)
-            self.wait_for_ajax()
+            # label takes long time for 256 char test, hence timeout of 60 sec
+            self.wait_for_ajax(timeout=60)
             if repo_type:
                 type_ele = self.find_element(locators["repo.type"])
                 Select(type_ele).select_by_visible_text(repo_type)
@@ -44,24 +45,26 @@ class Repos(Base):
         """
         Updates repositories from UI
         """
-        prd_element = self.search_entity(name, locators["repo.select"],
-                                         katello=True)
+        prd_element = self.search(name)
         if prd_element:
             prd_element.click()
+            self.wait_for_ajax()
             if new_url:
                 self.wait_until_element(locators["repo.url_edit"]).click()
                 self.text_field_update(locators["repo.url_update"], new_url)
-                self.find_element(common_locators["create"]).click()
+                self.find_element(common_locators["save"]).click()
             if new_gpg_key:
                 self.wait_until_element(locators["repo.gpg_key_edit"]).click()
-                type_ele = self.find_element(locators["repo.gpg_key_update"])
+                self.wait_for_ajax()
+                type_ele = self.\
+                            wait_until_element(locators["repo.gpg_key_update"])
                 Select(type_ele).select_by_visible_text(new_gpg_key)
-                self.find_element(common_locators["create"]).click()
+                self.wait_until_element(common_locators["save"]).click()
             if http:
                 self.wait_until_element(locators["repo.via_http_edit"]).click()
                 self.wait_until_element(locators["repo.via_http_update"]).\
                     click()
-                self.find_element(common_locators["create"]).click()
+                self.find_element(common_locators["save"]).click()
 
     def delete(self, repo, really=True):
         """
