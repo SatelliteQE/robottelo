@@ -13,7 +13,6 @@ from robottelo.common.helpers import generate_string
 from robottelo.cli.medium import Medium
 from robottelo.cli.factory import make_medium
 from robottelo.common.helpers import generate_name
-import sys
 
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -28,7 +27,8 @@ OSES = [
 ]
 
 
-class TestMedium(MetaCLI):
+@ddt
+class TestMedium(BaseCLI):
 
     factory = make_medium
     factory_obj = Medium
