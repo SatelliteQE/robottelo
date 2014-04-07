@@ -318,16 +318,11 @@ class TestRepository(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
     @data(
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
-         u'content-type': u'yum'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/',
-         u'content-type': u'yum'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet02/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo3/',
-         u'content-type': u'yum'},
+        {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/'},
+        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/'},
+        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet02/'},
+        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet03/'},
+        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo3/'},
     )
     @attr('cli', 'repository')
     def test_positive_update_1(self, test_data):
@@ -342,8 +337,7 @@ class TestRepository(BaseCLI):
         # Update the url
         result = Repository.update(
             {u'id': new_repo['id'],
-             u'url': test_data['url'],
-             u'content-type': test_data['content-type']})
+             u'url': test_data['url']})
         self.assertEqual(
             result.return_code,
             0,
