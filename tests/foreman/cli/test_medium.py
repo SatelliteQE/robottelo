@@ -32,21 +32,6 @@ class TestMedium(BaseCLI):
     factory = make_medium
     factory_obj = Medium
 
-    def _create_medium(self, name=None, path=None, os_family=None,
-                       operating_system_id=None):
-
-        args = {
-            'name': name or generate_name(),
-            'path': path or URL % generate_name(5),
-            'os-family': os_family or OSES[random.randint(0, len(OSES) - 1)],
-            # TODO: if operating_system_id is None then fetch
-            # list of available OSes from system.
-            'operatingsystem-ids': operating_system_id or "1",
-        }
-
-        Medium().create(args)
-        self.assertTrue(Medium().exists(('name', args['name'])).stdout)
-
     @data({'name': generate_string("latin1", 10)},
           {'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
