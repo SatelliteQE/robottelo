@@ -138,3 +138,39 @@ class Repos(BaseUI):
         self.assertIsNotNone(self.repository.search(repo_name))
         self.repository.delete(repo_name)
         self.assertIsNone(self.repository.search(repo_name))
+
+    def test_discover_repo_1(self):
+        """
+        @Feature: Content Repos - Discover repo via http URL
+        @Test: Create Content Repos via repo discovery under existing
+        product
+        @Assert: Repos is discovered and created
+        """
+
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.discover_repo(url, discovered_urls, product=prd_name)
+
+    def test_discover_repo_2(self):
+        """
+        @Feature: Content Repos - Discover repo via http URL
+        @Test: Create Content Repos via repo discovery under new
+        product
+        @Assert: Repos is discovered and created
+        """
+
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True)
+        self.assertIsNotNone(self.products.search(prd_name))
