@@ -55,8 +55,6 @@ class Product(Base):
                 value = item[1].lstrip()
                 # Build the dictionary
                 gpg_key[key] = value
-        if len(result.stdout) == 0:
-            raise Exception("Info subcommand returned more than 1 result.")
 
         # Update result.stdout
         result.stdout = gpg_key
