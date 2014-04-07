@@ -6,8 +6,7 @@ Test class for Medium  CLI
 """
 
 import random
-from ddt import data
-from ddt import ddt
+from ddt import ddt, data
 from tests.foreman.cli.basecli import BaseCLI
 from robottelo.common.helpers import generate_string
 from robottelo.cli.medium import Medium
@@ -79,7 +78,7 @@ class TestMedium(BaseCLI):
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
+                         "There should be an exception here")
         self.assertGreater(
             len(result.stdout), 0, "Failed to fetch medium")
         self.assertEqual(new_obj['name'],
@@ -117,6 +116,6 @@ class TestMedium(BaseCLI):
         self.assertNotEqual(
             result.return_code, 0, "Medium should be deleted")
         self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
+                           "There should be an exception here")
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
