@@ -78,7 +78,7 @@ class TestMedium(BaseCLI):
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
-                         "There should be an exception here")
+                         "There should not be an exception here")
         self.assertGreater(
             len(result.stdout), 0, "Failed to fetch medium")
         self.assertEqual(new_obj['name'],
