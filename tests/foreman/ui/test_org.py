@@ -17,7 +17,7 @@ from robottelo.common.helpers import (generate_name, generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
 from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
-from robottelo.common.decorators import bzbug, redminebug
+from robottelo.common.decorators import bzbug
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -376,76 +376,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a domain to an organization and remove it by organization
-        ID and domain name
-        @assert: the domain is removed from the organization
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4294')
-    @redminebug('4295')
-    @redminebug('4296')
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_remove_user_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create different types of users then add/remove user
-        by using the organization ID
-        by using the organization ID
-        @assert: User is added and then removed from organization
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('4294')
-    @redminebug('4295')
-    @redminebug('4296')
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_remove_user_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create different types of users then add/remove user
-        by using the organization name
-        @assert: The user is added then removed from the organization
-        @status: manual
-        """
-
-        pass
-
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -527,66 +457,6 @@ class Org(BaseUI):
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        ID and hostgroup name
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        name and hostgroup ID
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        ID and hostgroup ID
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
         smartproxy name is alpha_numeric
@@ -598,63 +468,6 @@ class Org(BaseUI):
         """
         @feature: Organizations
         @test: Add a smart proxy by using organization name and smartproxy name
-        @assert: smartproxy is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a smart proxy by using organization ID and smartproxy name
-        @assert: smartproxy is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a smart proxy by using organization name and smartproxy ID
-        @assert: smartproxy is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a smart proxy by using organization ID and smartproxy ID
         @assert: smartproxy is added
         @status: manual
         """
@@ -694,63 +507,6 @@ class Org(BaseUI):
                                                value % subnet_name))
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a subnet by using organization ID and subnet name
-        @assert: subnet is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a subnet by using organization name and subnet ID
-        @assert: subnet is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a subnet by using organization ID and subnet ID
-        @assert: subnet is added
-        @status: manual
-        """
-
-        pass
-
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -780,26 +536,6 @@ class Org(BaseUI):
         element = self.org.wait_until_element((strategy,
                                                value % domain))
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_add_user_1(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create different types of users then add user
-        by using the organization ID
-        @assert: User is added to organization
-        @status: manual
-        """
-
-        pass
 
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
@@ -834,25 +570,6 @@ class Org(BaseUI):
         element = self.org.wait_until_element((strategy,
                                                value % user))
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        user name is alpha and an admin
-        user name is numeric and an admin
-        user name is alpha_numeric and an admin
-        user name is utf-8 and an admin
-        user name is latin1 and an admin
-        user name is html and an admin
-    """)
-    def test_add_user_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Create admin users then add user by using the organization name
-        @assert: User is added to organization
-        @status: manual
-        """
-
-        pass
 
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
@@ -914,66 +631,6 @@ class Org(BaseUI):
                                                value % location))
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        ID and hostgroup name
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        name and hostgroup ID
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        ID and hostgroup ID
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
-
-        pass
-
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -1017,66 +674,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove computeresource by using the organization
-        ID and computeresource name
-        @assert: computeresource is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove computeresource by using the organization
-        name and computeresource ID
-        @assert: computeresource is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove computeresource by using the organization
-        ID and computeresource ID
-        @assert: computeresource is added then removed
-        @status: manual
-        """
-
-        pass
-
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -1115,63 +712,6 @@ class Org(BaseUI):
                                                value % medium))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove medium by using organization ID and medium name
-        @assert: medium is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove medium by using organization name and medium ID
-        @assert: medium is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove medium by using organization ID and medium ID
-        @assert: medium is added then removed
-        @status: manual
-        """
-
-        pass
 
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
@@ -1245,66 +785,6 @@ class Org(BaseUI):
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove environment by using organization ID and
-        evironment name
-        @assert: environment is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove environment by using organization name and
-        evironment ID
-        @assert: environment is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove environment by using organization ID and
-        evironment ID
-        @assert: environment is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
         smartproxy name is alpha_numeric
@@ -1316,63 +796,6 @@ class Org(BaseUI):
         """
         @feature: Organizations
         @test: Remove smartproxy by using organization name and smartproxy name
-        @assert: smartproxy is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove smartproxy by using organization ID and smartproxy name
-        @assert: smartproxy is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove smartproxy by using organization name and smartproxy ID
-        @assert: smartproxy is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove smartproxy by using organization ID and smartproxy ID
         @assert: smartproxy is added then removed
         @status: manual
         """
@@ -1415,66 +838,6 @@ class Org(BaseUI):
                                                value % resource_name))
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add compute resource using the organization
-        ID and computeresource name
-        @assert: computeresource is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add compute resource using the organization
-        name and computeresource ID
-        @assert: computeresource is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add compute resource using the organization
-        ID and computeresource ID
-        @assert: computeresource is added
-        @status: manual
-        """
-
-        pass
-
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -1506,63 +869,6 @@ class Org(BaseUI):
         element = self.org.wait_until_element((strategy,
                                                value % medium))
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add medium by using the organization ID and medium name
-        @assert: medium is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add medium by using the organization name and medium ID
-        @assert: medium is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add medium by using the organization ID and medium ID
-        @assert: medium is added
-        @status: manual
-        """
-
-        pass
 
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
@@ -1597,66 +903,6 @@ class Org(BaseUI):
         element = self.org.wait_until_element((strategy,
                                                value % template))
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add config template by using organization ID and
-        configtemplate name
-        @assert: configtemplate is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add config template by using organization name and
-        configtemplate ID
-        @assert: configtemplate is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add config template by using organization ID and
-        configtemplate ID
-        @assert: configtemplate is added
-        @status: manual
-        """
-
-        pass
 
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
@@ -1694,63 +940,6 @@ class Org(BaseUI):
                                                value % env))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add environment by using organization ID and evironment name
-        @assert: environment is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add environment by using organization name and evironment ID
-        @assert: environment is added
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Add environment by using organization ID and evironment ID
-        @assert: environment is added
-        @status: manual
-        """
-
-        pass
 
     @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
@@ -1790,60 +979,3 @@ class Org(BaseUI):
                                                value % subnet_name))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_2(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove subnet by using organization ID and subnet name
-        @assert: subnet is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_3(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove subnet by using organization name and subnet ID
-        @assert: subnet is added then removed
-        @status: manual
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_4(self, test_data):
-        """
-        @feature: Organizations
-        @test: Remove subnet by using organization ID and subnet ID
-        @assert: subnet is added then removed
-        @status: manual
-        """
-
-        pass
