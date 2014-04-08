@@ -28,30 +28,6 @@ class SyncPlan(Base):
     command_base = "sync-plan"
 
     @classmethod
-    def info(cls, organization_id, options=None):
-        """
-        Displays information for sync plan
-        """
-
-        cls.command_sub = "info"
-
-        if options is None:
-            options = {}
-
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        if len(result.stdout) == 1:
-            result.stdout = result.stdout[0]
-        # This should never happen but we're trying to be safe
-        elif len(result.stdout) > 1:
-            raise Exception("Info subcommand returned more than 1 result.")
-
-        return result
-
-    @classmethod
     def list(cls, organization_id, options=None):
         """
         Lists available sync plans.
