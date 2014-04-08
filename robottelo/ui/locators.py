@@ -401,7 +401,9 @@ common_locators = {
     # Katello Common Locators
     "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
     "create": (By.XPATH, "//button[contains(@ng-click,'Save')]"),
-    "save": (By.XPATH, "//button[contains(@ng-click,'save')]"),
+    "save": (
+        By.XPATH, ("//button[contains(@ng-click,'save')"
+                   "and not(contains(@class,'ng-hide'))]")),
     "cancel": (By.XPATH, "//button[contains(@ng-click,'Cancel')]"),
     "name": (By.ID, "name"),
     "label": (By.ID, "label"),
@@ -807,10 +809,10 @@ locators = {
     "repo.new_discover_name": (
         By.XPATH, "//input[@ng-model='repo.name']"),
     "repo.url_edit": (
-        By.XPATH, ("//form[@alch-edit-text='repository.feed']"
+        By.XPATH, ("//form[@alch-edit-text='repository.url']"
                    "//i[contains(@class,'icon-edit')]")),
     "repo.url_update": (
-        By.XPATH, "//form[@alch-edit-text='repository.feed']/div/input"),
+        By.XPATH, "//form[@alch-edit-text='repository.url']/div/input"),
     "repo.via_http_edit": (
         By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
                    "//i[contains(@class,'icon-edit')]")),
@@ -825,7 +827,14 @@ locators = {
     "repo.gpg_key": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
                    "//div/span")),
-
+    "repo.fetch_url": (
+        By.XPATH, ("//form[@alch-edit-text='repository.url']"
+                   "/div[@class='alch-edit']"
+                   "/div/span[contains(@class,'editable-value')]")),
+    "repo.fetch_gpgkey": (
+        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "/div[@class='alch-edit']/div/"
+                   "span[contains(@class,'editable-value')]")),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
