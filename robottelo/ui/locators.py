@@ -633,6 +633,9 @@ locators = {
     "users.lastname": (By.ID, "user_lastname"),
     "users.email": (By.ID, "user_mail"),
     "users.language": (By.ID, "user_locale"),
+    "users.selected_lang": (
+        By.XPATH, ("//select[@id='user_locale']"
+                   "/option[@selected='selected']")),
     "users.authorized_by": (By.ID, "user_auth_source_id"),
     "users.password": (By.ID, "user_password"),
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
