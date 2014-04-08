@@ -21,7 +21,7 @@ class TestRole(BaseCLI):
            @status: manual
         """
 
-        pass
+        self.fail(NOT_IMPLEMENTED)
 
     @bzbug('1046208')
     def test_create_role_permission_1(self):
@@ -32,4 +32,4 @@ class TestRole(BaseCLI):
            @status: manual
         """
 
-        pass
+        self.fail(NOT_IMPLEMENTED)
