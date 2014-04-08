@@ -23,7 +23,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -43,7 +42,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -63,7 +61,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -83,7 +80,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -103,7 +99,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -123,7 +118,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -143,7 +137,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -163,7 +156,6 @@ class TestSubnet(BaseAPI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

@@ -121,7 +121,7 @@ class Org(Base):
         Searches existing Organization from UI
         """
 
-        # latin1 and html requires double quotes for search, Bug: 1071253
+        # html requires double quotes for search, Bug: 1071253
         qname = "\"" + name + "\""
         strategy = locators["org.org_name"][0]
         value = locators["org.org_name"][1]

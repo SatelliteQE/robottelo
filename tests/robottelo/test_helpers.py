@@ -65,10 +65,6 @@ class GenerateStringTestCase(unittest.TestCase):
         """Tests if generate numeric string returns a unicode string"""
         self.assertIsInstance(generate_string('numeric', 8), unicode)
 
-    def test_latin1_return_type(self):
-        """Tests if generate latin1 string returns a unicode string"""
-        self.assertIsInstance(generate_string('latin1', 8), unicode)
-
     def test_utf8_return_type(self):
         """Tests if generate utf-8 string returns a unicode string"""
         self.assertIsInstance(generate_string('utf8', 8), unicode)

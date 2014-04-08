@@ -22,7 +22,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -43,7 +42,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -64,7 +62,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -85,7 +82,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -106,7 +102,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -127,7 +122,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -148,7 +142,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -169,7 +162,6 @@ class TestComputeresource(BaseAPI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

@@ -39,7 +39,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
@@ -79,8 +78,6 @@ class TestProduct(BaseCLI):
          'label': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15),
          'label': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15),
-         'label': generate_string('alpha', 15)},
         {'name': generate_string('utf8', 15),
          'label': generate_string('alphanumeric', 15)},
         {'name': generate_string('html', 15),
@@ -123,8 +120,6 @@ class TestProduct(BaseCLI):
          'description': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15),
          'description': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15),
-         'description': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15),
          'description': generate_string('utf8', 15)},
         {'name': generate_string('html', 15),
@@ -166,7 +161,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
@@ -209,7 +203,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
@@ -227,7 +220,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 300)},
         {'name': generate_string('alphanumeric', 300)},
         {'name': generate_string('numeric', 300)},
-        {'name': generate_string('latin1', 300)},
         {'name': generate_string('utf8', 300)},
         {'name': generate_string('html', 300)},
     )
@@ -248,8 +240,6 @@ class TestProduct(BaseCLI):
             )
 
     @data(
-        {'name': generate_string('latin1', 15),
-         'label': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15),
          'label': generate_string('utf8', 15)},
         {'name': generate_string('html', 15),
@@ -276,7 +266,6 @@ class TestProduct(BaseCLI):
         {'description': generate_string('alpha', 15)},
         {'description': generate_string('alphanumeric', 15)},
         {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
         {'description': generate_string('utf8', 15)},
         {'description': generate_string('html', 15)},
     )
@@ -333,7 +322,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
@@ -393,7 +381,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
@@ -485,7 +472,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
@@ -503,7 +489,6 @@ class TestProduct(BaseCLI):
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
         {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )

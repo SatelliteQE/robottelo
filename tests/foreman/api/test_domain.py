@@ -26,7 +26,6 @@ class TestDomain(BaseAPI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -51,7 +50,6 @@ class TestDomain(BaseAPI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -75,7 +73,6 @@ class TestDomain(BaseAPI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -99,7 +96,6 @@ class TestDomain(BaseAPI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -123,7 +119,6 @@ class TestDomain(BaseAPI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

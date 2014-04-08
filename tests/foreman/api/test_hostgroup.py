@@ -23,7 +23,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -44,7 +43,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -65,7 +63,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -86,7 +83,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -107,7 +103,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -128,7 +123,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -149,7 +143,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -170,7 +163,6 @@ class TestHostgroup(BaseAPI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
