@@ -127,7 +127,6 @@ class Repos(BaseUI):
         @Feature: Content Repos - Negative Create with same name
         @Test: Create Content Repos with long name input parameter
         @Assert: Repos is not created
-        @BZ: 1081059
         """
 
         locator = common_locators["common_haserror"]
@@ -145,7 +144,7 @@ class Repos(BaseUI):
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
-    def test_positive_update_0(self, repo_name):
+    def test_positive_update_1(self, repo_name):
         """
         @Feature: Content Repo - Positive Update
         @Test: Update Content Repo with repository url
@@ -170,7 +169,7 @@ class Repos(BaseUI):
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
-    def test_positive_update_1(self, repo_name):
+    def test_positive_update_2(self, repo_name):
         """
         @Feature: Content Repo - Positive Update
         @Test: Update Content Repo with gpg key
