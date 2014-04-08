@@ -387,7 +387,7 @@ def make_sync_plan(options=None):
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(SyncPlan, args, args['organization-id']))
+    args.update(create_object(SyncPlan, args))
 
     return args
 

@@ -406,7 +406,9 @@ common_locators = {
     # Katello Common Locators
     "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
     "create": (By.XPATH, "//button[contains(@ng-click,'Save')]"),
-    "save": (By.XPATH, "//button[contains(@ng-click,'save')]"),
+    "save": (
+        By.XPATH, ("//button[contains(@ng-click,'save')"
+                   "and not(contains(@class,'ng-hide'))]")),
     "cancel": (By.XPATH, "//button[contains(@ng-click,'Cancel')]"),
     "name": (By.ID, "name"),
     "label": (By.ID, "label"),
@@ -788,12 +790,37 @@ locators = {
                    "/../../td/input[contains(@ng-model,'repository')]")),
     "repo.select": (
         By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
+    "repo.repo_discover": (
+        By.XPATH, "//button[@ui-sref='products.discovery.scan']"),
     "repo.discover_url": (By.XPATH, "//input[@type='url']"),
+    "repo.discover_button": (By.XPATH, "//button[@type='submit']"),
+    "repo.discovered_url_checkbox": (
+        By.XPATH, ("//table[@alch-table='discoveryTable']"
+                   "//td[normalize-space(.)='%s']"
+                   "/../td/input[@type='checkbox']")),
+    "repo.cancel_discover": (
+        By.XPATH, "//button[@ng-show='discovery.pending']"),
+    "repo.create_selected": (
+        By.XPATH, "//button[@ng-click='setupSelected()']"),
+    "repo.create": (By.XPATH, "//button[@ng-click='createRepos()']"),
+    "repo.existing_product": (
+        By.XPATH, "//input[@type='radio' and @value='false']"),
+    "repo.select_exist_product": (
+        By.XPATH, "//select[@ng-model='createRepoChoices.existingProductId']"),
+    "repo.new_product": (
+        By.XPATH, "//input[@type='radio' and @value='true']"),
+    "repo.new_product_name": (
+        By.XPATH, "//input[@ng-model='createRepoChoices.product.name']"),
+    "repo.gpgkey_in_discover": (
+        By.XPATH,
+        "//select[@ng-model='createRepoChoices.product.gpg_key_id']"),
+    "repo.new_discover_name": (
+        By.XPATH, "//input[@ng-model='repo.name']"),
     "repo.url_edit": (
-        By.XPATH, ("//form[@alch-edit-text='repository.feed']"
+        By.XPATH, ("//form[@alch-edit-text='repository.url']"
                    "//i[contains(@class,'icon-edit')]")),
     "repo.url_update": (
-        By.XPATH, "//form[@alch-edit-text='repository.feed']/div/input"),
+        By.XPATH, "//form[@alch-edit-text='repository.url']/div/input"),
     "repo.via_http_edit": (
         By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
                    "//i[contains(@class,'icon-edit')]")),
@@ -808,7 +835,14 @@ locators = {
     "repo.gpg_key": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
                    "//div/span")),
-
+    "repo.fetch_url": (
+        By.XPATH, ("//form[@alch-edit-text='repository.url']"
+                   "/div[@class='alch-edit']"
+                   "/div/span[contains(@class,'editable-value')]")),
+    "repo.fetch_gpgkey": (
+        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "/div[@class='alch-edit']/div/"
+                   "span[contains(@class,'editable-value')]")),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
