@@ -41,7 +41,6 @@ class TestEnvironment(BaseAPI):
         generate_string('numeric', 256),
         generate_string('alphanumeric', 256),
         generate_string('utf8', 8),
-        generate_string('latin1', 8),
         generate_string('html', 8),
     )
     def test_negative_create(self, name):
@@ -63,7 +62,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -84,7 +82,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -105,7 +102,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -126,7 +122,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -147,7 +142,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -167,7 +161,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -187,7 +180,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -207,7 +199,6 @@ class TestEnvironment(BaseAPI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

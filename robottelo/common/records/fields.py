@@ -135,7 +135,6 @@ class StringField(Field):
         * alphanumeric: randomly generates alphanumeric strings
         * alpha: randomly generates alpha strings
         * numeric: randomly generates numeric strings
-        * latin1: randomly generates latin1 encoded strings
         * utf8: randomly generates utf8 encoded strings
         * html: randomly generates a piece of HTML which have the format
           <tag>random string</tag>. In this case the maxlen controls the len of
@@ -303,7 +302,7 @@ class BasicPositiveField(ChoiceField):
         super(ChoiceField, self).__init__(**kwargs)
         lst = [
             STR.alpha, STR.alphanumeric, STR.html,
-            STR.latin1, STR.numeric, STR.utf8]
+            STR.numeric, STR.utf8]
 
         if include:
             lst = include

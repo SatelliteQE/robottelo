@@ -17,8 +17,6 @@ class TestHostGroup(MetaCLI):
     factory_obj = HostGroup
 
     POSITIVE_UPDATE_DATA = (
-        ({'id': generate_string("latin1", 10)},
-         {'name': generate_string("latin1", 10)}),
         ({'id': generate_string("utf8", 10)},
          {'name': generate_string("utf8", 10)}),
         ({'id': generate_string("alpha", 10)},

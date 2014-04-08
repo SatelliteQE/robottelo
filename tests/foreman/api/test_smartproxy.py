@@ -22,7 +22,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -42,7 +41,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -62,7 +60,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -82,7 +79,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -100,7 +96,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -120,7 +115,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -140,7 +134,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -160,7 +153,6 @@ class TestSmartproxy(BaseAPI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

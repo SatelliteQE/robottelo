@@ -455,7 +455,7 @@ locators = {
     "org.proceed_to_edit": (
         By.XPATH,
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
-    # By.XPATH works also with latin1 and html chars, so removed By.LINK_TEXT
+    # By.XPATH works also with html chars, so removed By.LINK_TEXT
     "org.org_name": (
         By.XPATH,
         "//a[contains(@href,'organizations')]/span[contains(.,'%s')]"),

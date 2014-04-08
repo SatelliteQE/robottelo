@@ -30,7 +30,6 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': generate_string("latin1", 10)},
         {'name': generate_string("utf8", 10)},
         {'name': generate_string("alpha", 10)},
         {'name': generate_string("alphanumeric", 10)},
@@ -48,7 +47,6 @@ def negative_create_data():
         {'name': generate_string('numeric', 300)},
         {'name': generate_string('alphanumeric', 300)},
         {'name': generate_string('utf8', 300)},
-        {'name': generate_string('latin1', 300)},
         {'name': generate_string('html', 300)},
     )
 
@@ -355,7 +353,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
     """
@@ -376,7 +373,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key text is valid text from a valid gpg key file
     """
@@ -399,7 +395,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         delete using a negative gpg key ID
@@ -422,7 +417,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key text is valid text from a valid gpg key file
         delete using a negative gpg key ID
@@ -447,7 +441,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
     """
@@ -468,7 +461,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -489,7 +481,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key text is valid text from a valid gpg key file
 """
@@ -510,7 +501,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key text is valid text from a valid gpg key file
 """
@@ -534,7 +524,6 @@ class TestGPGKey(BaseCLI):
         update name is numeric 300 characters long
         update name is alphanumeric 300 characters long
         update name is utf-8 300 characters long
-        update name is latin1 300 characters long
         update name is html 300 characters long
         gpg key file is valid always
 """
@@ -556,7 +545,6 @@ class TestGPGKey(BaseCLI):
         update name is numeric 300 characters long
         update name is alphanumeric 300 characters long
         update name is utf-8 300 characters long
-        update name is latin1 300 characters long
         update name is html 300 characters long
         gpg key text is valid text from a valid gpg key file
 """
@@ -579,7 +567,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """
@@ -600,7 +587,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """
@@ -621,7 +607,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """
@@ -643,7 +628,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """
@@ -665,7 +649,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """
@@ -687,7 +670,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """
@@ -710,7 +692,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -732,7 +713,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -754,7 +734,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -777,7 +756,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -800,7 +778,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -823,7 +800,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -846,7 +822,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -869,7 +844,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -892,7 +866,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -915,7 +888,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -938,7 +910,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -961,7 +932,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -984,7 +954,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1007,7 +976,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1030,7 +998,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1054,7 +1021,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1076,7 +1042,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1098,7 +1063,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1120,7 +1084,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1142,7 +1105,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1164,7 +1126,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1186,7 +1147,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1208,7 +1168,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1230,7 +1189,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1253,7 +1211,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1276,7 +1233,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1299,7 +1255,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1322,7 +1277,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1345,7 +1299,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1368,7 +1321,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1391,7 +1343,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1414,7 +1365,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1437,7 +1387,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1460,7 +1409,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1483,7 +1431,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1506,7 +1453,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1532,7 +1478,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1553,7 +1498,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1574,7 +1518,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1597,7 +1540,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1617,7 +1559,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """
@@ -1637,7 +1578,6 @@ class TestGPGKey(BaseCLI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """

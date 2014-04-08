@@ -327,7 +327,6 @@ class TestOrganization(BaseAPI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -347,7 +346,6 @@ class TestOrganization(BaseAPI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -368,7 +366,6 @@ class TestOrganization(BaseAPI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -389,7 +386,6 @@ class TestOrganization(BaseAPI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -410,7 +406,6 @@ class TestOrganization(BaseAPI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

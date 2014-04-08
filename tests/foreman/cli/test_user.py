@@ -96,8 +96,7 @@ class User(BaseCLI):
 
     # CRUD
 
-    @data({'login': generate_string("latin1", 10)},
-          {'login': generate_string("utf8", 10)},
+    @data({'login': generate_string("utf8", 10)},
           {'login': generate_string("alpha", 10)},
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
@@ -114,8 +113,7 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'firstname': generate_string("latin1", 10)},
-          {'firstname': generate_string("utf8", 10)},
+    @data({'firstname': generate_string("utf8", 10)},
           {'firstname': generate_string("alpha", 10)},
           {'firstname': generate_string("alphanumeric", 10)},
           {'firstname': generate_string("numeric", 10)},
@@ -132,8 +130,7 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'lastname': generate_string("latin1", 10)},
-          {'lastname': generate_string("utf8", 10)},
+    @data({'lastname': generate_string("utf8", 10)},
           {'lastname': generate_string("alpha", 10)},
           {'lastname': generate_string("alphanumeric", 10)},
           {'lastname': generate_string("numeric", 10)},
@@ -150,9 +147,7 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'mail': generate_string("latin1", 10) +
-           "@somemail.com"},
-          {'mail': generate_string("utf8", 10) +
+    @data({'mail': generate_string("utf8", 10) +
            "@somemail.com"},
           {'mail': generate_string("alpha", 10) + "@somemail.com"},
           {'mail': generate_string("alphanumeric", 10) + "@somemail.com"},
@@ -171,8 +166,7 @@ class User(BaseCLI):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'password': generate_string("latin1", 10)},
-          {'password': generate_string("utf8", 10)},
+    @data({'password': generate_string("utf8", 10)},
           {'password': generate_string("alpha", 10)},
           {'password': generate_string("alphanumeric", 10)},
           {'password': generate_string("numeric", 10)},
@@ -576,8 +570,7 @@ class User(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @data({'firstname': generate_string("latin1", 10)},
-          {'firstname': generate_string("utf8", 10)},
+    @data({'firstname': generate_string("utf8", 10)},
           {'firstname': generate_string("alpha", 10)},
           {'firstname': generate_string("alphanumeric", 10)},
           {'firstname': generate_string("numeric", 10)},)
@@ -616,8 +609,7 @@ class User(BaseCLI):
             "User first name was not updated"
         )
 
-    @data({'lastname': generate_string("latin1", 10)},
-          {'lastname': generate_string("utf8", 10)},
+    @data({'lastname': generate_string("utf8", 10)},
           {'lastname': generate_string("alpha", 10)},
           {'lastname': generate_string("alphanumeric", 10)},
           {'lastname': generate_string("numeric", 10)},)
@@ -658,8 +650,7 @@ class User(BaseCLI):
             "User last name was not updated"
         )
 
-    @data({'mail': generate_string("latin1", 10)},
-          {'mail': generate_string("utf8", 10)},
+    @data({'mail': generate_string("utf8", 10)},
           {'mail': generate_string("alpha", 10)},
           {'mail': generate_string("alphanumeric", 10)},
           {'mail': generate_string("numeric", 10)},)
@@ -1087,8 +1078,7 @@ class User(BaseCLI):
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
     @bzbug('1079649')
-    @data({'login': generate_string("latin1", 10)},
-          {'login': generate_string("utf8", 10)},
+    @data({'login': generate_string("utf8", 10)},
           {'login': generate_string("alpha", 10)},
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
@@ -1114,8 +1104,7 @@ class User(BaseCLI):
         self.assertGreater(len(result.stderr), 0)
 
     @bzbug('1079649')
-    @data({'login': generate_string("latin1", 10)},
-          {'login': generate_string("utf8", 10)},
+    @data({'login': generate_string("utf8", 10)},
           {'login': generate_string("alpha", 10)},
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
@@ -1161,7 +1150,6 @@ class User(BaseCLI):
     @data({'login': generate_string("alpha", 10)},
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
-          {'login': generate_string("latin1", 10)},
           {'login': generate_string("utf8", 10)},
           {'login': generate_string("alphanumeric", 100)})
     def test_list_user_1(self, test_data):
@@ -1186,8 +1174,7 @@ class User(BaseCLI):
             'id': user['id'],
             'email': user['mail']}, result.stdout[0])
 
-    @data({'firstname': generate_string("latin1", 10)},
-          {'firstname': generate_string("utf8", 10)},
+    @data({'firstname': generate_string("utf8", 10)},
           {'firstname': generate_string("alpha", 10)},
           {'firstname': generate_string("alphanumeric", 10)},
           {'firstname': generate_string("numeric", 10)},
@@ -1214,8 +1201,7 @@ class User(BaseCLI):
             'id': user['id'],
             'email': user['mail']} in result.stdout)
 
-    @data({'lastname': generate_string("latin1", 10)},
-          {'lastname': generate_string("utf8", 10)},
+    @data({'lastname': generate_string("utf8", 10)},
           {'lastname': generate_string("alpha", 10)},
           {'lastname': generate_string("alphanumeric", 10)},
           {'lastname': generate_string("numeric", 10)},
@@ -1242,8 +1228,7 @@ class User(BaseCLI):
             'id': user['id'],
             'email': user['mail']} in result.stdout)
 
-    @data({'mail': generate_string("latin1", 10) + "@somemail.com"},
-          {'mail': generate_string("utf8", 10) + "@somemail.com"},
+    @data({'mail': generate_string("utf8", 10) + "@somemail.com"},
           {'mail': generate_string("alpha", 10) + "@somemail.com"},
           {'mail': generate_string("alphanumeric", 10) + "@somemail.com"},
           {'mail': generate_string("numeric", 10) + "@somemail.com"},

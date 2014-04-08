@@ -72,7 +72,6 @@ class TestRepository(BaseCLI):
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
         {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
         {u'name': generate_string('utf8', 15)},
         {u'name': generate_string('html', 15)},
     )
@@ -96,7 +95,6 @@ class TestRepository(BaseCLI):
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
         {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
         {u'name': generate_string('utf8', 15)},
         {u'name': generate_string('html', 15)},
     )
@@ -200,7 +198,6 @@ class TestRepository(BaseCLI):
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
         {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
         {u'name': generate_string('utf8', 15)},
         {u'name': generate_string('html', 15)},
     )
@@ -267,7 +264,6 @@ class TestRepository(BaseCLI):
         {u'name': generate_string('alpha', 300)},
         {u'name': generate_string('alphanumeric', 300)},
         {u'name': generate_string('numeric', 300)},
-        {u'name': generate_string('latin1', 300)},
         {u'name': generate_string('utf8', 300)},
         {u'name': generate_string('html', 300)},
     )
@@ -388,7 +384,6 @@ class TestRepository(BaseCLI):
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
         {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
         {u'name': generate_string('utf8', 15)},
         {u'name': generate_string('html', 15)},
     )

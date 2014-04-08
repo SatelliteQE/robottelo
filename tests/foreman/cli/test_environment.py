@@ -35,8 +35,6 @@ class TestEnvironment(MetaCLI):
         ({'name': generate_string("alphanumeric", 10)},
          {'new-name': generate_string("alphanumeric", 300)}),
         ({'name': generate_string("alphanumeric", 10)},
-         {'new-name': generate_string("latin1", 10)}),
-        ({'name': generate_string("alphanumeric", 10)},
          {'new-name': generate_string("utf8", 10)}),
         ({'name': generate_string("alphanumeric", 10)},
          {'new-name': generate_string("html", 6)}),

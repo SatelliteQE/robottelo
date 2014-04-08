@@ -30,8 +30,7 @@ class TestMedium(BaseCLI):
     factory = make_medium
     factory_obj = Medium
 
-    @data({'name': generate_string("latin1", 10)},
-          {'name': generate_string("utf8", 10)},
+    @data({'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
           {'name': generate_string("alphanumeric", 10)},
           {'name': generate_string("numeric", 10)},
@@ -56,8 +55,7 @@ class TestMedium(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @data({'name': generate_string("latin1", 10)},
-          {'name': generate_string("utf8", 10)},
+    @data({'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
           {'name': generate_string("alphanumeric", 10)},
           {'name': generate_string("numeric", 10)},

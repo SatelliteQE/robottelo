@@ -71,8 +71,6 @@ Field that generates a random string with a max length of ``max`` option, defaul
 
 * numeric: generates a random numeric string
 
-* latin1: generates a random latin1 encoded string
-
 * utf8: generates a random utf8 encoded string
 
 * html: generates a random piece of html code

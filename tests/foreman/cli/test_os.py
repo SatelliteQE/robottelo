@@ -13,7 +13,6 @@ from tests.foreman.cli.basecli import BaseCLI
 
 
 POSITIVE_CREATE_DATA = (
-    {'name': generate_string("latin1", 10)},
     {'name': generate_string("utf8", 10)},
     {'name': generate_string("alpha", 10)},
     {'name': generate_string("alphanumeric", 10)},
@@ -22,7 +21,6 @@ POSITIVE_CREATE_DATA = (
 )
 
 NEGATIVE_CREATE_DATA = (
-    {'name': generate_string("latin1", 300)},
     {'name': generate_string("utf8", 300)},
     {'name': generate_string("alpha", 300)},
     {'name': generate_string("alphanumeric", 300)},
@@ -32,8 +30,6 @@ NEGATIVE_CREATE_DATA = (
 )
 
 POSITIVE_UPDATE_DATA = (
-    ({'name': generate_string("latin1", 10)},
-     {'name': generate_string("latin1", 10)}),
     ({'name': generate_string("utf8", 10)},
      {'name': generate_string("utf8", 10)}),
     ({'name': generate_string("alpha", 10)},
@@ -47,8 +43,6 @@ POSITIVE_UPDATE_DATA = (
 )
 
 NEGATIVE_UPDATE_DATA = (
-    ({'name': generate_string("latin1", 10)},
-     {'name': generate_string("latin1", 300)}),
     ({'name': generate_string("utf8", 10)},
      {'name': generate_string("utf8", 300)}),
     ({'name': generate_string("alpha", 10)},
@@ -64,7 +58,6 @@ NEGATIVE_UPDATE_DATA = (
 )
 
 POSITIVE_DELETE_DATA = (
-    {'name': generate_string("latin1", 10)},
     {'name': generate_string("utf8", 10)},
     {'name': generate_string("alpha", 10)},
     {'name': generate_string("alphanumeric", 10)},

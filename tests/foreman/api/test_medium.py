@@ -22,7 +22,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -42,7 +41,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -62,7 +60,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -82,7 +79,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -102,7 +98,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -122,7 +117,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -142,7 +136,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -162,7 +155,6 @@ class TestMedium(BaseAPI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     @unittest.skip(NOT_IMPLEMENTED)

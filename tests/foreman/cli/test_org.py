@@ -26,7 +26,6 @@ def positive_create_data_1():
     """Random data for positive creation"""
 
     return (
-        {'name': generate_string("latin1", 10)},
         {'name': generate_string("utf8", 10)},
         {'name': generate_string("alpha", 10)},
         {'name': generate_string("alphanumeric", 10)},
@@ -58,8 +57,6 @@ def positive_name_label_data():
     """Random data for Label tests"""
 
     return (
-        {'name': generate_string("latin1", 10),
-         'label': generate_string("alpha", 10)},
         {'name': generate_string("utf8", 10),
          'label': generate_string("alpha", 10)},
         {'name': generate_string("alpha", 10),
@@ -77,8 +74,6 @@ def positive_name_desc_data():
     """Random data for Descriptions tests"""
 
     return (
-        {'name': generate_string("latin1", 10),
-         'description': generate_string("latin1", 10)},
         {'name': generate_string("utf8", 10),
          'description': generate_string("utf8", 10)},
         {'name': generate_string("alpha", 10),
@@ -807,8 +802,6 @@ class TestOrg(BaseCLI):
           {'label': generate_string('alpha', 10),
            'name': generate_string('utf8', 300)},
           {'label': generate_string('alpha', 10),
-           'name': generate_string('latin1', 300)},
-          {'label': generate_string('alpha', 10),
            'name': generate_string('html', 300)})
     def test_negative_create_0(self, test_data):
         """
@@ -913,8 +906,7 @@ class TestOrg(BaseCLI):
     # Positive Update
 
     @bzbug('1076541')
-    @data({'name': generate_string("latin1", 10)},
-          {'name': generate_string("utf8", 10)},
+    @data({'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
           {'name': generate_string("alphanumeric", 10)},
           {'name': generate_string("numeric", 10)},
@@ -951,8 +943,7 @@ class TestOrg(BaseCLI):
             "Org name was not updated"
         )
 
-    @data({'description': generate_string("latin1", 10)},
-          {'description': generate_string("utf8", 10)},
+    @data({'description': generate_string("utf8", 10)},
           {'description': generate_string("alpha", 10)},
           {'description': generate_string("alphanumeric", 10)},
           {'description': generate_string("numeric", 10)},
@@ -990,9 +981,7 @@ class TestOrg(BaseCLI):
         )
 
     @bzbug('1076541')
-    @data({'description': generate_string("latin1", 10),
-           'name': generate_string("latin1", 10)},
-          {'description': generate_string("utf8", 10),
+    @data({'description': generate_string("utf8", 10),
            'name': generate_string("utf8", 10)},
           {'description': generate_string("alpha", 10),
            'name': generate_string("alpha", 10)},
@@ -1049,7 +1038,6 @@ class TestOrg(BaseCLI):
           {'name': generate_string('numeric', 300)},
           {'name': generate_string('alphanumeric', 300)},
           {'name': generate_string('utf8', 300)},
-          {'name': generate_string('latin1', 300)},
           {'name': generate_string('html', 300)})
     def test_negative_update_1(self, test_data):
         """
@@ -1078,7 +1066,6 @@ class TestOrg(BaseCLI):
           {'description': generate_string('numeric', 3000)},
           {'description': generate_string('alphanumeric', 3000)},
           {'description': generate_string('utf8', 3000)},
-          {'description': generate_string('latin1', 3000)},
           {'description': generate_string('html', 3000)})
     def test_negative_update_3(self, test_data):
         """
@@ -1110,7 +1097,6 @@ class TestOrg(BaseCLI):
         name, label and description are is numeric
         name, label and description are is alphanumeric
         name, label and description are is utf-8
-        name, label and description are is latin1
         name, label and description are is html
     """)
     def test_list_key_1(self, test_data):
@@ -1129,7 +1115,6 @@ class TestOrg(BaseCLI):
         name, label and description are is numeric
         name, label and description are is alphanumeric
         name, label and description are is utf-8
-        name, label and description are is latin1
         name, label and description are is html
     """)
     def test_search_key_1(self, test_data):
@@ -1148,7 +1133,6 @@ class TestOrg(BaseCLI):
         name, label and description are is numeric
         name, label and description are is alphanumeric
         name, label and description are is utf-8
-        name, label and description are is latin1
         name, label and description are is html
     """)
     def test_info_key_1(self, test_data):
@@ -1170,7 +1154,6 @@ class TestOrg(BaseCLI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     def test_remove_domain_1(self, test_data):
@@ -1190,7 +1173,6 @@ class TestOrg(BaseCLI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     def test_remove_domain_2(self, test_data):
@@ -1210,7 +1192,6 @@ class TestOrg(BaseCLI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     def test_remove_domain_3(self, test_data):
@@ -1230,7 +1211,6 @@ class TestOrg(BaseCLI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     def test_remove_domain_4(self, test_data):
@@ -1250,7 +1230,6 @@ class TestOrg(BaseCLI):
         user name is numeric
         user name is alpha_numeric
         user name is utf-8
-        user name is latin1
         user name is html
     """)
     def test_remove_user_1(self, test_data):
@@ -1270,7 +1249,6 @@ class TestOrg(BaseCLI):
         user name is numeric
         user name is alpha_numeric
         user name is utf-8
-        user name is latin1
         user name is html
     """)
     def test_remove_user_2(self, test_data):
@@ -1290,7 +1268,6 @@ class TestOrg(BaseCLI):
         user name is numeric and admin
         user name is alpha_numeric and admin
         user name is utf-8 and admin
-        user name is latin1 and admin
         user name is html and admin
     """)
     def test_remove_user_3(self, test_data):
@@ -1310,7 +1287,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_remove_hostgroup_1(self, test_data):
@@ -1330,7 +1306,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_remove_hostgroup_2(self, test_data):
@@ -1350,7 +1325,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_remove_hostgroup_3(self, test_data):
@@ -1370,7 +1344,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_remove_hostgroup_4(self, test_data):
@@ -1390,7 +1363,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_add_smartproxy_1(self, test_data):
@@ -1409,7 +1381,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_add_smartproxy_2(self, test_data):
@@ -1428,7 +1399,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_add_smartproxy_3(self, test_data):
@@ -1447,7 +1417,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_add_smartproxy_4(self, test_data):
@@ -1466,7 +1435,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_add_subnet_1(self, test_data):
@@ -1485,7 +1453,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_add_subnet_2(self, test_data):
@@ -1504,7 +1471,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_add_subnet_3(self, test_data):
@@ -1523,7 +1489,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_add_subnet_4(self, test_data):
@@ -1542,7 +1507,6 @@ class TestOrg(BaseCLI):
         domain name is numeric
         domain name is alph_numeric
         domain name is utf-8
-        domain name is latin1
         domain name is html
     """)
     def test_add_domain_1(self, test_data):
@@ -1561,7 +1525,6 @@ class TestOrg(BaseCLI):
         user name is numeric
         user name is alpha_numeric
         user name is utf-8
-        user name is latin1
         user name is html
     """)
     def test_add_user_1(self, test_data):
@@ -1581,7 +1544,6 @@ class TestOrg(BaseCLI):
         user name is numeric
         user name is alpha_numeric
         user name is utf-8
-        user name is latin1
         user name is html
     """)
     def test_add_user_2(self, test_data):
@@ -1601,7 +1563,6 @@ class TestOrg(BaseCLI):
         user name is numeric and an admin
         user name is alpha_numeric and an admin
         user name is utf-8 and an admin
-        user name is latin1 and an admin
         user name is html and an admin
     """)
     def test_add_user_3(self, test_data):
@@ -1620,7 +1581,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_add_hostgroup_1(self, test_data):
@@ -1640,7 +1600,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_add_hostgroup_2(self, test_data):
@@ -1660,7 +1619,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_add_hostgroup_3(self, test_data):
@@ -1680,7 +1638,6 @@ class TestOrg(BaseCLI):
         hostgroup name is numeric
         hostgroup name is alpha_numeric
         hostgroup name is utf-8
-        hostgroup name is latin1
         hostgroup name is html
     """)
     def test_add_hostgroup_4(self, test_data):
@@ -1700,7 +1657,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_remove_computeresource_1(self, test_data):
@@ -1720,7 +1676,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_remove_computeresource_2(self, test_data):
@@ -1740,7 +1695,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_remove_computeresource_3(self, test_data):
@@ -1760,7 +1714,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_remove_computeresource_4(self, test_data):
@@ -1780,7 +1733,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     def test_remove_medium_1(self, test_data):
@@ -1799,7 +1751,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     def test_remove_medium_2(self, test_data):
@@ -1818,7 +1769,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     def test_remove_medium_3(self, test_data):
@@ -1837,7 +1787,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
         """)
     def test_remove_medium_4(self, test_data):
@@ -1856,7 +1805,6 @@ class TestOrg(BaseCLI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     def test_remove_configtemplate_1(self, test_data):
@@ -1875,7 +1823,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_remove_environment_1(self, test_data):
@@ -1895,7 +1842,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_remove_environment_2(self, test_data):
@@ -1915,7 +1861,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_remove_environment_3(self, test_data):
@@ -1935,7 +1880,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_remove_environment_4(self, test_data):
@@ -1955,7 +1899,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_remove_smartproxy_1(self, test_data):
@@ -1974,7 +1917,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_remove_smartproxy_2(self, test_data):
@@ -1993,7 +1935,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_remove_smartproxy_3(self, test_data):
@@ -2012,7 +1953,6 @@ class TestOrg(BaseCLI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_remove_smartproxy_4(self, test_data):
@@ -2031,7 +1971,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_add_computeresource_1(self, test_data):
@@ -2051,7 +1990,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_add_computeresource_2(self, test_data):
@@ -2071,7 +2009,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_add_computeresource_3(self, test_data):
@@ -2091,7 +2028,6 @@ class TestOrg(BaseCLI):
         computeresource is numeric
         computeresource is alpha_numeric
         computeresource is utf-8
-        computeresource is latin1
         computeresource is html
     """)
     def test_add_computeresource_4(self, test_data):
@@ -2111,7 +2047,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     def test_add_medium_1(self, test_data):
@@ -2130,7 +2065,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     def test_add_medium_2(self, test_data):
@@ -2149,7 +2083,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     def test_add_medium_3(self, test_data):
@@ -2168,7 +2101,6 @@ class TestOrg(BaseCLI):
         medium name is numeric
         medium name is alpha_numeric
         medium name is utf-8
-        medium name is latin1
         medium name is html
     """)
     def test_add_medium_4(self, test_data):
@@ -2187,7 +2119,6 @@ class TestOrg(BaseCLI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     def test_add_configtemplate_1(self, test_data):
@@ -2207,7 +2138,6 @@ class TestOrg(BaseCLI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     def test_add_configtemplate_2(self, test_data):
@@ -2227,7 +2157,6 @@ class TestOrg(BaseCLI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     def test_add_configtemplate_3(self, test_data):
@@ -2247,7 +2176,6 @@ class TestOrg(BaseCLI):
         configtemplate name is numeric
         configtemplate name is alpha_numeric
         configtemplate name is utf-8
-        configtemplate name is latin1
         configtemplate name  is html
     """)
     def test_add_configtemplate_4(self, test_data):
@@ -2267,7 +2195,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_add_environment_1(self, test_data):
@@ -2286,7 +2213,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_add_environment_2(self, test_data):
@@ -2305,7 +2231,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_add_environment_3(self, test_data):
@@ -2324,7 +2249,6 @@ class TestOrg(BaseCLI):
         environment name is numeric
         environment name is alpha_numeric
         environment name is utf-8
-        environment name is latin1
         environment name  is html
     """)
     def test_add_environment_4(self, test_data):
@@ -2343,7 +2267,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_remove_subnet_1(self, test_data):
@@ -2362,7 +2285,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_remove_subnet_2(self, test_data):
@@ -2381,7 +2303,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_remove_subnet_3(self, test_data):
@@ -2400,7 +2321,6 @@ class TestOrg(BaseCLI):
         subnet name is numeric
         subnet name is alpha_numeric
         subnet name is utf-8
-        subnet name is latin1
         subnet name  is html
     """)
     def test_remove_subnet_4(self, test_data):

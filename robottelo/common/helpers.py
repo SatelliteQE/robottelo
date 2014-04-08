@@ -75,7 +75,6 @@ def valid_data_list():
         generate_string("numeric", 8),
         generate_string("alphanumeric", 300),
         generate_string("utf8", 8),
-        generate_string("latin1", 8),
         generate_string("html", 8)
     ]
 
@@ -92,7 +91,6 @@ def invalid_names_list():
         generate_string("numeric", 300),
         generate_string("alphanumeric", 300),
         generate_string("utf8", 300),
-        generate_string("latin1", 300),
         generate_string("html", 300),
         generate_name(256),
         u' %s' % generate_name(),
@@ -139,7 +137,6 @@ class STR:
     alpha = "alpha"
     numeric = "numeric"
     html = "html"
-    latin1 = "latin1"
     utf8 = "utf8"
 
 
@@ -175,20 +172,6 @@ def generate_string(str_type, length):
         output_string = u''.join(
             random.choice(string.digits) for i in range(length)
         )
-    elif str_type == "latin1":
-        range0 = range1 = range2 = []
-        range0 = ['00C0', '00D6']
-        range1 = ['00D8', '00F6']
-        range2 = ['00F8', '00FF']
-        output_array = []
-        for i in range(int(range0[0], 16), int(range0[1], 16)):
-            output_array.append(i)
-        for i in range(int(range1[0], 16), int(range1[1], 16)):
-            output_array.append(i)
-        for i in range(int(range2[0], 16), int(range2[1], 16)):
-            output_array.append(i)
-        output_string = u''.join(
-            unichr(random.choice(output_array)) for x in xrange(length))
     elif str_type == "utf8":
         cjk_range = []
         cjk_range = ['4E00', '9FCC']
@@ -202,9 +185,8 @@ def generate_string(str_type, length):
         output_string = u'<%s>%s</%s>' % (
             html_tag, generate_string("alpha", length), html_tag)
     else:
-        raise Exception(
-            'Unexpected output type, valid types are \"alpha\", \
-            \"alphanumeric\", \"html\", \"latin1\", \"numeric\" or \"utf8\".')
+        raise Exception('Unexpected output type, valid types are "alpha", '
+                        '"alphanumeric", "html", "numeric" or "utf8".')
     return unicode(output_string)
 
 
@@ -216,7 +198,6 @@ def generate_strings_list(len1=8):
                  STR.numeric,
                  STR.alphanumeric,
                  STR.html,
-                 STR.latin1,
                  STR.utf8]
     str_list = []
     for str_type in str_types:

@@ -444,7 +444,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
         """)
@@ -533,7 +532,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -663,7 +661,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -766,7 +763,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -894,7 +890,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -995,7 +990,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1113,7 +1107,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1204,7 +1197,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1336,7 +1328,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1440,7 +1431,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1567,7 +1557,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1667,7 +1656,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1693,7 +1681,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1714,7 +1701,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1735,7 +1721,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1758,7 +1743,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1778,7 +1762,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)
@@ -1798,7 +1781,6 @@ class GPGKey(BaseUI):
         name is numeric
         name is alphanumeric
         name is utf-8
-        name is latin1
         name is html
         gpg key file is valid always
 """)

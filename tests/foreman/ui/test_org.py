@@ -81,9 +81,6 @@ class Org(BaseUI):
            'name': generate_string('utf8', 10),
            'desc': generate_string('utf8', 10)},
           {'label': generate_string('alpha', 10),
-           'name': generate_string('latin1', 20),
-           'desc': generate_string('latin1', 10)},
-          {'label': generate_string('alpha', 10),
            'name': generate_string('html', 20),
            'desc': generate_string('html', 10)})
     def test_positive_create_2(self, test_data):
@@ -168,8 +165,6 @@ class Org(BaseUI):
            'desc': generate_string('alphanumeric', 10)},
           {'name': generate_string('utf8', 10),
            'desc': generate_string('utf8', 10)},
-          {'name': generate_string('latin1', 20),
-           'desc': generate_string('latin1', 10)},
           {'name': generate_string('html', 20),
            'desc': generate_string('html', 10)})
     def test_positive_create_5(self, test_data):
@@ -461,7 +456,6 @@ class Org(BaseUI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_add_smartproxy_1(self, test_data):
@@ -789,7 +783,6 @@ class Org(BaseUI):
         smartproxy name is numeric
         smartproxy name is alpha_numeric
         smartproxy name  is utf-8
-        smartproxy name is latin1
         smartproxy name is html
     """)
     def test_remove_smartproxy_1(self, test_data):
