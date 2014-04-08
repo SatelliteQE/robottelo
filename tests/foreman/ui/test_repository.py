@@ -163,6 +163,11 @@ class Repos(BaseUI):
         self.assertIsNotNone(self.products.search(prd_name))
         self.repository.create(repo_name, product=prd_name, url=repo_url)
         self.assertIsNotNone(self.repository.search(repo_name))
+        self.repository.search(repo_name).click()
+        url_text = self.repository.wait_until_element(locator).text
+        self.assertEqual(url_text, repo_url)
+        self.navigator.go_to_products()
+        self.products.search(prd_name).click()
         self.repository.update(repo_name, new_url=new_repo_url)
         url_text = self.repository.wait_until_element(locator).text
         self.assertEqual(url_text, new_repo_url)
@@ -197,9 +202,14 @@ class Repos(BaseUI):
         self.repository.create(repo_name, product=prd_name, url=repo_url,
                                gpg_key=gpgkey_name1)
         self.assertIsNotNone(self.repository.search(repo_name))
+        self.repository.search(repo_name).click()
+        gpgkey_text1 = self.repository.wait_until_element(locator).text
+        self.assertEqual(gpgkey_text1, gpgkey_name1)
+        self.navigator.go_to_products()
+        self.products.search(prd_name).click()
         self.repository.update(repo_name, new_gpg_key=gpgkey_name2)
-        gpgkey_text = self.repository.wait_until_element(locator).text
-        self.assertEqual(gpgkey_text, gpgkey_name2)
+        gpgkey_text2 = self.repository.wait_until_element(locator).text
+        self.assertEqual(gpgkey_text2, gpgkey_name2)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())

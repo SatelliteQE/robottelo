@@ -40,14 +40,16 @@ class Repos(Base):
                 self.find_element(locators["repo.via_http"]).click()
             self.find_element(common_locators["create"]).click()
             self.wait_for_ajax()
+        else:
+            raise Exception("Unable to find the product '%s':" % name)
 
     def update(self, name, new_url=None, new_gpg_key=None, http=False):
         """
         Updates repositories from UI
         """
-        prd_element = self.search(name)
-        if prd_element:
-            prd_element.click()
+        repo_element = self.search(name)
+        if repo_element:
+            repo_element.click()
             self.wait_for_ajax()
             if new_url:
                 self.wait_until_element(locators["repo.url_edit"]).click()
@@ -65,6 +67,9 @@ class Repos(Base):
                 self.wait_until_element(locators["repo.via_http_update"]).\
                     click()
                 self.find_element(common_locators["save"]).click()
+        else:
+            raise Exception(
+                "Unable to find the repository '%s' for update." % name)
 
     def delete(self, repo, really=True):
         """
