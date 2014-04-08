@@ -13,30 +13,30 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
-    
+
 
 class TestRole(BaseCLI):
 
-      @bzbug('1046206')
-      @unittest.skip(NOT_IMPLEMENTED)
-      def test_positive_create_role_1(self):
-          """
+    @bzbug('1046206')
+    @unittest.skip(NOT_IMPLEMENTED)
+    def test_positive_create_role_1(self):
+        """
            @test: Create new roles and assign to the custom user
            @feature: Roles
            @assert: Assert creation of roles
            @status: manual
-          """
+        """
 
-          pass
+        pass
 
-      @bzbug('1046208')
-      @unittest.skip(NOT_IMPLEMENTED)
-      def test_create_role_permission_1(self):
-          """
+    @bzbug('1046208')
+    @unittest.skip(NOT_IMPLEMENTED)
+    def test_create_role_permission_1(self):
+        """
            @test: Create new roles Use different set of permission
            @feature: Roles
            @assert: Assert creation of roles with set of permission
            @status: manual
-          """
+        """
 
-          pass
+        pass
