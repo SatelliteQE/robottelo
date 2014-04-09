@@ -337,7 +337,18 @@ tab_locators = {
     # Third level UI
     "contentviews.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
-}
+
+    # Sync Plans
+    # Third level UI
+    "sp.tab_details": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "sp.tab_products": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'products')]"),
+    # Fourth level UI
+    "sp.list_prd": (
+        By.XPATH, "//a[contains(@ui-sref,'list')]/span[@class='ng-scope']"),
+    "sp.add_prd": (
+        By.XPATH, "//a[contains(@ui-sref,'add')]/span[@class='ng-scope']")}
 
 common_locators = {
 
@@ -893,7 +904,7 @@ locators = {
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
         /select"),
 
-    # Sync Plans
+    # Sync Status
     "sync.prd_expander": (
         By.XPATH, "//span[@class='expander']/../../td[contains(.,'%s')]"),
     "sync.repo_checkbox": (
@@ -909,6 +920,45 @@ locators = {
     "sync.verarch_expander": (
         By.XPATH, ("//tr[contains(@class,'collapsed')]/td[contains(.,'%s')]"
                    "/span[@class='expander']")),
+
+    # Sync Plans
+    "sp.new": (By.XPATH, "//button[@ui-sref='sync-plans.new']"),
+    "sp.select": (
+        By.XPATH,
+        "//a[contains(@href,'info') and contains(.,'%s')]"),
+    "sp.prd_select": (
+        By.XPATH, "//a[contains(@ui-sref,'info') and contains(.,'%s')]"),
+    "sp.interval": (By.ID, "interval"),
+    "sp.start_date": (By.ID, "startDate"),
+    "sp.start_hour": (By.XPATH, "//input[@ng-model='hours']"),
+    "sp.start_minutes": (By.XPATH, "//input[@ng-model='minutes']"),
+    "sp.remove": (
+        By.XPATH, ("//script[contains(@alch-modal,'removeSyncPlan')]"
+                   "/../button[contains(@ng-click,'openModal')]")),
+    "sp.name_edit": (
+        By.XPATH,
+        ("//form[@alch-edit-text='syncPlan.name']"
+         "//i[contains(@class,'icon-edit')]")),
+    "sp.name_update": (
+        By.XPATH,
+        ("//form[@alch-edit-text='syncPlan.name']"
+         "/div/input")),
+    "sp.desc_edit": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='syncPlan.description']"
+         "//i[contains(@class,'icon-edit')]")),
+    "sp.desc_update": (
+        By.XPATH,
+        ("//form[@alch-edit-textarea='syncPlan.description']"
+         "/div/input")),
+    "sp.sync_interval_edit": (
+        By.XPATH,
+        ("//form[@alch-edit-select='syncPlan.interval']"
+         "//i[contains(@class,'icon-edit')]")),
+    "sp.sync_interval_update": (
+        By.XPATH,
+        ("//form[@alch-edit-select='syncPlan.interval']"
+         "/div/input")),
 
     # Enable RH Repos expander
     "rh.prd_expander": (
