@@ -42,7 +42,7 @@ class Products(Base):
         Updates Sync Plans from UI
         """
         sp_element = self.search_entity(name, locators["sp.select"],
-                                         katello=True)
+                                        katello=True)
         if sp_element:
             sp_element.click()
             self.wait_for_ajax()
