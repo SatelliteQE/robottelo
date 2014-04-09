@@ -17,33 +17,78 @@ class User(Base):
     Implements CRUD functions from UI
     """
 
+    def _configure_user(self, roles=None, locations=None, organizations=None,
+                        new_locations=None, new_roles=None,
+                        new_organizations=None,
+                        select=None):
+        """
+        Configures different entities of selected User
+        """
+
+        loc = tab_locators
+
+        if roles or new_roles:
+            self.configure_entity(roles, FILTER['user_role'],
+                                  tab_locator=loc["users.tab_roles"],
+                                  new_entity_list=new_roles,
+                                  entity_select=select)
+        if locations or new_locations:
+            self.configure_entity(locations, FILTER['user_location'],
+                                  tab_locator=loc["user.tab_locations"],
+                                  new_entity_list=new_locations,
+                                  entity_select=select)
+        if organizations or new_organizations:
+            self.configure_entity(organizations, FILTER['user_org'],
+                                  tab_locator=loc["users.tab_organizations"],
+                                  new_entity_list=new_organizations,
+                                  entity_select=select)
+
     def create(self, username, email=None, password1=None,
-               password2=None, authorized_by="INTERNAL", locale=None):
+               password2=None, authorized_by="INTERNAL",
+               locale=None, first_name=None, last_name=None,
+               roles=None, locations=None, organizations=None,
+               edit=False, select=True):
         """
         Create new user from UI
         """
 
-        self.wait_until_element(locators["users.new"]).click()
-
-        if self.wait_until_element(locators["users.username"]):
-            self.find_element(locators["users.username"]).send_keys(username)
-            Select(self.find_element(locators["users.authorized_by"]
-                                     )).select_by_visible_text(authorized_by)
+        if self.wait_until_element(locators["users.new"]):
+            self.wait_until_element(locators["users.new"]).click()
+            if self.wait_until_element(locators["users.username"]):
+                self.field_update("users.username", username)
+            if first_name:
+                self.field_update("users.firstname", first_name)
+            if last_name:
+                self.field_update("users.lastname", last_name)
+            if self.wait_until_element(locators["users.authorized_by"]):
+                Select(self.find_element(locators["users.authorized_by"])
+                       ).select_by_visible_text(authorized_by)
             # The following fields are not available via LDAP auth
             if self.wait_until_element(locators["users.email"]):
-                self.find_element(locators["users.email"]).send_keys(email)
-            if self.wait_until_element(locators["users.password"]):
-                self.find_element(locators
-                                  ["users.password"]).send_keys(password1)
-            if self.wait_until_element(locators
-                                       ["users.password_confirmation"]):
-                self.find_element(locators["users.password_confirmation"]
-                                  ).send_keys(password2)
-            if locale:
-                Select(self.find_element(locators["users.language"]
-                                         )).select_by_value(locale)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+                self.field_update("users.email", email)
+            # If authorized_by is None, click submit.
+            # For use in negative create tests.
+            if not authorized_by:
+                self.wait_until_element(common_locators["submit"]).click()
+                self.wait_for_ajax()
+            else:
+                if self.wait_until_element(locators["users.password"]):
+                    self.field_update("users.password", password1)
+                if self.wait_until_element(locators
+                                           ["users.password_confirmation"]):
+                    self.field_update("users.password_confirmation", password2)
+                if locale:
+                    Select(self.find_element(locators["users.language"]
+                                             )).select_by_value(locale)
+                if edit:
+                    self._configure_user(roles=roles, locations=locations,
+                                         organizations=organizations,
+                                         select=select)
+                self.wait_until_element(common_locators["submit"]).click()
+                self.wait_for_ajax()
+        else:
+            raise Exception(
+                "Unable to create the User '%s'" % username)
 
     def search(self, name, search_key):
         """
@@ -65,7 +110,9 @@ class User(Base):
     def update(self, search_key, username, new_username=None,
                email=None, password=None,
                first_name=None, last_name=None, locale=None,
-               roles=None, new_roles=None):
+               roles=None, new_roles=None, locations=None,
+               new_locations=None, organizations=None,
+               new_organizations=None, select=False):
         """
         Update username, email, password, firstname,
         lastname and locale from UI
@@ -90,10 +137,14 @@ class User(Base):
             if password:
                 self.field_update("users.password", password)
                 self.field_update("users.password_confirmation", password)
-            if new_roles:
-                self.configure_entity(roles, FILTER['user_role'],
-                                      tab_locator=tab_locators
-                                      ["users.tab_roles"],
-                                      new_entity_list=new_roles)
+            self._configure_user(roles=roles, new_roles=new_roles,
+                                 locations=locations,
+                                 new_locations=new_locations,
+                                 organizations=organizations,
+                                 new_organizations=new_organizations,
+                                 select=select)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
+        else:
+            raise Exception("Unable to find the username '%s' for update."
+                            % username)
