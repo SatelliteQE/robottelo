@@ -25,22 +25,4 @@ class SystemGroup(Base):
     """
 
     command_base = "system-group"
-
-    @classmethod
-    def list(cls, organization_id, options=None):
-        """
-        Lists available system groups
-        """
-
-        cls.command_sub = "list"
-
-        if options is None:
-            options = {}
-            options['per-page'] = 10000
-
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        return result
+    command_requires_org = True

@@ -27,7 +27,7 @@ class TestPartitionTable(MetaCLI):
         name = generate_name(6)
         make_partition_table({'name': name, 'content': content})
 
-        ptable = PartitionTable().exists(('name', name)).stdout
+        ptable = PartitionTable().exists(tuple_search=('name', name)).stdout
 
         args = {
             'id': ptable['id'],
@@ -48,11 +48,12 @@ class TestPartitionTable(MetaCLI):
         name = generate_name(6)
         make_partition_table({'name': name, 'content': content})
 
-        ptable = PartitionTable().exists(('name', name)).stdout
+        ptable = PartitionTable().exists(tuple_search=('name', name)).stdout
 
         args = {
             'id': ptable['id'],
         }
 
         PartitionTable().delete(args)
-        self.assertFalse(PartitionTable().exists(('name', name)).stdout)
+        self.assertFalse(
+            PartitionTable().exists(tuple_search=('name', name)).stdout)

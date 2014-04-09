@@ -28,6 +28,7 @@ class Product(Base):
     """
 
     command_base = "product"
+    command_requires_org = True
 
     @classmethod
     def info(cls, options=None):
@@ -58,25 +59,6 @@ class Product(Base):
 
         # Update result.stdout
         result.stdout = gpg_key
-
-        return result
-
-    @classmethod
-    def list(cls, organization_id, options=None):
-        """
-        Lists available products.
-        """
-
-        cls.command_sub = "list"
-
-        if options is None:
-            options = {}
-            options['per-page'] = 10000
-
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 

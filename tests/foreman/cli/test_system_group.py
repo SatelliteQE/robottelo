@@ -16,7 +16,6 @@ from tests.foreman.cli.basecli import BaseCLI
 
 
 @bzbug('1084240')
-@bzbug('1080475')
 @ddt
 class TestSystemGroup(BaseCLI):
     """

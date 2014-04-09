@@ -73,7 +73,7 @@ class TestGPGKey(BaseCLI):
         """Creates and returns an organization"""
         label = generate_name(6)
         org = make_org({'label': label})
-        result = Org.exists(('id', org['id']))
+        result = Org.exists(tuple_search=('id', org['id']))
 
         org.update(result.stdout)
 
@@ -221,7 +221,7 @@ class TestGPGKey(BaseCLI):
 
         # Can we find the new object?
         result = GPGKey().exists(
-            org['label'],
+            {'organization-id': org['label']},
             (self.search_key, new_obj[self.search_key])
         )
 
@@ -251,7 +251,7 @@ class TestGPGKey(BaseCLI):
 
         # Can we find the new object?
         result = GPGKey().exists(
-            self.org['label'],
+            {'organization-id': self.org['label']},
             (self.search_key, new_obj[self.search_key])
         )
 
@@ -282,7 +282,7 @@ class TestGPGKey(BaseCLI):
 
         # Can we find the new object?
         result = GPGKey().exists(
-            self.org['label'],
+            {'organization-id': self.org['label']},
             (self.search_key, new_obj[self.search_key])
         )
 
