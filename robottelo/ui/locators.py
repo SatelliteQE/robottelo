@@ -337,6 +337,15 @@ tab_locators = {
     # Third level UI
     "contentviews.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+
+    # Activation Keys
+    # Third level UI
+    "ak.details": (
+        By.XPATH, "//a[conatins(@href, 'info')]"),
+    "ak.subscriptions": (
+        By.XPATH, "//a[conatins(@href, 'subscriptions')]"),
+    "ak.system_groups": (
+        By.XPATH, "//a[conatins(@href, 'system-groups')]"),
 }
 
 common_locators = {
@@ -892,6 +901,11 @@ locators = {
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
         /select"),
+    "ak.remove": (
+        By.XPATH, "//button[@ng-click='openModal()']"),
+    "ak.cancel": (
+        By.XPATH, ("//div[@class='modal-dialog']"
+                   "//button[@ng-click='cancel()']")),
 
     # Sync Plans
     "sync.prd_expander": (
