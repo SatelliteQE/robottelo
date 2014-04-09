@@ -1030,7 +1030,8 @@ class User(BaseCLI):
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
-        updated_user = UserObj().exists(('login', new_user['login']))
+        updated_user = UserObj().exists(
+            tuple_search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], "%s %s" %
                                                       (new_user['firstname'],
                                                        new_user['lastname']))
@@ -1052,7 +1053,8 @@ class User(BaseCLI):
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
-        updated_user = UserObj().exists(('login', new_user['login']))
+        updated_user = UserObj().exists(
+            tuple_search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], "%s %s" %
                                                       (new_user['firstname'],
                                                        new_user['lastname']))
@@ -1083,7 +1085,8 @@ class User(BaseCLI):
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
-        updated_user = UserObj().exists(('login', new_user['login']))
+        updated_user = UserObj().exists(
+            tuple_search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
     @bzbug('1079649')
@@ -1155,7 +1158,7 @@ class User(BaseCLI):
         result = user.delete({'login': 'admin'})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
-        result = UserObj().exists(('login', 'admin'))
+        result = UserObj().exists(tuple_search=('login', 'admin'))
         self.assertTrue(result.stdout)
 
     @data({'login': generate_string("alpha", 10)},

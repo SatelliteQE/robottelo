@@ -93,7 +93,7 @@ class TestComputeResource(BaseCLI):
         self.assertTrue(len(result_list.stdout) > 0,
                         "ComputeResource list - stdout has results")
         stdout = ComputeResource.exists(
-            ('name', result_create['name'])).stdout
+            tuple_search=('name', result_create['name'])).stdout
         self.assertTrue(
             stdout,
             "ComputeResource list - exists name")
@@ -141,7 +141,7 @@ class TestComputeResource(BaseCLI):
             result_delete.return_code, 0,
             "ComputeResource delete - exit code")
         stdout = ComputeResource.exists(
-            ('name', result_create['name'])).stdout
+            tuple_search=('name', result_create['name'])).stdout
         self.assertFalse(
             stdout,
             "ComputeResource list - does not exist name")
