@@ -437,28 +437,37 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1082927')
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-        """)
-    def test_key_associate_4(self):
+    @bzbug('1085035')
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_4(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
         method
-        @assert: gpg key is associated with product but not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as
+        with the repositories
+        @BZ: 1085035
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True,
+                                      gpg_key=name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
@@ -656,29 +665,43 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1082927')
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_11(self):
+    @bzbug('1085035')
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_11(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
         method then update the key
-        @assert: gpg key is associated with product before/after update but
-        not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as repository
+        before/after update
+        @BZ: 1085035
         """
 
-        pass
+        new_name = generate_name(8, 8)
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True,
+                                      gpg_key=name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
@@ -887,29 +910,41 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @bzbug('1082927')
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_18(self):
+    @bzbug('1085035')
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_18(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
         method then delete it
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        the repositories during creation but removed from
+        product after deletion
+        @BZ: 1085035
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, upload_key=True, key_path=key_path)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True,
+                                      gpg_key=name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
@@ -1106,28 +1141,37 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1082927')
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_25(self):
+    @bzbug('1085035')
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_25(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via text via
         cut and paste/string then associate it with custom product using
         Repo discovery method
-        @assert: gpg key is associated with product but not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        the repositories
+        @BZ: 1085035
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True,
+                                      gpg_key=name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
@@ -1329,29 +1373,43 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1082927')
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_32(self):
+    @bzbug('1085035')
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_32(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product using
         Repo discovery method then update the key
-        @assert: gpg key is associated with product before/after update
-        but not the repositories
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        repository before/after update
+        @BZ: 1085035
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        new_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True,
+                                      gpg_key=name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.update(name, new_name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (new_name, product=False))
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
@@ -1560,29 +1618,41 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @bzbug('1082927')
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_key_associate_39(self):
+    @bzbug('1085035')
+    @attr('ui', 'gpgkey', 'implemented')
+    @data(*generate_strings_list())
+    def test_key_associate_39(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product using
         Repo discovery method then delete it
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
-        @status: manual
+        @assert: gpg key is associated with product as well as with
+        the repositories during creation but removed from product
+        after deletion
+        @BZ: 1085035
         """
 
-        pass
+        prd_name = generate_name(8, 8)
+        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
+        discovered_urls = ["zoo4/"]
+        key_content = read_data_file(VALID_GPG_KEY_FILE)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_gpg_keys()
+        self.gpgkey.create(name, key_content=key_content)
+        self.assertIsNotNone(self.gpgkey.search(name))
+        self.navigator.go_to_products()
+        self.repository.discover_repo(url, discovered_urls,
+                                      product=prd_name, new_product=True,
+                                      gpg_key=name)
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=True))
+        self.assertIsNotNone(self.gpgkey.assert_product_repo
+                             (name, product=False))
+        self.gpgkey.delete(name, True)
+        self.assertIsNone(self.gpgkey.search(name))
+        self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
