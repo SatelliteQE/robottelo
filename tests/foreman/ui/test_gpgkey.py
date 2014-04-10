@@ -16,7 +16,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
 from robottelo.common.decorators import bzbug
-from robottelo.common.helpers import (generate_name, get_data_file,
+from robottelo.common.helpers import (generate_string, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list,
                                       generate_strings_list)
@@ -40,7 +40,7 @@ class GPGKey(BaseUI):
 
         # Make sure to use the Class' org_name instance
         if GPGKey.org_name is None:
-            GPGKey.org_name = generate_name(8, 8)
+            GPGKey.org_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=GPGKey.org_name)
 
@@ -226,8 +226,8 @@ class GPGKey(BaseUI):
         @assert: gpg key is updated
         """
 
-        name = generate_name(6)
-        new_name = generate_name(6)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -247,7 +247,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -268,8 +268,8 @@ class GPGKey(BaseUI):
         @assert: gpg key is updated
         """
 
-        name = generate_name(6)
-        new_name = generate_name(6)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -289,7 +289,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -313,7 +313,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is not updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -335,7 +335,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is not updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -359,7 +359,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -384,8 +384,8 @@ class GPGKey(BaseUI):
                 as well as with the repository
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -415,9 +415,9 @@ class GPGKey(BaseUI):
                 as well as with the repositories
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -451,7 +451,7 @@ class GPGKey(BaseUI):
         @BZ: 1085035
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -480,8 +480,8 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with repository but not with product
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -512,9 +512,9 @@ class GPGKey(BaseUI):
         repository but not with product
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -569,8 +569,8 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product before/after update
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -599,9 +599,9 @@ class GPGKey(BaseUI):
         and repository before/after update
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -636,10 +636,10 @@ class GPGKey(BaseUI):
         with repositories before/after update
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -679,8 +679,8 @@ class GPGKey(BaseUI):
         @BZ: 1085035
         """
 
-        new_name = generate_name(8, 8)
-        prd_name = generate_name(8, 8)
+        new_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -715,9 +715,9 @@ class GPGKey(BaseUI):
         before/after update but not with product
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -753,10 +753,10 @@ class GPGKey(BaseUI):
         before/after update but not with product
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -818,7 +818,7 @@ class GPGKey(BaseUI):
         from product after deletion
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -848,8 +848,8 @@ class GPGKey(BaseUI):
         after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -884,9 +884,9 @@ class GPGKey(BaseUI):
         after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -925,7 +925,7 @@ class GPGKey(BaseUI):
         @BZ: 1085035
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -959,8 +959,8 @@ class GPGKey(BaseUI):
         repository after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -996,9 +996,9 @@ class GPGKey(BaseUI):
         repository after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1059,7 +1059,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1085,8 +1085,8 @@ class GPGKey(BaseUI):
         with the repository
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1117,9 +1117,9 @@ class GPGKey(BaseUI):
         the repositories
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1155,7 +1155,7 @@ class GPGKey(BaseUI):
         @BZ: 1085035
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -1185,8 +1185,8 @@ class GPGKey(BaseUI):
         the product
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1217,9 +1217,9 @@ class GPGKey(BaseUI):
         not with the product
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1275,8 +1275,8 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product before/after update
         """
 
-        new_name = generate_name(8, 8)
-        prd_name = generate_name(8, 8)
+        new_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1305,9 +1305,9 @@ class GPGKey(BaseUI):
         reposiotry before/after update
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1343,10 +1343,10 @@ class GPGKey(BaseUI):
         reposiories before/after update
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1387,8 +1387,8 @@ class GPGKey(BaseUI):
         @BZ: 1085035
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -1423,9 +1423,9 @@ class GPGKey(BaseUI):
         before/after update but not with product.
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1461,10 +1461,10 @@ class GPGKey(BaseUI):
         before/after update but not with product
         """
 
-        prd_name = generate_name(8, 8)
-        new_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        new_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1527,7 +1527,7 @@ class GPGKey(BaseUI):
         removed from product after deletion
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1556,8 +1556,8 @@ class GPGKey(BaseUI):
         repository during creation but removed from product after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1591,9 +1591,9 @@ class GPGKey(BaseUI):
         repositories during creation but removed from product after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1633,7 +1633,7 @@ class GPGKey(BaseUI):
         @BZ: 1085035
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -1666,8 +1666,8 @@ class GPGKey(BaseUI):
         during creation but removed from repository after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1702,9 +1702,9 @@ class GPGKey(BaseUI):
         during creation but removed from repository after deletion
         """
 
-        prd_name = generate_name(8, 8)
-        repo_name1 = generate_name(8, 8)
-        repo_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        repo_name1 = generate_string("alpha", 8)
+        repo_name2 = generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
