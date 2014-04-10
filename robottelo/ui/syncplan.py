@@ -8,7 +8,7 @@ from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
-class Products(Base):
+class Syncplan(Base):
     """
     Manipulates Sync Plans from UI
     """
@@ -66,7 +66,7 @@ class Products(Base):
                 self.wait_for_ajax()
                 self.find_element(common_locators["save"]).click()
 
-    def delete(self, sync_plan, really):
+    def delete(self, sync_plan, really=True):
         """
         Deletes a sync_plan from UI
         """
