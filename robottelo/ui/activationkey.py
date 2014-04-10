@@ -5,7 +5,7 @@
 Implements Activation keys UI
 """
 
-from robottelo.common.helpers import escape_search
+from robottelo.common.helpers import escape_search, sleep_for_seconds
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
@@ -52,7 +52,7 @@ class ActivationKey(Base):
                 element = self.wait_until_element((strategy, value % env))
                 if element:
                     element.click()
-                    self.wait_for_ajax()
+                    sleep_for_seconds(2)
             else:
                 raise Exception(
                     "Could not create new activation key '%s', \
@@ -83,7 +83,7 @@ class ActivationKey(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
-            self.wait_for_ajax()
+            sleep_for_seconds(2)
             self.find_element(common_locators["kt_search_button"]).click()
             strategy = locators["ak.ak_name"][0]
             value = locators["ak.ak_name"][1]
@@ -119,3 +119,22 @@ class ActivationKey(Base):
                         )).select_by_visible_text(content_view)
         else:
             raise Exception("Could not update the activation key '%s'" % name)
+
+    def delete(self, name, really):
+        """
+        Deletes an existing activation key
+        """
+
+        element = self.search_key(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            sleep_for_seconds(2)
+            self.wait_until_element(locators["ak.remove"]).click()
+            self.wait_for_ajax()
+            if really:
+                self.wait_until_element(common_locators["confirm_remove"]
+                                        ).click()
+            else:
+                self.wait_until_element(locators["ak.cancel"]).click()

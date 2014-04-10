@@ -39,6 +39,7 @@ class Base(object):
     """
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc
+    command_requires_org = False  # True when command requires organization-id
 
     logger = logging.getLogger("robottelo")
 
@@ -59,12 +60,15 @@ class Base(object):
         return result
 
     @classmethod
-    def create(cls, options=None, organization_id=None):
+    def create(cls, options=None):
         """
         Creates a new record using the arguments passed via dictionary.
         """
 
         cls.command_sub = "create"
+
+        if options is None:
+            options = {}
 
         result = cls.execute(
             cls._construct_command(options),
@@ -76,10 +80,16 @@ class Base(object):
 
             # Fetch new object
             # Some Katello obj require the organization-id for subcommands
-            if organization_id:
-                new_obj = cls.info(organization_id, {'id': obj_id})
-            else:
-                new_obj = cls.info({'id': obj_id})
+            info_options = {u'id': obj_id}
+            if cls.command_requires_org:
+                if 'organization-id' not in options:
+                    raise Exception(
+                        'organization-id option is required for %s.create' %
+                        cls.__name__)
+                info_options[u'organization-id'] = options[u'organization-id']
+
+            new_obj = cls.info(info_options)
+
             # stdout should be a dictionary containing the object
             if len(new_obj.stdout) > 0:
                 result.stdout = new_obj.stdout
@@ -143,14 +153,18 @@ class Base(object):
         return ssh.command(cmd.encode('utf-8'), expect_csv=expect_csv)
 
     @classmethod
-    def exists(cls, tuple_search=None):
+    def exists(cls, options=None, tuple_search=None):
         """
         Search for record by given: ('name', '<search_value>')
         @return: CSV parsed structure[0] of the list.
         """
-        if tuple_search:
-            options = {"search": "%s=\"%s\"" %
-                       (tuple_search[0], tuple_search[1])}
+
+        if options is None:
+            options = {}
+
+        if tuple_search and 'search' not in options:
+            options.update({"search": "%s=\"%s\"" %
+                            (tuple_search[0], tuple_search[1])})
 
         result = cls.list(options)
 
@@ -166,6 +180,14 @@ class Base(object):
         @param options: ID (sometimes name or id).
         """
         cls.command_sub = "info"
+
+        if options is None:
+            options = {}
+
+        if cls.command_requires_org and 'organization-id' not in options:
+            raise Exception(
+                'organization-id option is required for %s.info' %
+                cls.__name__)
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -183,10 +205,19 @@ class Base(object):
         List information.
         @param options: ID (sometimes name works as well) to retrieve info.
         """
+
         cls.command_sub = "list"
+
         if options is None:
             options = {}
+
+        if 'per-page' not in options:
             options['per-page'] = 10000
+
+        if cls.command_requires_org and 'organization-id' not in options:
+            raise Exception(
+                'organization-id option is required for %s.list' %
+                cls.__name__)
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -257,9 +288,11 @@ class Base(object):
         """
         Build a hammer cli command based on the options passed
         """
+
         tail = u""
 
-        options = options or {}
+        if options is None:
+            options = {}
 
         for key, val in options.items():
             if val is not None:

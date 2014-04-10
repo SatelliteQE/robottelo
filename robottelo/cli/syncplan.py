@@ -26,22 +26,26 @@ class SyncPlan(Base):
     """
 
     command_base = "sync-plan"
+    command_requires_org = True
 
     @classmethod
-    def list(cls, organization_id, options=None):
-        """
-        Lists available sync plans.
-        """
+    def create(cls, options=None):
+        cls.command_requires_org = False
 
-        cls.command_sub = "list"
+        try:
+            result = super(SyncPlan, cls).create(options)
+        finally:
+            cls.command_requires_org = True
 
-        if options is None:
-            options = {}
-            options['per-page'] = 10000
+        return result
 
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
+    @classmethod
+    def info(cls, options=None):
+        cls.command_requires_org = False
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        try:
+            result = super(SyncPlan, cls).info(options)
+        finally:
+            cls.command_requires_org = True
 
         return result

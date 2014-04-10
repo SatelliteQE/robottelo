@@ -43,7 +43,7 @@ from tempfile import mkstemp
 logger = logging.getLogger("robottelo")
 
 
-def create_object(cli_object, args, organization_id=None):
+def create_object(cli_object, args):
     """
     Creates <object> with dictionary of arguments.
 
@@ -58,7 +58,7 @@ def create_object(cli_object, args, organization_id=None):
     @return: A dictionary representing the newly created resource.
     """
 
-    result = cli_object.create(args, organization_id)
+    result = cli_object.create(args)
     # Some methods require a bit of waiting
     sleep_for_seconds(5)
 
@@ -432,7 +432,7 @@ def make_system(options=None):
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(System, args, args['organization-id']))
+    args.update(create_object(System, args))
 
     return args
 

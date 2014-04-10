@@ -130,7 +130,7 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org(test_data)
         # Can we find the new object?
-        result = Org.exists(('name', new_obj['name']))
+        result = Org.exists(tuple_search=('name', new_obj['name']))
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -168,7 +168,7 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org(test_data)
         # Can we find the new object?
-        result = Org.exists(('label', new_obj['label']))
+        result = Org.exists(tuple_search=('label', new_obj['label']))
 
         self.assertEqual(result.return_code, 0, "Failed to find the object")
         self.assertEqual(len(result.stderr), 0,
@@ -702,11 +702,10 @@ class TestOrg(BaseCLI):
         })
 
         # Can we list the new environment?
-        environment = LifecycleEnvironment.list(
-            new_obj['label'],
-            {
-                'name': env_result['name']
-            })
+        environment = LifecycleEnvironment.list({
+            'name': env_result['name'],
+            'oraganization-id': new_obj['label'],
+        })
         # Result is a list of one item
         new_env = environment.stdout[0]
 
@@ -727,11 +726,10 @@ class TestOrg(BaseCLI):
         })
 
         # Can we list the new environment?
-        environment = LifecycleEnvironment.list(
-            new_obj['label'],
-            {
-                'name': env_result['name']
-            })
+        environment = LifecycleEnvironment.list({
+            'name': env_result['name'],
+            'organization-id': new_obj['label'],
+        })
         # Result is a list of one item
         new_env = environment.stdout[0]
 

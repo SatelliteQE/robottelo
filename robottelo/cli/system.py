@@ -27,28 +27,10 @@ class System(Base):
     """
 
     command_base = "system"
+    command_requires_org = True
 
     @classmethod
-    def list(cls, organization_id, options=None):
-        """
-        Lists available systems
-        """
-
-        cls.command_sub = "list"
-
-        if options is None:
-            options = {}
-            options['per-page'] = 10000
-
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        return result
-
-    @classmethod
-    def tasks(cls, organization_id, options=None):
+    def tasks(cls, options=None):
         """
         Lists async tasks for a system
         """
@@ -57,17 +39,21 @@ class System(Base):
 
         if options is None:
             options = {}
+
+        if 'per-page' not in options:
             options['per-page'] = 10000
 
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
+        if cls.command_requires_org and 'organization-id' not in options:
+            raise Exception(
+                'organization-id option is required for %s.tasks' %
+                cls.__name__)
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 
     @classmethod
-    def update(cls, organization_id, options=None):
+    def update(cls, options=None):
         """
         Update system information
         """
@@ -76,10 +62,14 @@ class System(Base):
 
         if options is None:
             options = {}
+
+        if 'per-page' not in options:
             options['per-page'] = 10000
 
-        # Katello subcommands require the organization-id
-        options['organization-id'] = organization_id
+        if cls.command_requires_org and 'organization-id' not in options:
+            raise Exception(
+                'organization-id option is required for %s.update' %
+                cls.__name__)
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
