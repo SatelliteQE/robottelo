@@ -27,37 +27,60 @@ class Syncplan(BaseUI):
             with Session(self.browser) as session:
                 make_org(session, org_name=Syncplan.org_name)
 
+    def configure_syncplan(self):
+        """
+        Configures sync plan in UI
+        """
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_sync_plans()
+
     @attr('ui', 'syncplan', 'implemented')
-    @data({'name': generate_string('alpha', 10),
-           'desc': generate_string('alpha', 10),
-           'interval': SYNC_INTERVAL['day']},
-          {'name': generate_string('numeric', 10),
-           'desc': generate_string('numeric', 10),
-           'interval': SYNC_INTERVAL['day']},
-          {'name': generate_string('alphanumeric', 10),
-           'desc': generate_string('alphanumeric', 10),
-           'interval': SYNC_INTERVAL['day']},
-          {'name': generate_string('utf8', 10),
-           'desc': generate_string('utf8', 10),
-           'interval': SYNC_INTERVAL['day']},
-          {'name': generate_string('html', 20),
-           'desc': generate_string('html', 10),
-           'interval': SYNC_INTERVAL['day']},
-          {'name': generate_string('alpha', 10),
-           'desc': generate_string('alpha', 10),
-           'interval': SYNC_INTERVAL['week']},
-          {'name': generate_string('numeric', 10),
-           'desc': generate_string('numeric', 10),
-           'interval': SYNC_INTERVAL['week']},
-          {'name': generate_string('alphanumeric', 10),
-           'desc': generate_string('alphanumeric', 10),
-           'interval': SYNC_INTERVAL['week']},
-          {'name': generate_string('utf8', 10),
-           'desc': generate_string('utf8', 10),
-           'interval': SYNC_INTERVAL['week']},
-          {'name': generate_string('html', 20),
-           'desc': generate_string('html', 10),
-           'interval': SYNC_INTERVAL['week']})
+    @data({u'name': generate_string('alpha', 10),
+           u'desc': generate_string('alpha', 10),
+           u'interval': SYNC_INTERVAL['hour']},
+          {u'name': generate_string('numeric', 10),
+           u'desc': generate_string('numeric', 10),
+           u'interval': SYNC_INTERVAL['hour']},
+          {u'name': generate_string('alphanumeric', 10),
+           u'desc': generate_string('alphanumeric', 10),
+           u'interval': SYNC_INTERVAL['hour']},
+          {u'name': generate_string('utf8', 10),
+           u'desc': generate_string('utf8', 10),
+           u'interval': SYNC_INTERVAL['hour']},
+          {u'name': generate_string('html', 20),
+           u'desc': generate_string('html', 10),
+           u'interval': SYNC_INTERVAL['hour']},
+          {u'name': generate_string('alpha', 10),
+           u'desc': generate_string('alpha', 10),
+           u'interval': SYNC_INTERVAL['day']},
+          {u'name': generate_string('numeric', 10),
+           u'desc': generate_string('numeric', 10),
+           u'interval': SYNC_INTERVAL['day']},
+          {u'name': generate_string('alphanumeric', 10),
+           u'desc': generate_string('alphanumeric', 10),
+           u'interval': SYNC_INTERVAL['day']},
+          {u'name': generate_string('utf8', 10),
+           u'desc': generate_string('utf8', 10),
+           u'interval': SYNC_INTERVAL['day']},
+          {u'name': generate_string('html', 20),
+           u'desc': generate_string('html', 10),
+           u'interval': SYNC_INTERVAL['day']},
+          {u'name': generate_string('alpha', 10),
+           u'desc': generate_string('alpha', 10),
+           u'interval': SYNC_INTERVAL['week']},
+          {u'name': generate_string('numeric', 10),
+           u'desc': generate_string('numeric', 10),
+           u'interval': SYNC_INTERVAL['week']},
+          {u'name': generate_string('alphanumeric', 10),
+           u'desc': generate_string('alphanumeric', 10),
+           u'interval': SYNC_INTERVAL['week']},
+          {u'name': generate_string('utf8', 10),
+           u'desc': generate_string('utf8', 10),
+           u'interval': SYNC_INTERVAL['week']},
+          {u'name': generate_string('html', 20),
+           u'desc': generate_string('html', 10),
+           u'interval': SYNC_INTERVAL['week']})
     def test_positive_create_1(self, test_data):
         """
         @Feature: Content Sync Plan - Positive Create
@@ -65,9 +88,7 @@ class Syncplan(BaseUI):
         @Assert: Sync Plan is created
         """
 
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_sync_plans()
+        self.configure_syncplan()
         self.syncplan.create(test_data['name'], description=test_data['desc'],
                              sync_interval=test_data['interval'])
         self.assertIsNotNone(self.products.search(test_data['name']))
@@ -83,9 +104,7 @@ class Syncplan(BaseUI):
 
         new_plan_name = generate_string("alpha", 8)
         description = "update sync plan"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_sync_plans()
+        self.configure_syncplan()
         self.syncplan.create(plan_name, description)
         self.assertIsNotNone(self.products.search(plan_name))
         self.syncplan.update(plan_name, new_name=new_plan_name)
@@ -101,9 +120,8 @@ class Syncplan(BaseUI):
         """
 
         description = "delete sync plan"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_sync_plans()
+        self.configure_syncplan()
         self.syncplan.create(plan_name, description)
         self.assertIsNotNone(self.products.search(plan_name))
         self.syncplan.delete(plan_name)
+        self.assertIsNone(self.products.search(plan_name))

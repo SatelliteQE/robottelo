@@ -14,7 +14,7 @@ class Syncplan(Base):
     """
 
     def create(self, name, description=None, startdate=None,
-               sync_interval=SYNC_INTERVAL["hour"], start_hour=None,
+               sync_interval=None, start_hour=None,
                start_minute=None):
         """
         Creates new Sync Plans from UI
@@ -65,6 +65,9 @@ class Syncplan(Base):
                 Select(type_ele).select_by_visible_text(new_sync_interval)
                 self.wait_for_ajax()
                 self.find_element(common_locators["save"]).click()
+        else:
+            raise Exception(
+                "Unable to find the sync_plan '%s' for update." % name)
 
     def delete(self, sync_plan, really=True):
         """
