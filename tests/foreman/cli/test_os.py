@@ -364,7 +364,6 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertTrue(result.return_code == 0, "Failed to find object")
-        print result.stdout
         self.assertEqual(arch_obj, result.stdout['architectures'])
 
     def test_add_configtemplate(self):
@@ -384,6 +383,10 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "Should have gotten an error")
 
+        result = OperatingSys.info({'id': new_obj['id']})
+        self.assertTrue(result.return_code == 0, "Failed to find object")
+        self.assertEqual(ctemplt, result.stdout['config templates'])
+
     def test_add_ptable(self):
         """
         @test: Add ptable to os
@@ -400,3 +403,7 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(result.return_code, 0, "Failed to add ptable")
         self.assertEqual(
             len(result.stderr), 0, "Should have gotten an error")
+
+        result = OperatingSys.info({'id': new_obj['id']})
+        self.assertTrue(result.return_code == 0, "Failed to find object")
+        self.assertEqual(ptable, result.stdout['partition tables'])
