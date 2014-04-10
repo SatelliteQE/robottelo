@@ -22,11 +22,14 @@ from xml.parsers.expat import ExpatError
 from xmlrpclib import Fault
 
 
-bugzilla_log = logging.getLogger("bugzilla")
-bugzilla_log.setLevel(logging.WARNING)
-
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 REDMINE_URL = 'http://projects.theforeman.org'
+
+
+# Increase the level of third party packages logging
+logging.getLogger('bugzilla').setLevel(logging.WARNING)
+logging.getLogger(
+    'requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
 
 
 def stubbed(func):
