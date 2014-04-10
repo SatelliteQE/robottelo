@@ -58,29 +58,3 @@ class Repository(Base):
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
-
-    @classmethod
-    def info_ng(cls, options):
-        """
-        Override Base class method
-        """
-        cls.command_sub = "info"
-
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
-
-        r = dict()
-        for x in result.stdout:
-            if x == '':
-                continue
-            if x.startswith("    "):
-                [key, value] = x.strip().split(":", 1)
-                r[last_key][key.strip().replace(' ', '-').lower()] = value.strip()
-            else:
-                [key, value] = x.strip().split(":", 1)
-                if value.strip() == '':
-                    last_key = key.strip().replace(' ', '-').lower()
-                    r[last_key] = dict()
-                else:
-                    r[key.strip().replace(' ', '-').lower()] = value.strip()
-        result.stdout = r
-        return result

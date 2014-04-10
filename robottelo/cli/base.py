@@ -178,6 +178,40 @@ class Base(object):
         return result
 
     @classmethod
+    def info(cls, options=None):
+        """
+        Override Base class method
+        """
+        cls.command_sub = "info"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=False)
+
+        # info dictionary
+        r = dict()
+        for line in result.stdout:
+            # skip empty lines
+            if line == '':
+                continue
+            if line.startswith(' '): # sub-properties are indented
+                [key, value] = line.lstrip().split(":", 1)
+                key = key.lstrip().replace(' ', '-').lower()
+                r[sub_prop][key] = value.lstrip()
+            else:
+                [key, value] = line.lstrip().split(":", 1)
+                if value.lstrip() == '': # no value -> new sub-property
+                    # TODO some properties does not have values either :/
+                    sub_prop = key.lstrip().replace(' ', '-').lower()
+                    r[sub_prop] = dict()
+                else: # common key: value line
+                    r[key.lstrip().replace(' ', '-').lower()] = value.lstrip()
+
+        # update result
+        result.stdout = r
+        return result
+        # TODO [] or {} when no object found?
+        # TODO Exception^^ ?
+
+    @classmethod
     def list(cls, options=None):
         """
         List information.
