@@ -19,6 +19,7 @@ else:
 from robottelo.common import conf
 from robottelo.common.constants import NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError
+from xmlrpclib import Fault
 
 
 bugzilla_log = logging.getLogger("bugzilla")
@@ -64,6 +65,10 @@ def bzbug(bz_id):
                 _bugzilla[bz_id] = mybug
             except ExpatError:
                 attempts += 1
+            except Fault as error:
+                return unittest.skip(
+                    "Test skipped: %s" % error.faultString
+                )
 
         if mybug is None:
             return unittest.skip(
