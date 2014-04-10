@@ -339,6 +339,19 @@ tab_locators = {
     # Third level UI
     "contentviews.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "contentviews.tab_content": (
+        By.XPATH, "//ul/li[@class='dropdown']/a"),
+    "contentviews.tab_content_views": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'content-views')]"),
+    "contentviews.tab_puppet_modules": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'puppet_modules')]"),
+    "contentviews.tab_repo_add": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'repositories.available')]"),
+    "contentviews.tab_repo_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'list')]"),
 
     # Activation Keys
     # Third level UI
@@ -1051,5 +1064,20 @@ locators = {
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
     "contentviews.publish": (
-        By.XPATH, "//a[ui-sref='content-views.details.publish']")
+        By.XPATH, "//a[ui-sref='content-views.details.publish']"),
+    "contentviews.content_repo": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
+    "contentviews.select_repo": (
+        By.XPATH,
+        ("//div[@alch-table='repositoriesTable']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.add_repo": (
+        By.XPATH, "//button[contains(@ng-show, 'repositories.available')]"),
+    "contentviews.remove_repo": (
+        By.XPATH, "//button[contains(@ng-show, 'repositories.list')]"),
+    "contentviews.repo_search": (
+        By.XPATH, "//input[@ng-model='repositorySearch']")
 }

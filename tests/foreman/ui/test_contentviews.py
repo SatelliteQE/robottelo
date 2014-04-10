@@ -18,7 +18,7 @@ from robottelo.common.helpers import (generate_name, valid_names_list,
                                       invalid_names_list)
 from robottelo.common.decorators import bzbug
 from robottelo.ui.factory import make_org
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
@@ -78,6 +78,36 @@ class TestContentViewsUI(BaseUI):
                 'No validation error found for "%s" from %s org' % (
                     name, self.org_name))
             self.assertIsNone(self.content_views.search(name))
+
+    def test_cv_create_1(self):
+        """
+        @test: create content view and add selected custom repo(positive)
+        @feature: Content Views
+        @assert: content views are created
+        @BZ: 1083086
+        """
+
+        repo_name = generate_name(8)
+        prd_name = generate_name(8, 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        name = generate_name(8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repo(name, repo_name)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):

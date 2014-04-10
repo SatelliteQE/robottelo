@@ -96,7 +96,7 @@ class Repos(Base):
         searchbox = self.wait_until_element(locators["repo.search"])
         if searchbox:
             searchbox.clear()
-            searchbox.send_keys(escape_search(element_name))
+            searchbox.send_keys(element_name)
             element = self.wait_until_element((strategy, value % element_name))
             return element
 

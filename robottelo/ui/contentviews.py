@@ -38,8 +38,6 @@ class ContentViews(Base):
 
             self.wait_for_ajax()
             self.wait_until_element(common_locators["create"]).click()
-            self.wait_for_ajax()
-            self.wait_until_element(locators['contentviews.publish'])
         else:
             raise Exception(
                 "Could not create new content view '%s'" % name)
@@ -84,3 +82,52 @@ class ContentViews(Base):
                 self.wait_for_ajax()
         else:
             raise Exception("Could not update the content view '%s'" % name)
+
+    def add_remove_repo(self, cv_name, repo_name, add_repo=True):
+        """
+        Add or Remove repository to/from selected content-view.
+        When add_repo is 'true', the add repository will be performed
+        otherwise remove repository
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.find_element(tab_locators["contentviews.tab_content"]).click()
+            self.find_element(locators["contentviews.content_repo"]).click()
+            if add_repo:
+                self.find_element(tab_locators
+                                  ["contentviews.tab_repo_add"]
+                                  ).click()
+                self.find_element(locators
+                                  ["contentviews.repo_search"]
+                                  ).send_keys(repo_name)
+                strategy = locators["contentviews.select_repo"][0]
+                value = locators["contentviews.select_repo"][1]
+                element = self.wait_until_element((strategy,
+                                                   value % repo_name))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                    self.wait_until_element(locators
+                                            ["contentviews.add_repo"]).click()
+                else:
+                    raise Exception(
+                        "Couldn't find repo '%s' to add into CV" % repo_name)
+            else:
+                self.find_element(tab_locators
+                                  ["contentviews.tab_repo_remove"]).click()
+                element = self.wait_until_element((strategy,
+                                                   value % repo_name))
+                if element:
+                    element.click()
+                    self.wait_until_element(locators
+                                            ["contentviews.remove_repo"]
+                                            ).click()
+                else:
+                    raise Exception(
+                        "Couldn't find repo'%s' to remove from CV" % repo_name)
+        else:
+            raise Exception(
+                "Couldn't find the selected CV '%s'" % cv_name)
