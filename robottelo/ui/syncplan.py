@@ -17,7 +17,7 @@ class Syncplan(Base):
         strategy = locators["sp.prd_select"][0]
         value = locators["sp.prd_select"][1]
         self.wait_until_element(tab_locators["sp.tab_products"]).\
-                    click()
+            click()
         self.wait_for_ajax()
         self.wait_until_element(tab_locator).click()
         self.wait_for_ajax()
