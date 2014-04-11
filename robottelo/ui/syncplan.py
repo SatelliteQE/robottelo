@@ -12,6 +12,20 @@ class Syncplan(Base):
     Manipulates Sync Plans from UI
     """
 
+    def add_remove_products(self, products=None, tab_locator=None,
+                            select_locator=None):
+        strategy = locators["sp.prd_select"][0]
+        value = locators["sp.prd_select"][1]
+        self.wait_until_element(tab_locators["sp.tab_products"]).\
+                    click()
+        self.wait_for_ajax()
+        self.wait_until_element(tab_locator).click()
+        self.wait_for_ajax()
+        for prd in products:
+            self.wait_until_element((strategy, value % prd)).click()
+        self.wait_until_element(select_locator).click()
+        self.wait_for_ajax()
+
     def create(self, name, description=None, startdate=None,
                sync_interval=None, start_hour=None,
                start_minute=None):
@@ -36,7 +50,8 @@ class Syncplan(Base):
         self.wait_for_ajax()
 
     def update(self, name, new_name=None, new_desc=None,
-               new_sync_interval=None):
+               new_sync_interval=None, add_products=None,
+               rm_products=None):
         """
         Updates Sync Plans from UI
         """
@@ -60,10 +75,22 @@ class Syncplan(Base):
                 self.wait_until_element(locators["sp.sync_interval_edit"]).\
                     click()
                 interval_update_loc = locators["sp.sync_interval_update"]
-                type_ele = self.find_element(interval_update_loc)
+                type_ele = self.wait_until_element(interval_update_loc)
                 Select(type_ele).select_by_visible_text(new_sync_interval)
+                self.wait_until_element(common_locators["save"]).click()
                 self.wait_for_ajax()
-                self.find_element(common_locators["save"]).click()
+            if add_products:
+                tab_loc = tab_locators["sp.add_prd"]
+                select_loc = locators["sp.add_selected"]
+                self.add_remove_products(products=add_products,
+                                         tab_locator=tab_loc,
+                                         select_locator=select_loc)
+            if rm_products:
+                tab_loc = tab_locators["sp.list_prd"]
+                select_loc = locators["sp.remove_selected"]
+                self.add_remove_products(products=rm_products,
+                                         tab_locator=tab_loc,
+                                         select_locator=select_loc)
         else:
             raise Exception(
                 "Unable to find the sync_plan '%s' for update." % name)

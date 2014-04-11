@@ -949,7 +949,9 @@ locators = {
         By.XPATH,
         "//a[contains(@href,'info') and contains(.,'%s')]"),
     "sp.prd_select": (
-        By.XPATH, "//a[contains(@ui-sref,'info') and contains(.,'%s')]"),
+        By.XPATH,
+        ("//a[contains(@ui-sref,'info') and contains(.,'%s')]"
+         "/../../td/input[contains(@ng-model,'product')]")),
     "sp.interval": (By.ID, "interval"),
     "sp.start_date": (By.ID, "startDate"),
     "sp.start_hour": (By.XPATH, "//input[@ng-model='hours']"),
@@ -980,7 +982,16 @@ locators = {
     "sp.sync_interval_update": (
         By.XPATH,
         ("//form[@alch-edit-select='syncPlan.interval']"
-         "/div/input")),
+         "/div/select")),
+    "sp.add_selected": (
+        By.XPATH, "//button[contains(@ng-click, 'addProducts')]"),
+    "sp.remove_selected": (
+        By.XPATH, "//button[contains(@ng-click, 'removeProducts')]"),
+    "sp.fetch_interval": (
+        By.XPATH,
+        ("//form[@alch-edit-select='syncPlan.interval']"
+         "/div[@class='alch-edit']/div/"
+         "span[contains(@class,'editable-value')]")),
 
     # Enable RH Repos expander
     "rh.prd_expander": (
