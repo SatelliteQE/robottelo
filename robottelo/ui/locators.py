@@ -1064,7 +1064,16 @@ locators = {
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
     "contentviews.publish": (
-        By.XPATH, "//a[ui-sref='content-views.details.publish']"),
+        By.XPATH, "//a[contains(@href, 'publish')]/span"),
+    "contentviews.publish_comment": (By.ID, "comment"),
+    "contentviews.publish_progress": (
+        By.XPATH,
+        ("//tr/td[(contains(., '%s')]"
+         "/../div[@class='progress progress-striped active']")),
+    "contentviews.ver_label": (
+        By.XPATH, "//div[@label='Version']/label"),
+    "contentviews.ver_num": (
+        By.XPATH, "//div[@class='col-sm-5 input']/span/span"),
     "contentviews.content_repo": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'repositories')]"),

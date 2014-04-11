@@ -83,7 +83,7 @@ class ContentViews(Base):
         else:
             raise Exception("Could not update the content view '%s'" % name)
 
-    def add_remove_repo(self, cv_name, repo_names, add_repo=True):
+    def add_remove_repos(self, cv_name, repo_names, add_repo=True):
         """
         Add or Remove repository to/from selected content-view.
         When add_repo is 'true', the add repository will be performed
@@ -142,3 +142,37 @@ class ContentViews(Base):
         else:
             raise Exception(
                 "Couldn't find the selected CV '%s'" % cv_name)
+
+    def publish(self, cv_name, comment=None):
+        """
+        Publish to create new version of CV and
+        promote the contents to 'Library' environment
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(locators["contentviews.publish"]).click()
+            version_label = self.wait_until_element(locators
+                                                    ["contentviews.ver_label"])
+            version_number = self.wait_until_element(locators
+                                                     ["contentviews.ver_num"])
+            # To fetch the publish version e.g. "Version 1"
+            version = version_label.text + "" + version_number.text
+            if comment:
+                self.find_element(locators
+                                  ["contentviews.publish_comment"]
+                                  ).send_keys(comment)
+            self.wait_until_element(common_locators["create"]).click()
+            self.wait_for_ajax()
+            strategy = locators["contentviews.publish_progress"][0]
+            value = locators["contentviews.publish_progress"][1]
+            # Wait for the progress bar to finish the publish and promote
+            check_progress = self.wait_until_element((strategy,
+                                                      value % version))
+            while check_progress:
+                check_progress = self.wait_until_element((strategy,
+                                                          value % version))
+            return version

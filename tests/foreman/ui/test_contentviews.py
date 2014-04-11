@@ -79,38 +79,40 @@ class TestContentViewsUI(BaseUI):
                     name, self.org_name))
             self.assertIsNone(self.content_views.search(name))
 
-    def test_cv_create_1(self):
+    def test_cv_end_2_end(self):
         """
-        @test: create content view and add selected custom repo(positive)
+        @test: create content view
         @feature: Content Views
-        @assert: content views are created
-        @BZ: 1083086
+        @steps: 1. Create Product/repo and Sync it
+                2. Create CV and add created repo in step1
+                3. Publish and promote it to 'Library'
+                4. Promote it to next environment
+        @assert: content view is created, updated with repo
+                publish and promoted to next selected env
         """
 
-        repo1_name = generate_string("alpha", 8)
-        repo2_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
         prd_name = generate_string("alpha", 8)
-        repo1_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        repo2_url = "http://inecas.fedorapeople.org/fakerepos/zoo/"
-        repo_names = [repo1_name, repo2_name]
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
         self.products.create(prd_name)
         self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo1_name, product=prd_name, url=repo1_url)
-        self.assertIsNotNone(self.repository.search(repo1_name))
-        self.repository.create(repo2_name, product=prd_name, url=repo2_url)
-        self.assertIsNotNone(self.repository.search(repo2_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url)
+        self.assertIsNotNone(self.repository.search(repo_name))
         self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, repo_names)
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
         self.assertIsNotNone(sync)
         self.navigator.go_to_content_views()
         self.content_views.create(name)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
-        self.content_views.add_remove_repo(name, repo_names)
+        self.content_views.add_remove_repos(name, [repo_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.publish(name, "publishing version_1")
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
 
