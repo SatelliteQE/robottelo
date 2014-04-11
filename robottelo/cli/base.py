@@ -167,23 +167,6 @@ class Base(object):
         """
         cls.command_sub = "info"
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        if len(result.stdout) == 1:
-            result.stdout = result.stdout[0]
-        # This should never happen but we're trying to be safe
-        elif len(result.stdout) > 1:
-            raise Exception("Info subcommand returned more than 1 result.")
-
-        return result
-
-    @classmethod
-    def info(cls, options=None):
-        """
-        Override Base class method
-        """
-        cls.command_sub = "info"
-
         result = cls.execute(cls._construct_command(options), expect_csv=False)
 
         # info dictionary
@@ -193,23 +176,26 @@ class Base(object):
             if line == '':
                 continue
             if line.startswith(' '): # sub-properties are indented
-                [key, value] = line.lstrip().split(":", 1)
+                # values are separated by ':' or '=>'
+                if line.find(':') != -1:
+                    [key, value] = line.lstrip().split(":", 1)
+                elif line.find('=>') != -1:
+                    [key, value] = line.lstrip().split("=>", 1)
+                # TODO else?
                 key = key.lstrip().replace(' ', '-').lower()
                 r[sub_prop][key] = value.lstrip()
             else:
                 [key, value] = line.lstrip().split(":", 1)
-                if value.lstrip() == '': # no value -> new sub-property
-                    # TODO some properties does not have values either :/
+                if value.lstrip() == '': # 'key:' no value, new sub-property
                     sub_prop = key.lstrip().replace(' ', '-').lower()
                     r[sub_prop] = dict()
-                else: # common key: value line
+                else: # 'key: value' line
                     r[key.lstrip().replace(' ', '-').lower()] = value.lstrip()
 
         # update result
         result.stdout = r
+
         return result
-        # TODO [] or {} when no object found?
-        # TODO Exception^^ ?
 
     @classmethod
     def list(cls, options=None):
