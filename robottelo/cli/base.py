@@ -193,11 +193,12 @@ class Base(object):
 
         # info dictionary
         r = dict()
+        sub_prop = None  # stores name of the last group of sub-properties
         for line in result.stdout:
             # skip empty lines
             if line == '':
                 continue
-            if line.startswith(' '): # sub-properties are indented
+            if line.startswith(' '):  # sub-properties are indented
                 # values are separated by ':' or '=>'
                 if line.find(':') != -1:
                     [key, value] = line.lstrip().split(":", 1)
@@ -208,10 +209,10 @@ class Base(object):
                 r[sub_prop][key] = value.lstrip()
             else:
                 [key, value] = line.lstrip().split(":", 1)
-                if value.lstrip() == '': # 'key:' no value, new sub-property
+                if value.lstrip() == '':  # 'key:' no value, new sub-property
                     sub_prop = key.lstrip().replace(' ', '-').lower()
                     r[sub_prop] = dict()
-                else: # 'key: value' line
+                else:  # 'key: value' line
                     r[key.lstrip().replace(' ', '-').lower()] = value.lstrip()
 
         # update result
