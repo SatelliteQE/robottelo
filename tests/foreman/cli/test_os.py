@@ -343,28 +343,26 @@ class TestOperatingSystem(BaseCLI):
         @assert: Operating System is updated with architecture
         """
 
-        new_obj = make_architecture()
+        a_ob = make_architecture()
 
-        result = Architecture.list()
+        result = Architecture.info({'id': a_ob['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        arch_obj = result.stdout[0]['name']
-        arch_id = result.stdout[0]['id']
         new_obj = make_os()
         os_name = new_obj['name'].split(' ')
         result = OperatingSys.add_architecture({'id': new_obj['id'],
                                                 'name': os_name[0],
-                                                'architecture': arch_obj,
-                                                'architecture-id': arch_id})
+                                                'architecture': a_ob['name'],
+                                                'architecture-id': a_ob['id']})
         self.assertEqual(result.return_code, 0, "Failed to add architecture")
         self.assertEqual(
             len(result.stderr), 0, "Should have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertTrue(result.return_code == 0, "Failed to find object")
-        self.assertEqual(arch_obj, result.stdout['architectures'])
+        self.assertEqual(result.return_code == 0, "Failed to find object")
+        self.assertEqual(a_ob['name'], result.stdout['architectures'])
 
     def test_add_configtemplate(self):
         """
@@ -373,19 +371,34 @@ class TestOperatingSystem(BaseCLI):
         @assert: Operating System is updated with config template
         """
 
-        ctemplt = 'testosx'
+        content = generate_name()
+        name = generate_name(6)
+
+        conf_obj = make_template(
+            {
+                'name': name,
+                'content': content,
+            }
+        )
+
+        result = Template.info({'id': conf_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(conf_obj['name'], result.stdout['name'])
+
         new_obj = make_os()
         os_name = new_obj['name'].split(' ')
+        obj = conf_obj['name']
         result = OperatingSys.add_configtemplate({'id': new_obj['id'],
                                                   'name': os_name[0],
-                                                  'configtemplate': ctemplt})
+                                                  'config-template': obj})
         self.assertEqual(result.return_code, 0, "Failed to add configtemplate")
         self.assertEqual(
             len(result.stderr), 0, "Should have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertTrue(result.return_code == 0, "Failed to find object")
-        self.assertEqual(ctemplt, result.stdout['config templates'])
+        self.assertEqual(result.return_code == 0, "Failed to find object")
+        self.assertEqual(conf_obj['name'], result.stdout['config templates'])
 
     def test_add_ptable(self):
         """
@@ -394,16 +407,24 @@ class TestOperatingSystem(BaseCLI):
         @assert: Operating System is updated with ptable
         """
 
-        ptable = 'testptable'
+        content = "Fake ptable"
+        name = generate_name(6)
+        ptable_obj = make_partition_table({'name': name, 'content': content})
+
+        result = PartitionTable.info({'id': ptable_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(ptable_obj['name'], result.stdout['name'])
+
         new_obj = make_os()
         os_name = new_obj['name'].split(' ')
         result = OperatingSys.add_ptable({'id': new_obj['id'],
                                           'name': os_name[0],
-                                          'ptable': ptable})
+                                          'ptable': ptable_obj['name']})
         self.assertEqual(result.return_code, 0, "Failed to add ptable")
         self.assertEqual(
             len(result.stderr), 0, "Should have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertTrue(result.return_code == 0, "Failed to find object")
-        self.assertEqual(ptable, result.stdout['partition tables'])
+        self.assertEqual(result.return_code == 0, "Failed to find object")
+        self.assertEqual(ptable_obj['name'], result.stdout['partition tables'])
