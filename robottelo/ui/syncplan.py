@@ -14,6 +14,9 @@ class Syncplan(Base):
 
     def add_remove_products(self, products=None, tab_locator=None,
                             select_locator=None):
+        """
+        Add and Remove product association to Sync plans
+        """
         strategy = locators["sp.prd_select"][0]
         value = locators["sp.prd_select"][1]
         self.wait_until_element(tab_locators["sp.tab_products"]).\
