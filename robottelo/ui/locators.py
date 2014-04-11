@@ -339,6 +339,9 @@ tab_locators = {
     # Third level UI
     "contentviews.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "contentviews.tab_versions": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@ui-sref, 'details.versions')]"),
     "contentviews.tab_content": (
         By.XPATH, "//ul/li[@class='dropdown']/a"),
     "contentviews.tab_content_views": (
@@ -347,6 +350,10 @@ tab_locators = {
     "contentviews.tab_puppet_modules": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'puppet_modules')]"),
+    "contentviews.tab_history": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href, 'history')]"),
+    "contentviews.tab_tasks": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href, 'tasks')]"),
     "contentviews.tab_repo_add": (
         By.XPATH,
         "//a[contains(@ui-sref, 'repositories.available')]"),
@@ -1038,7 +1045,7 @@ locators = {
     "contentviews.composite": (By.ID, "composite"),
     "contentviews.key_name": (
         By.XPATH,
-        "//tr[@ng-repeat='contentView in table.rows']"
+        "//tr[@row-select='contentView']"
         "/td/a[contains(., '%s')]"),
     "contentviews.edit_name": (
         By.XPATH, "//form[@alch-edit-text='contentView.name']//div/span/i"),
@@ -1088,5 +1095,16 @@ locators = {
     "contentviews.remove_repo": (
         By.XPATH, "//button[contains(@ng-show, 'repositories.list')]"),
     "contentviews.repo_search": (
-        By.XPATH, "//input[@ng-model='repositorySearch']")
+        By.XPATH, "//input[@ng-model='repositorySearch']"),
+    "contentviews.promote_button": (
+        By.XPATH,
+        ("//table[@alch-table='table']//tr/td[contains(., '%s')]"
+         "/following-sibling::td[@class='col-sm-1']/a/button")),
+    "contentviews.env_to_promote": (
+        By.XPATH,
+        "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "contentviews.promote_version": (
+        By.XPATH, "//button[@ng-click='promote()']"),
+    "contentview.version_filter": (
+        By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
 }

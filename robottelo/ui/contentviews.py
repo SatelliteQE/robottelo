@@ -38,6 +38,7 @@ class ContentViews(Base):
 
             self.wait_for_ajax()
             self.wait_until_element(common_locators["create"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Could not create new content view '%s'" % name)
@@ -143,10 +144,24 @@ class ContentViews(Base):
             raise Exception(
                 "Couldn't find the selected CV '%s'" % cv_name)
 
+    def check_progress_bar_status(self, version):
+        """
+        Checks the status of progress bar while publishing and
+        promoting the CV to next environment
+        """
+
+        strategy = locators["contentviews.publish_progress"][0]
+        value = locators["contentviews.publish_progress"][1]
+        check_progress = self.wait_until_element((strategy,
+                                                  value % version))
+        while check_progress:
+            check_progress = self.wait_until_element((strategy,
+                                                      value % version))
+
     def publish(self, cv_name, comment=None):
         """
-        Publish to create new version of CV and
-        promote the contents to 'Library' environment
+        Publishes to create new version of CV and
+        promotes the contents to 'Library' environment
         """
 
         element = self.search(cv_name)
@@ -167,12 +182,44 @@ class ContentViews(Base):
                                   ).send_keys(comment)
             self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
-            strategy = locators["contentviews.publish_progress"][0]
-            value = locators["contentviews.publish_progress"][1]
-            # Wait for the progress bar to finish the publish and promote
-            check_progress = self.wait_until_element((strategy,
-                                                      value % version))
-            while check_progress:
-                check_progress = self.wait_until_element((strategy,
-                                                          value % version))
+            self.check_progress_bar_status(version)
             return version
+
+    def promote(self, cv_name, version, env):
+        """
+        Promotes the selected version of content-view
+        to given environment
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(tab_locators
+                                    ["contentviews.tab_versions"]).click()
+            self.wait_for_ajax()
+            strategy = locators["contentviews.promote_button"][0]
+            value = locators["contentviews.promote_button"][1]
+            element = self.wait_until_element((strategy, value % version))
+            if element:
+                element.click()
+                self.wait_for_ajax()
+                strategy = locators["contentviews.env_to_promote"][0]
+                value = locators["contentviews.env_to_promote"][1]
+                env_element = self.wait_until_element((strategy, value % env))
+                if env_element:
+                    env_element.click()
+                    self.wait_until_element(locators
+                                            ["contentviews.promote_version"]
+                                            ).click()
+                    self.check_progress_bar_status(version)
+                else:
+                    raise Exception(
+                        "Could not find env '%s' to promote CV" % env)
+            else:
+                raise Exception(
+                    "Could not find the published version '%s'" % version)
+        else:
+            raise Exception(
+                "Couldn't find the selected CV '%s'" % cv_name)

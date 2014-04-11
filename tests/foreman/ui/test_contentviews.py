@@ -93,10 +93,14 @@ class TestContentViewsUI(BaseUI):
 
         repo_name = generate_string("alpha", 8)
         prd_name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         name = generate_string("alpha", 8)
+        publish_version = "Version 1"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name)
         self.navigator.go_to_products()
         self.products.create(prd_name)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -113,6 +117,9 @@ class TestContentViewsUI(BaseUI):
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
         self.content_views.publish(name, "publishing version_1")
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.promote(name, publish_version, env_name)
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
 
