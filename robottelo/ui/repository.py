@@ -4,7 +4,6 @@ Implements Repos UI
 
 from robottelo.ui.base import Base
 from robottelo.common.constants import REPO_TYPE
-from robottelo.common.helpers import escape_search
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
