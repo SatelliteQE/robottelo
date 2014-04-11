@@ -275,6 +275,8 @@ tab_locators = {
 
     "users.tab_primary": (By.XPATH, "//a[@href='#primary']"),
     "users.tab_roles": (By.XPATH, "//a[@href='#roles']"),
+    "users.tab_locations": (By.XPATH, "//a[@href='#locations']"),
+    "users.tab_organizations": (By.XPATH, "//a[@href='#organizations']"),
     "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
 
     "prd.tab_details": (
@@ -337,6 +339,15 @@ tab_locators = {
     # Third level UI
     "contentviews.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+
+    # Activation Keys
+    # Third level UI
+    "ak.details": (
+        By.XPATH, "//a[conatins(@href, 'info')]"),
+    "ak.subscriptions": (
+        By.XPATH, "//a[conatins(@href, 'subscriptions')]"),
+    "ak.system_groups": (
+        By.XPATH, "//a[conatins(@href, 'system-groups')]"),
 }
 
 common_locators = {
@@ -377,6 +388,9 @@ common_locators = {
         By.XPATH,
         ("//label[@for='name']/../../"
          "div[contains(@class,'has-error')]")),
+    "haserror": (
+        By.XPATH,
+        "//div[contains(@class,'has-error')]"),
     "common_haserror": (
         By.XPATH,
         ("//span[@class='help-block']/ul/"
@@ -630,12 +644,15 @@ locators = {
     "users.lastname": (By.ID, "user_lastname"),
     "users.email": (By.ID, "user_mail"),
     "users.language": (By.ID, "user_locale"),
+    "users.selected_lang": (
+        By.XPATH, ("//select[@id='user_locale']"
+                   "/option[@selected='selected']")),
     "users.authorized_by": (By.ID, "user_auth_source_id"),
     "users.password": (By.ID, "user_password"),
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
     "users.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+        By.XPATH, "//a[@class='delete' and contains(@data-id, '%s')]"),
 
     # users.roles
     "users.admin_role": (By.ID, "user_admin"),
@@ -892,6 +909,11 @@ locators = {
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
         /select"),
+    "ak.remove": (
+        By.XPATH, "//button[@ng-click='openModal()']"),
+    "ak.cancel": (
+        By.XPATH, ("//div[@class='modal-dialog']"
+                   "//button[@ng-click='cancel()']")),
 
     # Sync Plans
     "sync.prd_expander": (

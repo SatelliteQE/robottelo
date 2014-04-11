@@ -254,9 +254,9 @@ class ActivationKey(BaseUI):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @bzbug('1063273')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_delete_activation_key_1(self):
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_delete_activation_key_1(self, name):
         """
         @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
@@ -266,13 +266,20 @@ class ActivationKey(BaseUI):
         using valid Description, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
         """
-        pass
 
-    @bzbug('1063273')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_delete_activation_key_2(self):
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT,
+                                  description=generate_name(16))
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.delete(name, True)
+        self.assertIsNone(self.activationkey.search_key(name))
+
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_delete_activation_key_2(self, description):
         """
         @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
@@ -282,9 +289,17 @@ class ActivationKey(BaseUI):
         using valid Name, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
         """
-        pass
+
+        name = generate_name(6)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT,
+                                  description=description)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.delete(name, True)
+        self.assertIsNone(self.activationkey.search_key(name))
 
     def test_positive_delete_activation_key_3(self):
         """
@@ -347,8 +362,6 @@ class ActivationKey(BaseUI):
         """
         pass
 
-    @bzbug('1063273')
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -358,10 +371,18 @@ class ActivationKey(BaseUI):
         2. Attempt to remove an Activation Key
         3. Click Cancel in the confirmation dialog box
         @Assert: Activation key is not deleted
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_name(16)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(ActivationKey.org_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT,
+                                  description=generate_name(16))
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.delete(name, really=False)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
@@ -669,99 +690,6 @@ class ActivationKey(BaseUI):
         1. Create multiple Activation keys
         2. Attach all the created Activation keys to a System
         @Assert: Multiple Activation keys are attached to a system
-        @Status: Manual
-        @BZ: 1078676
-        """
-        pass
-
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_activation_keys_1(self):
-        """
-        @Feature: Activation key - list
-        @Test: List Activation key for all variations of Activation key name
-        @Steps:
-        1. Create Activation key for all valid Activation Key name variation
-        in [1]
-        2. List Activation key
-        @Assert: Activation key is listed
-        @Status: Manual
-        @BZ: 1078676
-        """
-        pass
-
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_list_activation_keys_2(self):
-        """
-        @Feature: Activation key - list
-        @Test: List Activation key for all variations of Description
-        @Steps:
-        1. Create Activation key for all valid Description variation in [1]
-        2. List Activation key
-        @Assert: Activation key is listed
-        @Status: Manual
-        @BZ: 1078676
-        """
-        pass
-
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_search_activation_keys_1(self):
-        """
-        @Feature: Activation key - search
-        @Test: Search Activation key for all variations of Activation key name
-        @Steps:
-        1. Create Activation key for all valid Activation Key name variation
-        in [1]
-        2. Search/find Activation key
-        @Assert: Activation key is found
-        @Status: Manual
-        """
-        pass
-
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_search_activation_keys_2(self):
-        """
-        @Feature: Activation key - search
-        @Test: Search Activation key for all variations of Description
-        @Steps:
-        1. Create Activation key for all valid Description variation in [1]
-        2. Search/find Activation key
-        @Assert: Activation key is found
-        @Status: Manual
-        @BZ: 1078676
-        """
-        pass
-
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_info_activation_keys_1(self):
-        """
-        @Feature: Activation key - info
-        @Test: Get Activation key info for all variations of Activation key
-        name
-        @Steps:
-        1. Create Activation key for all valid Activation Key name variation
-        in [1]
-        2. Get info of the Activation key
-        @Assert: Activation key info is displayed
-        @Status: Manual
-        @BZ: 1078676
-        """
-        pass
-
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_info_activation_keys_2(self):
-        """
-        @Feature: Activation key - info
-        @Test: Get Activation key info for all variations of Description
-        @Steps:
-        1. Create Activation key for all valid Description variation in [1]
-        2. Get info of the Activation key
-        @Assert: Activation key info is displayed
         @Status: Manual
         @BZ: 1078676
         """

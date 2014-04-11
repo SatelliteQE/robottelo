@@ -44,6 +44,11 @@ from selenium_factory.SeleniumFactory import SeleniumFactory
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
 
+# Increase the level of third party packages logging
+logging.getLogger(
+    'selenium.webdriver.remote.remote_connection').setLevel(logging.WARNING)
+
+
 class BaseUI(unittest.TestCase):
     """
     Base class for all UI tests.

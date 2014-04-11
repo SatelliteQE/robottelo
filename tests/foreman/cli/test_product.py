@@ -7,14 +7,12 @@ Test class for Product CLI
 
 from ddt import data
 from ddt import ddt
-from robottelo.cli.factory import make_gpg_key, make_org, make_product
+from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
+                                   make_sync_plan)
 from robottelo.cli.product import Product
-from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
-
-import unittest
 
 
 @ddt
@@ -36,12 +34,12 @@ class TestProduct(BaseCLI):
             TestProduct.org = make_org()
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_1(self, test_name):
@@ -53,13 +51,13 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                'name': test_name['name'],
-                'organization-id': self.org['label']
+                u'name': test_name['name'],
+                u'organization-id': self.org['label']
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -73,18 +71,18 @@ class TestProduct(BaseCLI):
         )
 
     @data(
-        {'name': generate_string('alpha', 15),
-         'label': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15),
-         'label': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15),
-         'label': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15),
-         'label': generate_string('alpha', 15)},
-        {'name': generate_string('utf8', 15),
-         'label': generate_string('alphanumeric', 15)},
-        {'name': generate_string('html', 15),
-         'label': generate_string('numeric', 15)},
+        {u'name': generate_string('alpha', 15),
+         u'label': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15),
+         u'label': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15),
+         u'label': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15),
+         u'label': generate_string('alpha', 15)},
+        {u'name': generate_string('utf8', 15),
+         u'label': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('html', 15),
+         u'label': generate_string('numeric', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_2(self, test_name):
@@ -96,14 +94,14 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                'name': test_name['name'],
-                'label': test_name['label'],
-                'organization-id': self.org['label']
+                u'name': test_name['name'],
+                u'label': test_name['label'],
+                u'organization-id': self.org['label']
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -117,18 +115,18 @@ class TestProduct(BaseCLI):
         )
 
     @data(
-        {'name': generate_string('alpha', 15),
-         'description': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15),
-         'description': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15),
-         'description': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15),
-         'description': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15),
-         'description': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15),
-         'description': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15),
+         u'description': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15),
+         u'description': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15),
+         u'description': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15),
+         u'description': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15),
+         u'description': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15),
+         u'description': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_3(self, test_name):
@@ -140,14 +138,14 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                'name': test_name['name'],
-                'description': test_name['description'],
-                'organization-id': self.org['label']
+                u'name': test_name['name'],
+                u'description': test_name['description'],
+                u'organization-id': self.org['label']
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -163,12 +161,12 @@ class TestProduct(BaseCLI):
         )
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_4(self, test_name):
@@ -179,18 +177,18 @@ class TestProduct(BaseCLI):
         """
 
         new_gpg_key = make_gpg_key(
-            {'organization-id': self.org['label']}
+            {u'organization-id': self.org['label']}
         )
         new_product = make_product(
             {
-                'name': test_name['name'],
-                'organization-id': self.org['label'],
-                'gpg-key-id': new_gpg_key['id'],
+                u'name': test_name['name'],
+                u'organization-id': self.org['label'],
+                u'gpg-key-id': new_gpg_key['id'],
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -204,14 +202,13 @@ class TestProduct(BaseCLI):
             new_gpg_key['id'],
             "GPG Keys don't match")
 
-    @unittest.skip(NOT_IMPLEMENTED)
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_5(self, test_name):
@@ -221,15 +218,37 @@ class TestProduct(BaseCLI):
         @Assert: Product is created and has random sync plan
         """
 
-        pass
+        new_sync_plan = make_sync_plan({u'organization-id': self.org['label']})
+        new_product = make_product(
+            {
+                u'name': test_name['name'],
+                u'organization-id': self.org['label'],
+                u'sync-plan-id': new_sync_plan['id'],
+            }
+        )
+
+        # Fetch it
+        result = Product.info({u'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['name'], new_product['name'], "Names don't match")
+        self.assertEqual(
+            result.stdout['sync-plan-id'],
+            new_sync_plan['id'],
+            "Sync plans don't match")
 
     @data(
-        {'name': generate_string('alpha', 300)},
-        {'name': generate_string('alphanumeric', 300)},
-        {'name': generate_string('numeric', 300)},
-        {'name': generate_string('latin1', 300)},
-        {'name': generate_string('utf8', 300)},
-        {'name': generate_string('html', 300)},
+        {u'name': generate_string('alpha', 300)},
+        {u'name': generate_string('alphanumeric', 300)},
+        {u'name': generate_string('numeric', 300)},
+        {u'name': generate_string('latin1', 300)},
+        {u'name': generate_string('utf8', 300)},
+        {u'name': generate_string('html', 300)},
     )
     @attr('cli', 'product')
     def test_negative_create_1(self, test_name):
@@ -242,18 +261,18 @@ class TestProduct(BaseCLI):
         with self.assertRaises(Exception):
             make_product(
                 {
-                    'name': test_name['name'],
-                    'organization-id': self.org['label']
+                    u'name': test_name['name'],
+                    u'organization-id': self.org['label']
                 }
             )
 
     @data(
-        {'name': generate_string('latin1', 15),
-         'label': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15),
-         'label': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15),
-         'label': generate_string('html', 15)},
+        {u'name': generate_string('latin1', 15),
+         u'label': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15),
+         u'label': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15),
+         u'label': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_negative_create_2(self, test_name):
@@ -266,19 +285,19 @@ class TestProduct(BaseCLI):
         with self.assertRaises(Exception):
             make_product(
                 {
-                    'name': test_name['name'],
-                    'label': test_name['label'],
-                    'organization-id': self.org['label']
+                    u'name': test_name['name'],
+                    u'label': test_name['label'],
+                    u'organization-id': self.org['label']
                 }
             )
 
     @data(
-        {'description': generate_string('alpha', 15)},
-        {'description': generate_string('alphanumeric', 15)},
-        {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
-        {'description': generate_string('utf8', 15)},
-        {'description': generate_string('html', 15)},
+        {u'description': generate_string('alpha', 15)},
+        {u'description': generate_string('alphanumeric', 15)},
+        {u'description': generate_string('numeric', 15)},
+        {u'description': generate_string('latin1', 15)},
+        {u'description': generate_string('utf8', 15)},
+        {u'description': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_1(self, test_data):
@@ -290,12 +309,12 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                'organization-id': self.org['label']
+                u'organization-id': self.org['label']
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -305,13 +324,12 @@ class TestProduct(BaseCLI):
 
         # Update the Descriptions
         result = Product.update(
-            {'id': new_product['id'],
-             'name': new_product['name'],
-             'description': test_data['description']}
+            {u'id': new_product['id'],
+             u'description': test_data['description']}
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -330,12 +348,12 @@ class TestProduct(BaseCLI):
         )
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_2(self, test_data):
@@ -347,13 +365,13 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                'name': test_data['name'],
-                'organization-id': self.org['label']
+                u'name': test_data['name'],
+                u'organization-id': self.org['label']
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -365,13 +383,12 @@ class TestProduct(BaseCLI):
 
         # Update the label
         result = Product.update(
-            {'id': new_product['id'],
-             'name': new_product['name'],
-             'label': new_label}
+            {u'id': new_product['id'],
+             u'label': new_label}
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -390,12 +407,12 @@ class TestProduct(BaseCLI):
         )
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_3(self, test_name):
@@ -406,20 +423,20 @@ class TestProduct(BaseCLI):
         """
 
         first_gpg_key = make_gpg_key(
-            {'organization-id': self.org['label']}
+            {u'organization-id': self.org['label']}
         )
         second_gpg_key = make_gpg_key(
-            {'organization-id': self.org['label']}
+            {u'organization-id': self.org['label']}
         )
         new_product = make_product(
             {
-                'name': test_name['name'],
-                'organization-id': self.org['label'],
+                u'name': test_name['name'],
+                u'organization-id': self.org['label'],
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -433,13 +450,12 @@ class TestProduct(BaseCLI):
 
         # Add first gpg key to product
         result = Product.update(
-            {'id': new_product['id'],
-             'name': new_product['name'],
-             'gpg-key-id': first_gpg_key['id']}
+            {u'id': new_product['id'],
+             u'gpg-key-id': first_gpg_key['id']}
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -453,17 +469,16 @@ class TestProduct(BaseCLI):
         self.assertNotEqual(
             result.stdout['gpg-key-id'],
             second_gpg_key['id'],
-            "GPG Keys don't match")
+            "GPG Keys should not match")
 
         # Remove first key by updating product to use second key
         result = Product.update(
-            {'id': new_product['id'],
-             'name': new_product['name'],
-             'gpg-key-id': second_gpg_key['id']}
+            {u'id': new_product['id'],
+             u'gpg-key-id': second_gpg_key['id']}
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -478,16 +493,15 @@ class TestProduct(BaseCLI):
         self.assertNotEqual(
             result.stdout['gpg-key-id'],
             first_gpg_key['id'],
-            "GPG Keys don't match")
+            "GPG Keys should not match")
 
-    @unittest.skip(NOT_IMPLEMENTED)
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_4(self, test_name):
@@ -497,15 +511,87 @@ class TestProduct(BaseCLI):
         @Assert: Product sync plan is updated
         """
 
-        pass
+        first_sync_plan = make_sync_plan(
+            {u'organization-id': self.org['label']}
+        )
+        second_sync_plan = make_sync_plan(
+            {u'organization-id': self.org['label']}
+        )
+        new_product = make_product(
+            {
+                u'name': test_name['name'],
+                u'organization-id': self.org['label'],
+            }
+        )
+
+        # Fetch it
+        result = Product.info({u'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        # No sync plan yet
+        self.assertEqual(
+            len(result.stdout['sync-plan-id']), 0, "No sync plan expected"
+        )
+
+        # Add first sync plan to product
+        result = Product.update(
+            {u'id': new_product['id'],
+             u'sync-plan-id': first_sync_plan['id']}
+        )
+
+        # Fetch it
+        result = Product.info({u'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['sync-plan-id'],
+            first_sync_plan['id'],
+            "Sync plans don't match")
+        self.assertNotEqual(
+            result.stdout['sync-plan-id'],
+            second_sync_plan['id'],
+            "Sync plans should not match")
+
+        # Remove first sync plan by updating product to use second plan
+        result = Product.update(
+            {u'id': new_product['id'],
+             u'name': new_product['name'],
+             u'sync-plan-id': second_sync_plan['id']}
+        )
+
+        # Fetch it
+        result = Product.info({u'id': new_product['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Product was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['sync-plan-id'],
+            second_sync_plan['id'],
+            "Sync plans don't match"
+        )
+        self.assertNotEqual(
+            result.stdout['sync-plan-id'],
+            first_sync_plan['id'],
+            "Sync plans should not match")
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_delete_1(self, test_name):
@@ -517,13 +603,13 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                'name': test_name['name'],
-                'organization-id': self.org['label']
+                u'name': test_name['name'],
+                u'organization-id': self.org['label']
             }
         )
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -537,7 +623,7 @@ class TestProduct(BaseCLI):
         )
 
         # Delete it
-        result = Product.delete({'id': new_product['id']})
+        result = Product.delete({u'id': new_product['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -546,7 +632,7 @@ class TestProduct(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = Product.info({'id': new_product['id']})
+        result = Product.info({u'id': new_product['id']})
         self.assertNotEqual(
             result.return_code,
             0,
