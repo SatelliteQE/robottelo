@@ -535,7 +535,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1082927')
+    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -554,6 +554,7 @@ class GPGKey(BaseUI):
         discovery method
         @assert: gpg key is associated with product and all the repositories
         @status: manual
+        @BZ: 1085924
         """
 
         pass
@@ -782,7 +783,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1082927')
+    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -802,6 +803,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product and all repositories
         before/after update
         @status: manual
+        @BZ: 1085924
         """
 
         pass
@@ -1023,7 +1025,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name1))
 
-    @bzbug('1082927')
+    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1044,6 +1046,7 @@ class GPGKey(BaseUI):
         during creation but removed from product and all repositories after
         deletion
         @status: manual
+        @BZ: 1085924
         """
 
         pass
@@ -1241,7 +1244,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1082927')
+    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1260,6 +1263,7 @@ class GPGKey(BaseUI):
         using Repo discovery method
         @assert: gpg key is associated with product and all the repositories
         @status: manual
+        @BZ: 1085924
         """
 
         pass
@@ -1491,7 +1495,7 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1082927')
+    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1511,6 +1515,7 @@ class GPGKey(BaseUI):
         @assert: gpg key is associated with product and all repositories
         before/after update
         @status: manual
+        @BZ: 1085924
         """
 
         pass
@@ -1730,7 +1735,7 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name1))
 
-    @bzbug('1082927')
+    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1751,6 +1756,7 @@ class GPGKey(BaseUI):
         during creation but removed from product and all repositories
         after deletion
         @status: manual
+        @BZ: 1085924
         """
 
         pass
