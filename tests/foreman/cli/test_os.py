@@ -385,10 +385,10 @@ class TestOperatingSystem(BaseCLI):
 
         new_obj = make_os()
         os_name = new_obj['name'].split(' ')
-        obj = conf_obj['name']
-        result = OperatingSys.add_configtemplate({'id': new_obj['id'],
-                                                  'name': os_name[0],
-                                                  'config-template': obj})
+        result = OperatingSys.add_configtemplate(
+            {'id': new_obj['id'],
+             'name': os_name[0],
+             'config-template': conf_obj['name']})
         self.assertEqual(result.return_code, 0, "Failed to add configtemplate")
         self.assertEqual(
             len(result.stderr), 0, "Should not have gotten an error")
