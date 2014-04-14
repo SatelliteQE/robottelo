@@ -376,15 +376,7 @@ class TestOperatingSystem(BaseCLI):
         @assert: Operating System is updated with config template
         """
 
-        content = generate_name()
-        name = generate_name(6)
-
-        conf_obj = make_template(
-            {
-                'name': name,
-                'content': content,
-            }
-        )
+        conf_obj = make_template()
 
         result = Template.info({'id': conf_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -399,11 +391,11 @@ class TestOperatingSystem(BaseCLI):
                                                   'config-template': obj})
         self.assertEqual(result.return_code, 0, "Failed to add configtemplate")
         self.assertEqual(
-            len(result.stderr), 0, "Should have gotten an error")
+            len(result.stderr), 0, "Should not have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(conf_obj['name'], result.stdout['config templates'])
+        self.assertEqual(conf_obj['name'], result.stdout['config-templates'])
 
     def test_add_ptable(self):
         """
@@ -426,8 +418,8 @@ class TestOperatingSystem(BaseCLI):
                                           'ptable': ptable_obj['name']})
         self.assertEqual(result.return_code, 0, "Failed to add ptable")
         self.assertEqual(
-            len(result.stderr), 0, "Should have gotten an error")
+            len(result.stderr), 0, "Should not have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(ptable_obj['name'], result.stdout['partition tables'])
+        self.assertEqual(ptable_obj['name'], result.stdout['partition-tables'])
