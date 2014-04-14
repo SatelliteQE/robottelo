@@ -101,8 +101,7 @@ class ContentViews(Base):
                 self.find_element(tab_locators
                                   ["contentviews.tab_repo_add"]
                                   ).click()
-                strategy = locators["contentviews.select_repo"][0]
-                value = locators["contentviews.select_repo"][1]
+                strategy, value = locators["contentviews.select_repo"]
                 for repo_name in repo_names:
                     self.text_field_update(locators
                                            ["contentviews.repo_search"],
@@ -122,8 +121,7 @@ class ContentViews(Base):
             else:
                 self.find_element(tab_locators
                                   ["contentviews.tab_repo_remove"]).click()
-                strategy = locators["contentviews.select_repo"][0]
-                value = locators["contentviews.select_repo"][1]
+                strategy, value = locators["contentviews.select_repo"]
                 for repo_name in repo_names:
                     self.text_field_update(locators
                                            ["contentviews.repo_search"],
@@ -150,8 +148,7 @@ class ContentViews(Base):
         promoting the CV to next environment
         """
 
-        strategy = locators["contentviews.publish_progress"][0]
-        value = locators["contentviews.publish_progress"][1]
+        strategy, value = locators["contentviews.publish_progress"]
         check_progress = self.wait_until_element((strategy,
                                                   value % version))
         while check_progress:
@@ -175,7 +172,7 @@ class ContentViews(Base):
             version_number = self.wait_until_element(locators
                                                      ["contentviews.ver_num"])
             # To fetch the publish version e.g. "Version 1"
-            version = version_label.text + "" + version_number.text
+            version = '%s %s' % (version_label.text, version_number.text)
             if comment:
                 self.find_element(locators
                                   ["contentviews.publish_comment"]
@@ -199,14 +196,12 @@ class ContentViews(Base):
             self.wait_until_element(tab_locators
                                     ["contentviews.tab_versions"]).click()
             self.wait_for_ajax()
-            strategy = locators["contentviews.promote_button"][0]
-            value = locators["contentviews.promote_button"][1]
+            strategy, value = locators["contentviews.promote_button"]
             element = self.wait_until_element((strategy, value % version))
             if element:
                 element.click()
                 self.wait_for_ajax()
-                strategy = locators["contentviews.env_to_promote"][0]
-                value = locators["contentviews.env_to_promote"][1]
+                strategy, value = locators["contentviews.env_to_promote"]
                 env_element = self.wait_until_element((strategy, value % env))
                 if env_element:
                     env_element.click()
