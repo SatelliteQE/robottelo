@@ -363,7 +363,7 @@ class TestOperatingSystem(BaseCLI):
                                                 'architecture-id': a_ob['id']})
         self.assertEqual(result.return_code, 0, "Failed to add architecture")
         self.assertEqual(
-            len(result.stderr), 0, "Should have gotten an error")
+            len(result.stderr), 0, "Should not have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
