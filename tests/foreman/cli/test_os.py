@@ -359,7 +359,6 @@ class TestOperatingSystem(BaseCLI):
         os_name = new_obj['name'].split(' ')
         result = OperatingSys.add_architecture({'id': new_obj['id'],
                                                 'name': os_name[0],
-                                                'architecture': a_ob['name'],
                                                 'architecture-id': a_ob['id']})
         self.assertEqual(result.return_code, 0, "Failed to add architecture")
         self.assertEqual(
