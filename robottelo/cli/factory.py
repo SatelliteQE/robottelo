@@ -12,6 +12,7 @@ import random
 
 from os import chmod
 from robottelo.cli.architecture import Architecture
+from robottelo.cli.content_view import Content_View
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -74,6 +75,37 @@ def create_object(cli_object, args):
         result.stdout = result.stdout[0]
 
     return result.stdout
+
+
+def make_content_view(options=None):
+    """
+
+     hammer content-view create [OPTIONS]
+
+     Options:
+      --component-ids COMPONENT_IDS List of component content view
+      version ids for composite views
+                                  Comma separated list of values.
+      --composite                   Create a composite content view
+      --description DESCRIPTION     Description for the content view
+      --label LABEL                 Content view label
+      --name NAME                   Name of the content view
+      --organization-id ORGANIZATION_ID Organization identifier
+      --repository-ids REPOSITORY_IDS List of repository ids
+                                  Comma separated list of values.
+       -h, --help                    print help
+    """
+
+    args = {
+        'name': generate_string("alpha", 10),
+        'organization-id': None,
+    }
+
+    # Override default dictionary with updated one
+    args = update_dictionary(args, options)
+    args.update(create_object(Content_View, args))
+
+    return args
 
 
 def make_architecture(options=None):
