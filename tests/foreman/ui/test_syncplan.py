@@ -240,8 +240,7 @@ class Syncplan(BaseUI):
 
         prd_name = generate_string("alpha", 8)
         description = "update sync plan, add prds"
-        strategy = locators["sp.prd_select"][0]
-        value = locators["sp.prd_select"][1]
+        strategy, value = locators["sp.prd_select"]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
@@ -272,8 +271,7 @@ class Syncplan(BaseUI):
         prd_name = generate_string("alpha", 8)
         plan_name = generate_string("alpha", 8)
         description = "update sync plan, add prds"
-        strategy = locators["sp.prd_select"][0]
-        value = locators["sp.prd_select"][1]
+        strategy, value = locators["sp.prd_select"]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
