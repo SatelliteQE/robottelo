@@ -103,6 +103,7 @@ class Syncplan(BaseUI):
         @Feature: Content Sync Plan - Positive Create
         @Test: Create Sync Plan with same input parameters
         @Assert: Sync Plan is not created
+        @BZ: 1087425
         """
 
         description = "with same name"
