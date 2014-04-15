@@ -9,6 +9,7 @@ from robottelo.api.apicrud import ApiCrud
 from robottelo.common import records
 from robottelo.common.helpers import STR
 from robottelo.records.organization import Organization
+from robottelo.records.role import Role
 
 
 CONSERVATIVE = [
@@ -26,7 +27,7 @@ class UserApi(ApiCrud):
     create_fields = [
         "login", "password", "auth_source_id",
         "admin", "mail", "firstname", "lastname",
-        "organization_ids"]
+        "organization_ids", "role_ids"]
 
 
 class User(records.Record):
@@ -37,8 +38,10 @@ class User(records.Record):
     mail = records.EmailField()
     firstname = records.BasicPositiveField(include=CONSERVATIVE)
     lastname = records.BasicPositiveField(include=CONSERVATIVE)
+    lastname = records.BasicPositiveField(include=CONSERVATIVE)
     auth_source_id = records.IntegerField(default=1)
     organization = records.ManyRelatedField(Organization, 1, 2)
+    role = records.ManyRelatedField(Role, 1, 2, default=[])
 
     class Meta:
         """Linking record definition with api implementation.

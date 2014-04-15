@@ -53,6 +53,7 @@ class Host(records.Record):
         self.name = self.name + "." + self.domain.name
         self.architecture.operatingsystem = [self.operatingsystem]
         self.ptable.operatingsystem = [self.operatingsystem]
+        self.operatingsystem.ptables = [self.ptable]
 
     class Meta:
         """Linking record definition with api implementation.

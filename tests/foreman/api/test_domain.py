@@ -17,6 +17,9 @@ from tests.foreman.api.baseapi import BaseAPI
 class TestDomain(BaseAPI):
     """Testing /api/organization entrypoint"""
 
+    def test_add_domain_1(self, test_data):
+
+
     @redminebug('4219')
     @redminebug('4294')
     @redminebug('4295')
