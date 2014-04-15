@@ -11,11 +11,30 @@ from robottelo.cli.content_view import Content_View
 from robottelo.cli.org import Org
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_content_view
+from ddt import data, ddt
 import unittest
 
 from tests.foreman.cli.basecli import BaseCLI
 
+POSITIVE_CREATE_DATA = (
+    {'name': generate_string("latin1", 10)},
+    {'name': generate_string("utf8", 10)},
+    {'name': generate_string("alpha", 10)},
+    {'name': generate_string("alphanumeric", 10)},
+    {'name': generate_string("numeric", 10)},
+    {'name': generate_string("html", 10)},)
 
+NEGATIVE_CREATE_DATA = (
+    {'name': generate_string("latin1", 300)},
+    {'name': generate_string("utf8", 300)},
+    {'name': generate_string("alpha", 300)},
+    {'name': generate_string("alphanumeric", 300)},
+    {'name': generate_string("numeric", 300)},
+    {'name': generate_string("alphanumeric", 300)},
+    {'name': " "},)
+
+
+@ddt
 class TestContentView(BaseCLI):
 
     # Notes:
@@ -28,7 +47,8 @@ class TestContentView(BaseCLI):
     # Content View: Creation
     # katello content definition create --definition=MyView
 
-    def test_cv_create_cli(self):
+    @data(*POSITIVE_CREATE_DATA)
+    def test_cv_create_cli(self, test_data):
         # variations (subject to change):
         # ascii string, alphanumeric, latin-1, utf8, etc.
         """
@@ -42,17 +62,16 @@ class TestContentView(BaseCLI):
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
-        con_name = generate_string("alpha", 10)
-        con_view = make_content_view({'name': con_name,
-                                      'organization-id': org_obj['label']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "Should not have gotten an error")
+
+        test_data['organization-id'] = org_obj['label']
+        con_view = make_content_view(test_data)
+
         result = Content_View.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
 
-    def test_cv_create_cli_negative(self):
+    @data(*NEGATIVE_CREATE_DATA)
+    def test_cv_create_cli_negative(self, test_data):
         # variations (subject to change):
         # zero length, symbols, html, etc.
         """
@@ -69,11 +88,10 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        result = Content_View.create({'name': '',
-                                      'organization-id': org_obj['label']})
+        test_data['organization-id'] = org_obj['label']
+        result = Content_View.create(test_data)
+
         self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(
-            len(result.stderr), 0, "There should be an exception here.")
 
     def test_cv_create_cli_badorg_negative(self):
         # Use an invalid org name
@@ -89,8 +107,6 @@ class TestContentView(BaseCLI):
         result = Content_View.create({'name': con_name,
                                       'organization-id': org_name})
         self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(
-            len(result.stderr), 0, "There should be an exception here.")
 
     def test_cv_edit(self):
         """
@@ -109,9 +125,6 @@ class TestContentView(BaseCLI):
         con_name = generate_string("alpha", 10)
         con_view = make_content_view({'name': con_name,
                                       'organization-id': org_obj['label']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "Should not have gotten an error")
         result = Content_View.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
