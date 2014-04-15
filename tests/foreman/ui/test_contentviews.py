@@ -18,8 +18,7 @@ from robottelo.common.helpers import (generate_string, valid_names_list,
                                       invalid_names_list)
 from robottelo.common.decorators import bzbug
 from robottelo.ui.factory import make_org
-from robottelo.ui.locators import (locators, common_locators,
-                                   tab_locators)
+from robottelo.ui.locators import (locators, common_locators)
 from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
