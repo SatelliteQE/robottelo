@@ -296,7 +296,10 @@ class Base(object):
 
         for key, val in options.items():
             if val is not None:
-                tail += u" --%s='%s'" % (key, val)
+                if val is True:
+                    tail += u" --%s" % key
+                elif val is not False:
+                    tail += u" --%s='%s'" % (key, val)
         cmd = u"%s %s %s" % (cls.command_base, cls.command_sub, tail.strip())
 
         return cmd
