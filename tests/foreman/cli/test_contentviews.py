@@ -16,7 +16,7 @@ import unittest
 from tests.foreman.cli.basecli import BaseCLI
 
 
-class TestComputeResource(BaseCLI):
+class TestContentView(BaseCLI):
 
     # Notes:
     # * For most tests in CLI, you should be able to observe whether
@@ -92,15 +92,40 @@ class TestComputeResource(BaseCLI):
         self.assertGreater(
             len(result.stderr), 0, "There should be an exception here.")
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
         """
         @test: edit content views - name, description, etc.
         @feature: Content Views
         @assert: edited content view save is successful and info is
         updated
-        @status: Manual
         """
+
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+        con_name = generate_string("alpha", 10)
+        con_view = make_content_view({'name': con_name,
+                                      'organization-id': org_obj['label']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "Should not have gotten an error")
+        result = Content_View.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
+
+        con_view_update = generate_string("alpha", 10)
+        result = Content_View.update({'id': con_view['id'],
+                                     'name': con_view_update})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "Should not have gotten an error")
+
+        result = Content_View.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view_update, result.stdout['name'])
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit_rh_custom_spin(self):
