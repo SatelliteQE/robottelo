@@ -45,6 +45,13 @@ def request(method, **kwargs):
     :param cert: (optional) if String, path to ssl client cert file (.pem).
         If Tuple, ('cert', 'key') pair.
 """
+    if "user" in kwargs:
+        user = kwargs.pop("user")
+        if user:
+            kwargs.setdefault('auth', (
+                user.login,
+                user.password))
+
 
     kwargs.setdefault('verify', False)
     kwargs.setdefault('domain', conf.properties['main.server.hostname'])

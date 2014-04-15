@@ -157,6 +157,11 @@ class Record(object):
     def __contains__(self, key):
         return key in self.keys()
 
+    def record_set_field(self, **kwargs):
+        for k in kwargs:
+            self[k] = kwargs[k]
+        return self
+
     def keys(self):
         """Adding dict functionality to records
         """

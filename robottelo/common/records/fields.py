@@ -145,7 +145,7 @@ class StringField(Field):
     generated string and defaults to 20.
     """
 
-    def __init__(self, format=r'{record_name}_\d\d\d', maxlen=20,
+    def __init__(self, format=r'{record_name}_\d\d\d\d\d\d', maxlen=20,
                  str_type='xeger', **kwargs):
         super(StringField, self).__init__(**kwargs)
         self.format = format

@@ -51,14 +51,14 @@ def resolve_path_arg(arg, data):
     return data[arg]
 
 
-def resolve_or_create_record(record):
+def resolve_or_create_record(record,user=None):
     """On recieving record, that has api_class implemented,
     it checks if it exists and if not, creates it.
     """
-    if ApiCrud.record_exists(record):
-        return ApiCrud.record_resolve(record)
+    if ApiCrud.record_exists(record,user=user):
+        return ApiCrud.record_resolve(record,user=user)
     else:
-        return ApiCrud.record_create_recursive(record)
+        return ApiCrud.record_create_recursive(record,user=user)
 
 
 def data_load_transform(instance_cls, data):
@@ -140,6 +140,10 @@ class ApiCrud(object):
         return [
             s[1:] for s in path.split('/') if s.startswith(":")
         ]
+
+    @classmethod
+    def search_dict(cls, instance):
+        return dict(search="name="+instance.name)
 
     @classmethod
     def parse_path_arg(cls, args):
@@ -226,18 +230,18 @@ class ApiCrud(object):
             return data
 
     @classmethod
-    def record_exists(cls, instance):
+    def record_exists(cls, instance,user=None):
         """Checks if record is resolveable."""
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_exists(instance)
+            return api.record_exists(instance,user=user)
 
         if "id" in instance:
-            res = cls.show(instance.id)
+            res = cls.show(instance.id,user=user)
             return res.ok
         else:
             try:
-                res = cls.list(json=dict(search="name="+instance.name))
+                res = cls.list(json=cls.search_dict(instance) ,user=user)
             except NameError:
                 return False
 
@@ -250,47 +254,48 @@ class ApiCrud(object):
                 return False
 
     @classmethod
-    def record_remove(cls, instance):
+    def record_remove(cls, instance,user=None):
         """Removes record by its id, or name"""
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_remove(instance)
+            return api.record_remove(instance,user=user)
 
         if "id" in instance:
-            res = cls.delete(instance.id)
+            res = cls.delete(instance.id,user=user)
             if res.ok:
                 return True
             else:
                 raise ApiException("Unable to remove", instance.items())
             return res.ok
         else:
-            res = cls.list(json=dict(search="name="+instance.name))
+            res = cls.list(json=cls.search_dict(instance),user=user)
             if res.ok and len(res.json()) == 1:
-                res = cls.record_remove(cls.record_resolve(instance))
+                res = cls.record_remove(cls.record_resolve(instance),user=user)
                 return True
             else:
                 return False
 
     @classmethod
-    def record_resolve(cls, instance):
+    def record_resolve(cls, instance, user=None):
         """Gets information by records id, or name
         and parses it into new record
         """
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_resolve(instance)
+            return api.record_resolve(instance, user=user)
 
-        if not cls.record_exists(instance):
-            raise ApiException("Record doesn't exist")
+        #if not cls.record_exists(instance, user=user):
+        #    raise ApiException("Record doesn't exist")
 
         res = None
         json = None
         if "id" in instance:
-            res = cls.show(instance.id)
+            res = cls.show(instance.id, user=user)
             if res.ok:
                 json = res.json()
         else:
-            res = cls.list(json=dict(search="name="+instance.name))
+            res = cls.list(json=cls.search_dict(instance), user=user)
+
             if res.ok:
                 # TODO better separete kattelo and formam api
                 if "results" in res.json():
@@ -309,15 +314,15 @@ class ApiCrud(object):
             raise ApiException("Couldn't resolve record", instance.items())
 
     @classmethod
-    def record_list(cls, instance):
+    def record_list(cls, instance,user=None):
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_list(instance)
+            return api.record_list(instance,user=user)
         counting_response = cls.list()
         if counting_response.ok:
             count = int(counting_response.json()["total"])
             if count > 0:
-                listing_response = cls.list(json=dict(per_page=count))
+                listing_response = cls.list(json=dict(per_page=count),user=user)
                 if listing_response.ok:
                     return [load_from_data(
                         instance.__class__,
@@ -327,14 +332,14 @@ class ApiCrud(object):
                         ]
 
     @classmethod
-    def record_resolve_recursive(cls, instance):
+    def record_resolve_recursive(cls, instance,user=None):
         """Gets infromation about record,
         including all of its related fields
         """
         if cls != instance._meta.api_class:
             return instance._meta.api_class \
-                .record_resolve_recursive(instance)
-        ninstance = cls.record_resolve(instance)
+                .record_resolve_recursive(instance,user=user)
+        ninstance = cls.record_resolve(instance,user=user)
         related_fields = ninstance._meta.fields.items(cls=RelatedField)
         for fld in related_fields:
             if fld.name + "_id" in ninstance:
@@ -343,26 +348,26 @@ class ApiCrud(object):
                     blank_record=True,
                     id=ninstance[(fld.name + "_id")]
                     )
-                ninstance[fld.name] = cls.record_resolve(related)
+                ninstance[fld.name] = cls.record_resolve(related,user=user)
             elif fld.name in ninstance:
                 related = ninstance[fld.name]
                 if isinstance(related, RelatedField):
-                    resolved = cls.record_resolve(related)
+                    resolved = cls.record_resolve(related, user=user)
                     ninstance[fld.name] = resolved
         return ninstance
 
     @classmethod
-    def record_update(cls, instance):
+    def record_update(cls, instance, user=None):
         """Updates the record, doesn't touch related fields
         """
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_update(instance)
+            return api.record_update(instance, user=user)
 
         if "id" not in instance:
-            res = cls.list(json=dict(search="name="+instance.name))
+            res = cls.list(json=dict(search="name="+instance.name), user=user)
             if res.ok and len(res.json()) == 1:
-                instance.id = cls.record_resolve(instance).id
+                instance.id = cls.record_resolve(instance, user=user).id
             else:
                 if len(res.json()) == 0:
                     raise KeyError(instance.name + " not found.")
@@ -375,7 +380,7 @@ class ApiCrud(object):
             or name in cls.create_fields
             )
 
-        res = cls.update(instance.id, json=cls.opts(data))
+        res = cls.update(instance.id, json=cls.opts(data), user=user)
         if res.ok:
             ninstance = load_from_data(
                 instance.__class__,
@@ -386,12 +391,12 @@ class ApiCrud(object):
             raise ApiException("Couldn't update record", instance.items())
 
     @classmethod
-    def record_create(cls, instance_orig):
+    def record_create(cls, instance_orig, user=None):
         """Creates the record, doesn't touch related fields
         """
         if cls != instance_orig._meta.api_class:
             api = instance_orig._meta.api_class
-            return api.record_create(instance_orig)
+            return api.record_create(instance_orig, user=user)
         instance = instance_orig.copy()
 
         path_args = dict(
@@ -403,7 +408,7 @@ class ApiCrud(object):
             if cls.create_fields == [] or name in cls.create_fields
             )
 
-        res = cls.create(json=cls.opts(data), **path_args)
+        res = cls.create(json=cls.opts(data), user=user, **path_args)
         if res.ok:
             ninstance = load_from_data(
                 instance.__class__,
@@ -414,20 +419,20 @@ class ApiCrud(object):
             raise ApiException("Couldn't create record", instance.items())
 
     @classmethod
-    def record_create_dependencies(cls, instance_orig):
+    def record_create_dependencies(cls, instance_orig, user=None):
         """Ensures that all related fields of the record do exist
         resolves them and adds their ids to instance.
         """
         if cls != instance_orig._meta.api_class:
             api = instance_orig._meta.api_class
-            return api.record_create_dependencies(instance_orig)
+            return api.record_create_dependencies(instance_orig, user=user)
         instance = instance_orig.copy()
 
         # resolve ids
         related_fields = instance._meta.fields.keys(cls=RelatedField)
 
         for field in related_fields:
-            value = resolve_or_create_record(instance[field])
+            value = resolve_or_create_record(instance[field], user=user)
             instance[field] = value
             instance[field+"_id"] = value.id
             if instance._meta.fields[field].record_label:
@@ -440,7 +445,7 @@ class ApiCrud(object):
             value = instance[field]
             if type(value) == type(list()):
                 values = [
-                    resolve_or_create_record(i)
+                    resolve_or_create_record(i, user=user)
                     for i in value
                     ]
                 ids = [val.id for val in values]
@@ -449,14 +454,59 @@ class ApiCrud(object):
         return instance
 
     @classmethod
-    def record_create_recursive(cls, instance_orig):
+    def record_create_recursive(cls, instance_orig, user=None):
         """Creates the record, even related fields
         """
         if cls != instance_orig._meta.api_class:
             api = instance_orig._meta.api_class
-            return api.record_create_recursive(instance_orig)
-        res_instance = cls.record_create_dependencies(instance_orig)
-        return cls.record_create(res_instance)
+            return api.record_create_recursive(instance_orig, user=user)
+        res_instance = cls.record_create_dependencies(instance_orig, user=user)
+        return cls.record_create(res_instance, user=user)
+
+
+class PermissionList:
+    def __init__(self, suffix=None, **kwargs):
+        if suffix:
+            kwargs.setdefault("resolve", "view_"+suffix)
+            kwargs.setdefault("create", "create_"+suffix)
+            kwargs.setdefault("update", "edit_"+suffix)
+            kwargs.setdefault("remove", "destroy_"+suffix)
+
+        self.__dict__ = kwargs
+
+    def __getitem__(self, key):
+        if key in self.keys():
+            return self.__dict__[key]
+        else:
+            raise KeyError("Not found in record,", key)
+
+    def __delitem__(self, key):
+        if key in self.keys():
+            del self.__dict__[key]
+        else:
+            raise KeyError("Not found in record,", key)
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __contains__(self, key):
+        return key in self.keys()
+
+    def keys(self):
+        """Adding dict functionality to records
+        """
+        return [k for k, v in self.__dict__.items()
+                if not k.startswith("_") and k != ""]
+
+    def items(self):
+        """Adding dict functionality to records
+        """
+        return [(k, v) for k, v in self.__dict__.items()
+                if not k.startswith("_") and k != ""]
+
 
 
 class Task(object):
