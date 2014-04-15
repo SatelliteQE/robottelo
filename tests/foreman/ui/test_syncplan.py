@@ -5,9 +5,10 @@ Test class for Sync Plan UI
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import SYNC_INTERVAL
+from robottelo.common.decorators import bzbug
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
@@ -94,6 +95,72 @@ class Syncplan(BaseUI):
                              sync_interval=test_data['interval'])
         self.assertIsNotNone(self.products.search(test_data['name']))
 
+    @bzbug("1087425")
+    @attr('ui', 'syncplan', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_create_2(self, name):
+        """
+        @Feature: Content Sync Plan - Positive Create
+        @Test: Create Sync Plan with same input parameters
+        @Assert: Sync Plan is not created
+        """
+
+        description = "with same name"
+        #TODO: Due to bug 1087425 using common_haserror instead of name_error
+        locator = common_locators["common_haserror"]
+        self.configure_syncplan()
+        self.syncplan.create(name)
+        self.assertIsNotNone(self.products.search(name))
+        self.syncplan.create(name, description)
+        error = self.products.wait_until_element(locator)
+        self.assertTrue(error)
+
+    def test_negative_create_1(self):
+        """
+        @Feature: Content Sync Plan - Negative Create
+        @Test: Create Sync Plan with whitespace as name input parameters
+        @Assert: Sync Plan is not created with whitespace input
+        """
+
+        name = "   "
+        locator = common_locators["common_invalid"]
+        self.configure_syncplan()
+        self.syncplan.create(name)
+        invalid = self.products.wait_until_element(locator)
+        self.assertTrue(invalid)
+
+    def test_negative_create_2(self):
+        """
+        @Feature: Content Sync Plan - Negative Create
+        @Test: Create Sync Plan with blank as name input parameters
+        @Assert: Sync Plan is not created with blank input
+        """
+
+        name = ""
+        locator = common_locators["common_invalid"]
+        self.configure_syncplan()
+        self.syncplan.create(name)
+        invalid = self.products.wait_until_element(locator)
+        self.assertTrue(invalid)
+
+    @bzbug("1087425")
+    @attr('ui', 'syncplan', 'implemented')
+    @data(*generate_strings_list(len1=256))
+    def test_negative_create_3(self, name):
+        """
+        @Feature: Content Sync Plan - Negative Create
+        @Test: Create Sync Plan with long chars for name as input parameters
+        @Assert: Sync Plan is not created with more than 255 chars
+        @BZ: 1087425
+        """
+
+        locator = common_locators["common_haserror"]
+        description = "more than 255 chars"
+        self.configure_syncplan()
+        self.syncplan.create(name, description)
+        error = self.products.wait_until_element(locator)
+        self.assertTrue(error)
+
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, plan_name):
@@ -160,6 +227,83 @@ class Syncplan(BaseUI):
         self.syncplan.search(test_data['name']).click()
         interval_text = self.syncplan.wait_until_element(locator).text
         self.assertEqual(interval_text, test_data['interval'])
+
+    @attr('ui', 'syncplan', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_update_3(self, plan_name):
+        """
+        @Feature: Content Sync Plan - Positive Update add products
+        @Test: Update Sync plan and associate products
+        @Assert: Sync Plan has the associated product
+        """
+
+        prd_name = generate_string("alpha", 8)
+        description = "update sync plan, add prds"
+        strategy = locators["sp.prd_select"][0]
+        value = locators["sp.prd_select"][1]
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.products.create(prd_name, description)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.navigator.go_to_sync_plans()
+        self.syncplan.create(plan_name, description)
+        self.assertIsNotNone(self.products.search(plan_name))
+        self.syncplan.update(plan_name, add_products=[prd_name])
+        self.syncplan.search(plan_name).click()
+        self.syncplan.wait_for_ajax()
+        self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
+            click()
+        self.syncplan.wait_for_ajax()
+        prd_element = self.syncplan.wait_until_element((strategy,
+                                                        value % prd_name))
+        self.assertTrue(prd_element)
+
+    @attr('ui', 'syncplan', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_update_4(self, plan_name):
+        """
+        @Feature: Content Sync Plan - Positive Update remove products
+        @Test: Update Sync plan and disassociate products
+        @Assert: Sync Plan does not have the associated product
+        """
+
+        prd_name = generate_string("alpha", 8)
+        plan_name = generate_string("alpha", 8)
+        description = "update sync plan, add prds"
+        strategy = locators["sp.prd_select"][0]
+        value = locators["sp.prd_select"][1]
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.products.create(prd_name, description)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.navigator.go_to_sync_plans()
+        self.syncplan.create(plan_name, description)
+        self.assertIsNotNone(self.products.search(plan_name))
+        self.syncplan.update(plan_name, add_products=[prd_name])
+        self.syncplan.search(plan_name).click()
+        self.syncplan.wait_for_ajax()
+        self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
+            click()
+        self.syncplan.wait_for_ajax()
+        prd_element = self.syncplan.wait_until_element((strategy,
+                                                        value % prd_name))
+        self.assertTrue(prd_element)
+        self.syncplan.update(plan_name, rm_products=[prd_name])
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_sync_plans()
+        self.syncplan.search(plan_name).click()
+        self.syncplan.wait_for_ajax()
+        self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
+            click()
+        self.syncplan.wait_for_ajax()
+        self.syncplan.wait_until_element(tab_locators["sp.add_prd"]).\
+            click()
+        self.syncplan.wait_for_ajax()
+        prd_element = self.syncplan.wait_until_element((strategy,
+                                                        value % prd_name))
+        self.assertTrue(prd_element)
 
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
