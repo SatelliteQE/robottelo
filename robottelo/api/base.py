@@ -52,7 +52,6 @@ def request(method, **kwargs):
                 user.login,
                 user.password))
 
-
     kwargs.setdefault('verify', False)
     kwargs.setdefault('domain', conf.properties['main.server.hostname'])
     kwargs.setdefault('schema', "https://")
