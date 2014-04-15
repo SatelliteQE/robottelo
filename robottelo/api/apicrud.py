@@ -51,14 +51,14 @@ def resolve_path_arg(arg, data):
     return data[arg]
 
 
-def resolve_or_create_record(record,user=None):
+def resolve_or_create_record(record, user=None):
     """On recieving record, that has api_class implemented,
     it checks if it exists and if not, creates it.
     """
-    if ApiCrud.record_exists(record,user=user):
-        return ApiCrud.record_resolve(record,user=user)
+    if ApiCrud.record_exists(record, user=user):
+        return ApiCrud.record_resolve(record, user=user)
     else:
-        return ApiCrud.record_create_recursive(record,user=user)
+        return ApiCrud.record_create_recursive(record, user=user)
 
 
 def data_load_transform(instance_cls, data):
@@ -230,18 +230,18 @@ class ApiCrud(object):
             return data
 
     @classmethod
-    def record_exists(cls, instance,user=None):
+    def record_exists(cls, instance, user=None):
         """Checks if record is resolveable."""
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_exists(instance,user=user)
+            return api.record_exists(instance, user=user)
 
         if "id" in instance:
-            res = cls.show(instance.id,user=user)
+            res = cls.show(instance.id, user=user)
             return res.ok
         else:
             try:
-                res = cls.list(json=cls.search_dict(instance) ,user=user)
+                res = cls.list(json=cls.search_dict(instance), user=user)
             except NameError:
                 return False
 
@@ -254,23 +254,25 @@ class ApiCrud(object):
                 return False
 
     @classmethod
-    def record_remove(cls, instance,user=None):
+    def record_remove(cls, instance, user=None):
         """Removes record by its id, or name"""
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_remove(instance,user=user)
+            return api.record_remove(instance, user=user)
 
         if "id" in instance:
-            res = cls.delete(instance.id,user=user)
+            res = cls.delete(instance.id, user=user)
             if res.ok:
                 return True
             else:
                 raise ApiException("Unable to remove", instance.items())
             return res.ok
         else:
-            res = cls.list(json=cls.search_dict(instance),user=user)
+            res = cls.list(json=cls.search_dict(instance), user=user)
             if res.ok and len(res.json()) == 1:
-                res = cls.record_remove(cls.record_resolve(instance),user=user)
+                res = cls.record_remove(
+                    cls.record_resolve(instance),
+                    user=user)
                 return True
             else:
                 return False
@@ -314,15 +316,17 @@ class ApiCrud(object):
             raise ApiException("Couldn't resolve record", instance.items())
 
     @classmethod
-    def record_list(cls, instance,user=None):
+    def record_list(cls, instance, user=None):
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
-            return api.record_list(instance,user=user)
+            return api.record_list(instance, user=user)
         counting_response = cls.list()
         if counting_response.ok:
             count = int(counting_response.json()["total"])
             if count > 0:
-                listing_response = cls.list(json=dict(per_page=count),user=user)
+                listing_response = cls.list(
+                    json=dict(per_page=count),
+                    user=user)
                 if listing_response.ok:
                     return [load_from_data(
                         instance.__class__,
@@ -332,14 +336,14 @@ class ApiCrud(object):
                         ]
 
     @classmethod
-    def record_resolve_recursive(cls, instance,user=None):
+    def record_resolve_recursive(cls, instance, user=None):
         """Gets infromation about record,
         including all of its related fields
         """
         if cls != instance._meta.api_class:
             return instance._meta.api_class \
-                .record_resolve_recursive(instance,user=user)
-        ninstance = cls.record_resolve(instance,user=user)
+                .record_resolve_recursive(instance, user=user)
+        ninstance = cls.record_resolve(instance, user=user)
         related_fields = ninstance._meta.fields.items(cls=RelatedField)
         for fld in related_fields:
             if fld.name + "_id" in ninstance:
@@ -348,7 +352,7 @@ class ApiCrud(object):
                     blank_record=True,
                     id=ninstance[(fld.name + "_id")]
                     )
-                ninstance[fld.name] = cls.record_resolve(related,user=user)
+                ninstance[fld.name] = cls.record_resolve(related, user=user)
             elif fld.name in ninstance:
                 related = ninstance[fld.name]
                 if isinstance(related, RelatedField):
@@ -508,18 +512,19 @@ class PermissionList:
                 if not k.startswith("_") and k != ""]
 
 
-
 class Task(object):
-
+    """Class for polling api tasks"""
     def __init__(self, json):
         self.json = json
 
     def refresh(self):
+        """Reloads task data"""
         id = self.json["id"]
         r = base.get(path="/foreman_tasks/api/tasks/{0}".format(id))
         self.json = r.json()
 
     def poll(self, delay, timeout):
+        """Bussy wait for task to complete"""
         current = 0
         finished = False
         while (not finished) and current < timeout:

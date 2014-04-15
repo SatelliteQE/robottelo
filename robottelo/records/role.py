@@ -33,6 +33,7 @@ class RolesApi(ApiCrud):
 
     create_fields = ["name"]
 
+
 class Role(records.Record):
     """Definition of activation key entity
     """
