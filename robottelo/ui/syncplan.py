@@ -2,7 +2,6 @@
 Implements Sync Plans for UI
 """
 
-import time
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select

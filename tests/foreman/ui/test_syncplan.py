@@ -118,7 +118,7 @@ class Syncplan(BaseUI):
         # Removed zero padded hrs & mins as fetching via web-UI doesn't have it
         # Removed the seconds info as it would be too quick to validate via UI.
         fetch_starttime = startdate.strftime("%b %d, %Y %I:%M:%S %p").\
-                            lstrip("0").replace(" 0", " ").rpartition(':')[0]
+            lstrip("0").replace(" 0", " ").rpartition(':')[0]
         self.syncplan.create(plan_name, description, start_hour=starthour,
                              start_minute=startminute)
         self.assertIsNotNone(self.products.search(plan_name))
@@ -126,7 +126,7 @@ class Syncplan(BaseUI):
         self.syncplan.wait_for_ajax()
         # Removed the seconds info as it would be too quick to validate via UI.
         starttime_text = str(self.syncplan.wait_until_element(locator).text).\
-                            rpartition(':')[0]
+            rpartition(':')[0]
         self.assertEqual(starttime_text, fetch_starttime)
 
     @attr('ui', 'syncplan', 'implemented')
@@ -146,13 +146,13 @@ class Syncplan(BaseUI):
         startdate_str = startdate.strftime("%Y-%m-%d")
         # validating only for date
         fetch_startdate = startdate.strftime("%b %d, %Y %I:%M:%S %p").\
-                            rpartition(',')[0]
+            rpartition(',')[0]
         self.syncplan.create(plan_name, description, startdate=startdate_str)
         self.assertIsNotNone(self.products.search(plan_name))
         self.syncplan.search(plan_name).click()
         self.syncplan.wait_for_ajax()
         startdate_text = str(self.syncplan.wait_until_element(locator).text).\
-                            rpartition(',')[0]
+            rpartition(',')[0]
         self.assertEqual(startdate_text, fetch_startdate)
 
     @attr('ui', 'syncplan', 'implemented')
