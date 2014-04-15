@@ -76,13 +76,15 @@ def create_object(cli_object, args):
 
     return result.stdout
 
+
 def make_content_view(options=None):
     """
-      
+
      hammer content-view create [OPTIONS]
 
      Options:
-      --component-ids COMPONENT_IDS List of component content view version ids for composite views
+      --component-ids COMPONENT_IDS List of component content view
+      version ids for composite views
                                   Comma separated list of values.
       --composite                   Create a composite content view
       --description DESCRIPTION     Description for the content view
@@ -104,6 +106,7 @@ def make_content_view(options=None):
     args.update(create_object(Content_View, args))
 
     return args
+
 
 def make_architecture(options=None):
     """
