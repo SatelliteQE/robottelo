@@ -106,7 +106,7 @@ class Syncplan(BaseUI):
         """
 
         description = "with same name"
-        #TODO: Due to bug 1087425 using common_haserror instead of name_error
+        # TODO: Due to bug 1087425 using common_haserror instead of name_error
         locator = common_locators["common_haserror"]
         self.configure_syncplan()
         self.syncplan.create(name)
