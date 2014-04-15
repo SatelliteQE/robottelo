@@ -419,6 +419,8 @@ common_locators = {
         By.XPATH,
         "//input[@id='name' and contains(@class,'ng-invalid')]"),
 
+    "cv_filter": (
+        By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
     "search": (By.ID, "search"),
     "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
@@ -1107,4 +1109,18 @@ locators = {
         By.XPATH, "//button[@ng-click='promote()']"),
     "contentview.version_filter": (
         By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
+    "contentviews.add_module": (
+        By.XPATH,
+        ("//div[@data-block='actions']"
+         "/button[@ui-sref='content-views.details.puppet-modules.names']")),
+    "contentviews.select_module": (
+        By.XPATH,
+        ("//tr/td[contains(., '%s')]/following-sibling::td"
+         "/button[@ng-click='selectVersion(item.module_name)']")),
+    "contentviews.select_module_ver": (
+        By.XPATH,
+        ("//tr/td[contains(., '%s')]/following-sibling::td"
+         "/button[@ng-click='selectVersion(item)']")),
+    "contentviews.get_module_name": (
+        By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]")
 }
