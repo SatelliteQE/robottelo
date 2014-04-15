@@ -14,11 +14,11 @@ else:
 
 from ddt import ddt, data
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.helpers import (generate_name, valid_names_list,
+from robottelo.common.helpers import (generate_string, valid_names_list,
                                       invalid_names_list)
 from robottelo.common.decorators import bzbug
 from robottelo.ui.factory import make_org
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import (locators, common_locators)
 from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
@@ -32,7 +32,7 @@ class TestContentViewsUI(BaseUI):
 
         # Make sure to use the Class' org_name instance
         if TestContentViewsUI.org_name is None:
-            TestContentViewsUI.org_name = generate_name(8, 8)
+            TestContentViewsUI.org_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=TestContentViewsUI.org_name)
 
@@ -78,6 +78,52 @@ class TestContentViewsUI(BaseUI):
                 'No validation error found for "%s" from %s org' % (
                     name, self.org_name))
             self.assertIsNone(self.content_views.search(name))
+
+    def test_cv_end_2_end(self):
+        """
+        @test: create content view
+        @feature: Content Views
+        @steps: 1. Create Product/repo and Sync it
+                2. Create CV and add created repo in step1
+                3. Publish and promote it to 'Library'
+                4. Promote it to next environment
+        @assert: content view is created, updated with repo
+                publish and promoted to next selected env
+        """
+
+        repo_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        name = generate_string("alpha", 8)
+        publish_version = "Version 1"
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name)
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(name, [repo_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.publish(name, "publishing version_1")
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.promote(name, publish_version, env_name)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
