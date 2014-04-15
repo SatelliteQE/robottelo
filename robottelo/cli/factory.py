@@ -97,7 +97,7 @@ def make_content_view(options=None):
     """
 
     args = {
-        'name': generate_name(),
+        'name': generate_string("alpha", 10),
         'organization-id': None,
     }
 
