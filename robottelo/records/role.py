@@ -39,7 +39,6 @@ class Role(records.Record):
     """
 
     name = records.StringField(required=True)
-    #filters = records.M
 
     class Meta:
         """Linking record definition with api implementation.

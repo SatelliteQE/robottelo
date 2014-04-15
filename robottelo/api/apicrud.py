@@ -286,7 +286,7 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_resolve(instance, user=user)
 
-        #if not cls.record_exists(instance, user=user):
+        # if not cls.record_exists(instance, user=user):
         #    raise ApiException("Record doesn't exist")
 
         res = None
