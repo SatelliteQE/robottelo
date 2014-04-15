@@ -210,3 +210,53 @@ class ContentViews(Base):
         else:
             raise Exception(
                 "Couldn't find the selected CV '%s'" % cv_name)
+
+    def add_puppet_module(self, cv_name, module_name, filter_term):
+        """
+        Add puppet module to selected view either by its author name
+        or by its version
+        Filter_term can be used to filter the module by 'author'
+        or by 'version'
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(tab_locators
+                                    ["contentviews.tab_puppet_modules"]
+                                    ).click()
+            self.wait_until_element(locators
+                                    ["contentviews.add_module"]).click()
+            self.wait_for_ajax()
+            self.text_field_update(common_locators["cv_filter"], module_name)
+            strategy, value = locators["contentviews.select_module"]
+            element = self.wait_until_element((strategy, value % module_name))
+            if element:
+                element.click()
+                self.wait_for_ajax()
+                self.text_field_update(common_locators
+                                       ["cv_filter"], filter_term)
+                strategy, value = locators["contentviews.select_module_ver"]
+                element = self.wait_until_element((strategy,
+                                                   value % filter_term))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                else:
+                    raise Exception(
+                        "Couldn't find the selected version '%s'\
+                         of puppet module '%s'" % (filter_term, module_name))
+                self.text_field_update(common_locators
+                                       ["cv_filter"], module_name)
+                strategy, value = locators["contentviews.get_module_name"]
+                element = self.wait_until_element((strategy,
+                                                   value % module_name))
+                return element
+            else:
+                raise Exception(
+                    "Couldn't find the given puppet module '%s'" % module_name)
+        else:
+            raise Exception(
+                "Couldn't find the selected CV '%s'" % cv_name)

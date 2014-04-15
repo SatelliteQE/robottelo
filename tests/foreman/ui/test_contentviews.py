@@ -13,7 +13,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt, data
-from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.constants import NOT_IMPLEMENTED, REPO_TYPE
 from robottelo.common.helpers import (generate_string, valid_names_list,
                                       invalid_names_list)
 from robottelo.common.decorators import bzbug
@@ -124,6 +124,41 @@ class TestContentViewsUI(BaseUI):
         self.content_views.promote(name, publish_version, env_name)
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
+
+    def test_associate_puppet_module(self):
+        """
+        @test: create content view
+        @feature: Content Views
+        @steps: 1. Create Product/puppet repo and Sync it
+                2. Create CV and add puppet modules from created repo
+        @assert: content view is created, updated with puppet module
+        """
+
+        repo_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        url = "http://davidd.fedorapeople.org/repos/random_puppet/"
+        name = generate_string("alpha", 8)
+        puppet_module = "httpd"
+        module_ver = 'Latest'
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=url,
+                               repo_type=REPO_TYPE['puppet'])
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        module = self.content_views.add_puppet_module(name,
+                                                      puppet_module,
+                                                      filter_term=module_ver)
+        self.assertIsNotNone(module)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
