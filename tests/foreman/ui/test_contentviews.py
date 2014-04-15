@@ -18,7 +18,8 @@ from robottelo.common.helpers import (generate_string, valid_names_list,
                                       invalid_names_list)
 from robottelo.common.decorators import bzbug
 from robottelo.ui.factory import make_org
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import (locators, common_locators,
+                                   tab_locators)
 from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
@@ -101,6 +102,8 @@ class TestContentViewsUI(BaseUI):
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()
         self.contentenv.create(env_name)
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
         self.navigator.go_to_products()
         self.products.create(prd_name)
         self.assertIsNotNone(self.products.search(prd_name))

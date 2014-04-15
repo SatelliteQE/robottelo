@@ -87,8 +87,9 @@ class ContentViews(Base):
     def add_remove_repos(self, cv_name, repo_names, add_repo=True):
         """
         Add or Remove repository to/from selected content-view.
-        When add_repo is 'true', the add repository will be performed
-        otherwise remove repository
+
+        When 'add_repo' Flag is set then add_repository will be performed,
+        otherwise remove_repository
         """
 
         element = self.search(cv_name)
@@ -97,47 +98,35 @@ class ContentViews(Base):
             element.click()
             self.find_element(tab_locators["contentviews.tab_content"]).click()
             self.find_element(locators["contentviews.content_repo"]).click()
+            self.wait_for_ajax()
             if add_repo:
                 self.find_element(tab_locators
-                                  ["contentviews.tab_repo_add"]
-                                  ).click()
-                strategy, value = locators["contentviews.select_repo"]
-                for repo_name in repo_names:
-                    self.text_field_update(locators
-                                           ["contentviews.repo_search"],
-                                           repo_name)
-                    element = self.wait_until_element((strategy,
-                                                       value % repo_name))
-                    if element:
-                        element.click()
-                        self.wait_for_ajax()
+                                  ["contentviews.tab_repo_add"]).click()
+            else:
+                self.find_element(tab_locators
+                                  ["contentviews.tab_repo_remove"]).click()
+            strategy, value = locators["contentviews.select_repo"]
+            for repo_name in repo_names:
+                self.text_field_update(locators
+                                       ["contentviews.repo_search"],
+                                       repo_name)
+                element = self.wait_until_element((strategy,
+                                                   value % repo_name))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                    if add_repo:
                         self.wait_until_element(locators
                                                 ["contentviews.add_repo"]
                                                 ).click()
                     else:
-                        raise Exception(
-                            "Couldn't find repo '%s'"
-                            "to add into CV" % repo_name)
-            else:
-                self.find_element(tab_locators
-                                  ["contentviews.tab_repo_remove"]).click()
-                strategy, value = locators["contentviews.select_repo"]
-                for repo_name in repo_names:
-                    self.text_field_update(locators
-                                           ["contentviews.repo_search"],
-                                           repo_name)
-                    element = self.wait_until_element((strategy,
-                                                       value % repo_name))
-                    if element:
-                        element.click()
-                        self.wait_for_ajax()
                         self.wait_until_element(locators
                                                 ["contentviews.remove_repo"]
                                                 ).click()
-                    else:
-                        raise Exception(
-                            "Couldn't find repo '%s'"
-                            "to remove from CV" % repo_name)
+                else:
+                    raise Exception(
+                        "Couldn't find repo '%s'"
+                        "to add into CV" % repo_name)
         else:
             raise Exception(
                 "Couldn't find the selected CV '%s'" % cv_name)
@@ -181,6 +170,9 @@ class ContentViews(Base):
             self.wait_for_ajax()
             self.check_progress_bar_status(version)
             return version
+        else:
+            raise Exception(
+                "Couldn't find the selected CV '%s'" % cv_name)
 
     def promote(self, cv_name, version, env):
         """

@@ -358,7 +358,7 @@ tab_locators = {
         By.XPATH,
         "//a[contains(@ui-sref, 'repositories.available')]"),
     "contentviews.tab_repo_remove": (
-        By.XPATH, "//a[contains(@ui-sref, 'list')]"),
+        By.XPATH, "//a[contains(@ui-sref, 'repositories.list')]"),
 
     # Activation Keys
     # Third level UI
