@@ -992,6 +992,10 @@ locators = {
         ("//form[@alch-edit-select='syncPlan.interval']"
          "/div[@class='alch-edit']/div/"
          "span[contains(@class,'editable-value')]")),
+    "sp.fetch_startdate": (
+        By.XPATH,
+        ("//span[contains(.,'Start Date')]/../"
+         "span[contains(@class,'info-value')]")),
 
     # Enable RH Repos expander
     "rh.prd_expander": (
