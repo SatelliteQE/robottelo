@@ -40,3 +40,35 @@ class TestContentView(BaseCLI):
         result = Content_View.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
+
+    def test_negative_create_1(self):
+        """
+        @test: Create content-view with blank name
+        @feature: Content View
+        @assert: content-view is not created
+        """
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+        
+        result = Content_View.create({'name': '', 'organization-id': org_obj['label']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(
+            len(result.stderr), 0, "There should be an exception here.")
+
+    def test_negative_create_2(self):
+        """
+        @test: Create content-view with bad org
+        @feature: Content View
+        @assert: content-view is not created
+        """
+        
+        org_name = generate_string("alpha", 10)
+        con_name = generate_string("alpha", 10)
+        result = Content_View.create({'name': con_name, 'organization-id': org_name})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(
+            len(result.stderr), 0, "There should be an exception here.")
