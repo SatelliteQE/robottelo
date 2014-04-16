@@ -12,7 +12,7 @@ import random
 
 from os import chmod
 from robottelo.cli.architecture import Architecture
-from robottelo.cli.content_view import Content_View
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -134,7 +134,7 @@ def make_content_view(options=None):
 
     # Override default dictionary with updated one
     args = update_dictionary(args, options)
-    args.update(create_object(Content_View, args))
+    args.update(create_object(ContentView, args))
 
     return args
 

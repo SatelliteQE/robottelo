@@ -7,7 +7,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 """
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_string
-from robottelo.cli.content_view import ContentView
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.org import Org
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_content_view
