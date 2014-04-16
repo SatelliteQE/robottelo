@@ -339,6 +339,26 @@ tab_locators = {
     # Third level UI
     "contentviews.tab_details": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "contentviews.tab_versions": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@ui-sref, 'details.versions')]"),
+    "contentviews.tab_content": (
+        By.XPATH, "//ul/li[@class='dropdown']/a"),
+    "contentviews.tab_content_views": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'content-views')]"),
+    "contentviews.tab_puppet_modules": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'puppet_modules')]"),
+    "contentviews.tab_history": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href, 'history')]"),
+    "contentviews.tab_tasks": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href, 'tasks')]"),
+    "contentviews.tab_repo_add": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'repositories.available')]"),
+    "contentviews.tab_repo_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'repositories.list')]"),
 
     # Sync Plans
     # Third level UI
@@ -410,6 +430,8 @@ common_locators = {
         By.XPATH,
         "//input[@id='name' and contains(@class,'ng-invalid')]"),
 
+    "cv_filter": (
+        By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
     "search": (By.ID, "search"),
     "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
@@ -1090,7 +1112,7 @@ locators = {
     "contentviews.composite": (By.ID, "composite"),
     "contentviews.key_name": (
         By.XPATH,
-        "//tr[@ng-repeat='contentView in table.rows']"
+        "//tr[@row-select='contentView']"
         "/td/a[contains(., '%s')]"),
     "contentviews.edit_name": (
         By.XPATH, "//form[@alch-edit-text='contentView.name']//div/span/i"),
@@ -1116,5 +1138,54 @@ locators = {
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
     "contentviews.publish": (
-        By.XPATH, "//a[ui-sref='content-views.details.publish']")
+        By.XPATH, "//a[contains(@href, 'publish')]/span"),
+    "contentviews.publish_comment": (By.ID, "comment"),
+    "contentviews.publish_progress": (
+        By.XPATH,
+        ("//tr/td[(contains(., '%s')]"
+         "/../div[@class='progress progress-striped active']")),
+    "contentviews.ver_label": (
+        By.XPATH, "//div[@label='Version']/label"),
+    "contentviews.ver_num": (
+        By.XPATH, "//div[@class='col-sm-5 input']/span/span"),
+    "contentviews.content_repo": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
+    "contentviews.select_repo": (
+        By.XPATH,
+        ("//div[@alch-table='repositoriesTable']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.add_repo": (
+        By.XPATH, "//button[contains(@ng-show, 'repositories.available')]"),
+    "contentviews.remove_repo": (
+        By.XPATH, "//button[contains(@ng-show, 'repositories.list')]"),
+    "contentviews.repo_search": (
+        By.XPATH, "//input[@ng-model='repositorySearch']"),
+    "contentviews.promote_button": (
+        By.XPATH,
+        ("//table[@alch-table='table']//tr/td[contains(., '%s')]"
+         "/following-sibling::td[@class='col-sm-1']/a/button")),
+    "contentviews.env_to_promote": (
+        By.XPATH,
+        "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "contentviews.promote_version": (
+        By.XPATH, "//button[@ng-click='promote()']"),
+    "contentview.version_filter": (
+        By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
+    "contentviews.add_module": (
+        By.XPATH,
+        ("//div[@data-block='actions']"
+         "/button[@ui-sref='content-views.details.puppet-modules.names']")),
+    "contentviews.select_module": (
+        By.XPATH,
+        ("//tr/td[contains(., '%s')]/following-sibling::td"
+         "/button[@ng-click='selectVersion(item.module_name)']")),
+    "contentviews.select_module_ver": (
+        By.XPATH,
+        ("//tr/td[contains(., '%s')]/following-sibling::td"
+         "/button[@ng-click='selectVersion(item)']")),
+    "contentviews.get_module_name": (
+        By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]")
 }
