@@ -203,7 +203,7 @@ def test_positive_delete(self, data):
     result = self.factory_obj().info({'id': new_obj['id']})
     self.assertFalse(result.return_code == 0, "Return code should not be zero")
     self.assertTrue(len(result.stderr) > 0, "Should have gotten an error")
-    self.assertEqual(result.stdout, [], "Should not get any output")
+    self.assertEqual(result.stdout, {}, "Should not get any output")
 
 
 def test_negative_delete(self, data):

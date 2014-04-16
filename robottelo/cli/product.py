@@ -31,38 +31,6 @@ class Product(Base):
     command_requires_org = True
 
     @classmethod
-    def info(cls, options=None):
-        """
-        Gets information by provided: options dictionary.
-        @param options: ID (sometimes name or id).
-        """
-        cls.command_sub = "info"
-
-        # Use the 'base' output adapter
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
-
-        # This will hold our GPG key dictionary
-        gpg_key = {}
-
-        for items in result.stdout:
-            # Break each item splitting at the ':'
-            # Example:  Organization: dTVfLkUhHIDiwPIQHqRn
-            item = items.split(':')
-            # Get rid of empty items
-            if len(item) == 2:
-                # Strip leading whitespace, use dashes and lower keys
-                key = item[0].lstrip().replace(' ', '-').lower()
-                # Strip leading whitespaces from values
-                value = item[1].lstrip()
-                # Build the dictionary
-                gpg_key[key] = value
-
-        # Update result.stdout
-        result.stdout = gpg_key
-
-        return result
-
-    @classmethod
     def remove_sync_plan(cls, options=None):
         """
         Delete assignment sync plan and product.

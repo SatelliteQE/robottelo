@@ -310,7 +310,7 @@ class TestOperatingSystem(BaseCLI):
             result.return_code, 0, "Return code should not be zero")
         self.assertGreater(
             len(result.stderr), 0, "Should have gotten an error")
-        self.assertEqual(result.stdout, [], "Should not get any output")
+        self.assertEqual(result.stdout, {}, "Should not get any output")
 
     @data(*NEGATIVE_DELETE_DATA)
     def test_negative_delete_1(self, test_data):
