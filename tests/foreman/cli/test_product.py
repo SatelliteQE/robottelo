@@ -198,7 +198,7 @@ class TestProduct(BaseCLI):
         self.assertEqual(
             result.stdout['name'], new_product['name'], "Names don't match")
         self.assertEqual(
-            result.stdout['gpg-key-id'],
+            result.stdout['gpg']['gpg-key-id'],
             new_gpg_key['id'],
             "GPG Keys don't match")
 
@@ -445,7 +445,7 @@ class TestProduct(BaseCLI):
             len(result.stderr), 0, "No error was expected")
         # No gpg key yet
         self.assertEqual(
-            len(result.stdout['gpg-key-id']), 0, "No gpg key expected"
+            len(result.stdout['gpg']['gpg-key-id']), 0, "No gpg key expected"
         )
 
         # Add first gpg key to product
@@ -463,11 +463,11 @@ class TestProduct(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         self.assertEqual(
-            result.stdout['gpg-key-id'],
+            result.stdout['gpg']['gpg-key-id'],
             first_gpg_key['id'],
             "GPG Keys don't match")
         self.assertNotEqual(
-            result.stdout['gpg-key-id'],
+            result.stdout['gpg']['gpg-key-id'],
             second_gpg_key['id'],
             "GPG Keys should not match")
 
@@ -486,12 +486,12 @@ class TestProduct(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         self.assertEqual(
-            result.stdout['gpg-key-id'],
+            result.stdout['gpg']['gpg-key-id'],
             second_gpg_key['id'],
             "GPG Keys don't match"
         )
         self.assertNotEqual(
-            result.stdout['gpg-key-id'],
+            result.stdout['gpg']['gpg-key-id'],
             first_gpg_key['id'],
             "GPG Keys should not match")
 
