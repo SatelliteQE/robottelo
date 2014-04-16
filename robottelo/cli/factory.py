@@ -77,37 +77,6 @@ def create_object(cli_object, args):
     return result.stdout
 
 
-def make_content_view(options=None):
-    """
-
-     hammer content-view create [OPTIONS]
-
-     Options:
-      --component-ids COMPONENT_IDS List of component content view
-      version ids for composite views
-                                  Comma separated list of values.
-      --composite                   Create a composite content view
-      --description DESCRIPTION     Description for the content view
-      --label LABEL                 Content view label
-      --name NAME                   Name of the content view
-      --organization-id ORGANIZATION_ID Organization identifier
-      --repository-ids REPOSITORY_IDS List of repository ids
-                                  Comma separated list of values.
-       -h, --help                    print help
-    """
-
-    args = {
-        'name': generate_string("alpha", 10),
-        'organization-id': None,
-    }
-
-    # Override default dictionary with updated one
-    args = update_dictionary(args, options)
-    args.update(create_object(Content_View, args))
-
-    return args
-
-
 def make_architecture(options=None):
     """
     Usage:
@@ -127,6 +96,45 @@ def make_architecture(options=None):
     # Override default dictionary with updated one
     args = update_dictionary(args, options)
     args.update(create_object(Architecture, args))
+
+    return args
+
+
+def make_content_view(options=None):
+    """
+
+     hammer content-view create [OPTIONS]
+
+     Options:
+      --component-ids COMPONENT_IDS List of component content view
+      version ids for composite views
+                                  Comma separated list of values.
+      --composite                   Create a composite content view
+      --description DESCRIPTION     Description for the content view
+      --label LABEL                 Content view label
+      --name NAME                   Name of the content view
+      --organization-id ORGANIZATION_ID Organization identifier
+      --repository-ids REPOSITORY_IDS List of repository ids
+                                  Comma separated list of values.
+       -h, --help                    print help
+    """
+
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id', None):
+        raise Exception("Please provide a valid ORG ID.")
+
+    args = {
+        'name': generate_string("alpha", 10),
+        'organization-id': None,
+        'composite': False,
+        'label': None,
+        'description': None,
+        'repository-ids': None
+    }
+
+    # Override default dictionary with updated one
+    args = update_dictionary(args, options)
+    args.update(create_object(Content_View, args))
 
     return args
 

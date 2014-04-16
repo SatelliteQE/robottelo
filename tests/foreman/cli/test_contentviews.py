@@ -6,12 +6,46 @@ Test class for Host/System Unification
 Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 """
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.helpers import generate_string
+from robottelo.cli.content_view import ContentView
+from robottelo.cli.org import Org
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_content_view
+from ddt import data, ddt
 import unittest
 
 from tests.foreman.cli.basecli import BaseCLI
 
 
-class TestComputeResource(BaseCLI):
+def positive_create_data():
+    """Random data for positive creation"""
+
+    return (
+        {'name': generate_string("latin1", 10)},
+        {'name': generate_string("utf8", 10)},
+        {'name': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10)},
+        {'name': generate_string("numeric", 20)},
+        {'name': generate_string("html", 10)},
+    )
+
+
+def negative_create_data():
+    """Random data for negative creation"""
+
+    return (
+        {'name': ' '},
+        {'name': generate_string('alpha', 300)},
+        {'name': generate_string('numeric', 300)},
+        {'name': generate_string('alphanumeric', 300)},
+        {'name': generate_string('utf8', 300)},
+        {'name': generate_string('latin1', 300)},
+        {'name': generate_string('html', 300)},
+    )
+
+
+@ddt
+class TestContentView(BaseCLI):
 
     # Notes:
     # * For most tests in CLI, you should be able to observe whether
@@ -23,19 +57,31 @@ class TestComputeResource(BaseCLI):
     # Content View: Creation
     # katello content definition create --definition=MyView
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_create_cli(self):
+    @data(*positive_create_data())
+    def test_cv_create_cli(self, test_data):
         # variations (subject to change):
         # ascii string, alphanumeric, latin-1, utf8, etc.
         """
         @test: create content views (positive)
         @feature: Content Views
         @assert: content views are created
-        @status: Manual
         """
+        org_obj = make_org()
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_create_cli_negative(self):
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        test_data['organization-id'] = org_obj['label']
+        con_view = make_content_view(test_data)
+
+        result = ContentView.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
+
+    @data(*negative_create_data())
+    def test_cv_create_cli_negative(self, test_data):
         # variations (subject to change):
         # zero length, symbols, html, etc.
         """
@@ -43,10 +89,21 @@ class TestComputeResource(BaseCLI):
         @feature: Content Views
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
-        @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        test_data['organization-id'] = org_obj['label']
+        result = ContentView.create(test_data)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be an exception here")
+
     def test_cv_create_cli_badorg_negative(self):
         # Use an invalid org name
         """
@@ -54,18 +111,47 @@ class TestComputeResource(BaseCLI):
         @feature: Content Views
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
-        @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        org_name = generate_string("alpha", 10)
+        con_name = generate_string("alpha", 10)
+        result = ContentView.create({'name': con_name,
+                                     'organization-id': org_name})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(
+            len(result.stderr), 0, "There should be an exception here.")
+
     def test_cv_edit(self):
         """
         @test: edit content views - name, description, etc.
         @feature: Content Views
         @assert: edited content view save is successful and info is
         updated
-        @status: Manual
         """
+
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+        con_name = generate_string("alpha", 10)
+        con_view = make_content_view({'name': con_name,
+                                      'organization-id': org_obj['label']})
+        result = ContentView.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
+
+        con_view_update = generate_string("alpha", 10)
+        result = ContentView.update({'id': con_view['id'],
+                                     'name': con_view_update})
+        self.assertEqual(result.return_code, 0, "Failed to update object")
+        self.assertEqual(
+            len(result.stderr), 0, "Should not have gotten an error")
+
+        result = ContentView.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view_update, result.stdout['name'])
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit_rh_custom_spin(self):
@@ -83,7 +169,6 @@ class TestComputeResource(BaseCLI):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_delete(self):
         """
         @test: delete content views
@@ -91,10 +176,33 @@ class TestComputeResource(BaseCLI):
         @assert: edited content view can be deleted and no longer
         appears in any content view UI
         updated
-        @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        con_view_name = generate_string("alpha", 10)
+        con_view = make_content_view({'name': con_view_name,
+                                      'organization-id': org_obj['label']})
+
+        result = ContentView.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
+
+        result = ContentView.delete({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to delete object")
+        self.assertEqual(
+            len(result.stderr), 0, "Should not have gotten an error")
+
+        result = ContentView.info({'id': con_view['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be an exception here")
+
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
@@ -107,6 +215,22 @@ class TestComputeResource(BaseCLI):
         @assert: Composite content views are created
         @status: Manual
         """
+
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        con_view_name = generate_string("alpha", 10)
+        con_view = make_content_view({'name': con_view_name,
+                                      'organization-id': org_obj['label'],
+                                      'composite': True})
+
+        result = ContentView.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
 
     # Content Views: Adding products/repos
     # katello content definition add_filter --label=MyView
