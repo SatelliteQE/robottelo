@@ -936,15 +936,19 @@ locators = {
         //button[@ng-click='save()']"),
     "ak.edit_content_view": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        //div/span/i"),
+        //div//span/i"),
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /select"),
+        /div/select"),
     "ak.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
     "ak.cancel": (
         By.XPATH, ("//div[@class='modal-dialog']"
                    "//button[@ng-click='cancel()']")),
+    "ak.save_cv": (
+        By.XPATH,
+        ("//form[@alch-edit-select='activationKey.content_view.name']"
+         "//button[@ng-click='save()']")),
 
     # Sync Status
     "sync.prd_expander": (
