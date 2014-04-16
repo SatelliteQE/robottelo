@@ -226,7 +226,7 @@ class TestContentView(BaseCLI):
         con_view_name = generate_string("alpha", 10)
         con_view = make_content_view({'name': con_view_name,
                                       'organization-id': org_obj['label'],
-                                      'composite': 'composite'})
+                                      'composite': True})
 
         result = Content_View.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
