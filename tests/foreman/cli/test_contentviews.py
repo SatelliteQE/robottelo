@@ -7,7 +7,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 """
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_string
-from robottelo.cli.content_view import Content_View
+from robottelo.cli.content_view import ContentView
 from robottelo.cli.org import Org
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_content_view
@@ -116,7 +116,7 @@ class TestContentView(BaseCLI):
         org_name = generate_string("alpha", 10)
         con_name = generate_string("alpha", 10)
         result = ContentView.create({'name': con_name,
-                                      'organization-id': org_name})
+                                     'organization-id': org_name})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(
             len(result.stderr), 0, "There should be an exception here.")
