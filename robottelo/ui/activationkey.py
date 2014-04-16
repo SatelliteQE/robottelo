@@ -7,7 +7,7 @@ Implements Activation keys UI
 
 from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -152,3 +152,33 @@ class ActivationKey(Base):
                                         ).click()
             else:
                 self.wait_until_element(locators["ak.cancel"]).click()
+
+    def associate_product(self, name, products):
+        """
+        associate an existing product with activation key
+        """
+
+        element = self.search_key(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(tab_locators["ak.subscriptions"]).click()
+            self.wait_until_element(tab_locators
+                                    ["ak.subscriptions_add"]).click()
+            self.wait_for_ajax()
+            strategy, value = locators["ak.select_subscription"]
+            for product in products:
+                element = self.wait_until_element((strategy, value % product))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                else:
+                    raise Exception(
+                        "Couldn't find the product '%s'"
+                        "subscription" % product)
+            self.wait_until_element(locators
+                                    ["ak.add_selected_subscription"]).click()
+        else:
+            raise Exception(
+                "Couldn't find the selected activation key '%s'" % name)

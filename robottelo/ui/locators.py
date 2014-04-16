@@ -375,11 +375,15 @@ tab_locators = {
     # Activation Keys
     # Third level UI
     "ak.details": (
-        By.XPATH, "//a[conatins(@href, 'info')]"),
+        By.XPATH, "//a[contains(@href, 'info')]"),
     "ak.subscriptions": (
-        By.XPATH, "//a[conatins(@href, 'subscriptions')]"),
+        By.XPATH, "//a[contains(@href, 'subscriptions')]/span"),
+    "ak.subscriptions_add": (
+        By.XPATH, "//a[contains(@ui-sref, 'subscriptions.add')]"),
+    "ak.subscriptions_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'subscriptions.list')]"),
     "ak.system_groups": (
-        By.XPATH, "//a[conatins(@href, 'system-groups')]")}
+        By.XPATH, "//a[contains(@href, 'system-groups')]")}
 
 common_locators = {
 
@@ -949,6 +953,13 @@ locators = {
         By.XPATH,
         ("//form[@alch-edit-select='activationKey.content_view.name']"
          "//button[@ng-click='save()']")),
+    "ak.select_subscription": (
+        By.XPATH,
+        ("//tr/td/a[contains(., '%s')]"
+         "/following::tr[@row-select='subscription']"
+         "/td/input[@ng-model='subscription.selected']")),
+    "ak.add_selected_subscription": (
+        By.XPATH, "//button[@ng-click='addSelected()']"),
 
     # Sync Status
     "sync.prd_expander": (
