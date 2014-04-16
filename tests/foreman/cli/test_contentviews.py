@@ -76,7 +76,7 @@ class TestContentView(BaseCLI):
         test_data['organization-id'] = org_obj['label']
         con_view = make_content_view(test_data)
 
-        result = Content_View.info({'id': con_view['id']})
+        result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
 
@@ -99,7 +99,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "There should not be an exception here")
 
         test_data['organization-id'] = org_obj['label']
-        result = Content_View.create(test_data)
+        result = ContentView.create(test_data)
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
@@ -115,7 +115,7 @@ class TestContentView(BaseCLI):
 
         org_name = generate_string("alpha", 10)
         con_name = generate_string("alpha", 10)
-        result = Content_View.create({'name': con_name,
+        result = ContentView.create({'name': con_name,
                                       'organization-id': org_name})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(
@@ -138,18 +138,18 @@ class TestContentView(BaseCLI):
         con_name = generate_string("alpha", 10)
         con_view = make_content_view({'name': con_name,
                                       'organization-id': org_obj['label']})
-        result = Content_View.info({'id': con_view['id']})
+        result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
 
         con_view_update = generate_string("alpha", 10)
-        result = Content_View.update({'id': con_view['id'],
+        result = ContentView.update({'id': con_view['id'],
                                      'name': con_view_update})
         self.assertEqual(result.return_code, 0, "Failed to update object")
         self.assertEqual(
             len(result.stderr), 0, "Should not have gotten an error")
 
-        result = Content_View.info({'id': con_view['id']})
+        result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view_update, result.stdout['name'])
 
@@ -189,16 +189,16 @@ class TestContentView(BaseCLI):
         con_view = make_content_view({'name': con_view_name,
                                       'organization-id': org_obj['label']})
 
-        result = Content_View.info({'id': con_view['id']})
+        result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
 
-        result = Content_View.delete({'id': con_view['id']})
+        result = ContentView.delete({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to delete object")
         self.assertEqual(
             len(result.stderr), 0, "Should not have gotten an error")
 
-        result = Content_View.info({'id': con_view['id']})
+        result = ContentView.info({'id': con_view['id']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
@@ -228,7 +228,7 @@ class TestContentView(BaseCLI):
                                       'organization-id': org_obj['label'],
                                       'composite': True})
 
-        result = Content_View.info({'id': con_view['id']})
+        result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
 

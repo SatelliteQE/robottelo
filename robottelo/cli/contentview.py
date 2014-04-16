@@ -31,7 +31,7 @@ Options:
 from robottelo.cli.base import Base
 
 
-class Content_View(Base):
+class ContentView(Base):
     """
     Manipulates Foreman's content view.
     """
