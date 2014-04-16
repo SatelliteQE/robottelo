@@ -4,7 +4,7 @@ git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFact
 git+https://github.com/blrm/nose_xunitmp.git#egg=nose_xunitmp
 iniparse
 nose
-paramiko
+paramiko==1.12.3
 pylint
 python-bugzilla
 requests
