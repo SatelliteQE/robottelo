@@ -100,8 +100,6 @@ class TestContentView(BaseCLI):
 
         test_data['organization-id'] = org_obj['label']
         result = Content_View.create(test_data)
-
-        result = Content_View.info({'id': result.stdout['id']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
@@ -122,11 +120,6 @@ class TestContentView(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(
             len(result.stderr), 0, "There should be an exception here.")
-
-        result = Content_View.info({'id': result.stdout['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0,
-                           "There should be an exception here")
 
     def test_cv_edit(self):
         """
