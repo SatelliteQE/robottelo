@@ -126,6 +126,7 @@ class ActivationKey(Base):
                 # purpose and hence no else required here
                 if self.wait_until_element(locators["ak.edit_content_view"]):
                     self.find_element(locators["ak.edit_content_view"]).click()
+                    self.wait_for_ajax()
                 Select(self.find_element
                        (locators["ak.edit_content_view_select"]
                         )).select_by_visible_text(content_view)

@@ -556,9 +556,9 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_activation_key_4(self):
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_update_activation_key_4(self, cv2_name):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Content View in an Activation key
@@ -567,10 +567,30 @@ class ActivationKey(BaseUI):
         2. Update Content View for all variations in [1] and include both
         RH and custom products
         @Assert: Activation key is updated
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        cv1_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv1_name, env_name)
+        self.create_cv(cv2_name, env_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env_name,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv1_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.update(name, content_view=cv2_name)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
+        # TODO: Need to check for RH Product too
 
     @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
