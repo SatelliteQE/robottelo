@@ -203,7 +203,6 @@ class TestContentView(BaseCLI):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
@@ -216,6 +215,22 @@ class TestContentView(BaseCLI):
         @assert: Composite content views are created
         @status: Manual
         """
+
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        con_view_name = generate_string("alpha", 10)
+        con_view = make_content_view({'name': con_view_name,
+                                      'organization-id': org_obj['label'],
+                                      'composite': 'composite'})
+
+        result = Content_View.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
 
     # Content Views: Adding products/repos
     # katello content definition add_filter --label=MyView
