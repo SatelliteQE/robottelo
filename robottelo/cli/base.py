@@ -222,7 +222,7 @@ class Base(object):
                     if sub_num == 1:
                         r[sub_prop] = list()
                     # remove number from key
-                    key = re.sub('\d+\) ', '', key)
+                    key = re.sub('\d+\)', '', key)
                     # append empty dict to array
                     r[sub_prop].append(dict())
 
