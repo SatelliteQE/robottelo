@@ -762,8 +762,6 @@ class ActivationKey(BaseUI):
         """
         pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_2(self):
         """
         @Feature: Activation key - Product
@@ -772,10 +770,52 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Associate custom product(s) to Activation Key
         @Assert: Custom products are successfully associated to Activation key
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_string("alpha", 8)
+        cv_name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        repo_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        publish_version = "Version 1"
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(cv_name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(cv_name, [repo_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.publish(cv_name, "publishing version_1")
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.promote(cv_name, publish_version, env_name)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env_name,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.associate_product(name, [prd_name])
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
 
     @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
