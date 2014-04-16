@@ -44,11 +44,12 @@ class Syncplan(Base):
         if description:
             self.text_field_update(common_locators["description"], description)
             self.wait_for_ajax()
-        if startdate:
-            self.text_field_update(locators["sp.start_date"], name)
         if start_hour and start_minute:
-            self.text_field_update(locators["sp.start_hour"], name)
-            self.text_field_update(locators["sp.start_minute"], name)
+            self.text_field_update(locators["sp.start_hour"], start_hour)
+            self.text_field_update(locators["sp.start_minutes"], start_minute)
+        if startdate:
+            self.text_field_update(locators["sp.start_date"], startdate)
+            self.wait_for_ajax()
         self.wait_until_element(common_locators["create"]).click()
         self.wait_for_ajax()
 

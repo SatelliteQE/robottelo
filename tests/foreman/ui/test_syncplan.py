@@ -2,6 +2,7 @@
 Test class for Sync Plan UI
 """
 
+from datetime import datetime, timedelta
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import SYNC_INTERVAL
@@ -115,6 +116,65 @@ class Syncplan(BaseUI):
         self.syncplan.create(name, description)
         error = self.products.wait_until_element(locator)
         self.assertTrue(error)
+
+    @bzbug("1082632")
+    @attr('ui', 'syncplan', 'implemented')
+    def test_positive_create_3(self):
+        """
+        @Feature: Content Sync Plan - Positive Create
+        @Test: Create Sync plan with specified start time
+        @Assert: Sync Plan is created with the specified time.
+        @BZ: 1082632
+        """
+
+        locator = locators["sp.fetch_startdate"]
+        plan_name = generate_string("alpha", 8)
+        self.configure_syncplan()
+        description = "sync plan create with start date"
+        current_date = datetime.now()
+        startdate = current_date + timedelta(minutes=10)
+        starthour = startdate.strftime("%H")
+        startminute = startdate.strftime("%M")
+        # Formatting current_date to web-UI format "%b %d, %Y %I:%M:%S %p"
+        # Removed zero padded hrs & mins as fetching via web-UI doesn't have it
+        # Removed the seconds info as it would be too quick to validate via UI.
+        fetch_starttime = startdate.strftime("%b %d, %Y %I:%M:%S %p").\
+            lstrip("0").replace(" 0", " ").rpartition(':')[0]
+        self.syncplan.create(plan_name, description, start_hour=starthour,
+                             start_minute=startminute)
+        self.assertIsNotNone(self.products.search(plan_name))
+        self.syncplan.search(plan_name).click()
+        self.syncplan.wait_for_ajax()
+        # Removed the seconds info as it would be too quick to validate via UI.
+        starttime_text = str(self.syncplan.wait_until_element(locator).text).\
+            rpartition(':')[0]
+        self.assertEqual(starttime_text, fetch_starttime)
+
+    @attr('ui', 'syncplan', 'implemented')
+    def test_positive_create_4(self):
+        """
+        @Feature: Content Sync Plan - Positive Create
+        @Test: Create Sync plan with specified start date
+        @Assert: Sync Plan is created with the specified date
+        """
+
+        locator = locators["sp.fetch_startdate"]
+        plan_name = generate_string("alpha", 8)
+        self.configure_syncplan()
+        description = "sync plan create with start date"
+        current_date = datetime.now()
+        startdate = current_date + timedelta(days=10)
+        startdate_str = startdate.strftime("%Y-%m-%d")
+        # validating only for date
+        fetch_startdate = startdate.strftime("%b %d, %Y %I:%M:%S %p").\
+            rpartition(',')[0]
+        self.syncplan.create(plan_name, description, startdate=startdate_str)
+        self.assertIsNotNone(self.products.search(plan_name))
+        self.syncplan.search(plan_name).click()
+        self.syncplan.wait_for_ajax()
+        startdate_text = str(self.syncplan.wait_until_element(locator).text).\
+            rpartition(',')[0]
+        self.assertEqual(startdate_text, fetch_startdate)
 
     def test_negative_create_1(self):
         """
