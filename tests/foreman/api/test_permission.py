@@ -41,7 +41,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
-        #user doesn't yet have relevant permission, action should fail
+        # user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_create(deps, user_definition)
 
@@ -49,7 +49,7 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.create
             )
         add_permission_to_user(user_created, perm)
-        #user should have the relevant permission, action should work
+        # user should have the relevant permission, action should work
         created = ApiCrud.record_create(deps, user_definition)
         self.assertIntersects(deps, created)
 
@@ -66,7 +66,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
-        #user doesn't yet have relevant permission, action should fail
+        # user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_resolve(created, user_definition)
 
@@ -74,7 +74,7 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.resolve
             )
         add_permission_to_user(user_created, perm)
-        #user should have the relevant permission, action should work
+        # user should have the relevant permission, action should work
         eres = ApiCrud.record_resolve(created, user_definition)
         self.assertIntersects(eres, created)
 
@@ -91,7 +91,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
-        #user doesn't yet have relevant permission, action should fail
+        # user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_remove(created, user_definition)
 
@@ -99,7 +99,7 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.remove
             )
         add_permission_to_user(user_created, perm)
-        #user should have the relevant permission, action should work
+        # user should have the relevant permission, action should work
         ApiCrud.record_remove(created, user_definition)
         self.assertFalse(ApiCrud.record_exists(created))
 
@@ -117,7 +117,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
-        #user doesn't yet have relevant permission, action should fail
+        # user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_update(created, user_definition)
 
@@ -125,7 +125,7 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.update
             )
         add_permission_to_user(user_created, perm)
-        #user should have the relevant permission, action should
+        # user should have the relevant permission, action should
         updated = ApiCrud.record_update(created, user_definition)
         del created["updated_at"]
         del updated["updated_at"]
