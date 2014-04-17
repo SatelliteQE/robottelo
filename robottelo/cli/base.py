@@ -249,7 +249,7 @@ class Base(object):
         return result
 
     @classmethod
-    def list(cls, options=None):
+    def list(cls, options=None, per_page=True):
         """
         List information.
         @param options: ID (sometimes name works as well) to retrieve info.
@@ -260,8 +260,8 @@ class Base(object):
         if options is None:
             options = {}
 
-        if 'per-page' not in options:
-            options['per-page'] = 10000
+        if 'per-page' not in options and per_page:
+            options[u'per-page'] = 10000
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise Exception(
