@@ -30,13 +30,13 @@ class Permission(records.Record):
         api_class = PermissionApi
 
 
-class PermissionList:
+class PermissionList(object):
     def __init__(self, suffix=None, **kwargs):
         if suffix:
-            kwargs.setdefault("resolve", Permission(name="view_"+suffix))
-            kwargs.setdefault("create", Permission(name="create_"+suffix))
-            kwargs.setdefault("update", Permission(name="edit_"+suffix))
-            kwargs.setdefault("remove", Permission(name="destroy_"+suffix))
+            kwargs.setdefault("resolve", Permission(name="view_%s" % suffix))
+            kwargs.setdefault("create", Permission(name="create_%s" % suffix))
+            kwargs.setdefault("update", Permission(name="edit_%s" % suffix))
+            kwargs.setdefault("remove", Permission(name="destroy_%s" % suffix))
 
         self.__dict__ = kwargs
 
@@ -44,13 +44,13 @@ class PermissionList:
         if key in self.keys():
             return self.__dict__[key]
         else:
-            raise KeyError("Not found in record,", key)
+            raise KeyError("Key %s was not found in record" % key)
 
     def __delitem__(self, key):
         if key in self.keys():
             del self.__dict__[key]
         else:
-            raise KeyError("Not found in record,", key)
+            raise KeyError("Key %s was not found in record" % key)
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
