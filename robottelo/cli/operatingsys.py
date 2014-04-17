@@ -10,20 +10,22 @@ Parameters:
     [ARG] ...                     subcommand arguments
 
 Subcommands:
-    set_parameter                 Create or update parameter for an
-                                  operating system.
-    remove_configtemplate         Disassociate a resource
+    add-architecture              Associate a resource
+    add-config-template           Associate a resource
+    add-ptable                    Associate a resource
     create                        Create an OS.
-    info                          Show an OS.
-    add_configtemplate            Associate a resource
-    remove_architecture           Disassociate a resource
-    list                          List all operating systems.
-    remove_ptable                 Disassociate a resource
-    update                        Update an OS.
-    add_architecture              Associate a resource
-    add_ptable                    Associate a resource
     delete                        Delete an OS.
-    delete_parameter              Delete parameter for an operating system.
+    delete-default-template
+    delete-parameter              Delete parameter for an operating system.
+    info                          Show an OS.
+    list                          List all operating systems.
+    remove-architecture           Disassociate a resource
+    remove-config-template        Disassociate a resource
+    remove-ptable                 Disassociate a resource
+    set-default-template
+    set-parameter                 Create or update parameter for an
+                                  operating system.
+    update                        Update an OS.
 """
 
 from robottelo.cli.base import Base
@@ -49,12 +51,12 @@ class OperatingSys(Base):
         return result
 
     @classmethod
-    def add_configtemplate(cls, options=None):
+    def add_config_template(cls, options=None):
         """
         Adds existing template to OS.
         """
 
-        cls.command_sub = "add-configtemplate "
+        cls.command_sub = "add-config-template "
 
         result = cls.execute(cls._construct_command(options))
 
@@ -85,12 +87,12 @@ class OperatingSys(Base):
         return result
 
     @classmethod
-    def remove_configtemplate(cls, options=None):
+    def remove_config_template(cls, options=None):
         """
         Removes template from OS.
         """
 
-        cls.command_sub = "remove-configtemplate"
+        cls.command_sub = "remove-config-template"
 
         result = cls.execute(cls._construct_command(options))
 
