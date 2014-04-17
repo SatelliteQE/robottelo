@@ -5,6 +5,7 @@
 from ddt import data, ddt
 from tests.foreman.api.baseapi import BaseAPI
 from robottelo.records.domain import Domain
+from robottelo.records.architecture import Architecture
 from robottelo.records.user import User
 from robottelo.records.role import Filter
 from robottelo.records.role import Role
@@ -26,7 +27,7 @@ def add_permission_to_user(user_created, perm):
 class TestPermission(BaseAPI):
     """Testing basic positive permissions"""
 
-    @data(Domain)
+    @data(Domain, Architecture)
     def test_basic_create(self, test_data):
         """
         @feature: Permissions
@@ -40,6 +41,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
+        #user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_create(deps, user_definition)
 
@@ -47,10 +49,11 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.create
             )
         add_permission_to_user(user_created, perm)
+        #user should have the relevant permission, action should work
         created = ApiCrud.record_create(deps, user_definition)
         self.assertIntersects(deps, created)
 
-    @data(Domain)
+    @data(Domain, Architecture)
     def test_basic_read(self, test_data):
         """
         @feature: Permissions
@@ -63,6 +66,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
+        #user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_resolve(created, user_definition)
 
@@ -70,10 +74,11 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.resolve
             )
         add_permission_to_user(user_created, perm)
+        #user should have the relevant permission, action should work
         eres = ApiCrud.record_resolve(created, user_definition)
         self.assertIntersects(eres, created)
 
-    @data(Domain)
+    @data(Domain, Architecture)
     def test_basic_remove(self, test_data):
         """
         @feature: Permissions
@@ -86,6 +91,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
+        #user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_remove(created, user_definition)
 
@@ -93,10 +99,11 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.remove
             )
         add_permission_to_user(user_created, perm)
+        #user should have the relevant permission, action should work
         ApiCrud.record_remove(created, user_definition)
-        self.assertFalse(ApiCrud.record_exist(created))
+        self.assertFalse(ApiCrud.record_exists(created))
 
-    @data(Domain)
+    @data(Domain, Architecture)
     def test_basic_update(self, test_data):
         """
         @feature: Permissions
@@ -110,6 +117,7 @@ class TestPermission(BaseAPI):
         user_definition = User()
         user_created = ApiCrud.record_create_recursive(user_definition)
 
+        #user doesn't yet have relevant permission, action should fail
         with self.assertRaises(Exception):
             ApiCrud.record_update(created, user_definition)
 
@@ -117,6 +125,7 @@ class TestPermission(BaseAPI):
             test_data._meta.api_class.permissions.update
             )
         add_permission_to_user(user_created, perm)
+        #user should have the relevant permission, action should
         updated = ApiCrud.record_update(created, user_definition)
         del created["updated_at"]
         del updated["updated_at"]

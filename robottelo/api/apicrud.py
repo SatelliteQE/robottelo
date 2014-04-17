@@ -143,7 +143,7 @@ class ApiCrud(object):
 
     @classmethod
     def search_dict(cls, instance):
-        return dict(search="name="+instance.name)
+        return dict(search="name=%s" % instance.name)
 
     @classmethod
     def parse_path_arg(cls, args):
@@ -285,9 +285,6 @@ class ApiCrud(object):
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
             return api.record_resolve(instance, user=user)
-
-        # if not cls.record_exists(instance, user=user):
-        #    raise ApiException("Record doesn't exist")
 
         res = None
         json = None
@@ -468,50 +465,6 @@ class ApiCrud(object):
         return cls.record_create(res_instance, user=user)
 
 
-class PermissionList:
-    def __init__(self, suffix=None, **kwargs):
-        if suffix:
-            kwargs.setdefault("resolve", "view_"+suffix)
-            kwargs.setdefault("create", "create_"+suffix)
-            kwargs.setdefault("update", "edit_"+suffix)
-            kwargs.setdefault("remove", "destroy_"+suffix)
-
-        self.__dict__ = kwargs
-
-    def __getitem__(self, key):
-        if key in self.keys():
-            return self.__dict__[key]
-        else:
-            raise KeyError("Not found in record,", key)
-
-    def __delitem__(self, key):
-        if key in self.keys():
-            del self.__dict__[key]
-        else:
-            raise KeyError("Not found in record,", key)
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __iter__(self):
-        return iter(self.keys())
-
-    def __contains__(self, key):
-        return key in self.keys()
-
-    def keys(self):
-        """Adding dict functionality to records
-        """
-        return [k for k, v in self.__dict__.items()
-                if not k.startswith("_") and k != ""]
-
-    def items(self):
-        """Adding dict functionality to records
-        """
-        return [(k, v) for k, v in self.__dict__.items()
-                if not k.startswith("_") and k != ""]
-
-
 class Task(object):
     """Class for polling api tasks"""
     def __init__(self, json):
@@ -524,7 +477,7 @@ class Task(object):
         self.json = r.json()
 
     def poll(self, delay, timeout):
-        """Bussy wait for task to complete"""
+        """Busy wait for task to complete"""
         current = 0
         finished = False
         while (not finished) and current < timeout:
