@@ -13,7 +13,8 @@ class ContentViewDefinitionApi(ApiCrud):
     """Content view api implementation utilizes :organization.label,
     what means, that create requires initialize organization object.
     """
-    api_path = "/katello/api/organizations/:organization.label/content_view_definitions/"  # noqa
+    api_path = ("/katello/api/organizations/:organization.label/"
+                "content_view_definitions/")
     api_json_key = u"content_view_definition"
     create_fields = ["name", "description"]
 

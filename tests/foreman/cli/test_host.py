@@ -23,8 +23,6 @@ class TestHost(BaseCLI):
         # in other tests
         host = Api.record_create_dependencies(HostRecord())
 
-        "Create new host"
-        # TODO need to create env, architecture, domain etc.
         args = {
             "name": host.name,
             "environment-id": host.environment_id,
