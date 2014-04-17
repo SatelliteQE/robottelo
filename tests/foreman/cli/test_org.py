@@ -704,7 +704,7 @@ class TestOrg(BaseCLI):
         # Can we list the new environment?
         environment = LifecycleEnvironment.list({
             'name': env_result['name'],
-            'oraganization-id': new_obj['label'],
+            'organization-id': new_obj['label'],
         })
         # Result is a list of one item
         new_env = environment.stdout[0]
@@ -748,9 +748,9 @@ class TestOrg(BaseCLI):
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list(
-            new_obj['label'],
             {
-                'name': env_result['name']
+                'name': env_result['name'],
+                'organization-id': new_obj['label'],
             })
         self.assertEqual(
             environment.return_code, 0, "Could not fetch list of environments")
