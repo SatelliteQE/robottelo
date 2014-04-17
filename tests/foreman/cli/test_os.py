@@ -383,7 +383,7 @@ class TestOperatingSystem(BaseCLI):
 
         new_obj = make_os()
         os_name = new_obj['name'].split(' ')
-        result = OperatingSys.add_configtemplate(
+        result = OperatingSys.add_config_template(
             {'id': new_obj['id'],
              'name': os_name[0],
              'config-template': conf_obj['name']})
