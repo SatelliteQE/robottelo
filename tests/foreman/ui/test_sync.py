@@ -10,7 +10,7 @@ else:
 
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.common.helpers import generate_name, generate_strings_list
+from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
 from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
@@ -50,7 +50,7 @@ class Sync(BaseUI):
         @Test: Create Content Custom Sync with minimal input parameters
         @Assert: Whether Sync is successful
         """
-        prd_name = generate_name(8, 8)
+        prd_name =  generate_string("alpha", 6)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)

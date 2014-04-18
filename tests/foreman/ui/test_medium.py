@@ -5,7 +5,7 @@
 Test class for Medium UI
 """
 
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -19,8 +19,8 @@ class Medium(BaseUI):
 
     def create_medium(self, name=None, path=None, os_family=None):
         "Create Installation media with navigation steps"
-        name = name or generate_name(6)
-        path = path or URL % generate_name(6)
+        name = name or generate_string("alpha", 6)
+        path = path or URL % generate_string("alpha", 6)
         self.navigator.go_to_installation_media()  # go to media page
         self.medium.create(name, path, os_family)
         self.assertIsNotNone(self.medium.search(name))
@@ -31,8 +31,8 @@ class Medium(BaseUI):
         @Test: Create a new media
         @Assert: Media is created
         """
-        name = generate_name(6)
-        path = URL % generate_name(6)
+        name = generate_string("alpha", 6)
+        path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
@@ -43,8 +43,8 @@ class Medium(BaseUI):
         @Test: Delete a media
         @Assert: Media is deleted
         """
-        name = generate_name(6)
-        path = URL % generate_name(6)
+        name = generate_string("alpha", 6)
+        path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_medium(name, path, os_family)
@@ -59,10 +59,10 @@ class Medium(BaseUI):
         @Test: Update a media with name, path, OS family
         @Assert: Media is updated
         """
-        name = generate_name(6)
-        newname = generate_name(4)
-        path = URL % generate_name(6)
-        newpath = URL % generate_name(6)
+        name = generate_string("alpha", 6)
+        newname = generate_string("alpha", 4)
+        path = URL % generate_string("alpha", 6)
+        newpath = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         new_os_family = "Debian"
         self.login.login(self.katello_user, self.katello_passwd)  # login

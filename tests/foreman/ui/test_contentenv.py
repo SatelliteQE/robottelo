@@ -6,7 +6,7 @@ Test class for Life cycle environments UI
 """
 
 from nose.plugins.attrib import attr
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -24,7 +24,7 @@ class ContentEnvironment(BaseUI):
         super(ContentEnvironment, self).setUp()
         # Make sure to use the Class' org_name instance
         if ContentEnvironment.org_name is None:
-            ContentEnvironment.org_name = generate_name(8, 8)
+            ContentEnvironment.org_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=ContentEnvironment.org_name)
 
@@ -35,8 +35,8 @@ class ContentEnvironment(BaseUI):
         @Test: Create Content Environment with minimal input parameters
         @Assert: Environment is created
         """
-        name = generate_name(6)
-        description = generate_name(6)
+        name = generate_string("alpha", 6)
+        description = generate_string("alpha", 6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()
@@ -51,9 +51,9 @@ class ContentEnvironment(BaseUI):
         @Test: Create Content Environment in a chain
         @Assert: Environment is created
         """
-        env_name1 = generate_name(6)
-        env_name2 = generate_name(6)
-        description = generate_name(6)
+        env_name1 = generate_string("alpha", 6)
+        env_name2 = generate_string("alpha", 6)
+        description = generate_string("alpha", 6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()
@@ -69,8 +69,8 @@ class ContentEnvironment(BaseUI):
         @Test: Create Content Environment and delete it
         @Assert: Environment is deleted
         """
-        name = generate_name(6)
-        description = generate_name(6)
+        name = generate_string("alpha", 6)
+        description = generate_string("alpha", 6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()
@@ -88,9 +88,9 @@ class ContentEnvironment(BaseUI):
         @Test: Create Content Environment and update it
         @Assert: Environment is updated
         """
-        name = generate_name(6)
-        new_name = generate_name(6)
-        description = generate_name(6)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
+        description = generate_string("alpha", 6)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()

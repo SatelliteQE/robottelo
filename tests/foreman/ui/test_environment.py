@@ -8,7 +8,7 @@ Test class for Environment UI
 from tests.foreman.ui.baseui import BaseUI
 from robottelo.ui.locators import common_locators
 from robottelo.common.decorators import bzbug
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 
 
 class Environment(BaseUI):
@@ -18,7 +18,7 @@ class Environment(BaseUI):
 
     def create_org(self, org_name=None):
         """Creates Org"""
-        org_name = org_name or generate_name(8, 8)
+        org_name = org_name or generate_string("alpha", 8)
         self.navigator.go_to_org()  # go to org page
         self.org.create(org_name)
 
@@ -29,8 +29,8 @@ class Environment(BaseUI):
         @Test: Create new environment
         @Assert: Environment is created
         """
-        name = generate_name(6)
-        org_name = generate_name(8, 8)
+        name = generate_string("alpha", 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
         self.navigator.go_to_environments()
@@ -44,10 +44,10 @@ class Environment(BaseUI):
         @Test: Update an environment and associated OS
         @Assert: Environment is updated
         """
-        name = generate_name(6)
-        new_name = generate_name(6)
-        org_name = generate_name(8, 8)
-        new_org = generate_name(8, 8)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
+        org_name = generate_string("alpha", 8)
+        new_org = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
         self.navigator.go_to_environments()
@@ -65,8 +65,8 @@ class Environment(BaseUI):
         @Test: Delete an environment
         @Assert: Environment is deleted
         """
-        name = generate_name(6)
-        org_name = generate_name(8, 8)
+        name = generate_string("alpha", 6)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_org(org_name)
         self.navigator.go_to_environments()

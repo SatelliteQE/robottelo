@@ -7,7 +7,7 @@ Test class for Model CLI
 
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import MetaCLI
 
 
@@ -32,7 +32,7 @@ class TestModel(MetaCLI):
         @Test: Check if Model can be created with specific vendor class
         @Assert: Model is created with specific vendor class
         """
-        result = self.factory({'vendor-class': generate_name()})
+        result = self.factory({'vendor-class': generate_string("alpha", 10)})
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
         self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])

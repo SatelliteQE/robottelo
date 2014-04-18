@@ -7,7 +7,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.constants import (VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
 from robottelo.common.decorators import bzbug
-from robottelo.common.helpers import (generate_name,
+from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import locators, common_locators
@@ -27,7 +27,7 @@ class Repos(BaseUI):
         super(Repos, self).setUp()
         # Make sure to use the Class' org_name instance
         if Repos.org_name is None:
-            Repos.org_name = generate_name(8, 8)
+            Repos.org_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Repos.org_name)
 
@@ -40,7 +40,7 @@ class Repos(BaseUI):
         @Assert: Repos is created
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -60,7 +60,7 @@ class Repos(BaseUI):
 
         locator = common_locators["common_invalid"]
         repo_name = ""
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -81,7 +81,7 @@ class Repos(BaseUI):
 
         locator = common_locators["common_invalid"]
         repo_name = "   "
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -105,7 +105,7 @@ class Repos(BaseUI):
         """
 
         locator = common_locators["common_invalid"]
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -130,7 +130,7 @@ class Repos(BaseUI):
         """
 
         locator = common_locators["common_haserror"]
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -151,7 +151,7 @@ class Repos(BaseUI):
         @Assert: Repo is updated with new url
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         locator = locators["repo.fetch_url"]
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         new_repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
@@ -183,9 +183,9 @@ class Repos(BaseUI):
 
         key_path1 = get_data_file(VALID_GPG_KEY_FILE)
         key_path2 = get_data_file(VALID_GPG_KEY_BETA_FILE)
-        prd_name = generate_name(8, 8)
-        gpgkey_name1 = generate_name(8, 8)
-        gpgkey_name2 = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
+        gpgkey_name1 = generate_string("alpha", 8)
+        gpgkey_name2 = generate_string("alpha", 8)
         locator = locators["repo.fetch_gpgkey"]
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
@@ -220,7 +220,7 @@ class Repos(BaseUI):
         @Assert: Repos is Deleted
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -241,7 +241,7 @@ class Repos(BaseUI):
         @Assert: Repos is discovered and created
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         self.login.login(self.katello_user, self.katello_passwd)
@@ -259,7 +259,7 @@ class Repos(BaseUI):
         @Assert: Repos is discovered and created
         """
 
-        prd_name = generate_name(8, 8)
+        prd_name = generate_string("alpha", 8)
         url = "http://hhovsepy.fedorapeople.org/fakerepos/"
         discovered_urls = ["zoo4/"]
         self.login.login(self.katello_user, self.katello_passwd)

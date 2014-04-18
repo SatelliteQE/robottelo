@@ -6,7 +6,7 @@ Test class for Subnet UI
 """
 
 from robottelo.common.helpers import generate_ipaddr
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from tests.foreman.ui.baseui import BaseUI
 
 
@@ -16,7 +16,7 @@ class Subnet(BaseUI):
     """
     def create_org(self, org_name=None):
         """Creates Org"""
-        org_name = org_name or generate_name(8, 8)
+        org_name = org_name or generate_string("alpha", 8)
         self.navigator.go_to_org()  # go to org page
         self.org.create(org_name)
 
@@ -26,7 +26,7 @@ class Subnet(BaseUI):
         Create Subnet with navigation steps
         """
 
-        subnet_name = subnet_name or generate_name(8, 8)
+        subnet_name = subnet_name or generate_string("alpha", 8)
         subnet_network = subnet_network or generate_ipaddr(ip3=True)
         org_name = generate_name(8, 8)
         self.create_org(org_name)
@@ -43,7 +43,7 @@ class Subnet(BaseUI):
         @Assert: Subnet is created
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -57,7 +57,7 @@ class Subnet(BaseUI):
         @Assert: Subnet is deleted
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -74,7 +74,7 @@ class Subnet(BaseUI):
         @Assert: Subnet is not deleted
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -89,7 +89,7 @@ class Subnet(BaseUI):
         @Assert: Subnet name is updated
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -106,7 +106,7 @@ class Subnet(BaseUI):
         @Assert: Subnet network is updated
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -123,7 +123,7 @@ class Subnet(BaseUI):
         @Assert: Subnet mask is updated
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -140,7 +140,7 @@ class Subnet(BaseUI):
         @Assert: Subnet is found
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -157,7 +157,7 @@ class Subnet(BaseUI):
         @Assert: Subnet name is not found
         """
 
-        subnet_name = generate_name(8, 8)
+        subnet_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_subnets()  # go to subnet page
         self.assertFalse(self.subnet.search_subnet(subnet_name))

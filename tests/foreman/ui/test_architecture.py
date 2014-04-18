@@ -5,7 +5,7 @@
 Test class for Architecture UI
 """
 
-from robottelo.common.helpers import generate_name, generate_string
+from robottelo.common.helpers import generate_string
 from tests.foreman.ui.baseui import BaseUI
 
 
@@ -18,8 +18,8 @@ class Architecture(BaseUI):
         """
         Function navigates and creates new architecture from UI
         """
-        arch_name = arch_name or generate_name(4)
-        os_names = os_names or [generate_name(6)]
+        arch_name = arch_name or generate_string("alpha", 10)
+        os_names = os_names or [generate_string("alpha", 10)]
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(arch_name, os_names)
         self.assertIsNotNone(self.architecture.search(arch_name))
@@ -30,8 +30,8 @@ class Architecture(BaseUI):
         @Test: Create a new Architecture
         @Assert: Architecture is created
         """
-        name = generate_name(4)
-        os_name = generate_name(6)
+        name = generate_string("alpha", 4)
+        os_name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems()  # go to operating system page
@@ -46,8 +46,8 @@ class Architecture(BaseUI):
         @Assert: Architecture is deleted
         """
 
-        name = generate_name(4)
-        os_name = generate_name(6)
+        name = generate_string("alpha", 4)
+        os_name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems()  # go to operating system page
@@ -64,9 +64,9 @@ class Architecture(BaseUI):
         @Assert: Architecture is updated
         """
 
-        old_name = generate_name(6)
-        new_name = generate_name(4)
-        os_name = generate_name(6)
+        old_name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 4)
+        os_name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_operating_systems()  # go to operating system page

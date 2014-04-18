@@ -5,7 +5,7 @@
 Test class for UserGroup UI
 """
 
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.common.helpers import generate_email_address
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
@@ -32,9 +32,9 @@ class UserGroup(BaseUI):
         @Assert: Usergroup is created
         """
 
-        user_name = generate_name(6)
-        group_name = generate_name(6)
-        password = generate_name(8)
+        user_name = generate_string("alpha", 10)
+        group_name = generate_string("alpha", 10)
+        password = generate_string("alpha", 10)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -50,7 +50,7 @@ class UserGroup(BaseUI):
         @Assert: Usergroup is delete
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_usergroup(name)
         self.usergroup.remove(name, True)
@@ -65,10 +65,10 @@ class UserGroup(BaseUI):
         @Assert: Usergroup is updated
         """
 
-        name = generate_name(6)
-        new_name = generate_name(4)
-        user_name = generate_name(6)
-        password = generate_name(8)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 4)
+        user_name = generate_string("alpha", 6)
+        password = generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)

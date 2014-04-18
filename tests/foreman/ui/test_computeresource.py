@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from robottelo.common import conf
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -10,7 +10,7 @@ from tests.foreman.ui.baseui import BaseUI
 class ComputeResource(BaseUI):
     def create_org(self, org_name=None):
         """Creates Org"""
-        org_name = org_name or generate_name(8, 8)
+        org_name = org_name or generate_string("alpha", 8)
         self.navigator.go_to_org()  # go to org page
         self.org.create(org_name)
 
@@ -20,8 +20,8 @@ class ComputeResource(BaseUI):
         @Test: Create a new libvirt Compute Resource
         @Assert: A libvirt Compute Resource is created
         """
-        name = generate_name(8)
-        org_name = generate_name(8, 8)
+        name = generate_string("alpha", 8)
+        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         self.login.login(self.katello_user, self.katello_passwd)
@@ -39,10 +39,10 @@ class ComputeResource(BaseUI):
         @Test: Update a libvirt Compute Resource
         @Assert: The libvirt Compute Resource is updated
         """
-        name = generate_name(8)
-        newname = generate_name(8)
-        org_name = generate_name(8, 8)
-        new_org = generate_name(8, 8)
+        name = generate_string("alpha", 8)
+        newname = generate_string("alpha", 8)
+        org_name = generate_string("alpha", 8)
+        new_org = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         self.login.login(self.katello_user, self.katello_passwd)
@@ -64,8 +64,8 @@ class ComputeResource(BaseUI):
         @Test: Delete a Compute Resource
         @Assert: The Compute Resource is deleted
         """
-        name = generate_name(8)
-        org_name = generate_name(8, 8)
+        name = generate_string("alpha", 8)
+        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         self.login.login(self.katello_user, self.katello_passwd)

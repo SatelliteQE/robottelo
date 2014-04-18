@@ -20,7 +20,7 @@ from ddt import data
 from ddt import ddt
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from tests.foreman.cli.basecli import BaseCLI
@@ -46,7 +46,7 @@ class TestComputeResource(BaseCLI):
         @Test: Create Compute Resource
         @Assert: Compute reource is created
         """
-        name = generate_name(8, 8)
+        name = generate_string("alpha", 10)
         result = ComputeResource.create({
             'name': name,
             'provider': 'Libvirt',

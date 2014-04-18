@@ -8,7 +8,7 @@ Test class for Fact  CLI
 from ddt import data
 from ddt import ddt
 from robottelo.cli.fact import Fact
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -47,7 +47,7 @@ class TestFact(BaseCLI):
         self.assertEqual(stdout[0]['fact'], fact)
 
     @data(
-        generate_name(), generate_name(), generate_name(), generate_name(),
+        generate_string("alpha", 10), generate_string("alpha", 10), generate_string("alpha", 10), generate_string("alpha", 10),
     )
     @attr('cli', 'fact')
     def test_list_fail(self, fact):
