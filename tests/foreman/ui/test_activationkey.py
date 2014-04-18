@@ -53,6 +53,7 @@ class ActivationKey(BaseUI):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         publish_version = "Version 1"
+        publish_comment = generate_string("alpha", 8)
         self.navigator.go_to_products()
         self.products.create(prd_name)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -68,7 +69,7 @@ class ActivationKey(BaseUI):
         self.content_views.add_remove_repos(name, [repo_name])
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
-        self.content_views.publish(name, "publishing version_1")
+        self.content_views.publish(name, publish_comment)
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
         self.content_views.promote(name, publish_version, env_name)
@@ -776,6 +777,7 @@ class ActivationKey(BaseUI):
         name = generate_string("alpha", 8)
         cv_name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 8)
+        publish_comment = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()
@@ -802,7 +804,7 @@ class ActivationKey(BaseUI):
         self.content_views.add_remove_repos(cv_name, [repo_name])
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
-        self.content_views.publish(cv_name, "publishing version_1")
+        self.content_views.publish(cv_name, publish_comment)
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
         self.content_views.promote(cv_name, publish_version, env_name)

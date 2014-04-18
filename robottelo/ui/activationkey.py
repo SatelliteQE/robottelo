@@ -120,6 +120,9 @@ class ActivationKey(Base):
                     if element:
                         element.click()
                         self.wait_for_ajax()
+                    else:
+                        raise Exception(
+                            "Couldn't find the given env '%s'" % env)
                 # We need to select the CV, if we update the env and in this,
                 # case edit button disappears, but when we update only CV, then
                 # edit button appears; Following 'If' is just solving this
