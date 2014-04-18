@@ -21,7 +21,7 @@ class TestGlobalParameter(BaseCLI):
         name = "opt-%s" % generate_string("alpha", 10)
         val_part1 = generate_string("alpha", 10)
         val_part2 = generate_string("alpha", 10)
-        value = "val-%s" % val1 + " " + val2
+        value = "val-%s" % val_part1 + " " + val_part2
         result = GlobalParameter().set({
             'name': name,
             'value': value})
@@ -38,7 +38,7 @@ class TestGlobalParameter(BaseCLI):
         name = "opt-%s" % generate_string("alpha", 10)
         val_part1 = generate_string("alpha", 10)
         val_part2 = generate_string("alpha", 10)
-        value = "val-%s" % val1 + " " + val2
+        value = "val-%s" % val_part1 + " " + val_part2
         result = GlobalParameter().set({
             'name': name,
             'value': value})
@@ -63,7 +63,7 @@ class TestGlobalParameter(BaseCLI):
         name = "opt-%s" % generate_string("alpha", 10)
         val_part1 = generate_string("alpha", 10)
         val_part2 = generate_string("alpha", 10)
-        value = "val-%s" % val1 + " " + val2
+        value = "val-%s" % val_part1 + " " + val_part2
         result = GlobalParameter().set({
             'name': name,
             'value': value})
