@@ -48,6 +48,9 @@ def negative_create_data():
 
 @ddt
 class TestContentView(BaseCLI):
+    """
+    Content View CLI tests
+    """
 
     # Notes:
     # * For most tests in CLI, you should be able to observe whether
