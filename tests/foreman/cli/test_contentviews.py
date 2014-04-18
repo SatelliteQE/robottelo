@@ -9,8 +9,9 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.helpers import generate_string
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.org import Org
-from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_org, make_repository, make_product
 from robottelo.cli.factory import make_content_view
+from robottelo.cli.repository import Repository
 from ddt import data, ddt
 import unittest
 
@@ -46,6 +47,9 @@ def negative_create_data():
 
 @ddt
 class TestContentView(BaseCLI):
+    """
+    Content View CLI tests
+    """
 
     # Notes:
     # * For most tests in CLI, you should be able to observe whether
@@ -56,6 +60,22 @@ class TestContentView(BaseCLI):
 
     # Content View: Creation
     # katello content definition create --definition=MyView
+
+    org = None
+    product = None
+
+    def setUp(self):
+        """
+        Tests for content-view via Hammer CLI
+        """
+
+        super(TestContentView, self).setUp()
+
+        if TestContentView.org is None:
+            TestContentView.org = make_org()
+        if TestContentView.product is None:
+            TestContentView.product = make_product(
+                {u'organization-id': TestContentView.org['label']})
 
     @data(*positive_create_data())
     def test_cv_create_cli(self, test_data):
@@ -266,15 +286,72 @@ class TestContentView(BaseCLI):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_custom_content(self):
         """
         @test: associate Red Hat content in a view
         @feature: Content Views
         @setup: Sync custom content
         @assert: Custom content can be seen in a view
-        @status: Manual
         """
+
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Fetch it
+        result = Repository.info(
+            {
+                u'id': new_repo['id']
+            }
+        )
+
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not synchronized")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['label']})
+        # Fetch it
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Content-View was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Associate repo to CV
+        result = ContentView.add_repository({u'id': new_cv['id'],
+                                             u'repository-id': new_repo['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not associated to selected CV")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "ContentView was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'],
+            new_repo['name'],
+            "Repo was not associated to CV"
+        )
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_puppet_repo_negative(self):
