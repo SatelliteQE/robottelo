@@ -37,3 +37,15 @@ class ContentView(Base):
     """
 
     command_base = "content-view"
+
+    @classmethod
+    def add_repository(cls, options):
+        """
+        Associate repository to a selected CV.
+        """
+
+        cls.command_sub = "add-repository"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result
