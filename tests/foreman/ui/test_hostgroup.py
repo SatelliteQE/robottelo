@@ -7,7 +7,7 @@ Test class for Host Group UI
 """
 
 from tests.foreman.ui.baseui import BaseUI
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 
 
 class Hostgroup(BaseUI):
@@ -18,7 +18,7 @@ class Hostgroup(BaseUI):
         @Test: Create new hostgroup
         @Assert: Hostgroup is created
         """
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)
@@ -31,7 +31,7 @@ class Hostgroup(BaseUI):
         @Test: Delete a hostgroup
         @Assert: Hostgroup is deleted
         """
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)
@@ -46,8 +46,8 @@ class Hostgroup(BaseUI):
         @Test: Update hostgroup with a new name
         @Assert: Hostgroup is updated
         """
-        name = generate_name(7)
-        updated_name = generate_name(7)
+        name = generate_string("alpha", 7)
+        updated_name = generate_string("alpha", 7)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_host_groups()
         self.hostgroup.create(name)

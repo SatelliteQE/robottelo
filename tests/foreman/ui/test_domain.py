@@ -6,7 +6,7 @@ Test class for Domain UI
 """
 
 from robottelo.ui.locators import common_locators
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from tests.foreman.ui.baseui import BaseUI
 
 DOMAIN = "lab.dom.%s.com"
@@ -18,7 +18,7 @@ class Domain(BaseUI):
     """
     def create_domain(self, name=None, description=None):
         """Function to create new domain"""
-        name = name or DOMAIN % generate_name(4)
+        name = name or DOMAIN % generate_string("alpha", 4)
         description = description or name
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_domains()  # go to domain page
@@ -33,7 +33,7 @@ class Domain(BaseUI):
         @Test: Create a new domain
         @Assert: Domain is created
         """
-        name = DOMAIN % generate_name(4)
+        name = DOMAIN % generate_string("alpha", 4)
         description = name
         self.create_domain(name, description)
 
@@ -43,7 +43,7 @@ class Domain(BaseUI):
         @Test: Delete a domain
         @Assert: Domain is deleted
         """
-        name = DOMAIN % generate_name(4)
+        name = DOMAIN % generate_string("alpha", 4)
         description = name
         self.create_domain(name, description)
         self.domain.delete(name, really=True)
@@ -57,9 +57,9 @@ class Domain(BaseUI):
         @Test: Update a domain with name and description
         @Assert: Domain is updated
         """
-        name = DOMAIN % generate_name(4)
+        name = DOMAIN % generate_string("alpha", 4)
         description = name
-        new_name = DOMAIN % generate_name(4)
+        new_name = DOMAIN % generate_string("alpha", 4)
         new_description = new_name
         self.create_domain(name, description)
         self.domain.update(name, new_name, new_description)
@@ -72,10 +72,10 @@ class Domain(BaseUI):
         @Test: Set a paramter in a domain
         @Assert: Domain is updated
         """
-        name = DOMAIN % generate_name(4)
+        name = DOMAIN % generate_string("alpha", 4)
         description = name
-        param_name = generate_name(4)
-        param_value = generate_name(3)
+        param_name = generate_string("alpha", 4)
+        param_value = generate_string("alpha", 3)
         self.create_domain(name, description)
         self.domain.set_domain_parameter(description, param_name, param_value)
 
@@ -85,10 +85,10 @@ class Domain(BaseUI):
         @Test: Remove a selected domain paramter
         @Assert: Domain parameter is removed
         """
-        name = DOMAIN % generate_name(4)
+        name = DOMAIN % generate_string("alpha", 4)
         description = name
-        param_name = generate_name(4)
-        param_value = generate_name(3)
+        param_name = generate_string("alpha", 3)
+        param_value = generate_string("alpha", 3)
         self.create_domain(name, description)
         self.domain.set_domain_parameter(description, param_name, param_value)
         self.domain.remove_domain_parameter(description, param_name)

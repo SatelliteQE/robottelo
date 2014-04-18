@@ -6,7 +6,7 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -21,7 +21,7 @@ class Host(BaseUI):
         @Assert: Host is created
         """
         # TODO need to create environment architecture domain etc
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_hosts()
         self.hosts.create(name, "some.domain.redhat.com",
@@ -44,7 +44,7 @@ class Host(BaseUI):
         @Assert: Host is deleted
         """
         # TODO need to create environment architecture domain etc
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_hosts()
         self.hosts.create(name, "some.domain.redhat.com",

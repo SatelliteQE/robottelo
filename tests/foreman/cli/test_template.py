@@ -8,7 +8,7 @@ Test class for Template CLI
 from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
 from robottelo.common.decorators import redminebug
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -25,8 +25,8 @@ class TestTemplate(BaseCLI):
         @Assert: Template is created
         """
 
-        content = generate_name()
-        name = generate_name(6)
+        content = generate_string("alpha", 10)
+        name = generate_string("alpha", 10)
 
         new_obj = make_template(
             {
@@ -47,8 +47,8 @@ class TestTemplate(BaseCLI):
         @Assert: Template is created with specific content
         """
 
-        content = generate_name()
-        name = generate_name(6)
+        content = generate_string("alpha", 10)
+        name = generate_string("alpha", 10)
 
         new_obj = make_template(
             {
@@ -72,8 +72,8 @@ class TestTemplate(BaseCLI):
         @Assert: Template is deleted
         """
 
-        content = generate_name()
-        name = generate_name(6)
+        content = generate_string("alpha", 10)
+        name = generate_string("alpha", 10)
 
         new_obj = make_template(
             {

@@ -14,7 +14,7 @@ else:
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import NOT_IMPLEMENTED, LANGUAGES
-from robottelo.common.helpers import (generate_name, generate_email_address,
+from robottelo.common.helpers import (generate_email_address,
                                       generate_string)
 from robottelo.ui.factory import make_org
 from robottelo.ui.session import Session
@@ -28,18 +28,20 @@ def gen_valid_strings(len1=255):
     (excluding html)
     """
     valid_names = [
-        generate_name(5, 5),
-        generate_name(len1),
-        u"%s-%s" % (generate_name(4), generate_name(4)),
-        u"%s.%s" % (generate_name(4), generate_name(4)),
-        u"նոր օգտվող-%s" % generate_name(2),
-        u"新用戶-%s" % generate_name(2),
-        u"नए उपयोगकर्ता-%s" % generate_name(2),
-        u"нового пользователя-%s" % generate_name(2),
-        u"uusi käyttäjä-%s" % generate_name(2),
-        u"νέος χρήστης-%s" % generate_name(2),
-        u"foo@!#$^&*( ) %s" % generate_name(),
-        u"bar+{}|\"?hi %s" % generate_name(),
+        generate_string("alpha", 5),
+        generate_string("alpha", len1),
+        u"%s-%s" % (generate_string("alpha", 4),
+                    generate_string("alpha", 4),),
+        u"%s.%s" % (generate_string("alpha", 4),
+                    generate_string("alpha", 4),),
+        u"նոր օգտվող-%s" % generate_string("alpha", 2),
+        u"新用戶-%s" % generate_string("alpha", 2),
+        u"नए उपयोगकर्ता-%s" % generate_string("alpha", 2),
+        u"нового пользователя-%s" % generate_string("alpha", 2),
+        u"uusi käyttäjä-%s" % generate_string("alpha", 2),
+        u"νέος χρήστης-%s" % generate_string("alpha", 2),
+        u"foo@!#$^&*( ) %s" % generate_string("alpha", 2),
+        u"bar+{}|\"?hi %s" % generate_string("alpha", 2),
     ]
 
     return valid_names
@@ -51,17 +53,17 @@ def gen_valid_usernames(len1=100):
     (excluding html)
     """
     valid_names = [
-        generate_name(5, 5),
-        generate_name(len1),
-        u"%s-%s" % (generate_name(4), generate_name(4)),
-        u"%s.%s" % (generate_name(4), generate_name(4)),
-        u"նորօգտվող-%s" % generate_name(2),
-        u"新用戶-%s" % generate_name(2),
+        generate_string("alpha", 5),
+        generate_string("alpha", len1),
+        u"%s-%s" % (generate_string("alpha", 4), generate_string("alpha", 4)),
+        u"%s.%s" % (generate_string("alpha", 4), generate_string("alpha", 4)),
+        u"նորօգտվող-%s" % generate_string("alpha", 2),
+        u"新用戶-%s" % generate_string("alpha", 2),
         # TODO: determine why this string is rejected.
         # u"नएउपयोगकर्ता-%s" % generate_name(2),
-        u"новогопользователя-%s" % generate_name(2),
-        u"uusikäyttäjä-%s" % generate_name(2),
-        u"νέοςχρήστης-%s" % generate_name(2),
+        u"новогопользователя-%s" % generate_string("alpha", 2),
+        u"uusikäyttäjä-%s" % generate_string("alpha", 2),
+        u"νέοςχρήστης-%s" % generate_string("alpha", 2),
     ]
 
     return valid_names
@@ -80,7 +82,7 @@ def gen_invalid_strings():
         generate_string("utf8", 300),
         generate_string("latin1", 300),
         generate_string("html", 300),
-        generate_name(256)
+        generate_string("alpha", 256)
     ]
     return invalid_names
 
@@ -97,7 +99,7 @@ def gen_invalid_surnames():
         generate_string("utf8", 300),
         generate_string("latin1", 300),
         generate_string("html", 300),
-        generate_name(256)
+        generate_string("alpha", 256)
     ]
     return invalid_names
 
@@ -125,13 +127,13 @@ class User(BaseUI):
         Function to create a new User
         """
 
-        name = name or generate_name(8)
-        password = password or generate_name(8)
+        name = name or generate_string("alpha", 8)
+        password = password or generate_string("alpha", 8)
         if not password2:
             password2 = password
         email = email or generate_email_address()
-        first_name = firstname or generate_name(8)
-        last_name = lastname or generate_name(8)
+        first_name = firstname or generate_string("alpha", 10)
+        last_name = lastname or generate_string("alpha", 8)
         self.navigator.go_to_users()
         self.user.create(username=name, email=email,
                          password1=password,
@@ -152,7 +154,7 @@ class User(BaseUI):
         @Test: Delete a User
         @Assert: User is deleted
         """
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_user(name)
@@ -170,8 +172,8 @@ class User(BaseUI):
         @Assert: User password is updated
         """
 
-        name = generate_name(6)
-        new_password = generate_name(8)
+        name = generate_string("alpha", 6)
+        new_password = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_user(name)
@@ -190,8 +192,8 @@ class User(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name = generate_name(6)
-        role = generate_name(6)
+        name = generate_string("alpha", 6)
+        role = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
@@ -239,7 +241,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, firstname=first)
@@ -261,7 +263,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, lastname=last_name)
@@ -296,7 +298,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, locale=lang)
@@ -331,7 +333,7 @@ class User(BaseUI):
         @Assert: User is created
         @Status: Manual
         """
-        name = generate_name(8)
+        name = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(name, password)
@@ -359,8 +361,8 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name = generate_name(6)
-        role = generate_name(6)
+        name = generate_string("alpha", 6)
+        role = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
@@ -385,9 +387,9 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name = generate_name(6)
-        role1 = generate_name(6)
-        role2 = generate_name(6)
+        name = generate_string("alpha", 6)
+        role1 = generate_string("alpha", 6)
+        role2 = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
@@ -569,8 +571,8 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name = generate_name(6)
-        org_name = generate_name(6)
+        name = generate_string("alpha", 6)
+        org_name = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         make_org(Session(self.browser), org_name=org_name)
@@ -592,9 +594,9 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name = generate_name(6)
-        org_name1 = generate_name(6)
-        org_name2 = generate_name(6)
+        name = generate_string("alpha", 6)
+        org_name1 = generate_string("alpha", 6)
+        org_name2 = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         make_org(Session(self.browser), org_name=org_name1)
@@ -751,8 +753,8 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
-        password = generate_name(8)
-        password2 = generate_name(8)
+        password = generate_string("alpha", 8)
+        password2 = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(password=password, password2=password2)
         error = self.user.wait_until_element(common_locators["haserror"])
@@ -770,8 +772,8 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
-        name = generate_name(6)
-        password = generate_name(8)
+        name = generate_string("alpha", 6)
+        password = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_user(name, password)

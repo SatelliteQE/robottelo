@@ -6,7 +6,7 @@ Test class for Partition Table UI
 """
 
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.common.helpers import generate_name, read_data_file
+from robottelo.common.helpers import generate_string, read_data_file
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -19,7 +19,7 @@ class PartitionTable(BaseUI):
         """
         Creates partition table with navigation
         """
-        name = name or generate_name(6)
+        name = name or generate_string("alpha", 8)
         layout = layout or read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = os_family or "Red Hat"
         self.navigator.go_to_partition_tables()
@@ -33,7 +33,7 @@ class PartitionTable(BaseUI):
         @Assert: Partition table is created
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 8)
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -46,7 +46,7 @@ class PartitionTable(BaseUI):
         @Assert: Partition table is deleted
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         layout = "test layout"
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -63,8 +63,8 @@ class PartitionTable(BaseUI):
         @Assert: Partition table is updated
         """
 
-        name = generate_name(6)
-        new_name = generate_name(4)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 4)
         layout = "test layout"
         new_layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Debian"

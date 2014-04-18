@@ -6,7 +6,7 @@ Test class for Template UI
 """
 
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
-from robottelo.common.helpers import generate_name, generate_string, \
+from robottelo.common.helpers import generate_string, \
     get_data_file
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
@@ -23,7 +23,7 @@ class Template(BaseUI):
         Method to creates new template with navigation
         """
 
-        name = name or generate_name(6)
+        name = name or generate_string("alpha", 6)
         temp_type = temp_type
         self.navigator.go_to_provisioning_templates()
         self.template.create(name, template_path, custom_really,
@@ -38,7 +38,7 @@ class Template(BaseUI):
         should be created successfully
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -53,7 +53,7 @@ class Template(BaseUI):
         should be created successfully
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         template_path = get_data_file(SNIPPET_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_template(name, template_path, True,
@@ -66,7 +66,7 @@ class Template(BaseUI):
         @Assert: Template removed successfully
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -84,8 +84,8 @@ class Template(BaseUI):
         @Assert: The template name and type should be updated successfully
         """
 
-        name = generate_name(6)
-        new_name = generate_name(6)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
         temp_type = 'provision'
         new_temp_type = 'PXELinux'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -103,12 +103,11 @@ class Template(BaseUI):
         @Assert: The template should be updated with newly created OS's
         successfully
         """
-
-        name = generate_name(6)
-        new_name = generate_name(6)
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
         temp_type = 'provision'
-        os_name1 = generate_name(6)
-        os_name2 = generate_name(6)
+        os_name1 = generate_string("alpha", 6)
+        os_name2 = generate_string("alpha", 6)
         os_list = [os_name1, os_name2]
         major_version = generate_string('numeric', 1)
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)

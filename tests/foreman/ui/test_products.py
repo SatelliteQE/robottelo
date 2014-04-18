@@ -4,7 +4,7 @@ Test class for Products UI
 
 from ddt import data, ddt
 from nose.plugins.attrib import attr
-from robottelo.common.helpers import generate_name, generate_strings_list
+from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -23,7 +23,7 @@ class Products(BaseUI):
         super(Products, self).setUp()
         # Make sure to use the Class' org_name instance
         if Products.org_name is None:
-            Products.org_name = generate_name(8, 8)
+            Products.org_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Products.org_name)
 
@@ -126,7 +126,7 @@ class Products(BaseUI):
         @Assert: Product is updated
         """
 
-        new_prd_name = generate_name(8, 8)
+        new_prd_name = generate_string("alpha", 8)
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -146,7 +146,7 @@ class Products(BaseUI):
         """
 
         locator = common_locators["common_haserror"]
-        new_prd_name = generate_name(256)
+        new_prd_name = generate_string("alpha", 256)
         description = "test_negative_update_0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(Products.org_name)

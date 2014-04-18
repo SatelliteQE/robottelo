@@ -13,7 +13,7 @@ else:
 from ddt import data, ddt
 from nose.plugins.attrib import attr
 from robottelo.common import conf
-from robottelo.common.helpers import (generate_name, generate_strings_list,
+from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
 from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
@@ -40,7 +40,7 @@ class Org(BaseUI):
         @BZ: redmine #4443
         """
 
-        org_name = generate_name(8)
+        org_name = generate_string("alpha", 8)
         part_string = org_name[:3]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
@@ -93,7 +93,7 @@ class Org(BaseUI):
         @assert: organization is created
         """
 
-        parent = generate_name(8, 8)
+        parent = generate_string("alpha", 8)
         desc = test_data['desc']
         label = test_data['label']
         org_name = test_data['name']
@@ -289,7 +289,7 @@ class Org(BaseUI):
         @test: Create organization with valid values then update its name
         @assert: organization name is updated
         """
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
@@ -315,7 +315,7 @@ class Org(BaseUI):
         self.org.create(org_name)
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(org_name))
-        new_name = generate_name(256)
+        new_name = generate_string("alpha", 256)
         self.org.update(org_name, new_name)
         error = self.org.wait_until_element(common_locators["name_haserror"])
         self.assertTrue(error)
@@ -355,7 +355,7 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_domains()
         self.domain.create(domain)
@@ -392,8 +392,8 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
-        password = generate_name(8)
+        org_name = generate_string("alpha", 8)
+        password = generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -433,7 +433,7 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_host_groups()
         self.hostgroup.create(host_grp)
@@ -487,7 +487,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -520,7 +520,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
@@ -551,8 +551,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
-        password = generate_name(8)
+        org_name = generate_string("alpha", 8)
+        password = generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)
@@ -585,7 +585,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
@@ -615,7 +615,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
@@ -647,7 +647,7 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         self.login.login(self.katello_user, self.katello_passwd)
@@ -689,8 +689,8 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
-        path = URL % generate_name(6)
+        org_name = generate_string("alpha", 8)
+        path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_installation_media()
@@ -728,7 +728,7 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -765,7 +765,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
@@ -816,7 +816,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         self.login.login(self.katello_user, self.katello_passwd)
@@ -851,8 +851,8 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
-        path = URL % generate_name(6)
+        org_name = generate_string("alpha", 8)
+        path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
@@ -884,7 +884,7 @@ class Org(BaseUI):
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -919,7 +919,7 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_environments()
         self.environment.create(env, None)
@@ -956,7 +956,7 @@ class Org(BaseUI):
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
         value1 = common_locators["entity_deselect"][1]
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)

@@ -5,7 +5,7 @@ Test class for Global parameters CLI
 """
 
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -18,8 +18,10 @@ class TestGlobalParameter(BaseCLI):
         @Test: Check if Global Param can be set
         @Assert: Global Param is set
         """
-        name = "opt-%s" % generate_name(8, 8)
-        value = "val-%s" % generate_name(12, 12) + " " + generate_name()
+        name = "opt-%s" % generate_string("alpha", 10)
+        val_part1 = generate_string("alpha", 10)
+        val_part2 = generate_string("alpha", 10)
+        value = "val-%s %s" % (val_part1, val_part2)
         result = GlobalParameter().set({
             'name': name,
             'value': value})
@@ -33,8 +35,10 @@ class TestGlobalParameter(BaseCLI):
         @Test: Test Global Param List
         @Assert: Global Param List is displayed
         """
-        name = "opt-%s" % generate_name(8, 8)
-        value = "val-%s" % generate_name(12, 12) + " " + generate_name()
+        name = "opt-%s" % generate_string("alpha", 10)
+        val_part1 = generate_string("alpha", 10)
+        val_part2 = generate_string("alpha", 10)
+        value = "val-%s %s" % (val_part1, val_part2)
         result = GlobalParameter().set({
             'name': name,
             'value': value})
@@ -56,8 +60,10 @@ class TestGlobalParameter(BaseCLI):
         @Test: Check if Global Param can be deleted
         @Assert: Global Param is deleted
         """
-        name = "opt-%s" % generate_name(8, 8)
-        value = "val-%s" % generate_name(12, 12) + " " + generate_name()
+        name = "opt-%s" % generate_string("alpha", 10)
+        val_part1 = generate_string("alpha", 10)
+        val_part2 = generate_string("alpha", 10)
+        value = "val-%s %s" % (val_part1, val_part2)
         result = GlobalParameter().set({
             'name': name,
             'value': value})

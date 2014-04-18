@@ -8,7 +8,7 @@ Test class for Operating System UI
 from robottelo.ui.locators import common_locators
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, \
     PARTITION_SCRIPT_DATA_FILE, INSTALL_MEDIUM_URL
-from robottelo.common.helpers import generate_name, generate_string, \
+from robottelo.common.helpers import generate_string, \
     get_data_file
 from tests.foreman.ui.baseui import BaseUI
 
@@ -24,7 +24,7 @@ class OperatingSys(BaseUI):
         Function to create OS with all navigation steps
         """
 
-        name = name or generate_name(6)
+        name = name or generate_string("alpha", 6)
         major_version = major_version or generate_string('numeric', 1)
         minor_version = minor_version or generate_string('numeric', 1)
         self.navigator.go_to_operating_systems()  # go to operating system page
@@ -39,11 +39,11 @@ class OperatingSys(BaseUI):
         @Assert: OS is created
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
         os_family = "Red Hat"
-        arch = generate_name(4)
+        arch = generate_string("alpha", 4)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(arch)
@@ -57,7 +57,7 @@ class OperatingSys(BaseUI):
         @Assert: OS is deleted
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
         os_family = "Red Hat"
@@ -76,15 +76,15 @@ class OperatingSys(BaseUI):
         @Assert: OS is updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
         os_family = "Red Hat"
-        new_name = generate_name(4)
+        new_name = generate_string("alpha", 4)
         new_major_version = generate_string('numeric', 1)
         new_minor_version = generate_string('numeric', 1)
         new_os_family = "Debian"
-        new_arch = generate_name(4)
+        new_arch = generate_string("alpha", 4)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(new_arch)
@@ -102,10 +102,10 @@ class OperatingSys(BaseUI):
         @Assert: OS is updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
-        medium = generate_name(4)
-        path = INSTALL_MEDIUM_URL % generate_name(6)
+        medium = generate_string("alpha", 4)
+        path = INSTALL_MEDIUM_URL % generate_string("alpha", 6)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_installation_media()
         self.medium.create(medium, path)
@@ -122,9 +122,9 @@ class OperatingSys(BaseUI):
         @Assert: OS is updated
         """
 
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
-        ptable = generate_name(4)
+        ptable = generate_string("alpha", 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
         with open(script_file, 'r') as file_contents:
             layout = file_contents.read()
@@ -144,9 +144,9 @@ class OperatingSys(BaseUI):
         @Assert: OS is updated
         """
 
-        os_name = generate_name(6)
+        os_name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
-        template_name = generate_name(4)
+        template_name = generate_string("alpha", 4)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         os_list = [os_name]
@@ -167,10 +167,10 @@ class OperatingSys(BaseUI):
         @Test: Set OS parameter
         @Assert: OS is updated
         """
-        name = generate_name(6)
+        name = generate_string("alpha", 4)
         major_version = generate_string('numeric', 1)
-        param_name = generate_name(4)
-        param_value = generate_name(3)
+        param_name = generate_string("alpha", 4)
+        param_value = generate_string("alpha", 3)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(name, major_version)
         self.operatingsys.set_os_parameter(name, param_name, param_value)
@@ -181,10 +181,10 @@ class OperatingSys(BaseUI):
         @Test: Remove selected OS parameter
         @Assert: OS is updated
         """
-        name = generate_name(6)
+        name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
-        param_name = generate_name(4)
-        param_value = generate_name(3)
+        param_name = generate_string("alpha", 4)
+        param_value = generate_string("alpha", 3)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_os(name, major_version)
         self.operatingsys.set_os_parameter(name, param_name, param_value)
