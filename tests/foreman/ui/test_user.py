@@ -29,8 +29,8 @@ def gen_valid_strings(len1=255):
     """
     valid_names = [
         generate_string("alpha", 10),
-        generate_string("alpha", 10),
-        u"%s-%s" % (generate_string("alpha", 6),
+        generate_string("alpha", len1),
+        u"%s-%s" % (generate_string("alpha", 4),
                     generate_string("alpha", 4),),
         u"%s.%s" % (generate_string("alpha", 4),
                     generate_string("alpha", 4),),
@@ -54,7 +54,7 @@ def gen_valid_usernames(len1=100):
     """
     valid_names = [
         generate_string("alpha", 5),
-        generate_string("alpha", 10),
+        generate_string("alpha", len1),
         u"%s-%s" % (generate_string("alpha", 4), generate_string("alpha", 4)),
         u"%s.%s" % (generate_string("alpha", 4), generate_string("alpha", 4)),
         u"նորօգտվող-%s" % generate_string("alpha", 2),
