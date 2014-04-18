@@ -11,7 +11,6 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.org import Org
 from robottelo.cli.factory import make_org, make_repository, make_product
 from robottelo.cli.factory import make_content_view
-from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from ddt import data, ddt
 import unittest
@@ -295,7 +294,7 @@ class TestContentView(BaseCLI):
         @assert: Custom content can be seen in a view
         """
 
-        #Create REPO
+        # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
         # Fetch it
         result = Repository.info(
@@ -311,7 +310,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
-        #Sync REPO
+        # Sync REPO
         result = Repository.synchronize({'id': new_repo['id']})
         self.assertEqual(
             result.return_code,
@@ -320,7 +319,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
-        #Create CV
+        # Create CV
         new_cv = make_content_view({u'organization-id': self.org['label']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
@@ -331,7 +330,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
-        #Associate repo to CV
+        # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
                                              u'repository-id': new_repo['id']})
         self.assertEqual(
