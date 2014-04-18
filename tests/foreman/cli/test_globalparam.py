@@ -19,7 +19,8 @@ class TestGlobalParameter(BaseCLI):
         @Assert: Global Param is set
         """
         name = "opt-%s" % generate_string("alpha", 10)
-        value = "val-%s" % generate_string("alpha", 10) + " " + generate_string("alpha", 10)
+        value = "val-%s" % generate_string("alpha", 10) + " " +
+        generate_string("alpha", 10)
         result = GlobalParameter().set({
             'name': name,
             'value': value})
@@ -34,7 +35,8 @@ class TestGlobalParameter(BaseCLI):
         @Assert: Global Param List is displayed
         """
         name = "opt-%s" % generate_string("alpha", 10)
-        value = "val-%s" % generate_string("alpha", 10) + " " + generate_string("alpha", 10)
+        value = "val-%s" % generate_string("alpha", 10) + " " +
+        generate_string("alpha", 10)
         result = GlobalParameter().set({
             'name': name,
             'value': value})
@@ -57,7 +59,8 @@ class TestGlobalParameter(BaseCLI):
         @Assert: Global Param is deleted
         """
         name = "opt-%s" % generate_string("alpha", 10)
-        value = "val-%s" % generate_string("alpha", 10) + " " + generate_string("alpha", 10)
+        value = "val-%s" % generate_string("alpha", 10) + " " +
+        generate_string("alpha", 10)
         result = GlobalParameter().set({
             'name': name,
             'value': value})
