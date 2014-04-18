@@ -28,7 +28,7 @@ def gen_valid_strings(len1=255):
     (excluding html)
     """
     valid_names = [
-        generate_string("alpha", 10),
+        generate_string("alpha", 5),
         generate_string("alpha", len1),
         u"%s-%s" % (generate_string("alpha", 4),
                     generate_string("alpha", 4),),
