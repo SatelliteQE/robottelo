@@ -28,7 +28,7 @@ class Subnet(BaseUI):
 
         subnet_name = subnet_name or generate_string("alpha", 8)
         subnet_network = subnet_network or generate_ipaddr(ip3=True)
-        org_name = generate_name(8, 8)
+        org_name = generate_string("alpha", 10)
         self.create_org(org_name)
         self.navigator.go_to_subnets()  # go to subnet page
         self.subnet.create([org_name], subnet_name, subnet_network,
@@ -94,7 +94,7 @@ class Subnet(BaseUI):
         subnet_mask = "255.255.255.0"
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
-        new_subnet_name = generate_name(8, 8)
+        new_subnet_name = generate_string("alpha", 10)
         self.subnet.update(subnet_name, new_subnet_name=new_subnet_name)
         result_object = self.subnet.search_subnet(new_subnet_name)
         self.assertEqual(new_subnet_name, result_object['name'])

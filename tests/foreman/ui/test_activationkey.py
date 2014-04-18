@@ -61,7 +61,7 @@ class ActivationKey(BaseUI):
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_name(16))
+                                  description=generate_string("alpha", 16))
         self.assertIsNotNone(self.activationkey.search_key(name))
 
     @bzbug('1078676')
@@ -272,7 +272,7 @@ class ActivationKey(BaseUI):
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_name(16))
+                                  description=generate_string("alpha", 16))
         self.assertIsNotNone(self.activationkey.search_key(name))
         self.activationkey.delete(name, True)
         self.assertIsNone(self.activationkey.search_key(name))
@@ -379,7 +379,7 @@ class ActivationKey(BaseUI):
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_name(16))
+                                  description=generate_string("alpha", 16))
         self.assertIsNotNone(self.activationkey.search_key(name))
         self.activationkey.delete(name, really=False)
         self.assertIsNotNone(self.activationkey.search_key(name))
@@ -551,7 +551,7 @@ class ActivationKey(BaseUI):
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
-        new_description = generate_name(256)
+        new_description = generate_string("alpha", 256)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()

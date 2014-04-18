@@ -38,7 +38,7 @@ class Sync(BaseUI):
         super(Sync, self).setUp()
         # Make sure to use the Class' org_name instance
         if Sync.org_name is None:
-            Sync.org_name = generate_name(8, 8)
+            Sync.org_name = generate_string("alpha", 10)
             with Session(self.browser) as session:
                 make_org(session, org_name=Sync.org_name)
 
@@ -50,7 +50,7 @@ class Sync(BaseUI):
         @Test: Create Content Custom Sync with minimal input parameters
         @Assert: Whether Sync is successful
         """
-        prd_name =  generate_string("alpha", 6)
+        prd_name = generate_string("alpha", 6)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)

@@ -43,7 +43,7 @@ class OperatingSys(BaseUI):
         major_version = generate_string('numeric', 1)
         minor_version = generate_string('numeric', 1)
         os_family = "Red Hat"
-        arch = generate_name(4)
+        arch = generate_string("alpha", 4)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_architectures()  # go to architecture page
         self.architecture.create(arch)
@@ -105,7 +105,7 @@ class OperatingSys(BaseUI):
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         medium = generate_string("alpha", 4)
-        path = INSTALL_MEDIUM_URL % generate_name(6)
+        path = INSTALL_MEDIUM_URL % generate_string("alpha", 6)
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_installation_media()
         self.medium.create(medium, path)

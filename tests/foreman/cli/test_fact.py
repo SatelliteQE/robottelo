@@ -47,7 +47,10 @@ class TestFact(BaseCLI):
         self.assertEqual(stdout[0]['fact'], fact)
 
     @data(
-        generate_string("alpha", 10), generate_string("alpha", 10), generate_string("alpha", 10), generate_string("alpha", 10),
+        generate_string("alpha", 10),
+        generate_string("alpha", 10),
+        generate_string("alpha", 10),
+        generate_string("alpha", 10),
     )
     @attr('cli', 'fact')
     def test_list_fail(self, fact):

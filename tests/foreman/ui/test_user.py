@@ -30,10 +30,12 @@ def gen_valid_strings(len1=255):
     valid_names = [
         generate_string("alpha", 10),
         generate_string("alpha", 10),
-        u"%s-%s" % (  generate_string("alpha", 6),  generate_string("alpha", 4),),
-        u"%s.%s" % (  generate_string("alpha", 4), generate_string("alpha", 4),),
-        u"նոր օգտվող-%s" %   generate_string("alpha", 2),
-        u"新用戶-%s" %   generate_string("alpha", 2),
+        u"%s-%s" % (generate_string("alpha", 6),
+                    generate_string("alpha", 4),),
+        u"%s.%s" % (generate_string("alpha", 4),
+                    generate_string("alpha", 4),),
+        u"նոր օգտվող-%s" % generate_string("alpha", 2),
+        u"新用戶-%s" % generate_string("alpha", 2),
         u"नए उपयोगकर्ता-%s" % generate_string("alpha", 2),
         u"нового пользователя-%s" % generate_string("alpha", 2),
         u"uusi käyttäjä-%s" % generate_string("alpha", 2),
@@ -385,9 +387,9 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name =  generate_string("alpha", 6)
-        role1 =  generate_string("alpha", 6)
-        role2 =  generate_string("alpha", 6)
+        name = generate_string("alpha", 6)
+        role1 = generate_string("alpha", 6)
+        role2 = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
@@ -569,8 +571,8 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name =  generate_string("alpha", 6)
-        org_name =  generate_string("alpha", 6)
+        name = generate_string("alpha", 6)
+        org_name = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         make_org(Session(self.browser), org_name=org_name)
@@ -592,9 +594,9 @@ class User(BaseUI):
         """
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
-        name =  generate_string("alpha", 6)
-        org_name1 =  generate_string("alpha", 6)
-        org_name2 =  generate_string("alpha", 6)
+        name = generate_string("alpha", 6)
+        org_name1 = generate_string("alpha", 6)
+        org_name2 = generate_string("alpha", 6)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         make_org(Session(self.browser), org_name=org_name1)
@@ -751,8 +753,8 @@ class User(BaseUI):
         @Assert: User is not created. Appropriate error shown.
         @Status: Manual
         """
-        password =  generate_string("alpha", 8)
-        password2 =  generate_string("alpha", 8)
+        password = generate_string("alpha", 8)
+        password2 = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_user(password=password, password2=password2)
         error = self.user.wait_until_element(common_locators["haserror"])
@@ -770,8 +772,8 @@ class User(BaseUI):
         @Assert: User is updated
         @Status: Manual
         """
-        name =  generate_string("alpha", 6)
-        password =  generate_string("alpha", 8)
+        name = generate_string("alpha", 6)
+        password = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.create_user(name, password)
