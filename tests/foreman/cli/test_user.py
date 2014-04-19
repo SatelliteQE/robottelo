@@ -5,19 +5,20 @@
 Test class for Users CLI
 """
 
-from ddt import data
-from ddt import ddt
-from tests.foreman.cli.basecli import BaseCLI
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.cli.factory import make_user
-from robottelo.common.helpers import generate_string
-from robottelo.common.decorators import bzbug, redminebug
-from robottelo.cli.user import User as UserObj
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
+
+from ddt import ddt
+from robottelo.cli.factory import make_user
+from robottelo.cli.user import User as UserObj
+from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import data, bzbug, redminebug
+from robottelo.common.helpers import generate_string
+from tests.foreman.cli.basecli import BaseCLI
 
 
 @ddt

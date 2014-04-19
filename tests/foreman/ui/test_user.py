@@ -11,14 +11,15 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from ddt import data, ddt
+from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import NOT_IMPLEMENTED, LANGUAGES
+from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_email_address,
                                       generate_string)
 from robottelo.ui.factory import make_org
-from robottelo.ui.session import Session
 from robottelo.ui.locators import common_locators, tab_locators, locators
+from robottelo.ui.session import Session
 from tests.foreman.ui.baseui import BaseUI
 
 

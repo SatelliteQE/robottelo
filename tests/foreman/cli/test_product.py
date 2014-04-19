@@ -5,13 +5,13 @@
 Test class for Product CLI
 """
 
-from ddt import data
 from ddt import ddt
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_sync_plan)
 from robottelo.cli.product import Product
-from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 

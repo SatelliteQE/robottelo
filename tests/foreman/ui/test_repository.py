@@ -2,11 +2,11 @@
 Test class for Repository UI
 """
 
-from ddt import data, ddt
+from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
 from robottelo.ui.factory import make_org

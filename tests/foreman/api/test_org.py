@@ -7,10 +7,10 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from ddt import data, ddt
+from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import data, bzbug
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import BasicPositiveField

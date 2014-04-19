@@ -3,10 +3,10 @@ Test class for Sync Plan UI
 """
 
 from datetime import datetime, timedelta
-from ddt import data, ddt
+from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import SYNC_INTERVAL
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import locators, common_locators, tab_locators

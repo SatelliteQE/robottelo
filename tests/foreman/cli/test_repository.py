@@ -5,12 +5,11 @@
 Test class for Repository CLI
 """
 
-from ddt import data
 from ddt import ddt
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_repository)
 from robottelo.cli.repository import Repository
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI

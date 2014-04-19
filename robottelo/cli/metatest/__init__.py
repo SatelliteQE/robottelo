@@ -7,7 +7,9 @@ import itertools
 import template_methods
 import types
 
-from ddt import data, ddt
+from ddt import ddt
+
+from robottelo.common.decorators import data
 
 
 # Possible permutations of CRUD tests:
