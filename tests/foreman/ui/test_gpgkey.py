@@ -11,11 +11,11 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from ddt import data, ddt
+from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list,

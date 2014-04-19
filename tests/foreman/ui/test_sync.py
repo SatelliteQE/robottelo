@@ -8,8 +8,9 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from ddt import data, ddt
+from ddt import ddt
 from nose.plugins.attrib import attr
+from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
 from robottelo.ui.session import Session

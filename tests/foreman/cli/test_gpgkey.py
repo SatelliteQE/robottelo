@@ -5,13 +5,13 @@
 Test class for GPG Key CLI
 """
 
-from ddt import data, ddt
+from ddt import ddt
 from robottelo.cli.factory import make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import NOT_IMPLEMENTED, VALID_GPG_KEY_FILE
-from robottelo.common.decorators import redminebug
+from robottelo.common.decorators import data, redminebug
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp

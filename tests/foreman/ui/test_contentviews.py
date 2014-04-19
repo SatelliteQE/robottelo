@@ -12,11 +12,11 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from ddt import ddt, data
+from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED, REPO_TYPE
+from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import (generate_string, valid_names_list,
                                       invalid_names_list)
-from robottelo.common.decorators import bzbug
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import (locators, common_locators)
 from robottelo.ui.session import Session

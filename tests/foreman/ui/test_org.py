@@ -10,9 +10,11 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
-from ddt import data, ddt
+
+from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common import conf
+from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)

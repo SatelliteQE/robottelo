@@ -5,21 +5,23 @@
 Test class for Organization CLI
 """
 
-from ddt import data, ddt
+import sys
+
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
+
+from ddt import ddt
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from tests.foreman.cli.basecli import BaseCLI
-from robottelo.common.helpers import generate_string
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import (bzbug, redminebug)
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
+from robottelo.common.decorators import data, bzbug, redminebug
+from robottelo.common.helpers import generate_string
+from tests.foreman.cli.basecli import BaseCLI
 
 
 def positive_create_data_1():

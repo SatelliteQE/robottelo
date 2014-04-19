@@ -7,8 +7,9 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from ddt import data, ddt
+from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import data
 from tests.foreman.api.baseapi import BaseAPI
 
 

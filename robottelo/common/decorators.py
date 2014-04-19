@@ -7,6 +7,7 @@ Implements various decorators
 
 import bugzilla
 import logging
+import random
 import requests
 
 import sys
@@ -16,6 +17,7 @@ else:
     import unittest2 as unittest
 
 
+from ddt import data as ddt_data
 from robottelo.common import conf
 from robottelo.common.constants import NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError
@@ -30,6 +32,20 @@ REDMINE_URL = 'http://projects.theforeman.org'
 logging.getLogger('bugzilla').setLevel(logging.WARNING)
 logging.getLogger(
     'requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
+
+
+def data(*values):
+    """
+    Overrides ddt.data decorator to return only one value when doing smoke
+    tests
+    """
+    def wrapper(func):
+        smoke = conf.properties.get('main.smoke', '0') == '1'
+        if smoke:
+            return ddt_data(random.choice(values))(func)
+        else:
+            return ddt_data(*values)(func)
+    return wrapper
 
 
 def stubbed(func):

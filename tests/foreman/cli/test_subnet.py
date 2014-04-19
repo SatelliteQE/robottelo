@@ -5,12 +5,12 @@
 Test class for Subnet CLI
 """
 
-from ddt import data
 from ddt import ddt
+from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.subnet import Subnet
+from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
-from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
 
 

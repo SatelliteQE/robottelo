@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from ddt import data, ddt
+from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import redminebug
+from robottelo.common.decorators import data, redminebug
 from robottelo.records.activation_key import ActivationKey
 from robottelo.records.system_group import SystemGroupDefOrg
 from tests.foreman.api.baseapi import BaseAPI

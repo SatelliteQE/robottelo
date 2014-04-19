@@ -4,7 +4,7 @@
 """
 Test class for Operating System CLI
 """
-from ddt import data, ddt
+from ddt import ddt
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
@@ -13,7 +13,7 @@ from robottelo.cli.factory import make_architecture
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.factory import make_template
-from robottelo.common.decorators import bzbug, redminebug
+from robottelo.common.decorators import data, bzbug, redminebug
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 

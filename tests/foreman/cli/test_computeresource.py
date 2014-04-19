@@ -16,10 +16,10 @@ Subcommands:
     delete                        Delete a compute resource.
     image                         View and manage compute resource's images
 """
-from ddt import data
 from ddt import ddt
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
+from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS

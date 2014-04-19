@@ -6,13 +6,12 @@ Test class for Product CLI
 """
 
 from datetime import datetime, timedelta
-from ddt import data
 from ddt import ddt
+from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import generate_string
-from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
 
 

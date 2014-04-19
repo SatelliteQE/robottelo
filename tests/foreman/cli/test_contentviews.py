@@ -5,16 +5,17 @@
 Test class for Host/System Unification
 Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 """
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.helpers import generate_string
-from robottelo.cli.contentview import ContentView
-from robottelo.cli.org import Org
-from robottelo.cli.factory import make_org, make_repository, make_product
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.repository import Repository
-from ddt import data, ddt
 import unittest
 
+from ddt import ddt
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view, make_org, make_repository, make_product)
+from robottelo.cli.org import Org
+from robottelo.cli.repository import Repository
+from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 

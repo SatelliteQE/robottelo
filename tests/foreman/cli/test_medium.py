@@ -5,11 +5,12 @@
 Test class for Medium  CLI
 """
 
-from ddt import ddt, data
-from tests.foreman.cli.basecli import BaseCLI
-from robottelo.common.helpers import generate_string
-from robottelo.cli.medium import Medium
+from ddt import ddt
 from robottelo.cli.factory import make_medium
+from robottelo.cli.medium import Medium
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string
+from tests.foreman.cli.basecli import BaseCLI
 
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
