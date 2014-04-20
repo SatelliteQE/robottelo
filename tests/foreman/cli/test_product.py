@@ -363,68 +363,7 @@ class TestProduct(BaseCLI):
         {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
-    def test_positive_update_2(self, test_data):
-        """
-        @Test: Update the label of a product
-        @Feature: Product
-        @Assert: Product label is updated
-        """
-
-        new_product = make_product(
-            {
-                u'name': test_data['name'],
-                u'organization-id': self.org['label']
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        new_label = generate_string('alpha', 20)
-
-        # Update the label
-        result = Product.update(
-            {u'id': new_product['id'],
-             u'label': new_label}
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['label'],
-            new_label,
-            "Description was not updated"
-        )
-        self.assertNotEqual(
-            result.stdout['label'],
-            new_product['label'],
-            "Labels should not match"
-        )
-
-    @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
-    )
-    @attr('cli', 'product')
-    def test_positive_update_3(self, test_name):
+    def test_positive_update_2(self, test_name):
         """
         @Test: Update product's gpg keys
         @Feature: Product
@@ -516,7 +455,7 @@ class TestProduct(BaseCLI):
         {u'name': generate_string('html', 15)},
     )
     @attr('cli', 'product')
-    def test_positive_update_4(self, test_name):
+    def test_positive_update_3(self, test_name):
         """
         @Test: Update product's sync plan
         @Feature: Product
