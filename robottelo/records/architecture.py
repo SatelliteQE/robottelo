@@ -30,5 +30,5 @@ class Architecture(records.Record):
         """
         api_class = ArchitectureApi
         change_for_update = lambda i: i.record_set_field(
-            name=i.name+"_updated"
+            name="%s_updated" % i.name
             )

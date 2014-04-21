@@ -30,5 +30,5 @@ class Domain(records.Record):
         """
         api_class = DomainApi
         change_for_update = lambda i: i.record_set_field(
-            name=i.name+".uk"
+            name="%s.uk" % i.name
             )
