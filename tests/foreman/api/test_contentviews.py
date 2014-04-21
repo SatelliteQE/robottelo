@@ -8,7 +8,6 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.decorators import data
-from robottelo.common.records.base import NoEnum
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.common.decorators import stubbed
 
