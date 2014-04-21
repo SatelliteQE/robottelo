@@ -2,7 +2,8 @@
 # vim: ts=4 sw=4 expandtab ai
 
 
-from ddt import data, ddt
+from ddt import ddt
+from robottelo.common.decorators import data
 from tests.foreman.api.baseapi import BaseAPI
 from robottelo.records.domain import Domain
 from robottelo.records.architecture import Architecture
