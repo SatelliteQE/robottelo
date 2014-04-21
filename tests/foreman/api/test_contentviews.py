@@ -27,7 +27,7 @@ class TestContentView(BaseAPI):
     # Content View: Creation
     # katello content definition create --definition=MyView
     @data(*ContentViewDefinition.enumerate(label="", description=""))
-    def test_cv_create_cli(self, data):
+    def test_cv_create_api(self, data):
         # variations (subject to change):
         # ascii string, alphanumeric, latin-1, utf8, etc.
         """
@@ -40,7 +40,7 @@ class TestContentView(BaseAPI):
         self.assertIntersects(data, result)
 
     @stubbed
-    def test_cv_create_cli_negative(self):
+    def test_cv_create_api_negative(self):
         # variations (subject to change):
         # zero length, symbols, html, etc.
         """
@@ -52,7 +52,7 @@ class TestContentView(BaseAPI):
         """
 
     @stubbed
-    def test_cv_create_cli_badorg_negative(self):
+    def test_cv_create_api_badorg_negative(self):
         # Use an invalid org name
         """
         @test: create content views (negative)
