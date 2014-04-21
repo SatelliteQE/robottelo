@@ -26,7 +26,7 @@ class System(Base):
     Manipulates Katello engine's system command.
     """
 
-    command_base = "system"
+    command_base = "content-host"
     command_requires_org = True
 
     @classmethod
