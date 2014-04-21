@@ -375,11 +375,15 @@ tab_locators = {
     # Activation Keys
     # Third level UI
     "ak.details": (
-        By.XPATH, "//a[conatins(@href, 'info')]"),
+        By.XPATH, "//a[contains(@href, 'info')]"),
     "ak.subscriptions": (
-        By.XPATH, "//a[conatins(@href, 'subscriptions')]"),
+        By.XPATH, "//a[contains(@href, 'subscriptions')]/span"),
+    "ak.subscriptions_add": (
+        By.XPATH, "//a[contains(@ui-sref, 'subscriptions.add')]"),
+    "ak.subscriptions_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'subscriptions.list')]"),
     "ak.system_groups": (
-        By.XPATH, "//a[conatins(@href, 'system-groups')]")}
+        By.XPATH, "//a[contains(@href, 'system-groups')]")}
 
 common_locators = {
 
@@ -891,6 +895,9 @@ locators = {
     "ak.env": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "ak.selected_env": (
+        By.XPATH,
+        "//input[@class='ng-pristine ng-valid']/parent::label"),
     "ak.content_view": (By.ID, "content_view_id"),
     "ak.usage_limit_checkbox": (
         By.XPATH,
@@ -938,15 +945,30 @@ locators = {
         //button[@ng-click='save()']"),
     "ak.edit_content_view": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        //div/span/i"),
+        //div//span/i"),
     "ak.edit_content_view_select": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /select"),
+        /div/select"),
     "ak.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
     "ak.cancel": (
         By.XPATH, ("//div[@class='modal-dialog']"
                    "//button[@ng-click='cancel()']")),
+    "ak.save_cv": (
+        By.XPATH,
+        ("//form[@alch-edit-select='activationKey.content_view.name']"
+         "//button[@ng-click='save()']")),
+    "ak.select_subscription": (
+        By.XPATH,
+        ("//tr/td/a[contains(., '%s')]"
+         "/following::tr[@row-select='subscription']"
+         "/td/input[@ng-model='subscription.selected']")),
+    "ak.add_selected_subscription": (
+        By.XPATH, "//button[@ng-click='addSelected()']"),
+    "ak.selected_cv": (
+        By.XPATH,
+        ("//form[@alch-edit-select='activationKey.content_view.name']"
+         "/div[@class='alch-edit']/div/span")),
 
     # Sync Status
     "sync.prd_expander": (

@@ -5,9 +5,9 @@
 Implements Activation keys UI
 """
 
-from robottelo.common.helpers import escape_search, sleep_for_seconds
+from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -52,7 +52,7 @@ class ActivationKey(Base):
                 element = self.wait_until_element((strategy, value % env))
                 if element:
                     element.click()
-                    sleep_for_seconds(2)
+                    self.wait_for_ajax()
             else:
                 raise Exception(
                     "Could not create new activation key '%s', \
@@ -83,7 +83,7 @@ class ActivationKey(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
-            sleep_for_seconds(2)
+            self.wait_for_ajax()
             self.find_element(common_locators["kt_search_button"]).click()
             strategy = locators["ak.ak_name"][0]
             value = locators["ak.ak_name"][1]
@@ -91,7 +91,7 @@ class ActivationKey(Base):
         return element
 
     def update(self, name, new_name=None, description=None,
-               limit=None, content_view=None):
+               limit=None, content_view=None, env=None):
         """
         Updates an existing activation key
         """
@@ -113,10 +113,28 @@ class ActivationKey(Base):
                 self.set_limit(limit)
                 self.find_element(locators["ak.save_limit"]).click()
             if content_view:
-                self.find_element(locators["ak.edit_content_view"]).click()
+                if env:
+                    strategy = locators["ak.env"][0]
+                    value = locators["ak.env"][1]
+                    element = self.wait_until_element((strategy, value % env))
+                    if element:
+                        element.click()
+                        self.wait_for_ajax()
+                    else:
+                        raise Exception(
+                            "Couldn't find the given env '%s'" % env)
+                # We need to select the CV, if we update the env and in this,
+                # case edit button disappears, but when we update only CV, then
+                # edit button appears; Following 'If' is just solving this
+                # purpose and hence no else required here
+                if self.wait_until_element(locators["ak.edit_content_view"]):
+                    self.find_element(locators["ak.edit_content_view"]).click()
+                    self.wait_for_ajax()
                 Select(self.find_element
                        (locators["ak.edit_content_view_select"]
                         )).select_by_visible_text(content_view)
+                self.find_element(locators["ak.save_cv"]).click()
+                self.wait_for_ajax()
         else:
             raise Exception("Could not update the activation key '%s'" % name)
 
@@ -130,7 +148,6 @@ class ActivationKey(Base):
         if element:
             element.click()
             self.wait_for_ajax()
-            sleep_for_seconds(2)
             self.wait_until_element(locators["ak.remove"]).click()
             self.wait_for_ajax()
             if really:
@@ -138,3 +155,53 @@ class ActivationKey(Base):
                                         ).click()
             else:
                 self.wait_until_element(locators["ak.cancel"]).click()
+
+    def associate_product(self, name, products):
+        """
+        associate an existing product with activation key
+        """
+
+        element = self.search_key(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(tab_locators["ak.subscriptions"]).click()
+            self.wait_until_element(tab_locators
+                                    ["ak.subscriptions_add"]).click()
+            self.wait_for_ajax()
+            strategy, value = locators["ak.select_subscription"]
+            for product in products:
+                element = self.wait_until_element((strategy, value % product))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                else:
+                    raise Exception(
+                        "Couldn't find the product '%s'"
+                        "subscription" % product)
+            self.wait_until_element(locators
+                                    ["ak.add_selected_subscription"]).click()
+        else:
+            raise Exception(
+                "Couldn't find the selected activation key '%s'" % name)
+
+    def get_attribute(self, name, locator):
+        """
+        Get the attribute of selected locator
+        """
+
+        element = self.search_key(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            if self.wait_until_element(locator):
+                result = self.find_element(locator).text
+                return result
+            else:
+                raise Exception(
+                    "Couldn't get text attribute of a given locator")
+        else:
+            raise Exception(
+                "Couldn't find the selected activation key '%s'" % name)

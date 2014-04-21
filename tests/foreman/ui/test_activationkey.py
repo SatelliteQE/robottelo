@@ -44,6 +44,38 @@ class ActivationKey(BaseUI):
             with Session(self.browser) as session:
                 make_org(session, org_name=ActivationKey.org_name)
 
+    def create_cv(self, name, env_name):
+        """
+        Create product/repo and sync it and promote to given env
+        """
+
+        repo_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        publish_version = "Version 1"
+        publish_comment = generate_string("alpha", 8)
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(name, [repo_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.publish(name, publish_comment)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.promote(name, publish_version, env_name)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+
     @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
@@ -86,9 +118,9 @@ class ActivationKey(BaseUI):
                                   description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_create_activation_key_3(self):
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_3(self, env):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Environments
@@ -96,14 +128,28 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all valid Environments in [1]
         using valid Name, Description, Content View and Usage limit
         @Assert: Activation key is created
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_create_activation_key_4(self):
+        name = generate_string("alpha", 8)
+        cv_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv_name, env)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_4(self, cv_name):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Content Views
@@ -111,10 +157,24 @@ class ActivationKey(BaseUI):
         1. Create Activation key for all valid Content views in [1]
         using valid Name, Description, Environment and Usage limit
         @Assert: Activation key is created
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 6)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv_name, env_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env_name,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
 
     @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -301,7 +361,9 @@ class ActivationKey(BaseUI):
         self.activationkey.delete(name, True)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    def test_positive_delete_activation_key_3(self):
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_delete_activation_key_3(self, env):
         """
         @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
@@ -311,13 +373,29 @@ class ActivationKey(BaseUI):
         using valid Name, Description, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
         """
-        pass
 
-    @bzbug('1063273')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_delete_activation_key_4(self):
+        name = generate_string("alpha", 8)
+        cv_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv_name, env)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.delete(name, True)
+        self.assertIsNone(self.activationkey.search_key(name))
+
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_delete_activation_key_4(self, cv_name):
         """
         @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
@@ -327,9 +405,25 @@ class ActivationKey(BaseUI):
         using valid Name, Description, Environment, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
         """
-        pass
+
+        name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 6)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv_name, env_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env_name,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.delete(name, True)
+        self.assertIsNone(self.activationkey.search_key(name))
 
     @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
@@ -432,9 +526,10 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_activation_key_3(self):
+    @bzbug('1089637')
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_update_activation_key_3(self, env_name):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Environment in an Activation key
@@ -442,14 +537,35 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Environment for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
-        @BZ: 1078676
+        @BZ: 1089637
         """
-        pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_update_activation_key_4(self):
+        name = generate_string("alpha", 8)
+        cv_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv_name, env_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, ENVIRONMENT,
+                                  description=generate_string("alpha", 16))
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        env_locator = locators["ak.selected_env"]
+        selected_env = self.activationkey.get_attribute(name, env_locator)
+        self.assertEqual(ENVIRONMENT, selected_env)
+        self.activationkey.update(name, content_view=cv_name, env=env_name)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
+        selected_env = self.activationkey.get_attribute(name, env_locator)
+        self.assertEqual(env_name, selected_env)
+
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_update_activation_key_4(self, cv2_name):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Content View in an Activation key
@@ -458,10 +574,35 @@ class ActivationKey(BaseUI):
         2. Update Content View for all variations in [1] and include both
         RH and custom products
         @Assert: Activation key is updated
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        cv1_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        self.create_cv(cv1_name, env_name)
+        self.create_cv(cv2_name, env_name)
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env_name,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv1_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        cv_locator = locators["ak.selected_cv"]
+        selected_cv = self.activationkey.get_attribute(name, cv_locator)
+        self.assertEqual(cv1_name, selected_cv)
+        self.activationkey.update(name, content_view=cv2_name)
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
+        selected_cv = self.activationkey.get_attribute(name, cv_locator)
+        self.assertEqual(cv2_name, selected_cv)
+        # TODO: Need to check for RH Product too
 
     @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
@@ -633,8 +774,6 @@ class ActivationKey(BaseUI):
         """
         pass
 
-    @bzbug('1078676')
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_2(self):
         """
         @Feature: Activation key - Product
@@ -643,10 +782,53 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Associate custom product(s) to Activation Key
         @Assert: Custom products are successfully associated to Activation key
-        @Status: Manual
         @BZ: 1078676
         """
-        pass
+
+        name = generate_string("alpha", 8)
+        cv_name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        publish_comment = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_life_cycle_environments()
+        self.contentenv.create(env_name,
+                               description=generate_string("alpha", 16))
+        self.assertTrue(self.contentenv.wait_until_element
+                        (common_locators["alert.success"]))
+        repo_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        publish_version = "Version 1"
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(cv_name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(cv_name, [repo_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.publish(cv_name, publish_comment)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.content_views.promote(cv_name, publish_version, env_name)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        self.navigator.go_to_activation_keys()
+        self.activationkey.create(name, env_name,
+                                  description=generate_string("alpha", 16),
+                                  content_view=cv_name)
+        self.assertIsNotNone(self.activationkey.search_key(name))
+        self.activationkey.associate_product(name, [prd_name])
+        self.assertTrue(self.activationkey.wait_until_element
+                        (common_locators["alert.success"]))
 
     @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
