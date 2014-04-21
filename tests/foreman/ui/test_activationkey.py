@@ -526,6 +526,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
+    @bzbug('1089637')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_3(self, env_name):
@@ -536,7 +537,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Environment for all variations in [1]
         @Assert: Activation key is updated
-        @BZ: 1078676
+        @BZ: 1089637
         """
 
         name = generate_string("alpha", 8)
@@ -553,9 +554,14 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT,
                                   description=generate_string("alpha", 16))
         self.assertIsNotNone(self.activationkey.search_key(name))
+        env_locator = locators["ak.selected_env"]
+        selected_env = self.activationkey.get_attribute(name, env_locator)
+        self.assertEqual(ENVIRONMENT, selected_env)
         self.activationkey.update(name, content_view=cv_name, env=env_name)
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
+        selected_env = self.activationkey.get_attribute(name, env_locator)
+        self.assertEqual(env_name, selected_env)
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
@@ -588,9 +594,14 @@ class ActivationKey(BaseUI):
                                   description=generate_string("alpha", 16),
                                   content_view=cv1_name)
         self.assertIsNotNone(self.activationkey.search_key(name))
+        cv_locator = locators["ak.selected_cv"]
+        selected_cv = self.activationkey.get_attribute(name, cv_locator)
+        self.assertEqual(cv1_name, selected_cv)
         self.activationkey.update(name, content_view=cv2_name)
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
+        selected_cv = self.activationkey.get_attribute(name, cv_locator)
+        self.assertEqual(cv2_name, selected_cv)
         # TODO: Need to check for RH Product too
 
     @bzbug('1078676')

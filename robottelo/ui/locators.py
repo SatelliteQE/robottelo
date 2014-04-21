@@ -893,6 +893,9 @@ locators = {
     "ak.env": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "ak.selected_env": (
+        By.XPATH,
+        "//input[@class='ng-pristine ng-valid']/parent::label"),
     "ak.content_view": (By.ID, "content_view_id"),
     "ak.usage_limit_checkbox": (
         By.XPATH,
@@ -960,6 +963,10 @@ locators = {
          "/td/input[@ng-model='subscription.selected']")),
     "ak.add_selected_subscription": (
         By.XPATH, "//button[@ng-click='addSelected()']"),
+    "ak.selected_cv": (
+        By.XPATH,
+        ("//form[@alch-edit-select='activationKey.content_view.name']"
+         "/div[@class='alch-edit']/div/span")),
 
     # Sync Status
     "sync.prd_expander": (

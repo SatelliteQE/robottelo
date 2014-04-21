@@ -185,3 +185,23 @@ class ActivationKey(Base):
         else:
             raise Exception(
                 "Couldn't find the selected activation key '%s'" % name)
+
+    def get_attribute(self, name, locator):
+        """
+        Get the attribute of selected locator
+        """
+
+        element = self.search_key(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            if self.wait_until_element(locator):
+                result = self.find_element(locator).text
+                return result
+            else:
+                raise Exception(
+                    "Couldn't get text attribute of a given locator")
+        else:
+            raise Exception(
+                "Couldn't find the selected activation key '%s'" % name)
