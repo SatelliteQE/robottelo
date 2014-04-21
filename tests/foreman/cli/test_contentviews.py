@@ -506,7 +506,6 @@ class TestContentView(BaseCLI):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_custom_content(self):
         """
         @test: attempt to publish a content view containing custom content
@@ -515,6 +514,46 @@ class TestContentView(BaseCLI):
         @assert: Content view can be published
         @status: Manual
         """
+
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Fetch it
+        result = Repository.info({u'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0, "Repository was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0, "Repo was not synchronized")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['label']})
+        # Fetch it
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Associate repo to CV
+        result = ContentView.add_repository({u'id': new_cv['id'],
+                                             u'repository-id': new_repo['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Repo was not associated to selected CV")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Publishing a new version of CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "ContentView was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.stdout['repositories'][0]['name'],
+                         new_repo['name'], "Repo was not associated to CV")
+        self.assertEqual(result.stdout['versions'][0]['version'], u'1',
+                         "Publishing new version of CV was not successful")
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_composite(self):

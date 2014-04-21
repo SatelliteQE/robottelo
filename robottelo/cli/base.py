@@ -40,6 +40,7 @@ class Base(object):
     """
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc
+    command_tertiary = None  # specific to like: content-view version info
     command_requires_org = False  # True when command requires organization-id
 
     logger = logging.getLogger("robottelo")
@@ -180,7 +181,10 @@ class Base(object):
         Gets information by provided: options dictionary.
         @param options: ID (sometimes name or id).
         """
-        cls.command_sub = "info"
+
+        # As content-view version info has tertiary parameter
+        if cls.command_tertiary is None:
+            cls.command_sub = "info"
 
         if options is None:
             options = {}
@@ -255,7 +259,9 @@ class Base(object):
         @param options: ID (sometimes name works as well) to retrieve info.
         """
 
-        cls.command_sub = "list"
+        # As content-view version list has tertiary parameter
+        if cls.command_tertiary is None:
+            cls.command_sub = "list"
 
         if options is None:
             options = {}
@@ -349,6 +355,11 @@ class Base(object):
                     tail += u" --%s" % key
                 elif val is not False:
                     tail += u" --%s='%s'" % (key, val)
-        cmd = u"%s %s %s" % (cls.command_base, cls.command_sub, tail.strip())
+        if cls.command_tertiary:
+            cmd = u"%s %s %s %s" % (cls.command_base, cls.command_sub,
+                                    cls.command_tertiary, tail.strip())
+        else:
+            cmd = u"%s %s %s" % (cls.command_base, cls.command_sub,
+                                 tail.strip())
 
         return cmd

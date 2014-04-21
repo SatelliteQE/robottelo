@@ -49,3 +49,43 @@ class ContentView(Base):
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
+
+    @classmethod
+    def publish(cls, options):
+        """
+        Publishes a new version of content-view.
+        """
+
+        cls.command_sub = "publish"
+
+        result = cls.execute(cls._construct_command(options))
+
+        return result
+
+    @classmethod
+    def promote(cls, options):
+        """
+        Promotes a version of content-view to next env.
+        """
+
+        result = cls.execute(cls._construct_command(options))
+
+        return result
+
+    @classmethod
+    def version(cls, sub_task, options):
+        """
+        Provides version details related to content-view.
+        """
+
+        cls.command_sub = "version"
+        cls.command_tertiary = sub_task
+
+        if sub_task == "list":
+            result = cls.list(options)
+        if sub_task == "info":
+            result = cls.info(options)
+        if sub_task == "promote":
+            result = cls.promote(options)
+
+        return result
