@@ -25,6 +25,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
@@ -127,6 +128,7 @@ def make_content_view(options=None):
         'name': generate_string("alpha", 10),
         'organization-id': None,
         'composite': False,
+        'component-ids': None,
         'label': None,
         'description': None,
         'repository-ids': None
