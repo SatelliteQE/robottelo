@@ -85,6 +85,7 @@ class ApiCrud(object):
 
     # Either true, or list of fields to filter by
     create_fields = True
+    update_fields = []
 
     @classmethod
     def get_api_path(cls):
@@ -98,7 +99,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_path'):
-            return cls.api_path
+            return cls.api_path  # pylint: disable=E1101
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -114,7 +115,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_json_key'):
-            return cls.api_json_key
+            return cls.api_json_key  # pylint: disable=E1101
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -375,10 +376,15 @@ class ApiCrud(object):
                 else:
                     raise KeyError(instance.name + " not unique.")
 
+        update_fields_list = (
+            cls.create_fields
+            if cls.update_fields == []
+            else cls.update_fields)
+
         data = dict(
             (name, field) for name, field in instance.items()
-            if cls.create_fields is []
-            or name in cls.create_fields
+            if update_fields_list is []
+            or name in update_fields_list
             )
 
         res = cls.update(instance.id, json=cls.opts(data), user=user)

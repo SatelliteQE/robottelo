@@ -19,9 +19,10 @@ LABELS = [
 class OrganizationApi(ApiCrud):
     """ Implementation of api for katello organizations
     """
-    api_path = "/katello/api/organizations/"
+    api_path = "/katello/api/v2/organizations/"
     api_json_key = u"organization"
     create_fields = ["name", "label", "description"]
+    update_fields = ["name", "description"]
 
 
 class Organization(records.Record):

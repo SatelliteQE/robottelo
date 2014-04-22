@@ -8,6 +8,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
+from robottelo.common.helpers import STR
 from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data, bzbug
@@ -257,6 +258,7 @@ class TestOrganization(BaseAPI):
 
         self.assertTrue(correctly_failing)
 
+    @bzbug('1089996')
     @data(*Organization.enumerate(
         name=NoEnum,
         label=BasicPositiveField(maxlen=300),
@@ -268,6 +270,7 @@ class TestOrganization(BaseAPI):
         @test: Create organization with valid values then fail to update
         its label
         @assert: organization label is not updated
+        @BZ: 1089996
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -301,11 +304,29 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
+        @BZ: 1072905
         """
 
         ApiCrud.record_create(test_data)
         org_res = ApiCrud.record_resolve(test_data)
         self.assertEqual(org_res.name, test_data.name)
+
+    @bzbug('1072905')
+    @data(*Organization.enumerate(exclude=[STR.html]))
+    def test_search_name_1(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization and search/find it
+        @assert: organization can be found
+        @BZ: 1072905
+        """
+
+        ApiCrud.record_create(test_data)
+        query = {"search": "name=%s" % test_data.name}
+        result = Organization._meta.api_class.list(json=query)
+        self.assertTrue(result.ok)
+        name = result.json()["results"][0]["name"]
+        self.assertEqual(name, test_data.name)
 
     @data(*Organization.enumerate())
     def test_info_key_1(self, test_data):
@@ -319,7 +340,6 @@ class TestOrganization(BaseAPI):
         org = ApiCrud.record_create(test_data)
         org_res = ApiCrud.record_resolve(org)
         self.assertEqual(org_res.name, test_data.name)
-        pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE

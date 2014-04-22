@@ -3,39 +3,35 @@
 
 """
 Test class for Host/System Unification
-Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
-"""
-
+Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
+from ddt import ddt
+from robottelo.api.apicrud import ApiCrud
+from robottelo.common.decorators import data
+from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.common.decorators import stubbed
 
 from tests.foreman.api.baseapi import BaseAPI
 
 
-class TestComputeResource(BaseAPI):
+@ddt
+class TestContentView(BaseAPI):
 
-    # Notes:
-    # * For most tests in CLI, you should be able to observe whether
-    # or not a view has been created, via variations on the
-    # `katello content view list` command
-    # * Remember that all positive tests should assert a status code
-    # of "0"; negative tests should return a non-zero status code
-
-    # Content View: Creation
-    # katello content definition create --definition=MyView
-
-    @stubbed
-    def test_cv_create_cli(self):
+    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    def test_cv_create_api(self, data):
         # variations (subject to change):
         # ascii string, alphanumeric, latin-1, utf8, etc.
         """
         @test: create content views (positive)
         @feature: Content Views
         @assert: content views are created
-        @status: Manual
         """
 
+        depends = ApiCrud.record_create_dependencies(data)
+        result = ApiCrud.record_create(depends)
+        self.assertIntersects(data, result)
+
     @stubbed
-    def test_cv_create_cli_negative(self):
+    def test_cv_create_api_negative(self):
         # variations (subject to change):
         # zero length, symbols, html, etc.
         """
@@ -47,7 +43,7 @@ class TestComputeResource(BaseAPI):
         """
 
     @stubbed
-    def test_cv_create_cli_badorg_negative(self):
+    def test_cv_create_api_badorg_negative(self):
         # Use an invalid org name
         """
         @test: create content views (negative)
