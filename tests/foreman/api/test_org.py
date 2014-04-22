@@ -319,7 +319,7 @@ class TestOrganization(BaseAPI):
         """
 
         ApiCrud.record_create(test_data)
-        query = {"search": "name=%s"% test_data.name}
+        query = {"search": "name=%s" % test_data.name}
         result = Organization._meta.api_class.list(json=query)
         self.assertTrue(result.ok)
         name = result.json()["results"][0]["name"]
