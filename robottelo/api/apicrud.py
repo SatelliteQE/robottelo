@@ -376,7 +376,8 @@ class ApiCrud(object):
                 else:
                     raise KeyError(instance.name + " not unique.")
 
-        update_fields_list =(cls.create_fields
+        update_fields_list = (
+            cls.create_fields
             if cls.update_fields == []
             else cls.update_fields)
 
