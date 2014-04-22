@@ -95,7 +95,7 @@ class Base(object):
                 result.stdout = new_obj.stdout
             else:
                 raise Exception(
-                        'Problem in fetching info of %s' % cls.__name__)
+                    'Problem in fetching info of %s' % cls.__name__)
         return result
 
     @classmethod
