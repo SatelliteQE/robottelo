@@ -36,7 +36,8 @@ class TestContentView(BaseAPI):
         @assert: content views are created
         """
 
-        result = ApiCrud.record_create(data)
+        depends = ApiCrud.record_create_dependencies(data)
+        result = ApiCrud.record_create_recursive(depends)
         self.assertIntersects(data, result)
 
     @stubbed
