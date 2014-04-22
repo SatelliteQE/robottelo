@@ -29,6 +29,7 @@ Options:
 """
 
 from robottelo.cli.base import Base
+from robottelo.common.helpers import info_dictionary
 
 
 class ContentView(Base):
@@ -82,9 +83,54 @@ class ContentView(Base):
 
         cls.command_sub = "version info"
 
-        result = cls.info(options)
+        if options is None:
+            options = {}
 
-        return result
+        result = cls.execute(cls._construct_command(options), expect_csv=False)
+
+        # info_dictionary required to convert result.stdout
+        # to dictionary format
+        updated_result = info_dictionary(result)
+
+        return updated_result
+
+    @classmethod
+    def puppet_module_info(cls, options):
+        """
+        Provides puppet-module info related to content-view's version.
+        """
+
+        cls.command_sub = "puppet-module info"
+
+        if options is None:
+            options = {}
+
+        result = cls.execute(cls._construct_command(options), expect_csv=False)
+
+        # info_dictionary required to convert result.stdout
+        # to dictionary format
+        updated_result = info_dictionary(result)
+
+        return updated_result
+
+    @classmethod
+    def filter_info(cls, options):
+        """
+        Provides filter info related to content-view's version.
+        """
+
+        cls.command_sub = "filter info"
+
+        if options is None:
+            options = {}
+
+        result = cls.execute(cls._construct_command(options), expect_csv=False)
+
+        # info_dictionary required to convert result.stdout
+        # to dictionary format
+        updated_result = info_dictionary(result)
+
+        return updated_result
 
     @classmethod
     def version_list(cls, options):
@@ -94,7 +140,10 @@ class ContentView(Base):
 
         cls.command_sub = "version list"
 
-        result = cls.list(options)
+        if options is None:
+            options = {}
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
 
