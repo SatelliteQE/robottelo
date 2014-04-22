@@ -554,7 +554,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
-        #Fetch puppet module
+        # Fetch puppet module
         puppet_result = PuppetModule.list({u'repository-id': new_repo['id'],
                                            u'per-page': False})
         self.assertEqual(
