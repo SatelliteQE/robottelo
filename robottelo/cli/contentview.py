@@ -51,6 +51,18 @@ class ContentView(Base):
         return result
 
     @classmethod
+    def add_version(cls, options):
+        """
+        Associate version to a selected CV.
+        """
+
+        cls.command_sub = "add-version"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result
+
+    @classmethod
     def publish(cls, options):
         """
         Publishes a new version of content-view.
@@ -63,29 +75,49 @@ class ContentView(Base):
         return result
 
     @classmethod
-    def promote(cls, options):
+    def version_info(cls, options):
         """
-        Promotes a version of content-view to next env.
+        Provides version info related to content-view's version.
         """
+
+        cls.command_sub = "version info"
+
+        result = cls.info(options)
+
+        return result
+
+    @classmethod
+    def version_list(cls, options):
+        """
+        Lists content-view's versions.
+        """
+
+        cls.command_sub = "version list"
+
+        result = cls.list(options)
+
+        return result
+
+    @classmethod
+    def version_promote(cls, options):
+        """
+        Promotes content-view version to next env.
+        """
+
+        cls.command_sub = "version promote"
 
         result = cls.execute(cls._construct_command(options))
 
         return result
 
     @classmethod
-    def version(cls, sub_task, options):
+    def version_destroy(cls, options):
         """
-        Provides version details related to content-view.
+        Removes content-view version.
         """
 
-        cls.command_sub = "version"
-        cls.command_tertiary = sub_task
+        cls.command_sub = "version destroy"
 
-        if sub_task == "list":
-            result = cls.list(options)
-        if sub_task == "info":
-            result = cls.info(options)
-        if sub_task == "promote":
-            result = cls.promote(options)
+        result = cls.execute(cls._construct_command(options))
 
         return result
