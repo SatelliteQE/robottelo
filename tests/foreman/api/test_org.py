@@ -270,6 +270,7 @@ class TestOrganization(BaseAPI):
         @test: Create organization with valid values then fail to update
         its label
         @assert: organization label is not updated
+        @BZ: 1089996
         """
         org = Organization()
         org = ApiCrud.record_create(org)
@@ -303,6 +304,7 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
+        @BZ: 1072905
         """
 
         ApiCrud.record_create(test_data)
@@ -316,6 +318,7 @@ class TestOrganization(BaseAPI):
         @feature: Organizations
         @test: Create organization and search/find it
         @assert: organization can be found
+        @BZ: 1072905
         """
 
         ApiCrud.record_create(test_data)
