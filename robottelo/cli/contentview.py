@@ -95,6 +95,18 @@ class ContentView(Base):
         return updated_result
 
     @classmethod
+    def puppet_module_add(cls, options):
+        """
+        Associate puppet_module to selected CV
+        """
+
+        cls.command_sub = "puppet-module add"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result
+
+    @classmethod
     def puppet_module_info(cls, options):
         """
         Provides puppet-module info related to content-view's version.
