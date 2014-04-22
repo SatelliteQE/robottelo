@@ -621,8 +621,8 @@ class TestOrg(BaseCLI):
         @Test: Check if a Compute Resource can be added to an Org
         @Feature: Org - Compute Resource
         @Assert: Compute Resource is added to the org
+        @status: manual
         """
-        # TODO: Test should be done once computeresource base class is added
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -631,8 +631,8 @@ class TestOrg(BaseCLI):
         @Test: Check if a ComputeResource can be removed from an Org
         @Feature: Org - ComputeResource
         @Assert: ComputeResource is removed from the org
+        @status: manual
         """
-        # TODO: Test should be done once computeresource base class is added
         pass
 
     def test_add_medium(self):
@@ -677,6 +677,7 @@ class TestOrg(BaseCLI):
         @Test: Check if a Config Template can be added to an Org
         @Feature: Org - Config Template
         @Assert: Config Template is added to the org
+        @status: manual
         @bz: 1062295
         """
         pass
@@ -688,6 +689,7 @@ class TestOrg(BaseCLI):
         @Test: Check if a ConfigTemplate can be removed from an Org
         @Feature: Org - ConfigTemplate
         @Assert: ConfigTemplate is removed from the org
+        @status: manual
         """
         pass
 

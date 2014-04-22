@@ -20,7 +20,7 @@ class Host(BaseUI):
         @Test: Create a new Host
         @Assert: Host is created
         """
-        # TODO need to create environment architecture domain etc
+
         name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_hosts()
@@ -42,8 +42,9 @@ class Host(BaseUI):
         @Feature: Host - Positive Delete
         @Test: Delete a Host
         @Assert: Host is deleted
+        @status: manual
         """
-        # TODO need to create environment architecture domain etc
+
         name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_hosts()

@@ -98,7 +98,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_path'):
-            return cls.api_path  # pylint: disable=E1101
+            return cls.api_path
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -114,7 +114,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_json_key'):
-            return cls.api_json_key  # pylint: disable=E1101
+            return cls.api_json_key
 
         raise NotImplementedError("Api path needs to be defined")
 

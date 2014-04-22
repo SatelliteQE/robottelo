@@ -154,8 +154,6 @@ def test_negative_update(self, data):
     orig_dict.update(updates_dict)
     # Now update the Foreman object
     result = self.factory_obj().update(orig_dict)
-    # self.assertFalse(result.return_code == 0, "Object should not be
-    # updated")
     self.assertFalse(result.return_code == 0, "%s, %s" % (data, result.stdout))
     self.assertTrue(len(result.stderr) > 0, "There should be errors")
 
