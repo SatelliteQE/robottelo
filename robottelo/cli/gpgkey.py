@@ -47,7 +47,6 @@ class GPGKey(Base):
 
             # First item should contain most fields
             key_record = result.stdout.pop(0)
-            # TODO: check that it does have organization field
             if 'organization' not in key_record:
                 raise ValueError('Could not find GPG Key')
 

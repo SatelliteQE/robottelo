@@ -8,6 +8,7 @@ Module for Arcitecture api and record implementation
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common import records
 from robottelo.records.operatingsystem import OperatingSystem
+from robottelo.records.permission import PermissionList
 
 
 class ArchitectureApi(ApiCrud):
@@ -15,6 +16,8 @@ class ArchitectureApi(ApiCrud):
     api_path = "/api/architectures/"
     api_json_key = u"architecture"
     create_fields = ["name", "operatingsystem_ids"]
+
+    permissions = PermissionList("architectures")
 
 
 class Architecture(records.Record):
@@ -26,3 +29,6 @@ class Architecture(records.Record):
         """Linking record definition with api implementation.
         """
         api_class = ArchitectureApi
+        change_for_update = lambda i: i.record_set_field(
+            name="%s_updated" % i.name
+            )
