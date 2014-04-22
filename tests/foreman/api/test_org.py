@@ -258,6 +258,31 @@ class TestOrganization(BaseAPI):
 
         self.assertTrue(correctly_failing)
 
+    @bzbug('1089996')
+    @data(*Organization.enumerate(
+        name=NoEnum,
+        label=BasicPositiveField(maxlen=300),
+        description=NoEnum
+        ))
+    def test_negative_update_2(self, test_data):
+        """
+        @feature: Organizations
+        @test: Create organization with valid values then fail to update
+        its label
+        @assert: organization label is not updated
+        """
+        org = Organization()
+        org = ApiCrud.record_create(org)
+        org.label = test_data.label
+        correctly_failing = True
+        try:
+            ApiCrud.record_update(org)
+            correctly_failing = False
+        except ApiException:
+            correctly_failing = correctly_failing and True
+
+        self.assertTrue(correctly_failing)
+
     # Miscelaneous
 
     @data(*Organization.enumerate())
