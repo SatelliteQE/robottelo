@@ -23,7 +23,7 @@ class UserGroup(BaseUI):
 
         self.navigator.go_to_user_groups()
         self.usergroup.create(name, user)
-        # TODO: assertion is pending, Foreman issue:3953
+        self.assertIsNotNone(self.usergroup.search(name))
 
     def test_create_usergroup(self):
         """
@@ -53,10 +53,10 @@ class UserGroup(BaseUI):
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_usergroup(name)
-        self.usergroup.remove(name, True)
+        self.usergroup.delete(name, True)
         self.assertTrue(self.usergroup.wait_until_element
                         (common_locators["notif.success"]))
-        # TODO: asserIsNone pending due to issue:3953
+        self.assertIsNone(self.usergroup.search(name))
 
     def test_update_usergroup(self):
         """
@@ -77,4 +77,4 @@ class UserGroup(BaseUI):
         self.assertIsNotNone(self.user.search(user_name, search_key))
         self.create_usergroup(name)
         self.usergroup.update(name, new_name, new_users=[user_name])
-        # TODO: assertion is pending, Foreman issue:3953
+        self.assertIsNotNone(self.usergroup.search(new_name))
