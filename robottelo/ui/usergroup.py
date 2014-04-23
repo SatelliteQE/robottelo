@@ -7,7 +7,6 @@ Implements User groups UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
-from robottelo.ui.navigator import Navigator
 from robottelo.common.constants import FILTER
 
 
