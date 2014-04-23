@@ -44,10 +44,10 @@ class TestContentView(BaseAPI):
         try:
             depends = ApiCrud.record_create_dependencies(data)
             result = ApiCrud.record_create(depends)
+            self.assertIntersects(data, result)
             correctly_failing = False
         except ApiException:
             correctly_failing = True
-
         self.assertTrue(correctly_failing)
 
     @data(*ContentViewDefinition.enumerate(name="  "))
@@ -64,10 +64,10 @@ class TestContentView(BaseAPI):
         try:
             depends = ApiCrud.record_create_dependencies(data)
             result = ApiCrud.record_create(depends)
+            self.assertIntersects(data, result)
             correctly_failing = False
         except ApiException:
             correctly_failing = True
-
         self.assertTrue(correctly_failing)
 
     @data(*ContentViewDefinition.enumerate(label="", description=""))
@@ -83,9 +83,11 @@ class TestContentView(BaseAPI):
             data.organization.name = ""
             depends = ApiCrud.record_create_dependencies(data)
             result = ApiCrud.record_create(depends)
+            self.assertIntersects(data, result)
             correctly_failing = False
         except ApiException:
             correctly_failing = True
+        self.assertTrue(correctly_failing)
 
     def test_cv_edit(self):
         """
