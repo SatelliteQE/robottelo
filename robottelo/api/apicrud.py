@@ -99,7 +99,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_path'):
-            return cls.api_path  # pylint: disable=E1101
+            return cls.api_path
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -115,7 +115,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_json_key'):
-            return cls.api_json_key  # pylint: disable=E1101
+            return cls.api_json_key
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -128,7 +128,7 @@ class ApiCrud(object):
             return json[u'id']
 
     @classmethod
-    def list_path_args(cls):
+    def list_path_args(cls, _path=None):
         """Lists all path arguments
 
         >>> class TestApi(ApiCrud):
@@ -138,6 +138,8 @@ class ApiCrud(object):
         ['org.label','id']
         """
         path = cls.get_api_path()
+        if _path is not None:
+            path = _path
         return [
             s[1:] for s in path.split('/') if s.startswith(":")
         ]
@@ -147,7 +149,7 @@ class ApiCrud(object):
         return dict(search="name=%s" % instance.name)
 
     @classmethod
-    def parse_path_arg(cls, args):
+    def parse_path_arg(cls, path, args):
         """Method parsing the api_path for extra arguments
 
         >>> class TestApi(ApiCrud):
@@ -156,8 +158,7 @@ class ApiCrud(object):
         >>> TestApi.parse_path_arg({'org.label':"org123","id":"456"})
         '/api/org/org123/test/456'
         """
-        path_args = cls.list_path_args()
-        path = cls.get_api_path()
+        path_args = cls.list_path_args(path)
         for arg in path_args:
             if arg in args:
                 path = path.replace(":{0}".format(arg), str(args[arg]))
@@ -173,7 +174,9 @@ class ApiCrud(object):
 
         """
 
-        path = cls.parse_path_arg(kwargs)
+        path = cls.parse_path_arg(cls.api_path, kwargs)
+        if hasattr(cls, 'api_path_get'):
+            path = cls.parse_path_arg(cls.api_path_get, kwargs)
         return base.get(path=path, **kwargs)
 
     @classmethod
@@ -183,7 +186,9 @@ class ApiCrud(object):
         id is required
 
         """
-        path = cls.parse_path_arg(kwargs)
+        path = cls.parse_path_arg(cls.api_path, kwargs)
+        if hasattr(cls, 'api_path_get'):
+            path = cls.parse_path_arg(cls.api_path_get, kwargs)
         path = "{0}/{1}".format(path, uid)
         return base.get(path=path, **kwargs)
 
@@ -194,7 +199,7 @@ class ApiCrud(object):
         json arg is usually necessary
 
         """
-        path = cls.parse_path_arg(kwargs)
+        path = cls.parse_path_arg(cls.api_path, kwargs)
 
         return base.post(path=path, **kwargs)
 
@@ -206,7 +211,9 @@ class ApiCrud(object):
         json arg is usually necessary
 
         """
-        path = cls.parse_path_arg(kwargs)
+        path = cls.parse_path_arg(cls.api_path, kwargs)
+        if hasattr(cls, 'api_path_put'):
+            path = cls.parse_path_arg(cls.api_path_get, kwargs)
         path = "{0}/{1}".format(path, uid)
         return base.put(path=path, **kwargs)
 
@@ -218,7 +225,9 @@ class ApiCrud(object):
         json arg is usually necessary
 
         """
-        path = cls.parse_path_arg(kwargs)
+        path = cls.parse_path_arg(cls.api_path, kwargs)
+        if hasattr(cls, 'api_path_delete'):
+            path = cls.parse_path_arg(cls.api_path_get, kwargs)
         path = "{0}/{1}".format(path, uid)
         return base.delete(path=path, **kwargs)
 
@@ -237,12 +246,19 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_exists(instance, user=user)
 
+        path_args = dict(
+            (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
+            )
+
         if "id" in instance:
-            res = cls.show(instance.id, user=user)
+            res = cls.show(instance.id, user=user, **path_args)
             return res.ok
         else:
             try:
-                res = cls.list(json=cls.search_dict(instance), user=user)
+                res = cls.list(
+                    json=cls.search_dict(instance),
+                    user=user,
+                    **path_args)
             except NameError:
                 return False
 
@@ -261,18 +277,25 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_remove(instance, user=user)
 
+        path_args = dict(
+            (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
+            )
+
         if "id" in instance:
-            res = cls.delete(instance.id, user=user)
+            res = cls.delete(instance.id, user=user, **path_args)
             if res.ok:
                 return True
             else:
                 raise ApiException("Unable to remove", instance.items())
             return res.ok
         else:
-            res = cls.list(json=cls.search_dict(instance), user=user)
+            res = cls.list(
+                json=cls.search_dict(instance),
+                user=user,
+                **path_args)
             if res.ok and len(res.json()) == 1:
                 res = cls.record_remove(
-                    cls.record_resolve(instance),
+                    cls.record_resolve(instance, user=user),
                     user=user)
                 return True
             else:
@@ -287,14 +310,21 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_resolve(instance, user=user)
 
+        path_args = dict(
+            (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
+            )
+
         res = None
         json = None
         if "id" in instance:
-            res = cls.show(instance.id, user=user)
+            res = cls.show(instance.id, user=user, **path_args)
             if res.ok:
                 json = res.json()
         else:
-            res = cls.list(json=cls.search_dict(instance), user=user)
+            res = cls.list(
+                json=cls.search_dict(instance),
+                user=user,
+                **path_args)
 
             if res.ok:
                 # TODO better separete kattelo and formam api
@@ -318,13 +348,18 @@ class ApiCrud(object):
         if cls != instance._meta.api_class:
             api = instance._meta.api_class
             return api.record_list(instance, user=user)
-        counting_response = cls.list()
+
+        path_args = dict(
+            (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
+            )
+
+        counting_response = cls.list(user=user, **path_args)
         if counting_response.ok:
             count = int(counting_response.json()["total"])
             if count > 0:
                 listing_response = cls.list(
                     json=dict(per_page=count),
-                    user=user)
+                    user=user, **path_args)
                 if listing_response.ok:
                     return [load_from_data(
                         instance.__class__,
@@ -366,10 +401,17 @@ class ApiCrud(object):
             api = instance._meta.api_class
             return api.record_update(instance, user=user)
 
+        path_args = dict(
+            (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
+            )
+
         if "id" not in instance:
             res = cls.list(json=dict(search="name="+instance.name), user=user)
             if res.ok and len(res.json()) == 1:
-                instance.id = cls.record_resolve(instance, user=user).id
+                instance.id = cls.record_resolve(
+                    instance,
+                    user=user,
+                    **path_args).id
             else:
                 if len(res.json()) == 0:
                     raise KeyError(instance.name + " not found.")
@@ -387,7 +429,11 @@ class ApiCrud(object):
             or name in update_fields_list
             )
 
-        res = cls.update(instance.id, json=cls.opts(data), user=user)
+        res = cls.update(
+            instance.id,
+            json=cls.opts(data),
+            user=user,
+            **path_args)
         if res.ok:
             ninstance = load_from_data(
                 instance.__class__,
