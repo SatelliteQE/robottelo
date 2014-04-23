@@ -12,7 +12,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product)
 from robottelo.cli.org import Org
-from robottelo.cli.puppetmodule import PuppetModule
+from robottelo.cli.puppet import Puppet
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data, bzbug
@@ -555,7 +555,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch puppet module
-        puppet_result = PuppetModule.list({u'repository-id': new_repo['id'],
+        puppet_result = Puppet.list({u'repository-id': new_repo['id'],
                                            u'per-page': False})
         self.assertEqual(
             puppet_result.return_code,
