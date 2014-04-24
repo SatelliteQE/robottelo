@@ -48,7 +48,7 @@ def valid_names_list():
     """
     List of valid names for input testing.
     """
-    valid_names = [
+    return [
         generate_name(5, 5),
         generate_name(255),
         u"%s-%s" % (generate_name(4), generate_name(4)),
@@ -62,16 +62,16 @@ def valid_names_list():
         u"foo@!#$^&*( ) %s" % generate_name(),
         u"<blink>%s</blink>" % generate_name(),
         u"bar+{}|\"?hi %s" % generate_name(),
+        u' %s' % generate_name(),
+        u'%s ' % generate_name()
     ]
-
-    return valid_names
 
 
 def valid_data_list():
     """
     List of valid data for input testing.
     """
-    valid_names = [
+    return [
         generate_string("alpha", 8),
         generate_string("numeric", 8),
         generate_string("alphanumeric", 300),
@@ -80,14 +80,12 @@ def valid_data_list():
         generate_string("html", 8)
     ]
 
-    return valid_names
-
 
 def invalid_names_list():
     """
     List of invalid names for input testing.
     """
-    invalid_names = [
+    return [
         u" ",
         generate_string("alpha", 300),
         generate_string("numeric", 300),
@@ -95,12 +93,8 @@ def invalid_names_list():
         generate_string("utf8", 300),
         generate_string("latin1", 300),
         generate_string("html", 300),
-        generate_name(256),
-        u' %s' % generate_name(),
-        u'%s ' % generate_name()
+        generate_name(256)
     ]
-
-    return invalid_names
 
 
 def generate_ipaddr(ip3=False):
@@ -247,7 +241,8 @@ def csv_to_dictionary(data):
 
 def escape_search(term):
     """Wraps a search term in " and escape term's " and \\ characters"""
-    return u'"%s"' % term.replace('\\', '\\\\').replace('"', '\\"')
+    strip_term = term.strip()
+    return u'"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
 
 
 def sleep_for_seconds(guaranteed_sleep=1):

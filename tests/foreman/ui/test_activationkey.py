@@ -29,7 +29,8 @@ class ActivationKey(BaseUI):
 
     [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
     Latin1, Multibyte, Max length,  Min length, Max_db_size, html, css,
-    javascript, url, shell commands, sql, spaces in name
+    javascript, url, shell commands, sql, spaces in name, leading and trailing
+    spaces in name
     [2] Negative Name Variations -  Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
     """
