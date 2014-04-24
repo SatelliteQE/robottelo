@@ -89,14 +89,20 @@ class TestContentView(BaseAPI):
             correctly_failing = True
         self.assertTrue(correctly_failing)
 
-    def test_cv_edit(self):
+    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    def test_cv_edit(self, data):
         """
         @test: edit content views - name, description, etc.
         @feature: Content Views
         @assert: edited content view save is successful and info is
         updated
-        @status: Manual
         """
+
+        con_view = ContentViewDefinition()
+        depends = ApiCrud.record_create_dependencies(con_view)
+        t = ApiCrud.record_create(depends)
+        con_view.name = data.name
+        ApiCrud.record_update(t)
 
     @stubbed
     def test_cv_edit_rh_custom_spin(self):
