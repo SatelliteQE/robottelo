@@ -407,15 +407,84 @@ class TestContentView(BaseCLI):
         self.assertGreater(
             len(result.stderr), 0, "Error was expected")
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_components_composite_negative(self):
         """
         @test: attempt to associate components in a non-composite
         content view
         @feature: Content Views
         @assert: User cannot add components to the view
-        @status: Manual
         """
+
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Fetch it
+        result = Repository.info(
+            {
+                u'id': new_repo['id']
+            }
+        )
+
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not synchronized")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Create component CV
+        new_cv = make_content_view({u'organization-id': self.org['label']})
+        # Fetch it
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Content-View was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Associate repo to CV
+        result = ContentView.add_repository({u'id': new_cv['id'],
+                                             u'repository-id': new_repo['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not associated to selected CV")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Publish CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Fetch version id
+        cv_version = ContentView.version_list(
+            {
+                u'content-view-id': new_cv['id']
+            }
+        )
+        self.assertEqual(cv_version.return_code, 0,
+                         "Version list for selected CV was not found")
+        self.assertEqual(len(cv_version.stderr), 0, "No error was expected")
+
+        # Create non-composite CV
+        with self.assertRaises(Exception):
+            result = make_content_view(
+                {
+                    u'organization-id': self.org['label'],
+                    u'component-ids':  cv_version.stdout[0]['id']
+                }
+            )
 
     def test_cv_associate_composite_dupe_repos_negative(self):
         """
