@@ -290,10 +290,10 @@ class TestOrg(BaseCLI):
         @bz: 1061658
         """
         new_obj = make_org()
-        return_value = Org.delete({'name': new_obj['name']})
+        return_value = Org.delete({'id': new_obj['id']})
         self.assertEqual(return_value.return_code, 0,
                          "Not able to delete organization")
-        self.assertNotEqual(
+        self.assertEqual(
             len(return_value.stderr),
             0,
             "There should not be an exception here"
@@ -302,8 +302,7 @@ class TestOrg(BaseCLI):
         result = Org.info({'id': new_obj['id']})
         self.assertNotEqual(result.return_code, 0, "Org was not deleted")
         self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+                           "There should be an exception here")
 
     @bzbug('1062295')
     def test_bugzilla_1062295_1(self):
