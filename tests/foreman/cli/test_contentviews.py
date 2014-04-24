@@ -1055,8 +1055,8 @@ class TestContentView(BaseCLI):
 
         # As per Dev Notes:
         # Similarly when I publish version y, version x goes away from Library.
-
-        # Test that verion1 doesnot exist in Library after publishing version2
+        # Actual assert for this test happens here.
+        # Test that version1 doesnot exist in Library after publishing version2
         result = ContentView.version_info({u'id': version1_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -1081,7 +1081,8 @@ class TestContentView(BaseCLI):
                          "Promoting version2 of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
-        # Test that verion1 doesnot exist in any/next env after,
+        # Actual assert for this test happens here.
+        # Test that version1 doesnot exist in any/next env after,
         # promoting version2 to next env
         result = ContentView.version_info({u'id': version1_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
