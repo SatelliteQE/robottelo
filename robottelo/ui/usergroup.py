@@ -31,21 +31,20 @@ class UserGroup(Base):
             raise Exception(
                 "Could not create new usergroup '%s'" % name)
 
-    def remove(self, name, really):
+    def search(self, name):
+        """
+        Searches existing usergroup from UI
+        """
+
+        element = self.search_entity(name, locators["usergroups.usergroup"])
+        return element
+
+    def delete(self, name, really):
         """
         Delete existing usergroup
         """
-        # No search bar available for usergroup; Issue:3953
-        # element = self.search(name, locators['usergroups.delete'])
-        strategy = locators["usergroups.delete"][0]
-        value = locators["usergroups.delete"][1]
-        element = self.wait_until_element((strategy, value % name))
-        if element:
-            element.click()
-            self.handle_alert(really)
-        else:
-            raise Exception(
-                "Could not find the usergroup '%s'" % name)
+        self.delete_entity(name, really, locators["usergroups.usergroup"],
+                           locators['usergroups.delete'])
 
     def update(self, old_name, new_name=None,
                users=None, new_users=None):
@@ -53,11 +52,7 @@ class UserGroup(Base):
         Update usergroup name and its users
         """
 
-        # No search bar available for usergroup; Issue:3953
-        # element = self.search(old_name, locators['usergroups.usergroup'])
-        strategy = locators["usergroups.usergroup"][0]
-        value = locators["usergroups.usergroup"][1]
-        element = self.wait_until_element((strategy, value % old_name))
+        element = self.search(old_name)
 
         if element:
             element.click()
@@ -66,6 +61,7 @@ class UserGroup(Base):
                     self.field_update("usergroups.name", new_name)
             self.configure_entity(users, FILTER['usergroup_user'],
                                   new_entity_list=new_users)
+            self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
             raise Exception("Could not find usergroup '%s'" % old_name)
