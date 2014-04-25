@@ -87,6 +87,17 @@ def upload_file(local_file, remote_file=None):
     # TODO: Upload file to sauce labs via VPN tunnel in the else part.
 
 
+def download_file(remote_file, local_file=None):
+    """Download a remote file using sftp"""
+
+    if local_file is None:
+        local_file = remote_file
+
+    sftp = connection.open_sftp()
+    sftp.get(remote_file, local_file)
+    sftp.close()
+
+
 def command(cmd, hostname=None, expect_csv=False, timeout=None):
     """
     Executes SSH command(s) on remote hostname.

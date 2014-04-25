@@ -17,6 +17,7 @@
 *.swp
 _build
 doctrees
+data
 screenshots*
 .project
 .pydevproject
