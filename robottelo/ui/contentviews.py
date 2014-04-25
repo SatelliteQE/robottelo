@@ -53,8 +53,8 @@ class ContentViews(Base):
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
-            self.wait_for_ajax()
             self.find_element(common_locators["kt_search_button"]).click()
+            self.wait_for_ajax()
             element = self.wait_until_element((strategy, value % element_name))
             return element
 
@@ -260,3 +260,47 @@ class ContentViews(Base):
         else:
             raise Exception(
                 "Couldn't find the selected CV '%s'" % cv_name)
+
+    def add_remove_cv(self, composite_cv, cv_names, is_add=True):
+        """
+        Add or Remove content-views to/from selected composite view.
+
+        When 'is_add' Flag is set then add_contentView will be performed,
+        otherwise remove_contentView
+        """
+
+        element = self.search(composite_cv)
+
+        if element:
+            element.click()
+            self.find_element(tab_locators
+                              ["contentviews.tab_content_views"]).click()
+            self.wait_for_ajax()
+            if is_add:
+                self.find_element(tab_locators
+                                  ["contentviews.tab_cv_add"]).click()
+            else:
+                self.find_element(tab_locators
+                                  ["contentviews.tab_cv_remove"]).click()
+            strategy, value = locators["contentviews.select_cv"]
+            for cv_name in cv_names:
+                element = self.wait_until_element((strategy,
+                                                   value % cv_name))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                    if is_add:
+                        self.wait_until_element(locators
+                                                ["contentviews.add_cv"]
+                                                ).click()
+                    else:
+                        self.wait_until_element(locators
+                                                ["contentviews.remove_cv"]
+                                                ).click()
+                else:
+                    raise Exception(
+                        "Couldn't find content-view '%s'"
+                        "to add into composite view" % cv_name)
+        else:
+            raise Exception(
+                "Couldn't find the selected CV '%s'" % composite_cv)

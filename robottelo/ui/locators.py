@@ -359,6 +359,11 @@ tab_locators = {
         "//a[contains(@ui-sref, 'repositories.available')]"),
     "contentviews.tab_repo_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'repositories.list')]"),
+    "contentviews.tab_cv_add": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'content-views.available')]"),
+    "contentviews.tab_cv_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'content-views.list')]"),
 
     # Sync Plans
     # Third level UI
@@ -1135,7 +1140,7 @@ locators = {
     "contentviews.key_name": (
         By.XPATH,
         "//tr[@row-select='contentView']"
-        "/td/a[contains(., '%s')]"),
+        "/td[2]/a[contains(., '%s')]"),
     "contentviews.edit_name": (
         By.XPATH, "//form[@alch-edit-text='contentView.name']//div/span/i"),
     "contentviews.edit_name_text": (
@@ -1209,5 +1214,17 @@ locators = {
         ("//tr/td[contains(., '%s')]/following-sibling::td"
          "/button[@ng-click='selectVersion(item)']")),
     "contentviews.get_module_name": (
-        By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]")
+        By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]"),
+    "contentviews.select_cv": (
+        By.XPATH,
+        ("//tr[@row-select='contentView']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.add_cv": (
+        By.XPATH, "//button[@ng-click='addContentViews()']"),
+    "contentviews.remove_cv": (
+        By.XPATH, "//button[@ng-click='removeContentViews()']"),
+    "contentviews.cv_filter": (
+        By.XPATH, "//input[@ng-model='contentViewVersionFilter']")
 }
