@@ -25,6 +25,8 @@ from tests.foreman.ui.baseui import BaseUI
 
 @ddt
 class TestContentViewsUI(BaseUI):
+    """ Implement tests for content view via UI"""
+
     org_name = None
 
     def setUp(self):
@@ -201,7 +203,6 @@ class TestContentViewsUI(BaseUI):
         self.fail('Test is not blocked anymore by bz 1079145 and should be '
                   'implemented')
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
@@ -212,8 +213,42 @@ class TestContentViewsUI(BaseUI):
         @feature: Content Views
         @setup: sync multiple content source/types (RH, custom, etc.)
         @assert: Composite content views are created
-        @status: Manual
         """
+
+        repo_name = generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        url = "http://davidd.fedorapeople.org/repos/random_puppet/"
+        puppet_module = "httpd"
+        module_ver = 'Latest'
+        cv_name = generate_string("alpha", 8)
+        composite_name = generate_string("alpha", 8)
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=url,
+                               repo_type=REPO_TYPE['puppet'])
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(cv_name)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        module = self.content_views.add_puppet_module(cv_name,
+                                                      puppet_module,
+                                                      filter_term=module_ver)
+        self.assertIsNotNone(module)
+        self.content_views.publish(cv_name)
+        self.content_views.create(composite_name, is_composite=True)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_cv(composite_name, [cv_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+        # TODO: Need to add RH contents
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh(self):
