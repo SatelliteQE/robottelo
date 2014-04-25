@@ -137,8 +137,8 @@ class TestContentView(BaseAPI):
         ApiCrud.record_remove(t)
         self.assertFalse(ApiCrud.record_exists(t))
 
-    @stubbed
-    def test_cv_composite_create(self):
+    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    def test_cv_composite_create(self, data):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
         # Individual modules from a puppet repo, however, are a valid
@@ -148,8 +148,12 @@ class TestContentView(BaseAPI):
         @feature: Content Views
         @setup: sync multiple content source/types (RH, custom, etc.)
         @assert: Composite content views are created
-        @status: Manual
-        """
+       """
+
+        data.composite = True
+        depends = ApiCrud.record_create_dependencies(data)
+        result = ApiCrud.record_create(depends)
+        self.assertIntersects(data, result)
 
     # Content Views: Adding products/repos
     # katello content definition add_filter --label=MyView
