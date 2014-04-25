@@ -242,8 +242,8 @@ class Repos(BaseUI):
         """
 
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()
@@ -260,8 +260,8 @@ class Repos(BaseUI):
         """
 
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_products()

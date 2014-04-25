@@ -452,8 +452,8 @@ class GPGKey(BaseUI):
         """
 
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -682,8 +682,8 @@ class GPGKey(BaseUI):
 
         new_name = generate_string("alpha", 8)
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -928,8 +928,8 @@ class GPGKey(BaseUI):
         """
 
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1159,8 +1159,8 @@ class GPGKey(BaseUI):
         """
 
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1393,8 +1393,8 @@ class GPGKey(BaseUI):
 
         prd_name = generate_string("alpha", 8)
         new_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
@@ -1639,8 +1639,8 @@ class GPGKey(BaseUI):
         """
 
         prd_name = generate_string("alpha", 8)
-        url = "http://hhovsepy.fedorapeople.org/fakerepos/"
-        discovered_urls = ["zoo4/"]
+        url = "http://omaciel.fedorapeople.org/"
+        discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
