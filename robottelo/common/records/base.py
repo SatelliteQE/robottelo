@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Records class definition with its options and metaclass"""
 
 import copy
@@ -389,9 +390,14 @@ class Record(object):
                 post_init = getattr(self, '_post_init')
                 post_init()
 
-    def __str__(self):
+    def __repr__(self):
         """For printout"""
-        return self.__dict__.items().__str__()
+
+        name = self.__class__.__name__
+        fields = ", ".join("%s=%s" % (
+            str(k), repr(v)) for k, v in self.__dict__.items())
+        fullname = u"%s(%s)" % (name, fields)
+        return fullname.encode("utf8")
 
 if __name__ == "__main__":
     import doctest
