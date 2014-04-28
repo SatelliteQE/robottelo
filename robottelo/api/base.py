@@ -81,11 +81,26 @@ def request(method, **kwargs):
     del kwargs['domain']
     del kwargs['schema']
 
-    logger.debug("{0} {1} -> {2}".format(method, url, kwargs))
+    request_command = "request(method={0}, url={1}, **{2}".format(
+        method,
+        url,
+        kwargs)
+    logger.debug("Calling %s" % request_command)
     res = requests.request(method=method, url=url, **kwargs)
+    print kwargs["auth"][1]
+    curl_command = "curl -X {0} {1}  -u {2}:{3} {4} -d {5}".format(
+        res.request.method,
+        "" if kwargs["verify"] else "-k",
+        kwargs["auth"][0],
+        kwargs["auth"][1],
+        url,
+        res.request.body)
     logger.debug(
         str(res.status_code) + " " +
         str(res.content))
+
+    res.__dict__["curl_command"] = curl_command
+    res.__dict__["request_command"] = request_command
 
     return res
 

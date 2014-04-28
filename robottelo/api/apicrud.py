@@ -10,8 +10,34 @@ from robottelo.common.helpers import sleep_for_seconds
 from robottelo.common.records import ManyRelatedField, RelatedField
 
 
+def response_string(result):
+    return "%s \n %s" % (
+        result.status_code,
+        result.content,
+        )
+
+
 class ApiException(Exception):
-    pass
+
+    def __init__(self, message, entity=None, request=None):
+        super(ApiException, self).__init__(self, message)
+        self.entity = entity
+        self.request = request
+
+    def __str__(self):
+        out = self.message
+
+        if self.entity is not None:
+            out = "%s : %s" % (
+                out, self.entity)
+
+        if self.request is not None:
+            out = "%s \n\n python: %s \n\n bash: %s \n\n %s" % (
+                out,
+                self.request.request_command,
+                self.request.curl_command,
+                response_string(self.request))
+        return out
 
 
 def load_from_data(cls, data, transform):
@@ -286,7 +312,9 @@ class ApiCrud(object):
             if res.ok:
                 return True
             else:
-                raise ApiException("Unable to remove", instance.items())
+                raise ApiException(
+                    "Unable to remove", instance,
+                    res)
             return res.ok
         else:
             res = cls.list(
@@ -299,7 +327,8 @@ class ApiCrud(object):
                     user=user)
                 return True
             else:
-                return False
+                raise ApiException(
+                    "Unable to remove", instance, res)
 
     @classmethod
     def record_resolve(cls, instance, user=None):
@@ -341,7 +370,8 @@ class ApiCrud(object):
                 )
             return ninstance
         else:
-            raise ApiException("Couldn't resolve record", instance.items())
+            raise ApiException(
+                "Couldn't resolve record", instance, res)
 
     @classmethod
     def record_list(cls, instance, user=None):
@@ -441,7 +471,8 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise ApiException("Couldn't update record", instance.items())
+            raise ApiException(
+                "Couldn't update record", instance, res)
 
     @classmethod
     def record_create(cls, instance_orig, user=None):
@@ -469,12 +500,13 @@ class ApiCrud(object):
                 data_load_transform)
             return ninstance
         else:
-            raise ApiException("Couldn't create record", instance.items())
+            raise ApiException(
+                "Couldn't create record", instance, res)
 
     @classmethod
     def record_create_dependencies(cls, instance_orig, user=None):
         """Ensures that all related fields of the record do exist
-        resolves them and adds their ids to instance.
+            resolves them and adds their ids to instance.
         """
         if cls != instance_orig._meta.api_class:
             api = instance_orig._meta.api_class
