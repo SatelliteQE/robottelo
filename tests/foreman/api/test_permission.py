@@ -8,20 +8,8 @@ from tests.foreman.api.baseapi import BaseAPI
 from robottelo.records.domain import Domain
 from robottelo.records.architecture import Architecture
 from robottelo.records.user import User
-from robottelo.records.role import Filter
-from robottelo.records.role import Role
+from robottelo.records.role import add_permission_to_user
 from robottelo.api.apicrud import ApiCrud
-
-
-def add_permission_to_user(user_created, perm):
-    role = Role()
-    created_role = ApiCrud.record_create(role)
-    flter = Filter()
-    flter.role_id = created_role.id
-    flter.permission_ids = [perm.id]
-    ApiCrud.record_create(flter)
-    user_created.role_ids = [created_role.id]
-    ApiCrud.record_update(user_created)
 
 
 @ddt

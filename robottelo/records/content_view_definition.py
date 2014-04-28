@@ -7,6 +7,7 @@ Module for Content View api an record implementation
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.organization import Organization
+from robottelo.records.permission import PermissionList
 
 
 class ContentViewDefinitionApi(ApiCrud):
@@ -19,6 +20,8 @@ class ContentViewDefinitionApi(ApiCrud):
     api_path_delete = "/katello/api/v2/content_views/"  # noqa
     api_json_key = u"content_view"
     create_fields = ["name", "description", "organization_id", "composite"]
+
+    permissions = PermissionList("content_views")
 
 
 class ContentViewDefinition(records.Record):
