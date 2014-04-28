@@ -20,6 +20,10 @@ from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
+from robottelo.api.apicrud import ApiCrud
+from robottelo.records.user import User
+from robottelo.records.role import add_permission_to_user
+
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 
 
