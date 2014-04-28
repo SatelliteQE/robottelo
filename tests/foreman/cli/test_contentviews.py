@@ -22,7 +22,6 @@ from tests.foreman.cli.basecli import BaseCLI
 
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.user import User
-from robottelo.records.role import add_permission_to_user
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 
@@ -1405,8 +1404,8 @@ class TestContentView(BaseCLI):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_roles_admin_user(self):
+    @data(*positive_create_data())
+    def test_cv_roles_admin_user_negative(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user with admin permissions
@@ -1418,14 +1417,52 @@ class TestContentView(BaseCLI):
         """
         @test: attempt to view content views
         @feature: Content Views
-        @setup: create a user with the Content View admin role
-        @assert: User with admin role for content view can perform all
+        @setup: create a user without the Content View admin role
+        @assert: User with admin role for content view can't perform all
         Variations above
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_roles_readonly_user(self):
+        no_rights_user = User()
+        ApiCrud.record_create(no_rights_user)
+
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        test_data['organization-id'] = org_obj['label']
+
+        # test that user can't create
+        result = ContentView.create(
+            test_data,
+            user=no_rights_user.login,
+            password=no_rights_user.password
+            )
+        self.assertGreater(
+            result.return_code, 0, "User shouldn't be able to create object")
+        self.assertGreater(
+            len(result.stderr), 0, "There should have been an exception here")
+
+        # test that user can't read
+        con_view = make_content_view(test_data)
+
+        result = ContentView.info(
+            {'id': con_view['id']},
+            user=no_rights_user.login,
+            password=no_rights_user.password)
+        self.assertGreater(
+            result.return_code, 0,
+            "User shouldn't be able to create object")
+        self.assertGreater(
+            len(result.stderr), 0,
+            "There should have been an exception here")
+
+    @data(*positive_create_data())
+    @bzbug("1092111")
+    def test_cv_roles_readonly_user(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user with read-only permissions
@@ -1443,28 +1480,31 @@ class TestContentView(BaseCLI):
         Variations above
         @status: Manual
         """
+        readonly_rights_user = User()
+        ApiCrud.record_create(readonly_rights_user)
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_roles_admin_user_negative(self):
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user withOUT admin permissions
-        # for Content Views
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """
-        @test: attempt to view content views
-        @feature: Content Views
-        @setup: create a user with the Content View admin role
-        @assert: User withOUT admin role for content view canNOT perform any
-        Variations above
-        @status: Manual
-        """
+        org_obj = make_org()
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_roles_readonly_user_negative(self):
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        test_data['organization-id'] = org_obj['label']
+
+        # test that user can read
+        con_view = make_content_view(test_data)
+
+        result = ContentView.info(
+            {'id': con_view['id']},
+            user=readonly_rights_user.login,
+            password=readonly_rights_user.password)
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
+
+    @data(*positive_create_data())
+    @bzbug("1092111")
+    def test_cv_roles_readonly_user_negative(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user withOUT read-only permissions
@@ -1482,3 +1522,25 @@ class TestContentView(BaseCLI):
         Variations above
         @status: Manual
         """
+        readonly_rights_user = User()
+        ApiCrud.record_create(readonly_rights_user)
+
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        test_data['organization-id'] = org_obj['label']
+
+        # test that user can't create
+        result = ContentView.create(
+            test_data,
+            user=readonly_rights_user.login,
+            password=readonly_rights_user.password
+            )
+        self.assertGreater(
+            result.return_code, 0, "User shouldn't be able to create object")
+        self.assertGreater(
+            len(result.stderr), 0, "There should have been an exception here")

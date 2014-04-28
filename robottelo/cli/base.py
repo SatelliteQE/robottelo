@@ -49,19 +49,20 @@ class Base(object):
     katello_passwd = conf.properties['foreman.admin.password']
 
     @classmethod
-    def add_operating_system(cls, options=None):
+    def add_operating_system(cls, options=None, user=None, password=None):
         """
         Adds OS to record.
         """
 
         cls.command_sub = "add-operatingsystem"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), user=user, password=password)
 
         return result
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, user=None, password=None):
         """
         Creates a new record using the arguments passed via dictionary.
         """
@@ -72,7 +73,7 @@ class Base(object):
             options = {}
 
         result = cls.execute(
-            cls._construct_command(options),
+            cls._construct_command(options), user=user, password=password,
             expect_csv=True)
 
         # Extract new object ID if it was successfully created
@@ -97,38 +98,41 @@ class Base(object):
         return result
 
     @classmethod
-    def delete(cls, options=None):
+    def delete(cls, options=None, user=None, password=None):
         """
         Deletes existing record.
         """
 
         cls.command_sub = "delete"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), user=user, password=password)
 
         return result
 
     @classmethod
-    def delete_parameter(cls, options=None):
+    def delete_parameter(cls, options=None, user=None, password=None):
         """
         Deletes parameter from record.
         """
 
         cls.command_sub = "delete-parameter"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), user=user, password=password)
 
         return result
 
     @classmethod
-    def dump(cls, options=None):
+    def dump(cls, options=None, user=None, password=None):
         """
         Displays the content for existing partition table.
         """
 
         cls.command_sub = "dump"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), user=user, password=password)
 
         return result
 
@@ -153,7 +157,7 @@ class Base(object):
         return ssh.command(cmd.encode('utf-8'), expect_csv=expect_csv)
 
     @classmethod
-    def exists(cls, options=None, tuple_search=None):
+    def exists(cls, options=None, user=None, password=None, tuple_search=None):
         """
         Search for record by given: ('name', '<search_value>')
         @return: CSV parsed structure[0] of the list.
@@ -174,7 +178,7 @@ class Base(object):
         return result
 
     @classmethod
-    def info(cls, options=None):
+    def info(cls, options=None, user=None, password=None):
         """
         Gets information by provided: options dictionary.
         @param options: ID (sometimes name or id).
@@ -190,7 +194,9 @@ class Base(object):
                 'organization-id option is required for %s.info' %
                 cls.__name__)
 
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
+        result = cls.execute(
+            cls._construct_command(options),
+            user=user, password=password, expect_csv=False)
 
         # info_dictionary required to convert result.stdout to dic format
         updated_result = info_dictionary(result)
@@ -198,7 +204,7 @@ class Base(object):
         return updated_result
 
     @classmethod
-    def list(cls, options=None, per_page=True):
+    def list(cls, options=None, user=None, password=None, per_page=True):
         """
         List information.
         @param options: ID (sometimes name works as well) to retrieve info.
@@ -217,67 +223,77 @@ class Base(object):
                 'organization-id option is required for %s.list' %
                 cls.__name__)
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options),
+            user=user, password=password, expect_csv=True)
 
         return result
 
     @classmethod
-    def puppetclasses(cls, options=None):
+    def puppetclasses(cls, options=None, user=None, password=None):
         """
         Lists all puppet classes.
         """
 
         cls.command_sub = "puppet-classes"
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options),
+            user=user, password=password, expect_csv=True)
 
         return result
 
     @classmethod
-    def remove_operating_system(cls, options=None):
+    def remove_operating_system(cls, options=None, user=None, password=None):
         """
         Removes OS from record.
         """
 
         cls.command_sub = "remove-operatingsystem"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), user=user, password=password)
 
         return result
 
     @classmethod
-    def sc_params(cls, options=None):
+    def sc_params(cls, options=None, user=None, password=None):
         """
         Lists all smart class parameters.
         """
 
         cls.command_sub = "sc-params"
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options),
+            user=user, password=password, expect_csv=True)
 
         return result
 
     @classmethod
-    def set_parameter(cls, options=None):
+    def set_parameter(cls, options=None, user=None, password=None):
         """
         Creates or updates parameter for a record.
         """
 
         cls.command_sub = "set-parameter"
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), user=user, password=password)
 
         return result
 
     @classmethod
-    def update(cls, options=None):
+    def update(cls, options=None, user=None, password=None):
         """
         Updates existing record.
         """
 
         cls.command_sub = "update"
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options),
+            user=user, password=password, expect_csv=True)
 
         return result
 

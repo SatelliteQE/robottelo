@@ -65,6 +65,40 @@ def runIf(project):
 _bugzilla = {}
 
 
+def is_bzbug(bz_id):
+    """Method to test if the bugzilla's bug is open"""
+
+    if bz_id not in _bugzilla:
+        try:
+            mybz = bugzilla.RHBugzilla()
+            mybz.connect(BUGZILLA_URL)
+        except (TypeError, ValueError):
+            logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
+            return False
+
+        attempts = 0
+        mybug = None
+        while attempts < 3 and mybug is None:
+            try:
+                mybug = mybz.getbugsimple(bz_id)
+                _bugzilla[bz_id] = mybug
+            except ExpatError:
+                attempts += 1
+            except Fault:
+                return True
+
+        if mybug is None:
+            return True
+    else:
+        mybug = _bugzilla[bz_id]
+
+    if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
+        logging.debug(mybug)
+        return True
+    else:
+        return False
+
+
 def bzbug(bz_id):
     """Decorator that skips the test if the bugzilla's bug is open"""
 
