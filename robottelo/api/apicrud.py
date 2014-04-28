@@ -10,16 +10,8 @@ from robottelo.common.helpers import sleep_for_seconds
 from robottelo.common.records import ManyRelatedField, RelatedField
 
 
-def request_string(result):
-    return "%s %s %s" % (
-        result.request.method,
-        result.request.url,
-        result.request.body,
-        )
-
-
 def response_string(result):
-    return "%s %s" % (
+    return "%s \n %s" % (
         result.status_code,
         result.content,
         )
@@ -33,9 +25,10 @@ class ApiException(Exception):
         self.request = request
 
     def __str__(self):
-        return "%s : %s \n %s \n %s" % (
+        return "%s : %s \n\n python: %s \n\n bash: %s \n\n %s" % (
             self.message, self.entity,
-            request_string(self.request),
+            self.request.request_command,
+            self.request.curl_command,
             response_string(self.request))
 
 
