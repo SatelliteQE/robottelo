@@ -19,17 +19,25 @@ def response_string(result):
 
 class ApiException(Exception):
 
-    def __init__(self, message, entity, request):
-        Exception.__init__(self, message)
+    def __init__(self, message, entity=None, request=None):
+        super(ApiException, self).__init__(self, message)
         self.entity = entity
         self.request = request
 
     def __str__(self):
-        return "%s : %s \n\n python: %s \n\n bash: %s \n\n %s" % (
-            self.message, self.entity,
-            self.request.request_command,
-            self.request.curl_command,
-            response_string(self.request))
+        out = self.message
+
+        if self.entity is not None:
+            out = "%s : %s" % (
+                out, self.entity)
+
+        if self.request is not None:
+            out = "%s \n\n python: %s \n\n bash: %s \n\n %s" % (
+                out,
+                self.request.request_command,
+                self.request.curl_command,
+                response_string(self.request))
+        return out
 
 
 def load_from_data(cls, data, transform):
