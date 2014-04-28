@@ -55,6 +55,3 @@ def add_permission_to_user(user_created, perm):
     ApiCrud.record_create(flter)
     user_created.role_ids = [created_role.id]
     ApiCrud.record_update(user_created)
-
-
-
