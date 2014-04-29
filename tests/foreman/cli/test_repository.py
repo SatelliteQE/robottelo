@@ -306,6 +306,11 @@ class TestRepository(BaseCLI):
              u'content-type': test_data['content-type']})
         # TODO: Assertion that repo is not yet synced is blocked on
         # https://github.com/omaciel/robottelo/issues/615
+        self.assertEqual(
+            new_repo['sync']['status'],
+            'Not Synced',
+            "The status of repository should be 'Not Synced'")
+
 
         # Synchronize it
         result = Repository.synchronize({'id': new_repo['id']})
