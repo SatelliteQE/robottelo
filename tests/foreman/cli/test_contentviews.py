@@ -247,24 +247,70 @@ class TestContentView(BaseCLI):
         @feature: Content Views
         @setup: sync multiple content source/types (RH, custom, etc.)
         @assert: Composite content views are created
-        @status: Manual
         """
 
-        org_obj = make_org()
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Fetch it
+        result = Repository.info({u'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0, "Repository was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
 
-        result = Org.info({'id': org_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0, "Repo was not synchronized")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
 
-        con_view_name = generate_string("alpha", 10)
-        con_view = make_content_view({'name': con_view_name,
-                                      'organization-id': org_obj['label'],
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['label']})
+        # Fetch it
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Associate repo to CV
+        result = ContentView.add_repository({u'id': new_cv['id'],
+                                             u'repository-id': new_repo['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Repo was not associated to selected CV")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Publishing a new version of CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "ContentView was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Let us now store the version1 id
+        version1_id = result.stdout['versions'][0]['id']
+
+        # Create CV
+        con_view = make_content_view({'organization-id': self.org['label'],
                                       'composite': True})
 
-        result = ContentView.info({'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(con_view['name'], result.stdout['name'])
+        # Assert whether content view creation was successful
+        result = ContentView.info({u'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Associate version to composite CV
+        result = ContentView.add_version({u'id': con_view['id'],
+                                          u'version-id': version1_id})
+        self.assertEqual(result.return_code, 0,
+                         "Repo was not associated to selected CV")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Assert whether version was associated to composite CV
+        result = ContentView.info({u'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.stdout['components'][0]['id'],
+                         version1_id,
+                         "version was not associated to composite CV")
 
     # Content Views: Adding products/repos
     # katello content definition add_filter --label=MyView
@@ -823,14 +869,6 @@ class TestContentView(BaseCLI):
                          "Repo was not associated to selected CV")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
-        # Assert whether version was associated to composite CV
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['components'][0]['id'],
-                         version1_id,
-                         "version was not associated to composite CV")
-
         # Publish a new version of CV
         result = ContentView.publish({u'id': con_view['id']})
         self.assertEqual(result.return_code, 0,
@@ -858,41 +896,89 @@ class TestContentView(BaseCLI):
                          self.env1['id'],
                          "Promotion of version not successful to the env")
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_promote_default_negative(self):
+    def test_cv_promote_defaultcv_negative(self):
         """
-        @test: attempt to promote a the default content views
+        @test: attempt to promote the default content views
         @feature: Content Views
         @assert: Default content views cannot be promoted
-        @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_promote_badlabel_negative(self):
-        """
-        @test: attempt to promote a content view using an invalid label
-        @feature: Content Views
-        @assert: Content views cannot be promoted; handled gracefully
-        @status: Manual
-        """
+        cv_list = []
+        # Fetch it
+        result = ContentView.list({u'organization-id': self.org['label']},
+                                  per_page=False)
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        for cv in result.stdout:
+            if cv['label'] == u'Default_Organization_View':
+                cv_list.append(cv)
+                break
+
+        cv_id = cv_list[0]['content-view-id']
+
+        # Promote the Default CV to the next env
+
+        result = ContentView.version_promote(
+            {u'id': cv_id,
+             u'environment-id': self.env1['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be an exception here.")
+
+    @bzbug('1091494')
     def test_cv_promote_badenvironment_negative(self):
         """
         @test: attempt to promote a content view using an invalid environment
         @feature: Content Views
         @assert: Content views cannot be promoted; handled gracefully
-        @status: Manual
+        @BZ: 1091494
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_promote_badorg_negative(self):
-        """
-        @test: attempt to promote a content view using an invalid org
-        @feature: Content Views
-        @assert: Content views cannot be promoted; handled gracefully
-        @status: Manual
-        """
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Fetch it
+        result = Repository.info({u'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0, "Repository was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0, "Repo was not synchronized")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['label']})
+        # Fetch it
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Associate repo to CV
+        result = ContentView.add_repository({u'id': new_cv['id'],
+                                             u'repository-id': new_repo['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Repo was not associated to selected CV")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Publishing a new version of CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Promote the Published version of CV,
+        # to the previous env which is Library
+        result = ContentView.version_promote(
+            {u'id': result.stdout['versions'][0]['id'],
+             u'environment-id': result.stdout['environments'][0]['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be an exception here.")
 
     # Content Views: publish
     # katello content definition publish --label=MyView
@@ -1055,20 +1141,6 @@ class TestContentView(BaseCLI):
                          u'Library', "version1 does not exist in Library")
         self.assertEqual(result.stdout['versions'][0]['version'], u'1',
                          "Publishing new version of CV was not successful")
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_publish_badlabel_negative(self):
-        # Variations might be:
-        # zero length, too long, symbols, etc.
-        """
-        @test: attempt to publish a content view containing invalid strings
-        @feature: Content Views
-        @setup: Multiple environments for an org; RH content synced
-        @assert: Content view is not published; condition is handled
-        gracefully;
-        no tracebacks
-        @status: Manual
-        """
 
     def test_cv_publish_version_changes_in_target_env(self):
         # Dev notes:
