@@ -304,8 +304,7 @@ class TestRepository(BaseCLI):
         new_repo = self._make_repository(
             {u'url': test_data['url'],
              u'content-type': test_data['content-type']})
-        # TODO: Assertion that repo is not yet synced is blocked on
-        # https://github.com/omaciel/robottelo/issues/615
+        # Assertion that repo is not yet synced
         self.assertEqual(
             new_repo['sync']['status'],
             'Not Synced',
