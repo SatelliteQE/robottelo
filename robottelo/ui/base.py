@@ -47,7 +47,7 @@ class Base(object):
             return None
 
     def search_entity(self, element_name, element_locator, search_key=None,
-                      katello=None):
+                      katello=None, timeout=None):
         """
         Uses the search box to locate an element from a list of elements.
         """
@@ -75,8 +75,13 @@ class Base(object):
                 search_button.click()
             else:
                 searchbox.send_keys(escape_search(element_name))
-            element = self.wait_until_element(
-                (element_locator[0], element_locator[1] % element_name))
+            if timeout:
+                element = self.wait_until_element(
+                    (element_locator[0], element_locator[1] % element_name),
+                    delay=timeout)
+            else:
+                element = self.wait_until_element(
+                    (element_locator[0], element_locator[1] % element_name))
         return element
 
     def handle_alert(self, really):
