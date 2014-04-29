@@ -1164,6 +1164,10 @@ locators = {
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
+    "contentviews.remove": (
+        By.XPATH, "//button[@ui-sref='content-views.details.deletion']"),
+    "contentviews.confirm_remove": (
+        By.XPATH, "//button[@ng-click='delete()']"),
     "contentviews.publish": (
         By.XPATH, "//a[contains(@href, 'publish')]/span"),
     "contentviews.publish_comment": (By.ID, "comment"),
