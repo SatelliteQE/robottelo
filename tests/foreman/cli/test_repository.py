@@ -311,7 +311,6 @@ class TestRepository(BaseCLI):
             'Not Synced',
             "The status of repository should be 'Not Synced'")
 
-
         # Synchronize it
         result = Repository.synchronize({'id': new_repo['id']})
         self.assertEqual(
@@ -320,6 +319,13 @@ class TestRepository(BaseCLI):
             "Repository was not synchronized")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
+
+        # Verify it has finished
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(
+            result.stdout['sync']['status'],
+            'Finished',
+            "The new status of repository should be 'Finished'")
 
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/'},
