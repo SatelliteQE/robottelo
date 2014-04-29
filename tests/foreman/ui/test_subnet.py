@@ -7,6 +7,7 @@ Test class for Subnet UI
 
 from robottelo.common.helpers import generate_ipaddr
 from robottelo.common.helpers import generate_string
+from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 
 
@@ -62,6 +63,8 @@ class Subnet(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
         self.subnet.delete(subnet_name, True)
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["notif.success"]))
         self.assertFalse(self.subnet.search_subnet(subnet_name))
 
     def test_remove_subnet_2(self):
