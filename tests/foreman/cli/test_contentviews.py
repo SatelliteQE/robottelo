@@ -11,7 +11,7 @@ from ddt import ddt
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
-    make_lifecycle_environment)
+    make_lifecycle_environment, make_user)
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
@@ -21,7 +21,9 @@ from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 from robottelo.api.apicrud import ApiCrud
+from robottelo.records.content_view_definition import ContentViewDefinitionApi
 from robottelo.records.user import User
+from robottelo.records.role import add_permission_to_user
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 
@@ -1495,8 +1497,7 @@ class TestContentView(BaseCLI):
         @status: Manual
         """
 
-        no_rights_user = User()
-        ApiCrud.record_create(no_rights_user)
+        no_rights_user = make_user()
 
         org_obj = make_org()
 
@@ -1510,8 +1511,8 @@ class TestContentView(BaseCLI):
         # test that user can't create
         result = ContentView.create(
             test_data,
-            user=no_rights_user.login,
-            password=no_rights_user.password
+            user=no_rights_user['login'],
+            password=no_rights_user['password']
             )
         self.assertGreater(
             result.return_code, 0, "User shouldn't be able to create object")
@@ -1523,8 +1524,8 @@ class TestContentView(BaseCLI):
 
         result = ContentView.info(
             {'id': con_view['id']},
-            user=no_rights_user.login,
-            password=no_rights_user.password)
+            user=no_rights_user['login'],
+            password=no_rights_user['password'])
         self.assertGreater(
             result.return_code, 0,
             "User shouldn't be able to create object")
@@ -1554,6 +1555,10 @@ class TestContentView(BaseCLI):
         """
         readonly_rights_user = User()
         ApiCrud.record_create(readonly_rights_user)
+        perm = ApiCrud.record_resolve(
+            ContentViewDefinitionApi.permissions.resolve
+            )
+        add_permission_to_user(readonly_rights_user, perm)
 
         org_obj = make_org()
 
@@ -1596,6 +1601,12 @@ class TestContentView(BaseCLI):
         """
         readonly_rights_user = User()
         ApiCrud.record_create(readonly_rights_user)
+        readonly_rights_user = User()
+        ApiCrud.record_create(readonly_rights_user)
+        perm = ApiCrud.record_resolve(
+            ContentViewDefinitionApi.permissions.resolve
+            )
+        add_permission_to_user(readonly_rights_user, perm)
 
         org_obj = make_org()
 
