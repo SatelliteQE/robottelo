@@ -304,8 +304,11 @@ class TestRepository(BaseCLI):
         new_repo = self._make_repository(
             {u'url': test_data['url'],
              u'content-type': test_data['content-type']})
-        # TODO: Assertion that repo is not yet synced is blocked on
-        # https://github.com/omaciel/robottelo/issues/615
+        # Assertion that repo is not yet synced
+        self.assertEqual(
+            new_repo['sync']['status'],
+            'Not Synced',
+            "The status of repository should be 'Not Synced'")
 
         # Synchronize it
         result = Repository.synchronize({'id': new_repo['id']})
@@ -315,6 +318,13 @@ class TestRepository(BaseCLI):
             "Repository was not synchronized")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
+
+        # Verify it has finished
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(
+            result.stdout['sync']['status'],
+            'Finished',
+            "The new status of repository should be 'Finished'")
 
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/'},
