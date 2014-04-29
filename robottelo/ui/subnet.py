@@ -50,7 +50,7 @@ class Subnet(Base):
                            locators["subnet.display_name"],
                            locators['subnet.delete'])
 
-    def search_subnet(self, subnet_name):
+    def search_subnet(self, subnet_name, timeout=None):
         """
         Search Subnet name, network and mask to validate results
         """
@@ -58,7 +58,8 @@ class Subnet(Base):
         result = None
 
         subnet_object = self.search_entity(subnet_name,
-                                           locators['subnet.display_name'])
+                                           locators['subnet.display_name'],
+                                           timeout=timeout)
 
         if subnet_object:
             subnet_object.click()

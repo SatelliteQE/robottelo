@@ -65,7 +65,7 @@ class Subnet(BaseUI):
         self.subnet.delete(subnet_name, True)
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["notif.success"]))
-        self.assertFalse(self.subnet.search_subnet(subnet_name))
+        self.assertFalse(self.subnet.search_subnet(subnet_name, timeout=5))
 
     def test_remove_subnet_2(self):
         """
@@ -81,7 +81,7 @@ class Subnet(BaseUI):
         self.login.login(self.katello_user, self.katello_passwd)
         self.create_subnet(subnet_name, subnet_network, subnet_mask)
         self.subnet.delete(subnet_name, False)
-        self.assertTrue(self.subnet.search_subnet(subnet_name))
+        self.assertTrue(self.subnet.search_subnet(subnet_name, timeout=5))
 
     def test_update_subnet_1(self):
         """
