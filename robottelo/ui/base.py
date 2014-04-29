@@ -205,7 +205,7 @@ class Base(object):
 
         try:
             angular_active = driver.execute_script(
-                'return angular.element("*[ng-app]").injector().get("$http")'
+                'return angular.element(document).injector().get("$http")'
                 '.pendingRequests.length') > 0
         except WebDriverException:
             pass
