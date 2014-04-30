@@ -4,7 +4,6 @@
 Implements System Groups UI
 """
 
-from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 
