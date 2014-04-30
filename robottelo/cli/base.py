@@ -282,7 +282,11 @@ class Base(object):
         return result
 
     @classmethod
-    def with_user(cls, username=katello_user, password=katello_passwd):
+    def with_user(cls, username=None, password=None):
+        if username is None:
+            username = cls.katello_user
+        if password is None:
+            password = cls.katello_passwd
         class NUserBase(cls):
             katello_user = username
             katello_passwd = password
