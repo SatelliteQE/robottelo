@@ -188,8 +188,9 @@ class TestContentViewsUI(BaseUI):
                         (common_locators["alert.success"]))
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.remove_filter(cv_name, [filter_name])
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):

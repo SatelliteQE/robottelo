@@ -355,3 +355,34 @@ class ContentViews(Base):
         else:
             raise Exception(
                 "couldn't find the content view '%s'" % cv_name)
+
+    def remove_filter(self, cv_name, filter_names):
+        """
+        Removes selected filter from selected content-view
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.find_element(tab_locators["contentviews.tab_content"]).click()
+            self.wait_until_element(locators
+                                    ["contentviews.content_filters"]).click()
+            self.wait_for_ajax()
+            strategy, value = locators["contentviews.select_filter_name"]
+            for filter_name in filter_names:
+                element = self.wait_until_element((strategy,
+                                                   value % filter_name))
+                if element:
+                    element.click()
+                    self.wait_for_ajax()
+                else:
+                    raise Exception(
+                        "Could not find filter with name '%s'" % filter_name)
+            self.wait_until_element(locators
+                                    ["contentviews.remove_filter"]
+                                    ).click()
+        else:
+            raise Exception(
+                "couldn't find the content view '%s'" % cv_name)

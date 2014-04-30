@@ -1232,5 +1232,13 @@ locators = {
     "contentviews.new_filter": (
         By.XPATH, "//button[contains(@ui-sref, 'filters.new')]"),
     "contentviews.content_type": (By.ID, "type"),
-    "contentviews.type": (By.ID, "inclusion")
+    "contentviews.type": (By.ID, "inclusion"),
+    "contentviews.select_filter_name": (
+        By.XPATH,
+        ("//tr[@row-select='filter']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.remove_filter": (
+        By.XPATH, "//button[@ng-click='removeFilters()']")
 }
