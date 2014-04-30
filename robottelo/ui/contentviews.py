@@ -7,6 +7,7 @@ Implements Content Views UI
 from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from selenium.webdriver.support.select import Select
 
 
 class ContentViews(Base):
@@ -273,6 +274,7 @@ class ContentViews(Base):
 
         if element:
             element.click()
+            self.wait_for_ajax()
             self.find_element(tab_locators
                               ["contentviews.tab_content_views"]).click()
             self.wait_for_ajax()
@@ -304,3 +306,52 @@ class ContentViews(Base):
         else:
             raise Exception(
                 "Couldn't find the selected CV '%s'" % composite_cv)
+
+    def add_filter(self, cv_name, filter_name,
+                   content_type, filter_type, description=None):
+        """
+        Creates content-view filter of given 'type'(include/exclude) and
+        'content-type'(package/package-group/errata)
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.find_element(tab_locators["contentviews.tab_content"]).click()
+            self.wait_until_element(locators
+                                    ["contentviews.content_filters"]).click()
+            self.wait_until_element(locators
+                                    ["contentviews.new_filter"]).click()
+            if self.wait_until_element(common_locators["name"]):
+                self.find_element(common_locators["name"]
+                                  ).send_keys(filter_name)
+                if content_type:
+                    Select(self.find_element
+                           (locators
+                            ["contentviews.content_type"]
+                            )).select_by_visible_text(content_type)
+                else:
+                    raise Exception(
+                        "Couldn't create filter without content type")
+                if filter_type:
+                    Select(self.find_element
+                           (locators
+                            ["contentviews.type"]
+                            )).select_by_visible_text(filter_type)
+                else:
+                    raise Exception(
+                        "Couldn't create filter without"
+                        "specifying filter type")
+                if description:
+                    self.find_element(common_locators
+                                      ["description"]
+                                      ).send_keys(description)
+                self.wait_until_element(common_locators["create"]).click()
+                self.wait_for_ajax()
+            else:
+                raise Exception(
+                    "Could not create filter without name")
+        else:
+            raise Exception(
+                "couldn't find the content view '%s'" % cv_name)

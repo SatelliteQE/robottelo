@@ -121,3 +121,12 @@ SSH_CHANNEL_READY_TIMEOUT = 10  # 10 sec to get content
 LANGUAGES = ["de", "en", "en_GB",
              "es", "fr", "gl",
              "ja", "sv_SE", "zh_CN"]
+
+FILTER_CONTENT_TYPE = {
+    'package': "Package",
+    'package group': "Package Group",
+    'erratum by id': "Erratum - by ID",
+    'erratum by date and type': "Erratum - by Date and Type"}
+
+FILTER_TYPE = {'include': "Include",
+               'exclude': "Exclude"}

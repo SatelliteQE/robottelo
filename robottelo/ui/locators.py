@@ -1226,5 +1226,11 @@ locators = {
     "contentviews.remove_cv": (
         By.XPATH, "//button[@ng-click='removeContentViews()']"),
     "contentviews.cv_filter": (
-        By.XPATH, "//input[@ng-model='contentViewVersionFilter']")
+        By.XPATH, "//input[@ng-model='contentViewVersionFilter']"),
+    "contentviews.content_filters": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href, 'filters')]"),
+    "contentviews.new_filter": (
+        By.XPATH, "//button[contains(@ui-sref, 'filters.new')]"),
+    "contentviews.content_type": (By.ID, "type"),
+    "contentviews.type": (By.ID, "inclusion")
 }
