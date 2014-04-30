@@ -287,6 +287,7 @@ class Base(object):
             username = cls.katello_user
         if password is None:
             password = cls.katello_passwd
+
         class NUserBase(cls):
             katello_user = username
             katello_passwd = password
