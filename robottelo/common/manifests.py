@@ -45,18 +45,17 @@ class Manifests():
         """
         if ds_name is not None:
             self.distributor_name = ds_name
-        return self.sp.create_distributor(self.distributor_name)
+        ds_uuid = self.sp.create_distributor(self.distributor_name)
+        return ds_uuid
 
-    def attach_subscriptions(self, ds_name=None, quantity=None):
+    def attach_subscriptions(self, ds_uuid=None, quantity=None):
         """
         Attaches all the available subscriptions with the specified quantity
-        to the specified distributor name.
+        to the specified distributor uuid.
         """
-        if ds_name is not None:
-            self.distributor_name = ds_name
+
         if quantity is not None:
             self.quantity = int(quantity)
-        ds_uuid = self.sp.distributor_get_uuid(self.distributor_name)
         available_subs = self.sp.distributor_available_subscriptions(ds_uuid)
         for sub in available_subs:
             if sub['quantity'] >= self.quantity:
@@ -76,20 +75,30 @@ class Manifests():
     def fetch_manifest(self, ds_name=None):
         """
         Fetches the manifest with the specified distributor name.
+        It internally creates the distributor, attaches subscriptions,
+        downloads the manifest.
+        It returns the distributor/manifest path, distributor uuid and
+        also the distributor name.
         """
-        if ds_name is not None:
-            self.distributor_name = ds_name
-        ds_uuid = self.sp.distributor_get_uuid(self.distributor_name)
-        return self.sp.distributor_download_manifest(ds_uuid)
 
-    def detach_subscriptions(self, ds_name=None):
-        """
-        Detaches all the available  subscriptions for the specified
-        distributor.
-        """
+        distributor = {}
         if ds_name is not None:
             self.distributor_name = ds_name
-        ds_uuid = self.sp.distributor_get_uuid(self.distributor_name)
+        ds_uuid = self.create_distributor(ds_name)
+        self.attach_subscriptions(ds_uuid=ds_uuid, quantity=self.quantity)
+        ds_path = self.sp.distributor_download_manifest(ds_uuid)
+        distributor['path'] = ds_path
+        distributor['uuid'] = ds_uuid
+        distributor['name'] = ds_name
+        return distributor
+
+    def detach_subscriptions(self, ds_uuid=None):
+        """
+        Detaches all the available subscriptions of the
+        distributor with the specified uuid.
+        This uuid can be obtained from the fetch_manifest.
+        """
+
         detach_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
         detach_sub_ids = []
         for detach_sub in detach_subs:
@@ -101,13 +110,12 @@ class Manifests():
             detached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
             return detached_subs
 
-    def delete_distributor(self, ds_name=None):
+    def delete_distributor(self, ds_uuid=None):
         """
-        Deletes the distributor of the specified name.
+        Deletes the distributor with the specified uuid.
+        This uuid can be obtained from the fetch_manifest.
         """
-        if ds_name is not None:
-            self.distributor_name = ds_name
-        ds_uuid = self.sp.distributor_get_uuid(self.distributor_name)
+
         return self.sp.delete_distributor(ds_uuid)
 
 manifest = Manifests()
