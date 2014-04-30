@@ -1509,10 +1509,11 @@ class TestContentView(BaseCLI):
         test_data['organization-id'] = org_obj['label']
 
         # test that user can't create
-        result = ContentView.create(
-            test_data,
-            user=no_rights_user['login'],
-            password=no_rights_user['password']
+        result = ContentView.with_user(
+            no_rights_user["login"],
+            no_rights_user["password"]
+            ).create(
+            test_data
             )
         self.assertGreater(
             result.return_code, 0, "User shouldn't be able to create object")
@@ -1522,10 +1523,11 @@ class TestContentView(BaseCLI):
         # test that user can't read
         con_view = make_content_view(test_data)
 
-        result = ContentView.info(
-            {'id': con_view['id']},
-            user=no_rights_user['login'],
-            password=no_rights_user['password'])
+        result = ContentView.with_user(
+            no_rights_user["login"],
+            no_rights_user["password"]
+            ).info(
+            {'id': con_view['id']})
         self.assertGreater(
             result.return_code, 0,
             "User shouldn't be able to create object")
@@ -1572,10 +1574,11 @@ class TestContentView(BaseCLI):
         # test that user can read
         con_view = make_content_view(test_data)
 
-        result = ContentView.info(
-            {'id': con_view['id']},
-            user=readonly_rights_user.login,
-            password=readonly_rights_user.password)
+        result = ContentView.with_user(
+            readonly_rights_user.login,
+            readonly_rights_user.password
+            ).info({'id': con_view['id']})
+
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
 
@@ -1618,11 +1621,10 @@ class TestContentView(BaseCLI):
         test_data['organization-id'] = org_obj['label']
 
         # test that user can't create
-        result = ContentView.create(
-            test_data,
-            user=readonly_rights_user.login,
-            password=readonly_rights_user.password
-            )
+        result = ContentView.with_user(
+            readonly_rights_user.login,
+            readonly_rights_user.password
+            ).create(test_data)
         self.assertGreater(
             result.return_code, 0, "User shouldn't be able to create object")
         self.assertGreater(
