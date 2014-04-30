@@ -188,7 +188,6 @@ class TestContentViewsUI(BaseUI):
         @status: Manual
         """
 
-    @bzbug('1079145')
     def test_cv_delete(self):
         """
         @test: delete content views
@@ -196,12 +195,23 @@ class TestContentViewsUI(BaseUI):
         @assert: edited content view can be deleted and no longer
         appears in any content view UI
         updated
-        @status: Manual
-        @BZ: 1079145
         """
 
-        self.fail('Test is not blocked anymore by bz 1079145 and should be '
-                  'implemented')
+        name = generate_string('latin1', 8)
+
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name)
+            self.assertIsNotNone(
+                self.content_views.search(name),
+                'Failed to find content view %s from %s org' % (
+                    name, self.org_name))
+            self.content_views.delete(name, True)
+            self.assertIsNone(
+                self.content_views.search(name),
+                'Content view %s from %s org was not deleted' % (
+                    name, self.org_name))
 
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test

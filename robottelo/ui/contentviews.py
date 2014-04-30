@@ -43,6 +43,24 @@ class ContentViews(Base):
             raise Exception(
                 "Could not create new content view '%s'" % name)
 
+    def delete(self, name, really):
+        """
+        Deletes an existing content view
+        """
+        element = self.search(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(locators['contentviews.remove']).click()
+            self.wait_for_ajax()
+            if really:
+                self.wait_until_element(locators['contentviews.confirm_remove']
+                                        ).click()
+            else:
+                raise Exception(
+                    'Could not delete the %s content view.' % name)
+
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements """
 
