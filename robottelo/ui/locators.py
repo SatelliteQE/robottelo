@@ -47,8 +47,7 @@ menu_locators = {
     "menu.life_cycle_environments": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//li[contains(@class,'menu_tab_katello')]"
-         "/a[@id='menu_item_environments']")),
+         "//a[@id='menu_item_environments']")),
     "menu.red_hat_subscriptions": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
