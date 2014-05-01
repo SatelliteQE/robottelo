@@ -177,7 +177,8 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
     "menu.domains": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_domains']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_domains']")),
 
     # Administer Menu
     "menu.administer": (
