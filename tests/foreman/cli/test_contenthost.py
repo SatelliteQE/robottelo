@@ -2,13 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Test class for System CLI
+Test class for Content-Host CLI
 """
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.cli.factory import make_org, make_system
-from robottelo.cli.system import System
+from robottelo.cli.factory import (
+    make_org, make_content_view, make_lifecycle_environment,
+    make_content_host)
+from robottelo.cli.contenthost import ContentHost
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
@@ -16,52 +20,103 @@ from tests.foreman.cli.basecli import BaseCLI
 
 @bzbug('1084722')
 @ddt
-class TestSystem(BaseCLI):
+class TestContentHost(BaseCLI):
     """
-    System CLI tests.
+    content-host CLI tests.
     """
 
     org = None
+    environment = None
+    content_view = None
 
     def setUp(self):
         """
-        Tests for Systems via Hammer CLI
+        Tests for Content Host via Hammer CLI
         """
 
-        super(TestSystem, self).setUp()
+        super(TestContentHost, self).setUp()
 
-        if TestSystem.org is None:
-            TestSystem.org = make_org()
+        if TestContentHost.org is None:
+            TestContentHost.org = make_org()
+        if TestContentHost.environment is None:
+            TestContentHost.environment = make_lifecycle_environment(
+                {u'organization-id': TestContentHost.org['label']}
+            )
+        if TestContentHost.content_view is None:
+            TestContentHost.content_view = make_content_view(
+                {u'organization-id': TestContentHost.org['label']}
+            )
 
-    def _new_system(self, options=None):
+    def _new_content_host(self, options=None):
         """
-        Make a system group and asserts its success
+        Make a new content host and asserts its success
         """
 
         if options is None:
             options = {}
 
+        # Use default organization if None are provided
         if not options.get('organization-id', None):
             options['organization-id'] = self.org['label']
 
-        system = make_system(options)
+        # If no environment id, use organization's 'Library'
+        if not options.get('environment-id', None):
+            library_result = LifecycleEnvironment.info(
+                {'organization-id': self.org['label'],
+                 'name': 'Library'
+             }
+            )
+            self.assertEqual(
+                library_result.return_code,
+                0,
+                "Could not find Library environment for org: %s" %
+                options['organization-id']
+            )
+            self.assertEqual(
+                len(library_result.stderr),
+                0,
+                "There should not be an error here"
+            )
+            options['environment-id'] = library_result.stdout['id']
+
+        # Use Default Organization View if none are provided
+        # Until we can look up content view by name, we need to list
+        # them and locate the ID for 'Default Organization View'
+        if not options.get('content-view-id', None):
+            all_cvs = ContentView.list(
+                {'organization-id': self.org['label'], 'per-page': False})
+            self.assertEqual(
+                all_cvs.return_code,
+                0,
+                "Could not fetch Content Views for org: %s" %
+                options['organization-id'])
+            self.assertEqual(
+                len(all_cvs.stderr),
+                0,
+                "Error while fetching content views for org: %s" %
+                options['organization-id'])
+            for contentview in all_cvs.stdout:
+                if contentview['name'] == 'Default Organization View':
+                    options['content-view-id'] = contentview['content-view-id']
+
+        content_host = make_content_host(options)
 
         # Fetch it
-        result = System.info(
+        result = ContentHost.info(
             {
-                'id': system['id']
+                'id': content_host['id']
             }
         )
 
         self.assertEqual(
             result.return_code,
             0,
-            "System was not found")
+            "Content host was not found")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
-        # Return the system dictionary
-        return system
+        # Return the content host dictionary
+        return content_host
 
     @data(
         {'name': generate_string('alpha', 15)},
@@ -71,15 +126,15 @@ class TestSystem(BaseCLI):
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
-    @attr('cli', 'system')
+    @attr('cli', 'content-host')
     def test_positive_create_1(self, test_data):
         """
-        @Test: Check if system can be created with random names
-        @Feature: Systems
-        @Assert: System is created and has random name
+        @Test: Check if content host can be created with random names
+        @Feature: Content Hosts
+        @Assert: Content host is created and has random name
         """
 
-        new_system = self._new_system({'name': test_data['name']})
+        new_system = self._new_content_host({'name': test_data['name']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
@@ -95,15 +150,15 @@ class TestSystem(BaseCLI):
         {'description': generate_string('utf8', 15)},
         {'description': generate_string('html', 15)},
     )
-    @attr('cli', 'system')
+    @attr('cli', 'content-host')
     def test_positive_create_2(self, test_data):
         """
-        @Test: Check if system can be created with random description
-        @Feature: Systems
-        @Assert: System is created and has random description
+        @Test: Check if content host can be created with random description
+        @Feature: Content Hosts
+        @Assert: Content host is created and has random description
         """
 
-        new_system = self._new_system(
+        new_system = self._new_content_host(
             {'description': test_data['description']})
         # Assert that description matches data passed
         self.assertEqual(
@@ -120,16 +175,16 @@ class TestSystem(BaseCLI):
         {'name': generate_string('utf8', 300)},
         {'name': generate_string('html', 300)},
     )
-    @attr('cli', 'system')
+    @attr('cli', 'content-host')
     def test_negative_create_1(self, test_data):
         """
-        @Test: Check if system can be created with random names
-        @Feature: Systems
-        @Assert: System is created and has random name
+        @Test: Check if content host can be created with random names
+        @Feature: Content Hosts
+        @Assert: Content host is not created
         """
 
         with self.assertRaises(Exception):
-            self._new_system({'name': test_data['name']})
+            self._new_content_host({'name': test_data['name']})
 
     @data(
         {'name': generate_string('alpha', 15)},
@@ -139,16 +194,15 @@ class TestSystem(BaseCLI):
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
-    @attr('cli', 'system')
+    @attr('cli', 'content-host')
     def test_positive_update_1(self, test_data):
         """
-        @Test: Check if system name can be updated
-        @Feature: Systems
-        @Assert: System is created and name is updated
-        @BZ: 1082157
+        @Test: Check if content host name can be updated
+        @Feature: Content Hosts
+        @Assert: Content host is created and name is updated
         """
 
-        new_system = self._new_system()
+        new_system = self._new_content_host()
         # Assert that name does not matches data passed
         self.assertNotEqual(
             new_system['name'],
@@ -157,22 +211,21 @@ class TestSystem(BaseCLI):
         )
 
         # Update system group
-        result = System.update(
+        result = ContentHost.update(
             {
                 'id': new_system['id'],
-                'organization-id': self.org['label'],
                 'name': test_data['name']
             }
         )
         self.assertEqual(
             result.return_code,
             0,
-            "System was not updated")
+            "Content host was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = System.info(
+        result = ContentHost.info(
             {
                 'id': new_system['id'],
             }
@@ -180,7 +233,7 @@ class TestSystem(BaseCLI):
         self.assertEqual(
             result.return_code,
             0,
-            "System was not updated")
+            "Content host was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         # Assert that name matches new value
@@ -208,16 +261,16 @@ class TestSystem(BaseCLI):
         {'description': generate_string('utf8', 15)},
         {'description': generate_string('html', 15)},
     )
-    @attr('cli', 'system')
+    @attr('cli', 'content-host')
     def test_positive_update_2(self, test_data):
         """
-        @Test: Check if system description can be updated
-        @Feature: Systems
-        @Assert: System is created and description is updated
+        @Test: Check if content host description can be updated
+        @Feature: Content Hosts
+        @Assert: Content host is created and description is updated
         @BZ: 1082157
         """
 
-        new_system = self._new_system()
+        new_system = self._new_content_host()
         # Assert that description does not match data passed
         self.assertNotEqual(
             new_system['description'],
@@ -226,22 +279,21 @@ class TestSystem(BaseCLI):
         )
 
         # Update sync plan
-        result = System.update(
+        result = ContentHost.update(
             {
                 'id': new_system['id'],
-                'organization-id': self.org['label'],
                 'description': test_data['description']
             }
         )
         self.assertEqual(
             result.return_code,
             0,
-            "System was not updated")
+            "Content host was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = System.info(
+        result = ContentHost.info(
             {
                 'id': new_system['id'],
             }
@@ -249,7 +301,7 @@ class TestSystem(BaseCLI):
         self.assertEqual(
             result.return_code,
             0,
-            "System was not updated")
+            "Content host was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         # Assert that description matches new value
@@ -277,16 +329,15 @@ class TestSystem(BaseCLI):
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
-    @attr('cli', 'system')
+    @attr('cli', 'content-host')
     def test_positive_delete_1(self, test_data):
         """
-        @Test: Check if system can be created and deleted
-        @Feature: Systems
-        @Assert: System is created and then deleted
-        @BZ: 1082169
+        @Test: Check if content host can be created and deleted
+        @Feature: Content Hosts
+        @Assert: Content host is created and then deleted
         """
 
-        new_system = self._new_system({'name': test_data['name']})
+        new_system = self._new_content_host({'name': test_data['name']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
@@ -295,16 +346,16 @@ class TestSystem(BaseCLI):
         )
 
         # Delete it
-        result = System.delete({'id': new_system['id']})
+        result = ContentHost.delete({'id': new_system['id']})
         self.assertEqual(
             result.return_code,
             0,
-            "System was not deleted")
+            "Content host was not deleted")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = System.info(
+        result = ContentHost.info(
             {
                 'id': new_system['id'],
             }
@@ -312,7 +363,7 @@ class TestSystem(BaseCLI):
         self.assertNotEqual(
             result.return_code,
             0,
-            "System should not be found"
+            "Content host should not be found"
         )
         self.assertGreater(
             len(result.stderr),

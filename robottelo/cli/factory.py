@@ -12,6 +12,7 @@ import random
 
 from os import chmod
 from robottelo.cli.architecture import Architecture
+from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
@@ -28,7 +29,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.cli.system import System
 from robottelo.cli.systemgroup import SystemGroup
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
@@ -51,7 +51,7 @@ def create_object(cli_object, args):
     @param cli_object: A valid CLI object.
     @param args: A python dictionary containing all valid
     attributes for creating a new object.
-    @param organization_id: A Katello organization id
+
     @raise Exception: Raise an exception if object cannot be
     created.
 
@@ -433,7 +433,7 @@ def make_sync_plan(options=None):
     return args
 
 
-def make_system(options=None):
+def make_content_host(options=None):
     """
     Usage:
         hammer system create [OPTIONS]
@@ -455,8 +455,15 @@ def make_system(options=None):
     """
 
     # Organization ID is a required field.
-    if not options or not options.get('organization-id', None):
+    if not options:
+        raise Exception("Please provide required parameters")
+
+    if not options.get('organization-id', None):
         raise Exception("Please provide a valid ORG ID.")
+    if not options.get('content-view-id', None):
+        raise Exception("Please provide a valid Content View ID.")
+    if not options.get('environment-id', None):
+        raise Exception("Please provide a valid Lifecycle-Environment ID.")
 
     args = {
         'name': generate_string('alpha', 20),
@@ -473,7 +480,7 @@ def make_system(options=None):
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(System, args))
+    args.update(create_object(ContentHost, args))
 
     return args
 
