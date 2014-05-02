@@ -8,7 +8,6 @@ from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.decorators import data
 from robottelo.records.content_view_definition import ContentViewDefinition
-from robottelo.records.repository import CustomRepository
 from robottelo.common.decorators import stubbed
 
 from tests.foreman.api.baseapi import BaseAPI
@@ -341,7 +340,7 @@ class TestContentView(BaseAPI):
 
         con_view = ApiCrud.record_create_recursive(data)
         self.assertIntersects(data, con_view)
-        task = con_view._meta.api_class.publish(con_view)
+        con_view._meta.api_class.publish(con_view)
 
     @stubbed
     def test_cv_publish_rh_custom_spin(self):
