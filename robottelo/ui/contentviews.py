@@ -370,7 +370,7 @@ class ContentViews(Base):
             self.wait_until_element(locators
                                     ["contentviews.content_filters"]).click()
             self.wait_for_ajax()
-            strategy, value = locators["contentviews.select_filter_name"]
+            strategy, value = locators["contentviews.select_filter_checkbox"]
             for filter_name in filter_names:
                 element = self.wait_until_element((strategy,
                                                    value % filter_name))
@@ -386,3 +386,45 @@ class ContentViews(Base):
         else:
             raise Exception(
                 "couldn't find the content view '%s'" % cv_name)
+
+    def select_package_version_value(self, version_type, value1=None,
+                                     value2=None):
+        """
+        Select package version and set values:
+        versions are: 'All'  'Equal To' 'Greater Than' 'Less Than' 'Range'
+        """
+
+        if version_type == 'Equal To':
+            self.find_element(locators["contentviews.equal_value"]
+                              ).send_keys(value1)
+        elif version_type == 'Greater Than':
+            self.find_element(locators["contentviews.greater_min_value"]
+                              ).send_keys(value1)
+        elif version_type == 'Less Than':
+            self.find_element(locators["contentviews.less_max_value"]
+                              ).send_keys(value1)
+        elif version_type == 'Range':
+            self.find_element(locators["contentviews.greater_min_value"]
+                              ).send_keys(value1)
+            self.find_element(locators["contentviews.less_max_value"]
+                              ).send_keys(value2)
+
+    def add_packages_to_filter(self, package_names, version_types, values=None,
+                               max_values=None):
+        """
+        Adds packages to selected filter for inclusion/Exclusion
+        """
+        for package_name, version_type, value, max_value in zip(package_names,
+                                                                version_types,
+                                                                values,
+                                                                max_values):
+            self.find_element(locators["contentviews.input_pkg_name"]
+                              ).send_keys(package_name)
+            Select(self.find_element(locators
+                                     ["contentviews.select_pkg_version"]
+                                     )).select_by_visible_text(version_type)
+            if not version_type == 'All Versions':
+                self.select_package_version_value(version_type, value,
+                                                  max_value)
+            self.find_element(locators["contentviews.add_pkg_button"]).click()
+            self.wait_for_ajax()

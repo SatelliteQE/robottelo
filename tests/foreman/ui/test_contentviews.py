@@ -165,7 +165,8 @@ class TestContentViewsUI(BaseUI):
                                                       filter_term=module_ver)
         self.assertIsNotNone(module)
 
-    def test_create_cv_filter_1(self):
+    @bzbug('1086187')
+    def test_create_package_filter_1(self):
         """
         @test: create content views (positive)
         @feature: Content Views
@@ -178,19 +179,20 @@ class TestContentViewsUI(BaseUI):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         content_type = FILTER_CONTENT_TYPE['package']
         filter_type = FILTER_TYPE['include']
+        package_names = ['cow', 'bird', 'crow', 'bear']
+        version_types = ['Equal To', 'Greater Than', 'Less Than', 'Range']
+        values = ['0.3', '0.5', '0.5', '4.1']
+        max_values = [None, None, None, '4.6']
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
         self.setup_to_create_cv(cv_name, repo_name, repo_url)
-        self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(cv_name, [repo_name])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_content_views()
-        self.content_views.remove_filter(cv_name, [filter_name])
+        self.content_views.add_packages_to_filter(package_names, version_types,
+                                                  values, max_values)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):

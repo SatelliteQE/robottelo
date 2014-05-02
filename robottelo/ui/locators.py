@@ -1233,12 +1233,31 @@ locators = {
         By.XPATH, "//button[contains(@ui-sref, 'filters.new')]"),
     "contentviews.content_type": (By.ID, "type"),
     "contentviews.type": (By.ID, "inclusion"),
-    "contentviews.select_filter_name": (
+    "contentviews.select_filter_checkbox": (
         By.XPATH,
         ("//tr[@row-select='filter']"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
     "contentviews.remove_filter": (
-        By.XPATH, "//button[@ng-click='removeFilters()']")
+        By.XPATH, "//button[@ng-click='removeFilters()']"),
+    "contentviews.select_filter_name": (
+        By.XPATH, "//div[@data-block='table']//td/a[contains(., '%s')]"),
+    "contentviews.input_pkg_name": (
+        By.XPATH, "//input[@ng-model='rule.name']"),
+    "contentviews.select_pkg_version": (
+        By.XPATH, "//select[@ng-model='rule.type']"),
+    "contentviews.add_pkg_button": (
+        By.XPATH, "//button[@ng-click='addRule(rule, filter)']"),
+    "contentviews.equal_value": (
+        By.XPATH, "//input[@ng-model='rule.version']"),
+    "contentviews.greater_min_value": (
+        By.XPATH, "//input[@ng-model='rule.min_version']"),
+    "contentviews.less_max_value": (
+        By.XPATH, "//input[@ng-model='rule.max_version']"),
+    "contentviews.affected_repos": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'filters.details.rpm.repositories')]"),
+    "contentviews.show_repos": (
+        By.XPATH, "//input[@ng-model='showRepos']")
 }
