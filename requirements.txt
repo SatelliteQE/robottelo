@@ -1,4 +1,3 @@
-beautifulsoup
 ddt
 git+https://github.com/RedHatQE/python-stageportal.git#egg=stageportal
 git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFactory
