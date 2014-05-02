@@ -9,6 +9,7 @@ import stageportal
 import logging
 
 from robottelo.common import conf
+from robottelo.common.helpers import generate_string
 
 
 class Manifests():
@@ -72,25 +73,12 @@ class Manifests():
         attached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
         return attached_subs
 
-    def fetch_manifest(self, ds_name=None):
+    def download_manifest(self, ds_uuid=None):
         """
-        Fetches the manifest with the specified distributor name.
-        It internally creates the distributor, attaches subscriptions,
-        downloads the manifest.
-        It returns the distributor/manifest path, distributor uuid and
-        also the distributor name.
+        Simply calls the stageportal download manifests funtion.
         """
-
-        distributor = {}
-        if ds_name is not None:
-            self.distributor_name = ds_name
-        ds_uuid = self.create_distributor(ds_name)
-        self.attach_subscriptions(ds_uuid=ds_uuid, quantity=self.quantity)
         ds_path = self.sp.distributor_download_manifest(ds_uuid)
-        distributor['path'] = ds_path
-        distributor['uuid'] = ds_uuid
-        distributor['name'] = ds_name
-        return distributor
+        return ds_path
 
     def detach_subscriptions(self, ds_uuid=None):
         """
@@ -117,5 +105,28 @@ class Manifests():
         """
 
         return self.sp.delete_distributor(ds_uuid)
+
+    def fetch_manifest(self, ds_name=None):
+        """
+        Fetches the manifest with the specified distributor name.
+        It internally creates the distributor, attaches subscriptions,
+        downloads the manifest.
+        It returns the distributor/manifest path, distributor uuid and
+        also the distributor name.
+        """
+
+        distributor = {}
+        if ds_name is not None:
+            self.distributor_name = ds_name
+        else:
+            self.distributor_name = generate_string("alpha", 8)
+        ds_uuid = self.create_distributor(self.distributor_name)
+        self.attach_subscriptions(ds_uuid=ds_uuid, quantity=self.quantity)
+        ds_path = self.download_manifest(ds_uuid)
+        distributor['path'] = ds_path
+        distributor['uuid'] = ds_uuid
+        distributor['name'] = self.distributor_name
+        return distributor
+
 
 manifest = Manifests()
