@@ -1236,9 +1236,10 @@ locators = {
     "system-groups.unlimited": (By.NAME, "limit"),
     "system-groups.limit": (By.ID, "max_systems"),
 
-    "system-groups.remove": (By.XPATH, "//button[contains(.,'Remove')]"),
+    "system-groups.remove": (
+        By.XPATH, "//button[@ng-disabled='!group.permissions.deletable']"),
     "system-groups.confirm_remove": (
-        By.XPATH, "//button[@ng-click='ok()' and contains(.,'Remove')]"),
+        By.XPATH, "//button[@ng-click='ok()']"),
 
     "system-groups.search": (
         By.XPATH, "//a[contains(@href,'system-groups') and contains(.,'%s')]"),
