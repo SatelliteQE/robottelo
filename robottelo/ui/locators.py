@@ -47,8 +47,7 @@ menu_locators = {
     "menu.life_cycle_environments": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//li[contains(@class,'menu_tab_katello')]"
-         "/a[@id='menu_item_environments']")),
+         "//a[@id='menu_item_environments']")),
     "menu.red_hat_subscriptions": (
         By.XPATH,
         ("//div[contains(@style,'static')]"
@@ -178,7 +177,8 @@ menu_locators = {
         "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
     "menu.domains": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_domains']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_domains']")),
 
     # Administer Menu
     "menu.administer": (
@@ -1168,6 +1168,10 @@ locators = {
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
+    "contentviews.remove": (
+        By.XPATH, "//button[@ui-sref='content-views.details.deletion']"),
+    "contentviews.confirm_remove": (
+        By.XPATH, "//button[@ng-click='delete()']"),
     "contentviews.publish": (
         By.XPATH, "//a[contains(@href, 'publish')]/span"),
     "contentviews.publish_comment": (By.ID, "comment"),
@@ -1282,4 +1286,50 @@ locators = {
         By.XPATH, "//button[@ng-click='addPackageGroups(filter)']"),
     "contentviews.remove_pkg_group": (
         By.XPATH, "//button[@ng-click='removePackageGroups(filter)']")
+
+    # System Groups
+    "system-groups.new": (
+        By.XPATH, "//button[@ui-sref='system-groups.new.form']"),
+    "system-groups.name": (By.ID, "name"),
+    "system-groups.description": (By.ID, "description"),
+    "system-groups.unlimited": (By.NAME, "limit"),
+    "system-groups.limit": (By.ID, "max_systems"),
+
+    "system-groups.remove": (
+        By.XPATH, "//button[@ng-disabled='!group.permissions.deletable']"),
+    "system-groups.confirm_remove": (
+        By.XPATH, "//button[@ng-click='ok()']"),
+
+    "system-groups.search": (
+        By.XPATH, "//a[contains(@href,'system-groups') and contains(.,'%s')]"),
+
+    "system-groups.update_name": (
+        By.XPATH, "//form[@alch-edit-text='group.name']//div/span/i"),
+    "system-groups.update_name_field": (
+        By.XPATH, "//form[@alch-edit-text='group.name']/div/input"),
+    "system-groups.update_name_save": (
+        By.XPATH, "//form[@alch-edit-text='group.name']"
+                  "//button[@ng-click='save()']"),
+
+    "system-groups.update_description": (
+        By.XPATH, "//form[@alch-edit-textarea='group.description']"
+                  "//div/span/i"),
+    "system-groups.update_description_field": (
+        By.XPATH, "//form[@alch-edit-textarea='group.description']"
+                  "//div/textarea"),
+    "system-groups.update_description_save": (
+        By.XPATH, "//form[@alch-edit-textarea='group.description']"
+                  "//button[@ng-click='save()']"),
+
+    "system-groups.update_limit": (
+        By.XPATH, "//div[@alch-edit-custom='group.max_systems']//div/span/i"),
+    "system-groups.update_limit_checkbox": (
+        By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
+                  "//div/input[@type='checkbox']"),
+    "system-groups.update_limit_field": (
+        By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
+                  "//div/input[@type='number']"),
+    "system-groups.update_limit_save": (
+        By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
+                  "//button[@ng-click='save()']"),
 }

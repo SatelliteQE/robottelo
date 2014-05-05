@@ -36,6 +36,7 @@ from robottelo.ui.role import Role
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
+from robottelo.ui.systemgroup import SystemGroup
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
@@ -123,6 +124,7 @@ class BaseUI(unittest.TestCase):
         self.subnet = Subnet(self.browser)
         self.sync = Sync(self.browser)
         self.syncplan = Syncplan(self.browser)
+        self.systemgroup = SystemGroup(self.browser)
         self.template = Template(self.browser)
         self.user = User(self.browser)
         self.usergroup = UserGroup(self.browser)
