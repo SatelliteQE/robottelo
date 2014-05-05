@@ -17,7 +17,7 @@ class Manifests():
     Handles Red Hat manifest files.
     """
 
-    def __init__(self):
+    def __init__(self, login=None, password=None):
         """
         Sets up initial configuration values
         """
@@ -25,8 +25,14 @@ class Manifests():
         self.api_url = conf.properties['stageportal.api']
         self.candlepin_url = conf.properties['stageportal.candlepin']
         self.portal_url = conf.properties['stageportal.customer.portal']
-        self.login = conf.properties['stageportal.customer.username']
-        self.password = conf.properties['stageportal.customer.password']
+        if login is not None:
+            self.login = login
+        else:
+            self.login = conf.properties['stageportal.customer.username']
+        if password is not None:
+            self.password = password
+        else:
+            self.password = conf.properties['stageportal.customer.password']
         self.distributor_name = conf.properties['stageportal.distributor.name']
         self.quantity = int(conf.properties['stageportal.subs.quantity'])
         self.verbosity = int(conf.properties['nosetests.verbosity'])

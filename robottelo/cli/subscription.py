@@ -21,7 +21,31 @@ class Subscription(Base):
         Upload a subscription manifest
         """
 
-        cls.command_sub = "remove_sync_plan"
+        cls.command_sub = "upload"
+
+        result = cls.execute(cls._construct_command(options))
+
+        return result
+
+    @classmethod
+    def delete_manifest(cls, options=None):
+        """
+        Deletes a subscription manifest
+        """
+
+        cls.command_sub = "delete-manifest"
+
+        result = cls.execute(cls._construct_command(options))
+
+        return result
+
+    @classmethod
+    def refresh_manifest(cls, options=None):
+        """
+        Refreshes a subscription manifest
+        """
+
+        cls.command_sub = "refresh-manifest"
 
         result = cls.execute(cls._construct_command(options))
 
