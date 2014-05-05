@@ -16,7 +16,7 @@ class EnvironmentKatelloApi(ApiCrud):
     api_path = ("/katello/api/v2/organizations/:organization.label/"
                 "environments/")
     api_json_key = u"environment"
-    create_fields = ["name", "label", "prior"]
+    create_fields = ["name", "organization_id", "label", "prior"]
 
 
 class EnvironmentKatello(records.Record):
