@@ -27,9 +27,9 @@ $ pip install -r requirements.txt
 
 **NOTE 1**: You may want to consider running ``yum groupinstall "Development Tools"`` for **Fedora/RHEL** or **Development** packages if installing python modules via pip for your OS.
 
-**NOTE 2**: You may also want to consider running ``yum install openssl-devel python-devel``  packages for ``python-stageportal`` installation.
+**NOTE 2**: You may also want to consider running ``yum install openssl-devel python-devel`` packages for ``python-stageportal`` installation.
 
-**NOTE 3**: Some of the modules that will be installed via the pip  command above are ``python-rhsm`` and ``python-stageportal``which are nnly required for certificates]
+**NOTE 3**: Some of the modules that will be installed via the pip  command above are ``python-rhsm`` and ``python-stageportal`` which are only required for certificates.
 
 Running the tests
 =================
