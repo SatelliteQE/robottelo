@@ -15,6 +15,30 @@ class ContentViews(Base):
     Manipulates Content Views from UI
     """
 
+    def go_to_filter_page(self, cv_name, filter_name):
+        """
+        Navigates UI to selected Filter page
+        """
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.find_element(tab_locators["contentviews.tab_content"]).click()
+            self.wait_until_element(locators
+                                    ["contentviews.content_filters"]).click()
+            self.wait_for_ajax()
+            strategy, value = locators["contentviews.select_filter_name"]
+            element = self.wait_until_element((strategy,
+                                               value % filter_name))
+            if element:
+                element.click()
+                self.wait_for_ajax()
+            else:
+                raise Exception(
+                    "Could not find filter with name '%s'" % filter_name)
+
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
 
@@ -409,11 +433,13 @@ class ContentViews(Base):
             self.find_element(locators["contentviews.less_max_value"]
                               ).send_keys(value2)
 
-    def add_packages_to_filter(self, package_names, version_types, values=None,
-                               max_values=None):
+    def add_packages_to_filter(self, cv_name, filter_name, package_names,
+                               version_types, values=None, max_values=None):
         """
         Adds packages to selected filter for inclusion/Exclusion
         """
+
+        self.go_to_filter_page(cv_name, filter_name)
         for package_name, version_type, value, max_value in zip(package_names,
                                                                 version_types,
                                                                 values,
@@ -428,3 +454,52 @@ class ContentViews(Base):
                                                   max_value)
             self.find_element(locators["contentviews.add_pkg_button"]).click()
             self.wait_for_ajax()
+
+    def remove_packages_from_filter(self, cv_name, filter_name, package_names):
+        """
+        Removes selected packages from selected package type filter
+        """
+
+        self.go_to_filter_page(cv_name, filter_name)
+        strategy, value = locators["contentviews.select_pkg_checkbox"]
+        for package in package_names:
+            element = self.wait_until_element((strategy, value % package))
+            if element:
+                element.click()
+            else:
+                raise Exception(
+                    "Could not find package with name '%s'" % package)
+            self.find_element(locators["contentviews.remove_packages"]).click()
+            self.wait_for_ajax()
+
+    def add_remove_package_groups_to_filter(self, cv_name, filter_name,
+                                            package_groups, is_add=True):
+        """
+        Add/Remove package groups to/from selected filter for
+        inclusion/Exclusion
+        """
+
+        self.go_to_filter_page(cv_name, filter_name)
+        if is_add:
+            self.wait_until_element(tab_locators
+                                    ["contentviews.tab_pkg_group_add"]).click()
+        else:
+            self.wait_until_element(tab_locators
+                                    ["contentviews.tab_pkg_group_remove"]
+                                    ).click()
+        self.wait_for_ajax()
+        strategy, value = locators["contentviews.select_pkg_group_checkbox"]
+        for package_group in package_groups:
+            element = self.wait_until_element((strategy,
+                                               value % package_group))
+            if element:
+                element.click()
+            else:
+                raise Exception(
+                    "Couldn't find pkg group with name '%s'" % package_group)
+        if is_add:
+            self.find_element(locators["contentviews.add_pkg_group"]).click()
+        else:
+            self.find_element(locators
+                              ["contentviews.remove_pkg_group"]).click()
+        self.wait_for_ajax()

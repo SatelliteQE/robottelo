@@ -165,12 +165,37 @@ class TestContentViewsUI(BaseUI):
                                                       filter_term=module_ver)
         self.assertIsNotNone(module)
 
-    @bzbug('1086187')
-    def test_create_package_filter_1(self):
+    def test_remove_filter(self):
         """
-        @test: create content views (positive)
+        @test: create empty content views filter and remove it(positive)
         @feature: Content Views
-        @assert: content views are created
+        @assert: content views filter removed successfully
+        """
+        cv_name = generate_string("alpha", 8)
+        filter_name = generate_string("alpha", 8)
+        content_type = FILTER_CONTENT_TYPE['package']
+        filter_type = FILTER_TYPE['exclude']
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.create(cv_name)
+        self.assertIsNotNone(self.content_views.search(cv_name))
+        self.content_views.add_filter(cv_name, filter_name,
+                                      content_type, filter_type)
+        # Navigating to dashboard is a workaround to
+        # refresh filters under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.remove_filter(cv_name, [filter_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+
+    def test_create_package_filter(self):
+        """
+        @test: create content views package filter(positive)
+        @feature: Content Views
+        @assert: content views filter created and selected packages
+        can be added for inclusion/exclusion
         """
 
         cv_name = generate_string("alpha", 8)
@@ -187,12 +212,55 @@ class TestContentViewsUI(BaseUI):
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
         self.setup_to_create_cv(cv_name, repo_name, repo_url)
+        # Navigating to dashboard is a workaround to
+        # refresh the repos under selected CV
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(cv_name, [repo_name])
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
-        self.content_views.add_packages_to_filter(package_names, version_types,
+        # Navigating to dashboard is a workaround to
+        # refresh the filters under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_packages_to_filter(cv_name, filter_name,
+                                                  package_names, version_types,
                                                   values, max_values)
+
+    def test_create_package_group_filter(self):
+        """
+        @test: create content views package group filter(positive)
+        @feature: Content Views
+        @assert: content views filter created and selected package groups
+        can be added for inclusion/exclusion
+        """
+        cv_name = generate_string("alpha", 8)
+        filter_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        content_type = FILTER_CONTENT_TYPE['package group']
+        filter_type = FILTER_TYPE['include']
+        package_group = 'mammals'
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.setup_to_create_cv(cv_name, repo_name, repo_url)
+        # Navigating to dashboard is a workaround to
+        # refresh the repos under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(cv_name, [repo_name])
+        self.content_views.add_filter(cv_name, filter_name,
+                                      content_type, filter_type)
+        # Navigating to dashboard is a workaround to
+        # refresh filters under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_package_groups_to_filter(cv_name,
+                                                               filter_name,
+                                                               [package_group])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
