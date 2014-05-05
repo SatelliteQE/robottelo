@@ -5,28 +5,18 @@
 from ddt import ddt
 from robottelo.common.decorators import data
 from tests.foreman.api.baseapi import BaseAPI
-from robottelo.common.helpers import is_bzbug
 from robottelo.records.domain import Domain
-from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.architecture import Architecture
 from robottelo.records.user import User
 from robottelo.records.role import add_permission_to_user
 from robottelo.api.apicrud import ApiCrud
 
 
-def test_data():
-    return [obj for obj, test in [
-        (Domain, True),
-        (Architecture, True),
-        (ContentViewDefinition, not is_bzbug("1092111"))]
-        if test]
-
-
 @ddt
 class TestPermission(BaseAPI):
     """Testing basic positive permissions"""
 
-    @data(*test_data())
+    @data(Domain, Architecture)
     def test_basic_create(self, test_data):
         """
         @feature: Permissions
@@ -52,7 +42,7 @@ class TestPermission(BaseAPI):
         created = ApiCrud.record_create(deps, user_definition)
         self.assertIntersects(deps, created)
 
-    @data(*test_data())
+    @data(Domain, Architecture)
     def test_basic_read(self, test_data):
         """
         @feature: Permissions
@@ -77,7 +67,7 @@ class TestPermission(BaseAPI):
         eres = ApiCrud.record_resolve(created, user_definition)
         self.assertIntersects(eres, created)
 
-    @data(*test_data())
+    @data(Domain, Architecture)
     def test_basic_remove(self, test_data):
         """
         @feature: Permissions
@@ -102,7 +92,7 @@ class TestPermission(BaseAPI):
         ApiCrud.record_remove(created, user_definition)
         self.assertFalse(ApiCrud.record_exists(created))
 
-    @data(*test_data())
+    @data(Domain, Architecture)
     def test_basic_update(self, test_data):
         """
         @feature: Permissions
