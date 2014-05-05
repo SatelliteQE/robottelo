@@ -8,7 +8,7 @@ from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.organization import Organization
 from robottelo.api.base import request
-
+from robottelo.api.apicrud import Task
 
 class ContentViewDefinitionApi(ApiCrud):
     """Content view api implementation utilizes :organization.label,
@@ -29,7 +29,7 @@ class ContentViewDefinitionApi(ApiCrud):
         id = instance.id
         url = "/katello/api/v2/content_views/{0}/publish".format(id)
         result = request('post', path=url)
-        return result.json()
+        return Task(result.json())
 
 
 class ContentViewDefinition(records.Record):

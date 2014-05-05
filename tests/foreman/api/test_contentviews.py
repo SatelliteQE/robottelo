@@ -340,7 +340,9 @@ class TestContentView(BaseAPI):
 
         con_view = ApiCrud.record_create_recursive(data)
         self.assertIntersects(data, con_view)
-        con_view._meta.api_class.publish(con_view)
+        task = con_view._meta.api_class.publish(con_view)
+        task.poll(5,100) # poll every 5th second, max of 100 seconds
+        self.assertEqual('success', task.result())
 
     @stubbed
     def test_cv_publish_rh_custom_spin(self):
