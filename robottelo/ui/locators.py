@@ -1285,7 +1285,7 @@ locators = {
     "contentviews.add_pkg_group": (
         By.XPATH, "//button[@ng-click='addPackageGroups(filter)']"),
     "contentviews.remove_pkg_group": (
-        By.XPATH, "//button[@ng-click='removePackageGroups(filter)']")
+        By.XPATH, "//button[@ng-click='removePackageGroups(filter)']"),
 
     # System Groups
     "system-groups.new": (
