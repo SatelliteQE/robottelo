@@ -36,6 +36,7 @@ class Manifests():
         self.distributor_name = conf.properties['stageportal.distributor.name']
         self.quantity = int(conf.properties['stageportal.subs.quantity'])
         self.verbosity = int(conf.properties['nosetests.verbosity'])
+        self.prd_id = conf.properties['stageportal.sku.id']
         self.sp = stageportal.SMPortal(
             api_url=self.api_url,
             candlepin_url=self.candlepin_url,
@@ -55,7 +56,7 @@ class Manifests():
         ds_uuid = self.sp.create_distributor(self.distributor_name)
         return ds_uuid
 
-    def attach_subscriptions(self, ds_uuid=None, quantity=None):
+    def attach_subscriptions(self, ds_uuid=None, quantity=None, basic=True):
         """
         Attaches all the available subscriptions with the specified quantity
         to the specified distributor uuid.
@@ -64,20 +65,22 @@ class Manifests():
         if quantity is not None:
             self.quantity = int(quantity)
         available_subs = self.sp.distributor_available_subscriptions(ds_uuid)
+        subs = []
         for sub in available_subs:
             if sub['quantity'] >= self.quantity:
-                subs = [{'id': sub['id'],
-                         'quantity': self.quantity}]
-                attach_subs = self.sp.distributor_attach_subscriptions(ds_uuid,
-                                                                       subs)
-                if attach_subs != "<Response [200]>":
-                    self.logger.error(
-                        "Attaching subscription %s failed." % sub['id'])
+                if basic:
+                    if sub['productId'] == self.prd_id:
+                        subs = [{'id': sub['id'],
+                                 'quantity': self.quantity}]
+                        break
+                else:
+                    subs_dict = {'id': sub['id'],
+                                 'quantity': self.quantity}
+                    subs.append(subs_dict)
             else:
                 self.logger.debug("Specified quantity : %s, is more than the \
                 available quantity: %s" % (self.quantity, sub['quantity']))
-        attached_subs = self.sp.distributor_attached_subscriptions(ds_uuid)
-        return attached_subs
+        self.sp.distributor_attach_subscriptions(ds_uuid, subs)
 
     def download_manifest(self, ds_uuid=None):
         """
@@ -112,7 +115,7 @@ class Manifests():
 
         return self.sp.delete_distributor(ds_uuid)
 
-    def fetch_manifest(self, ds_name=None):
+    def fetch_manifest(self, ds_name=None, basic=True):
         """
         Fetches the manifest with the specified distributor name.
         It internally creates the distributor, attaches subscriptions,
@@ -127,7 +130,8 @@ class Manifests():
         else:
             self.distributor_name = generate_string("alpha", 8)
         ds_uuid = self.create_distributor(self.distributor_name)
-        self.attach_subscriptions(ds_uuid=ds_uuid, quantity=self.quantity)
+        self.attach_subscriptions(ds_uuid=ds_uuid, quantity=self.quantity,
+                                  basic=basic)
         ds_path = self.download_manifest(ds_uuid)
         distributor['path'] = ds_path
         distributor['uuid'] = ds_uuid
