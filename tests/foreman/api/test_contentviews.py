@@ -6,9 +6,10 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, bzbug
 from robottelo.records.environment import EnvironmentKatello
 from robottelo.records.content_view_definition import ContentViewDefinition
+from robottelo.records.system import System
 from robottelo.common.decorators import stubbed
 
 from tests.foreman.api.baseapi import BaseAPI
@@ -316,8 +317,8 @@ class TestContentView(BaseAPI):
             1,
             created_env.id
             )
-        self.assertTrue(
-            'errors' in task.json,
+        self.assertIn(
+            'errors', task.json,
             "Default cv shouldn't be promoted")
 
     @stubbed
@@ -333,8 +334,8 @@ class TestContentView(BaseAPI):
             1,
             created_env.id
             )
-        self.assertTrue(
-            'errors' in task.json,
+        self.assertIn(
+            'errors', task.json,
             "Invalid id shouldn't be promoted")
 
     def test_cv_promote_badenvironment_negative(self):
@@ -354,8 +355,8 @@ class TestContentView(BaseAPI):
             -1
             )
 
-        self.assertTrue(
-            'errors' in task.json,
+        self.assertIn(
+            'errors', task.json,
             "Shouldn't be promoted to invalid env")
 
     # Content Views: publish
@@ -510,6 +511,20 @@ class TestContentView(BaseAPI):
         @assert: Systems can be subscribed to content view(s)
         @status: Manual
         """
+
+    @bzbug('1094758')
+    def test_custom_cv_subscribe_system(self):
+        """
+        @test: attempt to  subscribe systems to content view(s)
+        @feature: Content Views
+        @assert: Systems can be subscribed to content view(s)
+        """
+        s = System()
+        scd = ApiCrud.record_create_dependencies(s)
+        task = scd.content_view._meta.api_class.publish(scd.content_view)
+        task.poll(5, 100)
+        scc = ApiCrud.record_create(scd)
+        self.assertIntersects(s, scc)
 
     @stubbed
     def test_cv_dynflow_restart_promote(self):
