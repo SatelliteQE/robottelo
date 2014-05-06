@@ -13,7 +13,8 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from robottelo.common.constants import NOT_IMPLEMENTED, REPO_TYPE
+from robottelo.common.constants import (NOT_IMPLEMENTED, REPO_TYPE,
+                                        FILTER_CONTENT_TYPE, FILTER_TYPE)
 from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import (generate_string, valid_names_list,
                                       invalid_names_list)
@@ -37,6 +38,29 @@ class TestContentViewsUI(BaseUI):
             TestContentViewsUI.org_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=TestContentViewsUI.org_name)
+
+    def setup_to_create_cv(self, cv_name, repo_name=None,
+                           repo_url=None, repo_type=None):
+        """
+        Create product/repo and sync it and create CV
+        """
+        cv_name = cv_name or generate_string("alpha", 8)
+        repo_name = repo_name or generate_string("alpha", 8)
+        prd_name = generate_string("alpha", 8)
+        repo_url = repo_url or "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        repo_type = repo_type or REPO_TYPE['yum']
+        self.navigator.go_to_products()
+        self.products.create(prd_name)
+        self.assertIsNotNone(self.products.search(prd_name))
+        self.repository.create(repo_name, product=prd_name, url=repo_url,
+                               repo_type=repo_type)
+        self.assertIsNotNone(self.repository.search(repo_name))
+        self.navigator.go_to_sync_status()
+        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
+        self.assertIsNotNone(sync)
+        self.navigator.go_to_content_views()
+        self.content_views.create(cv_name)
+        self.assertIsNotNone(self.content_views.search(cv_name))
 
     @bzbug('1083086')
     @data(*valid_names_list())
@@ -94,7 +118,6 @@ class TestContentViewsUI(BaseUI):
         """
 
         repo_name = generate_string("alpha", 8)
-        prd_name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         name = generate_string("alpha", 8)
@@ -105,24 +128,15 @@ class TestContentViewsUI(BaseUI):
         self.contentenv.create(env_name)
         self.assertTrue(self.contentenv.wait_until_element
                         (common_locators["alert.success"]))
-        self.navigator.go_to_products()
-        self.products.create(prd_name)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
-        self.navigator.go_to_content_views()
-        self.content_views.create(name)
+        self.setup_to_create_cv(name, repo_name, repo_url)
         # Navigating to dashboard is a workaround to
-        # refresh the repos under selected CV
+        # refresh filters under selected CV
         self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(name, [repo_name])
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
-        self.content_views.publish(name, "publishing version_1")
+        self.content_views.publish(name)
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
         self.content_views.promote(name, publish_version, env_name)
@@ -138,31 +152,117 @@ class TestContentViewsUI(BaseUI):
         @assert: content view is created, updated with puppet module
         """
 
-        repo_name = generate_string("alpha", 8)
-        prd_name = generate_string("alpha", 8)
-        url = "http://davidd.fedorapeople.org/repos/random_puppet/"
+        repo_url = "http://davidd.fedorapeople.org/repos/random_puppet/"
         name = generate_string("alpha", 8)
         puppet_module = "httpd"
         module_ver = 'Latest'
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=url,
-                               repo_type=REPO_TYPE['puppet'])
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
-        self.navigator.go_to_content_views()
-        self.content_views.create(name)
+        self.setup_to_create_cv(name, repo_url=repo_url,
+                                repo_type=REPO_TYPE['puppet'])
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
         module = self.content_views.add_puppet_module(name,
                                                       puppet_module,
                                                       filter_term=module_ver)
         self.assertIsNotNone(module)
+
+    def test_remove_filter(self):
+        """
+        @test: create empty content views filter and remove it(positive)
+        @feature: Content Views
+        @assert: content views filter removed successfully
+        """
+        cv_name = generate_string("alpha", 8)
+        filter_name = generate_string("alpha", 8)
+        content_type = FILTER_CONTENT_TYPE['package']
+        filter_type = FILTER_TYPE['exclude']
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.content_views.create(cv_name)
+        self.assertIsNotNone(self.content_views.search(cv_name))
+        self.content_views.add_filter(cv_name, filter_name,
+                                      content_type, filter_type)
+        # Navigating to dashboard is a workaround to
+        # refresh filters under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.remove_filter(cv_name, [filter_name])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
+
+    def test_create_package_filter(self):
+        """
+        @test: create content views package filter(positive)
+        @feature: Content Views
+        @assert: content views filter created and selected packages
+        can be added for inclusion/exclusion
+        """
+
+        cv_name = generate_string("alpha", 8)
+        filter_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        content_type = FILTER_CONTENT_TYPE['package']
+        filter_type = FILTER_TYPE['include']
+        package_names = ['cow', 'bird', 'crow', 'bear']
+        version_types = ['Equal To', 'Greater Than', 'Less Than', 'Range']
+        values = ['0.3', '0.5', '0.5', '4.1']
+        max_values = [None, None, None, '4.6']
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.setup_to_create_cv(cv_name, repo_name, repo_url)
+        # Navigating to dashboard is a workaround to
+        # refresh the repos under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(cv_name, [repo_name])
+        self.content_views.add_filter(cv_name, filter_name,
+                                      content_type, filter_type)
+        # Navigating to dashboard is a workaround to
+        # refresh the filters under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_packages_to_filter(cv_name, filter_name,
+                                                  package_names, version_types,
+                                                  values, max_values)
+
+    def test_create_package_group_filter(self):
+        """
+        @test: create content views package group filter(positive)
+        @feature: Content Views
+        @assert: content views filter created and selected package groups
+        can be added for inclusion/exclusion
+        """
+        cv_name = generate_string("alpha", 8)
+        filter_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        content_type = FILTER_CONTENT_TYPE['package group']
+        filter_type = FILTER_TYPE['include']
+        package_group = 'mammals'
+        self.login.login(self.katello_user, self.katello_passwd)
+        self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_content_views()
+        self.setup_to_create_cv(cv_name, repo_name, repo_url)
+        # Navigating to dashboard is a workaround to
+        # refresh the repos under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_repos(cv_name, [repo_name])
+        self.content_views.add_filter(cv_name, filter_name,
+                                      content_type, filter_type)
+        # Navigating to dashboard is a workaround to
+        # refresh filters under selected CV
+        self.navigator.go_to_dashboard()
+        self.navigator.go_to_content_views()
+        self.content_views.add_remove_package_groups_to_filter(cv_name,
+                                                               filter_name,
+                                                               [package_group])
+        self.assertTrue(self.content_views.wait_until_element
+                        (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
@@ -227,26 +327,15 @@ class TestContentViewsUI(BaseUI):
         @assert: Composite content views are created
         """
 
-        repo_name = generate_string("alpha", 8)
-        prd_name = generate_string("alpha", 8)
-        url = "http://davidd.fedorapeople.org/repos/random_puppet/"
+        repo_url = "http://davidd.fedorapeople.org/repos/random_puppet/"
         puppet_module = "httpd"
         module_ver = 'Latest'
         cv_name = generate_string("alpha", 8)
         composite_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=url,
-                               repo_type=REPO_TYPE['puppet'])
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
-        self.navigator.go_to_content_views()
-        self.content_views.create(cv_name)
+        self.setup_to_create_cv(cv_name, repo_url=repo_url,
+                                repo_type=REPO_TYPE['puppet'])
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
         module = self.content_views.add_puppet_module(cv_name,

@@ -364,6 +364,10 @@ tab_locators = {
         "//a[contains(@ui-sref, 'content-views.available')]"),
     "contentviews.tab_cv_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'content-views.list')]"),
+    "contentviews.tab_pkg_group_add": (
+        By.XPATH, "//a[contains(@ui-sref, 'package_group.available')]"),
+    "contentviews.tab_pkg_group_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'package_group.list')]"),
 
     # Sync Plans
     # Third level UI
@@ -1232,6 +1236,57 @@ locators = {
         By.XPATH, "//button[@ng-click='removeContentViews()']"),
     "contentviews.cv_filter": (
         By.XPATH, "//input[@ng-model='contentViewVersionFilter']"),
+    "contentviews.content_filters": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href, 'filters')]"),
+    "contentviews.new_filter": (
+        By.XPATH, "//button[contains(@ui-sref, 'filters.new')]"),
+    "contentviews.content_type": (By.ID, "type"),
+    "contentviews.type": (By.ID, "inclusion"),
+    "contentviews.select_filter_checkbox": (
+        By.XPATH,
+        ("//tr[@row-select='filter']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.remove_filter": (
+        By.XPATH, "//button[@ng-click='removeFilters()']"),
+    "contentviews.select_filter_name": (
+        By.XPATH, "//div[@data-block='table']//td/a[contains(., '%s')]"),
+    "contentviews.input_pkg_name": (
+        By.XPATH, "//input[@ng-model='rule.name']"),
+    "contentviews.select_pkg_version": (
+        By.XPATH, "//select[@ng-model='rule.type']"),
+    "contentviews.add_pkg_button": (
+        By.XPATH, "//button[@ng-click='addRule(rule, filter)']"),
+    "contentviews.equal_value": (
+        By.XPATH, "//input[@ng-model='rule.version']"),
+    "contentviews.greater_min_value": (
+        By.XPATH, "//input[@ng-model='rule.min_version']"),
+    "contentviews.less_max_value": (
+        By.XPATH, "//input[@ng-model='rule.max_version']"),
+    "contentviews.select_pkg_checkbox": (
+        By.XPATH,
+        ("//tr[@row-select='rule']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.remove_packages": (
+        By.XPATH, "//button[@ng-click='removeRules(filter)']"),
+    "contentviews.affected_repos": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'filters.details.rpm.repositories')]"),
+    "contentviews.show_repos": (
+        By.XPATH, "//input[@ng-model='showRepos']"),
+    "contentviews.select_pkg_group_checkbox": (
+        By.XPATH,
+        ("//tr[@row-select='packageGroup']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.add_pkg_group": (
+        By.XPATH, "//button[@ng-click='addPackageGroups(filter)']"),
+    "contentviews.remove_pkg_group": (
+        By.XPATH, "//button[@ng-click='removePackageGroups(filter)']"),
 
     # System Groups
     "system-groups.new": (
