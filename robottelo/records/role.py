@@ -44,3 +44,14 @@ class Role(records.Record):
         """Linking record definition with api implementation.
         """
         api_class = RolesApi
+
+
+def add_permission_to_user(user_created, perm):
+    role = Role()
+    created_role = ApiCrud.record_create(role)
+    flter = Filter()
+    flter.role_id = created_role.id
+    flter.permission_ids = [perm.id]
+    ApiCrud.record_create(flter)
+    user_created.role_ids = [created_role.id]
+    ApiCrud.record_update(user_created)

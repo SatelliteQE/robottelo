@@ -129,7 +129,9 @@ class TestContentViewsUI(BaseUI):
         self.assertTrue(self.contentenv.wait_until_element
                         (common_locators["alert.success"]))
         self.setup_to_create_cv(name, repo_name, repo_url)
-        self.navigator.go_to_select_org(self.org_name)
+        # Navigating to dashboard is a workaround to
+        # refresh filters under selected CV
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(name, [repo_name])
         self.assertTrue(self.content_views.wait_until_element

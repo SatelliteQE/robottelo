@@ -27,7 +27,9 @@ $ pip install -r requirements.txt
 
 **NOTE 1**: You may want to consider running ``yum groupinstall "Development Tools"`` for **Fedora/RHEL** or **Development** packages if installing python modules via pip for your OS.
 
-**NOTE 2**: Some of the modules that will be installed via the pip  command above are ``python-rhsm`` and ``python-stageportal``which are nnly required for certificates]
+**NOTE 2**: You may also want to consider running ``yum install openssl-devel python-devel`` packages for ``python-stageportal`` installation.
+
+**NOTE 3**: Some of the modules that will be installed via the pip  command above are ``python-rhsm`` and ``python-stageportal`` which are only required for certificates.
 
 Running the tests
 =================
@@ -64,37 +66,37 @@ $ nosetests -c robottelo.properties
 The test arguments can be either the path to the ``tests`` directory or Python import-like style:
 
 ```bash
-$ nosetests -c robottelo.properties tests/cli/test_user.py
-$ nosetests -c robottelo.properties tests.cli.test_user
+$ nosetests -c robottelo.properties tests/foreman/cli/test_user.py
+$ nosetests -c robottelo.properties tests.foreman.cli.test_user
 ```
 
-Run all cli tests (all modules under tests/cli path):
+Run all cli tests (all modules under tests/foreman/cli path):
 
 ```bash
-$ nosetests -c robottelo.properties tests/cli
+$ nosetests -c robottelo.properties tests/foreman/cli
 ```
 
-Run all UI tests (all modules under tests/ui path):
+Run all UI tests (all modules under tests/foreman/ui path):
 
 ```bash
-$ nosetests -c robottelo.properties tests/ui
+$ nosetests -c robottelo.properties tests/foreman/ui
 ```
 
 Multiple tests can also be invoked:
 
 ```bash
-$ nosetests -c robottelo.properties tests.cli.test_user tests.cli.test_model
+$ nosetests -c robottelo.properties tests.foreman.cli.test_user tests.foreman.cli.test_model
 ```
 
 Running individual test:
 
 ```bash
-$ nosetests -c robottelo.properties tests.cli.test_user:TestUser.test_create_user_utf8
+$ nosetests -c robottelo.properties tests.foreman.cli.test_user:TestUser.test_create_user_utf8
 ```
-Many of the existing tests use the [DDT](http://ddt.readthedocs.org/en/latest/) module to allow for a more data-driven methodology and in order to run a specific test you need override the way ``nosetests`` discovers test names. For instance, if you wanted to run only the ``test_positive_create_1`` data-driven tests for the ``cli/test_org.py`` module:
+Many of the existing tests use the [DDT](http://ddt.readthedocs.org/en/latest/) module to allow for a more data-driven methodology and in order to run a specific test you need override the way ``nosetests`` discovers test names. For instance, if you wanted to run only the ``test_positive_create_1`` data-driven tests for the ``foreman/cli/test_org.py`` module:
 
 ```bash
-$ nosetests -c robottelo.properties -m test_positive_create_1 tests/cli/test_org.py
+$ nosetests -c robottelo.properties -m test_positive_create_1 tests/foreman/cli/test_org.py
 ```
 
 Testing with unittest module
@@ -102,21 +104,21 @@ Testing with unittest module
 Tests can also be run using Python's **unittest** module:
 
 ```bash
-$ python -m unittest tests.cli.test_user
-$ python -m unittest tests.cli.test_user.TestUser
-$ python -m unittest tests.cli.test_user.TestUser.test_create_user_utf8
+$ python -m unittest tests.foreman.cli.test_user
+$ python -m unittest tests.foreman.cli.test_user.TestUser
+$ python -m unittest tests.foreman.cli.test_user.TestUser.test_create_user_utf8
 ```
 
 Multiple tests can also be invoked:
 
 ```bash
-$ python -m unittest tests.cli.test_user tests.cli.test_model
+$ python -m unittest tests.foreman.cli.test_user tests.foreman..cli.test_model
 ```
 
 If you want a more verbose output:
 
 ```bash
-$ python -m unittest -v tests.cli.test_user
+$ python -m unittest -v tests.foreman.cli.test_user
 ```
 
 If you have at least Python 2.7 installed, you can take advantage of unittest simple test dicovery:
@@ -125,16 +127,16 @@ If you have at least Python 2.7 installed, you can take advantage of unittest si
 $ python -m unittest discover
 ```
 
-Run all cli tests (all modules under tests/cli path):
+Run all cli tests (all modules under tests/foreman/cli path):
 
 ```bash
-$ python -m unittest discover tests/cli
+$ python -m unittest discover tests/foreman/cli
 ```
 
-Run all UI tests (all modules under tests/ui path):
+Run all UI tests (all modules under tests/foreman/ui path):
 
 ```bash
-$ python -m unittest discover tests/ui
+$ python -m unittest discover tests/foreman/ui
 ```
 
 If you want a more verbose output:

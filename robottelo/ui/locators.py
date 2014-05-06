@@ -1201,7 +1201,8 @@ locators = {
     "contentviews.promote_button": (
         By.XPATH,
         ("//table[@alch-table='table']//tr/td[contains(., '%s')]"
-         "/following-sibling::td[@class='col-sm-1']/a/button")),
+         "/following-sibling::td[@class='col-sm-2']"
+         "/a[contains(@ui-sref, promotion)]/button")),
     "contentviews.env_to_promote": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
