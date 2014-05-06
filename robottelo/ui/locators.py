@@ -388,7 +388,13 @@ tab_locators = {
     "ak.subscriptions_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'subscriptions.list')]"),
     "ak.system_groups": (
-        By.XPATH, "//a[contains(@href, 'system-groups')]")}
+        By.XPATH, "//a[contains(@href, 'system-groups')]"),
+
+    # Manifest / subscriptions
+    "subs.tab_details": (
+        By.XPATH, "//a[contains(@ui-sref,'manifest.details')]"),
+    "subs.import_history": (
+        By.XPATH, "//a[contains(@ui-sref,'manifest.history')]")}
 
 common_locators = {
 
@@ -1277,4 +1283,23 @@ locators = {
     "system-groups.update_limit_save": (
         By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
                   "//button[@ng-click='save()']"),
-}
+
+    # Manifests / subscriptions
+    "subs.delete_manifest": (
+        By.XPATH, "//button[contains(@ng-click,'deleteManifest')]"),
+    "subs.refresh_manifest": (
+        By.XPATH, "//button[contains(@ng-click,'refreshManifest')]"),
+    "subs.manage_manifest": (
+        By.XPATH, "//button[contains(@ui-sref,'manifest.import')]"),
+    "subs.repo_url_edit": (
+        By.XPATH, ("//form[contains(@alch-edit-text,'redhat_repository_url')]"
+                   "//i[contains(@class,'icon-edit')]")),
+    "subs.file_path": (
+        By.XPATH, ("//input[@name='content']")),
+    "subs.upload": (
+        By.XPATH, "//div[@class='control-button']/button[@class='primary']"),
+    "subs.repo_url_update": (
+        By.XPATH, ("//form[contains(@alch-edit-text,'redhat_repository_url')]"
+                   "//div/input")),
+    "subs.manifest_exists": (
+        By.XPATH, "//a[contains(@href,'distributors')]")}
