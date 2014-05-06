@@ -38,6 +38,9 @@ class ContentViews(Base):
             else:
                 raise Exception(
                     "Could not find filter with name '%s'" % filter_name)
+        else:
+            raise Exception(
+                "Couldn't find the selected CV '%s'" % cv_name)
 
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
@@ -434,6 +437,12 @@ class ContentViews(Base):
         """
         Select package version and set values:
         versions are: 'All'  'Equal To' 'Greater Than' 'Less Than' 'Range'
+
+        'value1' should contain version value for types:
+        'Equal To' 'Greater Than' 'Less Than'
+
+        'value2' should only be used with type 'Range' to
+        define range of versions
         """
 
         if version_type == 'Equal To':
@@ -450,6 +459,9 @@ class ContentViews(Base):
                               ).send_keys(value1)
             self.find_element(locators["contentviews.less_max_value"]
                               ).send_keys(value2)
+        else:
+            raise Exception(
+                "Couldn't find valid version type")
 
     def add_packages_to_filter(self, cv_name, filter_name, package_names,
                                version_types, values=None, max_values=None):
