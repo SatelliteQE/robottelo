@@ -22,7 +22,7 @@ class OrganizationApi(ApiCrud):
     api_path = "/katello/api/v2/organizations/"
     api_json_key = u"organization"
     create_fields = ["name", "label", "description"]
-    update_fields = ["name", "description"]
+    update_fields = ["name", "description", 'label']
 
 
 class Organization(records.Record):
