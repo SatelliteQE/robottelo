@@ -62,6 +62,16 @@ def runIf(project):
     return unittest.skip("%s specific test." % project)
 
 
+def skipRemote(func):
+    """Decorator to skip tests based on whether server is remote,
+    Remote in the sense whether it is Sauce Labs"""
+
+    remote = int(conf.properties['main.remote'])
+    return unittest.skipIf(
+        remote == 1,
+        "Skipping as setup related to sauce labs is missing")(func)
+
+
 _bugzilla = {}
 
 

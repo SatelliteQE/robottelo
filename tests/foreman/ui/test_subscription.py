@@ -4,6 +4,7 @@ Test class for Subscriptions/Manifests UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
+from robottelo.common.decorators import skipRemote
 from robottelo.common.helpers import generate_string
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
@@ -29,6 +30,7 @@ class Subscription(BaseUI):
             with Session(self.browser) as session:
                 make_org(session, org_name=Subscription.org_name)
 
+    @skipRemote
     @attr('ui', 'subs', 'implemented')
     def test_positive_upload_1(self):
         """
@@ -52,6 +54,7 @@ class Subscription(BaseUI):
         finally:
             manifest.delete_distributor(ds_uuid=mdetails['uuid'])
 
+    @skipRemote
     @attr('ui', 'subs', 'implemented')
     def test_positive_delete_1(self):
         """
