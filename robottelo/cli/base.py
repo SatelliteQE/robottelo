@@ -6,9 +6,39 @@ Generic base class for cli hammer commands
 """
 
 import logging
+import importlib
 
 from robottelo.common import conf, ssh
 from robottelo.common.helpers import info_dictionary
+
+
+class CliMeta(type):
+    def __getattr__(cls, name):
+        module = importlib.import_module(
+            "robottelo.cli.{0}".format(name.lower()))
+        nclass = module.__dict__[name]
+        return nclass.with_user(
+            cls.katello_user,
+            cls.katello_passwd)
+
+
+class Cli(object):
+    __metaclass__ = CliMeta
+
+    katello_user = conf.properties['foreman.admin.username']
+    katello_passwd = conf.properties['foreman.admin.password']
+
+    @classmethod
+    def with_user(cls, username=None, password=None):
+        if username is None:
+            username = cls.katello_user
+        if password is None:
+            password = cls.katello_passwd
+
+        class NUserBase(cls):
+            katello_user = username
+            katello_passwd = password
+        return NUserBase
 
 
 class Base(object):
