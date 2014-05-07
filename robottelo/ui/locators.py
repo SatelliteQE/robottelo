@@ -921,7 +921,7 @@ locators = {
         "//button[@ui-sref='activation-keys.index']"),
     "ak.ak_name": (
         By.XPATH,
-        "//tr[@row-select='activationKey']/td[2]/a[contains(., '%s')]"),
+        "//tr/td/a[contains(., '%s')]"),
     "ak.select_ak_name": (
         By.XPATH,
         "//input[@ng-model='activationKey.selected']"),
