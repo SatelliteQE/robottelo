@@ -63,8 +63,7 @@ class TestContentHost(BaseCLI):
         if not options.get('environment-id', None):
             library_result = LifecycleEnvironment.info(
                 {'organization-id': self.org['label'],
-                 'name': 'Library'
-             }
+                 'name': 'Library'}
             )
             self.assertEqual(
                 library_result.return_code,
