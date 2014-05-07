@@ -71,15 +71,20 @@ connection = _get_connection()
 
 def upload_file(local_file, remote_file=None):
     """
-    Uploads a remote file to a server.
+    Uploads a remote file to a normal server or
+    uploads a file to sauce labs via VPN tunnel.
     """
+
+    remote = int(conf.properties['main.remote'])
 
     if not remote_file:
         remote_file = local_file
 
-    sftp = connection.open_sftp()
-    sftp.put(local_file, remote_file)
-    sftp.close()
+    if not remote:
+        sftp = connection.open_sftp()
+        sftp.put(local_file, remote_file)
+        sftp.close()
+    # TODO: Upload file to sauce labs via VPN tunnel in the else part.
 
 
 def command(cmd, hostname=None, expect_csv=False, timeout=50):

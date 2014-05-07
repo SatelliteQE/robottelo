@@ -38,3 +38,4 @@ customer.username=username
 customer.password=password
 distributor.name=ds_name
 subs.quantity=5
+sku.id=XXXXXXX
