@@ -9,6 +9,7 @@ from robottelo.api.apicrud import ApiCrud
 from robottelo.records.organization import Organization
 from robottelo.api.base import request
 from robottelo.records.permission import PermissionList
+from robottelo.api.apicrud import Task
 
 
 class ContentViewDefinitionApi(ApiCrud):
@@ -32,7 +33,16 @@ class ContentViewDefinitionApi(ApiCrud):
         id = instance.id
         url = "/katello/api/v2/content_views/{0}/publish".format(id)
         result = request('post', path=url)
-        return result.json()
+        return Task(result.json())
+
+    @classmethod
+    def promote(cls, version_id, environment_id):
+        js = {'environment_id': environment_id}
+        url = "/katello/api/v2/content_view_versions/{0}/promote".format(
+            version_id
+        )
+        result = request('post', path=url, json=js)
+        return Task(result.json())
 
 
 class ContentViewDefinition(records.Record):
