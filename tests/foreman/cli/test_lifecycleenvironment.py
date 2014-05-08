@@ -271,6 +271,7 @@ class TestLifeCycleEnvironment(BaseCLI):
             len(result.stderr), 0, "There should be an error here"
         )
 
+    @bzbug('1095937')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -284,6 +285,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Test: Create lifecycle environment then update its name
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment name is updated
+        @BZ: 1095937
         """
 
         payload = {
@@ -334,6 +336,7 @@ class TestLifeCycleEnvironment(BaseCLI):
             "Name should have been updated"
         )
 
+    @bzbug('1095937')
     @data(
         {'description': generate_string("alpha", 15)},
         {'description': generate_string("alphanumeric", 15)},
@@ -347,6 +350,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Test: Create lifecycle environment then update its description
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment description is updated
+        @BZ: 1095937
         """
 
         payload = {
