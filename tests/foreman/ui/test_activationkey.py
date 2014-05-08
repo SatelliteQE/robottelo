@@ -65,7 +65,9 @@ class ActivationKey(BaseUI):
         self.assertIsNotNone(sync)
         self.navigator.go_to_content_views()
         self.content_views.create(name)
-        self.navigator.go_to_select_org(self.org_name)
+        # Navigating to dashboard is a workaround to
+        # refresh the repos under selected CV
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(name, [repo_name])
         self.assertTrue(self.content_views.wait_until_element
@@ -811,7 +813,9 @@ class ActivationKey(BaseUI):
         self.assertIsNotNone(sync)
         self.navigator.go_to_content_views()
         self.content_views.create(cv_name)
-        self.navigator.go_to_select_org(self.org_name)
+        # Navigating to dashboard is a workaround to
+        # refresh repos under selected CV
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(cv_name, [repo_name])
         self.assertTrue(self.content_views.wait_until_element

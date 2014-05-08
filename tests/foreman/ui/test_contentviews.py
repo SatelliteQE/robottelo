@@ -160,7 +160,9 @@ class TestContentViewsUI(BaseUI):
         self.navigator.go_to_select_org(self.org_name)
         self.setup_to_create_cv(name, repo_url=repo_url,
                                 repo_type=REPO_TYPE['puppet'])
-        self.navigator.go_to_select_org(self.org_name)
+        # Navigating to dashboard is a workaround to
+        # refresh modules under selected CV
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         module = self.content_views.add_puppet_module(name,
                                                       puppet_module,
@@ -336,7 +338,9 @@ class TestContentViewsUI(BaseUI):
         self.navigator.go_to_select_org(self.org_name)
         self.setup_to_create_cv(cv_name, repo_url=repo_url,
                                 repo_type=REPO_TYPE['puppet'])
-        self.navigator.go_to_select_org(self.org_name)
+        # Navigating to dashboard is a workaround to
+        # refresh puppet modules under selected CV
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         module = self.content_views.add_puppet_module(cv_name,
                                                       puppet_module,
@@ -344,7 +348,9 @@ class TestContentViewsUI(BaseUI):
         self.assertIsNotNone(module)
         self.content_views.publish(cv_name)
         self.content_views.create(composite_name, is_composite=True)
-        self.navigator.go_to_select_org(self.org_name)
+        # Navigating to dashboard is a workaround to
+        # refresh CV's under selected composite-view
+        self.navigator.go_to_dashboard()
         self.navigator.go_to_content_views()
         self.content_views.add_remove_cv(composite_name, [cv_name])
         self.assertTrue(self.content_views.wait_until_element

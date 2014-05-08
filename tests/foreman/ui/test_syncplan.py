@@ -350,8 +350,6 @@ class Syncplan(BaseUI):
                                                         value % prd_name))
         self.assertTrue(prd_element)
         self.syncplan.update(plan_name, rm_products=[prd_name])
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_sync_plans()
         self.syncplan.search(plan_name).click()
         self.syncplan.wait_for_ajax()
         self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
