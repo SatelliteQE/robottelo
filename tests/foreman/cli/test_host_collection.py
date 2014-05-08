@@ -2,40 +2,39 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Test class for Product CLI
+Test class for Host Collection CLI
 """
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.cli.factory import make_org, make_system_group
-from robottelo.cli.systemgroup import SystemGroup
+from robottelo.cli.factory import make_org, make_host_collection
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.common.decorators import data, bzbug
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 
-@bzbug('1084240')
 @ddt
-class TestSystemGroup(BaseCLI):
+class TestHostCollection(BaseCLI):
     """
-    System Group CLI tests.
+    Host Collection CLI tests.
     """
 
     org = None
 
     def setUp(self):
         """
-        Tests for System Groups via Hammer CLI
+        Tests for Host Collections via Hammer CLI
         """
 
-        super(TestSystemGroup, self).setUp()
+        super(TestHostCollection, self).setUp()
 
-        if TestSystemGroup.org is None:
-            TestSystemGroup.org = make_org()
+        if TestHostCollection.org is None:
+            TestHostCollection.org = make_org()
 
-    def _new_system_group(self, options=None):
+    def _new_host_collection(self, options=None):
         """
-        Make a system group and asserts its success
+        Make a host collection and asserts its success
         """
 
         if options is None:
@@ -44,10 +43,10 @@ class TestSystemGroup(BaseCLI):
         if not options.get('organization-id', None):
             options['organization-id'] = self.org['label']
 
-        group = make_system_group(options)
+        group = make_host_collection(options)
 
         # Fetch it
-        result = SystemGroup.info(
+        result = HostCollection.info(
             {
                 'id': group['id']
             }
@@ -56,11 +55,11 @@ class TestSystemGroup(BaseCLI):
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not found")
+            "Host collection was not found")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
-        # Return the system group dictionary
+        # Return the host collection dictionary
         return group
 
     @data(
@@ -71,18 +70,18 @@ class TestSystemGroup(BaseCLI):
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_create_1(self, test_data):
         """
-        @Test: Check if systemgroup can be created with random names
-        @Feature: Sync Plan
-        @Assert: System group is created and has random name
+        @Test: Check if host collection can be created with random names
+        @Feature: Host Collection
+        @Assert: Host collection is created and has random name
         """
 
-        new_system_group = self._new_system_group({'name': test_data['name']})
+        new_host_col = self._new_host_collection({'name': test_data['name']})
         # Assert that name matches data passed
         self.assertEqual(
-            new_system_group['name'],
+            new_host_col['name'],
             test_data['name'],
             "Names don't match"
         )
@@ -95,38 +94,38 @@ class TestSystemGroup(BaseCLI):
         {'description': generate_string('utf8', 15)},
         {'description': generate_string('html', 15)},
     )
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_create_2(self, test_data):
         """
-        @Test: Check if systemgroup can be created with random description
-        @Feature: Sync Plan
-        @Assert: System group is created and has random description
+        @Test: Check if host collection can be created with random description
+        @Feature: Host Collection
+        @Assert: Host collection is created and has random description
         """
 
-        new_system_group = self._new_system_group(
+        new_host_col = self._new_host_collection(
             {'description': test_data['description']})
         # Assert that description matches data passed
         self.assertEqual(
-            new_system_group['description'],
+            new_host_col['description'],
             test_data['description'],
             "Descriptions don't match"
         )
 
     @data([-1, 0, 1, 5, 10, 20])
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_create_3(self, test_data):
         """
-        @Test: Check if systemgroup can be created with random limits
-        @Feature: Sync Plan
-        @Assert: System group is created and has random limits
+        @Test: Check if host collection can be created with random limits
+        @Feature: Host Collection
+        @Assert: Host collection is created and has random limits
         """
 
-        new_system_group = self._new_system_group(
-            {'limit': test_data})
+        new_host_col = self._new_host_collection(
+            {'max-content-hosts': test_data})
         # Assert that limit matches data passed
         self.assertEqual(
-            new_system_group['limit'],
-            test_data['limit'],
+            new_host_col['max-content-hosts'],
+            test_data['max-content-hosts'],
             "Limits don't match"
         )
 
@@ -138,17 +137,18 @@ class TestSystemGroup(BaseCLI):
         {'name': generate_string('utf8', 300)},
         {'name': generate_string('html', 300)},
     )
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_negative_create_1(self, test_data):
         """
-        @Test: Check if systemgroup can be created with random names
-        @Feature: Sync Plan
-        @Assert: System group is created and has random name
+        @Test: Check if host collection can be created with random names
+        @Feature: Host Collection
+        @Assert: Host collection is created and has random name
         """
 
         with self.assertRaises(Exception):
-            self._new_system_group({'name': test_data['name']})
+            self._new_host_collection({'name': test_data['name']})
 
+    @bzbug('1084240')
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -157,27 +157,27 @@ class TestSystemGroup(BaseCLI):
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_update_1(self, test_data):
         """
-        @Test: Check if systemgroup name can be updated
-        @Feature: Sync Plan
-        @Assert: System group is created and name is updated
-        @BZ: 1082157
+        @Test: Check if host collection name can be updated
+        @Feature: Host Collection
+        @Assert: Host collection is created and name is updated
+        @BZ: 1084240
         """
 
-        new_system_group = self._new_system_group()
+        new_host_col = self._new_host_collection()
         # Assert that name does not matches data passed
         self.assertNotEqual(
-            new_system_group['name'],
+            new_host_col['name'],
             test_data['name'],
             "Names should not match"
         )
 
-        # Update system group
-        result = SystemGroup.update(
+        # Update host collection
+        result = HostCollection.update(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
                 'organization-id': self.org['label'],
                 'name': test_data['name']
             }
@@ -185,20 +185,20 @@ class TestSystemGroup(BaseCLI):
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not updated")
+            "Host collection was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = SystemGroup.info(
+        result = HostCollection.info(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
             }
         )
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not updated")
+            "Host collection was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         # Assert that name matches new value
@@ -213,11 +213,12 @@ class TestSystemGroup(BaseCLI):
         )
         # Assert that name does not match original value
         self.assertNotEqual(
-            new_system_group['name'],
+            new_host_col['name'],
             result.stdout['name'],
             "Names should not match"
         )
 
+    @bzbug('1084240')
     @data(
         {'description': generate_string('alpha', 15)},
         {'description': generate_string('alphanumeric', 15)},
@@ -226,27 +227,27 @@ class TestSystemGroup(BaseCLI):
         {'description': generate_string('utf8', 15)},
         {'description': generate_string('html', 15)},
     )
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_update_2(self, test_data):
         """
-        @Test: Check if systemgroup description can be updated
-        @Feature: Sync Plan
-        @Assert: System group is created and description is updated
-        @BZ: 1082157
+        @Test: Check if host collection description can be updated
+        @Feature: Host Collection
+        @Assert: Host collection is created and description is updated
+        @BZ: 1084240
         """
 
-        new_system_group = self._new_system_group()
+        new_host_col = self._new_host_collection()
         # Assert that description does not match data passed
         self.assertNotEqual(
-            new_system_group['description'],
+            new_host_col['description'],
             test_data['description'],
             "Descriptions should not match"
         )
 
         # Update sync plan
-        result = SystemGroup.update(
+        result = HostCollection.update(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
                 'organization-id': self.org['label'],
                 'description': test_data['description']
             }
@@ -254,20 +255,20 @@ class TestSystemGroup(BaseCLI):
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not updated")
+            "Host collection was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = SystemGroup.info(
+        result = HostCollection.info(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
             }
         )
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not updated")
+            "Host collection was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         # Assert that description matches new value
@@ -282,58 +283,60 @@ class TestSystemGroup(BaseCLI):
         )
         # Assert that description does not matches original value
         self.assertNotEqual(
-            new_system_group['description'],
+            new_host_col['description'],
             result.stdout['description'],
             "Descriptions should not match"
         )
 
+    @bzbug('1084240')
     @data([3, 6, 9, 12, 15, 17, 19])
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):
         """
-        @Test: Check if systemgroup limits be updated
-        @Feature: Sync Plan
-        @Assert: System group limits is updated
+        @Test: Check if host collection limits be updated
+        @Feature: Host Collection
+        @Assert: Host collection limits is updated
+        @BZ: 1084240
         """
 
-        new_system_group = self._new_system_group()
+        new_host_col = self._new_host_collection()
 
         # Update sync interval
-        result = SystemGroup.update(
+        result = HostCollection.update(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
                 'organization-id': self.org['label'],
-                'limit': test_data
+                'max-content-hosts': test_data
             }
         )
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not updated")
+            "Host collection was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = SystemGroup.info(
+        result = HostCollection.info(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
             }
         )
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not updated")
+            "Host collection was not updated")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         # Assert that limit was updated
         self.assertEqual(
-            result.stdout['limit'],
+            result.stdout['max-content-hosts'],
             test_data,
             "Limits don't match"
         )
         self.assertNotEqual(
-            new_system_group['limit'],
-            result.stdout['limit'],
+            new_host_col['max-content-hosts'],
+            result.stdout['max-content-hosts'],
             "Limits don't match"
         )
 
@@ -345,44 +348,43 @@ class TestSystemGroup(BaseCLI):
         {'name': generate_string('utf8', 15)},
         {'name': generate_string('html', 15)},
     )
-    @attr('cli', 'systemgroup')
+    @attr('cli', 'hostcollection')
     def test_positive_delete_1(self, test_data):
         """
-        @Test: Check if systemgroup can be created and deleted
-        @Feature: Sync Plan
-        @Assert: System group is created and then deleted
-        @BZ: 1082169
+        @Test: Check if host collection can be created and deleted
+        @Feature: Host Collection
+        @Assert: Host collection is created and then deleted
         """
 
-        new_system_group = self._new_system_group({'name': test_data['name']})
+        new_host_col = self._new_host_collection({'name': test_data['name']})
         # Assert that name matches data passed
         self.assertEqual(
-            new_system_group['name'],
+            new_host_col['name'],
             test_data['name'],
             "Names don't match"
         )
 
         # Delete it
-        result = SystemGroup.delete(
-            {'id': new_system_group['id'],
+        result = HostCollection.delete(
+            {'id': new_host_col['id'],
              'organization-id': self.org['label']})
         self.assertEqual(
             result.return_code,
             0,
-            "System group was not deleted")
+            "Host collection was not deleted")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = SystemGroup.info(
+        result = HostCollection.info(
             {
-                'id': new_system_group['id'],
+                'id': new_host_col['id'],
             }
         )
         self.assertNotEqual(
             result.return_code,
             0,
-            "System group should not be found"
+            "Host collection should not be found"
         )
         self.assertGreater(
             len(result.stderr),
