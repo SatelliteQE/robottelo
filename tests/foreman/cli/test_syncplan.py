@@ -10,7 +10,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
