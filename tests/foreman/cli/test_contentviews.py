@@ -303,8 +303,10 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Associate version to composite CV
-        result = ContentView.add_version({u'id': con_view['id'],
-                                          u'version-id': version1_id})
+        result = ContentView.add_version({
+            u'id': con_view['id'],
+            u'content-view-version-id': version1_id,
+        })
         self.assertEqual(result.return_code, 0,
                          "Repo was not associated to selected CV")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -868,8 +870,10 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Associate version to composite CV
-        result = ContentView.add_version({u'id': con_view['id'],
-                                          u'version-id': version1_id})
+        result = ContentView.add_version({
+            u'id': con_view['id'],
+            u'content-view-version-id': version1_id,
+        })
         self.assertEqual(result.return_code, 0,
                          "Repo was not associated to selected CV")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -1118,8 +1122,10 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Associate version to composite CV
-        result = ContentView.add_version({u'id': con_view['id'],
-                                          u'version-id': version1_id})
+        result = ContentView.add_version({
+            u'id': con_view['id'],
+            u'content-view-version-id': version1_id,
+        })
         self.assertEqual(result.return_code, 0,
                          "Repo was not associated to selected CV")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
