@@ -34,7 +34,7 @@ from robottelo.ui.products import Products
 from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.subnet import Subnet
-from robottelo.ui.subscriptions import Subscriptions
+from robottelo.ui.subscription import Subscriptions
 from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.systemgroup import SystemGroup
