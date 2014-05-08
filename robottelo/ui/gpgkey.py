@@ -163,9 +163,12 @@ class GPGKey(Base):
             else:
                 self.wait_until_element(tab_locators
                                         ["prd.tab_details"]).click()
-                element = self.find_element(locators
-                                            ["prd.gpg_key"]
-                                            ).get_attribute('innerHTML')
+                self.wait_for_ajax()
+                self.wait_until_element(locators["prd.gpg_key_edit"]).click()
+                self.wait_for_ajax()
+                element = Select(self.find_element
+                                 (locators["prd.gpg_key_update"]
+                                  )).first_selected_option.text
                 if element == '':
                     return None
                 else:

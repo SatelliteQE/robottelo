@@ -817,7 +817,7 @@ locators = {
     "prd.gpg_key_edit": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
                                     "//i[contains(@class,'icon-edit')]")),
     "prd.gpg_key_update": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
-                                      "/div/input")),
+                                      "/div/select")),
     "prd.gpg_key": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
                                "//div/span")),
     "prd.name_edit": (By.XPATH, ("//form[@alch-edit-text='product.name']"
