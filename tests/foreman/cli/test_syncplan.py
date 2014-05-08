@@ -174,7 +174,6 @@ class TestSyncPlan(BaseCLI):
         with self.assertRaises(Exception):
             self._make_sync_plan({u'name': test_data['name']})
 
-    @bzbug('1082157')
     @data(
         {u'description': generate_string('alpha', 15)},
         {u'description': generate_string('alphanumeric', 15)},
@@ -189,7 +188,6 @@ class TestSyncPlan(BaseCLI):
         @Test: Check if syncplan description can be updated
         @Feature: Sync Plan
         @Assert: Sync plan is created and description is updated
-        @BZ: 1082157
         """
 
         new_sync_plan = self._make_sync_plan()
@@ -417,7 +415,6 @@ class TestSyncPlan(BaseCLI):
             "Sync date was not updated"
         )
 
-    @bzbug('1082169')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -432,7 +429,6 @@ class TestSyncPlan(BaseCLI):
         @Test: Check if syncplan can be created and deleted
         @Feature: Sync Plan
         @Assert: Sync plan is created and then deleted
-        @BZ: 1082169
         """
 
         new_sync_plan = self._make_sync_plan({u'name': test_data['name']})
