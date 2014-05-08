@@ -18,6 +18,7 @@ from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.gpgkey import GPGKey
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
@@ -29,7 +30,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.cli.systemgroup import SystemGroup
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.operatingsys import OperatingSys
@@ -485,18 +485,22 @@ def make_content_host(options=None):
     return args
 
 
-def make_system_group(options=None):
+def make_host_collection(options=None):
     """
     Usage:
-        hammer systemgroup create [OPTIONS]
+         host-collection create [OPTIONS]
 
     Options:
         --description DESCRIPTION
-        --max-systems MAX_SYSTEMS      Maximum number of systems in the group
-        --name NAME                    System group name
+        --max-content-hosts MAX_CONTENT_HOSTS Maximum number of content hosts
+                                              in the host collection
+        --name NAME                   Host Collection name
+        --organization ORGANIZATION_NAME
         --organization-id ORGANIZATION_ID organization identifier
-         --system-ids SYSTEM_IDS       List of system uuids to be in the group
-                                       Comma separated list of values.
+        --organization-label ORGANIZATION_LABEL
+        --system-ids SYSTEM_IDS       List of system uuids to be in the
+                                      host collection
+                                      Comma separated list of values.
     """
 
     # Organization ID is required
@@ -506,14 +510,14 @@ def make_system_group(options=None):
     # Assigning default values for attributes
     args = {
         'description': None,
-        'max-systems': None,
+        'max-content-hosts': None,
         'name': generate_string('alpha', 15),
         'organization-id': None,
         'system-ids': None,
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(SystemGroup, args))
+    args.update(create_object(HostCollection, args))
 
     return args
 
