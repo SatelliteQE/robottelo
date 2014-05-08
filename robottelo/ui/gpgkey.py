@@ -9,6 +9,7 @@ from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
+from selenium.webdriver.support.select import Select
 
 
 class GPGKey(Base):
@@ -149,9 +150,11 @@ class GPGKey(Base):
                 value = locators["repo.select"][1]
                 self.wait_until_element((strategy, value % repo)).click()
                 self.wait_for_ajax()
-                element = self.wait_until_element(locators
-                                                  ["repo.gpg_key"]
-                                                  ).get_attribute('innerHTML')
+                self.wait_until_element(locators["repo.gpg_key_edit"]).click()
+                self.wait_for_ajax()
+                element = Select(self.find_element
+                                 (locators["repo.gpg_key_update"]
+                                  )).first_selected_option.text
                 if element == '':
                     return None
                 else:
