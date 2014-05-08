@@ -17,6 +17,10 @@ class TestReport(BaseCLI):
     Test class for Reports CLI.
     """
 
+    def setUp(self):
+        super(TestReport, self).setUp()
+        self.run_puppet_agent()
+
     def run_puppet_agent(self):
         """
         Retrieves the client configuration from the puppet master and
@@ -28,48 +32,48 @@ class TestReport(BaseCLI):
 
     def test_list(self):
         """
-        @Feature: Puppet Report - list
         @Test: Test list for Puppet report
+        @Feature: Puppet Report - list
         @Assert: Puppert Report List is displayed
         """
 
-        self.run_puppet_agent()
-
-        result = Report().list()
+        result = Report.list()
         self.assertEqual(result.return_code, 0)
-        self.assertTrue(len(result.stdout) > 0)
+        self.assertGreater(len(result.stdout), 0)
 
     def test_info(self):
         """
-        @Feature: Puppet Report - Info
         @Test: Test Info for Puppet report
+        @Feature: Puppet Report - Info
         @Assert: Puppet Report Info is displayed
         """
-        self.run_puppet_agent()
 
-        result = Report().list()
+        result = Report.list()
+        self.assertEqual(result.return_code, 0)
+        self.assertGreater(len(result.stdout), 0)
 
         # Grab a random report
         report = random.choice(result.stdout)
-        result = Report().info({'id': report['id']})
+        result = Report.info({'id': report['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(report['id'], result.stdout['id'])
 
     def test_delete(self):
         """
-        @Feature: Puppet Report- Delete
         @Test: Check if Puppet Report can be deleted
+        @Feature: Puppet Report - Delete
         @Assert: Puppet Report is deleted
         """
-        self.run_puppet_agent()
 
-        result = Report().list()
+        result = Report.list()
         self.assertEqual(result.return_code, 0)
-        self.assertTrue(len(result.stdout) > 0)
+        self.assertGreater(len(result.stdout), 0)
 
         # Grab a random report
         report = random.choice(result.stdout)
-        result = Report().delete({'id': report['id']})
+        result = Report.delete({'id': report['id']})
         self.assertEqual(result.return_code, 0)
-        result = Report().info({'id': report['id']})
-        self.assertTrue(result.stderr)
+
+        result = Report.info({'id': report['id']})
+        self.assertGreater(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
