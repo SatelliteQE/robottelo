@@ -286,10 +286,6 @@ class TestRepository(BaseCLI):
          u'content-type': u'yum'},
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/',
          u'content-type': u'yum'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet02/',
-         u'content-type': u'puppet'},
         {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo3/',
          u'content-type': u'yum'},
     )
