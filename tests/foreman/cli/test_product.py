@@ -10,7 +10,7 @@ from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_sync_plan)
 from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data
+from robottelo.common.decorators import bzbug, data
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -33,6 +33,7 @@ class TestProduct(BaseCLI):
         if TestProduct.org is None:
             TestProduct.org = make_org()
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -47,6 +48,7 @@ class TestProduct(BaseCLI):
         @Test: Check if product can be created with random names
         @Feature: Product
         @Assert: Product is created and has random name
+        @BZ: 1096320
         """
 
         new_product = make_product(
@@ -71,6 +73,7 @@ class TestProduct(BaseCLI):
             len(result.stdout['label']), 0, "Label not automatically created"
         )
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15),
          u'label': generate_string('alpha', 15)},
@@ -91,6 +94,7 @@ class TestProduct(BaseCLI):
         @Test: Check if product can be created with random labels
         @Feature: Product
         @Assert: Product is created and has random label
+        @BZ: 1096320
         """
 
         new_product = make_product(
@@ -116,6 +120,7 @@ class TestProduct(BaseCLI):
             result.stdout['label'], new_product['label'], "Labels don't match"
         )
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15),
          u'description': generate_string('alpha', 15)},
@@ -136,6 +141,7 @@ class TestProduct(BaseCLI):
         @Test: Check if product can be created with random description
         @Feature: Product
         @Assert: Product is created and has random description
+        @BZ: 1096320
         """
 
         new_product = make_product(
@@ -163,6 +169,7 @@ class TestProduct(BaseCLI):
             "Descriptions don't match"
         )
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -177,6 +184,7 @@ class TestProduct(BaseCLI):
         @Test: Check if product can be created with gpg key
         @Feature: Product
         @Assert: Product is created and has gpg key
+        @BZ: 1096320
         """
 
         new_gpg_key = make_gpg_key(
@@ -206,6 +214,7 @@ class TestProduct(BaseCLI):
             new_gpg_key['id'],
             "GPG Keys don't match")
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -220,6 +229,7 @@ class TestProduct(BaseCLI):
         @Test: Check if product can be created with sync plan
         @Feature: Product
         @Assert: Product is created and has random sync plan
+        @BZ: 1096320
         """
 
         new_sync_plan = make_sync_plan({u'organization-id': self.org['label']})
@@ -296,6 +306,7 @@ class TestProduct(BaseCLI):
                 }
             )
 
+    @bzbug('1096320')
     @data(
         {u'description': generate_string('alpha', 15)},
         {u'description': generate_string('alphanumeric', 15)},
@@ -310,6 +321,7 @@ class TestProduct(BaseCLI):
         @Test: Update the description of a product
         @Feature: Product
         @Assert: Product description is updated
+        @BZ: 1096320
         """
 
         new_product = make_product(
@@ -354,6 +366,7 @@ class TestProduct(BaseCLI):
             "Descriptions should not match"
         )
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -368,6 +381,7 @@ class TestProduct(BaseCLI):
         @Test: Update product's gpg keys
         @Feature: Product
         @Assert: Product gpg key is updated
+        @BZ: 1096320
         """
 
         first_gpg_key = make_gpg_key(
@@ -446,6 +460,7 @@ class TestProduct(BaseCLI):
             first_gpg_key['id'],
             "GPG Keys should not match")
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -460,6 +475,7 @@ class TestProduct(BaseCLI):
         @Test: Update product's sync plan
         @Feature: Product
         @Assert: Product sync plan is updated
+        @BZ: 1096320
         """
 
         first_sync_plan = make_sync_plan(
@@ -539,6 +555,7 @@ class TestProduct(BaseCLI):
             first_sync_plan['id'],
             "Sync plans should not match")
 
+    @bzbug('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -553,6 +570,7 @@ class TestProduct(BaseCLI):
         @Test: Check if product can be deleted
         @Feature: Product
         @Assert: Product is deleted
+        @BZ: 1096320
         """
 
         new_product = make_product(
