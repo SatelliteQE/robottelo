@@ -355,9 +355,7 @@ class TestOperatingSystem(BaseCLI):
             len(result.stderr), 0, "There should not be an exception here")
 
         new_obj = make_os()
-        os_name = new_obj['name'].split(' ')
         result = OperatingSys.add_architecture({'id': new_obj['id'],
-                                                'name': os_name[0],
                                                 'architecture-id': a_ob['id']})
         self.assertEqual(result.return_code, 0, "Failed to add architecture")
         self.assertEqual(
@@ -382,10 +380,8 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(conf_obj['name'], result.stdout['name'])
 
         new_obj = make_os()
-        os_name = new_obj['name'].split(' ')
         result = OperatingSys.add_config_template(
             {'id': new_obj['id'],
-             'name': os_name[0],
              'config-template': conf_obj['name']})
         self.assertEqual(result.return_code, 0, "Failed to add configtemplate")
         self.assertEqual(
@@ -410,9 +406,7 @@ class TestOperatingSystem(BaseCLI):
         self.assertEqual(ptable_obj['name'], result.stdout['name'])
 
         new_obj = make_os()
-        os_name = new_obj['name'].split(' ')
         result = OperatingSys.add_ptable({'id': new_obj['id'],
-                                          'name': os_name[0],
                                           'ptable': ptable_obj['name']})
         self.assertEqual(result.return_code, 0, "Failed to add ptable")
         self.assertEqual(
