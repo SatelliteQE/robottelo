@@ -14,7 +14,8 @@ menu_locators = {
     # Monitor Menu
     "menu.monitor": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='monitor_menu']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='monitor_menu']")),
     "menu.dashboard": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
@@ -25,19 +26,24 @@ menu_locators = {
          "//a[@id='menu_item_content_dashboard']")),
     "menu.reports": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_reports']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_reports']")),
     "menu.facts": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_fact_values']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_fact_values']")),
     "menu.statistics": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_statistics']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_statistics']")),
     "menu.trends": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_trends']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_trends']")),
     "menu.audits": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_audits']"),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_audits']")),
 
     # Content Menu
     "menu.content": (
@@ -50,76 +56,82 @@ menu_locators = {
          "//a[@id='menu_item_environments']")),
     "menu.red_hat_subscriptions": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_red_hat_subscriptions']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_red_hat_subscriptions']")),
     "menu.subscription_manager_applications": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_subscription_manager_applications']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_subscription_manager_applications']")),
     "menu.activation_keys": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_activation_keys']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_activation_keys']")),
     "menu.red_hat_repositories": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_redhat_provider']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_redhat_provider']")),
     "menu.products": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_products']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_products']")),
     "menu.gpg_keys": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_gpg_keys']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_gpg_keys']")),
     "menu.sync_status": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_sync_status']")),
     "menu.sync_plans": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_sync_plans']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_sync_plans']")),
     "menu.content_views": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_content_views']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_content_views']")),
     "menu.sync_schedules": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_sync_schedules']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "/a[@id='menu_item_sync_schedules']")),
     "menu.content_search": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_content_search']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_content_search']")),
     "menu.changeset_management": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_changeset_management']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_changeset_management']")),
     "menu.changeset_history": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_changeset_history']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_changeset_history']")),
 
     # Hosts Menu
     "menu.hosts": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='hosts_menu']")),
+         "//a[@id='hosts_menu']")),
     "menu.all_hosts": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='menu_item_hosts']")),
+         "//a[@id='menu_item_hosts']")),
     "menu.registered_systems": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_systems']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_systems']")),
     "menu.system_groups": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_system_groups']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_system_groups']")),
     "menu.operating_systems": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='menu_item_operatingsystems']")),
+         "//a[@id='menu_item_operatingsystems']")),
     "menu.provisioning_templates": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_config_templates']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_config_templates']")),
     "menu.partition_tables": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -130,7 +142,8 @@ menu_locators = {
          "//a[@id='menu_item_media']")),
     "menu.hardware_models": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_models']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_models']")),
     "menu.architectures": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -143,11 +156,12 @@ menu_locators = {
          "//a[@id='configure_menu']")),
     "menu.host_groups": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_hostgroups']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_hostgroups']")),
     "menu.global_parameters": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_common_parameters']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_common_parameters']")),
     "menu.environments": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -155,26 +169,30 @@ menu_locators = {
          "/a[@id='menu_item_environments']")),
     "menu.puppet_classes": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_puppetclasses']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_puppetclasses']")),
     "menu.smart_variables": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_lookup_keys']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_lookup_keys']")),
 
     # Infrastructure Menu
     "menu.infrastructure": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@id='infrastructure_menu']")),
+         "//a[@id='infrastructure_menu']")),
     "menu.smart_proxies": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_smart_proxies']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_smart_proxies']")),
     "menu.compute_resources": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-            "//a[@id='menu_item_compute_resources']")),
+         "//a[@id='menu_item_compute_resources']")),
     "menu.subnets": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_subnets']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_subnets']")),
     "menu.domains": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -187,27 +205,32 @@ menu_locators = {
          "//a[@id='administer_menu']")),
     "menu.ldap_auth": (
         By.XPATH,
-        ("//div[contains(@style,'static')]"
-            "//a[@id='menu_item_auth_source_ldaps']")),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_auth_source_ldaps']")),
     "menu.users": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_users']")),
     "menu.user_groups": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_usergroups']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_usergroups']")),
     "menu.roles": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_roles']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_roles']")),
     "menu.bookmarks": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_bookmarks']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_bookmarks']")),
     "menu.settings": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_settings']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_settings']")),
     "menu.about": (
         By.XPATH,
-        "//div[contains(@style,'static')]//a[@id='menu_item_about_index']"),
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_about_index']")),
 
     # Account Menu
     "menu.account": (By.XPATH, "//a[@id='account_menu']"),
@@ -218,20 +241,20 @@ menu_locators = {
     "org.any_context": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//li[contains(@class,'org-switcher')]/a")),
+         "//li[contains(@class,'org-switcher')]/a")),
     "org.manage_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//a[@class='manage-menu' and contains(@href, 'organizations')]")),
+         "//a[@class='manage-menu' and contains(@href, 'organizations')]")),
     "org.nav_current_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//li[contains(@class,'org-switcher')]"
-            "//li/a[@data-toggle='dropdown']")),
+         "//li[contains(@class,'org-switcher')]"
+         "//li/a[@data-toggle='dropdown']")),
     "org.current_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-            "//li[contains(@class,'org-switcher')]/a")),
+         "//li[contains(@class,'org-switcher')]/a")),
     "org.select_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
