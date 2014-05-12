@@ -45,7 +45,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # output
         cmd = u"lifecycle-environment list --organization-id=\"%s\""
         result = LifecycleEnvironment.execute(
-            cmd % self.org['label'],
+            cmd % self.org['id'],
             None,
             None,
             False
@@ -70,7 +70,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         """
 
         payload = {
-            'organization-id': self.org['label'],
+            'organization-id': self.org['id'],
             'name': generate_string('utf8', 15),
             }
 
@@ -81,7 +81,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Can we find the new object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'name': new_obj['name'],
             }
         )
@@ -118,7 +118,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         """
 
         payload = {
-            'organization-id': self.org['label'],
+            'organization-id': self.org['id'],
             'name': test_data['name'],
             }
 
@@ -129,7 +129,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Can we find the new object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
             }
         )
@@ -165,7 +165,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         """
 
         payload = {
-            'organization-id': self.org['label'],
+            'organization-id': self.org['id'],
             'name': test_data['name'],
             'description': test_data['name'],
             }
@@ -177,7 +177,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Can we find the new object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
             }
         )
@@ -217,7 +217,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         """
 
         payload = {
-            'organization-id': self.org['label'],
+            'organization-id': self.org['id'],
             'name': test_data['name'],
             }
 
@@ -228,7 +228,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Can we find the new object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
             }
         )
@@ -259,7 +259,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Can we find the object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
             }
         )
@@ -289,7 +289,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         """
 
         payload = {
-            'organization-id': self.org['label'],
+            'organization-id': self.org['id'],
             }
 
         new_obj = make_lifecycle_environment(payload)
@@ -299,7 +299,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Update its name
         result = LifecycleEnvironment.update(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
                 'new-name': test_data['name'],
             }
@@ -313,7 +313,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Fetch the object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
             }
         )
@@ -354,7 +354,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         """
 
         payload = {
-            'organization-id': self.org['label'],
+            'organization-id': self.org['id'],
             }
 
         new_obj = make_lifecycle_environment(payload)
@@ -364,7 +364,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Update its description
         result = LifecycleEnvironment.update(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
                 'description': test_data['description'],
             }
@@ -378,7 +378,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         # Fetch the object
         result = LifecycleEnvironment.info(
             {
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'id': new_obj['id'],
             }
         )
