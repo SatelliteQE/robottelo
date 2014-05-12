@@ -656,7 +656,7 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1083471')
+    @bzbug('1083875')
     @data(*invalid_names_list())
     def test_negative_update_activation_key_1(self, new_name):
         """
@@ -666,7 +666,7 @@ class ActivationKey(BaseUI):
         1. Create Activation key
         2. Update Activation key name for all variations in [2]
         @Assert: Activation key is not updated.  Appropriate error shown.
-        @BZ: 1078676
+        @BZ: 1083875
         """
 
         name = generate_string("alpha", 10)
@@ -682,7 +682,7 @@ class ActivationKey(BaseUI):
         self.assertIsNone(self.activationkey.search_key(new_name))
 
     @bzbug('1083438')
-    def test_negative_update_activation_key_2(self, new_description):
+    def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
         @Test: Update invalid Description in an activation key
@@ -701,7 +701,7 @@ class ActivationKey(BaseUI):
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, new_description)
+        self.activationkey.update(name, description=new_description)
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.error"]))
 
