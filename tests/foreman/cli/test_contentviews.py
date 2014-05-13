@@ -87,14 +87,14 @@ class TestContentView(BaseCLI):
             TestContentView.org = make_org()
         if TestContentView.env1 is None:
             TestContentView.env1 = make_lifecycle_environment(
-                {u'organization-id': TestContentView.org['label']})
+                {u'organization-id': TestContentView.org['id']})
         if TestContentView.env2 is None:
             TestContentView.env2 = make_lifecycle_environment(
-                {u'organization-id': TestContentView.org['label'],
+                {u'organization-id': TestContentView.org['id'],
                  u'prior': TestContentView.env1['label']})
         if TestContentView.product is None:
             TestContentView.product = make_product(
-                {u'organization-id': TestContentView.org['label']})
+                {u'organization-id': TestContentView.org['id']})
 
     @data(*positive_create_data())
     def test_cv_create_cli(self, test_data):
@@ -112,7 +112,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        test_data['organization-id'] = org_obj['label']
+        test_data['organization-id'] = org_obj['id']
         con_view = make_content_view(test_data)
 
         result = ContentView.info({'id': con_view['id']})
@@ -137,7 +137,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        test_data['organization-id'] = org_obj['label']
+        test_data['organization-id'] = org_obj['id']
         result = ContentView.create(test_data)
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
@@ -176,7 +176,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "There should not be an exception here")
         con_name = generate_string("alpha", 10)
         con_view = make_content_view({'name': con_name,
-                                      'organization-id': org_obj['label']})
+                                      'organization-id': org_obj['id']})
         result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
@@ -226,7 +226,7 @@ class TestContentView(BaseCLI):
 
         con_view_name = generate_string("alpha", 10)
         con_view = make_content_view({'name': con_view_name,
-                                      'organization-id': org_obj['label']})
+                                      'organization-id': org_obj['id']})
 
         result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
@@ -267,7 +267,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -294,7 +294,7 @@ class TestContentView(BaseCLI):
         version1_id = result.stdout['versions'][0]['id']
 
         # Create CV
-        con_view = make_content_view({'organization-id': self.org['label'],
+        con_view = make_content_view({'organization-id': self.org['id'],
                                       'composite': True})
 
         # Assert whether content view creation was successful
@@ -387,7 +387,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
@@ -449,7 +449,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
 
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
@@ -504,7 +504,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Create component CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
@@ -544,7 +544,7 @@ class TestContentView(BaseCLI):
         with self.assertRaises(Exception):
             result = make_content_view(
                 {
-                    u'organization-id': self.org['label'],
+                    u'organization-id': self.org['id'],
                     u'component-ids':  cv_version.stdout[0]['id']
                 }
             )
@@ -583,7 +583,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
@@ -675,7 +675,7 @@ class TestContentView(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
 
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
@@ -770,7 +770,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -834,7 +834,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -861,7 +861,7 @@ class TestContentView(BaseCLI):
         version1_id = result.stdout['versions'][0]['id']
 
         # Create CV
-        con_view = make_content_view({'organization-id': self.org['label'],
+        con_view = make_content_view({'organization-id': self.org['id'],
                                       'composite': True})
 
         # Assert whether content view creation was successful
@@ -914,7 +914,7 @@ class TestContentView(BaseCLI):
 
         cv_list = []
         # Fetch it
-        result = ContentView.list({u'organization-id': self.org['label']},
+        result = ContentView.list({u'organization-id': self.org['id']},
                                   per_page=False)
         self.assertEqual(result.return_code, 0, "Content-View was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -957,7 +957,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -1034,7 +1034,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -1086,7 +1086,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -1113,7 +1113,7 @@ class TestContentView(BaseCLI):
         version1_id = result.stdout['versions'][0]['id']
 
         # Create CV
-        con_view = make_content_view({'organization-id': self.org['label'],
+        con_view = make_content_view({'organization-id': self.org['id'],
                                       'composite': True})
 
         # Assert whether content view creation was successful
@@ -1183,7 +1183,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -1308,7 +1308,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['label']})
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Fetch it
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "Content-View was not found")
@@ -1512,7 +1512,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        test_data['organization-id'] = org_obj['label']
+        test_data['organization-id'] = org_obj['id']
 
         # test that user can't create
         result = ContentView.with_user(
@@ -1575,7 +1575,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        test_data['organization-id'] = org_obj['label']
+        test_data['organization-id'] = org_obj['id']
 
         # test that user can read
         con_view = make_content_view(test_data)
@@ -1624,7 +1624,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        test_data['organization-id'] = org_obj['label']
+        test_data['organization-id'] = org_obj['id']
 
         # test that user can't create
         result = ContentView.with_user(
