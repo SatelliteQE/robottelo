@@ -40,11 +40,11 @@ class TestContentHost(BaseCLI):
             TestContentHost.org = make_org()
         if TestContentHost.environment is None:
             TestContentHost.environment = make_lifecycle_environment(
-                {u'organization-id': TestContentHost.org['label']}
+                {u'organization-id': TestContentHost.org['id']}
             )
         if TestContentHost.content_view is None:
             TestContentHost.content_view = make_content_view(
-                {u'organization-id': TestContentHost.org['label']}
+                {u'organization-id': TestContentHost.org['id']}
             )
 
     def _new_content_host(self, options=None):
@@ -57,12 +57,12 @@ class TestContentHost(BaseCLI):
 
         # Use default organization if None are provided
         if not options.get('organization-id', None):
-            options['organization-id'] = self.org['label']
+            options['organization-id'] = self.org['id']
 
         # If no environment id, use organization's 'Library'
         if not options.get('environment-id', None):
             library_result = LifecycleEnvironment.info(
-                {'organization-id': self.org['label'],
+                {'organization-id': self.org['id'],
                  'name': 'Library'}
             )
             self.assertEqual(
@@ -83,7 +83,7 @@ class TestContentHost(BaseCLI):
         # them and locate the ID for 'Default Organization View'
         if not options.get('content-view-id', None):
             all_cvs = ContentView.list(
-                {'organization-id': self.org['label'], 'per-page': False})
+                {'organization-id': self.org['id'], 'per-page': False})
             self.assertEqual(
                 all_cvs.return_code,
                 0,
