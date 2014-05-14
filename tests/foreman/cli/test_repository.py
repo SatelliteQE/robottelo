@@ -35,7 +35,7 @@ class TestRepository(BaseCLI):
             TestRepository.org = make_org()
         if TestRepository.product is None:
             TestRepository.product = make_product(
-                {u'organization-id': TestRepository.org['label']})
+                {u'organization-id': TestRepository.org['id']})
 
     def _make_repository(self, options=None):
         """
@@ -213,7 +213,7 @@ class TestRepository(BaseCLI):
         """
 
         # Make a new gpg key
-        new_gpg_key = make_gpg_key({'organization-id': self.org['label']})
+        new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
         new_repo = self._make_repository(
             {u'name': test_data['name'], u'gpg-key-name': new_gpg_key['name']})
