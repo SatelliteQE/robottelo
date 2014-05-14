@@ -41,7 +41,7 @@ class TestHostCollection(BaseCLI):
             options = {}
 
         if not options.get('organization-id', None):
-            options['organization-id'] = self.org['label']
+            options['organization-id'] = self.org['id']
 
         group = make_host_collection(options)
 
@@ -178,7 +178,7 @@ class TestHostCollection(BaseCLI):
         result = HostCollection.update(
             {
                 'id': new_host_col['id'],
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'name': test_data['name']
             }
         )
@@ -248,7 +248,7 @@ class TestHostCollection(BaseCLI):
         result = HostCollection.update(
             {
                 'id': new_host_col['id'],
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'description': test_data['description']
             }
         )
@@ -305,7 +305,7 @@ class TestHostCollection(BaseCLI):
         result = HostCollection.update(
             {
                 'id': new_host_col['id'],
-                'organization-id': self.org['label'],
+                'organization-id': self.org['id'],
                 'max-content-hosts': test_data
             }
         )
@@ -367,7 +367,7 @@ class TestHostCollection(BaseCLI):
         # Delete it
         result = HostCollection.delete(
             {'id': new_host_col['id'],
-             'organization-id': self.org['label']})
+             'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
