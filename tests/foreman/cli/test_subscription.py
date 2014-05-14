@@ -32,10 +32,10 @@ class TestSubscription(BaseCLI):
             TestSubscription.org = make_org()
         if TestSubscription.env1 is None:
             TestSubscription.env1 = make_lifecycle_environment(
-                {u'organization-id': TestSubscription.org['label']})
+                {u'organization-id': TestSubscription.org['id']})
         if TestSubscription.env2 is None:
             TestSubscription.env2 = make_lifecycle_environment(
-                {u'organization-id': TestSubscription.org['label'],
+                {u'organization-id': TestSubscription.org['id'],
                  u'prior': TestSubscription.env1['label']})
 
     def test_manifest_upload(self):
@@ -50,14 +50,14 @@ class TestSubscription(BaseCLI):
             upload_file(mdetails['path'], remote_file=mdetails['path'])
             result = Subscription.upload(
                 {'file': mdetails['path'],
-                 'organization-id': self.org['label']})
+                 'organization-id': self.org['id']})
             self.assertEqual(result.return_code, 0,
                              "Failed to upload manifest")
             self.assertEqual(
                 len(result.stderr), 0,
                 "There should not be an exception while uploading manifest.")
 
-            result = Subscription.list({'organization-id': self.org['label']},
+            result = Subscription.list({'organization-id': self.org['id']},
                                        per_page=False)
             self.assertEqual(result.return_code, 0,
                              "Failed to list manifests in this org.")
@@ -79,14 +79,14 @@ class TestSubscription(BaseCLI):
             upload_file(mdetails['path'], remote_file=mdetails['path'])
             result = Subscription.upload(
                 {'file': mdetails['path'],
-                 'organization-id': self.org['label']})
+                 'organization-id': self.org['id']})
             self.assertEqual(result.return_code, 0,
                              "Failed to upload manifest")
             self.assertEqual(
                 len(result.stderr), 0,
                 "There should not be an exception while uploading manifest.")
 
-            result = Subscription.list({'organization-id': self.org['label']},
+            result = Subscription.list({'organization-id': self.org['id']},
                                        per_page=False)
             self.assertEqual(result.return_code, 0,
                              "Failed to list manifests in this org.")
@@ -95,14 +95,14 @@ class TestSubscription(BaseCLI):
                 "There should not be an exception while listing the manifest.")
 
             result = Subscription.delete_manifest(
-                {'organization-id': self.org['label']})
+                {'organization-id': self.org['id']})
             self.assertEqual(result.return_code, 0,
                              "Failed to delete manifest")
             self.assertEqual(
                 len(result.stderr), 0,
                 "There should not be an exception while deleting manifest.")
 
-            result = Subscription.list({'organization-id': self.org['label']},
+            result = Subscription.list({'organization-id': self.org['id']},
                                        per_page=False)
             self.assertEqual(result.return_code, 0,
                              "Failed to list manifests in this org.")
