@@ -42,7 +42,7 @@ class TestSyncPlan(BaseCLI):
             options = {}
 
         if not options.get('organization-id', None):
-            options[u'organization-id'] = self.org['label']
+            options[u'organization-id'] = self.org['id']
 
         new_sync_plan = make_sync_plan(options)
 
