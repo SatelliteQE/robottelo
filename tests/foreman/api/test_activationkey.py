@@ -3,9 +3,9 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import data, redminebug
+from robottelo.common.decorators import bzbug, data, redminebug
 from robottelo.records.activation_key import ActivationKey
-from robottelo.records.system_group import SystemGroupDefOrg
+from robottelo.records.host_collection import HostCollectionDefOrg
 from tests.foreman.api.baseapi import BaseAPI
 
 
@@ -42,18 +42,19 @@ class ActivationKeys(BaseAPI):
         ak_u = ApiCrud.record_update(ak_cr)
         self.assertEquals(ak_u.description, ak_cr.description)
 
+    @bzbug('1099533')
     @data(*ActivationKey.enumerate())
-    def test_sysgroup(self, test_data):
+    def test_host_collections(self, test_data):
         """
+        @test: Verify, that you can add host collections
         @feature: ActivationKey
-        @test: Verify, that you can add systemgroups
         @assert: there was no system group and you have added one
         """
         acc = ApiCrud.record_create(test_data)
-        self.assertEqual(len(acc.system_groups), 0)
-        sg = SystemGroupDefOrg()
+        self.assertEqual(len(acc.host_collections), 0)
+        sg = HostCollectionDefOrg()
         sgc = ApiCrud.record_create(sg)
-        r = acc._meta.api_class.add_sysgroups(acc, [sgc.id])
+        r = acc._meta.api_class.add_host_collection(acc, [sgc.id])
         self.assertTrue(r.ok)
         acr = ApiCrud.record_resolve(acc)
-        self.assertEqual(len(acr.system_groups), 1)
+        self.assertEqual(len(acr.host_collections), 1)

@@ -19,15 +19,19 @@ class ActivationKeyApi(ApiCrud):
         ]
 
     @classmethod
-    def add_sysgroups(cls, instance, group_ids):
-        """Add sysgroups
-        """
-        i = instance.id
-        url = "/katello/api/v2/activation_keys/{0}/system_groups".format(i)
+    def add_host_collection(cls, instance, host_collection_ids):
+        """Add host collections to an activation key record"""
+
+        url = "/katello/api/v2/activation_keys/{}/host_collections".format(
+            instance.id)
         return request(
-            'post',
+            'put',
             path=url,
-            json={'activation_key': {'system_group_ids': group_ids}})
+            json={
+                'activation_key': {
+                    'host_collection_ids': host_collection_ids
+                },
+            })
 
 
 class ActivationKey(records.Record):
