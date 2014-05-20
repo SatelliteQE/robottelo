@@ -6,11 +6,13 @@ from ddt import ddt
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.factory import (
     make_org, make_lifecycle_environment)
+from robottelo.common.decorators import bzbug
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
 from tests.foreman.cli.basecli import BaseCLI
 
 
+@bzbug('1099655')
 @ddt
 class TestSubscription(BaseCLI):
     """

@@ -689,11 +689,13 @@ class TestOrg(BaseCLI):
         """
         pass
 
+    @bzbug('1099655')
     def test_add_environment(self):
         """
         @Test: Check if an environment can be added to an Org
         @Feature: Org - Environment
         @Assert: Environment is added to the org
+        @BZ: 1099655
         """
 
         new_obj = make_org()
@@ -713,11 +715,13 @@ class TestOrg(BaseCLI):
             environment.return_code, 0, "Could not fetch list of environments")
         self.assertEqual(new_env['name'], env_result['name'])
 
+    @bzbug('1099655')
     def test_remove_environment(self):
         """
         @Test: Check if an Environment can be removed from an Org
         @Feature: Org - Environment
         @Assert: Environment is removed from the org
+        @BZ: 1099655
         """
 
         new_obj = make_org()
