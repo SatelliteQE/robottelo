@@ -19,6 +19,7 @@ from tests.foreman.cli.basecli import BaseCLI
 
 
 @bzbug('1084722')
+@bzbug('1099655')
 @ddt
 class TestContentHost(BaseCLI):
     """

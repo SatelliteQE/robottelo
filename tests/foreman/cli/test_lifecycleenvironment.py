@@ -61,12 +61,13 @@ class TestLifeCycleEnvironment(BaseCLI):
         )
 
     @bzbug('1077333')
+    @bzbug('1099655')
     def test_bugzilla_1077333(self):
         """
         @Test: Search lifecycle environment via its name containing UTF-8 chars
         @Feature: Lifecycle Environment
         @Assert: Can get info for lifecycle by its name
-        @BZ: 1077333
+        @BZ: 1077333, 1099655
         """
 
         payload = {
@@ -102,6 +103,7 @@ class TestLifeCycleEnvironment(BaseCLI):
 
     # CRUD
 
+    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -115,6 +117,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Test: Create lifecycle environment with valid name, prior to Library
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment is created with Library as prior
+        @BZ: 1099655
         """
 
         payload = {
@@ -148,6 +151,7 @@ class TestLifeCycleEnvironment(BaseCLI):
             "Could not find lifecycle environment \'%s\'" % new_obj['name']
         )
 
+    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -162,6 +166,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         prior to Library
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment is created with Library as prior
+        @BZ: 1099655
         """
 
         payload = {
@@ -201,6 +206,7 @@ class TestLifeCycleEnvironment(BaseCLI):
             "Descriptions don't match"
         )
 
+    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -214,6 +220,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Test: Create lifecycle environment with valid name, prior to Library
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment is deleted
+        @BZ: 1099655
         """
 
         payload = {
@@ -272,6 +279,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         )
 
     @bzbug('1095937')
+    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -285,7 +293,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Test: Create lifecycle environment then update its name
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment name is updated
-        @BZ: 1095937
+        @BZ: 1095937, 1099655
         """
 
         payload = {
@@ -337,6 +345,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         )
 
     @bzbug('1095937')
+    @bzbug('1099655')
     @data(
         {'description': generate_string("alpha", 15)},
         {'description': generate_string("alphanumeric", 15)},
@@ -350,7 +359,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Test: Create lifecycle environment then update its description
         @Feature: Lifecycle Environment
         @Assert: Lifecycle environment description is updated
-        @BZ: 1095937
+        @BZ: 1095937, 1099655
         """
 
         payload = {

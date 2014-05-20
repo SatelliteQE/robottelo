@@ -55,6 +55,7 @@ def negative_create_data():
     )
 
 
+@bzbug('1099655')
 @ddt
 class TestContentView(BaseCLI):
     """
