@@ -35,7 +35,7 @@ class ActivationKey(records.Record):
     """
     name = records.BasicPositiveField()
     description = records.BasicPositiveField()
-    organization_id = records.Field(default="ACME_Corporation")
+    organization_id = records.Field(default=1)
     environment_id = records.IntegerField(default=1)
     content_view_id = records.IntegerField(default=1)
     usage_limit = records.IntegerField()

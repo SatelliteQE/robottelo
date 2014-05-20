@@ -54,13 +54,13 @@ class TestProduct(BaseCLI):
         new_product = make_product(
             {
                 u'name': test_name['name'],
-                u'organization-id': self.org['label']
+                u'organization-id': self.org['id']
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -101,13 +101,13 @@ class TestProduct(BaseCLI):
             {
                 u'name': test_name['name'],
                 u'label': test_name['label'],
-                u'organization-id': self.org['label']
+                u'organization-id': self.org['id']
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -148,13 +148,13 @@ class TestProduct(BaseCLI):
             {
                 u'name': test_name['name'],
                 u'description': test_name['description'],
-                u'organization-id': self.org['label']
+                u'organization-id': self.org['id']
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -188,19 +188,19 @@ class TestProduct(BaseCLI):
         """
 
         new_gpg_key = make_gpg_key(
-            {u'organization-id': self.org['label']}
+            {u'organization-id': self.org['id']}
         )
         new_product = make_product(
             {
                 u'name': test_name['name'],
-                u'organization-id': self.org['label'],
+                u'organization-id': self.org['id'],
                 u'gpg-key-id': new_gpg_key['id'],
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -232,18 +232,18 @@ class TestProduct(BaseCLI):
         @BZ: 1096320
         """
 
-        new_sync_plan = make_sync_plan({u'organization-id': self.org['label']})
+        new_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
         new_product = make_product(
             {
                 u'name': test_name['name'],
-                u'organization-id': self.org['label'],
+                u'organization-id': self.org['id'],
                 u'sync-plan-id': new_sync_plan['id'],
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -277,7 +277,7 @@ class TestProduct(BaseCLI):
             make_product(
                 {
                     u'name': test_name['name'],
-                    u'organization-id': self.org['label']
+                    u'organization-id': self.org['id']
                 }
             )
 
@@ -302,7 +302,7 @@ class TestProduct(BaseCLI):
                 {
                     u'name': test_name['name'],
                     u'label': test_name['label'],
-                    u'organization-id': self.org['label']
+                    u'organization-id': self.org['id']
                 }
             )
 
@@ -326,13 +326,13 @@ class TestProduct(BaseCLI):
 
         new_product = make_product(
             {
-                u'organization-id': self.org['label']
+                u'organization-id': self.org['id']
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -348,7 +348,7 @@ class TestProduct(BaseCLI):
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -385,21 +385,21 @@ class TestProduct(BaseCLI):
         """
 
         first_gpg_key = make_gpg_key(
-            {u'organization-id': self.org['label']}
+            {u'organization-id': self.org['id']}
         )
         second_gpg_key = make_gpg_key(
-            {u'organization-id': self.org['label']}
+            {u'organization-id': self.org['id']}
         )
         new_product = make_product(
             {
                 u'name': test_name['name'],
-                u'organization-id': self.org['label'],
+                u'organization-id': self.org['id'],
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -419,7 +419,7 @@ class TestProduct(BaseCLI):
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -443,7 +443,7 @@ class TestProduct(BaseCLI):
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -479,21 +479,21 @@ class TestProduct(BaseCLI):
         """
 
         first_sync_plan = make_sync_plan(
-            {u'organization-id': self.org['label']}
+            {u'organization-id': self.org['id']}
         )
         second_sync_plan = make_sync_plan(
-            {u'organization-id': self.org['label']}
+            {u'organization-id': self.org['id']}
         )
         new_product = make_product(
             {
                 u'name': test_name['name'],
-                u'organization-id': self.org['label'],
+                u'organization-id': self.org['id'],
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -513,7 +513,7 @@ class TestProduct(BaseCLI):
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -538,7 +538,7 @@ class TestProduct(BaseCLI):
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -576,13 +576,13 @@ class TestProduct(BaseCLI):
         new_product = make_product(
             {
                 u'name': test_name['name'],
-                u'organization-id': self.org['label']
+                u'organization-id': self.org['id']
             }
         )
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -606,7 +606,7 @@ class TestProduct(BaseCLI):
 
         # Fetch it
         result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['label']})
+            {u'id': new_product['id'], u'organization-id': self.org['id']})
         self.assertNotEqual(
             result.return_code,
             0,

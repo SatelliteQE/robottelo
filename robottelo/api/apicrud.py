@@ -520,8 +520,6 @@ class ApiCrud(object):
             value = resolve_or_create_record(instance[field], user=user)
             instance[field] = value
             instance[field+"_id"] = value.id
-            if instance._meta.fields[field].record_label:
-                instance[field+"_id"] = value.label
 
         # resolve ManyRelated ids
         related_fields = instance._meta.fields.keys(cls=ManyRelatedField)

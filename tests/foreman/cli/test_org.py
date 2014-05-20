@@ -256,7 +256,7 @@ class TestOrg(BaseCLI):
         """
 
         new_obj = make_org()
-        result = Org.info({'label': new_obj['label']})
+        result = Org.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
@@ -305,13 +305,11 @@ class TestOrg(BaseCLI):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
 
-    @bzbug('1062295')
     def test_bugzilla_1062295_1(self):
         """
         @Test: Foreman Cli : Add_Config template fails
         @Feature: Org
         @Assert: Config Template is added to the org
-        @bz: 1062295
         """
         org_result = make_org()
         template_result = make_template()
@@ -323,13 +321,11 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    @bzbug('1062295')
     def test_bugzilla_1062295_2(self):
         """
         @Test: Foreman Cli : Add_Config template fails
         @Feature: Org
         @Assert: ConfigTemplate is removed from the org
-        @BZ: 1062295
         """
         org_result = make_org()
         template_result = make_template()
@@ -702,13 +698,13 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org()
         env_result = make_lifecycle_environment({
-            'organization-id': new_obj['label'],
+            'organization-id': new_obj['id'],
         })
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list({
             'name': env_result['name'],
-            'organization-id': new_obj['label'],
+            'organization-id': new_obj['id'],
         })
         # Result is a list of one item
         new_env = environment.stdout[0]
@@ -726,13 +722,13 @@ class TestOrg(BaseCLI):
 
         new_obj = make_org()
         env_result = make_lifecycle_environment({
-            'organization-id': new_obj['label'],
+            'organization-id': new_obj['id'],
         })
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list({
             'name': env_result['name'],
-            'organization-id': new_obj['label'],
+            'organization-id': new_obj['id'],
         })
         # Result is a list of one item
         new_env = environment.stdout[0]
@@ -743,7 +739,7 @@ class TestOrg(BaseCLI):
 
         # Delete it now
         return_value = LifecycleEnvironment.delete({
-            'organization-id': new_obj['label'],
+            'organization-id': new_obj['id'],
             'id': env_result['id']})
         self.assertEqual(return_value.return_code, 0,
                          "Add Environment - retcode")
@@ -754,7 +750,7 @@ class TestOrg(BaseCLI):
         environment = LifecycleEnvironment.list(
             {
                 'name': env_result['name'],
-                'organization-id': new_obj['label'],
+                'organization-id': new_obj['id'],
             })
         self.assertEqual(
             environment.return_code, 0, "Could not fetch list of environments")

@@ -107,7 +107,7 @@ class TestGPGKey(BaseCLI):
 
         # GPG Key data
         data = {'name': generate_string("alpha", 10)}
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
 
         # Setup a new key file
         data['key'] = VALID_GPG_KEY_FILE_PATH
@@ -139,7 +139,7 @@ class TestGPGKey(BaseCLI):
 
         # GPG Key data
         data = {'name': generate_string("alpha", 10)}
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
 
         # Setup a new key file
         content = generate_name()
@@ -174,7 +174,7 @@ class TestGPGKey(BaseCLI):
 
         # GPG Key data
         data = {'name': generate_string("alpha", 10)}
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
 
         # Setup a new key file
         data['key'] = VALID_GPG_KEY_FILE_PATH
@@ -212,7 +212,7 @@ class TestGPGKey(BaseCLI):
         # Setup data to pass to the factory
         data = data.copy()
         data['key'] = VALID_GPG_KEY_FILE_PATH
-        data['organization-id'] = org['label']
+        data['organization-id'] = org['id']
 
         try:
             new_obj = make_gpg_key(data)
@@ -221,7 +221,7 @@ class TestGPGKey(BaseCLI):
 
         # Can we find the new object?
         result = GPGKey().exists(
-            {'organization-id': org['label']},
+            {'organization-id': org['id']},
             (self.search_key, new_obj[self.search_key])
         )
 
@@ -243,7 +243,7 @@ class TestGPGKey(BaseCLI):
         # Setup data to pass to the factory
         data = data.copy()
         data['key'] = VALID_GPG_KEY_FILE_PATH
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
         try:
             new_obj = make_gpg_key(data)
         except Exception, e:
@@ -251,7 +251,7 @@ class TestGPGKey(BaseCLI):
 
         # Can we find the new object?
         result = GPGKey().exists(
-            {'organization-id': self.org['label']},
+            {'organization-id': self.org['id']},
             (self.search_key, new_obj[self.search_key])
         )
 
@@ -274,7 +274,7 @@ class TestGPGKey(BaseCLI):
 
         # Setup data to pass to the factory
         data = data.copy()
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
         try:
             new_obj = make_gpg_key(data)
         except Exception, e:
@@ -282,7 +282,7 @@ class TestGPGKey(BaseCLI):
 
         # Can we find the new object?
         result = GPGKey().exists(
-            {'organization-id': self.org['label']},
+            {'organization-id': self.org['id']},
             (self.search_key, new_obj[self.search_key])
         )
 
@@ -315,7 +315,7 @@ class TestGPGKey(BaseCLI):
 
         # Setup data to pass to create
         data = data.copy()
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
 
         # Try to create a new object passing @data to factory method
         new_obj = GPGKey().create(data)
@@ -336,7 +336,7 @@ class TestGPGKey(BaseCLI):
         # Setup data to pass to create
         data = data.copy()
         data['key'] = '/tmp/%s' % generate_name()
-        data['organization-id'] = self.org['label']
+        data['organization-id'] = self.org['id']
 
         ssh.upload_file(
             local_file=VALID_GPG_KEY_FILE_PATH, remote_file=data['key'])
