@@ -9,7 +9,6 @@ from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.decorators import data, bzbug
 from robottelo.records.environment import EnvironmentKatello
 from robottelo.records.content_view_definition import ContentViewDefinition
-from robottelo.records.system import System
 from robottelo.common.decorators import stubbed
 
 from tests.foreman.api.baseapi import BaseAPI
@@ -519,12 +518,13 @@ class TestContentView(BaseAPI):
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
         """
-        s = System()
-        scd = ApiCrud.record_create_dependencies(s)
-        task = scd.content_view._meta.api_class.publish(scd.content_view)
-        task.poll(5, 100)
-        scc = ApiCrud.record_create(scd)
-        self.assertIntersects(s, scc)
+        # s = System()
+        # scd = ApiCrud.record_create_dependencies(s)
+        # task = scd.content_view._meta.api_class.publish(scd.content_view)
+        # task.poll(5, 100)
+        # scc = ApiCrud.record_create(scd)
+        # self.assertIntersects(s, scc)
+        self.fail('System record should be implemented')
 
     @stubbed
     def test_cv_dynflow_restart_promote(self):
