@@ -262,10 +262,9 @@ class RelatedField(Field):
     record. The record_class attributes should be defined by a Record subclass.
     """
 
-    def __init__(self, record_class, record_label=False, **kwargs):
+    def __init__(self, record_class, **kwargs):
         super(RelatedField, self).__init__(**kwargs)
         self.record_class = record_class
-        self.record_label = record_label
 
     def generate(self):
         return self.record_class()

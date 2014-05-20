@@ -23,7 +23,7 @@ class CustomProduct(records.Record):
     """
     name = records.BasicPositiveField()
     description = records.BasicPositiveField()
-    organization = records.RelatedField(Organization, record_label=True)
+    organization = records.RelatedField(Organization)
 
     class Meta:
         """Linking record definition with api implementation.
