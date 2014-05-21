@@ -13,13 +13,13 @@ from robottelo.api.apicrud import Task
 
 
 class ContentViewDefinitionApi(ApiCrud):
-    """Content view api implementation utilizes :organization.label,
+    """Content view api implementation utilizes :organization.id,
     what means, that create requires initialize organization object.
     """
-    api_path = "/katello/api/v2/organizations/:organization.label/content_views/"  # noqa
-    api_path_get = "/katello/api/v2/content_views/"  # noqa
-    api_path_put = "/katello/api/v2/content_views/"  # noqa
-    api_path_delete = "/katello/api/v2/content_views/"  # noqa
+    api_path = "/katello/api/v2/organizations/:organization.id/content_views/"
+    api_path_get = "/katello/api/v2/content_views/"
+    api_path_put = "/katello/api/v2/content_views/"
+    api_path_delete = "/katello/api/v2/content_views/"
     api_json_key = u"content_view"
     create_fields = ["name", "description", "organization_id", "composite"]
 

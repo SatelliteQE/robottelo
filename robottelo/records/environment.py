@@ -13,8 +13,7 @@ from robottelo.common import records
 class EnvironmentKatelloApi(ApiCrud):
     """ Implementation of api for  foreman environments
     """
-    api_path = ("/katello/api/v2/organizations/:organization.label/"
-                "environments/")
+    api_path = "/katello/api/v2/organizations/:organization.id/environments/"
     api_json_key = u"environment"
     create_fields = ["name", "organization_id", "label", "prior"]
 
