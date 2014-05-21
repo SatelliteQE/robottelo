@@ -617,6 +617,46 @@ class User(BaseCLI):
             "User first name was not updated"
         )
 
+    @data({'login': generate_string("latin1", 10)},
+          {'login': generate_string("utf8", 10)},
+          {'login': generate_string("alpha", 10)},
+          {'login': generate_string("alphanumeric", 10)},
+          {'login': generate_string("numeric", 10)},
+          {'login': generate_string("alphanumeric", 100)})
+    def test_positive_update_user_2(self, test_data):
+        """
+        @Test: Update Login in User
+        @Feature: User
+        @Steps:
+        1. Create User
+        2. Update User login for all variations in [1]
+        @Assert: User login is updated
+        """
+
+        new_obj = make_user()
+        # Can we find the new object?
+        result = UserObj().info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['login'], result.stdout['login'])
+
+        # Update the user login
+        result = UserObj().update({'id': new_obj['id'],
+                                   'login': test_data['login']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+
+        # Fetch the user again
+        result = UserObj().info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(
+            result.stdout['login'],
+            test_data['login'],
+            "User login was not updated"
+        )
+
     @data({'lastname': generate_string("latin1", 10)},
           {'lastname': generate_string("utf8", 10)},
           {'lastname': generate_string("alpha", 10)},
@@ -1001,7 +1041,6 @@ class User(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @bzbug('1061701')
     def test_negative_update_user_1(self):
         """
         @Test: Update invalid Username in an User
