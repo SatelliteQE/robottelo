@@ -13,13 +13,11 @@ from robottelo.cli.factory import (
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 
-@bzbug('1084722')
-@bzbug('1099655')
 @ddt
 class TestContentHost(BaseCLI):
     """
