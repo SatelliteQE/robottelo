@@ -1136,7 +1136,7 @@ class User(BaseCLI):
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
           {'login': generate_string("alphanumeric", 10)})
-    def test_positive_delete_user_1(self, login):
+    def test_positive_delete_user_1(self, test_data):
         """
         @Test: Delete a user
         @Feature: User - Positive Delete
@@ -1146,7 +1146,7 @@ class User(BaseCLI):
         @Assert: User is deleted
         @BZ: 1079649
         """
-        user = make_user({'login': login})
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
@@ -1163,7 +1163,7 @@ class User(BaseCLI):
           {'login': generate_string("alphanumeric", 10)},
           {'login': generate_string("numeric", 10)},
           {'login': generate_string("alphanumeric", 10)})
-    def test_positive_delete_user_2(self, login):
+    def test_positive_delete_user_2(self, test_data):
         """
         @Test: Delete an admin user
         @Feature: User - Positive Delete
@@ -1172,7 +1172,8 @@ class User(BaseCLI):
         2. Delete the User
         @Assert: User is deleted
         """
-        user = make_user({'admin': 'true', 'login': login})
+        test_data.update({'admin': 'true'})
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
