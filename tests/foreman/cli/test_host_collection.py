@@ -111,7 +111,7 @@ class TestHostCollection(BaseCLI):
             "Descriptions don't match"
         )
 
-    @data([-1, 0, 1, 5, 10, 20])
+    @data(*[-1, 1, 5, 10, 20])
     @attr('cli', 'hostcollection')
     def test_positive_create_3(self, test_data):
         """
@@ -125,8 +125,9 @@ class TestHostCollection(BaseCLI):
         # Assert that limit matches data passed
         self.assertEqual(
             new_host_col['max-content-hosts'],
-            test_data['max-content-hosts'],
-            "Limits don't match"
+            str(test_data),
+            ("Limits don't match '%s' != '%s'" %
+             (new_host_col['max-content-hosts'], str(test_data)))
         )
 
     @data(
