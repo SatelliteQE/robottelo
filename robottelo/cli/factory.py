@@ -11,6 +11,7 @@ import os
 import random
 
 from os import chmod
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
@@ -75,6 +76,53 @@ def create_object(cli_object, args):
         result.stdout = result.stdout[0]
 
     return result.stdout
+
+
+def make_activation_key(options=None):
+    """
+    Usage:
+        hammer activation-key create [OPTIONS]
+
+    Options:
+        --content-view CONTENT_VIEW_NAME
+        --content-view-id CONTENT_VIEW_ID content view id
+        --description DESCRIPTION     description
+        --environment ENVIRONMENT_NAME
+        --environment-id ENVIRONMENT_ID environment id
+        --name NAME                   name
+        --organization ORGANIZATION_NAME
+        --organization-id ORGANIZATION_ID organization identifier
+        --organization-label ORGANIZATION_LABEL
+        --usage-limit USAGE_LIMIT     maximum number of registered
+                                      content hosts, or 'unlimited'
+    """
+
+    # Organization Name, Label or ID is a required field.
+    if (
+            not options
+            or not options.get('organization', None)
+            and not options.get('organization-label', None)
+            and not options.get('organization-id', None)):
+        raise Exception("Please provide a valid Organization.")
+
+    args = {
+        'name': generate_name(),
+        'description': None,
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'content-view': None,
+        'content-view-id': None,
+        'environment': None,
+        'environment-id': None,
+        'usage-limit': 'unlimited',
+    }
+
+    # Override default dictionary with updated one
+    args = update_dictionary(args, options)
+    args.update(create_object(ActivationKey, args))
+
+    return args
 
 
 def make_architecture(options=None):

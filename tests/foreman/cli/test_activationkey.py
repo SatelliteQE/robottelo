@@ -5,67 +5,210 @@
 Test class for Activation key CLI
 """
 
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
+from ddt import ddt
+from nose.plugins.attrib import attr
+
+from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.cli.factory import (
+    make_activation_key,
+    make_lifecycle_environment,
+    make_org, make_product
+)
+from robottelo.common.decorators import data, stubbed
+from robottelo.common.helpers import generate_string
 
 from tests.foreman.cli.basecli import BaseCLI
-from robottelo.common.constants import NOT_IMPLEMENTED
 
 
-class ActivationKey(BaseCLI):
+@ddt
+class TestActivationKey(BaseCLI):
     """
-    Implements Activation key tests in CLI
-
-    [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
-    Latin1, Multibyte, Max length,  Min length, Max_db_size, html, css,
-    javascript, url, shell commands, sql, spaces in name
-    [2] Negative Name Variations -  Blank, Greater than Max Length,
-    Lesser than Min Length, Greater than Max DB size
+    Activation Key CLI tests
     """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_create_activation_key_1(self):
+    org = None
+    library = None
+    product = None
+    env1 = None
+    env2 = None
+
+    def setUp(self):
         """
-        @Feature: Activation key - Positive Create
+        Tests for activation keys via Hammer CLI
+        """
+
+        super(TestActivationKey, self).setUp()
+
+        if TestActivationKey.org is None:
+            TestActivationKey.org = make_org()
+        if TestActivationKey.env1 is None:
+            TestActivationKey.env1 = make_lifecycle_environment(
+                {u'organization-id': TestActivationKey.org['id']})
+        if TestActivationKey.env2 is None:
+            TestActivationKey.env2 = make_lifecycle_environment(
+                {u'organization-id': TestActivationKey.org['id'],
+                 u'prior': TestActivationKey.env1['label']})
+        if TestActivationKey.product is None:
+            TestActivationKey.product = make_product(
+                {u'organization-id': TestActivationKey.org['id']})
+
+        if TestActivationKey.library is None:
+            TestActivationKey.library = LifecycleEnvironment.info(
+                {'organization-id': TestActivationKey.org['id'],
+                 'name': 'Library'}).stdout
+
+    def _make_activation_key(self, options=None):
+        """ Make a new activation key and assert its success"""
+
+        if options is None:
+            options = {}
+
+        # Use default organization if None are provided
+        if (
+                not options.get('organization', None)
+                and not options.get('organization-label', None)
+                and not options.get('organization-id', None)):
+            options['organization-id'] = self.org['id']
+
+        # Create activation key
+        ackey = make_activation_key(options)
+
+        # Fetch it
+        result = ActivationKey.info(
+            {
+                'id': ackey['id']
+            }
+        )
+
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Activation key was not found: %s" % str(result.stderr))
+        self.assertEqual(
+            len(result.stderr),
+            0,
+            "No error was expected %s" % str(result.stderr))
+
+        # Return the activation key dictionary
+        return ackey
+
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'activation-key')
+    def test_positive_create_activation_key_1(self, test_data):
+        """
         @Test: Create Activation key for all variations of Activation key name
+        @Feature: Activation key
         @Steps:
         1. Create Activation key for all valid Activation Key name variation
-        in [1] using valid Description, Environment, Content View, Usage limit
-        @Assert: Activation key is created
-        @Status: Manual
+        @Assert: Activation key is created with chosen name
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_create_activation_key_2(self):
+        new_ackey = self._make_activation_key({u'name': test_data['name']})
+        # Name should match passed data
+        self.assertEqual(
+            new_ackey['name'],
+            test_data['name'],
+            ("Names don't match: '%s' != '%s'" %
+             (new_ackey['name'], test_data['name']))
+        )
+
+    @data(
+        {'description': generate_string('alpha', 15)},
+        {'description': generate_string('alphanumeric', 15)},
+        {'description': generate_string('numeric', 15)},
+        {'description': generate_string('latin1', 15)},
+        {'description': generate_string('utf8', 15)},
+        {'description': generate_string('html', 15)},
+    )
+    @attr('cli', 'activation-key')
+    def test_positive_create_activation_key_2(self, test_data):
         """
-        @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Description
+        @Feature: Activation key
         @Steps:
-        1. Create Activation key for all valid Description variation in [1]
-        using valid Name, Environment, Content View and Usage limit
-        @Assert: Activation key is created
+        1. Create Activation key for all valid Description variation
+        @Assert: Activation key is created with chosen description
+        """
+
+        new_ackey = self._make_activation_key(
+            {u'description': test_data['description']})
+        # Description should match passed data
+        self.assertEqual(
+            new_ackey['description'],
+            test_data['description'],
+            ("Descriptions don't match: '%s' != '%s'" %
+             (new_ackey['description'], test_data['description']))
+        )
+
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'activation-key')
+    def test_positive_create_associate_environ_1(self, test_data):
+        """
+        @Test: Create Activation key and associate with Library environment
+        @Feature: Activation key
+        @Steps:
+        1. Create Activation key for variations of Name / associated to Library
+        @Assert: Activation key is created and associated to Library
         @Status: Manual
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_create_activation_key_3(self):
+        new_ackey = self._make_activation_key(
+            {u'name': test_data['name'],
+             u'environment-id': self.library['id']})
+        # Description should match passed data
+        self.assertEqual(
+            new_ackey['lifecycle-environment'],
+            self.library['name'],
+            ("Environments don't match: '%s' != '%s'" %
+             (new_ackey['lifecycle-environment'], self.library['name']))
+        )
+
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'activation-key')
+    def test_positive_create_associate_environ_2(self, test_data):
         """
-        @Feature: Activation key - Positive Create
-        @Test: Create Activation key for all variations of Environments
+        @Test: Create Activation key and associate with environment
+        @Feature: Activation key
         @Steps:
-        1. Create Activation key for all valid Environments in [1]
-        using valid Name, Description, Content View and Usage limit
-        @Assert: Activation key is created
+        1. Create Activation key for variations of Name / associated to environ
+        @Assert: Activation key is created and associated to environment
         @Status: Manual
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        new_ackey = self._make_activation_key(
+            {u'name': test_data['name'],
+             u'environment-id': self.env1['id']})
+        # Description should match passed data
+        self.assertEqual(
+            new_ackey['lifecycle-environment'],
+            self.env1['name'],
+            ("Environments don't match: '%s' != '%s'" %
+             (new_ackey['lifecycle-environment'], self.env1['name']))
+        )
+
+    @stubbed
     def test_positive_create_activation_key_4(self):
         """
         @Feature: Activation key - Positive Create
@@ -78,7 +221,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_activation_key_5(self):
         """
         @Feature: Activation key - Positive Create
@@ -91,7 +234,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_activation_key_6(self):
         """
         @Feature: Activation key - Positive Create
@@ -104,7 +247,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_activation_key_7(self):
         """
         @Feature: Activation key - Positive Create
@@ -117,7 +260,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_activation_key_8(self):
         """
         @Feature: Activation key - Positive Create
@@ -130,7 +273,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_activation_key_1(self):
         """
         @Feature: Activation key - Negative Create
@@ -143,7 +286,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
@@ -156,7 +299,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_activation_key_3(self):
         """
         @Feature: Activation key - Negative Create
@@ -169,7 +312,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -184,7 +327,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_activation_key_2(self):
         """
         @Feature: Activation key - Positive Delete
@@ -199,7 +342,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_activation_key_3(self):
         """
         @Feature: Activation key - Positive Delete
@@ -214,7 +357,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_activation_key_4(self):
         """
         @Feature: Activation key - Positive Delete
@@ -229,7 +372,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_activation_key_5(self):
         """
         @Feature: Activation key - Positive Delete
@@ -243,7 +386,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_activation_key_6(self):
         """
         @Feature: Activation key - Positive Delete
@@ -257,7 +400,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_delete_activation_key_1(self):
         """
         @Feature: Activation key - Positive Delete
@@ -271,7 +414,7 @@ class ActivationKey(BaseCLI):
         """
         pass  # Skip for CLI as this is UI only
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_activation_key_1(self):
         """
         @Feature: Activation key - Positive Update
@@ -284,7 +427,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_activation_key_2(self):
         """
         @Feature: Activation key - Positive Update
@@ -297,7 +440,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_activation_key_3(self):
         """
         @Feature: Activation key - Positive Update
@@ -310,7 +453,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_activation_key_4(self):
         """
         @Feature: Activation key - Positive Update
@@ -324,7 +467,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_activation_key_5(self):
         """
         @Feature: Activation key - Positive Update
@@ -337,7 +480,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_activation_key_6(self):
         """
         @Feature: Activation key - Positive Update
@@ -350,7 +493,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_activation_key_1(self):
         """
         @Feature: Activation key - Negative Update
@@ -363,7 +506,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
@@ -376,7 +519,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_activation_key_3(self):
         """
         @Feature: Activation key - Negative Update
@@ -389,7 +532,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_usage_limit(self):
         """
         @Feature: Activation key - Usage limit
@@ -404,7 +547,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_associate_host(self):
         """
         @Feature: Activation key - Host
@@ -418,7 +561,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_associate_product_1(self):
         """
         @Feature: Activation key - Product
@@ -431,7 +574,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_associate_product_2(self):
         """
         @Feature: Activation key - Product
@@ -444,7 +587,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_associate_product_3(self):
         """
         @Feature: Activation key - Product
@@ -458,7 +601,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_delete_manifest(self):
         """
         @Feature: Activation key - Manifest
@@ -472,7 +615,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_multiple_activation_keys_to_system(self):
         """
         @Feature: Activation key - System
@@ -485,7 +628,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_activation_keys_1(self):
         """
         @Feature: Activation key - list
@@ -499,7 +642,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_activation_keys_2(self):
         """
         @Feature: Activation key - list
@@ -512,7 +655,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_activation_keys_1(self):
         """
         @Feature: Activation key - search
@@ -526,7 +669,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_activation_keys_2(self):
         """
         @Feature: Activation key - search
@@ -539,7 +682,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_activation_keys_1(self):
         """
         @Feature: Activation key - info
@@ -554,7 +697,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_activation_keys_2(self):
         """
         @Feature: Activation key - info
@@ -567,7 +710,7 @@ class ActivationKey(BaseCLI):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_end_to_end(self):
         """
         @Feature: Activation key - End to End
