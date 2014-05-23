@@ -9,9 +9,9 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     make_activation_key,
-    make_content_view,
     make_lifecycle_environment,
     make_org, make_product
 )
@@ -28,8 +28,8 @@ class TestActivationKey(BaseCLI):
     """
 
     org = None
-    # TODO: set product = None before committing
-    product = 1
+    library = None
+    product = None
     env1 = None
     env2 = None
 
@@ -52,6 +52,11 @@ class TestActivationKey(BaseCLI):
         if TestActivationKey.product is None:
             TestActivationKey.product = make_product(
                 {u'organization-id': TestActivationKey.org['id']})
+
+        if TestActivationKey.library is None:
+            TestActivationKey.library = LifecycleEnvironment.info(
+                {'organization-id': TestActivationKey.org['id'],
+                 'name': 'Library'}).stdout
 
     def _make_activation_key(self, options=None):
         """ Make a new activation key and assert its success"""
@@ -152,7 +157,7 @@ class TestActivationKey(BaseCLI):
         {'name': generate_string('html', 15)},
     )
     @attr('cli', 'activation-key')
-    def test_positive_create_activation_key_associate_environ_1(self):
+    def test_positive_create_associate_environ_1(self, test_data):
         """
         @Test: Create Activation key and associate with Library environment
         @Feature: Activation key
@@ -161,7 +166,17 @@ class TestActivationKey(BaseCLI):
         @Assert: Activation key is created and associated to Library
         @Status: Manual
         """
-        pass
+
+        new_ackey = self._make_activation_key(
+            {u'name': test_data['name'],
+             u'environment-id': self.library['id']})
+        # Description should match passed data
+        self.assertEqual(
+            new_ackey['lifecycle-environment'],
+            self.library['name'],
+            ("Environments don't match: '%s' != '%s'" %
+             (new_ackey['lifecycle-environment'], self.library['name']))
+        )
 
     @data(
         {'name': generate_string('alpha', 15)},
@@ -172,8 +187,7 @@ class TestActivationKey(BaseCLI):
         {'name': generate_string('html', 15)},
     )
     @attr('cli', 'activation-key')
-    @stubbed
-    def test_positive_create_activation_key_associate_environ_2(self):
+    def test_positive_create_associate_environ_2(self, test_data):
         """
         @Test: Create Activation key and associate with environment
         @Feature: Activation key
@@ -182,7 +196,17 @@ class TestActivationKey(BaseCLI):
         @Assert: Activation key is created and associated to environment
         @Status: Manual
         """
-        pass
+
+        new_ackey = self._make_activation_key(
+            {u'name': test_data['name'],
+             u'environment-id': self.env1['id']})
+        # Description should match passed data
+        self.assertEqual(
+            new_ackey['lifecycle-environment'],
+            self.env1['name'],
+            ("Environments don't match: '%s' != '%s'" %
+             (new_ackey['lifecycle-environment'], self.env1['name']))
+        )
 
     @stubbed
     def test_positive_create_activation_key_4(self):
