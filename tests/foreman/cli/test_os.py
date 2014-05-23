@@ -172,8 +172,8 @@ class TestOperatingSystem(BaseCLI):
         # major and minor
         self.assertEqual(result['id'], os_info.stdout['id'])
         self.assertEqual(result['name'], os_info.stdout['name'])
-        self.assertIn(str(result['major']), os_info.stdout['name'])
-        self.assertIn(str(result['minor']), os_info.stdout['name'])
+        self.assertEqual(str(result['major']), os_info.stdout['major-version'])
+        self.assertEqual(str(result['minor']), os_info.stdout['minor-version'])
 
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):
