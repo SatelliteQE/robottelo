@@ -363,7 +363,7 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(a_ob['name'], result.stdout['architectures'])
+        self.assertIn(a_ob['name'], result.stdout['architectures'])
 
     def test_add_configtemplate(self):
         """
