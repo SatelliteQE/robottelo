@@ -285,7 +285,7 @@ def info_dictionary(result):
     Function for converting result to dictionary, from info function in base..
     """
     # info dictionary
-    r = dict()
+    r = {}
     sub_prop = None  # stores name of the last group of sub-properties
     sub_num = None  # is not None when list of properties
 
@@ -296,42 +296,58 @@ def info_dictionary(result):
         if line.startswith(' '):  # sub-properties are indented
             # values are separated by ':' or '=>'
             if line.find(':') != -1:
-                [key, value] = line.lstrip().split(":", 1)
+                key, value = line.lstrip().split(":", 1)
             elif line.find('=>') != -1:
-                [key, value] = line.lstrip().split(" =>", 1)
-
-            # some properties have many numbered values
-            # Example:
-            # Content:
-            #  1) Repo Name: repo1
-            #     URL:       /custom/4f84fc90-9ffa-...
-            #  2) Repo Name: puppet1
-            #     URL:       /custom/4f84fc90-9ffa-...
-            starts_with_number = re.match('(\d+)\)', key)
-            if starts_with_number:
-                sub_num = int(starts_with_number.groups()[0])
-                # no. 1) we need to change dict() to list()
-                if sub_num == 1:
-                    r[sub_prop] = list()
-                # remove number from key
-                key = re.sub('\d+\)', '', key)
-                # append empty dict to array
-                r[sub_prop].append(dict())
-
-            key = key.lstrip().replace(' ', '-').lower()
-
-            # add value to dictionary
-            if sub_num is not None:
-                r[sub_prop][-1][key] = value.lstrip()
+                key, value = line.lstrip().split(" =>", 1)
             else:
-                r[sub_prop][key] = value.lstrip()
+                key = value = None
+
+            if key is None and value is None:
+                # Parse single attribute collection properties
+                # Template
+                #  1) template1
+                #  2) template2
+                match = re.match(r'(\d+)\)\s+(.+)$', line.lstrip())
+                index = int(match.group(1))
+                value = match.group(2)
+
+                if index == 1:
+                    r[sub_prop] = []
+
+                r[sub_prop].append(value)
+            else:
+                # some properties have many numbered values
+                # Example:
+                # Content:
+                #  1) Repo Name: repo1
+                #     URL:       /custom/4f84fc90-9ffa-...
+                #  2) Repo Name: puppet1
+                #     URL:       /custom/4f84fc90-9ffa-...
+                starts_with_number = re.match(r'(\d+)\)', key)
+                if starts_with_number:
+                    sub_num = int(starts_with_number.group(1))
+                    # no. 1) we need to change dict() to list()
+                    if sub_num == 1:
+                        r[sub_prop] = []
+                    # remove number from key
+                    key = re.sub(r'\d+\)', '', key)
+                    # append empty dict to array
+                    r[sub_prop].append({})
+
+                key = key.lstrip().replace(' ', '-').lower()
+
+                # add value to dictionary
+                if sub_num is not None:
+                    r[sub_prop][-1][key] = value.lstrip()
+                else:
+                    r[sub_prop][key] = value.lstrip()
         else:
             sub_num = None  # new property implies no sub property
-            [key, value] = line.lstrip().split(":", 1)
+            key, value = line.lstrip().split(":", 1)
             key = key.lstrip().replace(' ', '-').lower()
             if value.lstrip() == '':  # 'key:' no value, new sub-property
                 sub_prop = key
-                r[sub_prop] = dict()
+                r[sub_prop] = {}
             else:  # 'key: value' line
                 r[key] = value.lstrip()
 
