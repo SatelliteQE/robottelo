@@ -389,7 +389,7 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(conf_obj['name'], result.stdout['config-templates'])
+        self.assertIn(conf_obj['name'], result.stdout['templates'])
 
     def test_add_ptable(self):
         """
