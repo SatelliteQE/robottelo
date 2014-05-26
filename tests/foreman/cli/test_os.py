@@ -414,4 +414,4 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(ptable_obj['name'], result.stdout['partition-tables'])
+        self.assertIn(ptable_obj['name'], result.stdout['partition-tables'])
