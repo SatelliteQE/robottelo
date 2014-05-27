@@ -172,8 +172,8 @@ class TestOperatingSystem(BaseCLI):
         # major and minor
         self.assertEqual(result['id'], os_info.stdout['id'])
         self.assertEqual(result['name'], os_info.stdout['name'])
-        self.assertIn(str(result['major']), os_info.stdout['name'])
-        self.assertIn(str(result['minor']), os_info.stdout['name'])
+        self.assertEqual(str(result['major']), os_info.stdout['major-version'])
+        self.assertEqual(str(result['minor']), os_info.stdout['minor-version'])
 
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):
@@ -363,7 +363,7 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(a_ob['name'], result.stdout['architectures'])
+        self.assertIn(a_ob['name'], result.stdout['architectures'])
 
     def test_add_configtemplate(self):
         """
@@ -389,7 +389,7 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(conf_obj['name'], result.stdout['config-templates'])
+        self.assertIn(conf_obj['name'], result.stdout['templates'])
 
     def test_add_ptable(self):
         """
@@ -414,4 +414,4 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(ptable_obj['name'], result.stdout['partition-tables'])
+        self.assertIn(ptable_obj['name'], result.stdout['partition-tables'])
