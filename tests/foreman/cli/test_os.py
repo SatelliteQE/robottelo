@@ -363,7 +363,8 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertIn(a_ob['name'], result.stdout['architectures'])
+        self.assertEqual(len(result.stdout['architectures']), 1)
+        self.assertEqual(a_ob['name'], result.stdout['architectures'][0])
 
     def test_add_configtemplate(self):
         """
@@ -389,7 +390,9 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertIn(conf_obj['name'], result.stdout['templates'])
+        self.assertEqual(len(result.stdout['templates']), 1)
+        template_name = result.stdout['templates'][0]
+        self.assertTrue(template_name.startswith(conf_obj['name']))
 
     def test_add_ptable(self):
         """
@@ -414,4 +417,5 @@ class TestOperatingSystem(BaseCLI):
 
         result = OperatingSys.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertIn(ptable_obj['name'], result.stdout['partition-tables'])
+        self.assertEqual(len(result.stdout['partition-tables']), 1)
+        self.assertIn(ptable_obj['name'], result.stdout['partition-tables'][0])
