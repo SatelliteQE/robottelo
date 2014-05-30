@@ -307,11 +307,19 @@ def info_dictionary(result):
                 # Template
                 #  1) template1
                 #  2) template2
-                match = re.match(r'(\d+)\)\s+(.+)$', line.lstrip())
-                index = int(match.group(1))
-                value = match.group(2)
+                #
+                # or
+                # Template
+                #  template1
+                #  template2
+                match = re.match(r'\d+\)\s+(.+)$', line.lstrip())
 
-                if index == 1:
+                if match is None:
+                    match = re.match(r'(.*)$', line.lstrip())
+
+                value = match.group(1)
+
+                if isinstance(r[sub_prop], dict):
                     r[sub_prop] = []
 
                 r[sub_prop].append(value)
