@@ -111,7 +111,7 @@ class TestHostCollection(BaseCLI):
             "Descriptions don't match"
         )
 
-    @data(*[-1, 1, 5, 10, 20])
+    @data(1, 3, 5, 10, 20)
     @attr('cli', 'hostcollection')
     def test_positive_create_3(self, test_data):
         """
@@ -290,7 +290,7 @@ class TestHostCollection(BaseCLI):
         )
 
     @bzbug('1084240')
-    @data([3, 6, 9, 12, 15, 17, 19])
+    @data(3, 6, 9, 12, 15, 17, 19)
     @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):
         """
