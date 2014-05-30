@@ -140,14 +140,34 @@ class InfoDictionaryTestCase(unittest.TestCase):
             'minor-version': '5',
         })
 
-    def test_parse_list_attributes(self):
-        """Can parse list attributes"""
+    def test_parse_numbered_list_attributes(self):
+        """Can parse numbered list attributes"""
         output = FakeSSHResult(stdout=[
             'Partition tables:',
             ' 1) ptable1',
             ' 2) ptable2',
             ' 3) ptable3',
             ' 4) ptable4',
+        ])
+
+        result = info_dictionary(output)
+        self.assertDictEqual(result.stdout, {
+            'partition-tables': [
+                'ptable1',
+                'ptable2',
+                'ptable3',
+                'ptable4',
+            ],
+        })
+
+    def test_parse_list_attributes(self):
+        """Can parse list attributes"""
+        output = FakeSSHResult(stdout=[
+            'Partition tables:',
+            ' ptable1',
+            ' ptable2',
+            ' ptable3',
+            ' ptable4',
         ])
 
         result = info_dictionary(output)
