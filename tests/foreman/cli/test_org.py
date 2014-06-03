@@ -178,13 +178,11 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @bzbug('1076568')
-    def test_bugzilla_1076568(self):
+    def test_bugzilla_1076568_1(self):
         """
-        @test: Hammer Cli : Org delete fails
+        @test: Delete organization by name
         @feature: Organizations
         @assert: Organization is deleted
-        @bz: 1076568
         """
 
         new_obj = make_org()
@@ -196,15 +194,96 @@ class TestOrg(BaseCLI):
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-        return_value = Org.delete({'id': new_obj['name']})
-        self.assertEqual(return_value.return_code, 0, "Deletion failed")
+        return_value = Org.delete({'name': new_obj['name']})
         self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+            return_value.return_code,
+            0,
+            "Deletion failed: %s" % result.stderr)
+        self.assertEqual(
+            len(return_value.stderr),
+            0,
+            "Unexpected error found: %s" % result.stderr)
 
         # Can we find the object?
         result = Org.info({'id': new_obj['id']})
         self.assertNotEqual(
-            result.return_code, 0, "Organization should be deleted")
+            result.return_code,
+            0,
+            "Organization should be deleted but was found")
+        self.assertGreater(len(result.stderr), 0,
+                           "There should not be an exception here")
+        self.assertEqual(
+            len(result.stdout), 0, "Output should be blank.")
+
+    def test_bugzilla_1076568_2(self):
+        """
+        @test: Delete organization by ID
+        @feature: Organizations
+        @assert: Organization is deleted
+        """
+
+        new_obj = make_org()
+
+        # Can we find the new object?
+        result = Org.info({'id': new_obj['id']})
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+
+        return_value = Org.delete({'id': new_obj['id']})
+        self.assertEqual(
+            return_value.return_code,
+            0,
+            "Deletion failed: %s" % result.stderr)
+        self.assertEqual(
+            len(return_value.stderr),
+            0,
+            "Unexpected error found: %s" % result.stderr)
+
+        # Can we find the object?
+        result = Org.info({'id': new_obj['id']})
+        self.assertNotEqual(
+            result.return_code,
+            0,
+            "Organization should be deleted but was found")
+        self.assertGreater(len(result.stderr), 0,
+                           "There should not be an exception here")
+        self.assertEqual(
+            len(result.stdout), 0, "Output should be blank.")
+
+    def test_bugzilla_1076568_3(self):
+        """
+        @test: Delete organization by label
+        @feature: Organizations
+        @assert: Organization is deleted
+        """
+
+        new_obj = make_org()
+
+        # Can we find the new object?
+        result = Org.info({'id': new_obj['id']})
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+
+        return_value = Org.delete({'label': new_obj['label']})
+        self.assertEqual(
+            return_value.return_code,
+            0,
+            "Deletion failed: %s" % result.stderr)
+        self.assertEqual(
+            len(return_value.stderr),
+            0,
+            "Unexpected error found: %s" % result.stderr)
+
+        # Can we find the object?
+        result = Org.info({'id': new_obj['id']})
+        self.assertNotEqual(
+            result.return_code,
+            0,
+            "Organization should be deleted but was found")
         self.assertGreater(len(result.stderr), 0,
                            "There should not be an exception here")
         self.assertEqual(
@@ -877,7 +956,6 @@ class TestOrg(BaseCLI):
 
     # Positive Delete
 
-    @bzbug('1076568')
     @data(*positive_name_desc_label_data())
     def test_positive_delete_1(self, test_data):
         """
@@ -885,7 +963,6 @@ class TestOrg(BaseCLI):
         by ID
         @feature: Organizations
         @assert: organization is deleted
-        @bz: 1076568
         """
 
         new_obj = make_org(test_data)
@@ -897,7 +974,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-        return_value = Org.delete({'id': new_obj['name']})
+        return_value = Org.delete({'id': new_obj['id']})
         self.assertEqual(return_value.return_code, 0, "Deletion failed")
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
