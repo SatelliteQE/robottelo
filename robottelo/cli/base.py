@@ -133,7 +133,8 @@ class Base(object):
         return result
 
     @classmethod
-    def execute(cls, command, user=None, password=None, expect_csv=False):
+    def execute(cls, command, user=None, password=None,
+                expect_csv=False, timeout=None):
         """
         Executes the command
         """
@@ -150,7 +151,8 @@ class Base(object):
 
         cmd = shell_cmd % (cls.locale, user, password, output_csv, command)
 
-        return ssh.command(cmd.encode('utf-8'), expect_csv=expect_csv)
+        return ssh.command(
+            cmd.encode('utf-8'), expect_csv=expect_csv, timeout=timeout)
 
     @classmethod
     def exists(cls, options=None, tuple_search=None):

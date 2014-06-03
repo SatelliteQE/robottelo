@@ -64,14 +64,18 @@ class ContentView(Base):
         return result
 
     @classmethod
-    def publish(cls, options):
+    def publish(cls, options, timeout=None):
         """
         Publishes a new version of content-view.
         """
 
         cls.command_sub = "publish"
 
-        result = cls.execute(cls._construct_command(options))
+        # Publishing can take a while so try to wait a bit longer
+        if timeout is None:
+            timeout = 120
+
+        result = cls.execute(cls._construct_command(options), timeout=timeout)
 
         return result
 

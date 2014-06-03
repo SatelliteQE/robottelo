@@ -87,11 +87,15 @@ def upload_file(local_file, remote_file=None):
     # TODO: Upload file to sauce labs via VPN tunnel in the else part.
 
 
-def command(cmd, hostname=None, expect_csv=False, timeout=50):
+def command(cmd, hostname=None, expect_csv=False, timeout=None):
     """
     Executes SSH command(s) on remote hostname.
     Defaults to main.server.hostname.
     """
+
+    # Set a default timeout of 60 seconds
+    if timeout is None:
+        timeout = 60
 
     # Start the timer
     start = time.time()
