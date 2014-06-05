@@ -368,15 +368,19 @@ def make_repository(options=None):
     Options:
         --content-type CONTENT_TYPE   type of repo (either 'yum' or 'puppet',
                                       defaults to 'yum')
-        --enabled ENABLED             flag that enables/disables the repository
-        --url FEED_URL               repository source url
-        --gpg-key-name GPG_KEY_NAME   name of a gpg key that will be assigned
+        --gpg-key GPG_KEY_NAME
+        --gpg-key-id GPG_KEY_ID       id of the gpg key that will be assigned
                                       to the new repository
         --label LABEL
         --name NAME
+        --organization ORGANIZATION_NAME
+        --organization-id ORGANIZATION_ID
+        --organization-label ORGANIZATION_LABEL
+        --product PRODUCT_NAME
         --product-id PRODUCT_ID       Product the repository belongs to
         --publish-via-http ENABLE     Publish Via HTTP
                                       One of true/false, yes/no, 1/0.
+        --url URL                     repository source url
     """
 
     # Product ID is a required field.
@@ -387,10 +391,15 @@ def make_repository(options=None):
         'name': generate_string('alpha', 15),
         'label': None,
         'content-type': u'yum',
+        'product': None,
         'product-id': None,
         'publish-via-http': u'true',
         'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
-        'gpg-key-name': None,
+        'gpg-key': None,
+        'gpg-key-id': None,
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
     }
 
     args = update_dictionary(args, options)
