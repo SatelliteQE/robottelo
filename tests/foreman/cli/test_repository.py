@@ -9,7 +9,7 @@ from ddt import ddt
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_repository)
 from robottelo.cli.repository import Repository
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, bzbug, stubbed
 from robottelo.common.helpers import generate_string
 from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
@@ -369,6 +369,7 @@ class TestRepository(BaseCLI):
             "Urls don't match"
         )
 
+    @stubbed
     @bzbug('1083236')
     @attr('cli', 'repository')
     def test_positive_update_2(self, test_data):
@@ -377,8 +378,10 @@ class TestRepository(BaseCLI):
         @Feature: Repository
         @Assert: Repository gpg key is updated
         @BZ: 1083236
+        @Status: manual
         """
 
+    @stubbed
     @bzbug('1083256')
     @attr('cli', 'repository')
     def test_positive_update_3(self, test_data):
@@ -387,6 +390,7 @@ class TestRepository(BaseCLI):
         @Feature: Repository
         @Assert: Repository publishing method is updated
         @BZ: 1083256
+        @Status: manual
         """
 
     @data(
