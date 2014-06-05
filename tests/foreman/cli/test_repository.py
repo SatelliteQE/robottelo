@@ -216,7 +216,7 @@ class TestRepository(BaseCLI):
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
         new_repo = self._make_repository(
-            {u'name': test_data['name'], u'gpg-key-name': new_gpg_key['name']})
+            {u'name': test_data['name'], u'gpg-key': new_gpg_key['name']})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
