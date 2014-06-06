@@ -10,18 +10,13 @@ from robottelo.cli.factory import make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
-from robottelo.common.constants import NOT_IMPLEMENTED, VALID_GPG_KEY_FILE
-from robottelo.common.decorators import data, redminebug
+from robottelo.common.constants import VALID_GPG_KEY_FILE
+from robottelo.common.decorators import data, redminebug, stubbed
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp
 from tests.foreman.cli.basecli import BaseCLI
 
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 
 VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
 
@@ -184,9 +179,10 @@ class TestGPGKey(BaseCLI):
             self.fail(e)
 
         # Can we find the new object?
-        result = GPGKey().info(
-            {'name': new_obj['name']}
-        )
+        result = GPGKey().info({
+            'name': new_obj['name'],
+            'organization-id': self.org['id'],
+        })
 
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(
@@ -359,7 +355,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
     """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_1(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -380,7 +376,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key text is valid text from a valid gpg key file
     """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_2(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -405,7 +401,7 @@ class TestGPGKey(BaseCLI):
         delete using a negative gpg key ID
         delete using a random string as the gpg key ID
     """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_delete_1(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -428,7 +424,7 @@ class TestGPGKey(BaseCLI):
         delete using a negative gpg key ID
         delete using a random string as the gpg key ID
     """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_delete_2(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -451,7 +447,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
     """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_1(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -472,7 +468,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_2(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -493,7 +489,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key text is valid text from a valid gpg key file
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_3(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -514,7 +510,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key text is valid text from a valid gpg key file
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_4(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -538,7 +534,7 @@ class TestGPGKey(BaseCLI):
         update name is html 300 characters long
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_1(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -560,7 +556,7 @@ class TestGPGKey(BaseCLI):
         update name is html 300 characters long
         gpg key text is valid text from a valid gpg key file
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_2(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -583,7 +579,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
         """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_1(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -604,7 +600,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
         """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_2(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -625,7 +621,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
         """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_3(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -647,7 +643,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
         """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_4(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -669,7 +665,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
         """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_5(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -691,7 +687,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
         """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_6(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -714,7 +710,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_7(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -736,7 +732,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_8(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -758,7 +754,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_9(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -781,7 +777,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_10(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -804,7 +800,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_11(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -827,7 +823,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_12(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -850,7 +846,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_13(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -873,7 +869,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_14(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -896,7 +892,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_15(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -919,7 +915,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_16(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -942,7 +938,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_17(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -965,7 +961,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_18(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -988,7 +984,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_19(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -1011,7 +1007,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_20(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -1034,7 +1030,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_21(self):
         """
         @test: Create gpg key with valid name and valid gpg key via file
@@ -1058,7 +1054,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_22(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1080,7 +1076,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_23(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1102,7 +1098,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_24(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1124,7 +1120,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_25(self):
         """
         @test: Create gpg key with valid name and valid gpg key via text via
@@ -1146,7 +1142,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_26(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1168,7 +1164,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_27(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1190,7 +1186,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_28(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1212,7 +1208,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_29(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1234,7 +1230,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_30(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1257,7 +1253,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_31(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1280,7 +1276,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_32(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1303,7 +1299,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_33(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1326,7 +1322,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_34(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1349,7 +1345,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_35(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1372,7 +1368,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_36(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1395,7 +1391,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_37(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1418,7 +1414,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_38(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1441,7 +1437,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_39(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1464,7 +1460,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_40(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1487,7 +1483,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_41(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1510,7 +1506,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_key_associate_42(self):
         """
         @test: Create gpg key with valid name and valid gpg key text via
@@ -1536,7 +1532,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_consume_content_1(self):
         """
         @test: Hosts can install packages using gpg key associated with
@@ -1557,7 +1553,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_consume_content_2(self):
         """
         @test: Hosts can install packages using gpg key associated with
@@ -1578,7 +1574,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_consume_content_3(self):
         """
         @test: Hosts can install packages using different gpg keys associated
@@ -1601,7 +1597,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_key_1(self):
         """
         @test: Create gpg key and list it
@@ -1621,7 +1617,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_key_1(self):
         """
         @test: Create gpg key and search/find it
@@ -1641,7 +1637,7 @@ class TestGPGKey(BaseCLI):
         name is html
         gpg key file is valid always
 """
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_key_1(self):
         """
         @test: Create single gpg key and get its info
