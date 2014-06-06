@@ -283,13 +283,13 @@ class TestRepository(BaseCLI):
         )
 
     @bzbug('1083256')
-    @data([u'true', u'false', u'true', u'false', u'true', u'false'])
+    @data(u'true', u'yes', u'1')
     @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
         """
-        @Test: Create repository not published via http
+        @Test: Create repository published via http
         @Feature: Repository
-        @Assert: Repository is created and is not published via http
+        @Assert: Repository is created and is published via http
         @BZ: 1083256
         """
 
@@ -304,11 +304,16 @@ class TestRepository(BaseCLI):
             "Repository was not found")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
-        # Assert that name matches data passed
+
         self.assertEqual(
             result.stdout['publish-via-http'],
-            test_data,
+            u'yes',
             "Publishing methods don't match"
+        )
+        self.assertNotEqual(
+            result.stdout['published-at'],
+            u'',
+            "Published at should not be blank"
         )
 
     @data(
