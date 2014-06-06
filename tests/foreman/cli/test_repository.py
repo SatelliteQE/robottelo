@@ -294,7 +294,7 @@ class TestRepository(BaseCLI):
         """
 
         new_repo = self._make_repository(
-            {'published-via-http': test_data})
+            {'publish-via-http': test_data})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -310,10 +310,32 @@ class TestRepository(BaseCLI):
             u'yes',
             "Publishing methods don't match"
         )
-        self.assertNotEqual(
-            result.stdout['published-at'],
-            u'',
-            "Published at should not be blank"
+
+    @data(u'false', u'no', u'0')
+    @attr('cli', 'repository')
+    def test_positive_create_8(self, test_data):
+        """
+        @Test: Create repository not published via http
+        @Feature: Repository
+        @Assert: Repository is created and is not published via http
+        """
+
+        new_repo = self._make_repository(
+            {'publish-via-http': test_data})
+
+        # Fetch it again
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        self.assertEqual(
+            result.stdout['publish-via-http'],
+            u'no',
+            "Publishing methods don't match"
         )
 
     @data(
