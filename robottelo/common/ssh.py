@@ -162,10 +162,10 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     errors = [] if errorcode == 0 else stderr
 
     if output:
-        logger.debug("<<< %s " % output)
+        logger.debug("<<<\n%s" % '\n'.join(output[:-1]))
     if errors:
         errors = regex.sub('', "".join(errors))
-        logger.debug("<<< %s " % errors)
+        logger.debug("<<< %s" % errors)
 
     return SSHCommandResult(
         output, errors, errorcode, expect_csv)
