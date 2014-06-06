@@ -206,10 +206,54 @@ class TestRepository(BaseCLI):
     @attr('cli', 'repository')
     def test_positive_create_5(self, test_data):
         """
-        @Test: Check if repository can be created with gpg key
+        @Test: Check if repository can be created with gpg key ID
         @Feature: Repository
         @Assert: Repository is created and has gpg key
         @BZ: 1083236
+        """
+
+        # Make a new gpg key
+        new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
+
+        new_repo = self._make_repository(
+            {u'name': test_data['name'], u'gpg-key-id': new_gpg_key['id']})
+
+        # Fetch it again
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        # Assert that data matches data passed
+        self.assertEqual(
+            result.stdout['gpg-key']['id'],
+            new_gpg_key['id'],
+            "GPG Keys ID don't match"
+        )
+        self.assertEqual(
+            result.stdout['gpg-key']['name'],
+            new_gpg_key['name'],
+            "GPG Keys name don't match"
+        )
+
+    @bzbug('1103944')
+    @data(
+        {u'name': generate_string('alpha', 15)},
+        {u'name': generate_string('alphanumeric', 15)},
+        {u'name': generate_string('numeric', 15)},
+        {u'name': generate_string('latin1', 15)},
+        {u'name': generate_string('utf8', 15)},
+        {u'name': generate_string('html', 15)},
+    )
+    @attr('cli', 'repository')
+    def test_positive_create_6(self, test_data):
+        """
+        @Test: Check if repository can be created with gpg key name
+        @Feature: Repository
+        @Assert: Repository is created and has gpg key
+        @BZ: 1103944
         """
 
         # Make a new gpg key
@@ -226,17 +270,22 @@ class TestRepository(BaseCLI):
             "Repository was not found")
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
-        # Assert that name matches data passed
+        # Assert that data matches data passed
         self.assertEqual(
-            result.stdout['gpg-key'],
+            result.stdout['gpg-key']['id'],
+            new_gpg_key['id'],
+            "GPG Keys ID don't match"
+        )
+        self.assertEqual(
+            result.stdout['gpg-key']['name'],
             new_gpg_key['name'],
-            "GPG Keys don't match"
+            "GPG Keys name don't match"
         )
 
     @bzbug('1083256')
     @data([u'true', u'false', u'true', u'false', u'true', u'false'])
     @attr('cli', 'repository')
-    def test_positive_create_6(self, test_data):
+    def test_positive_create_7(self, test_data):
         """
         @Test: Create repository not published via http
         @Feature: Repository
