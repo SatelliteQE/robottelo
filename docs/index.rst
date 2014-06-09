@@ -1,147 +1,180 @@
-.. Robottelo documentation master file, created by
-   sphinx-quickstart on Tue May  8 14:10:25 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Robottelo
 =========
-This is an automation test suite for `The Foreman <http://theforeman.org/>`_ project.
 
-My goal is to design a `keyword <http://en.wikipedia.org/wiki/Keyword-driven_testing>`_, `data <http://en.wikipedia.org/wiki/Data-driven_testing>`_ driven suite that can be used in a continuous integration environment.
+`Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
+automated, suited for use in a continuous integration environment, and `data
+driven`_. There are three types of tests:
+
+* UI tests, which rely on Selenium's `WebDriver`_.
+* CLI tests, which rely on `Paramiko`_.
+* API tests, which rely on `Requests`_.
 
 Quickstart
 ==========
 
-This page gives you a good introduction in how to get started with ``Robottelo``. For more information, please read the `documentation <http://robottelo.readthedocs.org/en/latest/>`_.
+The following is only a brief setup guide for `Robottelo`_. More extensive
+documentation `is available <https://github.com/omaciel/robottelo>`_ at Read the
+Docs.
 
-Requirements:
--------------
-If you haven't cloned the source code yet, then make sure to do it now:
+Requirements
+------------
 
-::
+Install Python header files. The package providing these files varies per
+distribution. For example:
 
-    git clone git://github.com/omaciel/robottelo.git
+* Fedora 20 provides header files in the
+  `python-devel <https://apps.fedoraproject.org/packages/python-devel>`_
+  package.
+* Ubuntu 14.04 provides header files in the
+  `python-dev <http://packages.ubuntu.com/trusty/python-dev>`_ package.
 
-Then, run **sudo pip install -r ./requirements.txt** from the root of the project to have all dependencies automatically installed.
+Get the source code and install dependencies::
 
-Running the tests
+    $ git clone git://github.com/omaciel/robottelo.git
+    $ pip install -r requirements.txt
+
+That's it! You can now go ahead and start testing The Foreman. However, there
+are a few other things you may wish to do before continuing:
+
+1. You may want to install development tools (such as gcc) for your OS. If
+   running Fedora or Red Hat Enterprise Linux, execute ``yum groupinstall
+   "Development Tools"``.
+2. You may wish to install the optional dependencies listed in
+   ``requirements-optional.txt``. (Use pip, as shown above.) They are required
+   for tasks like working with certificates, running tests with nose
+   and checking code quality with pylint.
+
+Running the Tests
 =================
 
-All tests are written so that it is possible to run them using Python Nose or Python's unittest module. For more instructions about how to run the tests take a look on the following sections.
+Before running any tests, you must create a configuration file. That done, all
+tests can be run using either `unittest`_ or `nose`_. In short, you will execute
+the following commands::
 
-Testing with Python Nose
-------------------------
-Tests can be run using the Python Nose module. Assuming that you have Nose installed (it will be already installed if you installed the requirements using the following command pip -r requirements.txt), that you have installed and configured **The Foreman** and have copied the **robottelo.properties.sample** file and saved it as **robottelo.properties**. Make sure to edit the **robottelo.properties** file and update the attributes to match your existing configuration. Now you can run all tests:
+    $ cp robottelo.properties.sample robottelo.properties
+    $ vi robottelo.properties
+    $ python -m unittest discover -s tests -t .
+    $ nosetests -c robottelo.properties
 
-::
+The following sections provide a detailed discussion of the above steps.
 
-    nosetests -c robottelo.properties
+Initial Configuration
+---------------------
 
-The test arguments may be the path or Python import:
+To configure Robottelo, create a file named ``robottelo.properties``. You can
+use the ``robottelo.properties.sample`` file as a starting point. Then, edit the
+configuration file so that at least the following attributes are set::
 
-::
+    server.hostname=[FULLY QUALIFIED DOMAIN NAME]
+    server.ssh.key_private=[PATH TO YOUR SSH KEY]
+    server.ssh.username=root
+    project=foreman
+    locale=en_US
+    remote=0
 
-    nosetests -c robottelo.properties tests/cli/test_user.py
-    nosetests -c robottelo.properties tests.cli.test_user
+    [foreman]
+    admin.username=admin
+    admin.password=changeme
 
-Run all cli tests (all modules under tests/cli path):
+Note that you only need to configure the SSH key if you want to run CLI tests.
+There are other settings to configure what web browser to use for UI tests and
+even configuration to run the automation using `SauceLabs`_. For more
+information about what web browsers you can use, check Selenium's `WebDriver`_
+documentation.
 
-::
+Testing With Unittest
+---------------------
 
-    nosetests -c robottelo.properties tests/cli
+To run all tests::
 
-Run all UI tests (all modules under tests/ui path):
+    $ python -m unittest discover \
+        --start-directory tests/ \
+        --top-level-directory .
 
-::
+It is possible to run a specific subset of tests::
 
-    nosetests -c robottelo.properties tests/ui
+    $ python -m unittest tests.robottelo.test_decorators
+    $ python -m unittest tests.robottelo.test_decorators.DataDecoratorTestCase
+    $ python -m unittest tests.robottelo.test_decorators.DataDecoratorTestCase.test_data_decorator_smoke
 
-Multiple tests can also be invoked:
+To get more verbose output, or run multiple tests::
 
-::
+    $ python -m unittest discover -s tests/ -t . -v
+    $ python -m unittest \
+        tests.robottelo.test_decorators \
+        tests.robottelo.test_cli
 
-    nosetests -c robottelo.properties tests.cli.test_user tests.cli.test_model
+To test The Foreman's API, CLI or UI, use the following commands respectively::
 
-Running individual test:
+    $ python -m unittest discover -s tests/foreman/api/
+    $ python -m unittest discover -s tests/foreman/cli/
+    $ python -m unittest discover -s tests/foreman/ui/
 
-::
+For more information about Python's `unittest`_ module, read the documentation.
 
-    nosetests -c robottelo.properties tests.cli.test_user:TestUser.test_create_user_utf8
+Testing With Nose
+-----------------
 
-For more information about nosestests command and its options see its help:
+You must have `nose`_ installed to execute the ``nosetests`` command.
 
-::
+To run all tests::
 
-    nosetests --help
+    $ nosetests -c robottelo.properties
 
-Testing with unittest module
-----------------------------
-Tests can be run using the Python unittest module. Assuming that you have installed and configured **The Foreman** and have copied the **robottelo.properties.sample** file and saved it as **robottelo.properties**. Make sure to edit the **robottelo.properties** file and update the attributes to match your existing configuration. Now you can run the unittest module from the command line to run tests from modules, classes or even individual test methods:
+It is possible to run a specific subset of tests::
 
-::
+    $ nosetests -c robottelo.properties tests.robottelo.test_decorators
+    $ nosetests -c robottelo.properties tests.robottelo.test_decorators:DataDecoratorTestCase
+    $ nosetests -c robottelo.properties tests.robottelo.test_decorators:DataDecoratorTestCase.test_data_decorator_smoke
 
-    python -m unittest tests.cli.test_user
-    python -m unittest tests.cli.test_user.TestUser
-    python -m unittest tests.cli.test_user.TestUser.test_create_user_utf8
+To get more verbose output, or run multiple tests::
 
-Multiple tests can also be invoked:
+    $ nosetests -c robottelo.properties -v
+    $ nosetests -c robottelo.properties \
+        tests.robottelo.test_decorators \
+        tests.robottelo.test_cli
 
-::
+To test The Foreman's API, CLI or UI, use the following commands respectively::
 
-    python -m unittest tests.cli.test_user tests.cli.test_model
+    $ nosetests -c robottelo.properties tests.foreman.api
+    $ nosetests -c robottelo.properties tests.foreman.cli
+    $ nosetests -c robottelo.properties tests.foreman.ui
 
-If you want a more verbose output:
+Many of the existing tests use the `DDT module`_ to allow for a more data-driven
+methodology and in order to run a specific test you need override the way
+``nosetests`` discovers test names. For instance, if you wanted to run only the
+``test_positive_create_1`` data-driven tests for the ``foreman.cli.test_org``
+module::
 
-::
+    $ nosetests -c robottelo.properties -m test_positive_create_1 \
+        tests.foreman.cli.test_org
 
-    python -m unittest -v tests.cli.test_user
-
-For a list of all the command line options:
-
-::
-
-    python -m unittest -h
-
-If you have at least Python 2.7 installed, you can take advantage of the unittest simple test dicovery:
-
-::
-
-    python -m unittest discover
-
-Run all cli tests (all modules under tests/cli path):
-
-::
-
-    python -m unittest discover tests/cli
-
-Run all UI tests (all modules under tests/ui path):
-
-::
-
-    python -m unittest discover tests/ui
-
-If you want a more verbose output:
-
-::
-
-    python -m unittest discover -v
-
-For more information about the Python's unittest module take a look on the Python's docs http://docs.python.org/2/library/unittest.html
-
-Known Issues
+Other Topics
 ============
 
-Contents:
+Bugs are listed `on GitHub <https://github.com/omaciel/robottelo/issues>`_. If
+you think you've found a new issue, please do one of the following:
 
-.. toctree::
-   :maxdepth: 2
+* Open a new bug report on Github.
+* Join the #robottelo IRC channel on Freenode (irc.freenode.net).
 
-   records
-   lib
+If you have a local copy of Robottelo, and if you have `Sphinx`_ and make
+installed, you can generate documentation as follows::
 
-Indices and tables
-==================
+    $ cd docs
+    $ make html
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+The design and development for this software is led by `Og Maciel`_.
+
+.. _data driven: http://en.wikipedia.org/wiki/Data-driven_testing
+.. _DDT module: http://ddt.readthedocs.org/en/latest/
+.. _nose: https://nose.readthedocs.org/en/latest/index.html
+.. _Og Maciel: http://www.ogmaciel.com
+.. _Paramiko: http://www.paramiko.org/
+.. _Requests: http://docs.python-requests.org/en/latest/
+.. _Robottelo: https://github.com/omaciel/robottelo
+.. _SauceLabs: https://saucelabs.com/
+.. _Sphinx: http://sphinx-doc.org/index.html
+.. _The Foreman: http://theforeman.org/
+.. _unittest: http://docs.python.org/2/library/unittest.html
+.. _WebDriver: http://docs.seleniumhq.org/projects/webdriver/
