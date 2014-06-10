@@ -161,8 +161,8 @@ covered by the API. For more granular information, follow one of the links.
 
     robottelo
 
-Other Topics
-============
+Miscellany
+==========
 
 Bugs are listed `on GitHub <https://github.com/omaciel/robottelo/issues>`_. If
 you think you've found a new issue, please do one of the following:
@@ -170,11 +170,15 @@ you think you've found a new issue, please do one of the following:
 * Open a new bug report on Github.
 * Join the #robottelo IRC channel on Freenode (irc.freenode.net).
 
-If you have a local copy of Robottelo, and if you have `Sphinx`_ and make
-installed, you can generate documentation as follows::
+You can generate the documentation for Robottelo as follows, so long as you have
+`Sphinx`_ and make installed::
 
     $ cd docs
     $ make html
+
+To check for code smells::
+
+    $ ./lint.py | less
 
 The design and development for this software is led by `Og Maciel`_.
 
