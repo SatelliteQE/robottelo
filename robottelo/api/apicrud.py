@@ -49,15 +49,15 @@ def load_from_data(cls, data, transform):
         if isinstance(field, RelatedField)
         )
     data = transform(cls, data)
-    for k, v in data.items():
-        if k in related and type(v) is dict:
-            related_class = related[k].record_class
-            related_instance = load_from_data(related_class, v, transform)
-            instance[k] = related_instance
-        elif isinstance(v, basestring):
-            instance[k] = v
+    for key, value in data.items():
+        if key in related and isinstance(value, dict):
+            related_class = related[key].record_class
+            related_instance = load_from_data(related_class, value, transform)
+            instance[key] = related_instance
+        elif isinstance(value, basestring):
+            instance[key] = value
         else:
-            instance[k] = v
+            instance[key] = value
     return instance
 
 
@@ -125,7 +125,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_path'):
-            return cls.api_path
+            return cls.api_path  # pylint: disable=E1101
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -141,7 +141,7 @@ class ApiCrud(object):
         """
 
         if hasattr(cls, 'api_json_key'):
-            return cls.api_json_key
+            return cls.api_json_key  # pylint: disable=E1101
 
         raise NotImplementedError("Api path needs to be defined")
 
@@ -200,9 +200,10 @@ class ApiCrud(object):
 
         """
 
-        path = cls.parse_path_arg(cls.api_path, kwargs)
+        path = cls.parse_path_arg(cls.get_api_path(), kwargs)
         if hasattr(cls, 'api_path_get'):
-            path = cls.parse_path_arg(cls.api_path_get, kwargs)
+            path = cls.parse_path_arg(
+                cls.api_path_get, kwargs)  # pylint: disable=E1101
         return base.get(path=path, **kwargs)
 
     @classmethod
@@ -212,9 +213,10 @@ class ApiCrud(object):
         id is required
 
         """
-        path = cls.parse_path_arg(cls.api_path, kwargs)
+        path = cls.parse_path_arg(cls.get_api_path(), kwargs)
         if hasattr(cls, 'api_path_get'):
-            path = cls.parse_path_arg(cls.api_path_get, kwargs)
+            path = cls.parse_path_arg(
+                cls.api_path_get, kwargs)  # pylint: disable=E1101
         path = "{0}/{1}".format(path, uid)
         return base.get(path=path, **kwargs)
 
@@ -225,7 +227,7 @@ class ApiCrud(object):
         json arg is usually necessary
 
         """
-        path = cls.parse_path_arg(cls.api_path, kwargs)
+        path = cls.parse_path_arg(cls.get_api_path(), kwargs)
 
         return base.post(path=path, **kwargs)
 
@@ -237,9 +239,10 @@ class ApiCrud(object):
         json arg is usually necessary
 
         """
-        path = cls.parse_path_arg(cls.api_path, kwargs)
+        path = cls.parse_path_arg(cls.get_api_path(), kwargs)
         if hasattr(cls, 'api_path_put'):
-            path = cls.parse_path_arg(cls.api_path_get, kwargs)
+            path = cls.parse_path_arg(
+                cls.api_path_put, kwargs)  # pylint: disable=E1101
         path = "{0}/{1}".format(path, uid)
         return base.put(path=path, **kwargs)
 
@@ -251,9 +254,10 @@ class ApiCrud(object):
         json arg is usually necessary
 
         """
-        path = cls.parse_path_arg(cls.api_path, kwargs)
+        path = cls.parse_path_arg(cls.get_api_path(), kwargs)
         if hasattr(cls, 'api_path_delete'):
-            path = cls.parse_path_arg(cls.api_path_get, kwargs)
+            path = cls.parse_path_arg(
+                cls.api_path_delete, kwargs)  # pylint: disable=E1101
         path = "{0}/{1}".format(path, uid)
         return base.delete(path=path, **kwargs)
 
@@ -274,7 +278,7 @@ class ApiCrud(object):
 
         path_args = dict(
             (k, resolve_path_arg(k, instance)) for k in cls.list_path_args()
-            )
+        )
 
         if "id" in instance:
             res = cls.show(instance.id, user=user, **path_args)
@@ -364,7 +368,7 @@ class ApiCrud(object):
 
         if res.ok and json:
             ninstance = load_from_data(
-                instance.__class__,
+                type(instance),
                 json,
                 data_load_transform
                 )
@@ -391,12 +395,11 @@ class ApiCrud(object):
                     json=dict(per_page=count),
                     user=user, **path_args)
                 if listing_response.ok:
-                    return [load_from_data(
-                        instance.__class__,
-                        js,
-                        default_data_transform
+                    return [
+                        load_from_data(
+                            instance.__class__, js, default_data_transform
                         ) for js in listing_response.json()["results"]
-                        ]
+                    ]
 
     @classmethod
     def record_resolve_recursive(cls, instance, user=None):
@@ -404,8 +407,8 @@ class ApiCrud(object):
         including all of its related fields
         """
         if cls != instance._meta.api_class:
-            return instance._meta.api_class \
-                .record_resolve_recursive(instance, user=user)
+            return instance._meta.api_class.record_resolve_recursive(
+                instance, user=user)
         ninstance = cls.record_resolve(instance, user=user)
         related_fields = ninstance._meta.fields.items(cls=RelatedField)
         for fld in related_fields:
@@ -495,7 +498,7 @@ class ApiCrud(object):
         res = cls.create(json=cls.opts(data), user=user, **path_args)
         if res.ok:
             ninstance = load_from_data(
-                instance.__class__,
+                type(instance),
                 res.json(),
                 data_load_transform)
             return ninstance
@@ -554,9 +557,9 @@ class Task(object):
 
     def refresh(self):
         """Reloads task data"""
-        id = self.json["id"]
-        r = base.get(path="/foreman_tasks/api/tasks/{0}".format(id))
-        self.json = r.json()
+        task_id = self.json["id"]
+        response = base.get(path="/foreman_tasks/api/tasks/{}".format(task_id))
+        self.json = response.json()
 
     def poll(self, delay, timeout):
         """Busy wait for task to complete"""
