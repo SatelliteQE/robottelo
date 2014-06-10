@@ -82,9 +82,8 @@ def request(method, **kwargs):
         method,
         url,
         kwargs)
-    logger.debug("Calling %s" % request_command)
+    logger.debug("Calling %s", request_command)
     res = requests.request(method=method, url=url, **kwargs)
-    print kwargs["auth"][1]
     curl_command = "curl -X {0} {1}  -u {2}:{3} {4} -d {5}".format(
         res.request.method,
         "" if kwargs["verify"] else "-k",
