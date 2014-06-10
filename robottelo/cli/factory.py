@@ -44,6 +44,10 @@ from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
 
+ORG_KEYS = ['organization', 'organization-id', 'organization-label']
+CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
+LIFECYCLE_KEYS = ['environment', 'environment-id']
+
 
 def create_object(cli_object, args):
     """
@@ -496,44 +500,61 @@ def make_content_host(options=None):
         hammer system create [OPTIONS]
 
     Options:
+        --content-view CONTENT_VIEW_NAME
         --content-view-id CONTENT_VIEW_ID Specify the content view
-        --description DESCRIPTION     Description of the system
+        --description DESCRIPTION     Description of the content host
+        --environment ENVIRONMENT_NAME
         --environment-id ENVIRONMENT_ID Specify the environment
-        --guest-ids GUEST_IDS         IDs of the guests running on this system
+        --guest-ids GUEST_IDS         IDs of the guests running on this
+                                      content host
                                       Comma separated list of values.
-        --last-checkin LAST_CHECKIN   Last check-in time of this system
-        --location LOCATION           Physical location of the system
-        --name NAME                   Name of the system
+        --host-collection HOST_COLLECTION_NAME
+        --host-collection-id HOST_COLLECTION_ID Specify the host collection
+        --last-checkin LAST_CHECKIN   Last check-in time of this content host
+        --location LOCATION           Physical location of the content host
+        --name NAME                   Name of the content host
+        --organization ORGANIZATION_NAME
         --organization-id ORGANIZATION_ID Specify the organization
-        --release-ver RELEASE_VER     Release version of the system
-        --service-level SERVICE_LEVEL A service level for auto-healing
-                                      process, e.g. SELF-SUPPORT
-        --system-group-id SYSTEM_GROUP_ID Specify the system group
+        --organization-label ORGANIZATION_LABEL
+        --release-ver RELEASE_VER     Release version of the content host
+        --service-level SERVICE_LEVEL A service level for auto-healing process,
+                                      e.g. SELF-SUPPORT
+        -h, --help                    print help
     """
 
     # Organization ID is a required field.
     if not options:
         raise Exception("Please provide required parameters")
 
-    if not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
-    if not options.get('content-view-id', None):
-        raise Exception("Please provide a valid Content View ID.")
-    if not options.get('environment-id', None):
-        raise Exception("Please provide a valid Lifecycle-Environment ID.")
+    # Do we have at least one organization field?
+    if not any(options.get(key) for key in ORG_KEYS):
+        raise Exception("Please provide a valid organization field.")
+
+    # Do we have at least one content view field?
+    if not any(options.get(key) for key in CONTENT_VIEW_KEYS):
+        raise Exception("Please provide a valid content view field.")
+
+    # Do we have at least one lifecycle-environment field?
+    if not any(options.get(key) for key in LIFECYCLE_KEYS):
+        raise Exception("Please provide a valid lifecycle-environment field.")
 
     args = {
         'name': generate_string('alpha', 20),
         'description': generate_string('alpha', 20),
+        'organization': None,
         'organization-id': None,
+        'organization-label': None,
+        'content-view': None,
         'content-view-id': None,
+        'environment': None,
         'environment-id': None,
         'guest-ids': None,
+        'host-collection': None,
+        'host-collection-id': None,
         'last-checking': None,
         'location': None,
         'release-ver': None,
         'service-level': None,
-        'system-group-id': None,
     }
 
     args = update_dictionary(args, options)
