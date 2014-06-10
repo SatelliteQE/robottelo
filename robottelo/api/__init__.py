@@ -1,5 +1,4 @@
 """
-Module containing api helper classes.
-Implementations are to be found in
-robottelo/records
+Module containing API helper classes. Implementations are in
+``robottelo/records``.
 """
