@@ -73,11 +73,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created and has random name
         """
 
-        new_system = make_content_host(
-            {u'name': test_data['name'],
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'name': test_data['name'],
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
@@ -101,11 +101,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created and has random description
         """
 
-        new_system = make_content_host(
-            {u'description': test_data['description'],
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'description': test_data['description'],
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that description matches data passed
         self.assertEqual(
             new_system['description'],
@@ -121,11 +121,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created using organization name
         """
 
-        new_system = make_content_host(
-            {u'name': generate_string('alpha', 15),
-             u'organization': self.NEW_ORG['name'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization': self.NEW_ORG['name'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Info does not tell us information about the organization so
         # let's assert that content view and environments match instead
         self.assertEqual(
@@ -145,11 +145,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created using organization label
         """
 
-        new_system = make_content_host(
-            {u'name': generate_string('alpha', 15),
-             u'organization-label': self.NEW_ORG['label'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization-label': self.NEW_ORG['label'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Info does not tell us information about the organization so
         # let's assert that content view and environments match instead
         self.assertEqual(
@@ -169,11 +169,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created using content view name
         """
 
-        new_system = make_content_host(
-            {u'name': generate_string('alpha', 15),
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view': self.DEFAULT_CV['name'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view': self.DEFAULT_CV['name'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['content-view'],
@@ -190,11 +190,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created using lifecycle name
         """
 
-        new_system = make_content_host(
-            {u'name': generate_string('alpha', 15),
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment': self.LIBRARY['name']})
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment': self.LIBRARY['name']})
         # Assert that lifecycles matches data passed
         self.assertEqual(
             new_system['lifecycle-environment'],
@@ -211,11 +211,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created using new lifecycle
         """
 
-        new_system = make_content_host(
-            {u'name': generate_string('alpha', 15),
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.NEW_LIFECYCLE['id']})
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.NEW_LIFECYCLE['id']})
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['lifecycle-environment'],
@@ -233,15 +233,14 @@ class TestContentHost(BaseCLI):
         """
 
         # Make a new content view
-        new_cv = make_content_view(
-            {u'organization-id': self.NEW_ORG['id']}
-        )
+        new_cv = make_content_view({
+            u'organization-id': self.NEW_ORG['id']})
 
-        new_system = make_content_host(
-            {u'name': generate_string('alpha', 15),
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': new_cv['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': new_cv['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['content-view'],
@@ -266,11 +265,11 @@ class TestContentHost(BaseCLI):
         """
 
         with self.assertRaises(Exception):
-            make_content_host(
-                {u'name': test_data['name'],
-                 u'organization-id': self.NEW_ORG['id'],
-                 u'content-view-id': self.DEFAULT_CV['id'],
-                 u'environment-id': self.LIBRARY['id']})
+            make_content_host({
+                u'name': test_data['name'],
+                u'organization-id': self.NEW_ORG['id'],
+                u'content-view-id': self.DEFAULT_CV['id'],
+                u'environment-id': self.LIBRARY['id']})
 
     @data(
         {u'name': generate_string('alpha', 15)},
@@ -288,10 +287,10 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created and name is updated
         """
 
-        new_system = make_content_host(
-            {u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that name does not matches data passed
         self.assertNotEqual(
             new_system['name'],
@@ -300,12 +299,9 @@ class TestContentHost(BaseCLI):
         )
 
         # Update system group
-        result = ContentHost.update(
-            {
-                u'id': new_system['id'],
-                u'name': test_data['name']
-            }
-        )
+        result = ContentHost.update({
+            u'id': new_system['id'],
+            u'name': test_data['name']})
         self.assertEqual(
             result.return_code,
             0,
@@ -314,11 +310,8 @@ class TestContentHost(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = ContentHost.info(
-            {
-                u'id': new_system['id'],
-            }
-        )
+        result = ContentHost.info({
+            u'id': new_system['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -359,10 +352,10 @@ class TestContentHost(BaseCLI):
         @BZ: 1082157
         """
 
-        new_system = make_content_host(
-            {u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that description does not match data passed
         self.assertNotEqual(
             new_system['description'],
@@ -371,12 +364,9 @@ class TestContentHost(BaseCLI):
         )
 
         # Update sync plan
-        result = ContentHost.update(
-            {
-                u'id': new_system['id'],
-                u'description': test_data['description']
-            }
-        )
+        result = ContentHost.update({
+            u'id': new_system['id'],
+            u'description': test_data['description']})
         self.assertEqual(
             result.return_code,
             0,
@@ -385,11 +375,8 @@ class TestContentHost(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = ContentHost.info(
-            {
-                u'id': new_system['id'],
-            }
-        )
+        result = ContentHost.info({
+            u'id': new_system['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -429,11 +416,11 @@ class TestContentHost(BaseCLI):
         @Assert: Content host is created and then deleted
         """
 
-        new_system = make_content_host(
-            {u'name': test_data['name'],
-             u'organization-id': self.NEW_ORG['id'],
-             u'content-view-id': self.DEFAULT_CV['id'],
-             u'environment-id': self.LIBRARY['id']})
+        new_system = make_content_host({
+            u'name': test_data['name'],
+            u'organization-id': self.NEW_ORG['id'],
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'environment-id': self.LIBRARY['id']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
@@ -451,11 +438,8 @@ class TestContentHost(BaseCLI):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = ContentHost.info(
-            {
-                u'id': new_system['id'],
-            }
-        )
+        result = ContentHost.info({
+            u'id': new_system['id']})
         self.assertNotEqual(
             result.return_code,
             0,
