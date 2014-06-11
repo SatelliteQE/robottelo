@@ -93,9 +93,9 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     Defaults to main.server.hostname.
     """
 
-    # Set a default timeout of 60 seconds
+    # Set a default timeout of 120 seconds
     if timeout is None:
-        timeout = 60
+        timeout = 120
 
     # Start the timer
     start = time.time()
