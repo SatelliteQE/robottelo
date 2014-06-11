@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+# pylint: disable=R0904
+
 """
 Test class for GPG Key CLI
 """
@@ -11,7 +13,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import data, redminebug, stubbed
+from robottelo.common.decorators import bzbug, data, redminebug, stubbed
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp
@@ -158,13 +160,13 @@ class TestGPGKey(BaseCLI):
         self.assertEqual(
             result.stdout['content'], content)
 
-    @redminebug('4480')
-    def test_redmine_4480(self):
+    @bzbug('1108227')
+    def test_bugzilla_1108227(self):
         """
         @Test: Hammer fails to get a gpg info by name
         @Feature: GPG Keys
         @Assert: can get gpg key info by name
-        @BZ: Redmine#4480
+        @BZ: 1108227
         """
 
         # GPG Key data
