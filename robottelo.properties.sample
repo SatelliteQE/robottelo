@@ -29,13 +29,3 @@ xunit-file=foreman-results.xml
 # process-timeout=120
 
 # NOTE: Candlepin url accepts just the hostname.
-
-[stageportal]
-api=http://api.server.com:port/svcrest
-candlepin=candlepin.server.com
-customer.portal=https://access.server.com
-customer.username=username
-customer.password=password
-distributor.name=ds_name
-subs.quantity=5
-sku.id=XXXXXXX

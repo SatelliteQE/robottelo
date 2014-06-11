@@ -1,4 +1,3 @@
-git+https://github.com/RedHatQE/python-stageportal.git#egg=stageportal
 nose
 nose_xunitmp
 pylint
