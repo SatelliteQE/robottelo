@@ -39,10 +39,11 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/* robottelo.*
+	-rm -rf $(BUILDDIR)/* robottelo.* tests.*
 
 genapidocs:
 	sphinx-apidoc --no-toc --force -o . ../robottelo/
+	sphinx-apidoc --no-toc --force -o . ../tests/
 
 html: genapidocs
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
