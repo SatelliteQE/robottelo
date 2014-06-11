@@ -1,15 +1,11 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
+# pylint: disable=R0904
+
 """
 Test class for Organization UI
 """
-
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -18,8 +14,8 @@ from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
-from robottelo.common.constants import NOT_IMPLEMENTED, OS_TEMPLATE_DATA_FILE
-from robottelo.common.decorators import bzbug
+from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
+from robottelo.common.decorators import bzbug, stubbed
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -260,6 +256,7 @@ class Org(BaseUI):
 
     # Positive Delete
 
+    @stubbed('Organization deletion is disabled')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, org_name):
@@ -455,7 +452,7 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -783,7 +780,7 @@ class Org(BaseUI):
                                                value % env))
         self.assertTrue(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
