@@ -33,8 +33,8 @@ def evaluate_choice(chosen):
     return chosen
 
 
-class NOT_PROVIDED:
-    pass
+class NOT_PROVIDED(object):  # pylint: disable=C0103, R0903
+    """Represents a not provided default field value"""
 
 
 class Field(object):
@@ -145,10 +145,10 @@ class StringField(Field):
     generated string and defaults to 20.
     """
 
-    def __init__(self, format=r'{record_name}_\d\d\d\d\d\d', maxlen=20,
+    def __init__(self, fmt=r'{record_name}_\d\d\d\d\d\d', maxlen=20,
                  str_type='xeger', **kwargs):
         super(StringField, self).__init__(**kwargs)
-        self.format = format
+        self.fmt = fmt
         self.maxlen = maxlen
         self.str_type = str_type
 
@@ -158,9 +158,9 @@ class StringField(Field):
 
     def generate(self):
         if self.str_type == 'xeger':
-            if '{' in self.format:
-                self.format = self._parse_field_format(self.format)
-            return rstr.xeger(self.format)[:self.maxlen]
+            if '{' in self.fmt:
+                self.fmt = self._parse_field_format(self.fmt)
+            return rstr.xeger(self.fmt)[:self.maxlen]
         else:
             return generate_string(self.str_type, self.maxlen)
 
@@ -172,13 +172,13 @@ class IntegerField(Field):
     to 10.
     """
 
-    def __init__(self, min=1, max=10, **kwargs):
+    def __init__(self, min_=1, max_=10, **kwargs):
         super(IntegerField, self).__init__(**kwargs)
-        self.min = min
-        self.max = max
+        self.min_ = min_
+        self.max_ = max_
 
     def generate(self):
-        return randint(self.min, self.max)
+        return randint(self.min_, self.max_)
 
 
 class EmailField(Field):
@@ -279,15 +279,15 @@ class ManyRelatedField(Field):
     created a random value will be used to define the length of the list.
     """
 
-    def __init__(self, record_class, min, max, **kwargs):
+    def __init__(self, record_class, min_, max_, **kwargs):
         super(ManyRelatedField, self).__init__(**kwargs)
         self.record_class = record_class
-        self.min = min
-        self.max = max
+        self.min_ = min_
+        self.max_ = max_
 
     def generate(self):
-        number = randint(self.min, self.max)
-        return [self.record_class() for i in range(number)]
+        number = randint(self.min_, self.max_)
+        return [self.record_class() for _ in xrange(number)]
 
 
 class BasicPositiveField(ChoiceField):
@@ -295,11 +295,11 @@ class BasicPositiveField(ChoiceField):
     Utilizing exclude and include to easily filter out types.
     """
 
-    def __init__(self, exclude=[], include=[], maxlen=20, **kwargs):
+    def __init__(self, exclude=None, include=None, maxlen=20, **kwargs):
         """Often repeated field, that includes all the string types.
         Utilizing exclude and include to easily filter out types.
         """
-        super(ChoiceField, self).__init__(**kwargs)
+        super(BasicPositiveField, self).__init__(**kwargs)
         lst = [
             STR.alpha, STR.alphanumeric, STR.html,
             STR.latin1, STR.numeric, STR.utf8]
