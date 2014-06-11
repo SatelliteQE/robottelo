@@ -23,3 +23,5 @@ screenshots*
 .settings/
 robottelo.properties
 .metadata/
+docs/tests.*
+docs/robottelo.*

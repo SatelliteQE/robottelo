@@ -159,6 +159,7 @@ covered by the API. For more granular information, follow one of the links.
 .. toctree::
     :maxdepth: 3
 
+    tests
     robottelo
 
 Miscellany
