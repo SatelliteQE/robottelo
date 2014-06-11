@@ -48,9 +48,13 @@ def data(*values):
     return wrapper
 
 
-def stubbed(func):
-    """Skips test since they're not yet implemented"""
-    return unittest.skip(NOT_IMPLEMENTED)(func)
+def stubbed(reason=None):
+    """Skips test due to non-implentation or some other reason."""
+
+    # Assume 'not implemented' if no reason is given
+    if reason is None:
+        reason = NOT_IMPLEMENTED
+    return unittest.skip(reason)
 
 
 def runIf(project):
