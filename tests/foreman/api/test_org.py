@@ -1,17 +1,12 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
+# pylint: disable=R0904
 
 from ddt import ddt
 from robottelo.common.helpers import STR
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, bzbug, stubbed
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import BasicPositiveField
@@ -152,6 +147,7 @@ class TestOrganization(BaseAPI):
 
     # Positive Delete
 
+    @stubbed('Organization deletion is disabled')
     @bzbug('1061658')
     @data(*Organization.enumerate())
     def test_positive_delete_1(self, test_data):
@@ -321,7 +317,7 @@ class TestOrganization(BaseAPI):
         org_res = ApiCrud.record_resolve(org)
         self.assertEqual(org_res.name, test_data.name)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -330,7 +326,7 @@ class TestOrganization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_configtemplate_1(self, test_data):
         """
         @feature: Organizations
@@ -341,7 +337,7 @@ class TestOrganization(BaseAPI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -350,7 +346,7 @@ class TestOrganization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_configtemplate_1(self, test_data):
         """
         @feature: Organizations
@@ -362,7 +358,7 @@ class TestOrganization(BaseAPI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -371,7 +367,7 @@ class TestOrganization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_configtemplate_2(self, test_data):
         """
         @feature: Organizations
@@ -383,7 +379,7 @@ class TestOrganization(BaseAPI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -392,7 +388,7 @@ class TestOrganization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_configtemplate_3(self, test_data):
         """
         @feature: Organizations
@@ -404,7 +400,7 @@ class TestOrganization(BaseAPI):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -413,7 +409,7 @@ class TestOrganization(BaseAPI):
         configtemplate name is latin1
         configtemplate name  is html
     """)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_configtemplate_4(self, test_data):
         """
         @feature: Organizations
