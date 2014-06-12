@@ -79,7 +79,10 @@ class InstallerTestCase(unittest.TestCase):
         )
 
         for logfile in logfiles:
-            log = LogFile(logfile['path'], logfile['pattern'])
+            try:
+                log = LogFile(logfile['path'], logfile['pattern'])
+            except IOError:
+                self.fail('Could not find %s file on server' % logfile['path'])
             result = log.filter()
             self.assertEqual(
                 len(result), 0,
