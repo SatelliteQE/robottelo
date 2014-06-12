@@ -118,30 +118,6 @@ def get_bugzilla_bug(bug_id):
     return _bugzilla[bug_id]
 
 
-def bzbug(bz_id):
-    """Decorator that skips the test if the bugzilla's bug is open
-
-    :param str bz_id: The ID of a bug in the Bugzilla database.
-    :return: Either a `unittest.skip()` function, or a function that
-        immediately returns whatever is passed to it.
-
-    """
-    try:
-        bug = get_bugzilla_bug(bz_id)
-    except BugFetchError as err:
-        # Could not fetch bug report. Allow test to proceed.
-        logging.warning(err.message)
-        return lambda func: func
-
-    # If bug is open, skip the test.
-    if bug.status in BUGZILLA_SKIP_TEST_STATUSES:
-        logging.debug(bug)
-        return unittest.skip("Test skipped due to %s" % bug)
-
-    # Bug exists, but is not open. Allow the test to proceed.
-    return lambda func: func
-
-
 def skip_if_bz_bug_open(bug_id):
     """Skip the current test if bug ``bug_id`` is open or cannot be fetched.
 

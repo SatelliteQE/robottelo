@@ -10,14 +10,10 @@ import random
 import re
 import string
 import time
-import bugzilla
-import logging
 
 from itertools import izip
 from robottelo.common.constants import HTML_TAGS
 from urllib2 import urlopen, Request, URLError
-from xml.parsers.expat import ExpatError
-from xmlrpclib import Fault
 
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
@@ -404,36 +400,6 @@ def get_data_file(filename):
     else:
         raise Exception(
             "Couldn't locate the data file '%s'" % data_file)
-
-
-def is_bzbug(bz_id):
-    """Method to test if the bugzilla's bug is open"""
-
-    try:
-        mybz = bugzilla.RHBugzilla()
-        mybz.connect(BUGZILLA_URL)
-    except (TypeError, ValueError):
-        logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
-        return False
-
-    attempts = 0
-    mybug = None
-    while attempts < 3 and mybug is None:
-        try:
-            mybug = mybz.getbugsimple(bz_id)
-        except ExpatError:
-            attempts += 1
-        except Fault:
-            return True
-
-    if mybug is None:
-        return True
-
-    if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
-        logging.debug(mybug)
-        return True
-    else:
-        return False
 
 
 def read_data_file(filename):
