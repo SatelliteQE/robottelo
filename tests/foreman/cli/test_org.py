@@ -13,7 +13,8 @@ from robottelo.cli.factory import (
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.common.decorators import data, bzbug, redminebug, stubbed
+from robottelo.common.decorators import (data, skip_if_bz_bug_open, redminebug,
+                                         stubbed)
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -152,7 +153,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    @bzbug('1079587')
+    @skip_if_bz_bug_open('1079587')
     @data(*positive_create_data_1())
     def test_bugzilla_1079587(self, test_data):
         """
@@ -286,7 +287,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @bzbug('1076541')
+    @skip_if_bz_bug_open('1076541')
     def test_bugzilla_1076541(self):
         """
         @test: Cannot update organization name via CLI
@@ -321,7 +322,7 @@ class TestOrg(BaseCLI):
             "Org name was not updated"
         )
 
-    @bzbug('1075163')
+    @skip_if_bz_bug_open('1075163')
     def test_bugzilla_1075163(self):
         """
         @Test: Add --label as a valid argument to organization info command
@@ -339,7 +340,7 @@ class TestOrg(BaseCLI):
 
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @bzbug('1075156')
+    @skip_if_bz_bug_open('1075156')
     def test_bugzilla_1075156(self):
         """
         @Test: Cannot use CLI info for organizations by name
@@ -358,8 +359,8 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
     @stubbed('Organization deletion is disabled')
-    @bzbug('1096241')
-    @bzbug('1061658')
+    @skip_if_bz_bug_open('1096241')
+    @skip_if_bz_bug_open('1061658')
     def test_bugzilla_1061658(self):
         """
         @Test: Organization delete fails with 500 Server / Candlepin 404 error
@@ -438,7 +439,8 @@ class TestOrg(BaseCLI):
         with self.assertRaises(Exception):
             make_org({'name': new_obj['name']})
 
-    # @bzbug('1078866') this is private bug, decorator does not work
+    # This Bugzilla bug is private. It is impossible to fetch info about it.
+    # @skip_if_bz_bug_open('1078866')
     @stubbed('Bugzilla 1078866')
     def test_bugzilla_1078866(self):
         """
@@ -766,7 +768,7 @@ class TestOrg(BaseCLI):
         """
         pass
 
-    @bzbug('1099655')
+    @skip_if_bz_bug_open('1099655')
     def test_add_environment(self):
         """
         @Test: Check if an environment can be added to an Org
@@ -792,7 +794,7 @@ class TestOrg(BaseCLI):
             environment.return_code, 0, "Could not fetch list of environments")
         self.assertEqual(new_env['name'], env_result['name'])
 
-    @bzbug('1099655')
+    @skip_if_bz_bug_open('1099655')
     def test_remove_environment(self):
         """
         @Test: Check if an Environment can be removed from an Org
@@ -1057,7 +1059,7 @@ class TestOrg(BaseCLI):
 
     # Positive Update
 
-    @bzbug('1076541')
+    @skip_if_bz_bug_open('1076541')
     @data({'name': generate_string("latin1", 10)},
           {'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
@@ -1134,7 +1136,7 @@ class TestOrg(BaseCLI):
             "Org desc was not updated"
         )
 
-    @bzbug('1076541')
+    @skip_if_bz_bug_open('1076541')
     @data({'description': generate_string("latin1", 10),
            'name': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10),
@@ -1188,7 +1190,7 @@ class TestOrg(BaseCLI):
 
     # Negative Update
 
-    @bzbug('1076541')
+    @skip_if_bz_bug_open('1076541')
     @data({'name': ' '},
           {'name': generate_string('alpha', 300)},
           {'name': generate_string('numeric', 300)},
