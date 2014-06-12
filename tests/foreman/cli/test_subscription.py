@@ -6,7 +6,7 @@ from ddt import ddt
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.factory import (
     make_org, make_lifecycle_environment)
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import bzbug, stubbed
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
 from tests.foreman.cli.basecli import BaseCLI
@@ -40,6 +40,7 @@ class TestSubscription(BaseCLI):
                 {u'organization-id': TestSubscription.org['id'],
                  u'prior': TestSubscription.env1['label']})
 
+    @stubbed('Need to implement a new manifest api')
     def test_manifest_upload(self):
         """
         @test: upload manifest (positive)
@@ -69,6 +70,7 @@ class TestSubscription(BaseCLI):
         finally:
             manifest.delete_distributor(ds_uuid=mdetails['uuid'])
 
+    @stubbed('Need to implement a new manifest api')
     def test_manifest_delete(self):
         """
         @test: Delete uploaded manifest (positive)
