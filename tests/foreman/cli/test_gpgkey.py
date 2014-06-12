@@ -13,10 +13,9 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import (data, redminebug, stubbed,
-                                         skip_if_bz_bug_open)
+from robottelo.common.decorators import data, redminebug, stubbed
 from robottelo.common.helpers import (generate_name, generate_string,
-                                      get_data_file)
+                                      get_data_file, skip_if_bz_bug_open)
 from tempfile import mkstemp
 from tests.foreman.cli.basecli import BaseCLI
 

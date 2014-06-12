@@ -8,8 +8,8 @@ Test class for Host CLI
 from ddt import ddt
 from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 

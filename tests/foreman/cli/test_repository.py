@@ -9,8 +9,8 @@ from ddt import ddt
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_repository)
 from robottelo.cli.repository import Repository
-from robottelo.common.decorators import data, stubbed, skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data, stubbed
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
 

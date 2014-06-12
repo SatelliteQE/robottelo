@@ -5,7 +5,6 @@
 Implements various decorators
 """
 
-import bugzilla
 import logging
 import random
 import requests
@@ -20,13 +19,9 @@ else:
 from ddt import data as ddt_data
 from robottelo.common import conf
 from robottelo.common.constants import NOT_IMPLEMENTED
-from xml.parsers.expat import ExpatError, errors
-from xmlrpclib import Fault
 
 
-BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 REDMINE_URL = 'http://projects.theforeman.org'
-BUGZILLA_SKIP_TEST_STATUSES = ('NEW', 'ASSIGNED')
 
 
 # Increase the level of third party packages logging
@@ -75,70 +70,6 @@ def skipRemote(func):
     return unittest.skipIf(
         remote == 1,
         "Skipping as setup related to sauce labs is missing")(func)
-
-
-class BugFetchError(Exception):
-    """Indicates an error occurred while fetching information about a bug."""
-
-
-# A dict mapping bug IDs to python-bugzilla bug objects.
-_bugzilla = {}
-
-
-def get_bugzilla_bug(bug_id):
-    """Fetch bug ``bug_id``.
-
-    :param int bug_id: The ID of a bug in the Bugzilla database.
-    :return: A FRIGGIN UNDOCUMENTED python-bugzilla THING.
-    :raises BugFetchError: If an error occurs while fetching the bug. For
-        example, a network timeout occurs or the bug does not exist.
-
-    """
-    # Is bug ``bug_id`` in the cache?
-    if bug_id not in _bugzilla:
-        # Make a network connection to the Bugzilla server.
-        try:
-            bz_conn = bugzilla.RHBugzilla()
-            bz_conn.connect(BUGZILLA_URL)
-        except (TypeError, ValueError):
-            raise BugFetchError('Could not connect to {}'.format(BUGZILLA_URL))
-
-        # Fetch the bug and place it in the cache.
-        try:
-            _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
-        except Fault as err:
-            raise BugFetchError(
-                'Could not fetch bug. Error: {}'.format(err.faultString)
-            )
-        except ExpatError as err:
-            raise BugFetchError(
-                'Could not interpret bug. Error: {}'.format(errors[err.code])
-            )
-
-    return _bugzilla[bug_id]
-
-
-def skip_if_bz_bug_open(bug_id):
-    """Skip the current test if bug ``bug_id`` is open or cannot be fetched.
-
-    :param int bug_id: The ID of a bug in the Bugzilla database.
-    :return: None
-    :raises unittest.SkipTest: If bug ``bug_id`` is open.
-
-    """
-    try:
-        bug = get_bugzilla_bug(bug_id)
-    except BugFetchError as err:
-        # Could not fetch bug report. Allow test to proceed.
-        logging.warning(err.message)
-        return None
-
-    # If bug is open, skip the test.
-    if bug.status in BUGZILLA_SKIP_TEST_STATUSES:
-        raise unittest.SkipTest('Skipping test. Reason: {}'.format(bug))
-
-    # Bug exists, but is not open. Allow the test to proceed.
-    return None
 
 
 _redmine = {

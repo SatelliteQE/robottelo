@@ -10,8 +10,8 @@ from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_sync_plan)
 from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 

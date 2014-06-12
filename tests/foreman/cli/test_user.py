@@ -16,8 +16,8 @@ from ddt import ddt
 from robottelo.cli.factory import make_user
 from robottelo.cli.user import User as UserObj
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, redminebug, skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data, redminebug
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 

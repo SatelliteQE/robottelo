@@ -4,9 +4,9 @@
 # pylint: disable=R0904
 
 from ddt import ddt
-from robottelo.common.helpers import STR
+from robottelo.common.helpers import STR, skip_if_bz_bug_open
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, stubbed, skip_if_bz_bug_open
+from robottelo.common.decorators import data, stubbed
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import BasicPositiveField

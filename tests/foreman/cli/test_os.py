@@ -13,8 +13,8 @@ from robottelo.cli.factory import make_architecture
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.factory import make_template
-from robottelo.common.decorators import data, redminebug, skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data, redminebug
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 

@@ -7,8 +7,7 @@ Test class for Environment UI
 
 from tests.foreman.ui.baseui import BaseUI
 from robottelo.ui.locators import common_locators
-from robottelo.common.decorators import skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 
 
 class Environment(BaseUI):

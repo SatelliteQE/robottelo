@@ -5,8 +5,7 @@
 Test class for Subnet UI
 """
 
-from robottelo.common.helpers import generate_ipaddr
-from robottelo.common.helpers import generate_string
+from robottelo.common.helpers import generate_ipaddr, generate_string
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 

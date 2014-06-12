@@ -7,7 +7,7 @@ Test class for Roles CLI
 
 from tests.foreman.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.helpers import skip_if_bz_bug_open
 
 
 class TestRole(BaseCLI):

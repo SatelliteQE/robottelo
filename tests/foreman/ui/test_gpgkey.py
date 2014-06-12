@@ -15,11 +15,12 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list,
-                                      generate_strings_list)
+                                      generate_strings_list,
+                                      skip_if_bz_bug_open)
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session

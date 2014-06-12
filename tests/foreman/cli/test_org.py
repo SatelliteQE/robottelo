@@ -13,9 +13,8 @@ from robottelo.cli.factory import (
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.common.decorators import (data, redminebug, stubbed,
-                                         skip_if_bz_bug_open)
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data, redminebug, stubbed
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 

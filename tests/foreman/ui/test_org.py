@@ -13,9 +13,10 @@ from robottelo.common import conf
 from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
-                                      generate_email_address, get_data_file)
+                                      generate_email_address, get_data_file,
+                                      skip_if_bz_bug_open)
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
-from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
+from robottelo.common.decorators import stubbed
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from tests.foreman.ui.baseui import BaseUI
 

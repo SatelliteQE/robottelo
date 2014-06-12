@@ -7,8 +7,8 @@ Test class for Template CLI
 
 from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
-from robottelo.common.decorators import redminebug, skip_if_bz_bug_open
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import redminebug
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 

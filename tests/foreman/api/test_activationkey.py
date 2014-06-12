@@ -3,7 +3,8 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import data, redminebug, skip_if_bz_bug_open
+from robottelo.common.decorators import data, redminebug
+from robottelo.common.helpers import skip_if_bz_bug_open
 from robottelo.records.activation_key import ActivationKey
 from robottelo.records.host_collection import HostCollectionDefOrg
 from tests.foreman.api.baseapi import BaseAPI
