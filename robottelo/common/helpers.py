@@ -464,23 +464,23 @@ def get_bugzilla_bug(bug_id):
 
 
 def skip_if_bz_bug_open(bug_id):
-    """Skip the current test if bug ``bug_id`` is open or cannot be fetched.
+    """Skip the current test if bug ``bug_id`` is open.
 
     :param int bug_id: The ID of a bug in the Bugzilla database.
     :return: None
     :raises unittest.SkipTest: If bug ``bug_id`` is open.
 
     """
+    bug = None
     try:
         bug = get_bugzilla_bug(bug_id)
     except BugFetchError as err:
-        # Could not fetch bug report. Allow test to proceed.
         logging.warning(err.message)
-        return None
 
-    # If bug is open, skip the test.
-    if bug.status in BUGZILLA_SKIP_TEST_STATUSES:
+    # If bug was fetched and is open, skip the test.
+    if bug is not None and bug.status in BUGZILLA_SKIP_TEST_STATUSES:
         raise unittest.SkipTest('Skipping test. Reason: {}'.format(bug))
 
-    # Bug exists, but is not open. Allow the test to proceed.
+    # Bug could not be fetched, or was fetched and status is not open. Allow
+    # the test to proceed.
     return None
