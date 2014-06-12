@@ -1,3 +1,5 @@
+"""Utilities to help work with log files"""
+
 import os
 import re
 
@@ -8,6 +10,11 @@ LOGS_DATA_DIR = os.path.join(conf.get_root_path(), 'data', 'logs')
 
 
 class LogFile(object):
+    """
+    References a remote log file. The log file will be downloaded to allow
+    operate on it using python
+    """
+
     def __init__(self, remote_path, pattern=None):
         self.remote_path = remote_path
         self.pattern = pattern
@@ -17,11 +24,13 @@ class LogFile(object):
         self.local_path = os.path.join(LOGS_DATA_DIR,
                                        os.path.basename(remote_path))
         ssh.download_file(remote_path, self.local_path)
-        with open(self.local_path) as f:
-            self.data = f.readlines()
+        with open(self.local_path) as file_:
+            self.data = file_.readlines()
 
     def filter(self, pattern=None):
-        """Filter the log file using the pattern argument or object pattern"""
+        """
+        Filter the log file using the pattern argument or object's pattern
+        """
 
         if pattern is None:
             pattern = self.pattern
