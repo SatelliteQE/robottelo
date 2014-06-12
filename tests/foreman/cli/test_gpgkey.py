@@ -13,7 +13,8 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import bzbug, data, redminebug, stubbed
+from robottelo.common.decorators import (data, redminebug, stubbed,
+                                         skip_if_bz_bug_open)
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp
@@ -160,7 +161,6 @@ class TestGPGKey(BaseCLI):
         self.assertEqual(
             result.stdout['content'], content)
 
-    @bzbug('1108227')
     def test_bugzilla_1108227(self):
         """
         @Test: Hammer fails to get a gpg info by name
@@ -168,6 +168,7 @@ class TestGPGKey(BaseCLI):
         @Assert: can get gpg key info by name
         @BZ: 1108227
         """
+        skip_if_bz_bug_open(1108227)
 
         # GPG Key data
         data = {'name': generate_string("alpha", 10)}

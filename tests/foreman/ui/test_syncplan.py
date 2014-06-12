@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import SYNC_INTERVAL
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import locators, common_locators, tab_locators
@@ -96,7 +96,6 @@ class Syncplan(BaseUI):
                              sync_interval=test_data['interval'])
         self.assertIsNotNone(self.products.search(test_data['name']))
 
-    @bzbug("1087425")
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, name):
@@ -106,6 +105,7 @@ class Syncplan(BaseUI):
         @Assert: Sync Plan is not created
         @BZ: 1087425
         """
+        skip_if_bz_bug_open("1087425")
 
         description = "with same name"
         # TODO: Due to bug 1087425 using common_haserror instead of name_error
@@ -117,7 +117,6 @@ class Syncplan(BaseUI):
         error = self.products.wait_until_element(locator)
         self.assertTrue(error)
 
-    @bzbug("1082632")
     @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_3(self):
         """
@@ -126,6 +125,7 @@ class Syncplan(BaseUI):
         @Assert: Sync Plan is created with the specified time.
         @BZ: 1082632
         """
+        skip_if_bz_bug_open("1082632")
 
         locator = locators["sp.fetch_startdate"]
         plan_name = generate_string("alpha", 8)
@@ -204,7 +204,6 @@ class Syncplan(BaseUI):
         invalid = self.products.wait_until_element(locator)
         self.assertTrue(invalid)
 
-    @bzbug("1087425")
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_3(self, name):
@@ -214,6 +213,7 @@ class Syncplan(BaseUI):
         @Assert: Sync Plan is not created with more than 255 chars
         @BZ: 1087425
         """
+        skip_if_bz_bug_open("1087425")
 
         locator = common_locators["common_haserror"]
         description = "more than 255 chars"

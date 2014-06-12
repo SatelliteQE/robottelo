@@ -16,7 +16,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -55,12 +55,12 @@ def negative_create_data():
     )
 
 
-@bzbug('1099655')
 @ddt
 class TestContentView(BaseCLI):
     """
     Content View CLI tests
     """
+    skip_if_bz_bug_open(1099655)
 
     # Notes:
     # * For most tests in CLI, you should be able to observe whether
@@ -639,7 +639,6 @@ class TestContentView(BaseCLI):
                 new_repo['name'],
                 "No new entry of same repo is expected")
 
-    @bzbug('1089905')
     def test_cv_associate_composite_dupe_modules_negative(self):
         """
         @test: attempt to associate duplicate puppet module(s) within a
@@ -647,6 +646,7 @@ class TestContentView(BaseCLI):
         @feature: Content Views
         @assert: User cannot add modules multiple times to the view
         """
+        skip_if_bz_bug_open(1089905)
 
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id'],
@@ -936,7 +936,6 @@ class TestContentView(BaseCLI):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here.")
 
-    @bzbug('1091494')
     def test_cv_promote_badenvironment_negative(self):
         """
         @test: attempt to promote a content view using an invalid environment
@@ -944,6 +943,7 @@ class TestContentView(BaseCLI):
         @assert: Content views cannot be promoted; handled gracefully
         @BZ: 1091494
         """
+        skip_if_bz_bug_open(1091494)
 
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1543,7 +1543,6 @@ class TestContentView(BaseCLI):
             "There should have been an exception here")
 
     @data(*positive_create_data())
-    @bzbug("1092111")
     def test_cv_roles_readonly_user(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1562,6 +1561,8 @@ class TestContentView(BaseCLI):
         Variations above
         @status: Manual
         """
+        skip_if_bz_bug_open("1092111")
+
         readonly_rights_user = User()
         ApiCrud.record_create(readonly_rights_user)
         perm = ApiCrud.record_resolve(
@@ -1590,7 +1591,6 @@ class TestContentView(BaseCLI):
         self.assertEqual(con_view['name'], result.stdout['name'])
 
     @data(*positive_create_data())
-    @bzbug("1092111")
     def test_cv_roles_readonly_user_negative(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1609,6 +1609,8 @@ class TestContentView(BaseCLI):
         Variations above
         @status: Manual
         """
+        skip_if_bz_bug_open("1092111")
+
         readonly_rights_user = User()
         ApiCrud.record_create(readonly_rights_user)
         readonly_rights_user = User()

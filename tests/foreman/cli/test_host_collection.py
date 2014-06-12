@@ -9,7 +9,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_org, make_host_collection
 from robottelo.cli.hostcollection import HostCollection
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -149,7 +149,6 @@ class TestHostCollection(BaseCLI):
         with self.assertRaises(Exception):
             self._new_host_collection({'name': test_data['name']})
 
-    @bzbug('1084240')
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -166,6 +165,7 @@ class TestHostCollection(BaseCLI):
         @Assert: Host collection is created and name is updated
         @BZ: 1084240
         """
+        skip_if_bz_bug_open(1084240)
 
         new_host_col = self._new_host_collection()
         # Assert that name does not matches data passed
@@ -219,7 +219,6 @@ class TestHostCollection(BaseCLI):
             "Names should not match"
         )
 
-    @bzbug('1084240')
     @data(
         {'description': generate_string('alpha', 15)},
         {'description': generate_string('alphanumeric', 15)},
@@ -236,6 +235,7 @@ class TestHostCollection(BaseCLI):
         @Assert: Host collection is created and description is updated
         @BZ: 1084240
         """
+        skip_if_bz_bug_open(1084240)
 
         new_host_col = self._new_host_collection()
         # Assert that description does not match data passed
@@ -289,7 +289,6 @@ class TestHostCollection(BaseCLI):
             "Descriptions should not match"
         )
 
-    @bzbug('1084240')
     @data('3', '6', '9', '12', '15', '17', '19')
     @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):
@@ -299,6 +298,7 @@ class TestHostCollection(BaseCLI):
         @Assert: Host collection limits is updated
         @BZ: 1084240
         """
+        skip_if_bz_bug_open(1084240)
 
         new_host_col = self._new_host_collection()
 

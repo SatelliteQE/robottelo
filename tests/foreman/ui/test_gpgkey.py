@@ -15,7 +15,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       read_data_file, valid_names_list,
                                       invalid_names_list, valid_data_list,
@@ -437,7 +437,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1085035')
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_4(self, name):
@@ -450,6 +449,7 @@ class GPGKey(BaseUI):
         with the repositories
         @BZ: 1085035
         """
+        skip_if_bz_bug_open(1085035)
 
         prd_name = generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
@@ -535,7 +535,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -556,6 +555,7 @@ class GPGKey(BaseUI):
         @status: manual
         @BZ: 1085924
         """
+        skip_if_bz_bug_open(1085924)
 
         pass
 
@@ -666,7 +666,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1085035')
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_11(self, name):
@@ -679,6 +678,7 @@ class GPGKey(BaseUI):
         before/after update
         @BZ: 1085035
         """
+        skip_if_bz_bug_open(1085035)
 
         new_name = generate_string("alpha", 8)
         prd_name = generate_string("alpha", 8)
@@ -783,7 +783,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -805,7 +804,7 @@ class GPGKey(BaseUI):
         @status: manual
         @BZ: 1085924
         """
-
+        skip_if_bz_bug_open(1085924)
         pass
 
     @attr('ui', 'gpgkey', 'implemented')
@@ -912,7 +911,6 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @bzbug('1085035')
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_18(self, name):
@@ -926,6 +924,7 @@ class GPGKey(BaseUI):
         product after deletion
         @BZ: 1085035
         """
+        skip_if_bz_bug_open(1085035)
 
         prd_name = generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
@@ -1025,7 +1024,6 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name1))
 
-    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1048,7 +1046,7 @@ class GPGKey(BaseUI):
         @status: manual
         @BZ: 1085924
         """
-
+        skip_if_bz_bug_open(1085924)
         pass
 
     @attr('ui', 'gpgkey', 'implemented')
@@ -1144,7 +1142,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1085035')
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_25(self, name):
@@ -1157,6 +1154,7 @@ class GPGKey(BaseUI):
         the repositories
         @BZ: 1085035
         """
+        skip_if_bz_bug_open(1085035)
 
         prd_name = generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
@@ -1244,7 +1242,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (name, product=False))
 
-    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1265,7 +1262,7 @@ class GPGKey(BaseUI):
         @status: manual
         @BZ: 1085924
         """
-
+        skip_if_bz_bug_open(1085924)
         pass
 
     @attr('ui', 'gpgkey', 'implemented')
@@ -1377,7 +1374,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1085035')
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_32(self, name):
@@ -1390,6 +1386,7 @@ class GPGKey(BaseUI):
         repository before/after update
         @BZ: 1085035
         """
+        skip_if_bz_bug_open(1085035)
 
         prd_name = generate_string("alpha", 8)
         new_name = generate_string("alpha", 8)
@@ -1495,7 +1492,6 @@ class GPGKey(BaseUI):
         self.assertIsNotNone(self.gpgkey.assert_product_repo
                              (new_name, product=False))
 
-    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1517,7 +1513,7 @@ class GPGKey(BaseUI):
         @status: manual
         @BZ: 1085924
         """
-
+        skip_if_bz_bug_open(1085924)
         pass
 
     @attr('ui', 'gpgkey', 'implemented')
@@ -1623,7 +1619,6 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.search(name))
         self.assertIsNone(self.gpgkey.assert_key_from_product(name, prd_name))
 
-    @bzbug('1085035')
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_39(self, name):
@@ -1637,6 +1632,7 @@ class GPGKey(BaseUI):
         after deletion
         @BZ: 1085035
         """
+        skip_if_bz_bug_open(1085035)
 
         prd_name = generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
@@ -1735,7 +1731,6 @@ class GPGKey(BaseUI):
         self.assertIsNone(self.gpgkey.assert_key_from_product
                           (name, prd_name, repo_name1))
 
-    @bzbug('1085924')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         name is alpha
@@ -1758,6 +1753,7 @@ class GPGKey(BaseUI):
         @status: manual
         @BZ: 1085924
         """
+        skip_if_bz_bug_open(1085924)
 
         pass
 

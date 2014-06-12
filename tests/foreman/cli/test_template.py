@@ -7,7 +7,7 @@ Test class for Template CLI
 
 from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
-from robottelo.common.decorators import bzbug, redminebug
+from robottelo.common.decorators import redminebug, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -65,7 +65,6 @@ class TestTemplate(BaseCLI):
         template_content = Template.dump({'id': new_obj['id']})
         self.assertIn(content, template_content.stdout[0])
 
-    @bzbug('1096333')
     def test_delete_template_1(self):
         """
         @Test: Check if Template can be deleted
@@ -73,6 +72,7 @@ class TestTemplate(BaseCLI):
         @Assert: Template is deleted
         @BZ: 1096333
         """
+        skip_if_bz_bug_open(1096333)
 
         content = generate_string("alpha", 10)
         name = generate_string("alpha", 10)
