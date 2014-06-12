@@ -7,12 +7,13 @@ Test class for Template CLI
 
 from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
-from robottelo.common.decorators import skip_if_bz_bug_open, redminebug
+from robottelo.common.decorators import (skip_if_bz_bug_open,
+                                         skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
 
-@redminebug('4560')
+@skip_if_rm_bug_open('4560')
 class TestTemplate(BaseCLI):
     """
     Test class for Config Template CLI.

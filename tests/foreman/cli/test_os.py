@@ -13,7 +13,8 @@ from robottelo.cli.factory import make_architecture
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.factory import make_template
-from robottelo.common.decorators import data, skip_if_bz_bug_open, redminebug
+from robottelo.common.decorators import (data, skip_if_bz_bug_open,
+                                         skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -93,7 +94,7 @@ class TestOperatingSystem(BaseCLI):
     """
 
     # Issues
-    @redminebug('4547')
+    @skip_if_rm_bug_open('4547')
     def test_redmine_4547(self):
         """
         @test: Search for newly created OS by name

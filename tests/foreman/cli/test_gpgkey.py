@@ -13,8 +13,8 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import (skip_if_bz_bug_open, data, 
-                                         redminebug, stubbed)
+from robottelo.common.decorators import (skip_if_bz_bug_open, data,
+                                         skip_if_rm_bug_open, stubbed)
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp
@@ -94,7 +94,7 @@ class TestGPGKey(BaseCLI):
 
     # Bug verification
 
-    @redminebug('4271')
+    @skip_if_rm_bug_open('4271')
     def test_redmine_4271(self):
         """
         @Test: cvs output for gpg subcommand doesn\'t work
@@ -126,7 +126,7 @@ class TestGPGKey(BaseCLI):
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
-    @redminebug('4272')
+    @skip_if_rm_bug_open('4272')
     def test_redmine_4272(self):
         """
         @Test: gpg info should display key content

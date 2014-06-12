@@ -16,7 +16,8 @@ from ddt import ddt
 from robottelo.cli.factory import make_user
 from robottelo.cli.user import User as UserObj
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bz_bug_open, redminebug
+from robottelo.common.decorators import (data, skip_if_bz_bug_open,
+                                         skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -200,7 +201,7 @@ class User(BaseCLI):
         self.__assert_exists(args)
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('2922')
+    @skip_if_rm_bug_open('2922')
     def test_positive_create_user_9(self):
         """
         @Test: Create User with one role
@@ -213,7 +214,7 @@ class User(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('2922')
+    @skip_if_rm_bug_open('2922')
     def test_positive_create_user_10(self):
         """
         @Test: Create User with multiple roles
@@ -226,7 +227,7 @@ class User(BaseCLI):
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @redminebug('2922')
+    @skip_if_rm_bug_open('2922')
     def test_positive_create_user_11(self):
         """
         @Test: Create User and assign all available roles to it

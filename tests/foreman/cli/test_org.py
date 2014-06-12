@@ -13,8 +13,8 @@ from robottelo.cli.factory import (
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.common.decorators import (data, skip_if_bz_bug_open, redminebug,
-                                         stubbed)
+from robottelo.common.decorators import (skip_if_bz_bug_open, data,
+                                         skip_if_rm_bug_open, stubbed)
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -135,7 +135,7 @@ class TestOrg(BaseCLI):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @redminebug('4295')
+    @skip_if_rm_bug_open('4295')
     def test_remove_domain(self):
         """
         @Test: Check if a Domain can be removed from an Org
