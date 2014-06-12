@@ -13,9 +13,10 @@ from robottelo.common import conf
 from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
-                                      generate_email_address, get_data_file)
+                                      generate_email_address, get_data_file,
+                                      skip_if_bz_bug_open)
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
-from robottelo.common.decorators import bzbug, stubbed
+from robottelo.common.decorators import stubbed
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from tests.foreman.ui.baseui import BaseUI
 
@@ -154,7 +155,6 @@ class Org(BaseUI):
         label = self.org.wait_until_element(label_loc).get_attribute("value")
         self.assertEqual(name, label)
 
-    @bzbug("1079482")
     @attr('ui', 'org', 'implemented')
     @data({'name': generate_string('alpha', 10),
            'desc': generate_string('alpha', 10)},
@@ -175,6 +175,7 @@ class Org(BaseUI):
         @assert: organization is created, label is auto-generated
         @BZ: 1079482
         """
+        skip_if_bz_bug_open("1079482")
 
         desc = test_data['desc']
         org_name = test_data['name']
@@ -336,7 +337,6 @@ class Org(BaseUI):
 
     # Associations
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain):
@@ -347,6 +347,7 @@ class Org(BaseUI):
         @assert: the domain is removed from the organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -373,7 +374,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_user_3(self, user_name):
@@ -384,6 +384,7 @@ class Org(BaseUI):
         @assert: The user is added then removed from the organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open('1076562')
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -414,7 +415,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp):
@@ -425,6 +425,7 @@ class Org(BaseUI):
         @assert: hostgroup is added to organization then removed
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -471,7 +472,6 @@ class Org(BaseUI):
 
         pass
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
@@ -481,6 +481,7 @@ class Org(BaseUI):
         @assert: subnet is added
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -504,7 +505,6 @@ class Org(BaseUI):
                                                value % subnet_name))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain):
@@ -514,6 +514,7 @@ class Org(BaseUI):
         @assert: Domain is added to organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open('1076562')
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -534,7 +535,6 @@ class Org(BaseUI):
                                                value % domain))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_user_2(self, user):
@@ -545,6 +545,7 @@ class Org(BaseUI):
         @assert: User is added to organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -568,7 +569,6 @@ class Org(BaseUI):
                                                value % user))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp):
@@ -579,6 +579,7 @@ class Org(BaseUI):
         @assert: hostgroup is added to organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -598,7 +599,6 @@ class Org(BaseUI):
                                                value % host_grp))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_location_1(self, location):
@@ -609,6 +609,7 @@ class Org(BaseUI):
         @assert: location is added to organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -628,7 +629,6 @@ class Org(BaseUI):
                                                value % location))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
@@ -639,6 +639,7 @@ class Org(BaseUI):
         @assert: computeresource is added then removed
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -671,7 +672,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium):
@@ -681,6 +681,7 @@ class Org(BaseUI):
         @assert: medium is added then removed
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -710,7 +711,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
@@ -720,6 +720,7 @@ class Org(BaseUI):
         @assert: configtemplate is added then removed
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -799,7 +800,6 @@ class Org(BaseUI):
 
         pass
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
@@ -810,6 +810,7 @@ class Org(BaseUI):
         @assert: computeresource is added
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -835,7 +836,6 @@ class Org(BaseUI):
                                                value % resource_name))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium):
@@ -845,6 +845,7 @@ class Org(BaseUI):
         @assert: medium is added
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -867,7 +868,6 @@ class Org(BaseUI):
                                                value % medium))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
@@ -878,6 +878,7 @@ class Org(BaseUI):
         @assert: configtemplate is added
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
@@ -901,7 +902,6 @@ class Org(BaseUI):
                                                value % template))
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_environment_1(self, env):
@@ -911,6 +911,7 @@ class Org(BaseUI):
         @assert: environment is removed from Organization
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
@@ -938,7 +939,6 @@ class Org(BaseUI):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @bzbug('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
@@ -948,6 +948,7 @@ class Org(BaseUI):
         @assert: subnet is added then removed
         @BZ: 1076562
         """
+        skip_if_bz_bug_open(1076562)
 
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]

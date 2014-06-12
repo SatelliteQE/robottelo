@@ -6,8 +6,8 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE)
-from robottelo.common.decorators import data, bzbug
-from robottelo.common.helpers import (generate_string,
+from robottelo.common.decorators import data
+from robottelo.common.helpers import (generate_string, skip_if_bz_bug_open,
                                       generate_strings_list, get_data_file)
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import locators, common_locators
@@ -93,7 +93,6 @@ class Repos(BaseUI):
         invalid = self.products.wait_until_element(locator)
         self.assertTrue(invalid)
 
-    @bzbug("1081059")
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, repo_name):
@@ -103,6 +102,7 @@ class Repos(BaseUI):
         @Assert: Repos is not created
         @BZ: 1081059
         """
+        skip_if_bz_bug_open("1081059")
 
         locator = common_locators["common_invalid"]
         prd_name = generate_string("alpha", 8)

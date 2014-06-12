@@ -8,7 +8,7 @@ Test class for Smart Class Parameter CLI.
 from tests.foreman.cli.basecli import BaseCLI
 from robottelo.cli.smartclass import SmartClassParameter
 from robottelo.common import ssh
-from robottelo.common.decorators import bzbug
+from robottelo.common.helpers import skip_if_bz_bug_open
 
 
 class TestSmartClassParameter(BaseCLI):
@@ -24,7 +24,6 @@ class TestSmartClassParameter(BaseCLI):
 
         ssh.command('puppet module install --force puppetlabs/ntp')
 
-    @bzbug('1047794')
     def test_bugzilla_1047794(self):
         """
         @Test: Check if SmartClass Paramter Info generates an error
@@ -32,6 +31,7 @@ class TestSmartClassParameter(BaseCLI):
         @Assert: SmartClass Paramter Info does not generate an error
         @BZ: 1047794
         """
+        skip_if_bz_bug_open(1047794)
 
         self.run_puppet_module()
         result = SmartClassParameter().list()

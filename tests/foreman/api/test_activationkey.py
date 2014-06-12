@@ -3,7 +3,8 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import bzbug, data, redminebug
+from robottelo.common.decorators import data, redminebug
+from robottelo.common.helpers import skip_if_bz_bug_open
 from robottelo.records.activation_key import ActivationKey
 from robottelo.records.host_collection import HostCollectionDefOrg
 from tests.foreman.api.baseapi import BaseAPI
@@ -42,7 +43,6 @@ class ActivationKeys(BaseAPI):
         ak_u = ApiCrud.record_update(ak_cr)
         self.assertEquals(ak_u.description, ak_cr.description)
 
-    @bzbug('1099533')
     @data(*ActivationKey.enumerate())
     def test_host_collections(self, test_data):
         """
@@ -50,6 +50,8 @@ class ActivationKeys(BaseAPI):
         @feature: ActivationKey
         @assert: there was no system group and you have added one
         """
+        skip_if_bz_bug_open(1099533)
+
         acc = ApiCrud.record_create(test_data)
         self.assertEqual(len(acc.host_collections), 0)
         sg = HostCollectionDefOrg()

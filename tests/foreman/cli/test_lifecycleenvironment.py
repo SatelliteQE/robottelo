@@ -8,8 +8,8 @@ Test class for Host CLI
 from ddt import ddt
 from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, bzbug
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -33,13 +33,13 @@ class TestLifeCycleEnvironment(BaseCLI):
 
     # Issues validation
 
-    @bzbug('1077386')
     def test_bugzilla_1077386(self):
         """
         @Test: List subcommand returns standard output
         @Feature: Lifecycle Environment
         @Assert: There should not be an error returned
         """
+        skip_if_bz_bug_open(1077386)
 
         # List avaialble lifecycle environments using default Table
         # output
@@ -60,8 +60,6 @@ class TestLifeCycleEnvironment(BaseCLI):
             len(result.stdout), 0, "No output was returned"
         )
 
-    @bzbug('1077333')
-    @bzbug('1099655')
     def test_bugzilla_1077333(self):
         """
         @Test: Search lifecycle environment via its name containing UTF-8 chars
@@ -69,6 +67,8 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Assert: Can get info for lifecycle by its name
         @BZ: 1077333, 1099655
         """
+        skip_if_bz_bug_open(1077333)
+        skip_if_bz_bug_open(1099655)
 
         payload = {
             'organization-id': self.org['id'],
@@ -103,7 +103,6 @@ class TestLifeCycleEnvironment(BaseCLI):
 
     # CRUD
 
-    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -119,6 +118,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Assert: Lifecycle environment is created with Library as prior
         @BZ: 1099655
         """
+        skip_if_bz_bug_open(1099655)
 
         payload = {
             'organization-id': self.org['id'],
@@ -151,7 +151,6 @@ class TestLifeCycleEnvironment(BaseCLI):
             "Could not find lifecycle environment \'%s\'" % new_obj['name']
         )
 
-    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -168,6 +167,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Assert: Lifecycle environment is created with Library as prior
         @BZ: 1099655
         """
+        skip_if_bz_bug_open(1099655)
 
         payload = {
             'organization-id': self.org['id'],
@@ -206,7 +206,6 @@ class TestLifeCycleEnvironment(BaseCLI):
             "Descriptions don't match"
         )
 
-    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -222,6 +221,7 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Assert: Lifecycle environment is deleted
         @BZ: 1099655
         """
+        skip_if_bz_bug_open(1099655)
 
         payload = {
             'organization-id': self.org['id'],
@@ -278,8 +278,6 @@ class TestLifeCycleEnvironment(BaseCLI):
             len(result.stderr), 0, "There should be an error here"
         )
 
-    @bzbug('1095937')
-    @bzbug('1099655')
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -295,6 +293,8 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Assert: Lifecycle environment name is updated
         @BZ: 1095937, 1099655
         """
+        skip_if_bz_bug_open(1095937)
+        skip_if_bz_bug_open(1099655)
 
         payload = {
             'organization-id': self.org['id'],
@@ -344,8 +344,6 @@ class TestLifeCycleEnvironment(BaseCLI):
             "Name should have been updated"
         )
 
-    @bzbug('1095937')
-    @bzbug('1099655')
     @data(
         {'description': generate_string("alpha", 15)},
         {'description': generate_string("alphanumeric", 15)},
@@ -361,6 +359,8 @@ class TestLifeCycleEnvironment(BaseCLI):
         @Assert: Lifecycle environment description is updated
         @BZ: 1095937, 1099655
         """
+        skip_if_bz_bug_open(1095937)
+        skip_if_bz_bug_open(1099655)
 
         payload = {
             'organization-id': self.org['id'],

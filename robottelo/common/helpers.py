@@ -5,22 +5,29 @@
 Several helper methods and functions.
 """
 
+import bugzilla
+import logging
 import os
 import random
 import re
 import string
 import time
-import bugzilla
-import logging
+
+import sys
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 
 from itertools import izip
 from robottelo.common.constants import HTML_TAGS
 from urllib2 import urlopen, Request, URLError
-from xml.parsers.expat import ExpatError
+from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
 
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
+BUGZILLA_SKIP_TEST_STATUSES = ('NEW', 'ASSIGNED')
 
 
 def generate_name(minimum=4, maximum=8):
@@ -406,36 +413,6 @@ def get_data_file(filename):
             "Couldn't locate the data file '%s'" % data_file)
 
 
-def is_bzbug(bz_id):
-    """Method to test if the bugzilla's bug is open"""
-
-    try:
-        mybz = bugzilla.RHBugzilla()
-        mybz.connect(BUGZILLA_URL)
-    except (TypeError, ValueError):
-        logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
-        return False
-
-    attempts = 0
-    mybug = None
-    while attempts < 3 and mybug is None:
-        try:
-            mybug = mybz.getbugsimple(bz_id)
-        except ExpatError:
-            attempts += 1
-        except Fault:
-            return True
-
-    if mybug is None:
-        return True
-
-    if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
-        logging.debug(mybug)
-        return True
-    else:
-        return False
-
-
 def read_data_file(filename):
     """
     Read the contents of data file
@@ -443,3 +420,67 @@ def read_data_file(filename):
     absolute_file_path = get_data_file(filename)
     with open(absolute_file_path, 'r') as file_contents:
         return file_contents.read()
+
+
+# A dict mapping bug IDs to python-bugzilla bug objects.
+_bugzilla = {}
+
+
+class BugFetchError(Exception):
+    """Indicates an error occurred while fetching information about a bug."""
+
+
+def get_bugzilla_bug(bug_id):
+    """Fetch bug ``bug_id``.
+
+    :param int bug_id: The ID of a bug in the Bugzilla database.
+    :return: A FRIGGIN UNDOCUMENTED python-bugzilla THING.
+    :raises BugFetchError: If an error occurs while fetching the bug. For
+        example, a network timeout occurs or the bug does not exist.
+
+    """
+    # Is bug ``bug_id`` in the cache?
+    if bug_id not in _bugzilla:
+        # Make a network connection to the Bugzilla server.
+        try:
+            bz_conn = bugzilla.RHBugzilla()
+            bz_conn.connect(BUGZILLA_URL)
+        except (TypeError, ValueError):
+            raise BugFetchError('Could not connect to {}'.format(BUGZILLA_URL))
+
+        # Fetch the bug and place it in the cache.
+        try:
+            _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
+        except Fault as err:
+            raise BugFetchError(
+                'Could not fetch bug. Error: {}'.format(err.faultString)
+            )
+        except ExpatError as err:
+            raise BugFetchError(
+                'Could not interpret bug. Error: {}'.format(errors[err.code])
+            )
+
+    return _bugzilla[bug_id]
+
+
+def skip_if_bz_bug_open(bug_id):
+    """Skip the current test if bug ``bug_id`` is open.
+
+    :param int bug_id: The ID of a bug in the Bugzilla database.
+    :return: None
+    :raises unittest.SkipTest: If bug ``bug_id`` is open.
+
+    """
+    bug = None
+    try:
+        bug = get_bugzilla_bug(bug_id)
+    except BugFetchError as err:
+        logging.warning(err.message)
+
+    # If bug was fetched and is open, skip the test.
+    if bug is not None and bug.status in BUGZILLA_SKIP_TEST_STATUSES:
+        raise unittest.SkipTest('Skipping test. Reason: {}'.format(bug))
+
+    # Bug could not be fetched, or was fetched and status is not open. Allow
+    # the test to proceed.
+    return None

@@ -5,8 +5,7 @@
 Test class for UserGroup UI
 """
 
-from robottelo.common.helpers import generate_string
-from robottelo.common.helpers import generate_email_address
+from robottelo.common.helpers import generate_string, generate_email_address
 from robottelo.ui.locators import common_locators
 from tests.foreman.ui.baseui import BaseUI
 

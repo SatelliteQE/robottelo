@@ -13,9 +13,9 @@ else:
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import NOT_IMPLEMENTED, ENVIRONMENT
-from robottelo.common.decorators import data, bzbug
-from robottelo.common.helpers import (generate_string,
-                                      valid_names_list, invalid_names_list)
+from robottelo.common.decorators import data
+from robottelo.common.helpers import (generate_string, valid_names_list,
+                                      invalid_names_list, skip_if_bz_bug_open)
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.session import Session
@@ -79,7 +79,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_1(self, name):
@@ -92,6 +91,8 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
+
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
@@ -99,7 +100,6 @@ class ActivationKey(BaseUI):
                                   description=generate_string("alpha", 16))
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_2(self, description):
@@ -112,6 +112,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
 
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -179,7 +180,6 @@ class ActivationKey(BaseUI):
                                   content_view=cv_name)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_5(self):
         """
@@ -192,9 +192,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """
@@ -206,6 +206,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -214,7 +215,6 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """
@@ -226,6 +226,8 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
+
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
         limit = "6"
@@ -235,7 +237,6 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT, limit, description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """
@@ -247,6 +248,8 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is created
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
+
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
@@ -254,7 +257,6 @@ class ActivationKey(BaseUI):
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1083471')
     @data(*invalid_names_list())
     def test_negative_create_activation_key_1(self, name):
         """
@@ -265,6 +267,7 @@ class ActivationKey(BaseUI):
         using valid Description, Environment, Content View, Usage limit
         @Assert: Activation key is not created. Appropriate error shown.
         """
+        skip_if_bz_bug_open(1083471)
 
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
@@ -275,7 +278,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @bzbug('1083438')
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
@@ -285,6 +287,7 @@ class ActivationKey(BaseUI):
         using valid Name, Environment, Content View, Usage limit
         @Assert: Activation key is not created. Appropriate error shown.
         """
+        skip_if_bz_bug_open(1083438)
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 256)
@@ -296,7 +299,6 @@ class ActivationKey(BaseUI):
                         (common_locators["alert.error"]))
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @bzbug('1083027')
     @data(*invalid_names_list())
     def test_negative_create_activation_key_3(self, limit):
         """
@@ -307,6 +309,8 @@ class ActivationKey(BaseUI):
         using valid Name, Description, Environment, Content View
         @Assert: Activation key is not created. Appropriate error shown.
         """
+        skip_if_bz_bug_open(1083027)
+
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
@@ -428,7 +432,6 @@ class ActivationKey(BaseUI):
         self.activationkey.delete(name, True)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_5(self):
         """
@@ -441,9 +444,9 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is deleted
         @Status: Manual
         """
+        skip_if_bz_bug_open(1063273)
         pass
 
-    @bzbug('1063273')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_6(self):
         """
@@ -457,6 +460,7 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1063273)
         pass
 
     def test_negative_delete_activation_key_1(self):
@@ -481,7 +485,6 @@ class ActivationKey(BaseUI):
         self.activationkey.delete(name, really=False)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_1(self, new_name):
@@ -494,6 +497,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
 
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -504,7 +508,6 @@ class ActivationKey(BaseUI):
         self.activationkey.update(name, new_name)
         self.assertIsNotNone(self.activationkey.search_key(new_name))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_2(self, new_description):
@@ -517,6 +520,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
@@ -529,7 +533,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1089637')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_3(self, env_name):
@@ -542,6 +545,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @BZ: 1089637
         """
+        skip_if_bz_bug_open(1089637)
 
         name = generate_string("alpha", 8)
         cv_name = generate_string("alpha", 8)
@@ -607,7 +611,6 @@ class ActivationKey(BaseUI):
         self.assertEqual(cv2_name, selected_cv)
         # TODO: Need to check for RH Product too
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """
@@ -619,6 +622,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
 
         name = generate_string("alpha", 10)
         limit = "8"
@@ -631,7 +635,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1078676')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """
@@ -643,6 +646,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is updated
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
 
         name = generate_string("alpha", 10)
         limit = "6"
@@ -656,7 +660,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1083875')
     @data(*invalid_names_list())
     def test_negative_update_activation_key_1(self, new_name):
         """
@@ -668,6 +671,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @BZ: 1083875
         """
+        skip_if_bz_bug_open(1083875)
 
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -681,7 +685,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(new_name))
 
-    @bzbug('1083438')
     def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
@@ -692,6 +695,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1083438)
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
@@ -705,7 +709,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.error"]))
 
-    @bzbug('1083027')
     @data(*invalid_names_list())
     def test_negative_update_activation_key_3(self, limit):
         """
@@ -717,6 +720,7 @@ class ActivationKey(BaseUI):
         @Assert: Activation key is not updated.  Appropriate error shown.
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1083027)
 
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -729,7 +733,6 @@ class ActivationKey(BaseUI):
                                                         ["ak.invalid_limit"])
         self.assertTrue(invalid)
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_usage_limit(self):
         """
@@ -744,9 +747,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
         """
@@ -760,9 +763,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_1(self):
         """
@@ -775,6 +778,7 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
     def test_associate_product_2(self):
@@ -835,7 +839,6 @@ class ActivationKey(BaseUI):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
         """
@@ -849,9 +852,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_delete_manifest(self):
         """
@@ -865,9 +868,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_multiple_activation_keys_to_system(self):
         """
@@ -880,9 +883,9 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass
 
-    @bzbug('1078676')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):
         """
@@ -895,4 +898,5 @@ class ActivationKey(BaseUI):
         @Status: Manual
         @BZ: 1078676
         """
+        skip_if_bz_bug_open(1078676)
         pass

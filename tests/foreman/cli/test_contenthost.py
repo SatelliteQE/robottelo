@@ -15,8 +15,8 @@ from robottelo.cli.factory import (
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import bzbug, data
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -181,7 +181,6 @@ class TestContentHost(BaseCLI):
             "Content views don't match"
         )
 
-    @bzbug('1107319')
     @attr('cli', 'content-host')
     def test_positive_create_6(self):
         """
@@ -189,6 +188,7 @@ class TestContentHost(BaseCLI):
         @Feature: Content Hosts
         @Assert: Content host is created using lifecycle name
         """
+        skip_if_bz_bug_open(1107319)
 
         new_system = make_content_host({
             u'name': generate_string('alpha', 15),
@@ -202,7 +202,6 @@ class TestContentHost(BaseCLI):
             "Lifecycle environments don't match"
         )
 
-    @bzbug('1105623')
     @attr('cli', 'content-host')
     def test_positive_create_7(self):
         """
@@ -210,6 +209,7 @@ class TestContentHost(BaseCLI):
         @Feature: Content Hosts
         @Assert: Content host is created using new lifecycle
         """
+        skip_if_bz_bug_open(1105623)
 
         new_system = make_content_host({
             u'name': generate_string('alpha', 15),
@@ -223,7 +223,6 @@ class TestContentHost(BaseCLI):
             "Environments don't match"
         )
 
-    @bzbug('1105623')
     @attr('cli', 'content-host')
     def test_positive_create_8(self):
         """
@@ -231,6 +230,7 @@ class TestContentHost(BaseCLI):
         @Feature: Content Hosts
         @Assert: Content host is created using new content view
         """
+        skip_if_bz_bug_open(1105623)
 
         # Make a new content view
         new_cv = make_content_view({

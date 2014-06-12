@@ -4,20 +4,20 @@ Test class for Subscriptions
 
 from ddt import ddt
 from robottelo.cli.subscription import Subscription
-from robottelo.cli.factory import (
-    make_org, make_lifecycle_environment)
-from robottelo.common.decorators import bzbug, stubbed
+from robottelo.cli.factory import make_org, make_lifecycle_environment
+from robottelo.common.decorators import stubbed
+from robottelo.common.helpers import skip_if_bz_bug_open
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
 from tests.foreman.cli.basecli import BaseCLI
 
 
-@bzbug('1099655')
 @ddt
 class TestSubscription(BaseCLI):
     """
     Manifest CLI tests
     """
+    skip_if_bz_bug_open(1099655)
 
     org = None
     env1 = None

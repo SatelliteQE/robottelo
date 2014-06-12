@@ -5,7 +5,6 @@
 Implements various decorators
 """
 
-import bugzilla
 import logging
 import random
 import requests
@@ -20,11 +19,8 @@ else:
 from ddt import data as ddt_data
 from robottelo.common import conf
 from robottelo.common.constants import NOT_IMPLEMENTED
-from xml.parsers.expat import ExpatError
-from xmlrpclib import Fault
 
 
-BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 REDMINE_URL = 'http://projects.theforeman.org'
 
 
@@ -74,47 +70,6 @@ def skipRemote(func):
     return unittest.skipIf(
         remote == 1,
         "Skipping as setup related to sauce labs is missing")(func)
-
-
-_bugzilla = {}
-
-
-def bzbug(bz_id):
-    """Decorator that skips the test if the bugzilla's bug is open"""
-
-    if bz_id not in _bugzilla:
-        try:
-            mybz = bugzilla.RHBugzilla()
-            mybz.connect(BUGZILLA_URL)
-        except (TypeError, ValueError):
-            logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
-            return lambda func: func
-
-        attempts = 0
-        mybug = None
-        while attempts < 3 and mybug is None:
-            try:
-                mybug = mybz.getbugsimple(bz_id)
-                _bugzilla[bz_id] = mybug
-            except ExpatError:
-                attempts += 1
-            except Fault as error:
-                return unittest.skip(
-                    "Test skipped: %s" % error.faultString
-                )
-
-        if mybug is None:
-            return unittest.skip(
-                "Test skipped due to not being able to fetch bug #%s info" %
-                bz_id)
-    else:
-        mybug = _bugzilla[bz_id]
-
-    if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
-        logging.debug(mybug)
-        return unittest.skip("Test skipped due to %s" % mybug)
-    else:
-        return lambda func: func
 
 
 _redmine = {

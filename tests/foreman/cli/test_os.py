@@ -13,8 +13,8 @@ from robottelo.cli.factory import make_architecture
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.factory import make_template
-from robottelo.common.decorators import data, bzbug, redminebug
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data, redminebug
+from robottelo.common.helpers import generate_string, skip_if_bz_bug_open
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -114,7 +114,6 @@ class TestOperatingSystem(BaseCLI):
         self.assertGreater(len(result.stdout), length)
         self.assertEqual(result.return_code, 0)
 
-    @bzbug('1051557')
     def test_bugzilla_1051557(self):
         """
         @test: Update an Operating System's major version.
@@ -122,6 +121,7 @@ class TestOperatingSystem(BaseCLI):
         @assert: Operating System major version is updated
         @bz: 1021557
         """
+        skip_if_bz_bug_open(1051557)
 
         new_obj = make_os()
         os_info = OperatingSys.info({'id': new_obj['id']})
