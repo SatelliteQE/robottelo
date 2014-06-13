@@ -17,7 +17,6 @@ from robottelo.cli.factory import (
 )
 from robottelo.common.decorators import data, stubbed
 from robottelo.common.helpers import generate_string
-
 from tests.foreman.cli.basecli import BaseCLI
 
 

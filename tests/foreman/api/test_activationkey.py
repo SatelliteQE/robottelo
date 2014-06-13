@@ -3,7 +3,7 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import (skip_if_bz_bug_open, data,
+from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.records.activation_key import ActivationKey
 from robottelo.records.host_collection import HostCollectionDefOrg

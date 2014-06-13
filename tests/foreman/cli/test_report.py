@@ -7,9 +7,9 @@ Test class for Reports CLI.
 
 import random
 
-from tests.foreman.cli.basecli import BaseCLI
 from robottelo.cli.report import Report
 from robottelo.common import ssh
+from tests.foreman.cli.basecli import BaseCLI
 
 
 class TestReport(BaseCLI):

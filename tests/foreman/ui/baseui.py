@@ -21,8 +21,8 @@ from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
-from robottelo.ui.hosts import Hosts
 from robottelo.ui.hostgroup import Hostgroup
+from robottelo.ui.hosts import Hosts
 from robottelo.ui.location import Location
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
@@ -39,10 +39,10 @@ from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.systemgroup import SystemGroup
 from robottelo.ui.template import Template
-from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
-from selenium import webdriver
+from robottelo.ui.user import User
 from selenium_factory.SeleniumFactory import SeleniumFactory
+from selenium import webdriver
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 

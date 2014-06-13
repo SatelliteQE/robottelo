@@ -13,7 +13,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import (skip_if_bz_bug_open, data,
+from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open, stubbed)
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)

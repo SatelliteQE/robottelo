@@ -9,10 +9,8 @@ from robottelo.cli.architecture import Architecture
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.template import Template
-from robottelo.cli.factory import make_architecture
-from robottelo.cli.factory import make_os
-from robottelo.cli.factory import make_partition_table
-from robottelo.cli.factory import make_template
+from robottelo.cli.factory import (make_architecture, make_os,
+                                   make_partition_table, make_template)
 from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string

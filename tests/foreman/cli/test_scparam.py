@@ -5,10 +5,10 @@
 Test class for Smart Class Parameter CLI.
 """
 
-from tests.foreman.cli.basecli import BaseCLI
 from robottelo.cli.smartclass import SmartClassParameter
-from robottelo.common import ssh
 from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common import ssh
+from tests.foreman.cli.basecli import BaseCLI
 
 
 class TestSmartClassParameter(BaseCLI):

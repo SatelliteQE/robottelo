@@ -12,18 +12,17 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
     make_lifecycle_environment, make_user)
+from robottelo.api.apicrud import ApiCrud
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
-
-from robottelo.api.apicrud import ApiCrud
 from robottelo.records.content_view_definition import ContentViewDefinitionApi
-from robottelo.records.user import User
 from robottelo.records.role import add_permission_to_user
+from robottelo.records.user import User
+from tests.foreman.cli.basecli import BaseCLI
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 
