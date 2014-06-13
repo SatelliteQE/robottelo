@@ -157,10 +157,9 @@ part of the documentation is for you. The following is an overview of the topics
 covered by the API. For more granular information, follow one of the links.
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
-    tests
-    robottelo
+    api/index
 
 Miscellany
 ==========
