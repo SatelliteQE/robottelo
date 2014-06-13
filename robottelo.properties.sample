@@ -1,7 +1,7 @@
 # Copy this file and rename it to robottelo.properties
 
 [main]
-server.hostname=awesome.server.com
+server.hostname=
 server.port=443
 server.ssh.key_private=/home/whoami/.ssh/id_hudson_dsa
 server.ssh.username=root
