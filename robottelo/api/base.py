@@ -1,50 +1,47 @@
 # -*- encoding: utf-8 -*-
-
-"""
-Module containing utility wrappers
-around requests library
-"""
-
+"""Utility wrappers for the ``requests`` library."""
+from robottelo.common import conf
 import json as js
 import logging
 import requests
-
-from robottelo.common import conf
 
 logger = logging.getLogger("robottelo")
 
 
 def request(method, **kwargs):
-    """Wrapper around requests.request function, that adds default domain,
-    auth and json body, adding new params for each of them.
+    """A wrapper around the ``requests.request`` function that provides default
+    values for ``domain``, ``auth`` and ``json``, adding new params for each.
 
     :param method: method for the new :class:`Request` object.
-    :param url (optional): URL for the new :class:`Request` object.
-    :param domain: (optional) set to main.server.hostname as default
-    :param path: (optional)   sets url to "%/%".format(domain,path)
-    :param params: (optional) Dictionary or bytes to be sent
+    :param optional url: URL for the new :class:`Request` object.
+    :param optional domain: set to main.server.hostname as default
+    :param optional path: sets url to "%/%".format(domain,path)
+    :param optional params: Dictionary or bytes to be sent
         in the query string for the :class:`Request`.
-    :param data: (optional) Dictionary, bytes, or file-like object to send
+    :param optional data: Dictionary, bytes, or file-like object to send
         in the body of the :class:`Request`.
-    :param json: (optional) converts python data structure with json.dumps
+    :param optional json: converts python data structure with json.dumps
         and sends it as data, if the data param is empty
-    :param headers: (optional) Dictionary of HTTP Headers to send
-    :param cookies: (optional) Dict or CookieJar object to send
-    :param files: (optional) Dictionary of 'name': file-like-objects
+    :param optional headers: Dictionary of HTTP Headers to send
+    :param optional cookies: Dict or CookieJar object to send
+    :param optional files: Dictionary of 'name': file-like-objects
         (or {'name': ('filename', fileobj)}) for multipart encoding upload.
-    :param auth: (optional) Auth tuple to enable Basic/Digest/Custom HTTP Auth.
-    :param timeout: (optional) Float describing the timeout of the request.
-    :param allow_redirects: (optional) Boolean.
-        Set to True if POST/PUT/DELETE redirect following is allowed.
-    :param proxies: (optional) Dictionary mapping protocol to the URL
-        of the proxy.
-    :param verify: (optional) if ``True``, the SSL cert will be verified.
-        A CA_BUNDLE path can also be provided.
-    :param stream: (optional) if ``False``,
-        the response content will be immediately downloaded.
-    :param cert: (optional) if String, path to ssl client cert file (.pem).
-        If Tuple, ('cert', 'key') pair.
-"""
+    :param optional auth: Auth tuple to enable Basic/Digest/Custom HTTP Auth.
+    :param optional timeout: Float describing the timeout of the request.
+    :param optional bool allow_redirects: Set to True if POST/PUT/DELETE
+        redirect following is allowed.
+    :param optional proxies: Dictionary mapping protocol to the URL of the
+        proxy.
+    :param optional verify: If ``True``, the SSL cert will be verified. A
+        ``CA_BUNDLE`` path can also be provided.
+    :param optional stream: If ``False``, the response content will be
+        immediately downloaded.
+    :param cert: If ``string``, path to SSL client cert file (.pem). If
+        ``tuple``, a ``('cert', 'key')`` pair.
+
+    :type cert: tuple or string. Optional.
+
+    """
     if "user" in kwargs:
         user = kwargs.pop("user")
         if user:
@@ -85,9 +82,8 @@ def request(method, **kwargs):
         method,
         url,
         kwargs)
-    logger.debug("Calling %s" % request_command)
+    logger.debug("Calling %s", request_command)
     res = requests.request(method=method, url=url, **kwargs)
-    print kwargs["auth"][1]
     curl_command = "curl -X {0} {1}  -u {2}:{3} {4} -d {5}".format(
         res.request.method,
         "" if kwargs["verify"] else "-k",
@@ -106,70 +102,84 @@ def request(method, **kwargs):
 
 
 def get(**kwargs):
-    """Sends a GET request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a GET request.
 
-    :param \*\*kwargs: Optional arguments that ``request`` takes.
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     kwargs.setdefault('allow_redirects', True)
     return request('get', **kwargs)
 
 
 def options(**kwargs):
-    """Sends a OPTIONS request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a OPTIONS request.
 
-    :param \*\*kwargs: Optional arguments that ``request`` takes.
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     kwargs.setdefault('allow_redirects', True)
     return request('options', **kwargs)
 
 
 def head(**kwargs):
-    """Sends a HEAD request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a HEAD request.
 
-    :param \*\*kwargs: Optional arguments that ``request`` takes.
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     kwargs.setdefault('allow_redirects', False)
     return request('head', **kwargs)
 
 
 def post(json=None, **kwargs):
-    """Sends a POST request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a POST request.
 
-    :param json: (optional) Dictionary, bytes, or file-like object to send
-    :param **kwargs: Optional arguments that ``request`` takes.
+    :param optional json: Dictionary, bytes, or file-like object to send
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     return request('post', json=json, **kwargs)
 
 
 def put(json=None, **kwargs):
-    """Sends a PUT request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a PUT request.
 
-    :param data: (optional) Dictionary, bytes, or file-like object to send
-    :param **kwargs: Optional arguments that ``request`` takes.
+    :param optional data: A dictionary, bytes, or file-like object to send
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     return request('put', json=json, **kwargs)
 
 
 def patch(json=None, **kwargs):
-    """Sends a PATCH request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a PATCH request.
 
-    :param data: (optional) Dictionary, bytes, or file-like object
-        to send in the body of the :class:`Request`.
-    :param **kwargs: Optional arguments that ``request`` takes.
+    :param optional data: A dictionary, bytes, or file-like object to send in
+        the body of the :class:`Request`.
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     return request('patch', json=json, **kwargs)
 
 
 def delete(**kwargs):
-    """Sends a DELETE request. Returns :class:`Response` object.
+    # pylint: disable=W1401
+    """Sends a DELETE request.
 
-    :param **kwargs: Optional arguments that ``request`` takes.
+    :param optional \**kwargs: Arguments for ``request``.
+    :return: A :class:`Response` object.
+
     """
-
     return request('delete', **kwargs)

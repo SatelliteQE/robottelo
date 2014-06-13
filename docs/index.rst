@@ -13,8 +13,8 @@ Quickstart
 ==========
 
 The following is only a brief setup guide for `Robottelo`_. More extensive
-documentation `is available <https://github.com/omaciel/robottelo>`_ at Read the
-Docs.
+documentation `is available <http://robottelo.readthedocs.org/en/latest/>`_ at
+Read the Docs.
 
 Requirements
 ------------

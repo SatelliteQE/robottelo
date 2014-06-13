@@ -15,9 +15,10 @@ def create_choice(enum, fields):
     >>> create_choice({"name":lambda :"n1"},{"label":"l1"})
     {'name': 'n1', 'label': 'l1'}
     """
-    d = dict((k, evaluate_choice(v)) for k, v in enum.items())
-    d.update(dict((k, evaluate_choice(v)) for k, v in fields.items()))
-    return d
+    result = dict((key, evaluate_choice(value)) for key, value in enum.items())
+    result.update(dict(
+        (key, evaluate_choice(value)) for key, value in fields.items()))
+    return result
 
 
 class FieldsOpts(object):
@@ -25,11 +26,12 @@ class FieldsOpts(object):
     Fields class for the Options meta information in Records
     """
 
-    def __init__(self, meta):
+    def __init__(self):
         self.fields = []
         self.fieldsd = {}
 
     def append(self, item):
+        """Append an item to fields list"""
         self.fields.append(item)
         self.fieldsd[item.name] = item
         self.__dict__[item.name] = item
@@ -43,14 +45,16 @@ class FieldsOpts(object):
     def __contains__(self, key):
         return key in self.fieldsd
 
-    def keys(self, cls=None, are=[]):
-        """Adding dict functionality to records
-        """
+    def keys(self, cls=None, are=None):
+        """Returns a list of field names"""
+        if are is None:
+            are = []
         return [i.name for i in self.items(cls, are)]
 
-    def items(self, cls=None, are=[]):
-        """Adding dict functionality to records
-        """
+    def items(self, cls=None, are=None):
+        """Returns a list of field names and value as a list of tuples"""
+        if are is None:
+            are = []
         return [
             item
             for item in self.fields
@@ -66,14 +70,14 @@ class Options(object):
     """
 
     def __init__(self, meta):
-        self.fields = FieldsOpts(meta)
+        self.fields = FieldsOpts()
         self.meta = meta
         self.record = None
 
-    def contribute_to_class(self, cls, name):
+    def contribute_to_class(self, cls):
         """Setups a options instance on the class"""
 
-        cls._meta = self
+        cls._meta = self  # pylint: disable=W0212
         self.record = cls
 
         if self.meta:
@@ -128,8 +132,8 @@ class RecordBase(type):
             setattr(cls, name, value)
 
 
-class NoEnum:
-    pass
+class NoEnum(object):  # pylint: disable=R0903
+    """No enum class representation"""
 
 
 class Record(object):
@@ -159,21 +163,20 @@ class Record(object):
         return key in self.keys()
 
     def record_set_field(self, **kwargs):
-        for k in kwargs:
-            self[k] = kwargs[k]
+        """Set the valus for all fields in kwargs"""
+        for key in kwargs:
+            self[key] = kwargs[key]
         return self
 
     def keys(self):
-        """Adding dict functionality to records
-        """
-        return [k for k, v in self.__dict__.items()
-                if not k.startswith("_") and k != ""]
+        """Adding dict functionality to records"""
+        return [key for key in vars(self).keys()
+                if not key.startswith("_") and key != ""]
 
     def items(self):
-        """Adding dict functionality to records
-        """
-        return [(k, v) for k, v in self.__dict__.items()
-                if not k.startswith("_") and k != ""]
+        """Adding dict functionality to records"""
+        return [(key, value) for key, value in vars(self).items()
+                if not key.startswith("_") and key != ""]
 
     def copy(self):
         """We use deepcopy as our copy implementation"""
@@ -240,7 +243,8 @@ class Record(object):
 
         fnames = [f.name for f in iter(cls._meta.fields)]
         fields = dict(zip(fnames, args))
-        fields.update(dict((k, v) for k, v in kwargs.items() if k in fnames))
+        fields.update(dict(
+            (key, value) for key, value in kwargs.items() if key in fnames))
         enumerated = dict(
             (f.name, f.enumerate())
             for f in cls._meta.fields
@@ -248,14 +252,14 @@ class Record(object):
             )
 
         enumerated.update(dict(
-            (k, v.enumerate()) for k, v in fields.items()
-            if isinstance(v, Field) and v.enumerable
+            (key, value.enumerate()) for key, value in fields.items()
+            if isinstance(value, Field) and value.enumerable
             ))
 
         fields = dict(
-            (k, v) for k, v in fields.items()
-            if v is not NoEnum and
-            (not isinstance(v, Field) or not v.enumerable)
+            (key, value) for key, value in fields.items()
+            if value is not NoEnum and
+            (not isinstance(value, Field) or not value.enumerable)
             )
 
         e2 = []
@@ -267,10 +271,10 @@ class Record(object):
                 ]
         else:
             e2 = [
-                {k: v} for k, v in
+                {key: value} for key, value in
                 itertools.chain(*[
-                    [(k, v) for v in vx]
-                    for k, vx in enumerated.items()])
+                    [(key, value) for value in vx]
+                    for key, vx in enumerated.items()])
                 ]
 
         if matrix == 0:
@@ -395,7 +399,7 @@ class Record(object):
 
         name = self.__class__.__name__
         fields = ", ".join("%s=%s" % (
-            str(k), repr(v)) for k, v in self.__dict__.items())
+            str(key), repr(value)) for key, value in self.__dict__.items())
         fullname = u"%s(%s)" % (name, fields)
         return fullname.encode("utf8")
 
