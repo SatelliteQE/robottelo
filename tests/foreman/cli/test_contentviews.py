@@ -12,18 +12,17 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
     make_lifecycle_environment, make_user)
+from robottelo.api.apicrud import ApiCrud
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, bzbug
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
-
-from robottelo.api.apicrud import ApiCrud
 from robottelo.records.content_view_definition import ContentViewDefinitionApi
-from robottelo.records.user import User
 from robottelo.records.role import add_permission_to_user
+from robottelo.records.user import User
+from tests.foreman.cli.basecli import BaseCLI
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 
@@ -55,7 +54,7 @@ def negative_create_data():
     )
 
 
-@bzbug('1099655')
+@skip_if_bz_bug_open('1099655')
 @ddt
 class TestContentView(BaseCLI):
     """
@@ -639,7 +638,7 @@ class TestContentView(BaseCLI):
                 new_repo['name'],
                 "No new entry of same repo is expected")
 
-    @bzbug('1089905')
+    @skip_if_bz_bug_open('1089905')
     def test_cv_associate_composite_dupe_modules_negative(self):
         """
         @test: attempt to associate duplicate puppet module(s) within a
@@ -936,7 +935,7 @@ class TestContentView(BaseCLI):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here.")
 
-    @bzbug('1091494')
+    @skip_if_bz_bug_open('1091494')
     def test_cv_promote_badenvironment_negative(self):
         """
         @test: attempt to promote a content view using an invalid environment
@@ -1543,7 +1542,7 @@ class TestContentView(BaseCLI):
             "There should have been an exception here")
 
     @data(*positive_create_data())
-    @bzbug("1092111")
+    @skip_if_bz_bug_open("1092111")
     def test_cv_roles_readonly_user(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1590,7 +1589,7 @@ class TestContentView(BaseCLI):
         self.assertEqual(con_view['name'], result.stdout['name'])
 
     @data(*positive_create_data())
-    @bzbug("1092111")
+    @skip_if_bz_bug_open("1092111")
     def test_cv_roles_readonly_user_negative(self, test_data):
         # Note:
         # Obviously all of this stuff should work with 'admin' user

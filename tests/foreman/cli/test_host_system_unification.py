@@ -7,8 +7,8 @@ Test class for Host/System Unification
 
 import sys
 
-from tests.foreman.cli.basecli import BaseCLI
 from robottelo.common.constants import NOT_IMPLEMENTED
+from tests.foreman.cli.basecli import BaseCLI
 
 if sys.hexversion >= 0x2070000:
     import unittest

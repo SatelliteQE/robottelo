@@ -6,12 +6,12 @@ Test class for Repository CLI
 """
 
 from ddt import ddt
+from nose.plugins.attrib import attr
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_repository)
 from robottelo.cli.repository import Repository
-from robottelo.common.decorators import data, bzbug, stubbed
+from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
 from robottelo.common.helpers import generate_string
-from nose.plugins.attrib import attr
 from tests.foreman.cli.basecli import BaseCLI
 
 
@@ -194,7 +194,7 @@ class TestRepository(BaseCLI):
             "Content Types don't match"
         )
 
-    @bzbug('1083236')
+    @skip_if_bz_bug_open('1083236')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -238,7 +238,7 @@ class TestRepository(BaseCLI):
             "GPG Keys name don't match"
         )
 
-    @bzbug('1103944')
+    @skip_if_bz_bug_open('1103944')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -282,7 +282,7 @@ class TestRepository(BaseCLI):
             "GPG Keys name don't match"
         )
 
-    @bzbug('1083256')
+    @skip_if_bz_bug_open('1083256')
     @data(u'true', u'yes', u'1')
     @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
@@ -446,7 +446,7 @@ class TestRepository(BaseCLI):
         )
 
     @stubbed
-    @bzbug('1083236')
+    @skip_if_bz_bug_open('1083236')
     @attr('cli', 'repository')
     def test_positive_update_2(self, test_data):
         """
@@ -458,7 +458,7 @@ class TestRepository(BaseCLI):
         """
 
     @stubbed
-    @bzbug('1083256')
+    @skip_if_bz_bug_open('1083256')
     @attr('cli', 'repository')
     def test_positive_update_3(self, test_data):
         """

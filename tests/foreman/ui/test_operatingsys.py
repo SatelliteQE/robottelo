@@ -6,10 +6,10 @@ Test class for Operating System UI
 """
 
 from robottelo.ui.locators import common_locators
-from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, \
-    PARTITION_SCRIPT_DATA_FILE, INSTALL_MEDIUM_URL
-from robottelo.common.helpers import generate_string, \
-    get_data_file
+from robottelo.common.constants import (INSTALL_MEDIUM_URL,
+                                        OS_TEMPLATE_DATA_FILE,
+                                        PARTITION_SCRIPT_DATA_FILE)
+from robottelo.common.helpers import generate_string, get_data_file
 from tests.foreman.ui.baseui import BaseUI
 
 

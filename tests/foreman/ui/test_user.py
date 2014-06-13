@@ -13,10 +13,9 @@ else:
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.constants import NOT_IMPLEMENTED, LANGUAGES
+from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
 from robottelo.common.decorators import data
-from robottelo.common.helpers import (generate_email_address,
-                                      generate_string)
+from robottelo.common.helpers import generate_email_address, generate_string
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session

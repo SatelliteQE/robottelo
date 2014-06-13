@@ -18,15 +18,29 @@ else:
 
 
 from ddt import data as ddt_data
-from robottelo.common import conf
+from functools import wraps
 from robottelo.common.constants import NOT_IMPLEMENTED
-from xml.parsers.expat import ExpatError
+from robottelo.common import conf
+from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
 
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
+BUGZILLA_OPEN_BUG_STATUSES = ('NEW', 'ASSIGNED')
 REDMINE_URL = 'http://projects.theforeman.org'
 
+# A dict mapping bug IDs to python-bugzilla bug objects.
+_bugzilla = {}
+
+# A cache used by redmine-related functions.
+#
+# * _redmine['closed_statuses'] is used by `_redmine_closed_issue_statuses`
+# * _redmine['issues'] is used by `skip_if_rm_bug_open`
+#
+_redmine = {
+    'closed_statuses': None,
+    'issues': {},
+}
 
 # Increase the level of third party packages logging
 logging.getLogger('bugzilla').setLevel(logging.WARNING)
@@ -76,60 +90,118 @@ def skipRemote(func):
         "Skipping as setup related to sauce labs is missing")(func)
 
 
-_bugzilla = {}
+class BugFetchError(Exception):
+    """Indicates an error occurred while fetching information about a bug."""
 
 
-def bzbug(bz_id):
-    """Decorator that skips the test if the bugzilla's bug is open"""
+def _get_bugzilla_bug(bug_id):
+    """Fetch bug ``bug_id``.
 
-    if bz_id not in _bugzilla:
+    :param int bug_id: The ID of a bug in the Bugzilla database.
+    :return: A FRIGGIN UNDOCUMENTED python-bugzilla THING.
+    :raises BugFetchError: If an error occurs while fetching the bug. For
+        example, a network timeout occurs or the bug does not exist.
+
+    """
+    # Is bug ``bug_id`` in the cache?
+    if bug_id in _bugzilla:
+        logging.info('Bugzilla bug {} found in cache.'.format(bug_id))
+    else:
+        logging.info('Bugzilla bug {} not in cache. Fetching.'.format(bug_id))
+        # Make a network connection to the Bugzilla server.
         try:
-            mybz = bugzilla.RHBugzilla()
-            mybz.connect(BUGZILLA_URL)
+            bz_conn = bugzilla.RHBugzilla()
+            bz_conn.connect(BUGZILLA_URL)
         except (TypeError, ValueError):
-            logging.warning("Invalid Bugzilla ID {0}".format(bz_id))
-            return lambda func: func
+            raise BugFetchError('Could not connect to {}'.format(BUGZILLA_URL))
+        # Fetch the bug and place it in the cache.
+        try:
+            _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
+        except Fault as err:
+            raise BugFetchError(
+                'Could not fetch bug. Error: {}'.format(err.faultString)
+            )
+        except ExpatError as err:
+            raise BugFetchError(
+                'Could not interpret bug. Error: {}'.format(errors[err.code])
+            )
 
-        attempts = 0
-        mybug = None
-        while attempts < 3 and mybug is None:
+    return _bugzilla[bug_id]
+
+
+def skip_if_bz_bug_open(bug_id):
+    """A decorator that returns a customized decorator.
+
+    The customized decorator will either run or skip its decorated function
+    based on the status of Bugzilla bug ``bug_id``.
+
+    ``skip_if_bz_bug_open`` should only be applied to methods in a
+    ``unittest.TestCase`` subclass.
+
+    :param str bug_id: The ID of a bug in the Bugzilla database.
+    :return: A customized decorator function.
+    :rtype: function
+
+    """
+    def decorator(decorated_func):
+        """Make ``decorated_func`` available through ``wrapper``.
+
+        The ``wrapper`` function exists to prevent the business logic contained
+        therein from executing when this decorator is evaluated.
+
+        :param function decorated_func: The function to be wrapped.
+        :return: A function decorated with ``wrapper``.
+        :rtype: function
+
+        """
+        @wraps(decorated_func)
+        def wrapper(*args, **kwargs):
+            """Run ``decorated_func`` or skip it by raising an exception.
+
+            If information about bug ``bug_id`` can be fetched and the bug is
+            open, skip test ``decorated_func``. Otherwise, run the test.
+
+            :return: The return value of function ``decorated_func``.
+            :raises unittest.SkipTest: If bug ``bug_id`` is open.
+
+            """
+            # Fetch info about bug `bug_id`.
+            bug = None
             try:
-                mybug = mybz.getbugsimple(bz_id)
-                _bugzilla[bz_id] = mybug
-            except ExpatError:
-                attempts += 1
-            except Fault as error:
-                return unittest.skip(
-                    "Test skipped: %s" % error.faultString
+                bug = _get_bugzilla_bug(bug_id)
+            except BugFetchError as err:
+                logging.warning(err.message)
+
+            # Skip or run the test.
+            if bug is not None and bug.status in BUGZILLA_OPEN_BUG_STATUSES:
+                raise unittest.SkipTest(
+                    'Skipping test due to open bug report: {}'.format(bug)
                 )
+            return decorated_func(*args, **kwargs)
 
-        if mybug is None:
-            return unittest.skip(
-                "Test skipped due to not being able to fetch bug #%s info" %
-                bz_id)
-    else:
-        mybug = _bugzilla[bz_id]
-
-    if (mybug.status == 'NEW') or (mybug.status == 'ASSIGNED'):
-        logging.debug(mybug)
-        return unittest.skip("Test skipped due to %s" % mybug)
-    else:
-        return lambda func: func
+        return wrapper
+    return decorator
 
 
-_redmine = {
-    'closed_statuses': None,
-    'issues': {},
-}
-
-
+# FIXME: It would be better to collect a list of statuses which indicate an
+# issue is open. Doing so would make the implementation of `wrapper` (in
+# `skip_if_rm_bug_open`) simpler.
 def _redmine_closed_issue_statuses():
-    """Returns the Foreman's closed issue statuses IDs as a list"""
+    """Return a list of issue status IDs which indicate an issue is closed.
 
+    This list of issue status IDs is not hard-coded. Instead, the Redmine
+    server is consulted when generating this list.
+
+    :return: Statuses which indicate an issue is closed.
+    :rtype: list
+
+    """
+    # Is the list of closed statuses cached?
     if _redmine['closed_statuses'] is None:
         result = requests.get('%s/issue_statuses.json' % REDMINE_URL).json()
+        # We've got a list of *all* statuses. Let's throw only *closed*
+        # statuses in the cache.
         _redmine['closed_statuses'] = []
-
         for issue_status in result['issue_statuses']:
             if issue_status.get('is_closed', False):
                 _redmine['closed_statuses'].append(issue_status['id'])
@@ -137,32 +209,88 @@ def _redmine_closed_issue_statuses():
     return _redmine['closed_statuses']
 
 
-def redminebug(bug_id):
-    """Decorator that skips the test if the redmine's bug is open"""
+def _get_redmine_bug_status_id(bug_id):
+    """Fetch bug ``bug_id``.
 
-    if bug_id not in _redmine['issues']:
-        result = requests.get('%s/issues/%s.json' % (REDMINE_URL, bug_id))
+    :param int bug_id: The ID of a bug in the Redmine database.
+    :return: The status ID of that bug.
+    :raises BugFetchError: If an error occurs while fetching the bug. For
+        example, a network timeout occurs or the bug does not exist.
 
+    """
+    if bug_id in _redmine['issues']:
+        logging.info('Redmine bug {} found in cache.'.format(bug_id))
+    else:
+        # Get info about bug.
+        logging.info('Redmine bug {} not in cache. Fetching.'.format(bug_id))
+        result = requests.get('{}/issues/{}.json'.format(REDMINE_URL, bug_id))
         if result.status_code != 200:
-            logging.warning('Invalid Redmine issue #%s' % bug_id)
-            return lambda func: func
-
+            raise BugFetchError('Redmine bug {} does not exist'.format(bug_id))
         result = result.json()
 
+        # Place bug into cache.
         try:
-            issue = result['issue']
-            status_id = issue['status']['id']
-            _redmine['issues'][bug_id] = status_id
-        except KeyError, e:
-            logging.warning(
-                'Could not get info about Redmine issue #%s' % bug_id)
-            logging.exception(e)
-            return lambda func: func
-    else:
-        status_id = _redmine['issues'][bug_id]
+            _redmine['issues'][bug_id] = result['issue']['status']['id']
+        except KeyError as err:
+            raise BugFetchError(
+                'Could not get status ID of Redmine bug {}. Error: {}'.format(
+                    bug_id, err
+                )
+            )
 
-    if status_id not in _redmine_closed_issue_statuses():
-        return unittest.skip(
-            'Test skipped due to Redmine issue #%s' % bug_id)
-    else:
-        return lambda func: func
+    return _redmine['issues'][bug_id]
+
+
+def skip_if_rm_bug_open(bug_id):
+    """A decorator that returns a customized decorator.
+
+    The customized decorator will either run or skip its decorated function
+    based on the status of Redmine bug ``bug_id``.
+
+    ``skip_if_bz_bug_open`` should only be applied to methods in a
+    ``unittest.TestCase`` subclass.
+
+    :param str bug_id: The ID of a bug in the Redmine database.
+    :return: A customized decorator function.
+    :rtype: function
+
+    """
+    def decorator(decorated_func):
+        """Make ``decorated_func`` available through ``wrapper``.
+
+        The ``wrapper`` function exists to prevent the business logic contained
+        therein from executing when this decorator is evaluated.
+
+        :param function decorated_func: The function to be wrapped.
+        :return: A function decorated with ``wrapper``.
+        :rtype: function
+
+        """
+        @wraps(decorated_func)
+        def wrapper(*args, **kwargs):
+            """Run ``decorated_func`` or skip it by raising an exception.
+
+            If information about bug ``bug_id`` can be fetched and the bug is
+            open, skip test ``decorated_func``. Otherwise, run the test.
+
+            :return: The return value of function ``decorated_func``.
+            :raises unittest.SkipTest: If bug ``bug_id`` is open.
+
+            """
+            # Fetch status ID of bug `bug_id`.
+            status_id = None
+            try:
+                status_id = _get_redmine_bug_status_id(bug_id)
+            except BugFetchError as err:
+                logging.warning(err.message)
+
+            # Skip or run the test.
+            if status_id is not None \
+                    and status_id not in _redmine_closed_issue_statuses():
+                raise unittest.SkipTest(
+                    'Skipping test due to open Redmine bug #{}'.format(bug_id)
+                )
+            return decorated_func(*args, **kwargs)
+
+        return wrapper
+    return decorator

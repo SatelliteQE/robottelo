@@ -12,8 +12,8 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
-from robottelo.common import conf
 from robottelo.cli.metatest import MetaCLITest
+from robottelo.common import conf
 
 
 class BaseCLI(unittest.TestCase):

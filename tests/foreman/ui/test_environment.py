@@ -7,7 +7,7 @@ Test class for Environment UI
 
 from tests.foreman.ui.baseui import BaseUI
 from robottelo.ui.locators import common_locators
-from robottelo.common.decorators import bzbug
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 
 
@@ -22,7 +22,7 @@ class Environment(BaseUI):
         self.navigator.go_to_org()  # go to org page
         self.org.create(org_name)
 
-    @bzbug('1079999')
+    @skip_if_bz_bug_open('1079999')
     def test_create_env(self):
         """
         @Feature: Environment - Positive Create

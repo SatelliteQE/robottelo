@@ -9,11 +9,10 @@ from robottelo.cli.architecture import Architecture
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.template import Template
-from robottelo.cli.factory import make_architecture
-from robottelo.cli.factory import make_os
-from robottelo.cli.factory import make_partition_table
-from robottelo.cli.factory import make_template
-from robottelo.common.decorators import data, bzbug, redminebug
+from robottelo.cli.factory import (make_architecture, make_os,
+                                   make_partition_table, make_template)
+from robottelo.common.decorators import (data, skip_if_bz_bug_open,
+                                         skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -93,7 +92,7 @@ class TestOperatingSystem(BaseCLI):
     """
 
     # Issues
-    @redminebug('4547')
+    @skip_if_rm_bug_open('4547')
     def test_redmine_4547(self):
         """
         @test: Search for newly created OS by name
@@ -114,7 +113,7 @@ class TestOperatingSystem(BaseCLI):
         self.assertGreater(len(result.stdout), length)
         self.assertEqual(result.return_code, 0)
 
-    @bzbug('1051557')
+    @skip_if_bz_bug_open('1051557')
     def test_bugzilla_1051557(self):
         """
         @test: Update an Operating System's major version.

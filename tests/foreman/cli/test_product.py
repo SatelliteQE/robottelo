@@ -10,7 +10,7 @@ from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_sync_plan)
 from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import bzbug, data
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -33,7 +33,7 @@ class TestProduct(BaseCLI):
         if TestProduct.org is None:
             TestProduct.org = make_org()
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -73,7 +73,7 @@ class TestProduct(BaseCLI):
             len(result.stdout['label']), 0, "Label not automatically created"
         )
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15),
          u'label': generate_string('alpha', 15)},
@@ -120,7 +120,7 @@ class TestProduct(BaseCLI):
             result.stdout['label'], new_product['label'], "Labels don't match"
         )
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15),
          u'description': generate_string('alpha', 15)},
@@ -169,7 +169,7 @@ class TestProduct(BaseCLI):
             "Descriptions don't match"
         )
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -214,7 +214,7 @@ class TestProduct(BaseCLI):
             new_gpg_key['id'],
             "GPG Keys don't match")
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -306,7 +306,7 @@ class TestProduct(BaseCLI):
                 }
             )
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'description': generate_string('alpha', 15)},
         {u'description': generate_string('alphanumeric', 15)},
@@ -366,7 +366,7 @@ class TestProduct(BaseCLI):
             "Descriptions should not match"
         )
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -460,7 +460,7 @@ class TestProduct(BaseCLI):
             first_gpg_key['id'],
             "GPG Keys should not match")
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -555,7 +555,7 @@ class TestProduct(BaseCLI):
             first_sync_plan['id'],
             "Sync plans should not match")
 
-    @bzbug('1096320')
+    @skip_if_bz_bug_open('1096320')
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},

@@ -9,7 +9,7 @@ else:
 
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, redminebug
+from robottelo.common.decorators import data, skip_if_rm_bug_open
 from tests.foreman.api.baseapi import BaseAPI
 
 
@@ -17,9 +17,9 @@ from tests.foreman.api.baseapi import BaseAPI
 class TestDomain(BaseAPI):
     """Testing /api/organization entrypoint"""
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
+    @skip_if_rm_bug_open('4219')
+    @skip_if_rm_bug_open('4294')
+    @skip_if_rm_bug_open('4295')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -42,9 +42,9 @@ class TestDomain(BaseAPI):
 
     # Associations
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
+    @skip_if_rm_bug_open('4219')
+    @skip_if_rm_bug_open('4294')
+    @skip_if_rm_bug_open('4295')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -66,9 +66,9 @@ class TestDomain(BaseAPI):
 
         pass
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
+    @skip_if_rm_bug_open('4219')
+    @skip_if_rm_bug_open('4294')
+    @skip_if_rm_bug_open('4295')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -90,9 +90,9 @@ class TestDomain(BaseAPI):
 
         pass
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
+    @skip_if_rm_bug_open('4219')
+    @skip_if_rm_bug_open('4294')
+    @skip_if_rm_bug_open('4295')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -114,9 +114,9 @@ class TestDomain(BaseAPI):
 
         pass
 
-    @redminebug('4219')
-    @redminebug('4294')
-    @redminebug('4295')
+    @skip_if_rm_bug_open('4219')
+    @skip_if_rm_bug_open('4294')
+    @skip_if_rm_bug_open('4295')
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
