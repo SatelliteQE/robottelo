@@ -23,7 +23,7 @@ class DomainApi(ApiCrud):
 class Domain(records.Record):
     """ Implementation of foreman domains record
     """
-    name = records.StringField(format=r"domain\d\d\d\d")
+    name = records.StringField(fmt=r"domain\d\d\d\d")
 
     class Meta:
         """Linking record definition with api implementation.

@@ -23,7 +23,7 @@ class EnvironmentKatello(records.Record):
     """
     name = records.StringField()
     label = records.StringField()
-    prior = records.IntegerField(min=1, max=1)
+    prior = records.IntegerField(min_=1, max_=1)
     organization = records.RelatedField(Organization)
 
     class Meta:
