@@ -74,7 +74,7 @@ class Options(object):
         self.meta = meta
         self.record = None
 
-    def contribute_to_class(self, cls):
+    def contribute_to_class(self, cls, name):  # pylint: disable=W0613
         """Setups a options instance on the class"""
 
         cls._meta = self  # pylint: disable=W0212

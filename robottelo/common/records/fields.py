@@ -299,7 +299,6 @@ class BasicPositiveField(ChoiceField):
         """Often repeated field, that includes all the string types.
         Utilizing exclude and include to easily filter out types.
         """
-        super(BasicPositiveField, self).__init__(**kwargs)
         lst = [
             STR.alpha, STR.alphanumeric, STR.html,
             STR.latin1, STR.numeric, STR.utf8]
@@ -313,3 +312,5 @@ class BasicPositiveField(ChoiceField):
             StringField(str_type=i, maxlen=maxlen)
             for i in lst]
         self.enumerable = True
+
+        super(BasicPositiveField, self).__init__(self.choices, **kwargs)

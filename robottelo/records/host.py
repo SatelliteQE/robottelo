@@ -36,7 +36,7 @@ class Host(records.Record):
     Utilizes _post_init to ensure, that name matches domain,
     operating system matches architecture and partition table
     """
-    name = records.StringField(format=r"host\d\d\d\d\d")
+    name = records.StringField(fmt=r"host\d\d\d\d\d")
     root_pass = records.StringField(default="changeme")
     mac = records.MACField()
     environment = records.RelatedField(Environment)
