@@ -282,6 +282,7 @@ class TestActivationKey(BaseCLI):
         1. Create Activation key by entering its name, a content view and a
         environment name.
         @assert: Activation key is created
+        @bz: 1109648
         """
         content_view = make_content_view({
             u'organization-id': self.org['id'],
@@ -354,6 +355,7 @@ class TestActivationKey(BaseCLI):
         using valid Description, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
+        @bz: 1109650
         """
         try:
             activation_key = self._make_activation_key({
@@ -397,6 +399,7 @@ class TestActivationKey(BaseCLI):
         using valid Name, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
+        @bz: 1109650
         """
         try:
             activation_key = self._make_activation_key({
@@ -510,6 +513,7 @@ class TestActivationKey(BaseCLI):
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
         @Assert: Activation key is updated
+        @bz: 1109649
         """
         try:
             activation_key = self._make_activation_key({
@@ -555,6 +559,7 @@ class TestActivationKey(BaseCLI):
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
         @Assert: Activation key is updated
+        @bz: 1109649
         """
         try:
             activation_key = self._make_activation_key({
@@ -599,6 +604,7 @@ class TestActivationKey(BaseCLI):
         1. Create Activation key
         2. Update Description for all variations in [1]
         @Assert: Activation key is updated
+        @bz: 1109649
         """
         try:
             activation_key = self._make_activation_key({
