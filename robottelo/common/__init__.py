@@ -79,7 +79,7 @@ class Configs(object):
         """
         try:
             logging.config.fileConfig(
-                "{}/logging.conf".format(_get_app_root())
+                "{}/logging.conf".format(get_app_root())
             )
         except NoSectionError:
             log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
@@ -96,7 +96,7 @@ class Configs(object):
             logger.setLevel(log_level)
 
 
-def _get_app_root():
+def get_app_root():
     """Return the path to the application root directory.
 
     :return: A directory path.
@@ -117,7 +117,7 @@ def _config_file():
     :rtype: str
 
     """
-    return os.path.join(_get_app_root(), ROBOTTELO_PROPERTIES)
+    return os.path.join(get_app_root(), ROBOTTELO_PROPERTIES)
 
 
 conf = Configs()
