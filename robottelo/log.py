@@ -3,10 +3,10 @@
 import os
 import re
 
-from robottelo.common import conf, ssh
+from robottelo.common import get_app_root, ssh
 
 
-LOGS_DATA_DIR = os.path.join(conf.get_root_path(), 'data', 'logs')
+LOGS_DATA_DIR = os.path.join(get_app_root(), 'data', 'logs')
 
 
 class LogFile(object):
