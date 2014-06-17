@@ -4,8 +4,8 @@ import ConfigParser
 import logging
 import logging.config  # required for the logging configuration
 import os
-import sys
 
+from collections import defaultdict
 from ConfigParser import NoSectionError
 from robottelo.common.constants import ROBOTTELO_PROPERTIES
 
@@ -16,39 +16,22 @@ class Configs(object):
         """Read Robottelo's config file and initialize the logger."""
         conf_parser = ConfigParser.RawConfigParser()
         conf_file = _config_file()
-        self._properties = None
-
-        if conf_parser.read(conf_file):
-            # populate self._properties from the config file
-            self._properties = {}
-            for section in conf_parser.sections():
-                for option in conf_parser.options(section):
-                    self._properties[
-                        "{0}.{1}".format(section, option)
-                    ] = conf_parser.get(section, option)
+        self.properties = defaultdict(lambda: None)
 
         self._configure_logging()
         self.logger = logging.getLogger('robottelo')
 
-    @property
-    def properties(self):
-        """Return settings read from the config file.
-
-        If Robottelo's config file could not be read when this object was
-        instantiated, return ``None``. This will happen if the config file does
-        not exist.
-
-        :return: Application settings, if available.
-        :rtype: dict
-        :rtype: None
-
-        """
-        if self._properties is None:
+        if conf_parser.read(conf_file):
+            # populate self.properties from the config file
+            for section in conf_parser.sections():
+                for option in conf_parser.options(section):
+                    self.properties[
+                        "{0}.{1}".format(section, option)
+                    ] = conf_parser.get(section, option)
+        else:
             self.logger.error(
                 'No config file found at "{0}".'.format(_config_file())
             )
-            sys.exit(-1)
-        return self._properties
 
     def log_properties(self):
         """Print config options to the logging file.
@@ -85,8 +68,8 @@ class Configs(object):
             log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
             logging.basicConfig(format=log_format)
 
-        if self._properties:
-            verbosity = self._properties.get('nosetests.verbosity', '1')
+        if self.properties:
+            verbosity = self.properties.get('nosetests.verbosity', '1')
             log_level = int(verbosity) * 10
         else:
             log_level = logging.DEBUG
