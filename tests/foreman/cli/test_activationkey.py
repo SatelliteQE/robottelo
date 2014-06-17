@@ -437,37 +437,100 @@ class TestActivationKey(BaseCLI):
         """
         pass  # Skip for CLI as this is UI only
 
-    @stubbed
-    def test_positive_update_activation_key_1(self):
+    @skip_if_bz_bug_open(1109649)
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    def test_positive_update_activation_key_1(self, test_data):
         """
-        @Feature: Activation key - Positive Update
         @Test: Update Activation Key Name in an Activation key
+        @Feature: Activation key - Positive Update
         @Steps:
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
 
-    @stubbed
-    def test_positive_update_activation_key_2(self):
+        result = ActivationKey.update({
+            u'name': activation_key['name'],
+            u'new-name': test_data['name'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to update activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to get info for activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+        self.assertEqual(result.stdout['name'], test_data['name'],
+                         'Activation key name was not updated')
+
+    @skip_if_bz_bug_open(1109649)
+    @data(
+        {'description': generate_string('alpha', 15)},
+        {'description': generate_string('alphanumeric', 15)},
+        {'description': generate_string('numeric', 15)},
+        {'description': generate_string('latin1', 15)},
+        {'description': generate_string('utf8', 15)},
+        {'description': generate_string('html', 15)},
+    )
+    def test_positive_update_activation_key_2(self, test_data):
         """
-        @Feature: Activation key - Positive Update
         @Test: Update Description in an Activation key
+        @Feature: Activation key - Positive Update
         @Steps:
         1. Create Activation key
         2. Update Description for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        result = ActivationKey.update({
+            u'name': activation_key['name'],
+            u'description': test_data['description'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to update activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertEqual(
+            result.stdout['description'], test_data['description'],
+            'Activation key description was not updated')
 
     @stubbed
     def test_positive_update_activation_key_3(self):
         """
-        @Feature: Activation key - Positive Update
         @Test: Update Environment in an Activation key
+        @Feature: Activation key - Positive Update
         @Steps:
         1. Create Activation key
         2. Update Environment for all variations in [1]
