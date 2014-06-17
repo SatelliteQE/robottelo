@@ -335,35 +335,91 @@ class TestActivationKey(BaseCLI):
         """
         pass
 
-    @stubbed
-    def test_positive_delete_activation_key_1(self):
+    @skip_if_bz_bug_open(1109650)
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    def test_positive_delete_activation_key_1(self, test_data):
         """
-        @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
         Activation key name
+        @Feature: Activation key - Positive Delete
         @Steps:
         1. Create Activation key for all valid Activation Key names in [1]
         using valid Description, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'name': test_data['name'],
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
 
-    @stubbed
-    def test_positive_delete_activation_key_2(self):
+        result = ActivationKey.delete({'id': activation_key['id']})
+        self.assertEqual(
+            result.return_code, 0, 'Failed to delete activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        # Can we find the object?
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(
+            result.return_code, 0, 'Activation key should be deleted')
+        self.assertGreater(
+            len(result.stderr), 0, 'There should be an error here')
+        self.assertEqual(
+            len(result.stdout), 0, 'Output should be blank')
+
+    @skip_if_bz_bug_open(1109650)
+    @data(
+        {'description': generate_string('alpha', 15)},
+        {'description': generate_string('alphanumeric', 15)},
+        {'description': generate_string('numeric', 15)},
+        {'description': generate_string('latin1', 15)},
+        {'description': generate_string('utf8', 15)},
+        {'description': generate_string('html', 15)},
+    )
+    def test_positive_delete_activation_key_2(self, test_data):
         """
-        @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
         Description
+        @Feature: Activation key - Positive Delete
         @Steps:
         1. Create Activation key for all valid Description in [1]
         using valid Name, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'description': test_data['description'],
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        result = ActivationKey.delete({'id': activation_key['id']})
+        self.assertEqual(
+            result.return_code, 0, 'Failed to delete activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        # Can we find the object?
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(
+            result.return_code, 0, 'Activation key should be deleted')
+        self.assertGreater(
+            len(result.stderr), 0, 'There should be an error here')
+        self.assertEqual(
+            len(result.stdout), 0, 'Output should be blank')
 
     @stubbed
     def test_positive_delete_activation_key_3(self):
