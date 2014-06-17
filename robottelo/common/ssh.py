@@ -8,6 +8,7 @@ import socket
 import sys
 import time
 
+from contextlib import contextmanager
 from robottelo.common import conf
 from robottelo.common.constants import SSH_CHANNEL_READY_TIMEOUT
 from robottelo.common.helpers import csv_to_dictionary
@@ -44,29 +45,48 @@ class SSHCommandResult(object):
             self.stdout = csv_to_dictionary(stdout) if stdout else {}
 
 
+@contextmanager
 def _get_connection(timeout=10):
-    """
-    Constructs a ssh connection to the host provided in config.
+    """Yield an ssh connection object.
+
+    Create an SSH connection using the following parameters from the ``main``
+    section of the configuration file:
+
+    * ``server.hostname``
+    * ``server.ssh.username``
+    * ``server.ssh.key_private``
+
+    Yield this SSH connection. The connection is automatically closed when the
+    caller is done using it using ``contextlib``, so clients should use the
+    ``with`` statement to handle the object::
+
+        with _get_connection() as connection:
+            ...
+
+    :return: An SSH connection.
+    :rtype: paramiko.SSHClient
+
     """
     # Hide base logger from paramiko
-    logging.getLogger("paramiko").setLevel(logging.ERROR)
+    logging.getLogger('paramiko').setLevel(logging.ERROR)
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    host = conf.properties['main.server.hostname']
-    root = conf.properties['main.server.ssh.username']
-    key_filename = conf.properties['main.server.ssh.key_private']
     client.connect(
-        host, username=root, key_filename=key_filename, timeout=timeout)
-    logging.getLogger('robottelo').info(
-        "Paramiko instance prepared (and would be reused): %s"
-        % hex(id(client))
+        hostname=conf.properties['main.server.hostname'],
+        username=conf.properties['main.server.ssh.username'],
+        key_filename=conf.properties['main.server.ssh.key_private'],
+        timeout=timeout
     )
-    return client
 
-
-# Define the shared ssh connection
-connection = _get_connection()
+    robo_logger = logging.getLogger('robottelo')
+    client_id = hex(id(client))
+    try:
+        robo_logger.info('Instantiated Paramiko client {}'.format(client_id))
+        yield client
+    finally:
+        robo_logger.info('Destroying Paramiko client {}'.format(client_id))
+        client.close()
 
 
 def upload_file(local_file, remote_file=None):
@@ -81,9 +101,10 @@ def upload_file(local_file, remote_file=None):
         remote_file = local_file
 
     if not remote:
-        sftp = connection.open_sftp()
-        sftp.put(local_file, remote_file)
-        sftp.close()
+        with _get_connection() as connection:
+            sftp = connection.open_sftp()
+            sftp.put(local_file, remote_file)
+            sftp.close()
     # TODO: Upload file to sauce labs via VPN tunnel in the else part.
 
 
@@ -93,9 +114,10 @@ def download_file(remote_file, local_file=None):
     if local_file is None:
         local_file = remote_file
 
-    sftp = connection.open_sftp()
-    sftp.get(remote_file, local_file)
-    sftp.close()
+    with _get_connection() as connection:
+        sftp = connection.open_sftp()
+        sftp.get(remote_file, local_file)
+        sftp.close()
 
 
 def command(cmd, hostname=None, expect_csv=False, timeout=None):
@@ -121,9 +143,10 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
 
     hostname = hostname or conf.properties['main.server.hostname']
 
-    channel = connection.get_transport().open_session()
-    channel.settimeout(timeout)
-    channel.exec_command(cmd)
+    with _get_connection() as connection:
+        channel = connection.get_transport().open_session()
+        channel.settimeout(timeout)
+        channel.exec_command(cmd)
 
     sleep_counter = 0
     while True:
@@ -132,8 +155,8 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
             while (not channel.recv_ready() and
                    not channel.recv_stderr_ready() and
                    sleep_counter < SSH_CHANNEL_READY_TIMEOUT * 10):
-                        sleep_for_seconds(0.1)
-                        sleep_counter += 1
+                sleep_for_seconds(0.1)
+                sleep_counter += 1
             if rlist is not None and len(rlist) > 0:
                 if channel.exit_status_ready():
                     stdout = channel.recv(1048576)
