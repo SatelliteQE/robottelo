@@ -12,10 +12,11 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     make_activation_key,
+    make_content_view,
     make_lifecycle_environment,
     make_org, make_product
 )
-from robottelo.common.decorators import data, stubbed
+from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -271,6 +272,29 @@ class TestActivationKey(BaseCLI):
         @Status: Manual
         """
         pass
+
+    @skip_if_bz_bug_open(1109648)
+    def test_positive_create_9(self):
+        """
+        @test: Create Activation key with environment name
+        @feature: Activation key - Positive Create
+        @steps:
+        1. Create Activation key by entering its name, a content view and a
+        environment name.
+        @assert: Activation key is created
+        """
+        content_view = make_content_view({
+            u'organization-id': self.org['id'],
+        })
+
+        try:
+            self._make_activation_key({
+                u'content-view': content_view['name'],
+                u'environment': self.library['name'],
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
 
     @stubbed
     def test_negative_create_activation_key_1(self):
