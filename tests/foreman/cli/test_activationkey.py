@@ -12,10 +12,11 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     make_activation_key,
+    make_content_view,
     make_lifecycle_environment,
     make_org, make_product
 )
-from robottelo.common.decorators import data, stubbed
+from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
 from robottelo.common.helpers import generate_string
 from tests.foreman.cli.basecli import BaseCLI
 
@@ -272,6 +273,30 @@ class TestActivationKey(BaseCLI):
         """
         pass
 
+    @skip_if_bz_bug_open(1109648)
+    def test_positive_create_9(self):
+        """
+        @test: Create Activation key with environment name
+        @feature: Activation key - Positive Create
+        @steps:
+        1. Create Activation key by entering its name, a content view and a
+        environment name.
+        @assert: Activation key is created
+        @bz: 1109648
+        """
+        content_view = make_content_view({
+            u'organization-id': self.org['id'],
+        })
+
+        try:
+            self._make_activation_key({
+                u'content-view': content_view['name'],
+                u'environment': self.library['name'],
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
     @stubbed
     def test_negative_create_activation_key_1(self):
         """
@@ -311,35 +336,93 @@ class TestActivationKey(BaseCLI):
         """
         pass
 
-    @stubbed
-    def test_positive_delete_activation_key_1(self):
+    @skip_if_bz_bug_open(1109650)
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    def test_positive_delete_activation_key_1(self, test_data):
         """
-        @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
         Activation key name
+        @Feature: Activation key - Positive Delete
         @Steps:
         1. Create Activation key for all valid Activation Key names in [1]
         using valid Description, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
+        @bz: 1109650
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'name': test_data['name'],
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
 
-    @stubbed
-    def test_positive_delete_activation_key_2(self):
+        result = ActivationKey.delete({'id': activation_key['id']})
+        self.assertEqual(
+            result.return_code, 0, 'Failed to delete activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        # Can we find the object?
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(
+            result.return_code, 0, 'Activation key should be deleted')
+        self.assertGreater(
+            len(result.stderr), 0, 'There should be an error here')
+        self.assertEqual(
+            len(result.stdout), 0, 'Output should be blank')
+
+    @skip_if_bz_bug_open(1109650)
+    @data(
+        {'description': generate_string('alpha', 15)},
+        {'description': generate_string('alphanumeric', 15)},
+        {'description': generate_string('numeric', 15)},
+        {'description': generate_string('latin1', 15)},
+        {'description': generate_string('utf8', 15)},
+        {'description': generate_string('html', 15)},
+    )
+    def test_positive_delete_activation_key_2(self, test_data):
         """
-        @Feature: Activation key - Positive Delete
         @Test: Create Activation key and delete it for all variations of
         Description
+        @Feature: Activation key - Positive Delete
         @Steps:
         1. Create Activation key for all valid Description in [1]
         using valid Name, Environment, Content View, Usage limit
         2. Delete the Activation key
         @Assert: Activation key is deleted
-        @Status: Manual
+        @bz: 1109650
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'description': test_data['description'],
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        result = ActivationKey.delete({'id': activation_key['id']})
+        self.assertEqual(
+            result.return_code, 0, 'Failed to delete activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        # Can we find the object?
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(
+            result.return_code, 0, 'Activation key should be deleted')
+        self.assertGreater(
+            len(result.stderr), 0, 'There should be an error here')
+        self.assertEqual(
+            len(result.stdout), 0, 'Output should be blank')
 
     @stubbed
     def test_positive_delete_activation_key_3(self):
@@ -413,37 +496,148 @@ class TestActivationKey(BaseCLI):
         """
         pass  # Skip for CLI as this is UI only
 
-    @stubbed
-    def test_positive_update_activation_key_1(self):
+    @skip_if_bz_bug_open(1109649)
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    def test_positive_update_activation_key_1(self, test_data):
         """
+        @Test: Update Activation Key Name in an Activation key searching by ID
         @Feature: Activation key - Positive Update
-        @Test: Update Activation Key Name in an Activation key
         @Steps:
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
+        @bz: 1109649
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
 
-    @stubbed
-    def test_positive_update_activation_key_2(self):
+        result = ActivationKey.update({
+            u'id': activation_key['id'],
+            u'new-name': test_data['name'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to update activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to get info for activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+        self.assertEqual(result.stdout['name'], test_data['name'],
+                         'Activation key name was not updated')
+
+    @skip_if_bz_bug_open(1109649)
+    @data(
+        {'name': generate_string('alpha', 15)},
+        {'name': generate_string('alphanumeric', 15)},
+        {'name': generate_string('numeric', 15)},
+        {'name': generate_string('latin1', 15)},
+        {'name': generate_string('utf8', 15)},
+        {'name': generate_string('html', 15)},
+    )
+    def test_positive_update_activation_key_2(self, test_data):
         """
+        @Test: Update Activation Key Name in an Activation key searching by
+        name
         @Feature: Activation key - Positive Update
+        @Steps:
+        1. Create Activation key
+        2. Update Activation key name for all variations in [1]
+        @Assert: Activation key is updated
+        @bz: 1109649
+        """
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        result = ActivationKey.update({
+            u'name': activation_key['name'],
+            u'new-name': test_data['name'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to update activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to get info for activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+        self.assertEqual(result.stdout['name'], test_data['name'],
+                         'Activation key name was not updated')
+
+    @skip_if_bz_bug_open(1109649)
+    @data(
+        {'description': generate_string('alpha', 15)},
+        {'description': generate_string('alphanumeric', 15)},
+        {'description': generate_string('numeric', 15)},
+        {'description': generate_string('latin1', 15)},
+        {'description': generate_string('utf8', 15)},
+        {'description': generate_string('html', 15)},
+    )
+    def test_positive_update_activation_key_3(self, test_data):
+        """
         @Test: Update Description in an Activation key
+        @Feature: Activation key - Positive Update
         @Steps:
         1. Create Activation key
         2. Update Description for all variations in [1]
         @Assert: Activation key is updated
-        @Status: Manual
+        @bz: 1109649
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        result = ActivationKey.update({
+            u'name': activation_key['name'],
+            u'description': test_data['description'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to update activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertEqual(
+            result.stdout['description'], test_data['description'],
+            'Activation key description was not updated')
 
     @stubbed
-    def test_positive_update_activation_key_3(self):
+    def test_positive_update_activation_key_4(self):
         """
-        @Feature: Activation key - Positive Update
         @Test: Update Environment in an Activation key
+        @Feature: Activation key - Positive Update
         @Steps:
         1. Create Activation key
         2. Update Environment for all variations in [1]
@@ -453,7 +647,7 @@ class TestActivationKey(BaseCLI):
         pass
 
     @stubbed
-    def test_positive_update_activation_key_4(self):
+    def test_positive_update_activation_key_5(self):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Content View in an Activation key
@@ -467,7 +661,7 @@ class TestActivationKey(BaseCLI):
         pass
 
     @stubbed
-    def test_positive_update_activation_key_5(self):
+    def test_positive_update_activation_key_6(self):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Usage limit from Unlimited to a finite number
@@ -480,7 +674,7 @@ class TestActivationKey(BaseCLI):
         pass
 
     @stubbed
-    def test_positive_update_activation_key_6(self):
+    def test_positive_update_activation_key_7(self):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Usage limit from definite number to Unlimited
