@@ -2,11 +2,10 @@
 
 import ConfigParser
 import logging
-import logging.config  # required for the logging configuration
 import os
 
-from collections import defaultdict
 from ConfigParser import NoSectionError
+from logging import config
 from robottelo.common.constants import ROBOTTELO_PROPERTIES
 
 
@@ -14,15 +13,13 @@ class Configs(object):
     """Read Robottelo's config file and set up logging."""
     def __init__(self):
         """Read Robottelo's config file and initialize the logger."""
-        conf_parser = ConfigParser.RawConfigParser()
-        conf_file = _config_file()
-        self.properties = defaultdict(lambda: None)
-
-        self._configure_logging()
+        # Set instance vars.
+        self.properties = {}
         self.logger = logging.getLogger('robottelo')
 
-        if conf_parser.read(conf_file):
-            # populate self.properties from the config file
+        # Read the config file, if available.
+        conf_parser = ConfigParser.RawConfigParser()
+        if conf_parser.read(_config_file()):
             for section in conf_parser.sections():
                 for option in conf_parser.options(section):
                     self.properties[
@@ -32,6 +29,12 @@ class Configs(object):
             self.logger.error(
                 'No config file found at "{0}".'.format(_config_file())
             )
+
+        # Configure logging using a value from the config file, if available.
+        try:
+            _configure_logging(int(self.properties['nosetests.verbosity']))
+        except KeyError:
+            _configure_logging()
 
     def log_properties(self):
         """Print config options to the logging file.
@@ -48,35 +51,6 @@ class Configs(object):
                 "property {0}={1}".format(key, self.properties[key])
             )
         self.logger.debug("")
-
-    def _configure_logging(self):
-        """Configure logging for the entire framework.
-
-        If a config named ``logging.conf`` exists in Robottelo's root
-        directory, the logger is configured using the options in that file.
-        Otherwise, a custom logging output format is set, and default values
-        are used for all other logging options.
-
-        :rtype: None
-
-        """
-        try:
-            logging.config.fileConfig(
-                "{0}/logging.conf".format(get_app_root())
-            )
-        except NoSectionError:
-            log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'
-            logging.basicConfig(format=log_format)
-
-        if self.properties:
-            verbosity = self.properties.get('nosetests.verbosity', '1')
-            log_level = int(verbosity) * 10
-        else:
-            log_level = logging.DEBUG
-
-        for name in ['root', 'robottelo']:
-            logger = logging.getLogger(name)
-            logger.setLevel(log_level)
 
 
 def get_app_root():
@@ -101,6 +75,45 @@ def _config_file():
 
     """
     return os.path.join(get_app_root(), ROBOTTELO_PROPERTIES)
+
+
+def _configure_logging(verbosity=2):
+    """Configure logging for the entire framework.
+
+    If a config named ``logging.conf`` exists in Robottelo's root directory,
+    the logger is configured using the options in that file.  Otherwise, a
+    custom logging output format is set, and default values are used for all
+    other logging options.
+
+    :param int verbosity: A nosetests-style verbosity value. Useful values are
+        in the range 1-5 inclusive, and higher numbers produce more verbose
+        logging.
+    :rtype: None
+
+    """
+    try:
+        config.fileConfig(os.path.join(get_app_root(), 'logging.conf'))
+    except NoSectionError:
+        logging.basicConfig(
+            format='%(levelname)s %(module)s:%(lineno)d: %(message)s'
+        )
+
+    # Translate from nosetests verbosity values to logging verbosity values.
+    # This code is inspired by method `Config.configureLogging` in module
+    # `nose.config` in the nose source code.
+    if verbosity >= 5:
+        log_level = logging.DEBUG
+    elif verbosity == 4:
+        log_level = logging.INFO
+    elif verbosity == 3:
+        log_level = logging.WARNING
+    elif verbosity == 2:
+        log_level = logging.ERROR
+    else:
+        log_level = logging.CRITICAL
+
+    for name in ('root', 'robottelo'):
+        logging.getLogger(name).setLevel(log_level)
 
 
 conf = Configs()
