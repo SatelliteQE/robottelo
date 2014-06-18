@@ -239,8 +239,8 @@ def _get_redmine_bug_status_id(bug_id):
             _redmine['issues'][bug_id] = result['issue']['status']['id']
         except KeyError as err:
             raise BugFetchError(
-                'Could not get status ID of Redmine bug {0}. Error: {1}'.\
-                    format(bug_id, err)
+                'Could not get status ID of Redmine bug {0}. Error: {1}'.
+                format(bug_id, err)
             )
 
     return _redmine['issues'][bug_id]
