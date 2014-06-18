@@ -1,10 +1,6 @@
 :mod:`robottelo`
 ================
 
-.. automodule:: robottelo
-    :members:
-    :undoc-members:
-
 Submodules:
 
 .. toctree::
@@ -14,6 +10,10 @@ Submodules:
     robottelo.common
     robottelo.records
     robottelo.ui
+
+.. automodule:: robottelo
+    :members:
+    :undoc-members:
 
 :mod:`robottelo.log`
 --------------------

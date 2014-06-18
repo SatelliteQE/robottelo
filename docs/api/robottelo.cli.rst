@@ -1,15 +1,15 @@
 :mod:`robottelo.cli`
 ====================
 
-.. automodule:: robottelo.cli
-    :members:
-    :undoc-members:
-
 Submodules:
 
 .. toctree::
 
     robottelo.cli.metatest
+
+.. automodule:: robottelo.cli
+    :members:
+    :undoc-members:
 
 :mod:`robottelo.cli.activationkey`
 ----------------------------------
