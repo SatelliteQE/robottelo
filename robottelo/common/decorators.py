@@ -105,25 +105,27 @@ def _get_bugzilla_bug(bug_id):
     """
     # Is bug ``bug_id`` in the cache?
     if bug_id in _bugzilla:
-        logging.info('Bugzilla bug {} found in cache.'.format(bug_id))
+        logging.info('Bugzilla bug {0} found in cache.'.format(bug_id))
     else:
-        logging.info('Bugzilla bug {} not in cache. Fetching.'.format(bug_id))
+        logging.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
         try:
             bz_conn = bugzilla.RHBugzilla()
             bz_conn.connect(BUGZILLA_URL)
         except (TypeError, ValueError):
-            raise BugFetchError('Could not connect to {}'.format(BUGZILLA_URL))
+            raise BugFetchError(
+                'Could not connect to {0}'.format(BUGZILLA_URL)
+            )
         # Fetch the bug and place it in the cache.
         try:
             _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
         except Fault as err:
             raise BugFetchError(
-                'Could not fetch bug. Error: {}'.format(err.faultString)
+                'Could not fetch bug. Error: {0}'.format(err.faultString)
             )
         except ExpatError as err:
             raise BugFetchError(
-                'Could not interpret bug. Error: {}'.format(errors[err.code])
+                'Could not interpret bug. Error: {0}'.format(errors[err.code])
             )
 
     return _bugzilla[bug_id]
@@ -175,7 +177,7 @@ def skip_if_bz_bug_open(bug_id):
             # Skip or run the test.
             if bug is not None and bug.status in BUGZILLA_OPEN_BUG_STATUSES:
                 raise unittest.SkipTest(
-                    'Skipping test due to open bug report: {}'.format(bug)
+                    'Skipping test due to open bug report: {0}'.format(bug)
                 )
             return decorated_func(*args, **kwargs)
 
@@ -219,13 +221,17 @@ def _get_redmine_bug_status_id(bug_id):
 
     """
     if bug_id in _redmine['issues']:
-        logging.info('Redmine bug {} found in cache.'.format(bug_id))
+        logging.info('Redmine bug {0} found in cache.'.format(bug_id))
     else:
         # Get info about bug.
-        logging.info('Redmine bug {} not in cache. Fetching.'.format(bug_id))
-        result = requests.get('{}/issues/{}.json'.format(REDMINE_URL, bug_id))
+        logging.info('Redmine bug {0} not in cache. Fetching.'.format(bug_id))
+        result = requests.get(
+            '{0}/issues/{1}.json'.format(REDMINE_URL, bug_id)
+        )
         if result.status_code != 200:
-            raise BugFetchError('Redmine bug {} does not exist'.format(bug_id))
+            raise BugFetchError(
+                'Redmine bug {0} does not exist'.format(bug_id)
+            )
         result = result.json()
 
         # Place bug into cache.
@@ -233,9 +239,8 @@ def _get_redmine_bug_status_id(bug_id):
             _redmine['issues'][bug_id] = result['issue']['status']['id']
         except KeyError as err:
             raise BugFetchError(
-                'Could not get status ID of Redmine bug {}. Error: {}'.format(
-                    bug_id, err
-                )
+                'Could not get status ID of Redmine bug {0}. Error: {1}'.
+                format(bug_id, err)
             )
 
     return _redmine['issues'][bug_id]
@@ -288,7 +293,7 @@ def skip_if_rm_bug_open(bug_id):
             if status_id is not None \
                     and status_id not in _redmine_closed_issue_statuses():
                 raise unittest.SkipTest(
-                    'Skipping test due to open Redmine bug #{}'.format(bug_id)
+                    'Skipping test due to open Redmine bug #{0}'.format(bug_id)
                 )
             return decorated_func(*args, **kwargs)
 

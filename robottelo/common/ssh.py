@@ -82,10 +82,10 @@ def _get_connection(timeout=10):
     robo_logger = logging.getLogger('robottelo')
     client_id = hex(id(client))
     try:
-        robo_logger.info('Instantiated Paramiko client {}'.format(client_id))
+        robo_logger.info('Instantiated Paramiko client {0}'.format(client_id))
         yield client
     finally:
-        robo_logger.info('Destroying Paramiko client {}'.format(client_id))
+        robo_logger.info('Destroying Paramiko client {0}'.format(client_id))
         client.close()
 
 
