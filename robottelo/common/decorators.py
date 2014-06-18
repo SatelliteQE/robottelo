@@ -113,7 +113,9 @@ def _get_bugzilla_bug(bug_id):
             bz_conn = bugzilla.RHBugzilla()
             bz_conn.connect(BUGZILLA_URL)
         except (TypeError, ValueError):
-            raise BugFetchError('Could not connect to {0}'.format(BUGZILLA_URL))
+            raise BugFetchError(
+                'Could not connect to {0}'.format(BUGZILLA_URL)
+            )
         # Fetch the bug and place it in the cache.
         try:
             _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
@@ -223,9 +225,13 @@ def _get_redmine_bug_status_id(bug_id):
     else:
         # Get info about bug.
         logging.info('Redmine bug {0} not in cache. Fetching.'.format(bug_id))
-        result = requests.get('{0}/issues/{1}.json'.format(REDMINE_URL, bug_id))
+        result = requests.get(
+            '{0}/issues/{1}.json'.format(REDMINE_URL, bug_id)
+        )
         if result.status_code != 200:
-            raise BugFetchError('Redmine bug {0} does not exist'.format(bug_id))
+            raise BugFetchError(
+                'Redmine bug {0} does not exist'.format(bug_id)
+            )
         result = result.json()
 
         # Place bug into cache.
@@ -233,9 +239,8 @@ def _get_redmine_bug_status_id(bug_id):
             _redmine['issues'][bug_id] = result['issue']['status']['id']
         except KeyError as err:
             raise BugFetchError(
-                'Could not get status ID of Redmine bug {0}. Error: {1}'.format(
-                    bug_id, err
-                )
+                'Could not get status ID of Redmine bug {0}. Error: {1}'.\
+                    format(bug_id, err)
             )
 
     return _redmine['issues'][bug_id]
