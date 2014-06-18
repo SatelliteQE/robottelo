@@ -12,15 +12,13 @@ source code.
 
 .. Robottelo is a sizeable project, and it is therefore helpful to have some
 .. strategy for laying out the API documentation. The strategy employed in this
-.. project is simple: make one .rst file to correspond to each directory-level
-.. module. Then, insert the following elements into that .rst file, in this
-.. order:
+.. project is simple: make one .rst file for each package. Then, insert the
+.. following elements into that .rst file, in this order:
 ..
-.. * An `automodule` directive, thus documenting the current directory-level
-..   module.
-.. * A `toctree` directive with links pointing to each directory-level
-..   submodule.
+.. * A `toctree` directive with links pointing to each child package, if any
+..   exist.
+.. * An `automodule` directive, thus documenting the current package.
 .. * A series of paired headers and `automodule` directives, one for each
-..   file-level module in the current directory.
+..   module in the current directory.
 ..
 .. For a good example of this design, examine `tests.robottelo.rst`.

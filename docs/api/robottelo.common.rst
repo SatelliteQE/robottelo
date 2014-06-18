@@ -1,15 +1,15 @@
 :mod:`robottelo.common`
 =======================
 
-.. automodule:: robottelo.common
-    :members:
-    :undoc-members:
-
 Submodules:
 
 .. toctree::
 
     robottelo.common.records
+
+.. automodule:: robottelo.common
+    :members:
+    :undoc-members:
 
 :mod:`robottelo.common.constants`
 ---------------------------------

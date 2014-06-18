@@ -1,15 +1,15 @@
 :mod:`tests.robottelo`
 ======================
 
-.. automodule:: tests.robottelo
-    :members:
-    :undoc-members:
-
 Submodules:
 
 .. toctree::
 
     tests.robottelo.records
+
+.. automodule:: tests.robottelo
+    :members:
+    :undoc-members:
 
 :mod:`tests.robottelo.test_cli`
 -------------------------------
@@ -26,6 +26,13 @@ Submodules:
     :undoc-members:
 
 :mod:`tests.robottelo.test_helpers`
+-----------------------------------
+
+.. automodule:: tests.robottelo.test_helpers
+    :members:
+    :undoc-members:
+
+:mod:`tests.robottelo.test_ssh`
 -----------------------------------
 
 .. automodule:: tests.robottelo.test_helpers

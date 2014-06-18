@@ -1,10 +1,6 @@
 :mod:`tests.foreman`
 ====================
 
-.. automodule:: tests.foreman
-    :members:
-    :undoc-members:
-
 Submodules:
 
 .. toctree::
@@ -13,3 +9,7 @@ Submodules:
     tests.foreman.cli
     tests.foreman.installer
     tests.foreman.ui
+
+.. automodule:: tests.foreman
+    :members:
+    :undoc-members:

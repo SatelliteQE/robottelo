@@ -44,10 +44,6 @@ class Base(object):
 
     logger = logging.getLogger("robottelo")
 
-    locale = conf.properties['main.locale']
-    katello_user = conf.properties['foreman.admin.username']
-    katello_passwd = conf.properties['foreman.admin.password']
-
     @classmethod
     def add_operating_system(cls, options=None):
         """
@@ -139,9 +135,9 @@ class Base(object):
         Executes the command
         """
         if user is None:
-            user = cls.katello_user
+            user = conf.properties['foreman.admin.username']
         if password is None:
-            password = cls.katello_passwd
+            password = conf.properties['foreman.admin.password']
 
         output_csv = u""
 
@@ -149,7 +145,13 @@ class Base(object):
             output_csv = u" --output csv"
         shell_cmd = u"LANG=%s hammer -v -u %s -p %s %s %s"
 
-        cmd = shell_cmd % (cls.locale, user, password, output_csv, command)
+        cmd = shell_cmd % (
+            conf.properties['main.locale'],
+            user,
+            password,
+            output_csv,
+            command
+        )
 
         return ssh.command(
             cmd.encode('utf-8'), expect_csv=expect_csv, timeout=timeout)
@@ -286,9 +288,9 @@ class Base(object):
     @classmethod
     def with_user(cls, username=None, password=None):
         if username is None:
-            username = cls.katello_user
+            username = conf.properties['foreman.admin.username']
         if password is None:
-            password = cls.katello_passwd
+            password = conf.properties['foreman.admin.password']
 
         class NUserBase(cls):
             katello_user = username
