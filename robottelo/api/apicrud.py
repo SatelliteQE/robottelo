@@ -558,7 +558,9 @@ class Task(object):
     def refresh(self):
         """Reloads task data"""
         task_id = self.json["id"]
-        response = base.get(path="/foreman_tasks/api/tasks/{}".format(task_id))
+        response = base.get(path="/foreman_tasks/api/tasks/{0}".format(
+            task_id)
+        )
         self.json = response.json()
 
     def poll(self, delay, timeout):

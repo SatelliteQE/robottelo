@@ -24,7 +24,7 @@ class Configs(object):
             for section in conf_parser.sections():
                 for option in conf_parser.options(section):
                     self._properties[
-                        "{}.{}".format(section, option)
+                        "{0}.{1}".format(section, option)
                     ] = conf_parser.get(section, option)
 
         self._configure_logging()
@@ -45,7 +45,7 @@ class Configs(object):
         """
         if self._properties is None:
             self.logger.error(
-                'No config file found at "{}".'.format(_config_file())
+                'No config file found at "{0}".'.format(_config_file())
             )
             sys.exit(-1)
         return self._properties
@@ -62,7 +62,7 @@ class Configs(object):
         self.logger.debug("# ** ** ** list properties ** ** **")
         for key in keylist:
             self.logger.debug(
-                "property {}={}".format(key, self.properties[key])
+                "property {0}={1}".format(key, self.properties[key])
             )
         self.logger.debug("")
 
@@ -79,7 +79,7 @@ class Configs(object):
         """
         try:
             logging.config.fileConfig(
-                "{}/logging.conf".format(get_app_root())
+                "{0}/logging.conf".format(get_app_root())
             )
         except NoSectionError:
             log_format = '%(levelname)s %(module)s:%(lineno)d: %(message)s'

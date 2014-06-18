@@ -22,7 +22,7 @@ class ActivationKeyApi(ApiCrud):
     def add_host_collection(cls, instance, host_collection_ids):
         """Add host collections to an activation key record"""
 
-        url = "/katello/api/v2/activation_keys/{}/host_collections".format(
+        url = "/katello/api/v2/activation_keys/{0}/host_collections".format(
             instance.id)
         return request(
             'put',
