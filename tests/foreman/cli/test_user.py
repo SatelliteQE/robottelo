@@ -1184,7 +1184,7 @@ class User(BaseCLI):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    @data(make_user({'admin': 'true'}),
+    @data({'admin': 'true'},
           {'login': 'admin', 'password': 'changeme'})
     def test_negative_delete_user_1(self, opts):
         """
@@ -1194,6 +1194,8 @@ class User(BaseCLI):
         1. Attempt to delete the last admin user
         @Assert: User is not deleted
         """
+        if 'login' not in opts and 'password' not in opts:
+            opts.update(make_user(opts))
         user = UserObj()
         user.katello_user = opts['login']
         user.katello_passwd = opts['password']

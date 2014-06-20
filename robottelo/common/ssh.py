@@ -4,29 +4,17 @@ Utility module to handle the shared ssh connection
 
 import logging
 import re
-import socket
 import sys
-import time
 
 from contextlib import contextmanager
 from robottelo.common import conf
-from robottelo.common.constants import SSH_CHANNEL_READY_TIMEOUT
 from robottelo.common.helpers import csv_to_dictionary
-from robottelo.common.helpers import sleep_for_seconds
-from select import select
 
 try:
     import paramiko
 except ImportError:
     print "Please install paramiko."
     sys.exit(-1)
-
-
-class CommandTimeOut(Exception):
-    """
-    Exception for Paramiko timeouts
-    """
-    pass
 
 
 class SSHCommandResult(object):
@@ -131,8 +119,6 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     if timeout is None:
         timeout = 120
 
-    # Start the timer
-    start = time.time()
     # Variable to hold results returned from the command
     stdout = stderr = errorcode = None
 
@@ -145,37 +131,10 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     hostname = hostname or conf.properties['main.server.hostname']
 
     with _get_connection() as connection:
-        channel = connection.get_transport().open_session()
-        channel.settimeout(timeout)
-        channel.exec_command(cmd)
-
-        sleep_counter = 0
-        while True:
-            try:
-                rlist, wlist, elist = select([channel], [], [], float(timeout))
-                while (not channel.recv_ready() and
-                        not channel.recv_stderr_ready() and
-                        sleep_counter < SSH_CHANNEL_READY_TIMEOUT * 10):
-                    sleep_for_seconds(0.1)
-                    sleep_counter += 1
-                if rlist is not None and len(rlist) > 0:
-                    if channel.exit_status_ready():
-                        stdout = channel.recv(1048576)
-                        stderr = channel.recv_stderr(1048576)
-                        errorcode = channel.recv_exit_status()
-                        break
-                elif elist is not None and len(elist) > 0:
-                    if channel.recv_stderr_ready():
-                        stdout = channel.recv(1048576)
-                        stderr = channel.recv_stderr(1048576)
-                        break
-
-                if time.time() - start > timeout:
-                    logger.debug("Command timeout exceeded.")
-                    raise CommandTimeOut('Command timeout exceeded')
-            except socket.timeout:
-                logger.debug("SSH channel timeout exceeded.")
-                raise CommandTimeOut('SSH channel timeout exceeded.')
+        _, stdout, stderr = connection.exec_command(cmd, timeout)
+        errorcode = stdout.channel.recv_exit_status()
+        stdout = stdout.read()
+        stderr = stderr.read()
 
     # For output we don't really want to see all of Rails traffic
     # information, so strip it out.
