@@ -19,7 +19,7 @@ from robottelo.common.helpers import generate_email_address, generate_string
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 
 def gen_valid_strings(len1=255):
@@ -105,7 +105,7 @@ def gen_invalid_surnames():
 
 
 @ddt
-class User(BaseUI):
+class User(UITestCase):
     """
     Implements Users tests in UI
 

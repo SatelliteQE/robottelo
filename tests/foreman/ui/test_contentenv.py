@@ -10,10 +10,10 @@ from robottelo.common.helpers import generate_string
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 
-class ContentEnvironment(BaseUI):
+class ContentEnvironment(UITestCase):
     """
     Implements Life cycle content environment tests in UI
     """

@@ -5,7 +5,7 @@
 Test class for Host/System Unification
 """
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 import sys
 if sys.hexversion >= 0x2070000:
     import unittest
@@ -13,7 +13,7 @@ else:
     import unittest2 as unittest
 
 
-class TestHostSystemUnificationUI(BaseUI):
+class TestHostSystemUnificationUI(UITestCase):
     # Testing notes for host/system unification in katello/foreman
     # Basically assuring that hosts in foreman/katello bits are joined
     # and information can be associated across both parts of product.

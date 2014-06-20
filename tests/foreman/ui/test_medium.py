@@ -7,12 +7,12 @@ Test class for Medium UI
 
 from robottelo.common.helpers import generate_string
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
-class Medium(BaseUI):
+class Medium(UITestCase):
     """
     Implements all Installation Media tests
     """

@@ -17,13 +17,13 @@ from robottelo.common.helpers import (generate_strings_list,
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
 from robottelo.ui.locators import common_locators, tab_locators, locators
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
 @ddt
-class Org(BaseUI):
+class Org(UITestCase):
     """
     Implements Organization tests in UI
     """

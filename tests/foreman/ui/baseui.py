@@ -52,7 +52,7 @@ logging.getLogger(
     'selenium.webdriver.remote.remote_connection').setLevel(logging.WARNING)
 
 
-class BaseUI(unittest.TestCase):
+class UITestCase(unittest.TestCase):
     """
     Base class for all UI tests.
     """

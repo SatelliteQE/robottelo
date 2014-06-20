@@ -23,14 +23,14 @@ from robottelo.common.helpers import (generate_string, get_data_file,
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 REPO_URL = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
 REPO2_URL = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
 
 
 @ddt
-class GPGKey(BaseUI):
+class GPGKey(UITestCase):
     """Implements tests for GPG Keys via UI"""
 
     org_name = None

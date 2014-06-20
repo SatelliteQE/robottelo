@@ -10,10 +10,10 @@ from robottelo.common.constants import (INSTALL_MEDIUM_URL,
                                         OS_TEMPLATE_DATA_FILE,
                                         PARTITION_SCRIPT_DATA_FILE)
 from robottelo.common.helpers import generate_string, get_data_file
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 
-class OperatingSys(BaseUI):
+class OperatingSys(UITestCase):
     """
     Implements Operating system tests from UI
     """

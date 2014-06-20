@@ -14,7 +14,7 @@ from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.ui.factory import make_org
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 
 RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
@@ -28,7 +28,7 @@ RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
 
 
 @ddt
-class Sync(BaseUI):
+class Sync(UITestCase):
     """
     Implements Custom Sync tests in UI
     """

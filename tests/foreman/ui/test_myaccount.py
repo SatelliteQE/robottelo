@@ -12,10 +12,10 @@ else:
     import unittest2 as unittest
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 
-class MyAccount(BaseUI):
+class MyAccount(UITestCase):
     """
     Implements Users tests in UI
 

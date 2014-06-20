@@ -11,11 +11,11 @@ from robottelo.common.ssh import upload_file
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import BaseUI
+from tests.foreman.ui.baseui import UITestCase
 
 
 @ddt
-class Subscription(BaseUI):
+class Subscription(UITestCase):
     """
     Implements subscriptions/manifests tests in UI
     """
