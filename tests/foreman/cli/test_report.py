@@ -9,7 +9,7 @@ import random
 
 from robottelo.cli.report import Report
 from robottelo.common import ssh
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 class TestReport(CLITestCase):

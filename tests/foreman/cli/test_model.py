@@ -8,7 +8,7 @@ Test class for Model CLI
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import MetaCLITestCase
+from robottelo.test import MetaCLITestCase
 
 
 class TestModel(MetaCLITestCase):

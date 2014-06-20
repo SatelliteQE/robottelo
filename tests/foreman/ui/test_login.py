@@ -5,7 +5,7 @@
 Test class for Login UI
 """
 
-from tests.foreman.ui.baseui import UITestCase
+from robottelo.test import UITestCase
 
 
 class Login(UITestCase):

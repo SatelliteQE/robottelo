@@ -6,8 +6,8 @@ Test class for Roles UI
 """
 
 from robottelo.common.helpers import generate_name
+from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import UITestCase
 
 
 class Role(UITestCase):

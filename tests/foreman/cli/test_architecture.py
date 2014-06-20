@@ -7,7 +7,7 @@ Test class for Architecture CLI
 
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.factory import make_architecture
-from tests.foreman.cli.basecli import MetaCLITestCase
+from robottelo.test import MetaCLITestCase
 
 
 class TestArchitecture(MetaCLITestCase):

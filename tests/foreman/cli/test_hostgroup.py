@@ -8,7 +8,7 @@ Test class for Hostgroup CLI
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.factory import make_hostgroup
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import MetaCLITestCase
+from robottelo.test import MetaCLITestCase
 
 
 class TestHostGroup(MetaCLITestCase):

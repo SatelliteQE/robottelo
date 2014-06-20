@@ -8,10 +8,10 @@ from robottelo.common.decorators import skipRemote, stubbed
 from robottelo.common.helpers import generate_string
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
+from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import UITestCase
 
 
 @ddt

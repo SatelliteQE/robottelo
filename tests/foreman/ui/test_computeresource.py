@@ -3,8 +3,8 @@
 
 from robottelo.common import conf
 from robottelo.common.helpers import generate_string
+from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import UITestCase
 
 
 class ComputeResource(UITestCase):

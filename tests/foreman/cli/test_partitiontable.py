@@ -8,7 +8,7 @@ Test class for Partition table CLI
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.factory import make_partition_table
 from robottelo.common.helpers import generate_name
-from tests.foreman.cli.basecli import MetaCLITestCase
+from robottelo.test import MetaCLITestCase
 
 
 class TestPartitionTable(MetaCLITestCase):

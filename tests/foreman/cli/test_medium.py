@@ -10,7 +10,7 @@ from robottelo.cli.factory import make_medium
 from robottelo.cli.medium import Medium
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"

@@ -9,7 +9,7 @@ from robottelo.cli.factory import (
 from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 @skip_if_bz_bug_open('1099655')

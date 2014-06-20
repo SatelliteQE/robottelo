@@ -6,7 +6,7 @@ Test class for Global parameters CLI
 
 from robottelo.cli.globalparam import GlobalParameter
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 class TestGlobalParameter(CLITestCase):

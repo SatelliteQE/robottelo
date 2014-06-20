@@ -22,7 +22,7 @@ from robottelo.common.helpers import generate_string
 from robottelo.records.content_view_definition import ContentViewDefinitionApi
 from robottelo.records.role import add_permission_to_user
 from robottelo.records.user import User
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 

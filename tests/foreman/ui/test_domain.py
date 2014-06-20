@@ -4,10 +4,9 @@
 """
 Test class for Domain UI
 """
-
-from robottelo.ui.locators import common_locators
 from robottelo.common.helpers import generate_string
-from tests.foreman.ui.baseui import UITestCase
+from robottelo.test import UITestCase
+from robottelo.ui.locators import common_locators
 
 DOMAIN = "lab.dom.%s.com"
 

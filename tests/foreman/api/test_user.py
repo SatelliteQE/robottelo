@@ -5,7 +5,7 @@ from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.decorators import data, skip_if_rm_bug_open
 from robottelo.records.user import User
-from tests.foreman.api.baseapi import APITestCase
+from robottelo.test import APITestCase
 
 
 @ddt

@@ -5,7 +5,7 @@ from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.decorators import data
 from robottelo.records.repository import CustomRepository
-from tests.foreman.api.baseapi import APITestCase
+from robottelo.test import APITestCase
 
 
 @ddt

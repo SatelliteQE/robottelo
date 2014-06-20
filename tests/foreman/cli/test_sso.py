@@ -8,7 +8,7 @@ Test class for SSO (CLI)
 import sys
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 if sys.hexversion >= 0x2070000:
     import unittest

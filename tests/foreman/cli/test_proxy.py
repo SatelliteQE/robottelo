@@ -7,7 +7,7 @@ Test class for Smart proxy CLI
 
 from robottelo.cli.factory import make_proxy
 from robottelo.common.decorators import skip_if_rm_bug_open
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 class TestProxy(CLITestCase):

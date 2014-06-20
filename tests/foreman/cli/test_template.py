@@ -10,7 +10,7 @@ from robottelo.cli.template import Template
 from robottelo.common.decorators import (skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 @skip_if_rm_bug_open('4560')

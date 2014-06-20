@@ -17,7 +17,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 @ddt

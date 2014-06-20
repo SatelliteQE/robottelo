@@ -6,6 +6,7 @@ Test class for Users UI
 """
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
@@ -16,10 +17,10 @@ from nose.plugins.attrib import attr
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_email_address, generate_string
+from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import UITestCase
 
 
 def gen_valid_strings(len1=255):

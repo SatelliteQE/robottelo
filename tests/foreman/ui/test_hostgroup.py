@@ -6,8 +6,8 @@
 Test class for Host Group UI
 """
 
-from tests.foreman.ui.baseui import UITestCase
 from robottelo.common.helpers import generate_string
+from robottelo.test import UITestCase
 
 
 class Hostgroup(UITestCase):

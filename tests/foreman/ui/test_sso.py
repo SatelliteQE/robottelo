@@ -6,13 +6,14 @@ Test class for installer (UI)
 """
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.ui.baseui import UITestCase
+from robottelo.test import UITestCase
 
 
 class TestSSOUI(UITestCase):

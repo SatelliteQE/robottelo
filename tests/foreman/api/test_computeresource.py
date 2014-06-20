@@ -2,6 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
@@ -10,7 +11,7 @@ else:
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data
-from tests.foreman.api.baseapi import APITestCase
+from robottelo.test import APITestCase
 
 
 @ddt

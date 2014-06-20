@@ -9,10 +9,10 @@ from robottelo.common.constants import (VALID_GPG_KEY_BETA_FILE,
 from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
+from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import UITestCase
 
 
 @ddt

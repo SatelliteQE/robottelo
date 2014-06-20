@@ -23,7 +23,7 @@ from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from tests.foreman.cli.basecli import CLITestCase
+from robottelo.test import CLITestCase
 
 
 @ddt
