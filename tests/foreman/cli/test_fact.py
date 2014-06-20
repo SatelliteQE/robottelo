@@ -10,7 +10,7 @@ from nose.plugins.attrib import attr
 from robottelo.cli.fact import Fact
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 import sys
 if sys.hexversion >= 0x2070000:
@@ -20,7 +20,7 @@ else:
 
 
 @ddt
-class TestFact(BaseCLI):
+class TestFact(CLITestCase):
     """
     Fact related tests.
     """

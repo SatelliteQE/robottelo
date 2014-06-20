@@ -7,10 +7,10 @@ Test class for Smart proxy CLI
 
 from robottelo.cli.factory import make_proxy
 from robottelo.common.decorators import skip_if_rm_bug_open
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
-class TestProxy(BaseCLI):
+class TestProxy(CLITestCase):
 
     @skip_if_rm_bug_open('3875')
     def test_redmine_3875(self):

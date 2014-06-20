@@ -18,7 +18,7 @@ from robottelo.common.decorators import (data, skip_if_bz_bug_open,
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
 VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
@@ -52,7 +52,7 @@ def negative_create_data():
 
 
 @ddt
-class TestGPGKey(BaseCLI):
+class TestGPGKey(CLITestCase):
     """Tests for GPG Keys via Hammer CLI"""
 
     search_key = 'name'
@@ -63,7 +63,7 @@ class TestGPGKey(BaseCLI):
         Create a shared organization for all tests to avoid generating hundreds
         of organizations
         """
-        BaseCLI.setUpClass()
+        CLITestCase.setUpClass()
         cls.org = cls.create_org()
 
     @classmethod

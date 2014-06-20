@@ -10,11 +10,11 @@ from robottelo.cli.template import Template
 from robottelo.common.decorators import (skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
 @skip_if_rm_bug_open('4560')
-class TestTemplate(BaseCLI):
+class TestTemplate(CLITestCase):
     """
     Test class for Config Template CLI.
     """

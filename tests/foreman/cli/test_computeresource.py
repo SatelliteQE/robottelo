@@ -23,18 +23,18 @@ from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
 @ddt
-class TestComputeResource(BaseCLI):
+class TestComputeResource(CLITestCase):
     """
     ComputeResource CLI tests.
     """
 
     @classmethod
     def setUpClass(cls):
-        BaseCLI.setUpClass()
+        CLITestCase.setUpClass()
         cls.compute_res_updates = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': "qemu+tcp://%s:16509/system" %

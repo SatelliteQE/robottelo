@@ -19,11 +19,11 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
 @ddt
-class User(BaseCLI):
+class User(CLITestCase):
     """
     Implements Users tests in CLI
 

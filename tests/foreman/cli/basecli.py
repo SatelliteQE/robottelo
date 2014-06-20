@@ -16,7 +16,7 @@ from robottelo.cli.metatest import MetaCLITest
 from robottelo.common import conf
 
 
-class BaseCLI(unittest.TestCase):
+class CLITestCase(unittest.TestCase):
     """
     Base class for all cli tests
     """
@@ -47,7 +47,7 @@ class BaseCLI(unittest.TestCase):
                           self._testMethodName)
 
 
-class MetaCLI(BaseCLI):
+class MetaCLITestCase(CLITestCase):
 
     """
     All Test modules should inherit from MetaCLI in order to obtain default

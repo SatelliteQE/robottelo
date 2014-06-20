@@ -4,7 +4,7 @@
 import sys
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 if sys.hexversion >= 0x2070000:
     import unittest
@@ -12,7 +12,7 @@ else:
     import unittest2 as unittest
 
 
-class TestSSOCLI(BaseCLI):
+class TestSSOCLI(CLITestCase):
 
     # Notes for installer testing:
     # Perhaps there is a convenient log analyzer library out there

@@ -11,11 +11,11 @@ from robottelo.cli.factory import make_subnet
 from robottelo.cli.subnet import Subnet
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
 @ddt
-class TestSubnet(BaseCLI):
+class TestSubnet(CLITestCase):
     """
     Subnet CLI tests.
     """

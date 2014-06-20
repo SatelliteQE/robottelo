@@ -16,7 +16,7 @@ from robottelo.cli.org import Org
 from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open, stubbed)
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from tests.foreman.cli.basecli import CLITestCase
 
 
 def positive_create_data_1():
@@ -109,7 +109,7 @@ def positive_name_desc_label_data():
 
 
 @ddt
-class TestOrg(BaseCLI):
+class TestOrg(CLITestCase):
     """
     Tests for Organizations via Hammer CLI
     """
