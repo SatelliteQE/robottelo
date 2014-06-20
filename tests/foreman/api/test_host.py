@@ -7,10 +7,10 @@ Test class for Domain  CLI
 
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.host import Host
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
-class TestHost(BaseAPI):
+class TestHost(APITestCase):
 
     def test_create(self):
         """

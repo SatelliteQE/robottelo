@@ -11,11 +11,11 @@ else:
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
 @ddt
-class TestHostgroup(BaseAPI):
+class TestHostgroup(APITestCase):
     """Testing /api/organization entrypoint"""
 
     @unittest.skip(NOT_IMPLEMENTED)

@@ -5,11 +5,11 @@ from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.decorators import data
 from robottelo.records.product import CustomProduct
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
 @ddt
-class Products(BaseAPI):
+class Products(APITestCase):
     """Testing /katello/ap/v2/activation_keys entrypoint"""
 
     # Positive Create

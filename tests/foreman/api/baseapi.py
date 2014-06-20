@@ -130,7 +130,7 @@ def is_intersecting(first, other):
     return False
 
 
-class BaseAPI(unittest.TestCase):
+class APITestCase(unittest.TestCase):
     """
     Base class for all cli tests
     """

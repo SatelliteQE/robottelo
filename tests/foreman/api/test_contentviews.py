@@ -11,11 +11,11 @@ from robottelo.records.environment import EnvironmentKatello
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.common.decorators import stubbed
 
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
 @ddt
-class TestContentView(BaseAPI):
+class TestContentView(APITestCase):
 
     @data(*ContentViewDefinition.enumerate(label="", description=""))
     def test_cv_create_api(self, data):

@@ -10,11 +10,11 @@ else:
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_rm_bug_open
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
 @ddt
-class TestDomain(BaseAPI):
+class TestDomain(APITestCase):
     """Testing /api/organization entrypoint"""
 
     @skip_if_rm_bug_open('4219')

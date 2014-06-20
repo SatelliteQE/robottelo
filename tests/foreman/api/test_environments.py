@@ -13,11 +13,11 @@ from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
 from robottelo.records.environment import Environment
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
 @ddt
-class TestEnvironment(BaseAPI):
+class TestEnvironment(APITestCase):
     """Testing /api/environment entrypoint"""
 
     @data(

@@ -10,11 +10,11 @@ from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
 from robottelo.records.organization import Organization
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import BasicPositiveField
-from tests.foreman.api.baseapi import BaseAPI
+from tests.foreman.api.baseapi import APITestCase
 
 
 @ddt
-class TestOrganization(BaseAPI):
+class TestOrganization(APITestCase):
     """Testing /api/organization entrypoint"""
 
     # Positive Create
