@@ -4,14 +4,12 @@ install:
     - pip install "git+https://github.com/sthirugn/testimony.git"
     - pip install -r requirements.txt
 script:
+    - flake8 .
+    - make test-robottelo
     # The tests in `tests/foreman/` interact with a Satellite deployment, and
     # they are lengthy. Don't run them on Travis.
-    - flake8 .
     - testimony validate_docstring tests/foreman/api
     - testimony validate_docstring tests/foreman/cli
     - testimony validate_docstring tests/foreman/ui
-    - python -m unittest discover
-        --start-directory tests/robottelo/
-        --top-level-directory .
 notifications:
     irc: "chat.freenode.net#robottelo"
