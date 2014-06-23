@@ -13,7 +13,48 @@ import time
 
 from itertools import izip
 from robottelo.common.constants import HTML_TAGS
+from robottelo.common import conf
 from urllib2 import urlopen, Request, URLError
+from urlparse import urlunsplit
+
+
+def get_server_url():
+    """Return the base URL of the Foreman deployment being tested.
+
+    The following values from the config file are used to build the URL:
+
+    * ``main.server.scheme`` (default: https)
+    * ``main.server.hostname`` (required)
+    * ``main.server.port`` (default: none)
+
+    Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
+    ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default to
+    'https'.
+
+    :return: A URL.
+    :rtype: str
+
+    """
+    # If the config file contains an unset property (e.g. `server.scheme=`),
+    # then `conf.properties['main.server.scheme']` will return an empty string.
+    # If the config file is missing a property, then fetching that property
+    # will throw a KeyError exception. Let's deal with both cases by getting a
+    # default value of ''.
+    scheme = conf.properties.get('main.server.scheme', '')
+    hostname = conf.properties['main.server.hostname']
+    port = conf.properties.get('main.server.port', '')
+
+    # As promised in the docstring, we must provide a default scheme.
+    if scheme == '':
+        scheme = 'https'
+
+    # All anticipated error cases have been handled at this point.
+    if port == '':
+        return urlunsplit((scheme, hostname, '', '', ''))
+    else:
+        return urlunsplit((
+            scheme, '{0}:{1}'.format(hostname, port), '', '', ''
+        ))
 
 
 def generate_name(minimum=4, maximum=8):
