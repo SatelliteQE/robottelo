@@ -10,7 +10,7 @@ requests
 rstr
 
 # For CLI tests.
-paramiko==1.12.3
+paramiko
 
 # For UI tests.
 selenium
