@@ -1,3 +1,9 @@
+"""Test utilities for writing foreman tests
+
+All test cases for foreman tests are defined in this module and have utilities
+ to help writting API, CLI and UI tests.
+
+"""
 import logging
 import sys
 if sys.hexversion >= 0x2070000:
