@@ -41,12 +41,6 @@ from selenium import webdriver
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
 
-# Increase the level of third party packages logging
-logging.getLogger("paramiko").setLevel(logging.WARNING)
-logging.getLogger(
-    'selenium.webdriver.remote.remote_connection').setLevel(logging.WARNING)
-
-
 class TestCase(unittest.TestCase):
     """Robottelo test case"""
 
