@@ -1,5 +1,4 @@
 NOSETESTS=$(shell which nosetests)
-PYTHON=$(shell which python)
 
 # Paths
 ROBOTTELO_TESTS_PATH=tests/robottelo/
@@ -15,11 +14,8 @@ docs:
 docs-clean:
 	@cd docs; $(MAKE) clean
 
-# Nose doesn't play nicely with doctests.
 test-robottelo:
-	$(PYTHON) -m unittest discover \
-	    --start-directory $(ROBOTTELO_TESTS_PATH) \
-	    --top-level-directory .
+	$(NOSETESTS) -c robottelo.properties $(ROBOTTELO_TESTS_PATH)
 
 test-foreman-api:
 	$(NOSETESTS) -c robottelo.properties $(FOREMAN_API_TESTS_PATH)

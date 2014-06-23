@@ -1,8 +1,13 @@
-# Copy this file and rename it to robottelo.properties
+# Make a copy of this file named robottelo.properties
 
 [main]
+
+# A hostname is required. scheme (default: https) and port are optional.
+# Suggested values for "scheme" are "http" and "https".
 server.hostname=
-server.port=443
+#server.scheme=https
+#server.port=
+
 server.ssh.key_private=/home/whoami/.ssh/id_hudson_dsa
 server.ssh.username=root
 project=foreman

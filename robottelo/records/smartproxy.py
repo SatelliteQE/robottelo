@@ -5,8 +5,9 @@ Module for Smart proxy api an record implementation
 """
 
 
-from robottelo.common import conf, records
 from robottelo.api.apicrud import ApiCrud
+from robottelo.common.helpers import get_server_url
+from robottelo.common import records
 
 
 class SmartProxyApi(ApiCrud):
@@ -24,8 +25,7 @@ class SmartProxy(records.Record):
     We asume, that main server has smart proxy configured.
     """
     name = records.StringField()
-    url = records.StringField(
-        default="https://" + conf.properties['main.server.hostname'])
+    url = records.StringField(default=get_server_url())
 
     class Meta:
         """Linking record definition with api implementation.

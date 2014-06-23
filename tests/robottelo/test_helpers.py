@@ -1,9 +1,79 @@
+"""Tests for module ``robottelo.common.helpers``."""
+# (Too many public methods) pylint: disable=R0904
 import unittest
-
+from robottelo.common import conf
 from robottelo.common.helpers import (
-    generate_name, generate_email_address, valid_names_list, valid_data_list,
-    invalid_names_list, generate_ipaddr, generate_mac, generate_string,
-    generate_strings_list, escape_search, info_dictionary)
+    escape_search, generate_email_address, generate_ipaddr, generate_mac,
+    generate_name, generate_string, generate_strings_list, get_server_url,
+    info_dictionary, invalid_names_list, valid_data_list, valid_names_list,
+)
+
+
+class GetServerURLTestCase(unittest.TestCase):
+    """Tests for method ``get_server_url``.
+
+    The methods in this class test ``get_server_url`` by setting different
+    values in the ``conf`` object and checking that output is as expected.
+    There are many permutations of values that can be placed in the test cases,
+    so method descriptions only briefly state of the ``conf`` object during
+    that particular test.
+
+    """
+    def setUp(self):
+        """Set some default values in the config file."""
+        conf.properties['main.server.hostname'] = 'example.com'
+        if 'main.server.scheme' in conf.properties:
+            del(conf.properties['main.server.scheme'])
+        if 'main.server.port' in conf.properties:
+            del(conf.properties['main.server.port'])
+
+    def test_default_v1(self):
+        """Hostname set."""
+        self.assertEqual(get_server_url(), 'https://example.com')
+
+    def test_default_v2(self):
+        """Hostname set, port blank."""
+        conf.properties['main.server.port'] = ''
+        self.assertEqual(get_server_url(), 'https://example.com')
+
+    def test_default_v3(self):
+        """Hostname set, scheme blank."""
+        conf.properties['main.server.scheme'] = ''
+        self.assertEqual(get_server_url(), 'https://example.com')
+
+    def test_default_v4(self):
+        """Hostname set, scheme and port blank."""
+        conf.properties['main.server.port'] = ''
+        conf.properties['main.server.scheme'] = ''
+        self.assertEqual(get_server_url(), 'https://example.com')
+
+    def test_port(self):
+        """Hostname and port set."""
+        conf.properties['main.server.port'] = '1234'
+        self.assertEqual(get_server_url(), 'https://example.com:1234')
+
+    def test_port_v2(self):
+        """Hostname and port set, scheme blank."""
+        conf.properties['main.server.port'] = '1234'
+        conf.properties['main.server.scheme'] = ''
+        self.assertEqual(get_server_url(), 'https://example.com:1234')
+
+    def test_scheme(self):
+        """Hostname and scheme set."""
+        conf.properties['main.server.scheme'] = 'telnet'
+        self.assertEqual(get_server_url(), 'telnet://example.com')
+
+    def test_scheme_v2(self):
+        """Hostname and scheme set, port blank."""
+        conf.properties['main.server.port'] = ''
+        conf.properties['main.server.scheme'] = 'telnet'
+        self.assertEqual(get_server_url(), 'telnet://example.com')
+
+    def test_all(self):
+        """Hostname, scheme and port set."""
+        conf.properties['main.server.port'] = '1234'
+        conf.properties['main.server.scheme'] = 'telnet'
+        self.assertEqual(get_server_url(), 'telnet://example.com:1234')
 
 
 class FakeSSHResult(object):

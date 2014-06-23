@@ -11,6 +11,7 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 from robottelo.cli.metatest import MetaCLITest
+from robottelo.common.helpers import get_server_url
 from robottelo.common import conf
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
@@ -38,8 +39,8 @@ from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.systemgroup import SystemGroup
 from robottelo.ui.template import Template
-from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
+from robottelo.ui.user import User
 from selenium_factory.SeleniumFactory import SeleniumFactory
 from selenium import webdriver
 
@@ -105,8 +106,6 @@ class UITestCase(TestCase):
         Make sure that we only read configuration values once.
         """
         super(UITestCase, cls).setUpClass()
-        cls.host = conf.properties['main.server.hostname']
-        cls.port = conf.properties['main.server.port']
         cls.katello_user = conf.properties['foreman.admin.username']
         cls.katello_passwd = conf.properties['foreman.admin.password']
         cls.driver_name = conf.properties['saucelabs.driver']
@@ -138,7 +137,7 @@ class UITestCase(TestCase):
                 job_name=self.id(), show_session_id=True)
 
         self.browser.maximize_window()
-        self.browser.get("https://%s:%s" % (self.host, self.port))
+        self.browser.get(get_server_url())
 
         # Library methods
         self.activationkey = ActivationKey(self.browser)
