@@ -7,15 +7,14 @@ Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.decorators import data, skip_if_bz_bug_open
-from robottelo.records.environment import EnvironmentKatello
-from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.common.decorators import stubbed
-
-from tests.foreman.api.baseapi import BaseAPI
+from robottelo.records.content_view_definition import ContentViewDefinition
+from robottelo.records.environment import EnvironmentKatello
+from robottelo.test import APITestCase
 
 
 @ddt
-class TestContentView(BaseAPI):
+class TestContentView(APITestCase):
 
     @data(*ContentViewDefinition.enumerate(label="", description=""))
     def test_cv_create_api(self, data):

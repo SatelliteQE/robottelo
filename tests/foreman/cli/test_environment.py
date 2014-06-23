@@ -8,10 +8,10 @@ Test class for Environment  CLI
 from robottelo.cli.environment import Environment
 from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_environment
-from tests.foreman.cli.basecli import MetaCLI
+from robottelo.test import MetaCLITestCase
 
 
-class TestEnvironment(MetaCLI):
+class TestEnvironment(MetaCLITestCase):
 
     factory = make_environment
     factory_obj = Environment

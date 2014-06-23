@@ -7,11 +7,11 @@ Test class for Template UI
 
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.helpers import generate_string, get_data_file
+from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import BaseUI
 
 
-class Template(BaseUI):
+class Template(UITestCase):
     """
     Implements Provisioning Template tests from UI
     """

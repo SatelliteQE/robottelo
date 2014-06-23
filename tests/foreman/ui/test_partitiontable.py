@@ -7,11 +7,11 @@ Test class for Partition Table UI
 
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.common.helpers import generate_string, read_data_file
+from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import BaseUI
 
 
-class PartitionTable(BaseUI):
+class PartitionTable(UITestCase):
     """
     Implements the partition table tests from UI
     """

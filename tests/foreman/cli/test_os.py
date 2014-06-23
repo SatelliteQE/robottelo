@@ -14,7 +14,7 @@ from robottelo.cli.factory import (make_architecture, make_os,
 from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from robottelo.test import CLITestCase
 
 
 POSITIVE_CREATE_DATA = (
@@ -86,7 +86,7 @@ NEGATIVE_DELETE_DATA = (
 
 
 @ddt
-class TestOperatingSystem(BaseCLI):
+class TestOperatingSystem(CLITestCase):
     """
     Test class for Operating System CLI.
     """

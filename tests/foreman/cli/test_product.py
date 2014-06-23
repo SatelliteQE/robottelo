@@ -12,11 +12,11 @@ from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from robottelo.test import CLITestCase
 
 
 @ddt
-class TestProduct(BaseCLI):
+class TestProduct(CLITestCase):
     """
     Product CLI tests.
     """

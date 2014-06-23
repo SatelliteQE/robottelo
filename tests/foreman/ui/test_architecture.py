@@ -6,10 +6,10 @@ Test class for Architecture UI
 """
 
 from robottelo.common.helpers import generate_string
-from tests.foreman.ui.baseui import BaseUI
+from robottelo.test import UITestCase
 
 
-class Architecture(BaseUI):
+class Architecture(UITestCase):
     """
     Implements Architecture tests from UI
     """

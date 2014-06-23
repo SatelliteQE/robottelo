@@ -6,16 +6,17 @@ Test class for Users UI
 """
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.ui.baseui import BaseUI
+from robottelo.test import UITestCase
 
 
-class MyAccount(BaseUI):
+class MyAccount(UITestCase):
     """
     Implements Users tests in UI
 

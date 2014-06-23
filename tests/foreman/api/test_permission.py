@@ -3,17 +3,17 @@
 
 
 from ddt import ddt
-from robottelo.common.decorators import data
-from tests.foreman.api.baseapi import BaseAPI
-from robottelo.records.domain import Domain
-from robottelo.records.architecture import Architecture
-from robottelo.records.user import User
-from robottelo.records.role import add_permission_to_user
 from robottelo.api.apicrud import ApiCrud
+from robottelo.common.decorators import data
+from robottelo.records.architecture import Architecture
+from robottelo.records.domain import Domain
+from robottelo.records.role import add_permission_to_user
+from robottelo.records.user import User
+from robottelo.test import APITestCase
 
 
 @ddt
-class TestPermission(BaseAPI):
+class TestPermission(APITestCase):
     """Testing basic positive permissions"""
 
     @data(Domain, Architecture)

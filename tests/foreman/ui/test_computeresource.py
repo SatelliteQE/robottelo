@@ -3,11 +3,11 @@
 
 from robottelo.common import conf
 from robottelo.common.helpers import generate_string
+from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import BaseUI
 
 
-class ComputeResource(BaseUI):
+class ComputeResource(UITestCase):
     def create_org(self, org_name=None):
         """Creates Org"""
         org_name = org_name or generate_string("alpha", 8)

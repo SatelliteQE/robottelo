@@ -2,20 +2,20 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
 
-
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data
-from tests.foreman.api.baseapi import BaseAPI
+from robottelo.test import APITestCase
 
 
 @ddt
-class TestHostgroup(BaseAPI):
+class TestHostgroup(APITestCase):
     """Testing /api/organization entrypoint"""
 
     @unittest.skip(NOT_IMPLEMENTED)

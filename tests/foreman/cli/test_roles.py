@@ -7,10 +7,10 @@ Test class for Roles CLI
 
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import skip_if_bz_bug_open
-from tests.foreman.cli.basecli import BaseCLI
+from robottelo.test import CLITestCase
 
 
-class TestRole(BaseCLI):
+class TestRole(CLITestCase):
 
     @skip_if_bz_bug_open('1046206')
     def test_positive_create_role_1(self):

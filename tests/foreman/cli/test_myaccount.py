@@ -5,16 +5,18 @@
 Test class for Users CLI
 """
 
-from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.cli.basecli import BaseCLI
 import sys
+
+from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.test import CLITestCase
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
 
 
-class MyAccount(BaseCLI):
+class MyAccount(CLITestCase):
     """
     Implements Users tests in CLI
 

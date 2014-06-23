@@ -36,6 +36,8 @@ class Configs(object):
         except KeyError:
             _configure_logging()
 
+        _configure_third_party_logging()
+
     def log_properties(self):
         """Print config options to the logging file.
 
@@ -114,6 +116,17 @@ def _configure_logging(verbosity=2):
 
     for name in ('root', 'robottelo'):
         logging.getLogger(name).setLevel(log_level)
+
+
+def _configure_third_party_logging():
+    """Increase the level of third party packages logging
+
+    :rtype: None
+
+    """
+    logging.getLogger("paramiko").setLevel(logging.WARNING)
+    logging.getLogger('selenium.webdriver.remote.remote_connection').setLevel(
+        logging.WARNING)
 
 
 conf = Configs()

@@ -9,10 +9,10 @@ import random
 
 from robottelo.cli.report import Report
 from robottelo.common import ssh
-from tests.foreman.cli.basecli import BaseCLI
+from robottelo.test import CLITestCase
 
 
-class TestReport(BaseCLI):
+class TestReport(CLITestCase):
     """
     Test class for Reports CLI.
     """

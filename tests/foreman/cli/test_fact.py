@@ -5,14 +5,15 @@
 Test class for Fact  CLI
 """
 
+import sys
+
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.cli.fact import Fact
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string
-from tests.foreman.cli.basecli import BaseCLI
+from robottelo.test import CLITestCase
 
-import sys
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
@@ -20,7 +21,7 @@ else:
 
 
 @ddt
-class TestFact(BaseCLI):
+class TestFact(CLITestCase):
     """
     Fact related tests.
     """

@@ -5,6 +5,7 @@
 Test class for Activation key UI
 """
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
@@ -19,11 +20,11 @@ from robottelo.common.helpers import (generate_string, invalid_names_list,
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
-from tests.foreman.ui.baseui import BaseUI
+from robottelo.test import UITestCase
 
 
 @ddt
-class ActivationKey(BaseUI):
+class ActivationKey(UITestCase):
     """
     Implements Activation key tests in UI
 

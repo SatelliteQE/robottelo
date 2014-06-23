@@ -6,16 +6,17 @@ Test class for installer (UI)
 """
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
 
 from robottelo.common.constants import NOT_IMPLEMENTED
-from tests.foreman.ui.baseui import BaseUI
+from robottelo.test import UITestCase
 
 
-class TestSSOUI(BaseUI):
+class TestSSOUI(UITestCase):
     # Notes for SSO testing:
     # Of interest... In some test cases I've placed a few comments prefaced
     # with "devnote:" These are -- obviously -- notes from developers that

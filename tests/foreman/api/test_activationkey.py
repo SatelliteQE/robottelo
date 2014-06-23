@@ -7,11 +7,11 @@ from robottelo.common.decorators import (data, skip_if_bz_bug_open,
                                          skip_if_rm_bug_open)
 from robottelo.records.activation_key import ActivationKey
 from robottelo.records.host_collection import HostCollectionDefOrg
-from tests.foreman.api.baseapi import BaseAPI
+from robottelo.test import APITestCase
 
 
 @ddt
-class ActivationKeys(BaseAPI):
+class ActivationKeys(APITestCase):
     """Testing /katello/ap/v2/activation_keys entrypoint"""
 
     # Positive Create

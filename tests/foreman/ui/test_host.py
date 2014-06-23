@@ -2,16 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 import sys
+
 if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
 from robottelo.common.helpers import generate_string
+from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
-from tests.foreman.ui.baseui import BaseUI
 
 
-class Host(BaseUI):
+class Host(UITestCase):
 
     @unittest.skip("Test needs to create other required stuff")
     def test_create_host(self):

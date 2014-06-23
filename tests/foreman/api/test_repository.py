@@ -5,11 +5,11 @@ from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
 from robottelo.common.decorators import data
 from robottelo.records.repository import CustomRepository
-from tests.foreman.api.baseapi import BaseAPI
+from robottelo.test import APITestCase
 
 
 @ddt
-class Repository(BaseAPI):
+class Repository(APITestCase):
     """Testing /katello/ap/v2/repository entrypoint"""
 
     # Positive Create
