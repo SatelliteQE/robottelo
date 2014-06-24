@@ -915,3 +915,67 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
         """
         pass
+
+    @skip_if_bz_bug_open(1111723)
+    def test_bugzilla_1111723(self):
+        """
+        @test: Create activation key, rename it and create another with the
+        initial name
+        @feature: Activation key - Positive Create
+        @steps:
+        1. Create an activation key
+        2. Rename it
+        3. Create another activation key with the same name from step 1
+        @assert: Activation key is created
+        @bz: 1111723
+        """
+        name = generate_string('utf8', 15)
+
+        try:
+            activation_key = self._make_activation_key({
+                u'name': name,
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        new_name = generate_string('utf8', 15)
+        result = ActivationKey.update({
+            u'id': activation_key['id'],
+            u'new-name': new_name,
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to update activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to get info for activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+        self.assertEqual(result.stdout['name'], new_name,
+                         'Activation key name was not updated')
+
+        try:
+            new_activation_key = self._make_activation_key({
+                u'name': name,
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(
+                ('Failed to create an activation key with a previous name of'
+                 'another activation key: {0}').format(e))
+
+        result = ActivationKey.info({
+            u'id': new_activation_key['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to get info for activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+        self.assertEqual(result.stdout['name'], name,
+                         "Activation key names don't not match %s != %s" % (
+                         result.stdout['name'], name))
