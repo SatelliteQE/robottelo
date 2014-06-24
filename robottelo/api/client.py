@@ -190,7 +190,7 @@ def get(url, **kwargs):
 
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
-    _log_request('POST', url, kwargs)
+    _log_request('POST', url, kwargs, data)
     response = _call_requests_post(url, data, **kwargs)
     _log_response(response)
     return response
@@ -198,7 +198,7 @@ def post(url, data=None, **kwargs):
 
 def put(url, data=None, **kwargs):
     """A wrapper for ``requests.put``. Sends a PUT request."""
-    _log_request('PUT', url, kwargs)
+    _log_request('PUT', url, kwargs, data)
     response = _call_requests_put(url, data, **kwargs)
     _log_response(response)
     return response
@@ -206,7 +206,7 @@ def put(url, data=None, **kwargs):
 
 def patch(url, data=None, **kwargs):
     """A wrapper for ``requests.patch``. Sends a PATCH request."""
-    _log_request('PATCH', url, kwargs)
+    _log_request('PATCH', url, kwargs, data)
     response = _call_requests_patch(url, data, **kwargs)
     _log_response(response)
     return response
