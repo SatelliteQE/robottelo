@@ -1,5 +1,3 @@
-NOSETESTS=$(shell which nosetests)
-
 # Paths
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 FOREMAN_TESTS_PATH=tests/foreman/
@@ -15,15 +13,15 @@ docs-clean:
 	@cd docs; $(MAKE) clean
 
 test-robottelo:
-	$(NOSETESTS) -c robottelo.properties $(ROBOTTELO_TESTS_PATH)
+	nosetests -c robottelo.properties $(ROBOTTELO_TESTS_PATH)
 
 test-foreman-api:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_API_TESTS_PATH)
+	nosetests -c robottelo.properties $(FOREMAN_API_TESTS_PATH)
 
 test-foreman-cli:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_CLI_TESTS_PATH)
+	nosetests -c robottelo.properties $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-ui:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
+	nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
 
 .PHONY: docs docs-clean test test-foreman-api test-foreman-cli test-foreman-ui
