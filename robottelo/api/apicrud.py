@@ -547,7 +547,10 @@ class ApiCrud(object):
             api = instance_orig._meta.api_class
             return api.record_create_recursive(instance_orig, user=user)
         res_instance = cls.record_create_dependencies(instance_orig, user=user)
-        return cls.record_create(res_instance, user=user)
+        ret = cls.record_create(res_instance, user=user)
+        if instance_orig.__class__.__name__ is "ContentViewDefinition":
+            ret['organization_id'] = res_instance['organization_id']
+        return ret
 
 
 class Task(object):

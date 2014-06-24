@@ -101,6 +101,7 @@ class TestContentView(APITestCase):
         con_view = ContentViewDefinition()
         depends = ApiCrud.record_create_dependencies(con_view)
         t = ApiCrud.record_create(depends)
+        t['organization_id'] = depends['organization_id']
         con_view.name = data.name
         ApiCrud.record_update(t)
 
@@ -133,6 +134,7 @@ class TestContentView(APITestCase):
         data.label = "conview_del"
         depends = ApiCrud.record_create_dependencies(data)
         t = ApiCrud.record_create(depends)
+        t['organization_id'] = depends['organization_id']
         self.assertTrue(ApiCrud.record_exists(t))
         ApiCrud.record_remove(t)
         self.assertFalse(ApiCrud.record_exists(t))
