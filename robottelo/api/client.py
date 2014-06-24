@@ -79,7 +79,7 @@ def _curl_arg_data(kwargs):
     :rtype: str
 
     """
-    trimmed_kwargs = kwargs
+    trimmed_kwargs = kwargs.copy()
     for key in ('auth', 'verify'):
         trimmed_kwargs.pop(key, None)
     return urlencode(trimmed_kwargs)
