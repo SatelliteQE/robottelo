@@ -18,3 +18,10 @@
 .. automodule:: robottelo.api.base
     :members:
     :undoc-members:
+
+:mod:`robottelo.api.client`
+---------------------------
+
+.. automodule:: robottelo.api.client
+    :members:
+    :undoc-members:

@@ -33,8 +33,15 @@ Submodules:
     :undoc-members:
 
 :mod:`tests.robottelo.test_ssh`
------------------------------------
+-------------------------------
 
-.. automodule:: tests.robottelo.test_helpers
+.. automodule:: tests.robottelo.test_ssh
+    :members:
+    :undoc-members:
+
+:mod:`tests.robottelo.test_robottelo_api_client`
+------------------------------------------------
+
+.. automodule:: tests.robottelo.test_robottelo_api_client
     :members:
     :undoc-members:
