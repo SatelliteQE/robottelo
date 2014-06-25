@@ -972,10 +972,17 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.info({
             u'id': new_activation_key['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         'Failed to get info for activation key')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
-        self.assertEqual(result.stdout['name'], name,
-                         "Activation key names don't not match %s != %s" % (
-                         result.stdout['name'], name))
+        self.assertEqual(
+            result.return_code, 0,
+            'Failed to get info for activation key'
+        )
+        self.assertEqual(
+            len(result.stderr), 0,
+            'There should not be an error here'
+        )
+        self.assertEqual(
+            result.stdout['name'], name,
+            "Activation key names don't not match {} != {}".format(
+                result.stdout['name'], name
+            )
+        )
