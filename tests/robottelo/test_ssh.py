@@ -15,15 +15,20 @@ class MockSSHClient(object):
         ``connect_`` is incremented by 1.
 
         """
+        # These are counters for logging function calls
         self.set_missing_host_key_policy_ = 0
         self.connect_ = 0
         self.close_ = 0
+        # The tests look for these vars
+        self.hostname = None
+        self.username = None
+        self.key_filename = None
 
-    def set_missing_host_key_policy(self, policy):
+    def set_missing_host_key_policy(self, policy):  # pylint:disable=W0613
         """A no-op stub method."""
         self.set_missing_host_key_policy_ += 1
 
-    def connect(
+    def connect(  # pylint:disable=W0613,R0913
             self, hostname, port=22, username=None, password=None, pkey=None,
             key_filename=None, timeout=None, allow_agent=True,
             look_for_keys=True, compress=False, sock=None):
@@ -59,7 +64,7 @@ class SSHTestCase(TestCase):
         are called.
 
         """
-        ssh._call_paramiko_sshclient = MockSSHClient
+        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
         backup = conf.properties
 
         key_filename = os.path.join(
@@ -68,7 +73,7 @@ class SSHTestCase(TestCase):
         conf.properties['main.server.hostname'] = 'example.com'
         conf.properties['main.server.ssh.username'] = 'nobody'
         conf.properties['main.server.ssh.key_private'] = key_filename
-        with ssh._get_connection() as connection:
+        with ssh._get_connection() as connection:  # pylint:disable=W0212
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
             self.assertEqual(connection.close_, 0)
