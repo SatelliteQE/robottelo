@@ -1491,3 +1491,21 @@ class User(CLITestCase):
         @Status: Manual
         """
         pass
+
+    def test_automation_bz_1110337(self):
+        """
+        @Test: Automation of BZ 1110337
+        @Feature: User - info, list BZ
+        """
+        user = make_user()
+        # existing user info
+        result = UserObj.info({'login': user['login']})
+        self.assertEqual(result.return_code, 0)
+        # non-existing user info
+        result = UserObj.info({'id': int(user['id']) + 1})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotRegexpMatches(str(result.stderr), 'undefined method')
+        # list users
+        result = UserObj.list()
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
