@@ -381,8 +381,8 @@ class GPGKey(UITestCase):
         @feature: GPG Keys
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
-        @assert: gpg key is associated with product
-                as well as with the repository
+        @assert: gpg key is associated with product as well as with the
+        repository
         """
 
         prd_name = generate_string("alpha", 8)
@@ -412,8 +412,8 @@ class GPGKey(UITestCase):
         @test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository
-        @assert: gpg key is associated with product
-                as well as with the repositories
+        @assert: gpg key is associated with product as well as with the
+        repositories
         """
 
         prd_name = generate_string("alpha", 8)

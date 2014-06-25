@@ -75,16 +75,26 @@ class Sync(Base):
 
     def create_repos_tree(self, repos):
         """
-        Creates a list of dynamic hierarchial dictonary of repositories.
-        A sample data which needs to be passed can be fetched from constants:
-        RHEL, RHCT e.t.c
-        A Simplified Output Example : -
-        ({'rhel': ({'rhct6': ({'rhct65': ({'rhct65_a': 'x86_64',
-                                           'rhct65_v': '6.5',
-                                           'rhct65_n': 'Red Hat CloudForms.'}),
-                               'rhct6S': ({'rhct6S_a': 'x86_64',
-                                           'rhct6S_n': 'Red Hat CloudForms...',
-                                           'rhct6S_v': '6Server'})})})})
+        Creates a list of dynamic hierarchial dictonary of repositories.  A
+        sample data which needs to be passed can be fetched from constants::
+
+            RHEL, RHCT e.t.c
+
+        A Simplified Output Example::
+
+            ({'rhel': ({'rhct6': ({
+                'rhct65': ({
+                    'rhct65_a': 'x86_64',
+                    'rhct65_v': '6.5',
+                    'rhct65_n': 'Red Hat CloudForms.'
+                }),
+                'rhct6S': ({
+                    'rhct6S_a': 'x86_64',
+                    'rhct6S_n': 'Red Hat CloudForms...',
+                    'rhct6S_v': '6Server'
+                })
+            })})})
+
         """
         repos_tree = defaultdict(partial(defaultdict,
                                          partial(defaultdict,

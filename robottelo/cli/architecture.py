@@ -2,14 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
+Usage::
+
     hammer architecture [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     remove_operatingsystem        Disassociate a resource
     create                        Create an architecture.
     add_operatingsystem           Associate a resource

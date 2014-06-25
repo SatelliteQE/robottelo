@@ -1,15 +1,17 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
 """
-Usage:
+Usage::
+
     hammer os [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     add-architecture              Associate a resource
     add-config-template           Associate a resource
     add-ptable                    Associate a resource

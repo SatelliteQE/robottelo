@@ -44,8 +44,8 @@ def test_negative_create(self, data):
     2. Assert that the object was not created;
 
     @type data: dictionary
-    @param data: A python dictionary representing a Foreman CLI object,
-                 with values that should cause an exception or be invalid.
+    @param data: A python dictionary representing a Foreman CLI object, with
+    values that should cause an exception or be invalid.
 
     @rtype: assertion
     @return: Asserts that object can not be created.
@@ -69,8 +69,8 @@ def test_positive_update(self, data):
 
     @type data: tuple
     @param data: A tuple made up of two python dictionaries, where the first
-                 item contains the data for creation, and the second item
-                 represents the fields to be updated.
+    item contains the data for creation, and the second item represents the
+    fields to be updated.
 
     @rtype: assertion
     @return: Asserts that object can be updated.
@@ -124,9 +124,9 @@ def test_negative_update(self, data):
 
     @type data: dictionary
     @param data: A tuple made up of two python dictionaries, where the first
-                 item contains the data for creation, and the second item
-                 represents the fields to be updated with values that should
-                 cause an exception or be invalid.
+    item contains the data for creation, and the second item represents the
+    fields to be updated with values that should cause an exception or be
+    invalid.
 
     @rtype: assertion
     @return: Asserts that object is not updated.
@@ -215,9 +215,8 @@ def test_negative_delete(self, data):
     4. Assert that the original object can still be found in the system;
 
     @type data: dictionary
-    @param data: A python dictionary representing a Foreman CLI object
-                 with incorrect IDs.
-
+    @param data: A python dictionary representing a Foreman CLI object with
+    incorrect IDs.
     @rtype: assertion
     @return: Asserts that object is not deleted after its creation.
     """

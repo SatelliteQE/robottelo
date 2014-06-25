@@ -278,8 +278,8 @@ class TestSSOUI(UITestCase):
         subsequently assign specified roles to the user(s) --
         roles that are not part of the larger usergroup
         @steps:
-        1.  Login to foreman with LDAP user and attempt to access areas
-         assigned specifically to user.
+        1. Login to foreman with LDAP user and attempt to access areas assigned
+        specifically to user.
         @assert: User can access not only those feature areas in his
         usergroup but those additional feature areas / roles assigned
         specifically to user
