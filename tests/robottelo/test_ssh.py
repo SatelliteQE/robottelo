@@ -1,11 +1,50 @@
 """Tests for module ``robottelo.common.ssh``."""
 # (too-many-public-methods) pylint: disable=R0904
-from paramiko.ssh_exception import AuthenticationException
-from robottelo.common import conf, get_app_root
-from robottelo.common.ssh import _get_connection
+from robottelo.common import conf, get_app_root, ssh
 from unittest import TestCase
 import os
-import socket
+
+
+class MockSSHClient(object):
+    """A mock ``paramiko.SSHClient`` object."""
+    def __init__(self):
+        """Set several debugging counters to 0.
+
+        Whenever a method in this mock class is called, a corresponding counter
+        is incremented. For example, if ``connect`` is called, then
+        ``connect_`` is incremented by 1.
+
+        """
+        self.set_missing_host_key_policy_ = 0
+        self.connect_ = 0
+        self.close_ = 0
+
+    def set_missing_host_key_policy(self, policy):
+        """A no-op stub method."""
+        self.set_missing_host_key_policy_ += 1
+
+    def connect(
+            self, hostname, port=22, username=None, password=None, pkey=None,
+            key_filename=None, timeout=None, allow_agent=True,
+            look_for_keys=True, compress=False, sock=None):
+        """"A stub method that records some of the parameters passed in.
+
+        When this method is called, the following arguments are recorded as
+        instance attributes:
+
+        * hostname
+        * username
+        * key_filename
+
+        """
+        self.connect_ += 1
+        self.hostname = hostname
+        self.username = username
+        self.key_filename = key_filename
+
+    def close(self):
+        """A no-op stub method."""
+        self.close_ += 1
 
 
 class SSHTestCase(TestCase):
@@ -13,18 +52,31 @@ class SSHTestCase(TestCase):
     def test__get_connection(self):
         """Test method ``_get_connection``.
 
-        Attempt to make an SSH connection to localhost. Assert that the
-        connection is refused.
+        Mock up ``paramiko.SSHClient`` (by overriding method
+        ``_call_paramiko_sshclient``) before calling ``_get_connection``.
+        Assert that certain parameters are passed to the (mock)
+        ``paramiko.SSHClient`` object, and that certain methods on that object
+        are called.
 
         """
-        # pylint: disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         backup = conf.properties
-        conf.properties['main.server.hostname'] = 'localhost'
-        conf.properties['main.server.ssh.username'] = 'nobody'
-        conf.properties['main.server.ssh.key_private'] = os.path.join(
+
+        key_filename = os.path.join(
             get_app_root(), 'tests', 'robottelo', 'data', 'test_dsa.key'
         )
-        with self.assertRaises((socket.error, AuthenticationException)):
-            with _get_connection() as connection:  # flake8: noqa pylint: disable=W0612
-                pass
+        conf.properties['main.server.hostname'] = 'example.com'
+        conf.properties['main.server.ssh.username'] = 'nobody'
+        conf.properties['main.server.ssh.key_private'] = key_filename
+        with ssh._get_connection() as connection:
+            self.assertEqual(connection.set_missing_host_key_policy_, 1)
+            self.assertEqual(connection.connect_, 1)
+            self.assertEqual(connection.close_, 0)
+            self.assertEqual(connection.hostname, 'example.com')
+            self.assertEqual(connection.username, 'nobody')
+            self.assertEqual(connection.key_filename, key_filename)
+        self.assertEqual(connection.set_missing_host_key_policy_, 1)
+        self.assertEqual(connection.connect_, 1)
+        self.assertEqual(connection.close_, 1)
+
         conf.properties = backup

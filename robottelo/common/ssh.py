@@ -33,6 +33,17 @@ class SSHCommandResult(object):
             self.stdout = csv_to_dictionary(stdout) if stdout else {}
 
 
+def _call_paramiko_sshclient():
+    """Call ``paramiko.SSHClient``.
+
+    This function does not alter the behaviour of ``paramiko.SSHClient``. It
+    exists soley for the sake of easing unit testing: it can be overridden for
+    mocking purposes.
+
+    """
+    return paramiko.SSHClient()
+
+
 @contextmanager
 def _get_connection(timeout=10):
     """Yield an ssh connection object.
@@ -58,7 +69,7 @@ def _get_connection(timeout=10):
     # Hide base logger from paramiko
     logging.getLogger('paramiko').setLevel(logging.ERROR)
 
-    client = paramiko.SSHClient()
+    client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
         hostname=conf.properties['main.server.hostname'],
@@ -126,7 +137,7 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     regex = re.compile(r'\x1b\[\d\d?m')
 
     logger = logging.getLogger('robottelo')
-    logger.debug(">>> %s" % cmd)
+    logger.debug(">>> %s", cmd)
 
     hostname = hostname or conf.properties['main.server.hostname']
 
@@ -156,10 +167,10 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     errors = [] if errorcode == 0 else stderr
 
     if output:
-        logger.debug("<<<\n%s" % '\n'.join(output[:-1]))
+        logger.debug("<<<\n%s", '\n'.join(output[:-1]))
     if errors:
         errors = regex.sub('', "".join(errors))
-        logger.debug("<<< %s" % errors)
+        logger.debug("<<< %s", errors)
 
     return SSHCommandResult(
         output, errors, errorcode, expect_csv)
