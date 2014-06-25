@@ -2,6 +2,7 @@
 iniparse
 
 # For all tests.
+booby
 ddt
 python-bugzilla
 
