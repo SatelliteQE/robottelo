@@ -5,13 +5,6 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.baseapi`
---------------------------------
-
-.. automodule:: tests.foreman.api.baseapi
-    :members:
-    :undoc-members:
-
 :mod:`tests.foreman.api.test_activationkey`
 -------------------------------------------
 

@@ -15,9 +15,30 @@ Submodules:
     :members:
     :undoc-members:
 
+:mod:`robottelo.entities`
+-------------------------
+
+.. automodule:: robottelo.entities
+    :members:
+    :undoc-members:
+
 :mod:`robottelo.log`
 --------------------
 
 .. automodule:: robottelo.log
+    :members:
+    :undoc-members:
+
+:mod:`robottelo.orm`
+--------------------
+
+.. automodule:: robottelo.orm
+    :members:
+    :undoc-members:
+
+:mod:`robottelo.test`
+---------------------
+
+.. automodule:: robottelo.test
     :members:
     :undoc-members:

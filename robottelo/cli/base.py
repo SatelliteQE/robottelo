@@ -14,7 +14,8 @@ from robottelo.common.helpers import info_dictionary
 class Base(object):
     """
     @param command_base: base command of hammer.
-    Output of recent: `hammer --help`
+    Output of recent `hammer --help`::
+
         shell                         Interactive Shell
         architecture                  Manipulate Foreman's architectures.
         global_parameter              Manipulate Foreman's global parameters.
@@ -36,6 +37,7 @@ class Base(object):
         subnet                        Manipulate Foreman's subnets.
         template                      Manipulate Foreman's config templates.
         user                          Manipulate Foreman's users.
+
     @since: 27.Nov.2013
     """
     command_base = None  # each inherited instance should define this

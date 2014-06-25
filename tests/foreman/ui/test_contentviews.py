@@ -110,12 +110,13 @@ class TestContentViewsUI(UITestCase):
         """
         @test: create content view
         @feature: Content Views
-        @steps: 1. Create Product/repo and Sync it
-                2. Create CV and add created repo in step1
-                3. Publish and promote it to 'Library'
-                4. Promote it to next environment
-        @assert: content view is created, updated with repo
-                publish and promoted to next selected env
+        @steps:
+        1. Create Product/repo and Sync it
+        2. Create CV and add created repo in step1
+        3. Publish and promote it to 'Library'
+        4. Promote it to next environment
+        @assert: content view is created, updated with repo publish and
+        promoted to next selected env
         """
 
         repo_name = generate_string("alpha", 8)
@@ -148,8 +149,9 @@ class TestContentViewsUI(UITestCase):
         """
         @test: create content view
         @feature: Content Views
-        @steps: 1. Create Product/puppet repo and Sync it
-                2. Create CV and add puppet modules from created repo
+        @steps:
+        1. Create Product/puppet repo and Sync it
+        2. Create CV and add puppet modules from created repo
         @assert: content view is created, updated with puppet module
         """
 

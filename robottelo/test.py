@@ -89,7 +89,6 @@ class CLITestCase(TestCase):
 
 
 class MetaCLITestCase(CLITestCase):
-
     """
     All Test modules should inherit from MetaCLI in order to obtain default
     positive/negative CRUD tests.
@@ -226,7 +225,8 @@ def assert_dict_intersects(first, other):
 
 def intersection(first, other):
     """Compares two objects to determine, if they share common information.
-       Returns either true, or touple describing the difference
+    Returns either true, or touple describing the difference
+
     >>> intersection("n1","n2")
     ('!=', 'n1', 'n2')
     >>> intersection([1,2,3,5],[2,1,0,2,3,4])
@@ -238,6 +238,7 @@ def intersection(first, other):
     ...     {"name":"n1","org":{"name":"o2"}})
     ...
     ('!in', {'org': ('!in', {'name': ('!=', 'o1', 'o2')})})
+
     """
     if first is other:
         return True

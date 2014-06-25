@@ -84,10 +84,12 @@ def create_object(cli_object, args):
 
 def make_activation_key(options=None):
     """
-    Usage:
+    Usage::
+
         hammer activation-key create [OPTIONS]
 
-    Options:
+    Options::
+
         --content-view CONTENT_VIEW_NAME
         --content-view-id CONTENT_VIEW_ID content view id
         --description DESCRIPTION     description
@@ -131,10 +133,12 @@ def make_activation_key(options=None):
 
 def make_architecture(options=None):
     """
-    Usage:
+    Usage::
+
         hammer architecture create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME
         --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
                                       Comma separated list of values.
@@ -154,21 +158,24 @@ def make_architecture(options=None):
 
 def make_content_view(options=None):
     """
+    Usage::
 
-     hammer content-view create [OPTIONS]
+        hammer content-view create [OPTIONS]
 
-     Options:
-      --component-ids COMPONENT_IDS List of component content view
-      version ids for composite views
-                                  Comma separated list of values.
-      --composite                   Create a composite content view
-      --description DESCRIPTION     Description for the content view
-      --label LABEL                 Content view label
-      --name NAME                   Name of the content view
-      --organization-id ORGANIZATION_ID Organization identifier
-      --repository-ids REPOSITORY_IDS List of repository ids
-                                  Comma separated list of values.
-       -h, --help                    print help
+    Options::
+
+        --component-ids COMPONENT_IDS List of component content view
+        version ids for composite views
+                                    Comma separated list of values.
+        --composite                   Create a composite content view
+        --description DESCRIPTION     Description for the content view
+        --label LABEL                 Content view label
+        --name NAME                   Name of the content view
+        --organization-id ORGANIZATION_ID Organization identifier
+        --repository-ids REPOSITORY_IDS List of repository ids
+                                    Comma separated list of values.
+        -h, --help                    print help
+
     """
 
     # Organization ID is a required field.
@@ -194,10 +201,12 @@ def make_content_view(options=None):
 
 def make_gpg_key(options=None):
     """
-    Usage:
+    Usage::
+
         hammer gpg create [OPTIONS]
 
-    Options:
+    Options::
+
         --organization-id ORGANIZATION_ID organization identifier
         --name NAME                   identifier of the GPG Key
         --key GPG_KEY_FILE            GPG Key file
@@ -239,10 +248,12 @@ def make_gpg_key(options=None):
 
 def make_model(options=None):
     """
-    Usage:
+    Usage::
+
         hammer model create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME
         --info INFO
         --vendor-class VENDOR_CLASS
@@ -265,10 +276,12 @@ def make_model(options=None):
 
 def make_partition_table(options=None):
     """
-    Usage:
+    Usage::
+
         hammer partition_table update [OPTIONS]
 
-    Options:
+    Options::
+
         --file LAYOUT                 Path to a file that contains
                                       the partition layout
         --os-family OS_FAMILY
@@ -276,11 +289,13 @@ def make_partition_table(options=None):
         --name NAME                   resource name
         --new-name NEW_NAME           new name for the resource
         -h, --help                    print help
-    [root@qe-blade-04 ~]# hammer partition_table create --help
-    Usage:
+
+    Usage::
+
         hammer partition_table create [OPTIONS]
 
-    Options:
+    Options::
+
         --file LAYOUT                 Path to a file that contains
                                       the partition layout
         --name NAME
@@ -310,10 +325,12 @@ def make_partition_table(options=None):
 
 def make_product(options=None):
     """
-    Usage:
+    Usage::
+
         hammer product create [OPTIONS]
 
-    Options:
+    Options::
+
         --description DESCRIPTION     Product description
         --gpg-key-id GPG_KEY_ID       Identifier of the GPG key
         --label LABEL
@@ -344,10 +361,12 @@ def make_product(options=None):
 
 def make_proxy(options=None):
     """
-    Usage:
+    Usage::
+
         hammer proxy create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME
         --url URL
     """
@@ -366,10 +385,12 @@ def make_proxy(options=None):
 
 def make_repository(options=None):
     """
-    Usage:
+    Usage::
+
         hammer repository create [OPTIONS]
 
-    Options:
+    Options::
+
         --content-type CONTENT_TYPE   type of repo (either 'yum' or 'puppet',
                                       defaults to 'yum')
         --gpg-key GPG_KEY_NAME
@@ -414,10 +435,12 @@ def make_repository(options=None):
 
 def make_subnet(options=None):
     """
-    Usage:
+    Usage::
+
         hammer subnet create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME                   Subnet name
         --network NETWORK             Subnet network
         --mask MASK                   Netmask for this subnet
@@ -459,10 +482,12 @@ def make_subnet(options=None):
 
 def make_sync_plan(options=None):
     """
-    Usage:
+    Usage::
+
         hammer sync-plan create [OPTIONS]
 
-    Options:
+    Options::
+
         --description DESCRIPTION     sync plan description
         --interval INTERVAL           how often synchronization should run
                                       One of ''none',', ''hourly',',
@@ -496,10 +521,12 @@ def make_sync_plan(options=None):
 
 def make_content_host(options=None):
     """
-    Usage:
+    Usage::
+
         hammer system create [OPTIONS]
 
-    Options:
+    Options::
+
         --content-view CONTENT_VIEW_NAME
         --content-view-id CONTENT_VIEW_ID Specify the content view
         --description DESCRIPTION     Description of the content host
@@ -565,10 +592,12 @@ def make_content_host(options=None):
 
 def make_host_collection(options=None):
     """
-    Usage:
+    Usage::
+
          host-collection create [OPTIONS]
 
-    Options:
+    Options::
+
         --description DESCRIPTION
         --max-content-hosts MAX_CONTENT_HOSTS Maximum number of content hosts
                                               in the host collection
@@ -602,10 +631,12 @@ def make_host_collection(options=None):
 
 def make_user(options=None):
     """
-    Usage:
+    Usage::
+
         hammer user create [OPTIONS]
 
-    Options:
+    Options::
+
         --login LOGIN
         --firstname FIRSTNAME
         --lastname LASTNAME
@@ -636,10 +667,12 @@ def make_user(options=None):
 
 def make_compute_resource(options=None):
     """
-    Usage:
+    Usage::
+
         hammer compute_resource create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME
         --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
             Vmware, Openstack, Rackspace, GCE
@@ -680,10 +713,12 @@ def make_compute_resource(options=None):
 
 def make_org(options=None):
     """
-    Usage:
+    Usage::
+
         hammer organization create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME                   name
         --label LABEL                 unique label
         --description DESCRIPTION     description
@@ -721,10 +756,12 @@ def make_os(options=None):
 
 def make_domain(options=None):
     """
-    Usage:
+    Usage::
+
         hammer domain create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME                   The full DNS Domain name
         --dns-id DNS_ID               DNS Proxy to use within this domain
         --description DESC            Full name describing the domain
@@ -744,10 +781,12 @@ def make_domain(options=None):
 
 def make_hostgroup(options=None):
     """
-    Usage:
-    hammer hostgroup create [OPTIONS]
+    Usage::
 
-    Options:
+        hammer hostgroup create [OPTIONS]
+
+    Options::
+
         --name NAME
         --parent-id PARENT_ID
         --environment-id ENVIRONMENT_ID
@@ -783,32 +822,35 @@ def make_hostgroup(options=None):
 
 def make_medium(options=None):
     """
-    Usage:
-    hammer medium create [OPTIONS]
+    Usage::
 
-    Options:
-    --name NAME                Name of media
-    --path PATH                The path to the medium, can be a URL or a valid
-                               NFS server (exclusive of the architecture)
-                               for example http://mirror.centos.org/centos/
-                               $version/os/$arch where $arch will be
-                               substituted for the host’s actual OS
-                               architecture and $version, $major and $minor
-                               will be substituted for the version of the
-                               operating system.
-                               Solaris and Debian media may also use $release.
-    --os-family OS_FAMILY      The family that the operating system belongs to.
-                               Available families:
-                               Archlinux
-                               Debian
-                               Gentoo
-                               Redhat
-                               Solaris
-                               Suse
-                               Windows
-    --operatingsystem-ids OPERATINGSYSTEM_IDS Comma separated list of values.
-    --operatingsystem-ids OSIDS   os ids
-                                  Comma separated list of values.
+        hammer medium create [OPTIONS]
+
+    Options::
+
+        --name NAME             Name of media
+        --path PATH             The path to the medium, can be a URL or a valid
+                                NFS server (exclusive of the architecture)
+                                for example http://mirror.centos.org/centos/
+                                $version/os/$arch where $arch will be
+                                substituted for the host’s actual OS
+                                architecture and $version, $major and $minor
+                                will be substituted for the version of the
+                                operating system.
+                                Solaris and Debian media may also use $release.
+        --os-family OS_FAMILY   The family that the operating system belongs
+                                to. Available families:
+                                Archlinux
+                                Debian
+                                Gentoo
+                                Redhat
+                                Solaris
+                                Suse
+                                Windows
+        --operatingsystem-ids OPERATINGSYSTEM_IDS
+                                Comma separated list of values.
+        --operatingsystem-ids OSIDS os ids
+                                Comma separated list of values.
 
     """
     # Assigning default values for attributes
@@ -827,11 +869,13 @@ def make_medium(options=None):
 
 def make_environment(options=None):
     """
-    Usage:
-    hammer environment create [OPTIONS]
+    Usage::
 
-    Options:
-    --name NAME
+        hammer environment create [OPTIONS]
+
+    Options::
+
+        --name NAME
     """
     # Assigning default values for attributes
     args = {
@@ -846,17 +890,19 @@ def make_environment(options=None):
 
 def make_lifecycle_environment(options=None):
     """
-    Usage:
-    hammer lifecycle-environment create [OPTIONS]
+    Usage::
 
-    Options:
+        hammer lifecycle-environment create [OPTIONS]
+
+    Options::
+
         --organization-id ORGANIZATION_ID name of organization
-        --name NAME                   name of the environment
-        --description DESCRIPTION     description of the environment
-        --prior PRIOR                 Name of an environment that is prior to
-    the new environment in the chain. It has to be either ‘Library’ or an
-    environment at the end of a chain.
-
+        --name NAME                 name of the environment
+        --description DESCRIPTION   description of the environment
+        --prior PRIOR               Name of an environment that is prior to
+                                    the new environment in the chain. It has to
+                                    be either ‘Library’ or an environment at
+                                    the end of a chain.
 
     """
 
@@ -882,18 +928,19 @@ def make_lifecycle_environment(options=None):
 
 def make_template(options=None):
     """
-    Usage:
-    hammer template create [OPTIONS]
+    Usage::
 
-    Options:
-    --file TEMPLATE             Path to a file that contains the template
-    --type TYPE                 Template type. Eg. snippet, script, provision
-    --name NAME                 template name
-    --audit-comment AUDIT_COMMENT
-    --operatingsystem-ids OPERATINGSYSTEM_IDS
-                                Array of operating systems ID
-                                to associate the template with
-                                Comma separated list of values.
+        hammer template create [OPTIONS]
+
+    Options::
+
+        --file TEMPLATE     Path to a file that contains the template
+        --type TYPE         Template type. Eg. snippet, script, provision
+        --name NAME         template name
+        --audit-comment AUDIT_COMMENT
+        --operatingsystem-ids OPERATINGSYSTEM_IDS
+                            Array of operating systems ID to associate the
+                            template with Comma separated list of values.
 
     """
     # Assigning default values for attribute

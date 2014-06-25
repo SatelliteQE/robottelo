@@ -43,34 +43,34 @@ class Field(object):
 
     It defines the common attributes to all fields:
 
-      * default: the default value, if defined, will be used every time a field
-        value is requested. If not defined, the random generated value will be
-        used. The default value could be a callable and will be called whenever
-        a field value is necessary.
-      * required: defines if a field is required or not. If the field is not
-        required its value will be None when the default value is not defined
-        otherwise will be used the default instead.
+    * default: the default value, if defined, will be used every time a field
+      value is requested. If not defined, the random generated value will be
+      used. The default value could be a callable and will be called whenever a
+      field value is necessary.
+    * required: defines if a field is required or not. If the field is not
+      required its value will be None when the default value is not defined
+      otherwise will be used the default instead.
 
     The generate method should be overridden by a Field's subclass and should
     return a random generated value respecting the type of the field. Also
     the __init__ method could be overriden to add new attributes to control the
     value generation.
 
-    Full example:
+    Full example::
 
-    class MyField(Field):
-        def __init__(self, custom_arg='default for arg', **kwargs):
-            # super should aways be called to ensure creation of field's
-            # default attributes
-            super(MyField, self).__init__(**kwargs)
+        class MyField(Field):
+            def __init__(self, custom_arg='default for arg', **kwargs):
+                # super should aways be called to ensure creation of field's
+                # default attributes
+                super(MyField, self).__init__(**kwargs)
 
-            self.custom_arg = custom_arg
+                self.custom_arg = custom_arg
 
-        def generate(self):
-            if self.custom_arg == 'some expected value':
-                return 'random value when some expected value is provided'
-            else:
-                return 'random value when some expected value is not provided'
+            def generate(self):
+                if self.custom_arg == 'some expected value':
+                    return 'random value when expected value is provided'
+                else:
+                    return 'random value when expected value is not provided'
 
     Each Field subclass should at least override the generate method and return
     a random value, otherwise a NotImplementedError will be raised.
