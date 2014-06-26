@@ -1,15 +1,12 @@
 language: python
 install:
-    - pip install flake8
-    - pip install "git+https://github.com/sthirugn/testimony.git"
     - pip install -r requirements.txt
+    - pip install -r requirements-optional.txt
 script:
     - flake8 .
+    - make test-docstrings
     - make test-robottelo
-    # The tests in `tests/foreman/` interact with a Satellite deployment, and
-    # they are lengthy. Don't run them on Travis.
-    - testimony validate_docstring tests/foreman/api
-    - testimony validate_docstring tests/foreman/cli
-    - testimony validate_docstring tests/foreman/ui
+    # The `test-foreman-*` recipes require the presence of a Satellite
+    # deployment, and they are lengthy. Don't run them on Travis.
 notifications:
     irc: "chat.freenode.net#robottelo"
