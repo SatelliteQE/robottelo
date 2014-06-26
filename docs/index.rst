@@ -41,22 +41,33 @@ are a few other things you may wish to do before continuing:
    "Development Tools"``.
 2. You may wish to install the optional dependencies listed in
    ``requirements-optional.txt``. (Use pip, as shown above.) They are required
-   for tasks like working with certificates, running tests with nose
-   and checking code quality with pylint.
+   for tasks like working with certificates, running the internal robottelo test
+   suite and checking code quality with pylint.
 
 Running the Tests
 =================
 
-Before running any tests, you must create a configuration file. That done, all
-tests can be run using either `unittest`_ or `nose`_. In short, you will execute
-the following commands::
+Before running any tests, you must create a configuration file::
 
     $ cp robottelo.properties.sample robottelo.properties
     $ vi robottelo.properties
+
+That done, you can run tests using ``make``::
+
+    $ make test-robottelo
+    $ make test-docstrings
+    $ make test-foreman-api
+    $ make test-foreman-cli
+    $ make test-foreman-ui
+
+If you want to run the test suite without the aid of ``make``, you can do that
+with either `unittest`_ or `nose`_::
+
     $ python -m unittest discover -s tests -t .
     $ nosetests -c robottelo.properties
 
-The following sections provide a detailed discussion of the above steps.
+The following sections discuss, in detail, how to update the configuration file
+and run tests directly.
 
 Initial Configuration
 ---------------------
