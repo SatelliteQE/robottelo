@@ -5,7 +5,8 @@ from robottelo.common import conf
 from robottelo.common.helpers import (
     escape_search, generate_email_address, generate_ipaddr, generate_mac,
     generate_name, generate_string, generate_strings_list, get_server_url,
-    info_dictionary, invalid_names_list, valid_data_list, valid_names_list,
+    get_server_credentials, info_dictionary, invalid_names_list,
+    valid_data_list, valid_names_list,
 )
 
 
@@ -23,9 +24,9 @@ class GetServerURLTestCase(unittest.TestCase):
         """Set some default values in the config file."""
         conf.properties['main.server.hostname'] = 'example.com'
         if 'main.server.scheme' in conf.properties:
-            del(conf.properties['main.server.scheme'])
+            del conf.properties['main.server.scheme']
         if 'main.server.port' in conf.properties:
-            del(conf.properties['main.server.port'])
+            del conf.properties['main.server.port']
 
     def test_default_v1(self):
         """Hostname set."""
@@ -74,6 +75,30 @@ class GetServerURLTestCase(unittest.TestCase):
         conf.properties['main.server.port'] = '1234'
         conf.properties['main.server.scheme'] = 'telnet'
         self.assertEqual(get_server_url(), 'telnet://example.com:1234')
+
+
+class GetServerCredentialsTestCase(unittest.TestCase):
+    """Tests for method ``get_server_credentials``."""
+    def setUp(self):
+        """Set some default values in the config file."""
+        conf.properties['foreman.admin.username'] = 'alice'
+        conf.properties['foreman.admin.password'] = 'hackme'
+
+    def test_default(self):
+        """Run method under normal conditions."""
+        self.assertEqual(get_server_credentials(), ('alice', 'hackme'))
+
+    def test_missing_username(self):
+        """Call method with no username set."""
+        del conf.properties['foreman.admin.username']
+        with self.assertRaises(KeyError):
+            get_server_credentials()
+
+    def test_missing_password(self):
+        """Call method with no password set."""
+        del conf.properties['foreman.admin.password']
+        with self.assertRaises(KeyError):
+            get_server_credentials()
 
 
 class FakeSSHResult(object):
