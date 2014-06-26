@@ -31,7 +31,7 @@ class TestHost(APITestCase):
         """
         h = Host()
         self.assertTrue(ApiCrud.record_exists(h) is False)
-        ApiCrud.record_create_recursive(h)
+        h = ApiCrud.record_create_recursive(h)
         self.assertTrue(ApiCrud.record_exists(h) is True)
         ApiCrud.record_remove(h)
         self.assertTrue(ApiCrud.record_exists(h) is False)
