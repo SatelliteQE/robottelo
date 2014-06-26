@@ -36,15 +36,11 @@ class ApiModelsTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
         # Are the correct categories of data returned?
-        data = response.json()
-        data_keys = data.keys()
-        self.assertIn(u'total', data_keys)
-        self.assertIn(u'subtotal', data_keys)
-        self.assertIn(u'page', data_keys)
-        self.assertIn(u'per_page', data_keys)
-        self.assertIn(u'search', data_keys)
-        self.assertIn(u'sort', data_keys)
-        self.assertIn(u'results', data_keys)
+        categories = response.json().keys()
+        for category in (
+                u'total', u'subtotal', u'page', u'per_page', u'search',
+                u'sort', u'results'):
+            self.assertIn(category, categories)
 
     def test_get_unauthorized(self):
         """@Test: GET ``self.path`` and do not provide credentials.
