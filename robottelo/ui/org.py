@@ -71,7 +71,7 @@ class Org(Base):
                                   new_entity_list=new_envs,
                                   entity_select=select)
         if hostgroups or new_hostgroups:
-            self.configure_entity(hostgroups, FILTER['org_hostrgroup'],
+            self.configure_entity(hostgroups, FILTER['org_hostgroup'],
                                   tab_locator=loc["orgs.tab_hostgrps"],
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
