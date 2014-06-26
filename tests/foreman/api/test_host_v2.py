@@ -7,6 +7,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html.
 """
 from random import randint
 from robottelo.api import client
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from unittest import TestCase
 from urlparse import urljoin
@@ -71,6 +72,7 @@ class ApiHostsTestCase(TestCase):
         response = client.get(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
 
+    @skip_if_bz_bug_open('1113272')
     def test_post(self):
         """POST ``self.path``."""
         # FIXME: use a factory to populate the POST request arguments
