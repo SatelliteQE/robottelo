@@ -19,7 +19,12 @@ class ApiModelsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/models')
 
     def test_get(self):
-        """GET ``self.path``."""
+        """@Test: GET ``self.path``.
+
+        @Feature: Model
+        @Assert: GET succeeds
+
+        """
         response = client.get(
             self.path,
             auth=get_server_credentials(),
@@ -42,12 +47,22 @@ class ApiModelsTestCase(TestCase):
         self.assertIn(u'results', data_keys)
 
     def test_get_unauthorized(self):
-        """GET ``self.path`` and do not provide credentials."""
+        """@Test: GET ``self.path`` and do not provide credentials.
+
+        @Feature: Model
+        @Assert: HTTP 401 is returned
+
+        """
         response = client.get(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
 
     def test_post(self):
-        """POST ``self.path``."""
+        """@Test: POST ``self.path``.
+
+        @Feature: Model
+        @Assert: New host is created
+
+        """
         # FIXME: use a factory to populate the POST request arguments
         response = client.post(
             self.path,
@@ -58,6 +73,11 @@ class ApiModelsTestCase(TestCase):
         self.assertEqual(response.status_code, 200, response.json()['error'])
 
     def test_post_unauthorized(self):
-        """POST ``self.path`` and do not provide credentials."""
+        """@Test: POST ``self.path`` and do not provide credentials.
+
+        @Feature: Model
+        @Assert: HTTP 401 is returned
+
+        """
         response = client.post(self.path, verify=False)
         self.assertEqual(response.status_code, 401)

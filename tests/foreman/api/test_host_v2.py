@@ -21,7 +21,12 @@ class ApiHostsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/hosts')
 
     def test_get(self):
-        """GET ``self.path``."""
+        """@Test: GET ``self.path``.
+
+        @Feature: Host
+        @Assert: GET succeeds
+
+        """
         response = client.get(
             self.path,
             auth=get_server_credentials(),
@@ -44,7 +49,12 @@ class ApiHostsTestCase(TestCase):
         self.assertIn(u'results', data_keys)
 
     def test_get_search(self):
-        """GET ``self.path`` and specify the ``search`` parameter."""
+        """@Test: GET ``self.path`` and specify the ``search`` parameter.
+
+        @Feature: Host
+        @Assert: Search term is returned
+
+        """
         query = 'g1JwBs3bz8s8uxaQb4Qv'  # FIXME: make this a random UTF-8 str
         response = client.get(
             self.path,
@@ -56,7 +66,12 @@ class ApiHostsTestCase(TestCase):
         self.assertEqual(response.json()['search'], query)
 
     def test_get_per_page(self):
-        """GET ``self.path`` and specify the ``per_page`` parameter."""
+        """@Test: GET ``self.path`` and specify the ``per_page`` parameter.
+
+        @Feature: Host
+        @Assert: Per page value is returned
+
+        """
         per_page = randint(1, 1000)
         response = client.get(
             self.path,
@@ -68,13 +83,23 @@ class ApiHostsTestCase(TestCase):
         self.assertEqual(response.json()['per_page'], per_page)
 
     def test_get_unauthorized(self):
-        """GET ``self.path`` and do not provide credentials."""
+        """@Test: GET ``self.path`` and do not provide credentials.
+
+        @Feature: Host
+        @Assert: HTTP 401 is returned
+
+        """
         response = client.get(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
 
     @skip_if_bz_bug_open('1113272')
     def test_post(self):
-        """POST ``self.path``."""
+        """@Test: POST ``self.path``.
+
+        @Feature: Host
+        @Assert: New host is created
+
+        """
         # FIXME: use a factory to populate the POST request arguments
         response = client.post(
             self.path,
@@ -85,6 +110,11 @@ class ApiHostsTestCase(TestCase):
         self.assertEqual(response.status_code, 200, response.json()['error'])
 
     def test_post_unauthorized(self):
-        """POST ``self.path`` and do not provide credentials."""
+        """@Test: POST ``self.path`` and do not provide credentials.
+
+        @Feature: Host
+        @Assert: HTTP 401 is returned
+
+        """
         response = client.post(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
