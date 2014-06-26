@@ -7,24 +7,26 @@ Module for Host api an record implementation
 
 from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud
-from robottelo.records.environment import Environment
 from robottelo.records.architecture import Architecture
 from robottelo.records.domain import Domain
-from robottelo.records.smartproxy import SmartProxy
-from robottelo.records.partitiontable import PartitionTable
+from robottelo.records.environment import Environment
+from robottelo.records.media import Media
 from robottelo.records.operatingsystem import OperatingSystem
+from robottelo.records.partitiontable import PartitionTable
+from robottelo.records.smartproxy import SmartProxy
 
 
 class HostApi(ApiCrud):
     """ Implementation of api for  foreman hosts
     """
-    api_path = "/api/hosts/"
+    api_path = "/api/v2/hosts/"
     api_json_key = u"host"
     create_fields = ["name",
                      "environment_id",
                      "architecture_id",
                      "root_pass",
                      "mac",
+                     "medium_id",
                      "domain_id",
                      "puppet_proxy_id",
                      "ptable_id",
@@ -39,6 +41,7 @@ class Host(records.Record):
     name = records.StringField(fmt=r"host\d\d\d\d\d")
     root_pass = records.StringField(default="changeme")
     mac = records.MACField()
+    medium = records.RelatedField(Media)
     environment = records.RelatedField(Environment)
     architecture = records.RelatedField(Architecture)
     domain = records.RelatedField(Domain)
@@ -54,6 +57,7 @@ class Host(records.Record):
         self.architecture.operatingsystem = [self.operatingsystem]
         self.ptable.operatingsystem = [self.operatingsystem]
         self.operatingsystem.ptables = [self.ptable]
+        self.medium.operatingsystem = [self.operatingsystem]
 
     class Meta:
         """Linking record definition with api implementation.
