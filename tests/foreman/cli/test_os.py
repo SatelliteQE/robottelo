@@ -122,19 +122,30 @@ class TestOperatingSystem(CLITestCase):
         @bz: 1021557
         """
 
-        new_obj = make_os()
-        os_info = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(new_obj['name'], os_info.stdout['name'])
+        try:
+            os = make_os()
+        except Exception as e:
+            self.fail(e)
 
         # New value for major
-        major = int(new_obj['major']) + 1
+        major = int(os['major']) + 1
+
         result = OperatingSys.update(
-            {'id': os_info.stdout['id'], 'major': major})
-        self.assertEqual(result.return_code, 0)
-        result = OperatingSys.info({'id': result.stdout['id']})
-        self.assertEqual(result.return_code, 0)
-        # this will check the updation of major == 3
-        self.assertEqual(major, result.stdout['major'])
+            {'id': os['id'], 'major': major})
+        self.assertEqual(result.return_code, 0,
+                         'Failed to update activation key')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+
+        result = OperatingSys.info({
+            u'id': os['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Failed to get info for OS')
+        self.assertEqual(len(result.stderr), 0,
+                         'There should not be an error here')
+        self.assertEqual(int(result.stdout['major-version']), major,
+                         'OS major version was not updated')
 
     def test_list_1(self):
         """
