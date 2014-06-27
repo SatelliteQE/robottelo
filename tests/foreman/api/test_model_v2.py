@@ -5,6 +5,7 @@ the "host" resource can be found here:
 http://theforeman.org/api/apidoc/v2/models.html.
 
 """
+from fauxfactory import FauxFactory
 from robottelo.api import client
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from unittest import TestCase
@@ -62,11 +63,25 @@ class ApiModelsTestCase(TestCase):
         # FIXME: use a factory to populate the POST request arguments
         response = client.post(
             self.path,
-            {'model[name]': 'Z62RNEc9J4kbUXOHJiYE'},
+            {
+                'model[name]': FauxFactory.generate_string(
+                    'utf8', FauxFactory.generate_integer(1, 100)
+                )
+            },
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 200, response.json()['error'])
+
+        status_code = 200
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            'Desired HTTP {0}, got HTTP {1}. {2}'.format(
+                status_code,
+                response.status_code,
+                response.json().get('error', 'No error received.')
+            )
+        )
 
     def test_post_unauthorized(self):
         """@Test: POST ``self.path`` and do not provide credentials.

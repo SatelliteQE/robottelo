@@ -102,11 +102,25 @@ class ApiHostsTestCase(TestCase):
         # FIXME: use a factory to populate the POST request arguments
         response = client.post(
             self.path,
-            {'host[name]': 'pie-in-the-sky'},
+            {
+                'host[name]': FauxFactory.generate_string(
+                    'utf8', FauxFactory.generate_integer(1, 100)
+                )
+            },
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 200, response.json()['error'])
+
+        status_code = 200
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            'Desired HTTP {0}, got HTTP {1}. {2}'.format(
+                status_code,
+                response.status_code,
+                response.json().get('error', 'No error received.')
+            )
+        )
 
     def test_post_unauthorized(self):
         """@Test: POST ``self.path`` and do not provide credentials.
