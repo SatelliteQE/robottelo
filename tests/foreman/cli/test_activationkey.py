@@ -496,7 +496,7 @@ class TestActivationKey(CLITestCase):
         """
         pass  # Skip for CLI as this is UI only
 
-    @skip_if_bz_bug_open(1109649)
+    @skip_if_bz_bug_open(1114109)
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -513,7 +513,7 @@ class TestActivationKey(CLITestCase):
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
         @Assert: Activation key is updated
-        @bz: 1109649
+        @bz: 1114109
         """
         try:
             activation_key = self._make_activation_key({
@@ -571,6 +571,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.update({
             u'name': activation_key['name'],
             u'new-name': test_data['name'],
+            u'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0,
                          'Failed to update activation key')
@@ -616,6 +617,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.update({
             u'name': activation_key['name'],
             u'description': test_data['description'],
+            u'organization-id': self.org['id'],
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to update activation key')
