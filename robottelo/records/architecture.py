@@ -13,7 +13,7 @@ from robottelo.records.permission import PermissionList
 
 class ArchitectureApi(ApiCrud):
     """Implementation of Architecture api"""
-    api_path = "/api/architectures/"
+    api_path = "/api/v2/architectures"
     api_json_key = u"architecture"
     create_fields = ["name", "operatingsystem_ids"]
 

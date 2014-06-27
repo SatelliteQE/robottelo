@@ -12,7 +12,7 @@ from robottelo.common import records
 class PermissionApi(ApiCrud):
     """ Implementation of api for foreman domains
     """
-    api_path = "/api/v2/permissions/"
+    api_path = "/api/v2/permissions"
     create_fields = ["name"]
 
     @classmethod

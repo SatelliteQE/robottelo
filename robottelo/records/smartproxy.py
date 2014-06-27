@@ -13,7 +13,7 @@ from robottelo.common import records
 class SmartProxyApi(ApiCrud):
     """ Implementation of api for  foreman SmartProxy
     """
-    api_path = "/api/smart_proxies/"
+    api_path = "/api/v2/smart_proxies"
     api_json_key = u"smart_proxy"
 
     create_fields = ["name",

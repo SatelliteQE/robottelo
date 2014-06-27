@@ -13,7 +13,7 @@ from robottelo.api.base import request
 class CustomRepositoryApi(ApiCrud):
     """Api implementation for activation keys
     """
-    api_path = "/katello/api/v2/repositories/"
+    api_path = "/katello/api/v2/repositories"
     create_fields = [
         "name", "description", "product_id",
         "url", "enabled", "content_type"

@@ -11,7 +11,7 @@ from robottelo.api.apicrud import ApiCrud
 class FilterApi(ApiCrud):
     """
     """
-    api_path = "/api/v2/filters/"
+    api_path = "/api/v2/filters"
 
     create_fields = ["role_id", "permission_ids", "search"]
 
@@ -29,7 +29,7 @@ class Filter(records.Record):
 class RolesApi(ApiCrud):
     """Api implementation for activation keys
     """
-    api_path = "/api/v2/roles/"
+    api_path = "/api/v2/roles"
 
     create_fields = ["name"]
 

@@ -14,7 +14,7 @@ from robottelo.api.apicrud import ApiCrud
 class PTableApi(ApiCrud):
     """ Implementation of api for  foreman partition tables
     """
-    api_path = "/api/ptables/"
+    api_path = "/api/v2/ptables"
     api_json_key = u"ptable"
 
     create_fields = ["name",
