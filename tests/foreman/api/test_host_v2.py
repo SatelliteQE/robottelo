@@ -111,7 +111,7 @@ class ApiHostsTestCase(TestCase):
             verify=False,
         )
 
-        status_code = 200
+        status_code = 201
         self.assertEqual(
             status_code,
             response.status_code,
