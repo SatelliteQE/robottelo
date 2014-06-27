@@ -2,6 +2,8 @@
 import booby
 import booby.fields
 import booby.inspection
+import booby.validators
+import collections
 
 
 class Entity(booby.Model):
@@ -50,8 +52,72 @@ class OneToOneField(booby.fields.Embedded):
     """Field that represents a one to one related entity"""
 
 
-class OneToManyField(OneToOneField):
-    """Field that represents a one to many related entity"""
+class OneToManyField(Field):
+    """Field that represents a one to many related entity
+
+    The value could be a single or a list of entities, or a dictionary or even
+    a list of dictionaries.
+
+     Examples of how to set OneToManyField value::
+
+        >>> class OneEntity(Entity):
+        ...     name = StringField()
+        ...
+        >>> class OtherEntity(Entity):
+        ...     ones = OneToManyField(OneEntity)
+        ...
+        >>> ent.ones = OneEntity(name='name')
+        >>> ent.ones
+        [<__main__.OneEntity(name='name')>]
+        >>> ent.ones = [OneEntity(name='name')]
+        >>> ent.ones
+        [<__main__.OneEntity(name='name')>]
+        >>> ent.ones = {'name': 'test'}
+        >>> ent.ones
+        [<__main__.OneEntity(name='test')>]
+        >>> ent.ones = [{'name': 'test'}]
+        >>> ent.ones
+        [<__main__.OneEntity(name='test')>]
+
+    All examples shows that the value will be converted to a list of a model
+    entities.
+
+    """
+
+    def __init__(self, model, *args, **kwargs):
+        super(OneToManyField, self).__init__(
+            booby.validators.List(booby.validators.Model(model)),
+            *args,
+            **kwargs
+        )
+
+        self.model = model
+
+    def __set__(self, instance, value):
+        """Override __set__ to process the value before setting it.
+
+        If the value is a single entity instance it is wrapped in a list.
+
+        If the value is a dict convert to a self.model instance and wrap in a
+        list.
+
+        If the value is a list and have any dict on it, convert that dict to a
+        self.model instance and override the dict on the list.
+        """
+        if isinstance(value, self.model):
+            # if received a single instance wraps it in a list
+            value = [value]
+        elif isinstance(value, collections.MutableMapping):
+            # convert a dict to a self.model instance and wraps in a list
+            value = [self.model(**value)]
+        elif isinstance(value, collections.MutableSequence):
+            # if an element in a list is a dict convert it to a self.model
+            # instance
+            for index, val in enumerate(value):
+                if isinstance(val, collections.MutableMapping):
+                    value[index] = self.model(**val)
+
+        super(OneToManyField, self).__set__(instance, value)
 
 
 class URLField(StringField):
