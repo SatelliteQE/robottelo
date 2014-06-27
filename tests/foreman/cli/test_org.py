@@ -632,7 +632,7 @@ class TestOrg(CLITestCase):
         org_result = make_org()
         user_result = make_user()
         return_value = Org.add_user(
-            {'name': org_result['name'], 'user-id': user_result['login']})
+            {'name': org_result['name'], 'user-id': user_result['id']})
         self.assertEqual(return_value.return_code, 0,
                          "Add User - retcode")
         self.assertEqual(
