@@ -1,10 +1,15 @@
 """Module that define the model layer used to define entities"""
 import booby
 import booby.fields
+import booby.inspection
 
 
 class Entity(booby.Model):
     """Entity class used to map system entities"""
+
+    def get_fields(self):
+        """Returns all defined fields as a dictionary"""
+        return booby.inspection.get_fields(self)
 
 
 # Wrappers for booby fields
