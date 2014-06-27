@@ -202,13 +202,14 @@ class TestContentHost(CLITestCase):
             "Lifecycle environments don't match"
         )
 
-    @skip_if_bz_bug_open('1105623')
+    @skip_if_bz_bug_open(1114046)
     @attr('cli', 'content-host')
     def test_positive_create_7(self):
         """
         @Test: Check if content host can be created with new lifecycle
         @Feature: Content Hosts
         @Assert: Content host is created using new lifecycle
+        @BZ: 1114046
         """
 
         new_system = make_content_host({
@@ -223,13 +224,14 @@ class TestContentHost(CLITestCase):
             "Environments don't match"
         )
 
-    @skip_if_bz_bug_open('1105623')
+    @skip_if_bz_bug_open(1114046)
     @attr('cli', 'content-host')
     def test_positive_create_8(self):
         """
         @Test: Check if content host can be created with new content view
         @Feature: Content Hosts
         @Assert: Content host is created using new content view
+        @BZ: 1114046
         """
 
         # Make a new content view
