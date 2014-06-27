@@ -54,7 +54,6 @@ def negative_create_data():
     )
 
 
-@skip_if_bz_bug_open('1099655')
 @ddt
 class TestContentView(CLITestCase):
     """
