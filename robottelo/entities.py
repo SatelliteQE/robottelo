@@ -11,5 +11,13 @@ from robottelo import orm
 
 
 class Host(orm.Entity):
-    """Entity that represents a Host on a Satellite system."""
+    """Entity representing a Host on a Satellite system."""
     name = orm.StringField(required=True)
+
+
+class Model(orm.Entity):
+    """Entity representing a Model on a Satellite system."""
+    name = orm.StringField(required=True)
+    info = orm.StringField()
+    vendor_class = orm.StringField()
+    hardware_model = orm.StringField()
