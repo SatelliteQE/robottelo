@@ -18,6 +18,19 @@ from urllib2 import urlopen, Request, URLError
 from urlparse import urlunsplit
 
 
+def get_server_credentials():
+    """Return credentials for interacting with a Foreman deployment API.
+
+    :return: A username-password pair.
+    :rtype: tuple
+
+    """
+    return (
+        conf.properties['foreman.admin.username'],
+        conf.properties['foreman.admin.password']
+    )
+
+
 def get_server_url():
     """Return the base URL of the Foreman deployment being tested.
 
