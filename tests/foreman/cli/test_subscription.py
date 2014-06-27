@@ -6,13 +6,12 @@ from ddt import ddt
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.factory import (
     make_org, make_lifecycle_environment)
-from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
+from robottelo.common.decorators import stubbed
 from robottelo.common.manifests import manifest
 from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-@skip_if_bz_bug_open('1099655')
 @ddt
 class TestSubscription(CLITestCase):
     """

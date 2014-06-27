@@ -7,13 +7,11 @@ Test class for Template CLI
 
 from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
-from robottelo.common.decorators import (skip_if_bz_bug_open,
-                                         skip_if_rm_bug_open)
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 
-@skip_if_rm_bug_open('4560')
 class TestTemplate(CLITestCase):
     """
     Test class for Config Template CLI.

@@ -632,7 +632,7 @@ class TestOrg(CLITestCase):
         org_result = make_org()
         user_result = make_user()
         return_value = Org.add_user(
-            {'name': org_result['name'], 'user-id': user_result['login']})
+            {'name': org_result['name'], 'user-id': user_result['id']})
         self.assertEqual(return_value.return_code, 0,
                          "Add User - retcode")
         self.assertEqual(
@@ -1098,6 +1098,7 @@ class TestOrg(CLITestCase):
             "Org name was not updated"
         )
 
+    @skip_if_bz_bug_open(1114136)
     @data({'description': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10)},
           {'description': generate_string("alpha", 10)},
@@ -1110,6 +1111,7 @@ class TestOrg(CLITestCase):
         description
         @feature: Organizations
         @assert: organization description is updated
+        @bz: 1114136
         """
 
         new_obj = make_org()
@@ -1136,7 +1138,8 @@ class TestOrg(CLITestCase):
             "Org desc was not updated"
         )
 
-    @skip_if_bz_bug_open('1076541')
+    @skip_if_bz_bug_open(1076541)
+    @skip_if_bz_bug_open(1114136)
     @data({'description': generate_string("latin1", 10),
            'name': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10),
@@ -1154,7 +1157,7 @@ class TestOrg(CLITestCase):
         @test: Create organization with valid values then update all values
         @feature: Organizations
         @assert: organization name and description are updated
-        @bz: 1076541
+        @bz: 1076541, 1114136
         """
 
         new_obj = make_org()
@@ -1221,6 +1224,7 @@ class TestOrg(CLITestCase):
         self.assertGreater(len(result.stderr), 0,
                            "There should be error - hammer expects error")
 
+    @skip_if_bz_bug_open(1114136)
     @data({'description': generate_string('alpha', 3000)},
           {'description': generate_string('numeric', 3000)},
           {'description': generate_string('alphanumeric', 3000)},
@@ -1233,6 +1237,7 @@ class TestOrg(CLITestCase):
         its description
         @feature: Organizations
         @assert: organization description is not updated
+        @bz: 1114136
         """
 
         new_obj = make_org()
