@@ -3,6 +3,7 @@ iniparse
 
 # For all tests.
 booby
+fauxfactory
 ddt
 python-bugzilla
 

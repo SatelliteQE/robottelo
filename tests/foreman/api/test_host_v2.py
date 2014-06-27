@@ -5,7 +5,7 @@ the "host" resource can be found here:
 http://theforeman.org/api/apidoc/v2/hosts.html.
 
 """
-from random import randint
+from fauxfactory import FauxFactory
 from robottelo.api import client
 from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import get_server_url, get_server_credentials
@@ -51,7 +51,10 @@ class ApiHostsTestCase(TestCase):
         @Assert: Search term is returned
 
         """
-        query = 'g1JwBs3bz8s8uxaQb4Qv'  # FIXME: make this a random UTF-8 str
+        query = FauxFactory.generate_string(
+            'utf8',
+            FauxFactory.generate_integer(1, 100)
+        )
         response = client.get(
             self.path,
             auth=get_server_credentials(),
@@ -68,7 +71,7 @@ class ApiHostsTestCase(TestCase):
         @Assert: Per page value is returned
 
         """
-        per_page = randint(1, 1000)
+        per_page = FauxFactory.generate_integer(1, 1000)
         response = client.get(
             self.path,
             auth=get_server_credentials(),
