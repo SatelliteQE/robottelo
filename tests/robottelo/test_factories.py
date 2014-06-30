@@ -1,5 +1,6 @@
 """Tests for module ``robottelo.factories``."""
 # (Too many public methods) pylint: disable=R0904
+from fauxfactory import FauxFactory
 from robottelo import factories, orm
 from sys import version_info
 from unittest import TestCase
@@ -29,6 +30,34 @@ class GetPopulateStringFieldTestCase(TestCase):
     def test_len(self):
         """Check whether a string at least 1 char long is returned."""
         self.assertTrue(len(factories._populate_string_field()) > 0)
+
+
+class IsRequiredTestCase(TestCase):
+    """Test for function ``_is_required``."""
+    # (protected-access) pylint:disable=W0212
+    def test__is_required_v1(self):
+        """Do not set the ``required`` attribute at all.
+
+        Assert that ``_is_required`` returns ``False``.
+
+        """
+        self.assertFalse(factories._is_required(orm.Field()))
+
+    def test__is_required_v2(self):
+        """Set the ``required`` attribute to ``False``.
+
+        Assert that ``_is_required`` returns ``False``.
+
+        """
+        self.assertFalse(factories._is_required(orm.Field(required=False)))
+
+    def test__is_required_v3(self):
+        """Set the ``required`` attribute to ``True``.
+
+        Assert that ``_is_required`` returns ``True``.
+
+        """
+        self.assertTrue(factories._is_required(orm.Field(required=True)))
 
 
 class FactoryTestCase(TestCase):
@@ -109,30 +138,8 @@ class FactoryTestCase(TestCase):
         fields = factory._customize_field_names(EmptyEntity.get_fields())
         self.assertEqual(fields, {})
 
-    def test__get_required_fields_v1(self):
-        """Create a factory using ``EmptyEntity`` and call
-        ``_get_required_fields``.
-
-        """
-        # (protected-access) pylint:disable=W0212
-        self.assertEqual(
-            factories.Factory(EmptyEntity)._get_required_fields(),
-            {},
-        )
-
-    def test__get_required_fields_v2(self):
-        """Create a factory using ``NonEmptyEntity`` and call
-        ``_get_required_fields``.
-
-        """
-        # (protected-access) pylint:disable=W0212
-        fields = factories.Factory(NonEmptyEntity)._get_required_fields()
-        self.assertIn('name', fields)
-        self.assertNotIn('cost', fields)
-        self.assertIsInstance(fields['name'], orm.StringField)
-
     def test_attributes_v1(self):
-        """Pass in ``EmptyEntity, then call ``attributes``.
+        """Create a factory with ``EmptyEntity``, then call ``attributes``.
 
         Assert an empty dict is returned.
 
@@ -140,10 +147,10 @@ class FactoryTestCase(TestCase):
         self.assertEqual({}, factories.Factory(EmptyEntity).attributes())
 
     def test_attributes_v2(self):
-        """Pass in ``NonEmptyEntity, then call ``attributes``.
+        """Create a factory with ``NonEmptyEntity``, then call ``attributes``.
 
         Assert the dict returned contains the correct keys, and that those keys
-        correct to the correct datatypes.
+        correspond to the correct datatypes.
 
         """
         attrs = factories.Factory(NonEmptyEntity).attributes()
@@ -153,3 +160,38 @@ class FactoryTestCase(TestCase):
             type(factories._populate_string_field()),  # pylint:disable=W0212
             type(attrs['name'])
         )
+
+    def test_attributes_v3(self):
+        """Explicitly provide several values to the ``attributes`` method.
+
+        Rather than letting ``Factory`` generate default values for all fields,
+        pass several field values to the ``attributes`` method. Assert the
+        values passed in are used in the dict of attributes returned.
+
+        """
+        # NonEmptyEntity.name is a required attribute
+        name = FauxFactory.generate_string(
+            'utf8',
+            FauxFactory.generate_integer(1, 1000)
+        )
+        attrs = factories.Factory(NonEmptyEntity).attributes(name=name)
+        self.assertEqual(attrs['name'], name)
+
+        # NonEmptyEntity.name is a non-required attribute
+        cost = FauxFactory.generate_integer(1, 1000)
+        attrs = factories.Factory(NonEmptyEntity).attributes(
+            name=name,
+            cost=cost
+        )
+        self.assertEqual(attrs['name'], name)
+        self.assertEqual(attrs['cost'], cost)
+
+    def test_attributes_v4(self):
+        """Provide non-existent fields to the ``attributes`` method.
+
+        Assert that, if non-existent fields are provided to ``attributes``, a
+        ``ValueException`` is raised.
+
+        """
+        with self.assertRaises(ValueError):
+            factories.Factory(EmptyEntity).attributes(no_such_field='bad juju')

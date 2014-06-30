@@ -23,6 +23,21 @@ def _populate_string_field():
     )
 
 
+def _is_required(field_type):
+    """Tell whether ``field_type`` is required or not.
+
+    :param robottelo.orm.Field field_type: A ``Field``, or one of its more
+        specialized brethren.
+    :return: ``True`` if ``field_type.options.required`` is set and ``True``.
+        ``False`` otherwise.
+    :rtype: bool
+
+    """
+    if field_type.options.get('required', False):
+        return True
+    return False
+
+
 class Factory(object):
     """The parent class for all Factories.
 
@@ -116,22 +131,7 @@ class Factory(object):
 
         return fields
 
-    def _get_required_fields(self):
-        """Return ``self.entity``'s required fields.
-
-        :return: A dictionary mapping ``str`` names to ``robottelo.orm``
-            fields. Each name-field pair in the dictionary corresponds to one
-            of ``self.entity``'s required fields.
-        :rtype: dict
-
-        """
-        required_fields = {}
-        for name, type_ in self.entity.get_fields().items():
-            if type_.options.get('required', False):
-                required_fields[name] = type_
-        return required_fields
-
-    def attributes(self):
+    def attributes(self, **kwargs):
         """Return values for populating a new entity.
 
         When this method is called, no entity is created on a Foreman server.
@@ -153,21 +153,57 @@ class Factory(object):
             >>> host_attrs['host[environment_id]']
             None
 
+        If a value is passed in, it will be used::
+
+            >>> host_attrs = HostFactory().attributes(name='Alice')
+            >>> host_attrs['name'] == 'Alice'
+            True
+
         :return: Information for creating a new entity.
         :rtype: dict
 
         """
-        fields = {}
-        for name, type_ in self._get_required_fields().items():
-            # FIXME: Let child classes override this value generation logic.
-            # FIXME: Provide more default _populate_* methods? Drop defaults?
-            if isinstance(type_, orm.StringField):
+        entity_fields = self.entity.get_fields()  # source
+        fields = {}                               # destination
+        for name, type_ in entity_fields.items():
+            if name in kwargs:
+                # If the user provided an explicit value for this particular
+                # field, we'll deal with that a bit later.
+                pass
+            elif not _is_required(type_):
+                # If this field is not required, skip it.
+                pass
+            elif isinstance(type_, orm.StringField):
+                # Use a default field population strategy.
+                # FIXME: Push default value generation logic into a private
+                # helper function or method, and provide more default
+                # _populate_* methods.
+                # FIXME: Let child classes override default value generation
+                # logic.
                 fields[name] = _populate_string_field()
             else:
-                raise NotImplementedError
+                raise NotImplementedError(
+                    'No value was provided for {0}, and there is no default '
+                    'strategy for populating values of type {1}.'.format(
+                        name, type_
+                    )
+                )
+
+        # Deal with arguments passed in like this:
+        # SomeFactory().attributes(name='Alice')
+        for name, value in kwargs.items():
+            if name not in entity_fields.keys():
+                raise ValueError(
+                    'Entity {0} has no attribute named "{1}".'.format(
+                        self.entity, name
+                    )
+                )
+            fields[name] = value
+
+        # If dealing with an API or CLI, field names may need to be tweaked.
         return self._customize_field_names(fields)
 
-    def create(self):
+    def create(self, **kwargs):
         """Create a new entity, plus all of its dependent entities.
 
         Create an entity and all of its dependent entities, then return a dict
