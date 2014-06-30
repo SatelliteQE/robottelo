@@ -95,13 +95,25 @@ class Factory(object):
         :rtype: dict
 
         """
+        # The `fields` arg is often missing many {'name': orm.SomeType} pairs,
+        # because non-required fields are typically removed before this method
+        # is called. Thus, `pop` must be wrapped in a `try` block.
+
         if self.interface is 'API' and hasattr(self.entity.Meta, 'api_names'):
             for generic_name, api_name in self.entity.Meta.api_names.items():
-                fields[api_name] = fields.pop(generic_name)
+                try:
+                    fields[api_name] = fields.pop(generic_name)
+                except KeyError:
+                    pass
+
         elif self.interface is 'CLI' \
                 and hasattr(self.entity.Meta, 'cli_names'):
             for generic_name, cli_name in self.entity.Meta.cli_names.items():
-                fields[cli_name] = fields.pop(generic_name)
+                try:
+                    fields[cli_name] = fields.pop(generic_name)
+                except KeyError:
+                    pass
+
         return fields
 
     def _get_required_fields(self):

@@ -86,6 +86,29 @@ class FactoryTestCase(TestCase):
         self.assertIn('name', fields)
         self.assertIn('field_names', fields)
 
+    def test__customize_field_names_v3(self):
+        """Set extra ``Meta`` attributes and call ``_customize_field_names``.
+
+        Set ``EmptyEntity.Meta.api_names`` and ``EmptyEntity.Meta.cli_names``.
+        Call ``_customize_field_names``, and ensure that the method does not
+        complain about the missing underlying fields.
+
+        """
+        EmptyEntity.Meta.api_names = {'these_fields': 'do_not_exist'}
+        EmptyEntity.Meta.cli_names = {'on': 'EmptyEntity'}
+
+        factory = factories.Factory(EmptyEntity)
+        fields = factory._customize_field_names(EmptyEntity.get_fields())
+        self.assertEqual(fields, {})
+
+        factory = factories.Factory(EmptyEntity, 'API')
+        fields = factory._customize_field_names(EmptyEntity.get_fields())
+        self.assertEqual(fields, {})
+
+        factory = factories.Factory(EmptyEntity, 'CLI')
+        fields = factory._customize_field_names(EmptyEntity.get_fields())
+        self.assertEqual(fields, {})
+
     def test__get_required_fields_v1(self):
         """Create a factory using ``EmptyEntity`` and call
         ``_get_required_fields``.
