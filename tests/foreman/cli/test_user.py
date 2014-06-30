@@ -1496,13 +1496,17 @@ class User(CLITestCase):
         """
         @Test: Automation of BZ 1110337
         @Feature: User - info, list BZ
+        @Assert: No undefined method exception
         """
-        user = make_user()
+        users = []
+        for i in range(4):
+            users.append(make_user())
         # existing user info
-        result = UserObj.info({'login': user['login']})
-        self.assertEqual(result.return_code, 0)
+        for user in users:
+            result = UserObj.info({'login': user['login']})
+            self.assertEqual(result.return_code, 0)
         # non-existing user info
-        result = UserObj.info({'id': int(user['id']) + 1})
+        result = UserObj.info({'id': 0})
         self.assertNotEqual(result.return_code, 0)
         self.assertNotRegexpMatches(str(result.stderr), 'undefined method')
         # list users
