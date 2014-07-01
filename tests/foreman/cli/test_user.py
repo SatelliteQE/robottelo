@@ -1505,6 +1505,7 @@ class User(CLITestCase):
         for user in users:
             result = UserObj.info({'login': user['login']})
             self.assertEqual(result.return_code, 0)
+            self.assertEqual(len(result.stderr), 0)
         # non-existing user info
         result = UserObj.info({'id': 0})
         self.assertNotEqual(result.return_code, 0)
@@ -1513,3 +1514,5 @@ class User(CLITestCase):
         result = UserObj.list()
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
+        for user in users:
+            self.assertNotEqual(str(result.stdout).find(user['login']), -1)
