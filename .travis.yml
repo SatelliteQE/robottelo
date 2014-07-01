@@ -6,7 +6,7 @@ script:
     - flake8 .
     - make test-docstrings
     - make test-robottelo
-    # The `test-foreman-*` recipes require the presence of a Satellite
+    # The `test-foreman-*` recipes require the presence of a Foreman
     # deployment, and they are lengthy. Don't run them on Travis.
 notifications:
     irc: "chat.freenode.net#robottelo"
