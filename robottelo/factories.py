@@ -121,8 +121,8 @@ class Factory(object):
                 except KeyError:
                     pass
 
-        elif self.interface is 'CLI' \
-                and hasattr(self.entity.Meta, 'cli_names'):
+        elif (self.interface is 'CLI'
+              and hasattr(self.entity.Meta, 'cli_names')):
             for generic_name, cli_name in self.entity.Meta.cli_names.items():
                 try:
                     fields[cli_name] = fields.pop(generic_name)
