@@ -8,11 +8,15 @@ of a "Host" entity.
 
 """
 from robottelo import orm
+# (too-few-public-methods) pylint:disable=R0903
 
 
 class Host(orm.Entity):
     """Entity representing a Host on a Foreman system."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_names = {'name': 'host[name]'}
 
 
 class Model(orm.Entity):
@@ -21,3 +25,11 @@ class Model(orm.Entity):
     info = orm.StringField()
     vendor_class = orm.StringField()
     hardware_model = orm.StringField()
+
+    class Meta(object):
+        api_names = {
+            'name': 'model[name]',
+            'info': 'model[info]',
+            'vendor_class': 'model[vendor_class]',
+            'hardware_model': 'model[hardware_model]',
+        }

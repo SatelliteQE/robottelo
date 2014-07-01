@@ -11,6 +11,13 @@ Submodules:
     :members:
     :undoc-members:
 
+:mod:`tests.robottelo.test_factories`
+-------------------------------------
+
+.. automodule:: tests.robottelo.test_factories
+    :members:
+    :undoc-members:
+
 :mod:`tests.robottelo.test_cli`
 -------------------------------
 

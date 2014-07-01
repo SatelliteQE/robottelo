@@ -22,6 +22,13 @@ Submodules:
     :members:
     :undoc-members:
 
+:mod:`robottelo.factories`
+--------------------------
+
+.. automodule:: robottelo.factories
+    :members:
+    :undoc-members:
+
 :mod:`robottelo.log`
 --------------------
 

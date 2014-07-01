@@ -7,11 +7,37 @@ import collections
 
 
 class Entity(booby.Model):
-    """Entity class used to map system entities"""
+    """A logical representation of a Foreman entity.
 
-    def get_fields(self):
-        """Returns all defined fields as a dictionary"""
-        return booby.inspection.get_fields(self)
+    This class is rather useless as is, and it is intended to be subclassed.
+    Subclasses can specify two useful types of information:
+
+    * fields
+    * metadata
+
+    Fields are represented by setting class attributes, and metadata is
+    represented by settings attributes on the inner class named ``Meta``.
+
+    """
+    class Meta(object):
+        """Non-field information about this entity.
+
+        Examples of information which can be set on this class are the
+        ``api_names`` and ``cli_names`` dicts. See :mod:`robottelo.factories`
+        for details.
+
+        """
+
+    @classmethod
+    def get_fields(cls):
+        """Return all defined fields as a dictionary.
+
+        :return: A dictionary mapping ``str`` field names to ``robottelo.orm``
+            field types.
+        :rtype: dict
+
+        """
+        return booby.inspection.get_fields(cls)
 
 
 # Wrappers for booby fields

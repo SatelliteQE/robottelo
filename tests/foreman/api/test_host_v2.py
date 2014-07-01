@@ -9,6 +9,7 @@ from fauxfactory import FauxFactory
 from robottelo.api import client
 from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import get_server_url, get_server_credentials
+from robottelo import factories
 from unittest import TestCase
 from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
@@ -99,14 +100,9 @@ class ApiHostsTestCase(TestCase):
         @Assert: New host is created
 
         """
-        # FIXME: use a factory to populate the POST request arguments
         response = client.post(
             self.path,
-            {
-                'host[name]': FauxFactory.generate_string(
-                    'utf8', FauxFactory.generate_integer(1, 100)
-                )
-            },
+            factories.HostFactory('API').attributes(),
             auth=get_server_credentials(),
             verify=False,
         )
