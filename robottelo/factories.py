@@ -121,6 +121,7 @@ class Factory(object):
         # Everything seems to check out
         self.entity = entity
         self.interface = interface
+        self.field_values = {}
 
     def _customize_field_names(self, fields):
         """Customize field names according to ``self.interface``.
@@ -216,21 +217,47 @@ class Factory(object):
         """
         entity_fields = self.entity.get_fields()  # source
         fields = {}                               # destination
-        for name, type_ in entity_fields.items():
-            if name in kwargs:
-                # If the user provided an explicit value for this particular
-                # field, we'll deal with that a bit later.
-                pass
-            elif not _is_required(type_):
-                # If this field is not required, skip it.
-                pass
-            else:
-                # Use a default field population strategy.
-                # FIXME: Let child classes override default value generation
-                # logic.
-                fields[name] = _get_default_value(type_)
 
-        # Deal with arguments passed in like this:
+        # Provide default values for fields, if appropriate.
+        for name, type_ in entity_fields.items():
+            # FIXME: move much of this to the docstring for class `Factory`.
+            #
+            # Should a default value be generated for the current field? There
+            # are several reasons the answer could be "no":
+            #
+            # 1.  The current field is not required.
+            # 2.  The user provided an exact value for the current field. For
+            #     example, if `PersonFactory().attributes(name='Alice')` is
+            #     being executed, an exact value has been provided for the
+            #     "name" field and we should not provide a default value.
+            # 3.  A subclass has provided a value for this field in
+            #     `self.field_values`. For example, if the `PersonFactory`
+            #     class contains the following method definition, a value has
+            #     been provided for the "name" field and we should not provide
+            #     a default value:
+            #
+            #         def __init__(self):
+            #             super(PersonFactory, self).__init__(
+            #                 entities.Person,
+            #                 interface=interface
+            #             )
+            #             self.field_values['name'] = 'Alice'
+            #
+            if (
+                not _is_required(type_) or
+                name in kwargs or
+                name in self.field_values
+            ):
+                continue
+            fields[name] = _get_default_value(type_)
+
+        # Use values from `self.field_values`.
+        for name, value in self.field_values.items():
+            if name in kwargs:
+                continue
+            fields[name] = value
+
+        # Deal with arguments like this:
         # SomeFactory().attributes(name='Alice')
         for name, value in kwargs.items():
             if name not in entity_fields.keys():

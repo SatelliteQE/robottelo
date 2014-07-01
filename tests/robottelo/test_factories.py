@@ -12,6 +12,10 @@ import re
 import socket
 
 
+SAMPLE_FACTORY_NAME = 'christmahanakwanzika present'
+SAMPLE_FACTORY_COST = 150
+
+
 class EmptyEntity(orm.Entity):
     """A sample entity which has no fields."""
 
@@ -20,6 +24,14 @@ class NonEmptyEntity(orm.Entity):
     """A sample entity which has fields."""
     name = orm.StringField(required=True)
     cost = orm.IntegerField()
+
+
+class SampleFactory(factories.Factory):
+    """A sample factory that provides values for all fields."""
+    def __init__(self, interface=None):
+        super(SampleFactory, self).__init__(NonEmptyEntity, interface=interface)
+        self.field_values['name'] = SAMPLE_FACTORY_NAME
+        self.field_values['cost'] = SAMPLE_FACTORY_COST
 
 
 class GetDefaultValueTestCase(TestCase):
@@ -283,3 +295,20 @@ class FactoryTestCase(TestCase):
         """
         with self.assertRaises(ValueError):
             factories.Factory(EmptyEntity).attributes(no_such_field='bad juju')
+
+    def test_attributes_v5(self):
+        """Check that ``self.field_values`` overrides default values."""
+        attrs = SampleFactory().attributes()
+        self.assertEqual(attrs['name'], SAMPLE_FACTORY_NAME)
+        self.assertEqual(attrs['cost'], SAMPLE_FACTORY_COST)
+
+    def test_attributes_v6(self):
+        """Check that ``self.field_values`` can be explicitly overridden."""
+        name = FauxFactory.generate_string(
+            'utf8',
+            FauxFactory.generate_integer(1, 1000)
+        )
+        cost = FauxFactory.generate_integer(1, 1000)
+        attrs = SampleFactory().attributes(name=name, cost=cost)
+        self.assertEqual(name, attrs['name'])
+        self.assertEqual(cost, attrs['cost'])
