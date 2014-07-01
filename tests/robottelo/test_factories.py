@@ -109,6 +109,15 @@ class GetDefaultValueTestCase(TestCase):
             self.assertIsInstance(string, str)
         self.assertTrue(len(string) > 0)
 
+    def test_default(self):
+        """Pass in an instance of ``robottelo.orm.Field``.
+
+        Ensure a ``TypeError`` is raised.
+
+        """
+        with self.assertRaises(TypeError):
+            factories._get_default_value(orm.Field())
+
 
 class IsRequiredTestCase(TestCase):
     """Test for function ``_is_required``."""

@@ -83,7 +83,7 @@ def _get_default_value(field_type):
     elif isinstance(field_type, orm.StringField):
         return _string_field()
     else:
-        raise NotImplementedError(
+        raise TypeError(
             'There is no default strategy for populating fields of type '
             '{0}.'.format(field_type)
         )
