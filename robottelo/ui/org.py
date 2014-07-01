@@ -91,7 +91,7 @@ class Org(Base):
         if self.wait_until_element(locators["org.new"]):
             self.wait_until_element(locators["org.new"]).click()
             if parent_org:
-                type_ele = self.find_element(locators["org.parent"])
+                type_ele = self.wait_until_element(locators["org.parent"])
                 Select(type_ele).select_by_visible_text(parent_org)
             if self.wait_until_element(locators["org.name"]):
                 self.field_update("org.name", org_name)

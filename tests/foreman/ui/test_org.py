@@ -7,7 +7,12 @@
 Test class for Organization UI
 """
 
+import sys
 from ddt import ddt
+if sys.hexversion >= 0x2070000:
+    import unittest
+else:
+    import unittest2 as unittest
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.decorators import data
@@ -63,6 +68,7 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(org_name))
 
+    @unittest.skip("parent_org feature is disabled currently")
     @attr('ui', 'org', 'implemented')
     @data({'label': generate_string('alpha', 10),
            'name': generate_string('alpha', 10),
@@ -286,13 +292,14 @@ class Org(UITestCase):
         @test: Create organization with valid values then update its name
         @assert: organization name is updated
         """
+
         org_name = generate_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_org()
         self.org.create(org_name)
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(org_name))
-        self.org.update(org_name, new_name)
+        self.org.update(org_name, new_name=new_name)
         self.assertIsNotNone(self.org.search(new_name))
 
     # Negative Update
@@ -313,7 +320,7 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.assertIsNotNone(self.org.search(org_name))
         new_name = generate_string("alpha", 256)
-        self.org.update(org_name, new_name)
+        self.org.update(org_name, new_name=new_name)
         error = self.org.wait_until_element(common_locators["name_haserror"])
         self.assertTrue(error)
 
@@ -663,6 +670,7 @@ class Org(UITestCase):
                                                value1 % resource_name))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
+        self.navigator.go_to_org()
         self.org.update(org_name, resources=[resource_name],
                         new_resources=None)
         self.org.search(org_name).click()
@@ -934,7 +942,7 @@ class Org(UITestCase):
         # Item is listed in 'Selected Items' list and not 'All Items' list.
         self.assertTrue(element)
         self.navigator.go_to_org()
-        self.org.update(org_name, new_envs=[env])
+        self.org.update(org_name, envs=[env], new_envs=None)
         self.org.search(org_name).click()
         self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
         element = self.org.wait_until_element((strategy,
