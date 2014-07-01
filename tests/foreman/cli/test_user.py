@@ -1491,3 +1491,28 @@ class User(CLITestCase):
         @Status: Manual
         """
         pass
+
+    def test_automation_bz_1110337(self):
+        """
+        @Test: Automation of BZ 1110337
+        @Feature: User - info, list BZ
+        @Assert: No undefined method exception
+        """
+        users = []
+        for i in range(4):
+            users.append(make_user())
+        # existing user info
+        for user in users:
+            result = UserObj.info({'login': user['login']})
+            self.assertEqual(result.return_code, 0)
+            self.assertEqual(len(result.stderr), 0)
+        # non-existing user info
+        result = UserObj.info({'id': 0})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotRegexpMatches(str(result.stderr), 'undefined method')
+        # list users
+        result = UserObj.list()
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        for user in users:
+            self.assertNotEqual(str(result.stdout).find(user['login']), -1)
