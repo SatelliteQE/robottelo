@@ -13,9 +13,10 @@ creating "Host" entities.
 """
 from fauxfactory import FauxFactory
 from robottelo import entities, orm
+import random
 
 
-def _populate_string_field():
+def _string_field():
     """Return a value suitable for populating a string field."""
     return FauxFactory.generate_string(
         'utf8',
@@ -36,6 +37,56 @@ def _is_required(field_type):
     if field_type.options.get('required', False):
         return True
     return False
+
+
+def _get_default_value(field_type):
+    """Return a value for a field of type ``field_type``.
+
+    This method is capable of accepting a wide variety of field types and
+    generating a value for fields of that type. For example,
+    ``robottelo.orm.BooleanField`` is passed in, either ``True`` or ``False``
+    is returned
+
+    This method should be used if calling code does not provide an explicit
+    value (e.g. ``SomeFactory().attributes(name='Alice')`` and no ``Factory``
+    subclass provides a field-specific method.
+
+    The following ``robottelo.orm`` fields are supported:
+
+    * ``BooleanField``
+    * ``EmailField``
+    * ``FloatField``
+    * ``IntegerField``
+    * ``IPAddressField``
+    * ``MACAddressField``
+    * ``StringField``
+
+    :param robottelo.orm.Field field_type: A ``Field``, or one of its more
+        specialized brethren.
+    :return: A value suitable for use in a field of type ``field_type``.
+    :raises TypeError: If no strategy exists for generating a value of type
+        ``field_type``.
+
+    """
+    if isinstance(field_type, orm.BooleanField):
+        return FauxFactory.generate_boolean()
+    elif isinstance(field_type, orm.EmailField):
+        return FauxFactory.generate_email()
+    elif isinstance(field_type, orm.FloatField):
+        return random.random() * 10000
+    elif isinstance(field_type, orm.IntegerField):
+        return FauxFactory.generate_integer()
+    elif isinstance(field_type, orm.IPAddressField):
+        return FauxFactory.generate_ipaddr()
+    elif isinstance(field_type, orm.MACAddressField):
+        return FauxFactory.generate_mac()
+    elif isinstance(field_type, orm.StringField):
+        return _string_field()
+    else:
+        raise NotImplementedError(
+            'There is no default strategy for populating fields of type '
+            '{0}.'.format(field_type)
+        )
 
 
 class Factory(object):
@@ -173,21 +224,11 @@ class Factory(object):
             elif not _is_required(type_):
                 # If this field is not required, skip it.
                 pass
-            elif isinstance(type_, orm.StringField):
+            else:
                 # Use a default field population strategy.
-                # FIXME: Push default value generation logic into a private
-                # helper function or method, and provide more default
-                # _populate_* methods.
                 # FIXME: Let child classes override default value generation
                 # logic.
-                fields[name] = _populate_string_field()
-            else:
-                raise NotImplementedError(
-                    'No value was provided for {0}, and there is no default '
-                    'strategy for populating values of type {1}.'.format(
-                        name, type_
-                    )
-                )
+                fields[name] = _get_default_value(type_)
 
         # Deal with arguments passed in like this:
         # SomeFactory().attributes(name='Alice')
