@@ -67,8 +67,9 @@ class GetDefaultValueTestCase(TestCase):
         Ensure the value returned is a ``float``.
 
         """
-        self.assertTrue(
-            isinstance(factories._get_default_value(orm.FloatField()), float)
+        self.assertIsInstance(
+            factories._get_default_value(orm.FloatField()),
+            float
         )
 
     def test_integer_field(self):
@@ -77,8 +78,9 @@ class GetDefaultValueTestCase(TestCase):
         Ensure the value returned is a ``int``.
 
         """
-        self.assertTrue(
-            isinstance(factories._get_default_value(orm.IntegerField()), int)
+        self.assertIsInstance(
+            factories._get_default_value(orm.IntegerField()),
+            int
         )
 
     def test_ip_address_field(self):
@@ -98,15 +100,15 @@ class GetDefaultValueTestCase(TestCase):
 
         Ensure the value returned is a string containing 12 hex digits (either
         upper or lower case), grouped into pairs of digits and separated by
-        colon characters.
+        colon characters. For example: ``'01:23:45:FE:dc:BA'``
 
         """
         # This regex is inspired by suggestions from others, but simpler. See:
         # http://stackoverflow.com/questions/7629643/how-do-i-validate-the-format-of-a-mac-address
-        self.assertTrue(re.search(
-            '^([0-9A-F]{2}[:]){5}[0-9A-F]{2}$',
-            factories._get_default_value(orm.MACAddressField()).upper()
-        ))
+        self.assertRegexpMatches(
+            factories._get_default_value(orm.MACAddressField()).upper(),
+            '^([0-9A-F]{2}[:]){5}[0-9A-F]{2}$'
+        )
 
     def test_string_field(self):
         """Pass in an instance of ``robottelo.orm.StringField``.
@@ -119,7 +121,7 @@ class GetDefaultValueTestCase(TestCase):
             self.assertIsInstance(string, unicode)
         else:
             self.assertIsInstance(string, str)
-        self.assertTrue(len(string) > 0)
+        self.assertGreater(len(string), 0)
 
     def test_default(self):
         """Pass in an instance of ``robottelo.orm.Field``.
