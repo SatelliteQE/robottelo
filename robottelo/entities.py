@@ -12,24 +12,43 @@ from robottelo import orm
 
 
 class Host(orm.Entity):
-    """Entity representing a Host on a Foreman system."""
+    """A representation of a Host entity."""
     name = orm.StringField(required=True)
 
     class Meta(object):
+        '''Alternate names for this entity's fields.'''
         api_names = {'name': 'host[name]'}
 
 
 class Model(orm.Entity):
-    """Entity representing a Model on a Foreman system."""
+    """A representation of a Model entity."""
     name = orm.StringField(required=True)
     info = orm.StringField()
     vendor_class = orm.StringField()
     hardware_model = orm.StringField()
 
     class Meta(object):
+        '''Alternate names for this entity's fields.'''
         api_names = {
             'name': 'model[name]',
             'info': 'model[info]',
             'vendor_class': 'model[vendor_class]',
             'hardware_model': 'model[hardware_model]',
         }
+
+
+class Organization(orm.Entity):
+    """A representation of an Organization entity."""
+    name = orm.StringField(required=True)
+    label = orm.StringField()
+    description = orm.StringField()
+
+
+class Product(orm.Entity):
+    """A representation of a Product entity."""
+    organization_id = orm.OneToOneField(Organization, required=True)
+    description = orm.StringField()
+    gpg_key_id = orm.IntegerField()
+    #sync_plan_id = orm.OneToOneField(SyncPlan)  # FIXME: implement SyncPlan
+    name = orm.StringField(required=True)
+    label = orm.StringField()

@@ -8,7 +8,6 @@ from fauxfactory import FauxFactory
 from robottelo import factories, orm
 from sys import version_info
 from unittest import TestCase
-import re
 import socket
 
 
@@ -108,6 +107,19 @@ class GetDefaultValueTestCase(TestCase):
         self.assertRegexpMatches(
             factories._get_default_value(orm.MACAddressField()).upper(),
             '^([0-9A-F]{2}[:]){5}[0-9A-F]{2}$'
+        )
+
+    def test_one_to_one_field(self):
+        """Pass in an instance of ``robottelo.orm.OneToOneField``.
+
+        Ensure ``None`` is returned.
+
+        """
+        self.assertIsNone(
+            factories._get_default_value(orm.OneToOneField(EmptyEntity))
+        )
+        self.assertIsNone(
+            factories._get_default_value(orm.OneToOneField(NonEmptyEntity))
         )
 
     def test_string_field(self):
