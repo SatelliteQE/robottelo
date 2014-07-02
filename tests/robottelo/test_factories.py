@@ -5,7 +5,7 @@
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import FauxFactory
-from robottelo import factories, orm
+from robottelo import entities, factories, orm
 from sys import version_info
 from unittest import TestCase
 import socket
@@ -326,3 +326,22 @@ class FactoryTestCase(TestCase):
         attrs = SampleFactory().attributes(name=name, cost=cost)
         self.assertEqual(name, attrs['name'])
         self.assertEqual(cost, attrs['cost'])
+
+
+class FactorySubclassTestCase(TestCase):
+    """Basic tests for :class:`robottelo.factories.Factory` subclasses."""
+    def test_entity_is_correct(self):
+        """Perform a sanity check on a series of ``Factory`` subclasses.
+
+        Ensure that a variety of ``Factory`` subclass instances have their
+        ``entity`` attribute correctly set.
+
+        """
+        pairs = (
+            (entities.Host, factories.HostFactory()),
+            (entities.Model, factories.ModelFactory()),
+            (entities.Organization, factories.OrganizationFactory()),
+            (entities.Product, factories.ProductFactory()),
+        )
+        for pair in pairs:
+            self.assertEqual(pair[0], pair[1].entity)
