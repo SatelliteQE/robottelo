@@ -25,7 +25,19 @@ def _string_field():
     """Return a value suitable for a :class:`robottelo.orm.StringField`."""
     return FauxFactory.generate_string(
         'utf8',
-        FauxFactory.generate_integer(1, 1000)
+        FauxFactory.generate_integer(1, 10000)
+    )
+
+
+def _short_string_field():
+    """Return a value suitable for a :class:`robottelo.orm.StringField`.
+
+    The string returned will be no longer than 255 characters.
+
+    """
+    return FauxFactory.generate_string(
+        'utf8',
+        FauxFactory.generate_integer(1, 255)
     )
 
 
@@ -342,6 +354,7 @@ class ModelFactory(Factory):
     """Factory for a "Model" entity."""
     def __init__(self, interface=None):
         super(ModelFactory, self).__init__(entities.Model, interface)
+        self.field_values['name'] = _short_string_field()
 
 
 class OrganizationFactory(Factory):

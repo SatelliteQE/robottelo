@@ -145,6 +145,34 @@ class GetDefaultValueTestCase(TestCase):
             factories._get_default_value(orm.Field())
 
 
+class StringFieldTestCase(TestCase):
+    """Tests for :func:`robottelo.factories._string_field`."""
+    # (protected-access) pylint:disable=W0212
+    def test_type(self):
+        """Ensure the function returns a unicode string."""
+        string = factories._string_field()
+        if version_info[0] == 2:
+            self.assertIsInstance(string, unicode)
+        else:
+            self.assertIsInstance(string, str)
+
+
+class ShortStringFieldTestCase(TestCase):
+    """Tests for :func:`robottelo.factories._short_string_field`."""
+    # (protected-access) pylint:disable=W0212
+    def test_type_and_length(self):
+        """
+        Ensure the function returns a unicode string no longer than 255
+        characters.
+        """
+        string = factories._short_string_field()
+        if version_info[0] == 2:
+            self.assertIsInstance(string, unicode)
+        else:
+            self.assertIsInstance(string, str)
+        self.assertLess(len(string), 256)
+
+
 class IsRequiredTestCase(TestCase):
     """Tests for :func:`robottelo.factories._is_required`."""
     # (protected-access) pylint:disable=W0212
