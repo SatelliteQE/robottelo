@@ -316,7 +316,12 @@ class Navigator(Base):
 
     def go_to_org(self):
         self.menu_click(
-            menu_locators['org.any_context'], menu_locators['org.manage_org'],
+            menu_locators['menu.any_context'], menu_locators['org.manage_org'],
+        )
+
+    def go_to_loc(self):
+        self.menu_click(
+            menu_locators['menu.any_context'], menu_locators['loc.manage_loc'],
         )
 
     def go_to_logout(self):
@@ -326,14 +331,34 @@ class Navigator(Base):
 
     def go_to_select_org(self, org):
         self.menu_click(
-            menu_locators['org.any_context'],
+            menu_locators['menu.any_context'],
             menu_locators['org.nav_current_org'],
             menu_locators['org.select_org'], entity=org
         )
-        current_org = self.wait_until_element(menu_locators
-                                              ['org.current_org']).text
-        if org == str(current_org):
+        current_text = self.\
+            wait_until_element(menu_locators['menu.current_text']).text
+        # Handle scenario where in both org and loc are selected via the UI.
+        if '@' in str(current_text) and org == str(current_text).split("@")[0]:
+            return org
+        elif org == str(current_text):
             return org
         else:
             raise Exception(
                 "Could not select the org: '%s'" % org)
+
+    def go_to_select_loc(self, loc):
+        self.menu_click(
+            menu_locators['menu.any_context'],
+            menu_locators['loc.nav_current_loc'],
+            menu_locators['loc.select_loc'], entity=loc
+        )
+        current_text = self.\
+            wait_until_element(menu_locators['menu.current_text']).text
+        # Handle scenario where in both org and loc are selected via the UI.
+        if '@' in str(current_text) and loc == str(current_text).split("@")[1]:
+            return loc
+        elif loc == str(current_text):
+            return loc
+        else:
+            raise Exception(
+                "Could not select the loc: '%s'" % loc)
