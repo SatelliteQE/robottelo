@@ -1,9 +1,19 @@
 """Tests for module ``robottelo.factories``."""
 # (Too many public methods) pylint: disable=R0904
+#
+# Python 3.3 and later includes module `ipaddress` in standard library. If
+# Robottelo ever moves past Python 2.x, that module should be used instead of
+# `socket`.
 from fauxfactory import FauxFactory
 from robottelo import factories, orm
 from sys import version_info
 from unittest import TestCase
+import re
+import socket
+
+
+SAMPLE_FACTORY_NAME = 'christmahanakwanzika present'
+SAMPLE_FACTORY_COST = 150
 
 
 class EmptyEntity(orm.Entity):
@@ -16,20 +26,111 @@ class NonEmptyEntity(orm.Entity):
     cost = orm.IntegerField()
 
 
-class GetPopulateStringFieldTestCase(TestCase):
-    """"Tests for method ``_populate_string_field``."""
+class SampleFactory(factories.Factory):
+    """A sample factory that provides values for all fields."""
+    def __init__(self, interface=None):
+        super(SampleFactory, self).__init__(NonEmptyEntity, interface=interface)
+        self.field_values['name'] = SAMPLE_FACTORY_NAME
+        self.field_values['cost'] = SAMPLE_FACTORY_COST
+
+
+class GetDefaultValueTestCase(TestCase):
+    """"Tests for method ``_get_default_value``."""
     # (protected-access) pylint:disable=W0212
-    def test_unicode(self):
-        """Check whether a unicode string is returned."""
-        string = factories._populate_string_field()
+    def test_boolean_field(self):
+        """Pass in an instance of ``robottelo.orm.BooleanField``.
+
+        Ensure either ``True`` or ``False`` is returned.
+
+        """
+        self.assertIn(
+            factories._get_default_value(orm.BooleanField()),
+            (True, False)
+        )
+
+    def test_email_field(self):
+        """Pass in an instance of ``robottelo.orm.EmailField``.
+
+        Ensure a unicode string is returned, containing the character '@'.
+
+        """
+        email = factories._get_default_value(orm.EmailField())
+        if version_info[0] == 2:
+            self.assertIsInstance(email, unicode)
+        else:
+            self.assertIsInstance(email, str)
+        self.assertIn('@', email)
+
+    def test_float_field(self):
+        """Pass in an instance of ``robottelo.orm.FloatField``.
+
+        Ensure the value returned is a ``float``.
+
+        """
+        self.assertIsInstance(
+            factories._get_default_value(orm.FloatField()),
+            float
+        )
+
+    def test_integer_field(self):
+        """Pass in an instance of ``robottelo.orm.IntegerField``.
+
+        Ensure the value returned is a ``int``.
+
+        """
+        self.assertIsInstance(
+            factories._get_default_value(orm.IntegerField()),
+            int
+        )
+
+    def test_ip_address_field(self):
+        """Pass in an instance of ``robottelo.orm.IPAddressField``.
+
+        Ensure the value returned is acceptable to ``socket.inet_aton``.
+
+        """
+        addr = factories._get_default_value(orm.IPAddressField())
+        try:
+            socket.inet_aton(addr)
+        except socket.error as err:
+            self.fail('({0}) {1}'.format(addr, err))
+
+    def test_mac_address_field(self):
+        """Pass in an instance of ``robottelo.orm.MACAddressField``.
+
+        Ensure the value returned is a string containing 12 hex digits (either
+        upper or lower case), grouped into pairs of digits and separated by
+        colon characters. For example: ``'01:23:45:FE:dc:BA'``
+
+        """
+        # This regex is inspired by suggestions from others, but simpler. See:
+        # http://stackoverflow.com/questions/7629643/how-do-i-validate-the-format-of-a-mac-address
+        self.assertRegexpMatches(
+            factories._get_default_value(orm.MACAddressField()).upper(),
+            '^([0-9A-F]{2}[:]){5}[0-9A-F]{2}$'
+        )
+
+    def test_string_field(self):
+        """Pass in an instance of ``robottelo.orm.StringField``.
+
+        Ensure a unicode string at least 1 char long is returned.
+
+        """
+        string = factories._get_default_value(orm.StringField())
         if version_info[0] == 2:
             self.assertIsInstance(string, unicode)
         else:
             self.assertIsInstance(string, str)
+        self.assertGreater(len(string), 0)
 
-    def test_len(self):
-        """Check whether a string at least 1 char long is returned."""
-        self.assertTrue(len(factories._populate_string_field()) > 0)
+    def test_default(self):
+        """Pass in an instance of ``robottelo.orm.Field``.
+
+        Ensure a ``TypeError`` is raised.
+
+        """
+        with self.assertRaises(TypeError):
+            factories._get_default_value(orm.Field())
 
 
 class IsRequiredTestCase(TestCase):
@@ -123,6 +224,7 @@ class FactoryTestCase(TestCase):
         complain about the missing underlying fields.
 
         """
+        # (protected-access) pylint:disable=W0212
         EmptyEntity.Meta.api_names = {'these_fields': 'do_not_exist'}
         EmptyEntity.Meta.cli_names = {'on': 'EmptyEntity'}
 
@@ -157,7 +259,7 @@ class FactoryTestCase(TestCase):
         self.assertEqual(len(attrs.keys()), 1)
         self.assertIn('name', attrs)
         self.assertEqual(
-            type(factories._populate_string_field()),  # pylint:disable=W0212
+            type(factories._get_default_value(orm.StringField())),  # flake8:noqa pylint:disable=W0212
             type(attrs['name'])
         )
 
@@ -195,3 +297,20 @@ class FactoryTestCase(TestCase):
         """
         with self.assertRaises(ValueError):
             factories.Factory(EmptyEntity).attributes(no_such_field='bad juju')
+
+    def test_attributes_v5(self):
+        """Check that ``self.field_values`` overrides default values."""
+        attrs = SampleFactory().attributes()
+        self.assertEqual(attrs['name'], SAMPLE_FACTORY_NAME)
+        self.assertEqual(attrs['cost'], SAMPLE_FACTORY_COST)
+
+    def test_attributes_v6(self):
+        """Check that ``self.field_values`` can be explicitly overridden."""
+        name = FauxFactory.generate_string(
+            'utf8',
+            FauxFactory.generate_integer(1, 1000)
+        )
+        cost = FauxFactory.generate_integer(1, 1000)
+        attrs = SampleFactory().attributes(name=name, cost=cost)
+        self.assertEqual(name, attrs['name'])
+        self.assertEqual(cost, attrs['cost'])
