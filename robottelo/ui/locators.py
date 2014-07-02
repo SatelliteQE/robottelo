@@ -237,28 +237,46 @@ menu_locators = {
     "menu.sign_out": (By.XPATH, "//a[@id='menu_item_logout']"),
     "menu.my_account": (By.XPATH, "//a[@id='menu_item_my_account']"),
 
-    # Orgs
-    "org.any_context": (
+    # Common Locators for Orgs and Locations
+    "menu.any_context": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//li[contains(@class,'org-switcher')]/a")),
+    # Updated to current_text as the fetched text can also be org+loc
+    "menu.current_text": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//li[contains(@class,'org-switcher')]/a")),
+
+    # Orgs
     "org.manage_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@class='manage-menu' and contains(@href, 'organizations')]")),
     "org.nav_current_org": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+        ("(//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//li[contains(@class,'org-switcher')]"
-         "//li/a[@data-toggle='dropdown']")),
-    "org.current_org": (
-        By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//li[contains(@class,'org-switcher')]/a")),
+         "//li/a[@data-toggle='dropdown'])[1]")),
     "org.select_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@href='/organizations/clear']/../../li/a[contains(.,'%s')]"))
+         "//a[@href='/organizations/clear']/../../li/a[contains(.,'%s')]")),
+
+    # Locations
+    "loc.manage_loc": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@class='manage-menu' and contains(@href, 'locations')]")),
+    "loc.nav_current_loc": (
+        By.XPATH,
+        ("(//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//li[contains(@class,'org-switcher')]"
+         "//li/a[@data-toggle='dropdown'])[2]")),
+    "loc.select_loc": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/locations/clear']/../../li/a[contains(.,'%s')]"))
 }
 
 tab_locators = {

@@ -11,6 +11,7 @@ from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
+from robottelo.ui.factory import make_loc
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -22,14 +23,17 @@ class Repos(UITestCase):
     """
 
     org_name = None
+    loc_name = None
 
     def setUp(self):
         super(Repos, self).setUp()
         # Make sure to use the Class' org_name instance
-        if Repos.org_name is None:
+        if Repos.org_name is None and Repos.loc_name is None:
             Repos.org_name = generate_string("alpha", 8)
+            Repos.loc_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Repos.org_name)
+                make_loc(session, name=Repos.loc_name)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
@@ -45,6 +49,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -65,6 +70,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -86,6 +92,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -110,6 +117,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -135,6 +143,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -158,6 +167,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -191,6 +201,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_gpg_keys()
         self.gpgkey.create(gpgkey_name1, upload_key=True, key_path=key_path1)
         self.assertIsNotNone(self.gpgkey.search(gpgkey_name1))
@@ -225,6 +236,7 @@ class Repos(UITestCase):
         description = "test 123"
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name, description)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -246,6 +258,7 @@ class Repos(UITestCase):
         discovered_urls = ["fakerepo01/"]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.products.create(prd_name)
         self.assertIsNotNone(self.products.search(prd_name))
@@ -264,6 +277,7 @@ class Repos(UITestCase):
         discovered_urls = ["fakerepo01/"]
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
+        self.navigator.go_to_select_loc(self.loc_name)
         self.navigator.go_to_products()
         self.repository.discover_repo(url, discovered_urls,
                                       product=prd_name, new_product=True)
