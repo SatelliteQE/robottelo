@@ -42,4 +42,3 @@ def make_loc(session, **kwargs):
 
     session.nav.go_to_loc()
     Location(session.browser).create(**create_args)
-    
