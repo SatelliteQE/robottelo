@@ -61,10 +61,24 @@
     :members:
     :undoc-members:
 
+:mod:`tests.foreman.api.test_host_v2`
+-------------------------------------
+
+.. automodule:: tests.foreman.api.test_host_v2
+    :members:
+    :undoc-members:
+
 :mod:`tests.foreman.api.test_medium`
 ------------------------------------
 
 .. automodule:: tests.foreman.api.test_medium
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_model_v2`
+--------------------------------------
+
+.. automodule:: tests.foreman.api.test_model_v2
     :members:
     :undoc-members:
 
