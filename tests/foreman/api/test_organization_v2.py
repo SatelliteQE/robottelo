@@ -1,8 +1,8 @@
-"""Unit tests for the "model" resource.
+"""Unit tests for the "organization" resource.
 
 Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "model" resource can be found here:
-http://theforeman.org/api/apidoc/v2/models.html.
+the "organization" resource can be found here:
+http://theforeman.org/api/apidoc/v2/organizations.html.
 
 """
 from robottelo.api import client
@@ -13,16 +13,16 @@ from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
 
 
-class ModelsTestCase(TestCase):
-    """Tests for path ``api/v2/models``."""
+class OrganizationsTestCase(TestCase):
+    """Tests for path ``api/v2/organizations``."""
     def setUp(self):  # pylint: disable=C0103
         """Set ``self.path``."""
-        self.path = urljoin(get_server_url(), 'api/v2/models')
+        self.path = urljoin(get_server_url(), 'api/v2/organizations')
 
     def test_get(self):
         """@Test: GET ``self.path``.
 
-        @Feature: Model
+        @Feature Organization
         @Assert: GET succeeds
 
         """
@@ -46,7 +46,7 @@ class ModelsTestCase(TestCase):
     def test_get_unauthorized(self):
         """@Test: GET ``self.path`` and do not provide credentials.
 
-        @Feature: Model
+        @Feature: Organization
         @Assert: HTTP 401 is returned
 
         """
@@ -56,13 +56,13 @@ class ModelsTestCase(TestCase):
     def test_post(self):
         """@Test: POST ``self.path``.
 
-        @Feature: Model
-        @Assert: New model is created
+        @Feature: Organization
+        @Assert: New organization is created
 
         """
         response = client.post(
             self.path,
-            factories.ModelFactory('API').attributes(),
+            factories.OrganizationFactory('API').attributes(),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -80,7 +80,7 @@ class ModelsTestCase(TestCase):
     def test_post_unauthorized(self):
         """@Test: POST ``self.path`` and do not provide credentials.
 
-        @Feature: Model
+        @Feature: Organization
         @Assert: HTTP 401 is returned
 
         """
