@@ -49,6 +49,6 @@ class Product(orm.Entity):
     organization_id = orm.OneToOneField(Organization, required=True)
     description = orm.StringField()
     gpg_key_id = orm.IntegerField()
-    #sync_plan_id = orm.OneToOneField(SyncPlan)  # FIXME: implement SyncPlan
+    # sync_plan_id = orm.OneToOneField(SyncPlan)  # FIXME: implement SyncPlan
     name = orm.StringField(required=True)
     label = orm.StringField()
