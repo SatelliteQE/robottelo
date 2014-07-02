@@ -5,10 +5,9 @@
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import FauxFactory
-from robottelo import factories, orm
+from robottelo import entities, factories, orm
 from sys import version_info
 from unittest import TestCase
-import re
 import socket
 
 
@@ -110,6 +109,19 @@ class GetDefaultValueTestCase(TestCase):
             '^([0-9A-F]{2}[:]){5}[0-9A-F]{2}$'
         )
 
+    def test_one_to_one_field(self):
+        """Pass in an instance of :class:`robottelo.orm.OneToOneField`.
+
+        Ensure ``None`` is returned.
+
+        """
+        self.assertIsNone(
+            factories._get_default_value(orm.OneToOneField(EmptyEntity))
+        )
+        self.assertIsNone(
+            factories._get_default_value(orm.OneToOneField(NonEmptyEntity))
+        )
+
     def test_string_field(self):
         """Pass in an instance of ``robottelo.orm.StringField``.
 
@@ -134,12 +146,12 @@ class GetDefaultValueTestCase(TestCase):
 
 
 class IsRequiredTestCase(TestCase):
-    """Test for function ``_is_required``."""
+    """Tests for :func:`robottelo.factories._is_required`."""
     # (protected-access) pylint:disable=W0212
     def test__is_required_v1(self):
         """Do not set the ``required`` attribute at all.
 
-        Assert that ``_is_required`` returns ``False``.
+        Assert that :func:`robottelo.factories._is_required` returns ``False``.
 
         """
         self.assertFalse(factories._is_required(orm.Field()))
@@ -147,7 +159,7 @@ class IsRequiredTestCase(TestCase):
     def test__is_required_v2(self):
         """Set the ``required`` attribute to ``False``.
 
-        Assert that ``_is_required`` returns ``False``.
+        Assert that :func:`robottelo.factories._is_required` returns ``False``.
 
         """
         self.assertFalse(factories._is_required(orm.Field(required=False)))
@@ -155,7 +167,7 @@ class IsRequiredTestCase(TestCase):
     def test__is_required_v3(self):
         """Set the ``required`` attribute to ``True``.
 
-        Assert that ``_is_required`` returns ``True``.
+        Assert that :func:`robottelo.factories._is_required` returns ``True``.
 
         """
         self.assertTrue(factories._is_required(orm.Field(required=True)))
@@ -166,7 +178,7 @@ class FactoryTestCase(TestCase):
     def test__customize_field_names_v1(self):
         """Call ``_customize_field_names`` without altering ``Meta``.
 
-        Create several factories using ``NonEmptyEntity`` and with
+        Create several factories using :class:`NonEmptyEntity` and with
         ``interface`` set to default, ``'API'`` and ``'CLI'``. Ensure
         ``_customize_field_names`` produces correct output in each case.
 
@@ -241,7 +253,7 @@ class FactoryTestCase(TestCase):
         self.assertEqual(fields, {})
 
     def test_attributes_v1(self):
-        """Create a factory with ``EmptyEntity``, then call ``attributes``.
+        """Create a factory with :class:`EmptyEntity`, then call `attributes`.
 
         Assert an empty dict is returned.
 
@@ -249,7 +261,7 @@ class FactoryTestCase(TestCase):
         self.assertEqual({}, factories.Factory(EmptyEntity).attributes())
 
     def test_attributes_v2(self):
-        """Create a factory with ``NonEmptyEntity``, then call ``attributes``.
+        """Create a factory with :class:`NonEmptyEntity` and call `attributes`.
 
         Assert the dict returned contains the correct keys, and that those keys
         correspond to the correct datatypes.
@@ -314,3 +326,22 @@ class FactoryTestCase(TestCase):
         attrs = SampleFactory().attributes(name=name, cost=cost)
         self.assertEqual(name, attrs['name'])
         self.assertEqual(cost, attrs['cost'])
+
+
+class FactorySubclassTestCase(TestCase):
+    """Basic tests for :class:`robottelo.factories.Factory` subclasses."""
+    def test_entity_is_correct(self):
+        """Perform a sanity check on a series of ``Factory`` subclasses.
+
+        Ensure that a variety of ``Factory`` subclass instances have their
+        ``entity`` attribute correctly set.
+
+        """
+        pairs = (
+            (entities.Host, factories.HostFactory()),
+            (entities.Model, factories.ModelFactory()),
+            (entities.Organization, factories.OrganizationFactory()),
+            (entities.Product, factories.ProductFactory()),
+        )
+        for pair in pairs:
+            self.assertEqual(pair[0], pair[1].entity)

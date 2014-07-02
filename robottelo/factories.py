@@ -58,6 +58,7 @@ def _get_default_value(field_type):
     * ``IntegerField``
     * ``IPAddressField``
     * ``MACAddressField``
+    * ``OneToOneField``
     * ``StringField``
 
     :param robottelo.orm.Field field_type: A ``Field`` instance, or an instance
@@ -79,6 +80,8 @@ def _get_default_value(field_type):
         return FauxFactory.generate_ipaddr()
     elif isinstance(field_type, orm.MACAddressField):
         return FauxFactory.generate_mac()
+    elif isinstance(field_type, orm.OneToOneField):
+        return None
     elif isinstance(field_type, orm.StringField):
         return _string_field()
     else:
@@ -217,7 +220,7 @@ class Factory(object):
         ...     name = orm.StringField(required=True)
         ...     cost = orm.IntegerField(required=True)
         ...     class Meta(object):
-        ...         '''Non-field information about this entity.'''
+        ...         '''Alternate names for this entity's fields.'''
         ...         api_names = {'name': 'commodity[name]'}
         ...         cli_names = {'cost': 'commodity[cost]'}
         ...
@@ -329,10 +332,25 @@ class Factory(object):
 class HostFactory(Factory):
     """Factory for a "Host" entity."""
     def __init__(self, interface=None):
-        super(HostFactory, self).__init__(entities.Host, interface=interface)
+        super(HostFactory, self).__init__(entities.Host, interface)
 
 
 class ModelFactory(Factory):
     """Factory for a "Model" entity."""
     def __init__(self, interface=None):
-        super(ModelFactory, self).__init__(entities.Model, interface=interface)
+        super(ModelFactory, self).__init__(entities.Model, interface)
+
+
+class OrganizationFactory(Factory):
+    """Factory for a "Organization" entity."""
+    def __init__(self, interface=None):
+        super(OrganizationFactory, self).__init__(
+            entities.Organization,
+            interface
+        )
+
+
+class ProductFactory(Factory):
+    """Factory for a "Product" entity."""
+    def __init__(self, interface=None):
+        super(ProductFactory, self).__init__(entities.Product, interface)
