@@ -15,8 +15,8 @@ from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
 
 
-class ApiHostsTestCase(TestCase):
-    """Tests for the ``api/v2/hosts`` path."""
+class HostsTestCase(TestCase):
+    """Tests for path ``api/v2/hosts``."""
     def setUp(self):  # pylint: disable=C0103
         """Set ``self.path``."""
         self.path = urljoin(get_server_url(), 'api/v2/hosts')
@@ -106,7 +106,6 @@ class ApiHostsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-
         status_code = 201
         self.assertEqual(
             status_code,

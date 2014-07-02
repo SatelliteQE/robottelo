@@ -1,7 +1,7 @@
 """Unit tests for the "model" resource.
 
 Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "host" resource can be found here:
+the "model" resource can be found here:
 http://theforeman.org/api/apidoc/v2/models.html.
 
 """
@@ -13,8 +13,8 @@ from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
 
 
-class ApiModelsTestCase(TestCase):
-    """Tests for the ``api/v2/models/`` path."""
+class ModelsTestCase(TestCase):
+    """Tests for path ``api/v2/models``."""
     def setUp(self):  # pylint: disable=C0103
         """Set ``self.path``."""
         self.path = urljoin(get_server_url(), 'api/v2/models')
@@ -57,7 +57,7 @@ class ApiModelsTestCase(TestCase):
         """@Test: POST ``self.path``.
 
         @Feature: Model
-        @Assert: New host is created
+        @Assert: New model is created
 
         """
         response = client.post(
@@ -66,7 +66,6 @@ class ApiModelsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-
         status_code = 201
         self.assertEqual(
             status_code,

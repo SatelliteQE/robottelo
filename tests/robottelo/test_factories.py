@@ -1,4 +1,4 @@
-"""Tests for module ``robottelo.factories``."""
+"""Tests for :mod:`robottelo.factories`."""
 # (Too many public methods) pylint: disable=R0904
 #
 # Python 3.3 and later includes module `ipaddress` in standard library. If
@@ -34,10 +34,10 @@ class SampleFactory(factories.Factory):
 
 
 class GetDefaultValueTestCase(TestCase):
-    """"Tests for method ``_get_default_value``."""
+    """"Tests for :func:`robottelo.factories._get_default_value`."""
     # (protected-access) pylint:disable=W0212
     def test_boolean_field(self):
-        """Pass in an instance of ``robottelo.orm.BooleanField``.
+        """Pass in an instance of :class:`robottelo.orm.BooleanField`.
 
         Ensure either ``True`` or ``False`` is returned.
 
@@ -48,7 +48,7 @@ class GetDefaultValueTestCase(TestCase):
         )
 
     def test_email_field(self):
-        """Pass in an instance of ``robottelo.orm.EmailField``.
+        """Pass in an instance of :class:`robottelo.orm.EmailField`.
 
         Ensure a unicode string is returned, containing the character '@'.
 
@@ -61,7 +61,7 @@ class GetDefaultValueTestCase(TestCase):
         self.assertIn('@', email)
 
     def test_float_field(self):
-        """Pass in an instance of ``robottelo.orm.FloatField``.
+        """Pass in an instance of :class:`robottelo.orm.FloatField`.
 
         Ensure the value returned is a ``float``.
 
@@ -72,7 +72,7 @@ class GetDefaultValueTestCase(TestCase):
         )
 
     def test_integer_field(self):
-        """Pass in an instance of ``robottelo.orm.IntegerField``.
+        """Pass in an instance of :class:`robottelo.orm.IntegerField`.
 
         Ensure the value returned is a ``int``.
 
@@ -83,7 +83,7 @@ class GetDefaultValueTestCase(TestCase):
         )
 
     def test_ip_address_field(self):
-        """Pass in an instance of ``robottelo.orm.IPAddressField``.
+        """Pass in an instance of :class:`robottelo.orm.IPAddressField`.
 
         Ensure the value returned is acceptable to ``socket.inet_aton``.
 
@@ -95,7 +95,7 @@ class GetDefaultValueTestCase(TestCase):
             self.fail('({0}) {1}'.format(addr, err))
 
     def test_mac_address_field(self):
-        """Pass in an instance of ``robottelo.orm.MACAddressField``.
+        """Pass in an instance of :class:`robottelo.orm.MACAddressField`.
 
         Ensure the value returned is a string containing 12 hex digits (either
         upper or lower case), grouped into pairs of digits and separated by
@@ -123,7 +123,7 @@ class GetDefaultValueTestCase(TestCase):
         )
 
     def test_string_field(self):
-        """Pass in an instance of ``robottelo.orm.StringField``.
+        """Pass in an instance of :class:`robottelo.orm.StringField`.
 
         Ensure a unicode string at least 1 char long is returned.
 
@@ -136,7 +136,7 @@ class GetDefaultValueTestCase(TestCase):
         self.assertGreater(len(string), 0)
 
     def test_default(self):
-        """Pass in an instance of ``robottelo.orm.Field``.
+        """Pass in an instance of :class:`robottelo.orm.Field`.
 
         Ensure a ``TypeError`` is raised.
 

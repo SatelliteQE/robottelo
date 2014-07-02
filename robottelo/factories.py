@@ -6,12 +6,14 @@ entities, factories allow tests to create minimal sets of objects when they're
 actually needed: when each individual test is run.
 
 Each class in this module is a factory for creating a single type of entity.
-For example, the ``ModelFactory`` class is a factory for building and creating
-"Model" entities and the ``HostFactory`` class is a factory for building and
-creating "Host" entities.
+For example, :class:`robottelo.factories.ModelFactory` is a factory for
+building and creating "Model" entities and
+:class:`robottelo.factories.HostFactory` is a factory for building and creating
+"Host" entities.
 
-For more information on factories, read about class :class:`Factory`. For
-examples of factory usage, see module :mod:`tests.foreman.api.test_model_v2`.
+For more information on factories, read about
+:class:`robottelo.factories.Factory`. For examples of factory usage, see
+:mod:`tests.foreman.api.test_model_v2`.
 
 """
 from fauxfactory import FauxFactory
@@ -20,7 +22,7 @@ import random
 
 
 def _string_field():
-    """Return a value suitable for a ``robottelo.orm.StringField``."""
+    """Return a value suitable for a :class:`robottelo.orm.StringField`."""
     return FauxFactory.generate_string(
         'utf8',
         FauxFactory.generate_integer(1, 1000)
@@ -47,10 +49,10 @@ def _get_default_value(field_type):
 
     This method is capable of accepting a wide variety of field types and
     generating a value for fields of that type. For example, if an instance of
-    ``robottelo.orm.BooleanField`` is passed in, either ``True`` or ``False``
-    is returned.
+    :class:`robottelo.orm.BooleanField` is passed in, either ``True`` or
+    ``False`` is returned.
 
-    The following ``robottelo.orm`` fields are supported:
+    The following :mod:`robottelo.orm` classes are supported:
 
     * ``BooleanField``
     * ``EmailField``
@@ -102,7 +104,7 @@ class Factory(object):
     >>> Factory().attributes()
     {}
 
-    However, when paired with an ``Entity``, a ``Factory`` becomes much more
+    However, when paired with an entity, a ``Factory`` becomes much more
     useful. For example, you can ask it to generate values for all of
     :class:`robottelo.entities.Model`'s required fields:
 
@@ -136,7 +138,7 @@ class Factory(object):
     >>> 'name' in attrs.keys() and 'info' in attrs.keys()
     True
 
-    An ``Entity`` can define alternate names for its fields:
+    An entity can define alternate names for its fields:
 
     >>> from robottelo.entities import Model
     >>> attrs = Factory(Model, 'API').attributes(info='biz')
@@ -183,8 +185,9 @@ class Factory(object):
         :param robottelo.orm.Entity entity: A logical representation of a
             Foreman entity. The object passed in may be either a class or a
             class instance.
-        :param str interface: ``None``, ``'API'`` or ``'CLI'``. If not none,
-            the keys produced by ``attributes``and ``create`` are customized.
+        :param str interface: ``None``, ``'API'`` or ``'CLI'``. If not
+            ``None``, the keys produced by ``attributes``and ``create`` are
+            customized.
 
         """
         # Check for invalid arguments
@@ -207,10 +210,10 @@ class Factory(object):
         particular Foreman interface, change the key names in ``fields``
         appropriately.
 
-        If no interface is specified, ``_customize_field_names`` will return
-        ``fields`` untouched. If an interface is specified and a corresponding
-        attribute is set on ``self.entity.Meta``, customization is performed.
-        If an interface is specified but no corresponding attribute is set, no
+        If no interface is specified, this method will return ``fields``
+        untouched. If an interface is specified and a corresponding attribute
+        is set on ``self.entity.Meta``, customization is performed.  If an
+        interface is specified but no corresponding attribute is set, no
         customization is performed. For example:
 
         >>> from robottelo.factories import Factory
@@ -234,8 +237,8 @@ class Factory(object):
         >>> 'name' in fields and 'commodity[cost]' in fields
         True
 
-        :param dict fields: A dict mapping ``str`` names to ``robottelo.orm``
-            fields.
+        :param dict fields: A dict mapping ``str`` names to
+            :mod:`robottelo.orm` fields.
         :return: ``fields``, but with updated keys.
         :rtype: dict
 
@@ -270,11 +273,11 @@ class Factory(object):
         name, and each key can be used to access a corresponding field value.
 
         For entity attributes that point to dependent entities, a value of
-        ``None`` is placed in the dictionary. For example::
+        ``None`` is placed in the dictionary. For example:
 
-            >>> host_attrs = HostFactory().attributes()
-            >>> host_attrs['environment_id']
-            None
+        >>> product_attrs = ProductFactory().attributes()
+        >>> product_attrs['organization_id']
+        None
 
         :return: Information for creating a new entity.
         :rtype: dict
