@@ -110,7 +110,7 @@ class GetDefaultValueTestCase(TestCase):
         )
 
     def test_one_to_one_field(self):
-        """Pass in an instance of ``robottelo.orm.OneToOneField``.
+        """Pass in an instance of :class:`robottelo.orm.OneToOneField`.
 
         Ensure ``None`` is returned.
 
@@ -146,12 +146,12 @@ class GetDefaultValueTestCase(TestCase):
 
 
 class IsRequiredTestCase(TestCase):
-    """Test for function ``_is_required``."""
+    """Tests for :func:`robottelo.factories._is_required`."""
     # (protected-access) pylint:disable=W0212
     def test__is_required_v1(self):
         """Do not set the ``required`` attribute at all.
 
-        Assert that ``_is_required`` returns ``False``.
+        Assert that :func:`robottelo.factories._is_required` returns ``False``.
 
         """
         self.assertFalse(factories._is_required(orm.Field()))
@@ -159,7 +159,7 @@ class IsRequiredTestCase(TestCase):
     def test__is_required_v2(self):
         """Set the ``required`` attribute to ``False``.
 
-        Assert that ``_is_required`` returns ``False``.
+        Assert that :func:`robottelo.factories._is_required` returns ``False``.
 
         """
         self.assertFalse(factories._is_required(orm.Field(required=False)))
@@ -167,7 +167,7 @@ class IsRequiredTestCase(TestCase):
     def test__is_required_v3(self):
         """Set the ``required`` attribute to ``True``.
 
-        Assert that ``_is_required`` returns ``True``.
+        Assert that :func:`robottelo.factories._is_required` returns ``True``.
 
         """
         self.assertTrue(factories._is_required(orm.Field(required=True)))
@@ -178,7 +178,7 @@ class FactoryTestCase(TestCase):
     def test__customize_field_names_v1(self):
         """Call ``_customize_field_names`` without altering ``Meta``.
 
-        Create several factories using ``NonEmptyEntity`` and with
+        Create several factories using :class:`NonEmptyEntity` and with
         ``interface`` set to default, ``'API'`` and ``'CLI'``. Ensure
         ``_customize_field_names`` produces correct output in each case.
 
@@ -253,7 +253,7 @@ class FactoryTestCase(TestCase):
         self.assertEqual(fields, {})
 
     def test_attributes_v1(self):
-        """Create a factory with ``EmptyEntity``, then call ``attributes``.
+        """Create a factory with :class:`EmptyEntity`, then call `attributes`.
 
         Assert an empty dict is returned.
 
@@ -261,7 +261,7 @@ class FactoryTestCase(TestCase):
         self.assertEqual({}, factories.Factory(EmptyEntity).attributes())
 
     def test_attributes_v2(self):
-        """Create a factory with ``NonEmptyEntity``, then call ``attributes``.
+        """Create a factory with :class:`NonEmptyEntity` and call `attributes`.
 
         Assert the dict returned contains the correct keys, and that those keys
         correspond to the correct datatypes.
