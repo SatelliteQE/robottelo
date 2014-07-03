@@ -6,6 +6,7 @@ http://theforeman.org/api/apidoc/v2/organizations.html.
 
 """
 from robottelo.api import client
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from robottelo import factories
 from unittest import TestCase
@@ -53,6 +54,7 @@ class OrganizationsTestCase(TestCase):
         response = client.get(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
 
+    @skip_if_bz_bug_open(1116043)
     def test_post(self):
         """@Test: POST ``self.path``.
 
