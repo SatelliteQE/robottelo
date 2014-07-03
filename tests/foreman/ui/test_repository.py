@@ -10,7 +10,7 @@ from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc, make_prd, make_gpgkey)
+from robottelo.ui.factory import (make_org, make_loc, make_product, make_gpgkey)
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -47,7 +47,7 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -66,7 +66,7 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -86,7 +86,7 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -109,7 +109,7 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -133,7 +133,7 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -155,7 +155,7 @@ class Repos(UITestCase):
         new_repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -193,7 +193,7 @@ class Repos(UITestCase):
             self.gpgkey.create(gpgkey_name2, upload_key=True,
                                key_path=key_path2)
             self.assertIsNotNone(self.gpgkey.search(gpgkey_name2))
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url,
@@ -221,7 +221,7 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name,
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
                      description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
@@ -241,7 +241,7 @@ class Repos(UITestCase):
         url = "http://omaciel.fedorapeople.org/"
         discovered_urls = ["fakerepo01/"]
         with Session(self.browser) as session:
-            make_prd(session, self.org_name, self.loc_name, name=prd_name)
+            make_product(session, self.org_name, self.loc_name, name=prd_name)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.discover_repo(url, discovered_urls,
                                           product=prd_name)

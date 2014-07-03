@@ -47,7 +47,7 @@ def make_loc(session, **kwargs):
     Location(session.browser).create(**create_args)
 
 
-def make_prd(session, org, loc, force_context=False, **kwargs):
+def make_product(session, org, loc, force_context=False, **kwargs):
     create_args = {
         'name': None,
         'description': None,
