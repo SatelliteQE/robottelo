@@ -1,5 +1,6 @@
 # Travis runs tests and checks code quality using these modules.
 flake8
+mock
 nose
 testimony
 
