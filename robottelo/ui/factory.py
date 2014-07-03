@@ -63,7 +63,7 @@ def make_prd(session, org, loc, force_context=False, **kwargs):
     current_text = session.nav.\
         wait_until_element(menu_locators['menu.current_text']).text
     # Change context only if required or when force_context is set to True
-    if str(current_text) == "Any Context" or force_context:
+    if '@' not in str(current_text) or force_context:
         session.nav.go_to_select_org(org)
         session.nav.go_to_select_loc(loc)
     session.nav.go_to_products()
@@ -83,7 +83,7 @@ def make_gpgkey(session, org, loc, force_context=False, **kwargs):
     current_text = session.nav.\
         wait_until_element(menu_locators['menu.current_text']).text
     # Change context only if required or when force_context is set to True
-    if str(current_text) == "Any Context" or force_context:
+    if '@' not in str(current_text) or force_context:
         session.nav.go_to_select_org(org)
         session.nav.go_to_select_loc(loc)
     session.nav.go_to_gpg_keys()
