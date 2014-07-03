@@ -22,7 +22,7 @@ CONSERVATIVE = [
 class UserApi(ApiCrud):
     """ Implementation of api for foreman domains
     """
-    api_path = "/api/v2/users/"
+    api_path = "/api/v2/users"
     api_json_key = u"user"
     create_fields = [
         "login", "password", "auth_source_id",

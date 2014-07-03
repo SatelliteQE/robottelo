@@ -19,7 +19,7 @@ from robottelo.records.smartproxy import SmartProxy
 class HostApi(ApiCrud):
     """ Implementation of api for  foreman hosts
     """
-    api_path = "/api/v2/hosts/"
+    api_path = "/api/v2/hosts"
     api_json_key = u"host"
     create_fields = ["name",
                      "environment_id",

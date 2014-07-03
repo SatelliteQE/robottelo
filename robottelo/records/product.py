@@ -12,7 +12,7 @@ from robottelo.records.organization import Organization
 class ProductApi(ApiCrud):
     """Api implementation for activation keys
     """
-    api_path = "/katello/api/v2/products/"
+    api_path = "/katello/api/v2/products"
     create_fields = [
         "name", "label", "description", "organization_id"
         ]

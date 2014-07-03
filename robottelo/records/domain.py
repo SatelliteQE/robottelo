@@ -13,7 +13,7 @@ from robottelo.records.permission import PermissionList
 class DomainApi(ApiCrud):
     """ Implementation of api for foreman domains
     """
-    api_path = "/api/domains/"
+    api_path = "/api/v2/domains"
     api_json_key = u"domain"
     create_fields = ["name"]
 

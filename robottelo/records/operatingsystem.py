@@ -13,7 +13,7 @@ from robottelo.api.apicrud import ApiCrud
 class OperatingSystemApi(ApiCrud):
     """ Implementation of api for foreman operating systems
     """
-    api_path = "/api/operatingsystems"
+    api_path = "/api/v2/operatingsystems"
     api_json_key = u"operatingsystem"
 
     create_fields = ["name",
