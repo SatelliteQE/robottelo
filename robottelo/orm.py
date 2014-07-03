@@ -70,6 +70,17 @@ class IPAddressField(StringField):
     """Field that represents an IP adrress"""
 
 
+class ListField(Field):
+    """Field that represents a list of strings"""
+
+    def __init__(self, model, *args, **kwargs):
+        super(ListField, self).__init__(
+            booby.validators.List(booby.validators.String()),
+            *args,
+            **kwargs
+        )
+
+
 class MACAddressField(StringField):
     """Field that represents a MAC adrress"""
 
