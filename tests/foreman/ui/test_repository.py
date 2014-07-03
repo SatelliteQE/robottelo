@@ -10,8 +10,8 @@ from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
-from robottelo.ui.factory import make_loc
+from robottelo.ui.factory import (make_org, make_loc, make_product,
+                                  make_gpgkey)
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -47,14 +47,12 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            self.assertIsNotNone(self.repository.search(repo_name))
 
     def test_negative_create_1(self):
         """
@@ -68,15 +66,13 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        invalid = self.products.wait_until_element(locator)
-        self.assertTrue(invalid)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            invalid = self.products.wait_until_element(locator)
+            self.assertTrue(invalid)
 
     def test_negative_create_2(self):
         """
@@ -90,15 +86,13 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        invalid = self.products.wait_until_element(locator)
-        self.assertTrue(invalid)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            invalid = self.products.wait_until_element(locator)
+            self.assertTrue(invalid)
 
     @skip_if_bz_bug_open("1081059")
     @attr('ui', 'repo', 'implemented')
@@ -115,18 +109,16 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_products()
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        invalid = self.products.wait_until_element(locator)
-        self.assertTrue(invalid)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.navigator.go_to_products()
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            invalid = self.products.wait_until_element(locator)
+            self.assertTrue(invalid)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list(len1=256))
@@ -141,15 +133,13 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        error = self.repository.wait_until_element(locator)
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            error = self.repository.wait_until_element(locator)
+            self.assertTrue(error)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
@@ -165,22 +155,20 @@ class Repos(UITestCase):
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         new_repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.repository.search(repo_name).click()
-        url_text = self.repository.wait_until_element(locator).text
-        self.assertEqual(url_text, repo_url)
-        self.navigator.go_to_products()
-        self.products.search(prd_name).click()
-        self.repository.update(repo_name, new_url=new_repo_url)
-        url_text = self.repository.wait_until_element(locator).text
-        self.assertEqual(url_text, new_repo_url)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.search(repo_name).click()
+            url_text = self.repository.wait_until_element(locator).text
+            self.assertEqual(url_text, repo_url)
+            self.navigator.go_to_products()
+            self.products.search(prd_name).click()
+            self.repository.update(repo_name, new_url=new_repo_url)
+            url_text = self.repository.wait_until_element(locator).text
+            self.assertEqual(url_text, new_repo_url)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
@@ -199,28 +187,27 @@ class Repos(UITestCase):
         locator = locators["repo.fetch_gpgkey"]
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_gpg_keys()
-        self.gpgkey.create(gpgkey_name1, upload_key=True, key_path=key_path1)
-        self.assertIsNotNone(self.gpgkey.search(gpgkey_name1))
-        self.gpgkey.create(gpgkey_name2, upload_key=True, key_path=key_path2)
-        self.assertIsNotNone(self.gpgkey.search(gpgkey_name2))
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url,
-                               gpg_key=gpgkey_name1)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.repository.search(repo_name).click()
-        gpgkey_text1 = self.repository.wait_until_element(locator).text
-        self.assertEqual(gpgkey_text1, gpgkey_name1)
-        self.navigator.go_to_products()
-        self.products.search(prd_name).click()
-        self.repository.update(repo_name, new_gpg_key=gpgkey_name2)
-        gpgkey_text2 = self.repository.wait_until_element(locator).text
-        self.assertEqual(gpgkey_text2, gpgkey_name2)
+        with Session(self.browser) as session:
+            make_gpgkey(session, self.org_name, self.loc_name,
+                        name=gpgkey_name1, upload_key=True, key_path=key_path1)
+            self.assertIsNotNone(self.gpgkey.search(gpgkey_name1))
+            self.gpgkey.create(gpgkey_name2, upload_key=True,
+                               key_path=key_path2)
+            self.assertIsNotNone(self.gpgkey.search(gpgkey_name2))
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url,
+                                   gpg_key=gpgkey_name1)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.search(repo_name).click()
+            gpgkey_text1 = self.repository.wait_until_element(locator).text
+            self.assertEqual(gpgkey_text1, gpgkey_name1)
+            self.navigator.go_to_products()
+            self.products.search(prd_name).click()
+            self.repository.update(repo_name, new_gpg_key=gpgkey_name2)
+            gpgkey_text2 = self.repository.wait_until_element(locator).text
+            self.assertEqual(gpgkey_text2, gpgkey_name2)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
@@ -234,16 +221,14 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
         description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.repository.delete(repo_name)
-        self.assertIsNone(self.repository.search(repo_name))
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.delete(repo_name)
+            self.assertIsNone(self.repository.search(repo_name))
 
     def test_discover_repo_1(self):
         """
@@ -256,13 +241,11 @@ class Repos(UITestCase):
         prd_name = generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
         discovered_urls = ["fakerepo01/"]
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.discover_repo(url, discovered_urls, product=prd_name)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.discover_repo(url, discovered_urls,
+                                          product=prd_name)
 
     def test_discover_repo_2(self):
         """
