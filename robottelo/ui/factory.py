@@ -60,8 +60,8 @@ def make_product(session, org, loc, force_context=False, **kwargs):
     create_args = update_dictionary(create_args, kwargs)
     create_args.update(kwargs)
 
-    current_text = session.nav.\
-        wait_until_element(menu_locators['menu.current_text']).text
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
     # Change context only if required or when force_context is set to True
     if '@' not in str(current_text) or force_context:
         session.nav.go_to_select_org(org)
@@ -80,8 +80,8 @@ def make_gpgkey(session, org, loc, force_context=False, **kwargs):
     create_args = update_dictionary(create_args, kwargs)
     create_args.update(kwargs)
 
-    current_text = session.nav.\
-        wait_until_element(menu_locators['menu.current_text']).text
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
     # Change context only if required or when force_context is set to True
     if '@' not in str(current_text) or force_context:
         session.nav.go_to_select_org(org)
