@@ -122,6 +122,9 @@ def _get_orm_field(name, type_):
     if type_ == 'array':
         type_ = 'orm.ListField'
 
+    if type_ == 'numeric':
+        type_ = 'orm.IntegerField'
+
     if type_ == 'string':
         type_ = 'orm.StringField'
 
