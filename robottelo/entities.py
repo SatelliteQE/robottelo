@@ -21,11 +21,21 @@ class ActivationKey(orm.Entity):
     # maximum number of registered content hosts, or 'unlimited'
     usage_limit = orm.IntegerField()
 
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/activation_keys',  # Create an activation key
+        )
+
 
 class Architecture(orm.Entity):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/architectures',  # Create an architecture.
+        )
 
 
 class AuthSourceLDAP(orm.Entity):
@@ -50,6 +60,11 @@ class AuthSourceLDAP(orm.Entity):
     onthefly_register = orm.BooleanField(null=True)
     tls = orm.BooleanField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/auth_source_ldaps',  # Create an auth_source_ldap.
+        )
+
 
 class Bookmark(orm.Entity):
     """A representation of a Bookmark entity."""
@@ -58,11 +73,21 @@ class Bookmark(orm.Entity):
     query = orm.StringField(required=True)
     public = orm.BooleanField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/bookmarks',  # Create a bookmark.
+        )
+
 
 class CommonParameter(orm.Entity):
     """A representation of a Common Parameter entity."""
     name = orm.StringField(required=True)
     value = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/common_parameters',  # Create a common_parameter
+        )
 
 
 class ComputeAttribute(orm.Entity):
@@ -70,10 +95,32 @@ class ComputeAttribute(orm.Entity):
     compute_profile = orm.OneToOneField('ComputeProfile', required=True)
     compute_resource = orm.OneToOneField('ComputeResource', required=True)
 
+    class Meta(object):
+        api_path = (
+            # Create a compute attribute.
+            '/api/v2/compute_resources/:compute_resource_id/compute_profiles/'
+            ':compute_profile_id/compute_attributes',
+            # Create a compute attribute.
+            '/api/v2/compute_profiles/:compute_profile_id/compute_resources/'
+            ':compute_resource_id/compute_attributes',
+            # Create a compute attribute.
+            '/api/v2/compute_resources/:compute_resource_id/'
+            'compute_attributes',
+            # Create a compute attribute.
+            '/api/v2/compute_profiles/:compute_profile_id/compute_attributes',
+            # Create a compute attribute.
+            '/api/v2/compute_attributes',
+        )
+
 
 class ComputeProfile(orm.Entity):
     """A representation of a Compute Profile entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/compute_profiles',  # Create a compute profile.
+        )
 
 
 class ComputeResource(orm.Entity):
@@ -97,10 +144,20 @@ class ComputeResource(orm.Entity):
     # for Vmware
     server = orm.StringField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/compute_resources',  # Create a compute resource.
+        )
+
 
 class ConfigGroup(orm.Entity):
     """A representation of a Config Group entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/config_groups',  # Create a config group.
+        )
 
 
 class ConfigTemplate(orm.Entity):
@@ -116,10 +173,21 @@ class ConfigTemplate(orm.Entity):
     # Array of operating systems ID to associate the template with
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/config_templates',  # Create a template
+        )
+
 
 class ContentUpload(orm.Entity):
     """A representation of a Content Upload entity."""
     repository = orm.OneToOneField('Repository', required=True)
+
+    class Meta(object):
+        api_path = (
+            # Create an upload request
+            '/katello/api/v2/repositories/:repository_id/content_uploads',
+        )
 
 
 class ContentViewFilterRule(orm.Entity):
@@ -142,6 +210,14 @@ class ContentViewFilterRule(orm.Entity):
     # erratum: types (enhancement, bugfix, security)
     types = orm.ListField()
 
+    class Meta(object):
+        api_path = (
+            # Create a filter rule. The parameters included should be based
+            # upon the filter type.
+            '/katello/api/v2/content_view_filters/:content_view_filter_id/'
+            'rules',
+        )
+
 
 class ContentViewFilter(orm.Entity):
     """A representation of a Content View Filter entity."""
@@ -158,6 +234,12 @@ class ContentViewFilter(orm.Entity):
 
     class Meta(object):
         api_names = {'filter_type': 'type'}
+        api_path = (
+            # Create a filter for a content view
+            '/katello/api/v2/content_views/:content_view_id/filters',
+            # Create a filter for a content view
+            '/katello/api/v2/content_view_filters',
+        )
 
 
 class ContentViewPuppetModule(orm.Entity):
@@ -166,6 +248,13 @@ class ContentViewPuppetModule(orm.Entity):
     name = orm.StringField()
     author = orm.StringField()
     uuid = orm.StringField()
+
+    class Meta(object):
+        api_path = (
+            # Add a puppet module to the content view
+            '/katello/api/v2/content_views/:content_view_id/'
+            'content_view_puppet_modules',
+        )
 
 
 class ContentView(orm.Entity):
@@ -179,6 +268,14 @@ class ContentView(orm.Entity):
     # List of component content view version ids for composite views
     components = orm.OneToManyField('ContentView')
 
+    class Meta(object):
+        api_path = (
+            # Create a content view
+            '/katello/api/v2/organizations/:organization_id/content_views',
+            # Create a content view
+            '/katello/api/v2/content_views',
+        )
+
 
 class CustomInfo(orm.Entity):
     """A representation of a Custom Info entity."""
@@ -189,6 +286,12 @@ class CustomInfo(orm.Entity):
     # informable = orm.OneToOneField(required=True)
     keyname = orm.StringField(required=True)
     value = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            # Create custom info
+            '/katello/api/v2/custom_info/:informable_type/:informable_id',
+        )
 
 
 class Domain(orm.Entity):
@@ -203,10 +306,20 @@ class Domain(orm.Entity):
     # Array of parameters (name, value)
     domain_parameters_attributes = orm.ListField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/domains',  # Create a domain.
+        )
+
 
 class Environment(orm.Entity):
     """A representation of a Environment entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/environments',  # Create an environment.
+        )
 
 
 class Filter(orm.Entity):
@@ -216,6 +329,11 @@ class Filter(orm.Entity):
     permissions = orm.OneToManyField('Permission', null=True)
     organizations = orm.OneToManyField('Organization', null=True)
     locations = orm.OneToManyField('Location', null=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/filters',  # Create a filter.
+        )
 
 
 class GPGKey(orm.Entity):
@@ -228,22 +346,45 @@ class GPGKey(orm.Entity):
     # public key block in DER encoding
     content = orm.StringField(required=True)
 
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/gpg_keys',  # Create a gpg key
+        )
+
 
 class HostClasses(orm.Entity):
     """A representation of a Host Class entity."""
     host = orm.OneToOneField('Host', required=True)
     puppetclass = orm.OneToOneField('PuppetClass', required=True)
 
+    class Meta(object):
+        api_path = (
+            # Add a puppetclass to host
+            '/api/v2/hosts/:host_id/puppetclass_ids',
+        )
+
 
 class HostCollectionErrata(orm.Entity):
     """A representation of a Host Collection Errata entity."""
     errata = orm.OneToManyField('Errata', required=True)
+
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/organizations/:organization_id/host_collections/'
+            ':host_collection_id/errata',  # Install errata remotely
+        )
 
 
 class HostCollectionPackage(orm.Entity):
     """A representation of a Host Collection Package entity."""
     packages = orm.ListField()
     groups = orm.ListField()
+
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/organizations/:organization_id/host_collections/'
+            ':host_collection_id/packages',  # Install packages remotely
+        )
 
 
 class HostCollection(orm.Entity):
@@ -258,11 +399,25 @@ class HostCollection(orm.Entity):
     # Maximum number of content hosts in the host collection
     max_content_hosts = orm.IntegerField()
 
+    class Meta(object):
+        api_path = (
+            # Create a host collection
+            '/katello/api/v2/host_collections',
+            # Create a host collection
+            '/katello/api/v2/organizations/:organization_id/host_collections',
+        )
+
 
 class HostGroupClasses(orm.Entity):
     """A representation of a Host Group Classes entity."""
     hostgroup = orm.OneToOneField('HostGroup', required=True)
     puppetclass = orm.OneToOneField('PuppetClass', required=True)
+
+    class Meta(object):
+        api_path = (
+            # Add a puppetclass to hostgroup
+            '/api/v2/hostgroups/:hostgroup_id/puppetclass_ids',
+        )
 
 
 class HostGroup(orm.Entity):
@@ -281,6 +436,11 @@ class HostGroup(orm.Entity):
     realm = orm.OneToOneField('Realm', null=True)
     # FIXME figure out related resource
     # puppet_proxy = orm.OneToOneField(null=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/hostgroups',  # Create an hostgroup.
+        )
 
 
 class Host(orm.Entity):
@@ -315,15 +475,17 @@ class Host(orm.Entity):
     provision_method = orm.StringField(null=True)
     managed = orm.BooleanField(null=True)
     # UUID to track orchestration tasks status,
-    # GET /api/orchestration/:UUID/tasks
+    # GET /api/v2/orchestration/:UUID/tasks
     # FIXME figure out related resource
     # progress_report = orm.OneToOneField(null=True)
     capabilities = orm.StringField(null=True)
     compute_profile = orm.OneToOneField('ComputeProfile', null=True)
 
     class Meta(object):
-        '''Alternate names for this entity's fields.'''
         api_names = {'name': 'host[name]'}
+        api_path = (
+            '/api/v2/hosts',  # Create a host.
+        )
 
 
 class Image(orm.Entity):
@@ -334,6 +496,12 @@ class Image(orm.Entity):
     uuid = orm.StringField(required=True)
     architecture = orm.OneToOneField('Architecture', required=True)
     operatingsystem = orm.OneToOneField('OperatingSystem', required=True)
+
+    class Meta(object):
+        api_path = (
+            # Create a image
+            '/api/v2/compute_resources/:compute_resource_id/images',
+        )
 
 
 class Interface(orm.Entity):
@@ -353,6 +521,10 @@ class Interface(orm.Entity):
 
     class Meta(object):
         api_names = {'interface_type': 'type'}
+        api_path = (
+            # Create an interface linked to a host
+            '/api/v2/hosts/:host_id/interfaces',
+        )
 
 
 class LifecycleEnvironment(orm.Entity):
@@ -364,10 +536,23 @@ class LifecycleEnvironment(orm.Entity):
     # It has to be either 'Library' or an environment at the end of a chain.
     prior = orm.StringField(default='Library', required=True)
 
+    class Meta(object):
+        api_path = (
+            # Create an environment
+            '/katello/api/v2/environments',
+            # Create an environment in an organization
+            '/katello/api/v2/organizations/:organization_id/environments',
+        )
+
 
 class Location(orm.Entity):
     """A representation of a Location entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/locations',  # Create a location
+        )
 
 
 class Media(orm.Entity):
@@ -385,8 +570,16 @@ class Media(orm.Entity):
     # The family that the operating system belongs to.
     # Available families: AIX, Archlinux, Debian, Freebsd, Gentoo, Junos,
     # Redhat, Solaris, Suse, Windows
-    os_family = orm.StringField(null=True)
+    os_family = orm.StringField(choices=(
+        'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos', 'Redhat',
+        'Solaris', 'Suse', 'Windows',
+    ), null=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/media',  # Create a medium.
+        )
 
 
 class Model(orm.Entity):
@@ -397,13 +590,15 @@ class Model(orm.Entity):
     hardware_model = orm.StringField(null=True)
 
     class Meta(object):
-        '''Alternate names for this entity's fields.'''
         api_names = {
             'name': 'model[name]',
             'info': 'model[info]',
             'vendor_class': 'model[vendor_class]',
             'hardware_model': 'model[hardware_model]',
         }
+        api_path = (
+            '/api/v2/models',  # Create a model.
+        )
 
 
 class OperatingSystem(orm.Entity):
@@ -416,6 +611,11 @@ class OperatingSystem(orm.Entity):
     family = orm.StringField(null=True)
     release_name = orm.StringField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/operatingsystems',  # Create an OS.
+        )
+
 
 class OrganizationDefaultInfo(orm.Entity):
     """A representation of a Organization Default Info entity."""
@@ -426,12 +626,23 @@ class OrganizationDefaultInfo(orm.Entity):
     # informable = orm.OneToOneField(required=True)
     keyname = orm.StringField(required=True)
 
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/organizations/:organization_id/default_info/'
+            ':informable_type',  # Create default info
+        )
+
 
 class Organization(orm.Entity):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
     description = orm.StringField()
+
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/organizations',  # Create organization
+        )
 
 
 class OSDefaultTemplate(orm.Entity):
@@ -440,12 +651,28 @@ class OSDefaultTemplate(orm.Entity):
     template_kind = orm.OneToOneField('TemplateKind', null=True)
     config_template = orm.OneToOneField('ConfigTemplate', null=True)
 
+    class Meta(object):
+        api_path = (
+            # Create a os default template for operating system
+            '/api/v2/operatingsystems/:operatingsystem_id/'
+            'os_default_templates',
+        )
+
 
 class OverrideValue(orm.Entity):
     """A representation of a Override Value entity."""
     smart_variable = orm.OneToOneField('SmartVariable')
     match = orm.StringField(null=True)
     value = orm.StringField(null=True)
+
+    class Meta(object):
+        api_path = (
+            # Create an override value for a specific smart_variable
+            '/api/v2/smart_variables/:smart_variable_id/override_values',
+            # Create an override value for a specific smart class parameter
+            '/api/v2/smart_class_parameters/:smart_class_parameter_id/'
+            'override_values',
+        )
 
 
 class Parameter(orm.Entity):
@@ -458,6 +685,22 @@ class Parameter(orm.Entity):
     organization = orm.OneToOneField('Organization')
     name = orm.StringField(required=True)
     value = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            # Create a nested parameter for host
+            '/api/v2/hosts/:host_id/parameters',
+            # Create a nested parameter for hostgroup
+            '/api/v2/hostgroups/:hostgroup_id/parameters',
+            # Create a nested parameter for domain
+            '/api/v2/domains/:domain_id/parameters',
+            # Create a nested parameter for operating system
+            '/api/v2/operatingsystems/:operatingsystem_id/parameters',
+            # Create a nested parameter for location
+            '/api/v2/locations/:location_id/parameters',
+            # Create a nested parameter for organization
+            '/api/v2/organizations/:organization_id/parameters',
+        )
 
 
 class Permission(orm.Entity):
@@ -478,6 +721,10 @@ class Permission(orm.Entity):
 
     class Meta(object):
         api_names = {'permission_type': 'type'}
+        api_path = (
+            # Create a roles permission
+            '/katello/api/v2/roles/:role_id/permissions',
+        )
 
 
 class Product(orm.Entity):
@@ -489,6 +736,11 @@ class Product(orm.Entity):
     name = orm.StringField(required=True)
     label = orm.StringField()
 
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/products',  # Create a product
+        )
+
 
 class PartitionTable(orm.Entity):
     """A representation of a Partition Table entity."""
@@ -496,10 +748,20 @@ class PartitionTable(orm.Entity):
     layout = orm.StringField(required=True)
     os_family = orm.StringField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/ptables',  # Create a ptable.
+        )
+
 
 class PuppetClass(orm.Entity):
     """A representation of a Puppet Class entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/puppetclasses',  # Create a puppetclass.
+        )
 
 
 class Realm(orm.Entity):
@@ -512,6 +774,11 @@ class Realm(orm.Entity):
     # Realm type, e.g. Red Hat Identity Management or Active Directory
     realm_type = orm.StringField(required=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/realms',  # Create a realm.
+        )
+
 
 class Report(orm.Entity):
     """A representation of a Report entity."""
@@ -521,6 +788,11 @@ class Report(orm.Entity):
     reported_at = orm.DateTimeField(required=True)
     # Optional array of log hashes
     logs = orm.ListField(null=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/reports',  # Create a report.
+        )
 
 
 class Repository(orm.Entity):
@@ -538,21 +810,42 @@ class Repository(orm.Entity):
     # type of repo (either 'yum' or 'puppet', defaults to 'yum')
     content_type = orm.StringField(choices=('puppet', 'yum'), default='yum')
 
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/repositories',  # Create a custom repository
+        )
+
 
 class RoleLDAPGroups(orm.Entity):
     """A representation of a Role LDAP Groups entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            # Add group to list of LDAP groups associated with the role
+            '/katello/api/v2/roles/:role_id/ldap_groups',
+        )
 
 
 class Role(orm.Entity):
     """A representation of a Role entity."""
     name = orm.StringField(required=True)
 
+    class Meta(object):
+        api_path = (
+            '/katello/api/v2/roles',  # Create an role.
+        )
+
 
 class SmartProxy(orm.Entity):
     """A representation of a Smart Proxy entity."""
     name = orm.StringField(required=True)
     url = orm.URLField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/smart_proxies',  # Create a Capsule.
+        )
 
 
 class SmartVariable(orm.Entity):
@@ -565,6 +858,11 @@ class SmartVariable(orm.Entity):
     validator_type = orm.StringField(null=True)
     validator_rule = orm.StringField(null=True)
     variable_type = orm.StringField(null=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/smart_variables',  # Create a smart variable.
+        )
 
 
 class Subnet(orm.Entity):
@@ -593,6 +891,11 @@ class Subnet(orm.Entity):
     # FIXME figure out related resource
     # dns = orm.OneToOneField(null=True)
 
+    class Meta(object):
+        api_path = (
+            '/api/v2/subnets',  # Create a subnet
+        )
+
 
 class Subscription(orm.Entity):
     """A representation of a Subscription entity."""
@@ -607,6 +910,14 @@ class Subscription(orm.Entity):
 
     class Meta(object):
         api_names = {'pool_uuid': 'id'}
+        api_path = (
+            # Add a subscription to a resource
+            '/katello/api/v2/subscriptions/:id',
+            # Add a subscription to a system
+            '/katello/api/v2/systems/:system_id/subscriptions',
+            # Add a subscription to an activation key
+            '/katello/api/v2/activation_keys/:activation_key_id/subscriptions',
+        )
 
 
 class SyncPlan(orm.Entity):
@@ -621,6 +932,12 @@ class SyncPlan(orm.Entity):
     sync_date = orm.DateTimeField(required=True)
     description = orm.StringField()
 
+    class Meta(object):
+        api_path = (
+            # Create a sync plan
+            '/katello/api/v2/organizations/:organization_id/sync_plans',
+        )
+
 
 class SystemPackage(orm.Entity):
     """A representation of a System Package entity."""
@@ -629,6 +946,12 @@ class SystemPackage(orm.Entity):
     packages = orm.ListField()
     # List of package group names
     groups = orm.ListField()
+
+    class Meta(object):
+        api_path = (
+            # Install packages remotely
+            '/katello/api/v2/systems/:system_id/packages',
+        )
 
 
 class System(orm.Entity):
@@ -659,6 +982,14 @@ class System(orm.Entity):
 
     class Meta(object):
         api_names = {'system_type': 'type'}
+        api_path = (
+            # Register a content host
+            '/katello/api/v2/systems',
+            # Register a content host in environment
+            '/katello/api/v2/environments/:environment_id/systems',
+            # Register a content host in environment
+            '/katello/api/v2/host_collections/:host_collection_id/systems',
+        )
 
 
 class TemplateCombination(orm.Entity):
@@ -666,6 +997,13 @@ class TemplateCombination(orm.Entity):
     config_template = orm.OneToOneField('ConfigTemplate', required=True)
     environment = orm.OneToOneField('Environment', null=True)
     hostgroup = orm.OneToOneField('HostGroup', null=True)
+
+    class Meta(object):
+        api_path = (
+            # Add a Template Combination
+            '/api/v2/config_templates/:config_template_id/'
+            'template_combinations',
+        )
 
 
 class TemplateKind(orm.Entity):
@@ -676,6 +1014,11 @@ class TemplateKind(orm.Entity):
 class UserGroup(orm.Entity):
     """A representation of a User Group entity."""
     name = orm.StringField(required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/usergroups',  # Create a usergroup.
+        )
 
 
 class User(orm.Entity):
@@ -690,3 +1033,8 @@ class User(orm.Entity):
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
     auth_source = orm.OneToOneField('AuthSourceLDAP', required=True)
+
+    class Meta(object):
+        api_path = (
+            '/api/v2/users',  # Create an user.
+        )
