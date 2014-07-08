@@ -83,19 +83,19 @@ class Factory(object):
     rely on the public functions exposed by this class.
 
     Subclasses are responsible for describing a Foreman entity and its' fields.
-    The public methods on this class (e.g. ``attributes`` or ``create``) use
-    that description to do their work.
+    The public methods on this class (e.g. :meth:`Factory.attributes` or
+    :meth:`Factory.create`) use that description to do their work.
 
     Subclasses may override the following methods:
 
-    * ``_get_path``
-    * ``_get_fields``
-    * ``_get_field_names``.
-    * ``_unpack_response``
+    * :meth:`Factory._get_path`
+    * :meth:`Factory._get_fields`
+    * :meth:`Factory._get_field_names`
+    * :meth:`Factory._unpack_response`
 
-    At a minimum, subclasses should override ``_get_fields``. Read the
-    docstrings on those methods for a full description of exactly what they do
-    and should return.
+    At a minimum, subclasses should override :meth:`Factory._get_fields`. Read
+    the docstrings on those methods for a full description of exactly what they
+    do and should return.
 
     """
     def _get_fields(self):
@@ -281,8 +281,8 @@ class EntityFactoryMixin(Factory):
 
     Inserting this method into the class hierarchy of an
     :class:`robottelo.orm.Entity` allows that class to use all of the methods
-    defined on :class:`robottelo.factory.Factory`, such as ``attributes`` and
-    ``create``.
+    defined on :class:`robottelo.factory.Factory`, such as
+    :meth:`Factory.attributes` and :meth:`Factory.create`.
 
     An :class:`robottelo.orm.Entity` which wishes to use this mixin must define
     the ``api_path`` attribute on its ``Meta`` class.

@@ -28,6 +28,7 @@ Submodules:
 .. automodule:: robottelo.factory
     :members:
     :undoc-members:
+    :private-members:
 
 :mod:`robottelo.log`
 --------------------
