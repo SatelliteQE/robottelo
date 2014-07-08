@@ -325,38 +325,41 @@ tab_locators = {
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
 
-    # Orgs
-    "orgs.tab_users": (
+    # For Orgs and Locations
+    "context.tab_users": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'users')]"),
-    "orgs.tab_sm_prx": (
+    "context.tab_sm_prx": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'smart_proxies')]"),
-    "orgs.tab_subnets": (
+    "context.tab_subnets": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'subnets')]"),
-    "orgs.tab_resources": (
+    "context.tab_resources": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'resources')]"),
-    "orgs.tab_media": (
+    "context.tab_media": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'media')]"),
-    "orgs.tab_template": (
+    "context.tab_template": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'template')]"),
-    "orgs.tab_domains": (
+    "context.tab_domains": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'domains')]"),
-    "orgs.tab_env": (
+    "context.tab_env": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'environments')]"),
-    "orgs.tab_hostgrps": (
+    "context.tab_hostgrps": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'hostgroups')]"),
-    "orgs.tab_locations": (
+    "context.tab_locations": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'locations')]"),
-    "orgs.tab_parameters": (
+    "context.tab_organizations": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'organizations')]"),
+    "context.tab_parameters": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'params')]"),
 
