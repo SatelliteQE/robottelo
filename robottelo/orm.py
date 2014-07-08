@@ -1,9 +1,11 @@
 """Module that define the model layer used to define entities"""
+from fauxfactory import FauxFactory
 import booby
 import booby.fields
 import booby.inspection
 import booby.validators
 import collections
+import random
 
 
 class Entity(booby.Model):
@@ -43,10 +45,16 @@ class Entity(booby.Model):
 # Wrappers for booby fields
 class BooleanField(booby.fields.Boolean):
     """Field that represents a boolean"""
+    def get_value(self):
+        """Return a value suitable for a :class:`BooleanField`."""
+        return FauxFactory.generate_boolean()
 
 
 class EmailField(booby.fields.Email):
     """Field that represents a boolean"""
+    def get_value(self):
+        """Return a value suitable for a :class:`EmailField`."""
+        return FauxFactory.generate_email()
 
 
 class Field(booby.fields.Field):
@@ -55,14 +63,39 @@ class Field(booby.fields.Field):
 
 class FloatField(booby.fields.Float):
     """Field that represents a float"""
+    def get_value(self):
+        """Return a value suitable for a :class:`FloatField`."""
+        return random.random() * 10000
 
 
 class IntegerField(booby.fields.Integer):
     """Field that represents an integer"""
+    def get_value(self):
+        """Return a value suitable for a :class:`IntegerField`."""
+        return FauxFactory.generate_integer()
 
 
 class StringField(booby.fields.String):
     """Field that represents a string"""
+    def __init__(self, max_len=10000, *args, **kwargs):
+        self.max_len = max_len
+        super(StringField, self).__init__(*args, **kwargs)
+
+    def get_value(self):
+        """Return a value suitable for a :class:`StringField`."""
+        return FauxFactory.generate_string(
+            'utf8',
+            FauxFactory.generate_integer(1, self.max_len)
+        )
+
+
+class ShortStringField(booby.fields.String):
+    """Field that represents a string, no longer than 255 chars."""
+    def get_value(self):
+        return FauxFactory.generate_string(
+            'utf8',
+            FauxFactory.generate_integer(1, 255)
+        )
 
 
 # Additional fields
@@ -76,8 +109,12 @@ class DateTimeField(Field):
 
 class IPAddressField(StringField):
     """Field that represents an IP adrress"""
+    def get_value(self):
+        """Return a value suitable for a :class:`IPAddressField`."""
+        return FauxFactory.generate_ipaddr()
 
 
+# FIXME: implement get_value()
 class ListField(Field):
     """Field that represents a list of strings"""
 
@@ -91,12 +128,22 @@ class ListField(Field):
 
 class MACAddressField(StringField):
     """Field that represents a MAC adrress"""
+    def get_value(self):
+        """Return a value suitable for a :class:`MACAddressField`."""
+        return FauxFactory.generate_mac()
 
 
 class OneToOneField(booby.fields.Embedded):
     """Field that represents a one to one related entity"""
+    def get_value(self):
+        """
+        Return an instance of the :class:`robottelo.orm.Entity` this field
+        points to.
+        """
+        return self.model()
 
 
+# FIXME: implement get_value()
 class OneToManyField(Field):
     """Field that represents a one to many related entity
 
