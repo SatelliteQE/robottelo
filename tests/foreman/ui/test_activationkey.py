@@ -678,7 +678,7 @@ class ActivationKey(UITestCase):
         self.assertIsNotNone(self.activationkey.search_key(name))
         self.activationkey.update(name, new_name)
         invalid = self.products.wait_until_element(common_locators
-                                                   ["common_invalid"])
+                                                   ["alert.error"])
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(new_name))
 
