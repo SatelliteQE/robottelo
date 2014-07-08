@@ -7,7 +7,7 @@ http://theforeman.org/api/apidoc/v2/models.html.
 """
 from robottelo.api import client
 from robottelo.common.helpers import get_server_url, get_server_credentials
-from robottelo import factories
+from robottelo import entities
 from unittest import TestCase
 from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
@@ -29,7 +29,7 @@ class ModelsTestCase(TestCase):
         response = client.get(
             self.path,
             auth=get_server_credentials(),
-            verify=False
+            verify=False,
         )
 
         # Run sanity checks.
@@ -62,7 +62,7 @@ class ModelsTestCase(TestCase):
         """
         response = client.post(
             self.path,
-            factories.ModelFactory('API').attributes(),
+            entities.Model().attributes('api'),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -86,3 +86,49 @@ class ModelsTestCase(TestCase):
         """
         response = client.post(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
+
+
+class ModelsIdTestCase(TestCase):
+    """Tests for path ``api/v2/models/:id``."""
+    def setUp(self):  # pylint: disable=C0103
+        """Set ``self.attrs`` and ``self.path``."""
+        self.attrs = entities.Model().create()
+        self.path = urljoin(
+            get_server_url(),
+            'api/v2/models/{0}'.format(self.attrs['id'])
+        )
+
+    def test_get(self):
+        """@Test: GET ``self.path``.
+
+        @Feature Model
+        @Assert GET succeeds
+
+        """
+        response = client.get(
+            self.path,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/json', response.headers['content-type'])
+
+    def test_delete(self):
+        """@Test: DELETE ``self.path``.
+
+        @Feature Model
+        @Assert DELETE succeeds
+
+        """
+        response = client.delete(
+            self.path,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
+        response = client.get(
+            self.path,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 404)
