@@ -1,4 +1,4 @@
-"""Tests for :mod:`robottelo.factories`."""
+"""Tests for :mod:`robottelo.factory`."""
 # (Too many public methods) pylint: disable=R0904
 from fauxfactory import FauxFactory
 from robottelo.common import conf

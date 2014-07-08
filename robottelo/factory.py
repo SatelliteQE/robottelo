@@ -239,8 +239,8 @@ class Factory(object):
         :param dict fields: A dict mapping field names to field values.
         :return: Information about the newly created entity.
         :rtype: dict
-        :raises FactoryError: If the server returns an error when attempting to
-            create an entity.
+        :raises robottelo.factory.FactoryError: If the server returns an error
+            when attempting to create an entity.
 
         """
         # Start with values provided by user.

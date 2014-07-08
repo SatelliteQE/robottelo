@@ -25,8 +25,8 @@ class Entity(booby.Model):
         """Non-field information about this entity.
 
         Examples of information which can be set on this class are the
-        ``api_names`` and ``cli_names`` dicts. See :mod:`robottelo.factories`
-        for details.
+        ``api_names`` and ``cli_names`` dicts. See :mod:`robottelo.factory` for
+        details.
 
         """
 
