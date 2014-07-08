@@ -7,24 +7,16 @@
 Test class for Locations UI
 """
 
-import sys
 from ddt import ddt
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 from nose.plugins.attrib import attr
-from robottelo.common import conf
 from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
-                                      generate_email_address, get_data_file)
-from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
-from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
+                                      generate_email_address)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_loc, make_subnet, make_domain,
                                   make_user, make_org, make_hostgroup)
-from robottelo.ui.locators import common_locators, tab_locators, locators
+from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
 
 
