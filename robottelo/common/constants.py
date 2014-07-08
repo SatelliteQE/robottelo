@@ -79,7 +79,17 @@ FILTER = {'arch_os': "architecture_operatingsystem",
           'org_domain': "organization_domain",
           'org_envs': "organization_environment",
           'org_hostgroup': "organization_hostgroup",
-          'org_location': "organization_location"}
+          'org_location': "organization_location",
+          'loc_user': "location_user",
+          'loc_proxy': "location_smart_proxy",
+          'loc_subnet': "location_subnet",
+          'loc_resource': "location_compute_resource",
+          'loc_media': "location_medium",
+          'loc_template': "location_config_template",
+          'loc_domain': "location_domain",
+          'loc_envs': "location_environment",
+          'loc_hostgroup': "location_hostgroup",
+          'loc_org': "location_organization"}
 
 RESOURCE_DEFAULT = "baremetal"
 

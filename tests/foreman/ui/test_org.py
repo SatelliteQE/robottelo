@@ -367,7 +367,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, domains=[domain], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_domains"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % domain))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -375,7 +376,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, domains=[domain])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_domains"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % domain))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -408,7 +410,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, users=[user_name], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_users"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % user_name))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -416,7 +419,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, users=[user_name], new_users=None)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_users"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % user_name))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -446,7 +450,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, hostgroups=[host_grp], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_hostgrps"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_hostgrps"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % host_grp))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -454,7 +459,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, hostgroups=[host_grp], new_hostgroups=None)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_hostgrps"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_hostgrps"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % host_grp))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -507,7 +513,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_subnets=[subnet_name])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_subnets"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % subnet_name))
         self.assertTrue(element)
@@ -537,7 +544,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_domains=[domain])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_domains"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_domains"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % domain))
         self.assertTrue(element)
@@ -571,7 +579,7 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_users=[user])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_users"]).click()
+        self.org.wait_until_element(tab_locators["context.tab_users"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % user))
         self.assertTrue(element)
@@ -601,7 +609,8 @@ class Org(UITestCase):
         self.assertIsNotNone(self.hostgroup.search(host_grp))
         self.org.update(org_name, new_hostgroups=[host_grp])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_hostgrps"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_hostgrps"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % host_grp))
         self.assertTrue(element)
@@ -632,7 +641,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_locations=[location])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_locations"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_locations"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % location))
         self.assertTrue(element)
@@ -666,7 +676,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, resources=[resource_name], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_resources"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % resource_name))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -675,7 +686,8 @@ class Org(UITestCase):
         self.org.update(org_name, resources=[resource_name],
                         new_resources=None)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_resources"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % resource_name))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -706,7 +718,7 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, medias=[medium], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
+        self.org.wait_until_element(tab_locators["context.tab_media"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % medium))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -715,7 +727,7 @@ class Org(UITestCase):
         self.org.update(org_name, medias=[medium],
                         new_medias=None)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
+        self.org.wait_until_element(tab_locators["context.tab_media"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % medium))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -748,7 +760,8 @@ class Org(UITestCase):
         self.org.create(org_name, templates=[template],
                         edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_template"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % template))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -756,7 +769,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, templates=[template])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_template"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % template))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -787,7 +801,7 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_envs=[env])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
+        self.org.wait_until_element(tab_locators["context.tab_env"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % env))
         self.assertTrue(element)
@@ -842,7 +856,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_resources=[resource_name])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_resources"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_resources"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % resource_name))
         self.assertTrue(element)
@@ -874,7 +889,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_medias=[medium])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_media"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_media"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % medium))
         self.assertTrue(element)
@@ -908,7 +924,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, new_templates=[template])
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_template"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_template"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % template))
         self.assertTrue(element)
@@ -937,7 +954,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, envs=[env], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_env"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % env))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -945,7 +963,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, envs=[env], new_envs=None)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_env"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_env"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % env))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
@@ -977,7 +996,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.create(org_name, subnets=[subnet_name], edit=True)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_subnets"]).click()
         element = self.org.wait_until_element((strategy1,
                                                value1 % subnet_name))
         # Item is listed in 'Selected Items' list and not 'All Items' list.
@@ -985,7 +1005,8 @@ class Org(UITestCase):
         self.navigator.go_to_org()
         self.org.update(org_name, subnets=[subnet_name], new_subnets=None)
         self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["orgs.tab_subnets"]).click()
+        self.org.wait_until_element(
+            tab_locators["context.tab_subnets"]).click()
         element = self.org.wait_until_element((strategy,
                                                value % subnet_name))
         # Item is listed in 'All Items' list and not 'Selected Items' list.
