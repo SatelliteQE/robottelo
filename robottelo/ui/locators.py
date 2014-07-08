@@ -746,7 +746,9 @@ locators = {
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
     "users.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-id, '%s')]"),
+        By.XPATH,
+        ("//td/a[contains(., '%s')]"
+         "/following::td/a[@class='delete']")),
 
     # users.roles
     "users.admin_role": (By.ID, "user_admin"),
