@@ -66,6 +66,14 @@ class StringField(booby.fields.String):
 
 
 # Additional fields
+class DateField(Field):
+    """Field that represents a date"""
+
+
+class DateTimeField(Field):
+    """Field that represents a datetime"""
+
+
 class IPAddressField(StringField):
     """Field that represents an IP adrress"""
 
@@ -73,7 +81,7 @@ class IPAddressField(StringField):
 class ListField(Field):
     """Field that represents a list of strings"""
 
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ListField, self).__init__(
             booby.validators.List(booby.validators.String()),
             *args,
