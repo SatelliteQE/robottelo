@@ -288,13 +288,13 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        description = generate_string("alpha", 256)
+        description = generate_string("alpha", 1001)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.error"]))
+                        (common_locators["common_haserror"]))
         self.assertIsNone(self.activationkey.search_key(name))
 
     @skip_if_bz_bug_open('1083027')
