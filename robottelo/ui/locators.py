@@ -722,11 +722,12 @@ locators = {
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.dropdown": (
         By.XPATH,
-        ("//a[contains(@href,'%s')]"
-            "/../../a[contains(@data-toggle,'dropdown')]")),
+        ("//td/a/span[contains(., '%s')]"
+         "/following::td/div/a[@data-toggle='dropdown']")),
     "hostgroups.delete": (
         By.XPATH,
-        "//a[contains(@href,'%s') and contains(@class,'delete')]"),
+        ("//td/a/span[contains(., '%s')]"
+         "/following::td/div/ul/li[2]/a[@class='delete']")),
 
     # Users
 
