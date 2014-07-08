@@ -682,7 +682,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(new_name))
 
-    @skip_if_bz_bug_open('1083438')
+    @skip_if_bz_bug_open('1110486')
     def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
@@ -696,7 +696,7 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
-        new_description = generate_string("alpha", 256)
+        new_description = generate_string("alpha", 1001)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
