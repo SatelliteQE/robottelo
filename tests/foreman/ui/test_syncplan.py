@@ -167,7 +167,7 @@ class Syncplan(UITestCase):
         startdate = current_date + timedelta(days=10)
         startdate_str = startdate.strftime("%Y-%m-%d")
         # validating only for date
-        fetch_startdate = startdate.strftime("%b %d, %Y %I:%M:%S %p").\
+        fetch_startdate = startdate.strftime("%b %-d, %Y %I:%M:%S %p").\
             rpartition(',')[0]
         self.syncplan.create(plan_name, description, startdate=startdate_str)
         self.assertIsNotNone(self.products.search(plan_name))

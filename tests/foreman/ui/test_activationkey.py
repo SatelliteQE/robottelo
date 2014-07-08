@@ -288,13 +288,13 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        description = generate_string("alpha", 256)
+        description = generate_string("alpha", 1001)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.error"]))
+                        (common_locators["common_haserror"]))
         self.assertIsNone(self.activationkey.search_key(name))
 
     @skip_if_bz_bug_open('1083027')
@@ -678,11 +678,11 @@ class ActivationKey(UITestCase):
         self.assertIsNotNone(self.activationkey.search_key(name))
         self.activationkey.update(name, new_name)
         invalid = self.products.wait_until_element(common_locators
-                                                   ["common_invalid"])
+                                                   ["alert.error"])
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(new_name))
 
-    @skip_if_bz_bug_open('1083438')
+    @skip_if_bz_bug_open('1110486')
     def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
@@ -696,7 +696,7 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
-        new_description = generate_string("alpha", 256)
+        new_description = generate_string("alpha", 1001)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
         self.navigator.go_to_activation_keys()
