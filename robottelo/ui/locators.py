@@ -615,9 +615,14 @@ locators = {
         By.XPATH,
         ("//a[contains(@href,'compute_resources')"
             "and normalize-space(.)='%s']")),
-    "resource.dropdown": (By.XPATH, "//a[contains(@href,'%s')]/../../a"),
+    "resource.dropdown": (
+        By.XPATH,
+        ("//td/a[contains(., '%s')]"
+         "/following::td/div/a[@data-toggle='dropdown']")),
     "resource.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+        By.XPATH,
+        ("//td/a[contains(., '%s')]"
+         "/following::td/div/ul/li/a[@class='delete']")),
     "resource.edit": (
         By.XPATH, "//a[contains(.,'Edit') and contains(@href,'%s')]"),
 
