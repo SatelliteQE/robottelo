@@ -4,6 +4,7 @@
 # Python 3.3 and later includes module `ipaddress` in the standard library. If
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
+from fauxfactory import FauxFactory
 from robottelo import orm
 from sys import version_info
 import socket
@@ -110,6 +111,49 @@ class IntegerFieldTestCase(unittest.TestCase):
         """
         self.assertIsInstance(orm.IntegerField().get_value(), int)
 
+    def test_min_val(self):
+        """Set a ``min_val`` and call ``get_value``.
+
+        Assert the number generated is greater than or equal to the specified
+        value.
+
+        """
+        min_val = FauxFactory.generate_integer()
+        val = orm.IntegerField(min_val=min_val).get_value()
+        self.assertGreaterEqual(val, min_val)
+
+    def test_max_val(self):
+        """Set a ``max_val`` and call ``get_value``.
+
+        Assert the number generated is less than or equal to the specified
+        value.
+
+        """
+        max_val = FauxFactory.generate_integer()
+        val = orm.IntegerField(max_val=max_val).get_value()
+        self.assertLessEqual(val, max_val)
+
+    def test_min_max_val(self):
+        """Set both ``min_val`` and ``max_val`` and call ``get_value``.
+
+        Assert the number generated falls between the specified bounds.
+
+        """
+        min_val = FauxFactory.generate_integer(-1000, 0)
+        max_val = FauxFactory.generate_integer(0, 1000)
+
+        # First, we'll allow a range of values...
+        val = orm.IntegerField(min_val, max_val).get_value()
+        self.assertGreaterEqual(val, min_val)
+        self.assertLessEqual(val, max_val)
+
+        # ... then, we'll allow only a single value...
+        val = orm.IntegerField(min_val, min_val).get_value()
+        self.assertEqual(val, min_val)
+
+        # ... twice over, just to be sure.
+        val = orm.IntegerField(max_val, max_val).get_value()
+        self.assertEqual(val, max_val)
 
 class IPAddressFieldTestCase(unittest.TestCase):
     """Tests for :class:`robottelo.orm.IPAddressField`."""

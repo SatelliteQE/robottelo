@@ -645,11 +645,16 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
         return response['model']
 
 
-class OperatingSystem(orm.Entity):
-    """A representation of a Operating System entity."""
+class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
+    """A representation of a Operating System entity.
+
+    ``major`` is listed as a string field in the API docs, but only numeric
+    values are accepted, and they may be no longer than 5 digits long.
+
+    """
     # validator: Must match regular expression /\A(\S+)\Z/.
-    name = orm.StringField(required=True)
-    major = orm.StringField(required=True)
+    name = orm.StringField(required=True, max_len=255)
+    major = orm.IntegerField(required=True, min_val=0, max_val=99999)
     minor = orm.StringField(null=True)
     description = orm.StringField(null=True)
     family = orm.StringField(null=True)
@@ -659,6 +664,14 @@ class OperatingSystem(orm.Entity):
         """Non-field information about this entity."""
         api_path = (
             '/api/v2/operatingsystems',  # Create an OS.
+        )
+        api_names = (
+            ('name', 'operatingsystem[name]'),
+            ('major', 'operatingsystem[major]'),
+            ('minor', 'operatingsystem[minor]'),
+            ('description', 'operatingsystem[description]'),
+            ('family', 'operatingsystem[family]'),
+            ('release_name', 'operatingsystem[release_name]'),
         )
 
 

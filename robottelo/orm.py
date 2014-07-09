@@ -70,9 +70,14 @@ class FloatField(booby.fields.Float):
 
 class IntegerField(booby.fields.Integer):
     """Field that represents an integer"""
+    def __init__(self, min_val=None, max_val=None, *args, **kwargs):
+        self.min_val = min_val
+        self.max_val = max_val
+        super(IntegerField, self).__init__(*args, **kwargs)
+
     def get_value(self):
         """Return a value suitable for a :class:`IntegerField`."""
-        return FauxFactory.generate_integer()
+        return FauxFactory.generate_integer(self.min_val, self.max_val)
 
 
 class StringField(booby.fields.String):
