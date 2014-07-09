@@ -1,7 +1,13 @@
 """Tests for robottelo.orm module"""
-import unittest
-
+# (Too many public methods) pylint: disable=R0904
+#
+# Python 3.3 and later includes module `ipaddress` in the standard library. If
+# Robottelo ever moves past Python 2.x, that module should be used instead of
+# `socket`.
 from robottelo import orm
+from sys import version_info
+import socket
+import unittest
 
 
 class SampleEntity(orm.Entity):
@@ -54,3 +60,127 @@ class OneToManyFieldTestCase(unittest.TestCase):
 
         self.assertIsInstance(other.entities, list)
         self.assertEqual(other.entities[0].name, 'aname')
+
+
+class BooleanFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.BooleanField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure either ``True`` or ``False`` is returned.
+
+        """
+        self.assertIn(orm.BooleanField().get_value(), (True, False))
+
+
+class EmailFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.EmailField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure a unicode string is returned, containing the character '@'.
+
+        """
+        email = orm.EmailField().get_value()
+        if version_info[0] == 2:
+            self.assertIsInstance(email, unicode)
+        else:
+            self.assertIsInstance(email, str)
+        self.assertIn('@', email)
+
+
+class FloatFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.FloatField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure the value returned is a ``float``.
+
+        """
+        self.assertIsInstance(orm.FloatField().get_value(), float)
+
+
+class IntegerFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.IntegerField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure the value returned is a ``int``.
+
+        """
+        self.assertIsInstance(orm.IntegerField().get_value(), int)
+
+
+class IPAddressFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.IPAddressField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure the value returned is acceptable to ``socket.inet_aton``.
+
+        """
+        addr = orm.IPAddressField().get_value()
+        try:
+            socket.inet_aton(addr)
+        except socket.error as err:
+            self.fail('({0}) {1}'.format(addr, err))
+
+
+class MACAddressFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.MACAddressField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure the value returned is a string containing 12 hex digits (either
+        upper or lower case), grouped into pairs of digits and separated by
+        colon characters. For example: ``'01:23:45:FE:dc:BA'``
+
+        """
+        # flake8:noqa (line-too-long) pylint:disable=C0301
+        # This regex is inspired by suggestions from others, but simpler. See:
+        # http://stackoverflow.com/questions/7629643/how-do-i-validate-the-format-of-a-mac-address
+        self.assertRegexpMatches(
+            orm.MACAddressField().get_value().upper(),
+            '^([0-9A-F]{2}[:]){5}[0-9A-F]{2}$'
+        )
+
+
+class OneToOneFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.OneToOneField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Assert a :class:`robottelo.orm.Entity` instance is returned.
+
+        """
+        self.assertIsInstance(
+            orm.OneToOneField(SampleEntity).get_value(),
+            orm.Entity
+        )
+
+
+class StringFieldTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.StringField`."""
+    def test_get_value(self):
+        """Test method ``get_value``.
+
+        Ensure a unicode string at least 1 char long is returned.
+
+        """
+        string = orm.StringField().get_value()
+        if version_info[0] == 2:
+            self.assertIsInstance(string, unicode)
+        else:
+            self.assertIsInstance(string, str)
+        self.assertGreater(len(string), 0)
+
+    def test_max_len(self):
+        """Set a ``max_len`` and call ``get_value``.
+
+        Assert the string generated is between 1 and ``max_len`` chars long,
+        inclusive.
+
+        """
+        string = orm.StringField(max_len=20).get_value()
+        self.assertGreater(len(string), 0)
+        self.assertLess(len(string), 20)

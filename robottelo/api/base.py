@@ -12,14 +12,14 @@ def request(method, **kwargs):
     """A wrapper around the ``requests.request`` function that provides default
     values for ``domain``, ``auth`` and ``json``, adding new params for each.
 
-    :param method: method for the new :class:`Request` object.
-    :param optional url: URL for the new :class:`Request` object.
+    :param method: method for the new ``Request`` object.
+    :param optional url: URL for the new ``Request`` object.
     :param optional domain: set to main.server.hostname as default
     :param optional path: sets url to "%/%".format(domain,path)
     :param optional params: Dictionary or bytes to be sent
-        in the query string for the :class:`Request`.
+        in the query string for the ``Request``.
     :param optional data: Dictionary, bytes, or file-like object to send
-        in the body of the :class:`Request`.
+        in the body of the ``Request``.
     :param optional json: converts python data structure with json.dumps
         and sends it as data, if the data param is empty
     :param optional headers: Dictionary of HTTP Headers to send
@@ -106,7 +106,7 @@ def get(**kwargs):
     """Sends a GET request.
 
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     kwargs.setdefault('allow_redirects', True)
@@ -118,7 +118,7 @@ def options(**kwargs):
     """Sends a OPTIONS request.
 
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     kwargs.setdefault('allow_redirects', True)
@@ -130,7 +130,7 @@ def head(**kwargs):
     """Sends a HEAD request.
 
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     kwargs.setdefault('allow_redirects', False)
@@ -143,7 +143,7 @@ def post(json=None, **kwargs):
 
     :param optional json: Dictionary, bytes, or file-like object to send
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     return request('post', json=json, **kwargs)
@@ -155,7 +155,7 @@ def put(json=None, **kwargs):
 
     :param optional data: A dictionary, bytes, or file-like object to send
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     return request('put', json=json, **kwargs)
@@ -166,9 +166,9 @@ def patch(json=None, **kwargs):
     """Sends a PATCH request.
 
     :param optional data: A dictionary, bytes, or file-like object to send in
-        the body of the :class:`Request`.
+        the body of the ``Request``.
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     return request('patch', json=json, **kwargs)
@@ -179,7 +179,7 @@ def delete(**kwargs):
     """Sends a DELETE request.
 
     :param optional \**kwargs: Arguments for ``request``.
-    :return: A :class:`Response` object.
+    :return: A ``Response`` object.
 
     """
     return request('delete', **kwargs)
