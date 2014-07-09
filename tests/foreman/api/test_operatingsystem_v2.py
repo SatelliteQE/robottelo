@@ -5,6 +5,7 @@ can be found here: http://theforeman.org/api/apidoc/v2/operatingsystems
 
 """
 from robottelo.api import client
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -43,6 +44,7 @@ class OperatingsystemsTestCase(TestCase):
         response = client.get(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
 
+    @skip_if_bz_bug_open(1118015)
     def test_post(self):
         """@Test: POST ``self.path``.
 
