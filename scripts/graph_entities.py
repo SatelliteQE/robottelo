@@ -22,24 +22,22 @@ from robottelo import entities, orm
 import inspect
 
 
-# Compile a list of `orm.Entity` subclasses.
-entities_ = []
-for name in dir(entities):
-    thing = getattr(entities, name)
-    if inspect.isclass(thing) and issubclass(thing, orm.Entity):
-        entities_.append(thing)
+# Compile a dict of `orm.Entity` subclasses.
+entities_ = {}
+for name, klass in inspect.getmembers(entities, inspect.isclass):
+    if issubclass(klass, orm.Entity):
+        entities_[name] = klass
 
 # Generate DOT-formatted output.
 print('digraph dependencies {')  # (superfluous-parens) pylint:disable=C0325
-for entity in entities_:
-    entity_name = entity.__name__
-    for name, field in entity.get_fields().items():
+for entity_name, entity in entities_.items():
+    for field_name, field in entity.get_fields().items():
         if (isinstance(field, orm.OneToOneField)
                 or isinstance(field, orm.OneToManyField)):
             print('{0} -> {1} [label="{2}"{3}]'.format(
                 entity_name,
                 field.model,
-                name,
+                field_name,
                 ' color=red' if field.options.get('required', False) else ''
             ))
 print('}')  # (superfluous-parens) pylint:disable=C0325
