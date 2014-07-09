@@ -1,8 +1,7 @@
-"""Unit tests for the "model" resource.
+"""Unit tests for the ``models`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "model" resource can be found here:
-http://theforeman.org/api/apidoc/v2/models.html.
+Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
+can be found here: http://theforeman.org/api/apidoc/v2/models
 
 """
 from robottelo.api import client
@@ -23,7 +22,8 @@ class ModelsTestCase(TestCase):
         """@Test: GET ``self.path``.
 
         @Feature: Model
-        @Assert: GET succeeds
+        @Assert: HTTP 200 is returned with an ``application/json``
+        content-type, and response contains valid categories of data.
 
         """
         response = client.get(
@@ -57,7 +57,7 @@ class ModelsTestCase(TestCase):
         """@Test: POST ``self.path``.
 
         @Feature: Model
-        @Assert: New model is created
+        @Assert: HTTP 201 is returned.
 
         """
         response = client.post(
@@ -102,7 +102,7 @@ class ModelsIdTestCase(TestCase):
         """@Test: GET ``self.path``.
 
         @Feature Model
-        @Assert GET succeeds
+        @Assert HTTP 200 is returned.
 
         """
         response = client.get(
@@ -117,7 +117,8 @@ class ModelsIdTestCase(TestCase):
         """@Test: DELETE ``self.path``.
 
         @Feature Model
-        @Assert DELETE succeeds
+        @Assert DELETE succeeds. HTTP 200 is returned before deleting entity,
+        and 404 is returned after deleting entity.
 
         """
         response = client.delete(

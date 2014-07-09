@@ -1,8 +1,7 @@
-"""Unit tests for the "host" resource.
+"""Unit tests for the ``hosts`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "host" resource can be found here:
-http://theforeman.org/api/apidoc/v2/hosts.html.
+Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
+can be found here: http://theforeman.org/api/apidoc/v2/hosts
 
 """
 from fauxfactory import FauxFactory
@@ -25,7 +24,8 @@ class HostsTestCase(TestCase):
         """@Test: GET ``self.path``.
 
         @Feature: Host
-        @Assert: GET succeeds
+        @Assert: HTTP 200 is returned with an ``application/json``
+        content-type, and response contains valid categories of data.
 
         """
         response = client.get(
@@ -33,8 +33,6 @@ class HostsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False
         )
-
-        # Run sanity checks.
         self.assertEqual(response.status_code, 200)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -49,7 +47,7 @@ class HostsTestCase(TestCase):
         """@Test: GET ``self.path`` and specify the ``search`` parameter.
 
         @Feature: Host
-        @Assert: Search term is returned
+        @Assert: HTTP 200 is returned, along with ``search`` term.
 
         """
         query = FauxFactory.generate_string(
@@ -69,7 +67,7 @@ class HostsTestCase(TestCase):
         """@Test: GET ``self.path`` and specify the ``per_page`` parameter.
 
         @Feature: Host
-        @Assert: Per page value is returned
+        @Assert: HTTP 200 is returned, along with per ``per_page`` value.
 
         """
         per_page = FauxFactory.generate_integer(1, 1000)
@@ -97,7 +95,7 @@ class HostsTestCase(TestCase):
         """@Test: POST ``self.path``.
 
         @Feature: Host
-        @Assert: New host is created
+        @Assert: HTTP 201 is returned
 
         """
         response = client.post(

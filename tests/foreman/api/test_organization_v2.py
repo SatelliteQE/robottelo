@@ -1,8 +1,7 @@
-"""Unit tests for the "organization" resource.
+"""Unit tests for the ``organizations`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "organization" resource can be found here:
-http://theforeman.org/api/apidoc/v2/organizations.html.
+Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
+can be found here: http://theforeman.org/api/apidoc/v2/organizations
 
 """
 from robottelo.api import client
@@ -24,7 +23,8 @@ class OrganizationsTestCase(TestCase):
         """@Test: GET ``self.path``.
 
         @Feature Organization
-        @Assert: GET succeeds
+        @Assert: HTTP 200 is returned with an ``application/json``
+        content-type, and response contains valid categories of data.
 
         """
         response = client.get(
@@ -32,8 +32,6 @@ class OrganizationsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False
         )
-
-        # Run sanity checks.
         self.assertEqual(response.status_code, 200)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -59,7 +57,7 @@ class OrganizationsTestCase(TestCase):
         """@Test: POST ``self.path``.
 
         @Feature: Organization
-        @Assert: New organization is created
+        @Assert: HTTP 201 is returned
 
         """
         response = client.post(
