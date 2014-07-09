@@ -36,9 +36,10 @@ for entity in entities_:
     for name, field in entity.get_fields().items():
         if isinstance(field, orm.OneToOneField) \
         or isinstance(field, orm.OneToManyField):  # flake8:noqa
-            print('{} -> {} [label="{}"]'.format(
+            print('{0} -> {1} [label="{2}"{3}]'.format(
                 entity_name,
                 field.model,
                 name,
+                ' color=red' if field.options.get('required', False) else ''
             ))
 print('}')  # (superfluous-parens) pylint:disable=C0325
