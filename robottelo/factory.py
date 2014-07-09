@@ -13,6 +13,7 @@ of factory implementations, see :mod:`robottelo.factories` and
 
 """
 from robottelo.api import client
+from robottelo.api import base
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from urlparse import urljoin
 
@@ -61,7 +62,7 @@ def field_is_required(field_type):
     return False
 
 
-def _call_client_post(url, data, auth, verify):
+#def _call_client_post(url, data, auth, verify):
     """Call ``client.post`` with the provided arguments.
 
     This method is extremely simple and does nothing with the data passed in or
@@ -69,7 +70,7 @@ def _call_client_post(url, data, auth, verify):
     performing unit testing.
 
     """
-    return client.post(url, data, auth=auth, verify=verify)
+#    return client.post(url, data, auth=auth, verify=verify)
 
 
 class FactoryError(Exception):
@@ -253,17 +254,22 @@ class Factory(object):
             if name in values.keys():
                 continue
             if isinstance(val_or_factory, Factory):
-                values[name] = val_or_factory.create()['id']
+                cr = val_or_factory.create()
+                print cr
+                values[name+"_id"] = cr['id']
             else:
                 values[name] = val_or_factory
 
         # Create the current entity.
-        response = _call_client_post(
-            urljoin(get_server_url(), self._get_path()),
-            _copy_and_update_keys(values, self._get_field_names('api')),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
+        json = _copy_and_update_keys(values, self._get_field_names('api'))
+        response = base.post(
+            path=self._get_path(),
+            json=json
+        )
+
+        if not response.ok:
+            raise FactoryError(response)
+        response = response.json()
         if 'error' in response.keys():
             raise FactoryError(response['error'])
 
@@ -299,6 +305,7 @@ class EntityFactoryMixin(Factory):
         # The base Entity class defines a `get_fields` method.
         for name, field in self.get_fields().items():
             if field_is_required(field):
+                print field
                 # `get_value` returns either a value or a Factory instance.
                 values[name] = field.get_value()
         return values

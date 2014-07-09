@@ -16,12 +16,12 @@ from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
 
-class ActivationKey(orm.Entity):
+class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Activtion Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    environment = orm.OneToOneField('Environment')
+    environment = orm.OneToOneField('LifecycleEnvironment')
     content_view = orm.OneToOneField('ContentView')
     # maximum number of registered content hosts, or 'unlimited'
     usage_limit = orm.IntegerField()
@@ -33,7 +33,7 @@ class ActivationKey(orm.Entity):
         )
 
 
-class Architecture(orm.Entity):
+class Architecture(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
@@ -276,7 +276,7 @@ class ContentViewPuppetModule(orm.Entity):
         )
 
 
-class ContentView(orm.Entity):
+class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -291,9 +291,9 @@ class ContentView(orm.Entity):
         """Non-field information about this entity."""
         api_path = (
             # Create a content view
-            '/katello/api/v2/organizations/:organization_id/content_views',
-            # Create a content view
             '/katello/api/v2/content_views',
+            # Create a content view
+            '/katello/api/v2/organizations/:organization_id/content_views',
         )
 
 
@@ -334,7 +334,7 @@ class Domain(orm.Entity):
         )
 
 
-class Environment(orm.Entity):
+class Environment(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Environment entity."""
     name = orm.StringField(required=True)
 
@@ -474,7 +474,7 @@ class HostGroup(orm.Entity):
         )
 
 
-class Host(orm.Entity, factory.EntityFactoryMixin):
+class Host(orm.Entity):
     """A representation of a Host entity."""
     name = orm.StringField(required=True)
     environment = orm.OneToOneField('Environment', null=True)
@@ -561,14 +561,14 @@ class Interface(orm.Entity):
         )
 
 
-class LifecycleEnvironment(orm.Entity):
+class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    # Name of an environment that is prior to the new environment in the chain.
+    # ID of an environment that is prior to the new environment in the chain.
     # It has to be either 'Library' or an environment at the end of a chain.
-    prior = orm.StringField(default='Library', required=True)
+    prior = orm.DefaultField(ddefault='1', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -580,7 +580,7 @@ class LifecycleEnvironment(orm.Entity):
         )
 
 
-class Location(orm.Entity):
+class Location(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Location entity."""
     name = orm.StringField(required=True)
 
@@ -630,12 +630,6 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (
-            ('name', 'model[name]'),
-            ('info', 'model[info]'),
-            ('vendor_class', 'model[vendor_class]'),
-            ('hardware_model', 'model[hardware_model]'),
-        )
         api_path = (
             '/api/v2/models',  # Create a model.
         )
@@ -645,12 +639,12 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
         return response['model']
 
 
-class OperatingSystem(orm.Entity):
+class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Operating System entity."""
     # validator: Must match regular expression /\A(\S+)\Z/.
     name = orm.StringField(required=True)
-    major = orm.StringField(required=True)
-    minor = orm.StringField(null=True)
+    major = orm.IntegerField(max_len=10, required=True)
+    minor = orm.IntegerField(null=True)
     description = orm.StringField(null=True)
     family = orm.StringField(null=True)
     release_name = orm.StringField(null=True)
@@ -705,6 +699,11 @@ class Organization(orm.Entity, factory.EntityFactoryMixin):
         api_path = (
             '/katello/api/v2/organizations',  # Create organization
         )
+
+    def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
+        """Unpack the server's response after creating an entity."""
+        return response['organization']
+
 
 
 class OSDefaultTemplate(orm.Entity):

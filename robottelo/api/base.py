@@ -91,9 +91,8 @@ def request(method, **kwargs):
         kwargs["auth"][1],
         url,
         res.request.body)
-    logger.debug(
-        str(res.status_code) + " " +
-        str(res.content))
+    print curl_command
+    print str(res.status_code) + " " +str(res.content)
 
     res.__dict__["curl_command"] = curl_command
     res.__dict__["request_command"] = request_command
