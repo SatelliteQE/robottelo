@@ -232,23 +232,33 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is created
         """
 
-        org_obj = make_org()
+        try:
+            org_obj = make_org()
+        except Exception as e:
+            self.fail(e)
 
-        result = Org.info({'id': org_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
+        try:
+            con_view = make_content_view({u'organization-id': org_obj['id'],
+                                          u'name': test_data['content-view']})
+        except Exception as e:
+            self.fail(e)
+
+        try:
+            self._make_activation_key({
+                u'name': test_data['name'],
+                u'content-view': con_view['name'],
+                u'environment': self.library['name'],
+                u'organization-id': org_obj['id']
+            })
+        except Exception as e:
+            self.fail(e)
+        # Name should match passed data
         self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
-        con_view = make_content_view({u'organization-id': org_obj['id'],
-                                      u'name': test_data['content-view']})
-
-        result = ContentView.info({'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(con_view['name'], result.stdout['name'])
-
-        new_ackey = self._make_activation_key(
-            {u'name': test_data['name'],
-             u'content-view': con_view['name']})
+            new_ackey['name'],
+            test_data['name'],
+            ("Names don't match: '%s' != '%s'" %
+             (new_ackey['name'], test_data['name']))
+        )
         # ContentView should match passed data
         self.assertEqual(
             new_ackey['content-view'],
