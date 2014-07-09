@@ -1,8 +1,7 @@
-"""Unit tests for the "host" resource.
+"""Unit tests for the ``hosts`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "host" resource can be found here:
-http://theforeman.org/api/apidoc/v2/hosts.html.
+Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
+can be found here: http://theforeman.org/api/apidoc/v2/hosts
 
 """
 from fauxfactory import FauxFactory
@@ -22,10 +21,11 @@ class HostsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/hosts')
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/hosts``.
 
         @Feature: Host
-        @Assert: GET succeeds
+        @Assert: HTTP 200 is returned with an ``application/json``
+        content-type, and response contains valid categories of data.
 
         """
         response = client.get(
@@ -33,8 +33,6 @@ class HostsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False
         )
-
-        # Run sanity checks.
         self.assertEqual(response.status_code, 200)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -46,10 +44,10 @@ class HostsTestCase(TestCase):
             self.assertIn(category, categories)
 
     def test_get_search(self):
-        """@Test: GET ``self.path`` and specify the ``search`` parameter.
+        """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
         @Feature: Host
-        @Assert: Search term is returned
+        @Assert: HTTP 200 is returned, along with ``search`` term.
 
         """
         query = FauxFactory.generate_string(
@@ -66,10 +64,10 @@ class HostsTestCase(TestCase):
         self.assertEqual(response.json()['search'], query)
 
     def test_get_per_page(self):
-        """@Test: GET ``self.path`` and specify the ``per_page`` parameter.
+        """@Test: GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
         @Feature: Host
-        @Assert: Per page value is returned
+        @Assert: HTTP 200 is returned, along with per ``per_page`` value.
 
         """
         per_page = FauxFactory.generate_integer(1, 1000)
@@ -83,7 +81,7 @@ class HostsTestCase(TestCase):
         self.assertEqual(response.json()['per_page'], per_page)
 
     def test_get_unauthorized(self):
-        """@Test: GET ``self.path`` and do not provide credentials.
+        """@Test: GET ``api/v2/hosts`` and do not provide credentials.
 
         @Feature: Host
         @Assert: HTTP 401 is returned
@@ -94,10 +92,10 @@ class HostsTestCase(TestCase):
 
     @skip_if_bz_bug_open('1113272')
     def test_post(self):
-        """@Test: POST ``self.path``.
+        """@Test: POST ``api/v2/hosts``.
 
         @Feature: Host
-        @Assert: New host is created
+        @Assert: HTTP 201 is returned
 
         """
         response = client.post(
@@ -118,7 +116,7 @@ class HostsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``self.path`` and do not provide credentials.
+        """@Test: POST ``api/v2/hosts`` and do not provide credentials.
 
         @Feature: Host
         @Assert: HTTP 401 is returned

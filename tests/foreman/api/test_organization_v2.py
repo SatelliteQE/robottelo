@@ -1,8 +1,7 @@
-"""Unit tests for the "organization" resource.
+"""Unit tests for the ``organizations`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs comprising
-the "organization" resource can be found here:
-http://theforeman.org/api/apidoc/v2/organizations.html.
+Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
+can be found here: http://theforeman.org/api/apidoc/v2/organizations
 
 """
 from robottelo.api import client
@@ -21,10 +20,11 @@ class OrganizationsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/organizations')
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/organizations``.
 
         @Feature Organization
-        @Assert: GET succeeds
+        @Assert: HTTP 200 is returned with an ``application/json``
+        content-type, and response contains valid categories of data.
 
         """
         response = client.get(
@@ -32,8 +32,6 @@ class OrganizationsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False
         )
-
-        # Run sanity checks.
         self.assertEqual(response.status_code, 200)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -45,7 +43,7 @@ class OrganizationsTestCase(TestCase):
             self.assertIn(category, categories)
 
     def test_get_unauthorized(self):
-        """@Test: GET ``self.path`` and do not provide credentials.
+        """@Test: GET ``api/v2/organizations`` and do not provide credentials.
 
         @Feature: Organization
         @Assert: HTTP 401 is returned
@@ -56,10 +54,10 @@ class OrganizationsTestCase(TestCase):
 
     @skip_if_bz_bug_open(1116043)
     def test_post(self):
-        """@Test: POST ``self.path``.
+        """@Test: POST ``api/v2/organizations``.
 
         @Feature: Organization
-        @Assert: New organization is created
+        @Assert: HTTP 201 is returned
 
         """
         response = client.post(
@@ -80,7 +78,7 @@ class OrganizationsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``self.path`` and do not provide credentials.
+        """@Test: POST ``api/v2/organizations`` and do not provide credentials.
 
         @Feature: Organization
         @Assert: HTTP 401 is returned

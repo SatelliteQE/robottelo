@@ -1,10 +1,11 @@
-"""Unit tests for the ``models`` paths.
+"""Unit tests for the ``operatingsystems`` paths.
 
 Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/models
+can be found here: http://theforeman.org/api/apidoc/v2/operatingsystems
 
 """
 from robottelo.api import client
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -12,18 +13,17 @@ from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
 
 
-class ModelsTestCase(TestCase):
-    """Tests for path ``api/v2/models``."""
+class OperatingsystemsTestCase(TestCase):
+    """Tests for path ``api/v2/operatingsystems``."""
     def setUp(self):  # pylint: disable=C0103
         """Set ``self.path``."""
-        self.path = urljoin(get_server_url(), 'api/v2/models')
+        self.path = urljoin(get_server_url(), 'api/v2/operatingsystems')
 
     def test_get(self):
-        """@Test: GET ``api/v2/models``.
+        """@Test: GET ``api/v2/operatingsystems``.
 
-        @Feature: Model
-        @Assert: HTTP 200 is returned with an ``application/json``
-        content-type, and response contains valid categories of data.
+        @Feature: OperatingSystem
+        @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
         response = client.get(
@@ -31,38 +31,30 @@ class ModelsTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-
-        # Run sanity checks.
         self.assertEqual(response.status_code, 200)
         self.assertIn('application/json', response.headers['content-type'])
 
-        # Are the correct categories of data returned?
-        categories = response.json().keys()
-        for category in (
-                u'total', u'subtotal', u'page', u'per_page', u'search',
-                u'sort', u'results'):
-            self.assertIn(category, categories)
-
     def test_get_unauthorized(self):
-        """@Test: GET ``api/v2/models`` and do not provide credentials.
+        """@Test: GET ``api/v2/operatingsystems`` without credentials.
 
-        @Feature: Model
+        @Feature: OperatingSystem
         @Assert: HTTP 401 is returned
 
         """
         response = client.get(self.path, verify=False)
         self.assertEqual(response.status_code, 401)
 
+    @skip_if_bz_bug_open(1118015)
     def test_post(self):
-        """@Test: POST ``api/v2/models``.
+        """@Test: POST ``api/v2/operatingsystems``.
 
-        @Feature: Model
-        @Assert: HTTP 201 is returned.
+        @Feature: OperatingSystem
+        @Assert: HTTP 201 is returned
 
         """
         response = client.post(
             self.path,
-            entities.Model().attributes('api'),
+            entities.OperatingSystem().attributes('api'),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -78,9 +70,9 @@ class ModelsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``api/v2/models`` and do not provide credentials.
+        """@Test: POST ``api/v2/operatingsystems`` without credentials.
 
-        @Feature: Model
+        @Feature: OperatingSystem
         @Assert: HTTP 401 is returned
 
         """
@@ -88,21 +80,21 @@ class ModelsTestCase(TestCase):
         self.assertEqual(response.status_code, 401)
 
 
-class ModelsIdTestCase(TestCase):
-    """Tests for path ``api/v2/models/:id``."""
+class OperatingsystemsIdTestCase(TestCase):
+    """Tests for path ``api/v2/operatingsystems/:id``."""
     def setUp(self):  # pylint: disable=C0103
         """Set ``self.attrs`` and ``self.path``."""
-        self.attrs = entities.Model().create()
+        self.attrs = entities.OperatingSystem().create()
         self.path = urljoin(
             get_server_url(),
-            'api/v2/models/{0}'.format(self.attrs['id'])
+            'api/v2/operatingsystems/{0}'.format(self.attrs['id'])
         )
 
     def test_get(self):
-        """@Test: GET ``api/v2/models/:id``.
+        """@Test: GET ``api/v2/operatingsystems/:id``.
 
-        @Feature Model
-        @Assert HTTP 200 is returned.
+        @Feature OperatingSystem
+        @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
         response = client.get(
@@ -114,7 +106,7 @@ class ModelsIdTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_delete(self):
-        """@Test: DELETE ``api/v2/models/:id``.
+        """@Test: DELETE ``api/v2/operatingsystems/:id``.
 
         @Feature Model
         @Assert DELETE succeeds. HTTP 200 is returned before deleting entity,
