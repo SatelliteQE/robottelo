@@ -9,8 +9,6 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 
 from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.org import Org
-from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     make_activation_key,
@@ -244,7 +242,7 @@ class TestActivationKey(CLITestCase):
             self.fail(e)
 
         try:
-            self._make_activation_key({
+            new_ackey = self._make_activation_key({
                 u'name': test_data['name'],
                 u'content-view': con_view['name'],
                 u'environment': self.library['name'],
