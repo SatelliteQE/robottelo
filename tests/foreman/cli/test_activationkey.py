@@ -211,7 +211,7 @@ class TestActivationKey(CLITestCase):
         )
 
     @data(
-       
+
         {'name': generate_string("alpha", 10),
          'content-view': generate_string("alpha", 10)},
         {'name': generate_string("alphanumeric", 10),
@@ -219,7 +219,7 @@ class TestActivationKey(CLITestCase):
         {'name': generate_string("numeric", 10),
          'content-view': generate_string("alpha", 10)},
         {'name': generate_string("html", 10),
-         'content-view': generate_string("alpha", 10)},      
+         'content-view': generate_string("alpha", 10)},
     )
     @attr('cli', 'activation-key')
     def test_positive_create_activation_key_4(self, test_data):
@@ -231,7 +231,7 @@ class TestActivationKey(CLITestCase):
         using valid Name, Description, Environment and Usage limit
         @Assert: Activation key is created
         """
-        
+
         org_obj = make_org()
 
         result = Org.info({'id': org_obj['id']})
@@ -239,12 +239,13 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        con_view = make_content_view({u'organization-id': org_obj['id'],u'name': test_data['content-view']})
+        con_view = make_content_view({u'organization-id': org_obj['id'],
+                                      u'name': test_data['content-view']})
 
         result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
         self.assertEqual(con_view['name'], result.stdout['name'])
-        
+
         new_ackey = self._make_activation_key(
             {u'name': test_data['name'],
              u'content-view': con_view['name']})
