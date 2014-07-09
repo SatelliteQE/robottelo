@@ -34,8 +34,8 @@ print('digraph dependencies {')  # (superfluous-parens) pylint:disable=C0325
 for entity in entities_:
     entity_name = entity.__name__
     for name, field in entity.get_fields().items():
-        if isinstance(field, orm.OneToOneField) \
-        or isinstance(field, orm.OneToManyField):  # flake8:noqa
+        if (isinstance(field, orm.OneToOneField)
+                or isinstance(field, orm.OneToManyField)):
             print('{0} -> {1} [label="{2}"{3}]'.format(
                 entity_name,
                 field.model,
