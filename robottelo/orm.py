@@ -82,7 +82,7 @@ class IntegerField(booby.fields.Integer):
 
 class StringField(booby.fields.String):
     """Field that represents a string"""
-    def __init__(self, max_len=10000, *args, **kwargs):
+    def __init__(self, max_len=1000, *args, **kwargs):
         self.max_len = max_len
         super(StringField, self).__init__(*args, **kwargs)
 
