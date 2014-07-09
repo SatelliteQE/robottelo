@@ -20,7 +20,7 @@ class OrganizationsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/organizations')
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/organizations``.
 
         @Feature Organization
         @Assert: HTTP 200 is returned with an ``application/json``
@@ -43,7 +43,7 @@ class OrganizationsTestCase(TestCase):
             self.assertIn(category, categories)
 
     def test_get_unauthorized(self):
-        """@Test: GET ``self.path`` and do not provide credentials.
+        """@Test: GET ``api/v2/organizations`` and do not provide credentials.
 
         @Feature: Organization
         @Assert: HTTP 401 is returned
@@ -54,7 +54,7 @@ class OrganizationsTestCase(TestCase):
 
     @skip_if_bz_bug_open(1116043)
     def test_post(self):
-        """@Test: POST ``self.path``.
+        """@Test: POST ``api/v2/organizations``.
 
         @Feature: Organization
         @Assert: HTTP 201 is returned
@@ -78,7 +78,7 @@ class OrganizationsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``self.path`` and do not provide credentials.
+        """@Test: POST ``api/v2/organizations`` and do not provide credentials.
 
         @Feature: Organization
         @Assert: HTTP 401 is returned

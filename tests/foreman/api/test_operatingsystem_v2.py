@@ -20,7 +20,7 @@ class OperatingsystemsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/operatingsystems')
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/operatingsystems``.
 
         @Feature: OperatingSystem
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
@@ -35,7 +35,7 @@ class OperatingsystemsTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_get_unauthorized(self):
-        """@Test: GET ``self.path`` and do not provide credentials.
+        """@Test: GET ``api/v2/operatingsystems`` without credentials.
 
         @Feature: OperatingSystem
         @Assert: HTTP 401 is returned
@@ -46,7 +46,7 @@ class OperatingsystemsTestCase(TestCase):
 
     @skip_if_bz_bug_open(1118015)
     def test_post(self):
-        """@Test: POST ``self.path``.
+        """@Test: POST ``api/v2/operatingsystems``.
 
         @Feature: OperatingSystem
         @Assert: HTTP 201 is returned
@@ -70,7 +70,7 @@ class OperatingsystemsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``self.path`` and do not provide credentials.
+        """@Test: POST ``api/v2/operatingsystems`` without credentials.
 
         @Feature: OperatingSystem
         @Assert: HTTP 401 is returned
@@ -91,7 +91,7 @@ class OperatingsystemsIdTestCase(TestCase):
         )
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/operatingsystems/:id``.
 
         @Feature OperatingSystem
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
@@ -106,7 +106,7 @@ class OperatingsystemsIdTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_delete(self):
-        """@Test: DELETE ``self.path``.
+        """@Test: DELETE ``api/v2/operatingsystems/:id``.
 
         @Feature Model
         @Assert DELETE succeeds. HTTP 200 is returned before deleting entity,

@@ -21,7 +21,7 @@ class HostsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/hosts')
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/hosts``.
 
         @Feature: Host
         @Assert: HTTP 200 is returned with an ``application/json``
@@ -44,7 +44,7 @@ class HostsTestCase(TestCase):
             self.assertIn(category, categories)
 
     def test_get_search(self):
-        """@Test: GET ``self.path`` and specify the ``search`` parameter.
+        """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
         @Feature: Host
         @Assert: HTTP 200 is returned, along with ``search`` term.
@@ -64,7 +64,7 @@ class HostsTestCase(TestCase):
         self.assertEqual(response.json()['search'], query)
 
     def test_get_per_page(self):
-        """@Test: GET ``self.path`` and specify the ``per_page`` parameter.
+        """@Test: GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
         @Feature: Host
         @Assert: HTTP 200 is returned, along with per ``per_page`` value.
@@ -81,7 +81,7 @@ class HostsTestCase(TestCase):
         self.assertEqual(response.json()['per_page'], per_page)
 
     def test_get_unauthorized(self):
-        """@Test: GET ``self.path`` and do not provide credentials.
+        """@Test: GET ``api/v2/hosts`` and do not provide credentials.
 
         @Feature: Host
         @Assert: HTTP 401 is returned
@@ -92,7 +92,7 @@ class HostsTestCase(TestCase):
 
     @skip_if_bz_bug_open('1113272')
     def test_post(self):
-        """@Test: POST ``self.path``.
+        """@Test: POST ``api/v2/hosts``.
 
         @Feature: Host
         @Assert: HTTP 201 is returned
@@ -116,7 +116,7 @@ class HostsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``self.path`` and do not provide credentials.
+        """@Test: POST ``api/v2/hosts`` and do not provide credentials.
 
         @Feature: Host
         @Assert: HTTP 401 is returned

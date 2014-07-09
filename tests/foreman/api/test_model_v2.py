@@ -19,7 +19,7 @@ class ModelsTestCase(TestCase):
         self.path = urljoin(get_server_url(), 'api/v2/models')
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/models``.
 
         @Feature: Model
         @Assert: HTTP 200 is returned with an ``application/json``
@@ -44,7 +44,7 @@ class ModelsTestCase(TestCase):
             self.assertIn(category, categories)
 
     def test_get_unauthorized(self):
-        """@Test: GET ``self.path`` and do not provide credentials.
+        """@Test: GET ``api/v2/models`` and do not provide credentials.
 
         @Feature: Model
         @Assert: HTTP 401 is returned
@@ -54,7 +54,7 @@ class ModelsTestCase(TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_post(self):
-        """@Test: POST ``self.path``.
+        """@Test: POST ``api/v2/models``.
 
         @Feature: Model
         @Assert: HTTP 201 is returned.
@@ -78,7 +78,7 @@ class ModelsTestCase(TestCase):
         )
 
     def test_post_unauthorized(self):
-        """@Test: POST ``self.path`` and do not provide credentials.
+        """@Test: POST ``api/v2/models`` and do not provide credentials.
 
         @Feature: Model
         @Assert: HTTP 401 is returned
@@ -99,7 +99,7 @@ class ModelsIdTestCase(TestCase):
         )
 
     def test_get(self):
-        """@Test: GET ``self.path``.
+        """@Test: GET ``api/v2/models/:id``.
 
         @Feature Model
         @Assert HTTP 200 is returned.
@@ -114,7 +114,7 @@ class ModelsIdTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_delete(self):
-        """@Test: DELETE ``self.path``.
+        """@Test: DELETE ``api/v2/models/:id``.
 
         @Feature Model
         @Assert DELETE succeeds. HTTP 200 is returned before deleting entity,
