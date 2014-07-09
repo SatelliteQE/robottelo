@@ -17,6 +17,7 @@ help:
 	@echo "  test-foreman-api to test a Foreman deployment API"
 	@echo "  test-foreman-cli to test a Foreman deployment CLI"
 	@echo "  test-foreman-ui  to test a Foreman deployment UI"
+	@echo "  graph-entities   to graph entity relationships"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -41,7 +42,10 @@ test-foreman-cli:
 test-foreman-ui:
 	nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
 
+graph-entities:
+	scripts/graph_entities.py | dot -Tsvg -o entities.svg
+
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
-        test-foreman-api test-foreman-cli test-foreman-ui
+        test-foreman-api test-foreman-cli test-foreman-ui graph-entities
