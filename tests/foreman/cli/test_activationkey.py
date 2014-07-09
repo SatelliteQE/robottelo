@@ -9,6 +9,8 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.org import Org
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     make_activation_key,
@@ -208,8 +210,19 @@ class TestActivationKey(CLITestCase):
              (new_ackey['lifecycle-environment'], self.env1['name']))
         )
 
-    @stubbed
-    def test_positive_create_activation_key_4(self):
+    @data(
+       
+        {'name': generate_string("alpha", 10),
+         'content-view': generate_string("alpha", 10)},
+        {'name': generate_string("alphanumeric", 10),
+         'content-view': generate_string("alpha", 10)},
+        {'name': generate_string("numeric", 10),
+         'content-view': generate_string("alpha", 10)},
+        {'name': generate_string("html", 10),
+         'content-view': generate_string("alpha", 10)},      
+    )
+    @attr('cli', 'activation-key')
+    def test_positive_create_activation_key_4(self, test_data):
         """
         @Feature: Activation key - Positive Create
         @Test: Create Activation key for all variations of Content Views
@@ -217,9 +230,31 @@ class TestActivationKey(CLITestCase):
         1. Create Activation key for all valid Content views in [1]
         using valid Name, Description, Environment and Usage limit
         @Assert: Activation key is created
-        @Status: Manual
         """
-        pass
+        
+        org_obj = make_org()
+
+        result = Org.info({'id': org_obj['id']})
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an exception here")
+
+        con_view = make_content_view({u'organization-id': org_obj['id'],u'name': test_data['content-view']})
+
+        result = ContentView.info({'id': con_view['id']})
+        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(con_view['name'], result.stdout['name'])
+        
+        new_ackey = self._make_activation_key(
+            {u'name': test_data['name'],
+             u'content-view': con_view['name']})
+        # ContentView should match passed data
+        self.assertEqual(
+            new_ackey['content-view'],
+            test_data['content-view'],
+            ("Content View don't match: '%s' != '%s'" %
+             (new_ackey['content-view'], test_data['content-view']))
+        )
 
     @stubbed
     def test_positive_create_activation_key_5(self):
