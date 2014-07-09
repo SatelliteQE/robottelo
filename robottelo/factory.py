@@ -8,8 +8,7 @@ actually needed: when each individual test is run.
 This module provides the base classes needed to implement factories. The
 classes in this module are useless by themselves. For information on how to use
 the base classes, read the docstrings on the classes themselves. For examples
-of factory implementations, see :mod:`robottelo.factories` and
-:mod:`robottelo.entities`.
+of factory implementations, see :mod:`robottelo.entities`.
 
 """
 from robottelo.api import client
