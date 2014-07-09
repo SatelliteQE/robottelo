@@ -6,7 +6,7 @@ import booby.inspection
 import booby.validators
 import collections
 import random
-
+import importlib
 
 class Entity(booby.Model):
     """A logical representation of a Foreman entity.
@@ -70,14 +70,21 @@ class FloatField(booby.fields.Float):
 
 class IntegerField(booby.fields.Integer):
     """Field that represents an integer"""
+    def __init__(self, min_len=0, max_len=1000, *args, **kwargs):
+        self.max_len = max_len
+        self.min_len = min_len
+        super(IntegerField, self).__init__(*args, **kwargs)
+
     def get_value(self):
         """Return a value suitable for a :class:`IntegerField`."""
-        return FauxFactory.generate_integer()
+        return FauxFactory.generate_integer(
+            min_value=self.min_len,
+            max_value=self.max_len)
 
 
 class StringField(booby.fields.String):
     """Field that represents a string"""
-    def __init__(self, max_len=10000, *args, **kwargs):
+    def __init__(self, max_len=10, *args, **kwargs):
         self.max_len = max_len
         super(StringField, self).__init__(*args, **kwargs)
 
@@ -87,6 +94,28 @@ class StringField(booby.fields.String):
             'utf8',
             FauxFactory.generate_integer(1, self.max_len)
         )
+
+
+class DefaultField(booby.fields.String):
+    """Field that represents a string"""
+    def __init__(self, ddefault, *args, **kwargs):
+        self.ddefault = ddefault
+        super(DefaultField, self).__init__(*args, **kwargs)
+
+    def get_value(self):
+        """Return a value suitable for a :class:`StringField`."""
+        return self.ddefault
+
+
+class ChoiceField(booby.fields.String):
+    """Field that represents a string"""
+    def __init__(self, ddefault, *args, **kwargs):
+        self.ddefault = ddefault
+        super(DefaultField, self).__init__(*args, **kwargs)
+
+    def get_value(self):
+        """Return a value suitable for a :class:`StringField`."""
+        return self.ddefault
 
 
 class ShortStringField(booby.fields.String):
@@ -140,7 +169,10 @@ class OneToOneField(booby.fields.Embedded):
         Return an instance of the :class:`robottelo.orm.Entity` this field
         points to.
         """
-        return self.model()
+        class_name = self.model
+        module = importlib.import_module("robottelo.entities")
+        module_class = getattr(module, class_name)
+        return module_class()
 
 
 # FIXME: implement get_value()
