@@ -216,10 +216,14 @@ class Factory(object):
         values = fields.copy()
 
         # Fetch remaining values from subclass and ignore FK fields.
-        for name, val_or_factory in self._get_fields().items():
-            if name in values.keys() or isinstance(val_or_factory, Factory):
+        for name, value in self._get_fields().items():
+            # `OneToOneField`s return a Factory instance.
+            # `OneToManyField`s return a list of Factory instances.
+            # Other field types return a value that can be used as-is.
+            if (name in values.keys() or isinstance(value, Factory) or
+                    isinstance(value, list)):
                 continue
-            values[name] = val_or_factory
+            values[name] = value
 
         # Done generating field values.
         if fmt is not None:
@@ -248,13 +252,18 @@ class Factory(object):
         values = fields.copy()
 
         # Fetch remaining values from subclass and populate FK fields.
-        for name, val_or_factory in self._get_fields().items():
+        for name, value in self._get_fields().items():
             if name in values.keys():
                 continue
-            if isinstance(val_or_factory, Factory):
-                values[name] = val_or_factory.create()['id']
+            # `OneToOneField`s return a Factory instance.
+            # `OneToManyField`s return a list of Factory instances.
+            # Other field types return a value that can be used as-is.
+            if isinstance(value, Factory):
+                values[name] = value.create()['id']
+            elif isinstance(value, list):
+                values[name] = [factory.create()['id'] for factory in value]
             else:
-                values[name] = val_or_factory
+                values[name] = value
 
         # Create the current entity.
         response = _call_client_post(

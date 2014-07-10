@@ -5,7 +5,7 @@
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import FauxFactory
-from robottelo import orm
+from robottelo import entities, orm
 from sys import version_info
 import socket
 import unittest
@@ -228,3 +228,37 @@ class StringFieldTestCase(unittest.TestCase):
         string = orm.StringField(max_len=20).get_value()
         self.assertGreater(len(string), 0)
         self.assertLessEqual(len(string), 20)
+
+
+class GetClassTestCase(unittest.TestCase):
+    """Tests for :func:`robottelo.orm._get_class`."""
+    # (protected-access) pylint:disable=W0212
+    def test_class(self):
+        """Pass a class into the function.
+
+        Assert that the class passed in is returned.
+
+        """
+        self.assertEqual(SampleEntity, orm._get_class(SampleEntity))
+
+    def test_name(self):
+        """Pass a string name into the function.
+
+        Assert that the named class is returned from :mod:`robottelo.entities`.
+
+        """
+        self.assertEqual(
+            entities.ActivationKey,
+            orm._get_class('ActivationKey'),
+        )
+
+    def test_name_module(self):
+        """Pass a class name and module name into the function.
+
+        Assert that the named class is returned from the named module.
+
+        """
+        self.assertEqual(
+            SampleEntity,
+            orm._get_class('SampleEntity', 'tests.robottelo.test_orm'),
+        )
