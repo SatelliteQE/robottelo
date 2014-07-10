@@ -187,14 +187,14 @@ class OneToManyField(Field):
     converted to a list of entity instances.
 
     """
-    def __init__(self, model, *args, **kwargs):
-        """Record the ``model`` argument and call ``super``."""
+    def __init__(self, entity, *args, **kwargs):
+        """Record the ``entity`` argument and call ``super``."""
         super(OneToManyField, self).__init__(
-            booby.validators.List(booby.validators.Model(model)),
+            booby.validators.List(booby.validators.Model(entity)),
             *args,
             **kwargs
         )
-        self.model = model
+        self.entity = entity
 
     def __set__(self, instance, value):
         """Manipulate ``value`` before calling ``super``.
@@ -204,30 +204,30 @@ class OneToManyField(Field):
 
         * If ``value`` is a single entity instance it is placed into a list.
         * If ``value`` is a dict, it is converted to an instance of type
-          ``self.model`` and placed into a list.
+          ``self.entity`` and placed into a list.
         * If the value is a list and it contains any dicts, those dicts are
-          converted to instances of type ``self.model``.
+          converted to instances of type ``self.entity``.
 
         """
-        if isinstance(value, self.model):
+        if isinstance(value, self.entity):
             # entity -> [entity]
             value = [value]
         elif isinstance(value, collections.MutableMapping):
             # {dict} -> [entity]
-            value = [self.model(**value)]
+            value = [self.entity(**value)]
         elif isinstance(value, collections.MutableSequence):
             # [entity, {dict}] -> [entity, entity]
             for index, val in enumerate(value):
                 if isinstance(val, collections.MutableMapping):
-                    value[index] = self.model(**val)
+                    value[index] = self.entity(**val)
         super(OneToManyField, self).__set__(instance, value)
 
     def get_value(self):
         """
         Return a list of :class:`robottelo.orm.Entity` instances of type
-        ``self.model``.
+        ``self.entity``.
         """
-        return [_get_class(self.model)()]
+        return [_get_class(self.entity)()]
 
 
 class URLField(StringField):
