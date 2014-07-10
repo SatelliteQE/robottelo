@@ -643,7 +643,7 @@ class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Operating System entity."""
     # validator: Must match regular expression /\A(\S+)\Z/.
     name = orm.StringField(required=True)
-    major = orm.IntegerField(min_val=1,max_val=10, required=True)
+    major = orm.IntegerField(min_val=1, max_val=10, required=True)
     minor = orm.IntegerField(null=True)
     description = orm.StringField(null=True)
     family = orm.StringField(null=True)
