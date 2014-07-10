@@ -719,9 +719,15 @@ class TestActivationKey(CLITestCase):
         except Exception as e:
             self.fail(e)
 
+        try:
+            con_view = make_content_view({u'organization-id': self.org['id'],
+                                          u'name': test_data['content-view']})
+        except Exception as e:
+            self.fail(e)
+
         result = ActivationKey.update({
             u'name': activation_key['name'],
-            u'content-view': test_data['content-view'],
+            u'content-view': con_view['name'],
             u'organization-id': self.org['id'],
         })
         self.assertEqual(
@@ -847,13 +853,19 @@ class TestActivationKey(CLITestCase):
         except Exception as e:
             self.fail(e)
 
-        new_host_col = make_host_collection({'name': test_data['host-col']})
+        try:
+            new_host_col = make_host_collection({'name':
+                                                 test_data['host-col']})
+        except Exception as e:
+            self.fail(e)
+
         # Assert that name matches data passed
-        self.assertEqual(
-            new_host_col['name'],
-            test_data['host-col'],
-            "Names don't match"
-        )
+            self.assertEqual(
+                new_host_col['name'],
+                test_data['host-col'],
+                "Names don't match"
+            )
+
         result = ActivationKey.add_host_collection({
             u'name': activation_key['name'],
             u'host-collection': new_host_col['name'],
