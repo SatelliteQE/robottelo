@@ -1228,15 +1228,34 @@ locators = {
                   "contains(@class, 'form-group')]"),
     "contentviews.remove": (
         By.XPATH, "//button[@ui-sref='content-views.details.deletion']"),
+    "contentviews.remove_cv": (
+        By.XPATH, "//button[@ng-click='removeContentViews()']"),
+    "contentviews.remove_cv_version": (
+        By.XPATH, "//a[contains(@ui-sref, 'version-deletion')]/button"),
+    "contentviews.remove_checkbox": (
+        By.XPATH, "//span/input[contains(@ng-model, 'deleteArchive')]"),
+    "contentviews.next_button": (
+        By.XPATH, "//button[@ng-click='processSelection()']"),
+    "contentviews.change_env": (
+        By.XPATH,
+        "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+    "contentviews.change_cv": (
+        By.XPATH, "//select[@ng-model='selectedContentViewId']"),
+    "contentviews.remove_ver": (
+        By.XPATH, "//div[@class='fr']/button[@ng-click='performDeletion()']"),
     "contentviews.confirm_remove": (
         By.XPATH, "//button[@ng-click='delete()']"),
+    "contentviews.success_rm_alert": (
+        By.XPATH,
+        ("//div[contains(@class, 'alert-success')]"
+         "/div/span[contains(., 'Successfully removed')]")),
     "contentviews.publish": (
         By.XPATH, "//a[contains(@href, 'publish')]/span"),
     "contentviews.publish_comment": (By.ID, "comment"),
     "contentviews.publish_progress": (
         By.XPATH,
-        ("//tr/td[(contains(., '%s')]"
-         "/../div[@class='progress progress-striped active']")),
+        ("//tr/td[contains(., '%s')]"
+         "/following::td/a/div[@class='progress progress-striped active']")),
     "contentviews.ver_label": (
         By.XPATH, "//div[@label='Version']/label"),
     "contentviews.ver_num": (
