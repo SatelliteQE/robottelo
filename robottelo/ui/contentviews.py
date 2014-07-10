@@ -92,7 +92,7 @@ class ContentViews(Base):
     def move_affected_components(self, env="Library",
                                  cv='Default Organization View'):
         """
-        Moves the affected components (e.g. ak or content-hosts)
+        Moves the affected components (e.g. activation-key or content-hosts)
         to other env or CV
         """
         strategy, value = locators['contentviews.change_env']
@@ -112,9 +112,8 @@ class ContentViews(Base):
     def delete_version(self, name, is_affected_comps=False,
                        env=None, cv=None, really=True):
         """
-        Deletes published content view's version
-        and handles the associated entities
-        before deleting the selected CV.
+        Deletes published content view's version and handles the associated
+        entities before deleting the selected CV.
         """
         element = self.search(name)
 

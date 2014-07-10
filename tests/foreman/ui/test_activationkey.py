@@ -444,7 +444,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1117753')
+    @skip_if_bz_bug_open(1117753)
     def test_positive_delete_activation_key_6(self):
         """
         @Feature: Activation key - Positive Delete
@@ -453,30 +453,30 @@ class ActivationKey(UITestCase):
         1. Create an Activation key with a Content View
         2. Delete the Content View
         @Assert: Activation key should not be deleted
-        @Status: Manual
         @BZ: 1117753
         """
         name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 6)
         cv_name = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        self.create_cv(cv_name, env_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env_name,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.navigator.go_to_content_views()
-        self.content_views.delete_version(cv_name, is_affected_comps=True)
-        self.content_views.delete(name, True)
-        self.assertIsNone(self.content_views.search(name))
-        self.assertIsNotNone(self.activationkey.search_key(name))
+
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_life_cycle_environments()
+            self.contentenv.create(env_name,
+                                   description=generate_string("alpha", 16))
+            self.assertTrue(self.contentenv.wait_until_element
+                            (common_locators["alert.success"]))
+            self.create_cv(cv_name, env_name)
+            session.nav.go_to_activation_keys()
+            self.activationkey.create(name, env_name,
+                                      description=generate_string("alpha", 16),
+                                      content_view=cv_name)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            session.nav.go_to_content_views()
+            self.content_views.delete_version(cv_name, is_affected_comps=True)
+            self.content_views.delete(name, True)
+            self.assertIsNone(self.content_views.search(name))
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_negative_delete_activation_key_1(self):
         """
