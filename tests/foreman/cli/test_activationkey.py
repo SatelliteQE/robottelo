@@ -14,7 +14,8 @@ from robottelo.cli.factory import (
     make_activation_key,
     make_content_view,
     make_lifecycle_environment,
-    make_org, make_product
+    make_org, make_product,
+    make_host_collection
 )
 from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
 from robottelo.common.helpers import generate_string
@@ -692,8 +693,16 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
-    def test_positive_update_activation_key_5(self):
+    @skip_if_bz_bug_open(1109649)
+    @data(
+        {'content-view': generate_string('alpha', 15)},
+        {'content-view': generate_string('alphanumeric', 15)},
+        {'content-view': generate_string('numeric', 15)},
+        {'content-view': generate_string('latin1', 15)},
+        {'content-view': generate_string('utf8', 15)},
+        {'content-view': generate_string('html', 15)},
+    )
+    def test_positive_update_activation_key_5(self, test_data):
         """
         @Feature: Activation key - Positive Update
         @Test: Update Content View in an Activation key
@@ -702,9 +711,34 @@ class TestActivationKey(CLITestCase):
         2. Update Content View for all variations in [1] and include both
         RH and custom products
         @Assert: Activation key is updated
-        @Status: Manual
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        result = ActivationKey.update({
+            u'name': activation_key['name'],
+            u'content-view': test_data['content-view'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to update activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertEqual(
+            result.stdout['content-view'], test_data['content-view'],
+            'Activation key content-view was not updated')
 
     @stubbed
     def test_positive_update_activation_key_6(self):
@@ -786,8 +820,16 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
-    def test_associate_host(self):
+    @skip_if_bz_bug_open(1110476)
+    @data(
+        {'host-col': generate_string('alpha', 15)},
+        {'host-col': generate_string('alphanumeric', 15)},
+        {'host-col': generate_string('numeric', 15)},
+        {'host-col': generate_string('latin1', 15)},
+        {'host-col': generate_string('utf8', 15)},
+        {'host-col': generate_string('html', 15)},
+    )
+    def test_associate_host(self, test_data):
         """
         @Feature: Activation key - Host
         @Test: Test that hosts can be associated to Activation Keys
@@ -796,9 +838,42 @@ class TestActivationKey(CLITestCase):
         2. Create different hosts
         3. Associate the hosts to Activation key
         @Assert: Hosts are successfully associated to Activation key
-        @Status: Manual
         """
-        pass
+
+        try:
+            activation_key = self._make_activation_key({
+                u'organization-id': self.org['id'],
+            })
+        except Exception as e:
+            self.fail(e)
+
+        new_host_col = make_host_collection({'name': test_data['host-col']})
+        # Assert that name matches data passed
+        self.assertEqual(
+            new_host_col['name'],
+            test_data['host-col'],
+            "Names don't match"
+        )
+        result = ActivationKey.add_host_collection({
+            u'name': activation_key['name'],
+            u'host-collection': new_host_col['name'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to add host-col activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertEqual(
+            result.stdout['host-collection'], test_data['host-col'],
+            'Activation key host-collection added')
 
     @stubbed
     def test_associate_product_1(self):
