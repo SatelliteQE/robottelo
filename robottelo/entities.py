@@ -705,7 +705,6 @@ class Organization(orm.Entity, factory.EntityFactoryMixin):
         return response['organization']
 
 
-
 class OSDefaultTemplate(orm.Entity):
     """A representation of a OS Default Template entity."""
     operatingsystem = orm.OneToOneField('OperatingSystem')

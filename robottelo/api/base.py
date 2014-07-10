@@ -70,6 +70,8 @@ def request(method, **kwargs):
     if kwargs.get('json', None):
         try:
             kwargs.setdefault('data', js.dumps(kwargs['json']))
+            kwargs.setdefault('headers', {})
+            kwargs['headers']['Content-Type'] = 'application/json'
         except:
             pass
         finally:
@@ -91,9 +93,9 @@ def request(method, **kwargs):
         kwargs["auth"][1],
         url,
         res.request.body)
-    print curl_command
-    print str(res.status_code) + " " +str(res.content)
-
+    logger.debug(
+        str(res.status_code) + " " +
+        str(res.content))
     res.__dict__["curl_command"] = curl_command
     res.__dict__["request_command"] = request_command
 
