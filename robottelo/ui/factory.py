@@ -1,14 +1,18 @@
 # -*- encoding: utf-8 -*-
 
 from robottelo.common.helpers import update_dictionary
+from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.domain import Domain
+from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.org import Org
 from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
+from robottelo.ui.medium import Medium
 from robottelo.ui.products import Products
 from robottelo.ui.subnet import Subnet
+from robottelo.ui.template import Template
 from robottelo.ui.user import User
 
 
@@ -203,3 +207,98 @@ def make_hostgroup(session, org=None, loc=None, **kwargs):
             session.nav.go_to_select_loc(loc)
     session.nav.go_to_host_groups()
     Hostgroup(session.browser).create(**create_args)
+
+
+def make_env(session, org=None, loc=None, **kwargs):
+    create_args = {
+        'name': None,
+        'orgs': None,
+        'org_select': False,
+    }
+    create_args = update_dictionary(create_args, kwargs)
+    create_args.update(kwargs)
+
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
+    # Change context only if required or when force_context is set to True
+    if '@' not in str(current_text):
+        if org:
+            session.nav.go_to_select_org(org)
+        if loc:
+            session.nav.go_to_select_loc(loc)
+    session.nav.go_to_environments()
+    Environment(session.browser).create(**create_args)
+
+
+def make_resource(session, org=None, loc=None, **kwargs):
+    create_args = {
+        'name': None,
+        'orgs': None,
+        'org_select': False,
+        'provider_type': None,
+        'url': None,
+        'user': None,
+        'password': None,
+        'region': None,
+        'libvirt_display': None,
+        'libvirt_set_passwd': True,
+        'tenant': None,
+    }
+    create_args = update_dictionary(create_args, kwargs)
+    create_args.update(kwargs)
+
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
+    # Change context only if required or when force_context is set to True
+    if '@' not in str(current_text):
+        if org:
+            session.nav.go_to_select_org(org)
+        if loc:
+            session.nav.go_to_select_loc(loc)
+    session.nav.go_to_compute_resources()
+    ComputeResource(session.browser).create(**create_args)
+
+
+def make_media(session, org=None, loc=None, **kwargs):
+    create_args = {
+        'name': None,
+        'path': None,
+        'os_family': None,
+    }
+    create_args = update_dictionary(create_args, kwargs)
+    create_args.update(kwargs)
+
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
+    # Change context only if required or when force_context is set to True
+    if '@' not in str(current_text):
+        if org:
+            session.nav.go_to_select_org(org)
+        if loc:
+            session.nav.go_to_select_loc(loc)
+    session.nav.go_to_installation_media()
+    Medium(session.browser).create(**create_args)
+
+
+def make_templates(session, org=None, loc=None, **kwargs):
+    create_args = {
+        'name': None,
+        'template_path': None,
+        'custom_really': None,
+        'template_type': None,
+        'snippet': None,
+        'os_list': None,
+    }
+    create_args = update_dictionary(create_args, kwargs)
+    create_args.update(kwargs)
+
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
+    # Change context only if required or when force_context is set to True
+    if '@' not in str(current_text):
+        if org:
+            session.nav.go_to_select_org(org)
+        if loc:
+            session.nav.go_to_select_loc(loc)
+    session.nav.go_to_provisioning_templates()
+    Template(session.browser).create(**create_args)
