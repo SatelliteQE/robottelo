@@ -62,7 +62,7 @@ class ModelsTestCase(TestCase):
         """
         response = client.post(
             self.path,
-            entities.Model().attributes('api'),
+            json=entities.Model().attributes('api'),
             auth=get_server_credentials(),
             verify=False,
         )

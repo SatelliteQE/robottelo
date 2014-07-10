@@ -474,7 +474,7 @@ class HostGroup(orm.Entity):
         )
 
 
-class Host(orm.Entity):
+class Host(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Host entity."""
     name = orm.StringField(required=True)
     environment = orm.OneToOneField('Environment', null=True)
@@ -568,7 +568,7 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     description = orm.StringField()
     # ID of an environment that is prior to the new environment in the chain.
     # It has to be either 'Library' or an environment at the end of a chain.
-    prior = orm.DefaultField(ddefault='1', required=True)
+    prior = orm.StringField(default='1', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -798,7 +798,6 @@ class Product(orm.Entity, factory.EntityFactoryMixin):
     gpg_key = orm.OneToOneField('GPGKey')
     sync_plan = orm.OneToOneField('SyncPlan', null=True)
     name = orm.StringField(required=True)
-
     label = orm.StringField()
 
     class Meta(object):
@@ -1103,18 +1102,18 @@ class UserGroup(orm.Entity):
         )
 
 
-class User(orm.Entity):
+class User(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a User entity."""
-    login = orm.StringField(required=True)
+    login = orm.StringField(style='alpha', required=True)
     firstname = orm.StringField(null=True)
     lastname = orm.StringField(null=True)
-    mail = orm.StringField(required=True)
+    mail = orm.EmailField(required=True)
     # Is an admin account?
     admin = orm.BooleanField(null=True)
-    password = orm.StringField(required=True)
+    password = orm.StringField(style='alpha', required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', required=True)
+    auth_source_id = orm.StringField(default='1', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""

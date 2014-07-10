@@ -26,7 +26,7 @@ sent, and they log out information about the response received.
 
 """
 from urllib import urlencode
-import json as js
+import json
 import logging
 import requests
 
@@ -111,7 +111,8 @@ def _log_request(method, url, kwargs, data=None):
             _curl_arg_insecure(kwargs),
             _curl_arg_data(kwargs),
             url
-        ))
+        )
+    )
 
 
 def _log_response(response):
@@ -148,7 +149,7 @@ def _call_requests_get(url, **kwargs):
 
 def _call_requests_post(url, data=None, **kwargs):
     """Call ``requests.post``."""
-    return requests.post(url, data=data, **kwargs)
+    return requests.post(url, data, **kwargs)
 
 
 def _call_requests_put(url, data=None, **kwargs):
@@ -192,15 +193,11 @@ def get(url, **kwargs):
 
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
-    if kwargs.get('json', None):
-        try:
-            data = js.dumps(kwargs['json'])
-            kwargs.setdefault('headers', {})
-            kwargs['headers']['Content-Type'] = 'application/json'
-        except:
-            pass
-        finally:
-            del kwargs['json']
+    if kwargs.get('json', None) is not None:
+        data = json.dumps(kwargs['json'])
+        kwargs.setdefault('headers', {})
+        kwargs['headers']['Content-Type'] = 'application/json'
+        del kwargs['json']
     _log_request('POST', url, kwargs, data)
     response = _call_requests_post(url, data, **kwargs)
     _log_response(response)
