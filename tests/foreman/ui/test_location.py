@@ -161,6 +161,20 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
 
+    def test_autocomplete_search(self):
+        """
+        @test: Can auto-complete search for an location by partial name
+        @feature: Locations
+        @assert: Created location can be auto search by its partial name
+        """
+
+        loc_name = generate_string("alpha", 8)
+        part_string = loc_name[:3]
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.auto_complete_search(
+                part_string, loc_name, search_key='name'))
+
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self):
@@ -170,8 +184,7 @@ class Location(UITestCase):
         @assert: subnet is added
         """
         subnet_name = "fed121"
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
@@ -198,8 +211,7 @@ class Location(UITestCase):
         @assert: Domain is added to Location
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -224,8 +236,7 @@ class Location(UITestCase):
         @assert: User is added to location
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)
         email = generate_email_address()
@@ -254,8 +265,7 @@ class Location(UITestCase):
         @assert: hostgroup is added to location
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -280,8 +290,7 @@ class Location(UITestCase):
         @assert: organization is added to location
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -305,8 +314,7 @@ class Location(UITestCase):
         @assert: environment is added
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -331,8 +339,7 @@ class Location(UITestCase):
         @assert: computeresource is added
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
@@ -359,8 +366,7 @@ class Location(UITestCase):
         @assert: medium is added
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
@@ -387,8 +393,7 @@ class Location(UITestCase):
         @assert: configtemplate is added
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -404,4 +409,71 @@ class Location(UITestCase):
                 tab_locators["context.tab_template"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % template))
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_environment_1(self, env):
+        """
+        @feature: Locations
+        @test: Remove environment by using location name & evironment name
+        @assert: environment is removed from Location
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_env(session, name=env, orgs=None)
+            self.assertIsNotNone(self.environment.search(env))
+            make_loc(session, name=loc_name, envs=[env], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_env"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % env))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, envs=[env])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_env"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % env))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_subnet_1(self, subnet_name):
+        """
+        @feature: Locations
+        @test: Remove subnet by using location name and subnet name
+        @assert: subnet is added then removed
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        subnet_network = generate_ipaddr(ip3=True)
+        subnet_mask = "255.255.255.0"
+        with Session(self.browser) as session:
+            make_subnet(session, subnet_name=subnet_name,
+                        subnet_network=subnet_network, subnet_mask=subnet_mask)
+            self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
+            make_loc(session, name=loc_name, subnets=[subnet_name], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_subnets"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % subnet_name))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, subnets=[subnet_name])
+            self.location.search(loc_name).click()
+            self.location.wait_until_element(
+                tab_locators["context.tab_subnets"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % subnet_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertTrue(element)
