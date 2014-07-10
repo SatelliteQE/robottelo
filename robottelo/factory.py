@@ -265,7 +265,7 @@ class Factory(object):
             auth=get_server_credentials(),
             verify=False,
             json=json
-            )
+        )
 
         if not response.ok:
             raise FactoryError(response.status_code, response.content)
@@ -306,7 +306,11 @@ class EntityFactoryMixin(Factory):
         for name, field in self.get_fields().items():
             if field_is_required(field):
                 # `get_value` returns either a value or a Factory instance.
-                values[name] = field.get_value()
+                values[name] = (
+                    field.default
+                    if field.default is not None
+                    else field.get_value()
+                )
         return values
 
     def _get_field_names(self, fmt):
