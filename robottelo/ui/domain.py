@@ -45,8 +45,7 @@ class Domain(Base):
         """
         Searches existing domain from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_domains()
+        Navigator(self.browser).go_to_domains()
         element = self.search_entity(name,
                                      locators['domain.domain_description'])
         return element

@@ -51,8 +51,7 @@ class Environment(Base):
         """
         Searches existing env from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_environments()
+        Navigator(self.browser).go_to_environments()
         element = self.search_entity(name,
                                      locators["env.env_name"])
         return element

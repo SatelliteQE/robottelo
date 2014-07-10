@@ -8,7 +8,7 @@ Implements User UI
 from robottelo.common.constants import FILTER
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
-from robottelo.ui.navigator import Navigator as nav
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -95,7 +95,7 @@ class User(Base):
         Searches existing user from UI
         """
 
-        nav(self.browser).go_to_users()
+        Navigator(self.browser).go_to_users()
         element = self.search_entity(name, locators["users.user"],
                                      search_key=search_key)
         return element

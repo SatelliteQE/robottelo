@@ -5,7 +5,7 @@ from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 from robottelo.common.constants import FILTER
-from robottelo.ui.navigator import Navigator as nav
+from robottelo.ui.navigator import Navigator
 
 
 class ComputeResource(Base):
@@ -74,7 +74,7 @@ class ComputeResource(Base):
         """
         Searches existing compute resource from UI
         """
-        nav(self.browser).go_to_compute_resources()
+        Navigator(self.browser).go_to_compute_resources()
         element = self.search_entity(name, locators["resource.select_name"])
         return element
 

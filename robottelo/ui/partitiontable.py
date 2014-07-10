@@ -51,8 +51,7 @@ class PartitionTable(Base):
         """
         Searches existing partition table from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_partition_tables()
+        Navigator(self.browser).go_to_partition_tables()
         element = self.search_entity(name, locators["ptable.ptable_name"])
         return element
 
