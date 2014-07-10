@@ -53,13 +53,44 @@ class EntityTestCase(TestCase):
 
     @data(
         entities.Architecture,
+        entities.Model,
+        entities.OperatingSystem,
+        entities.Organization,
+    )
+    def test_post(self, entity):
+        """@Test: POST to an entity-dependent path.
+
+        @Assert: HTTP 201 is returned.
+
+        """
+        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        response = client.post(
+            path,
+            entity().build(fmt='api'),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        status_code = 201
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            'Desired HTTP {0} after POSTing to {1}. Got {2}. {3}'.format(
+                status_code,
+                path,
+                response.status_code,
+                response.json().get('error', 'No error received.')
+            )
+        )
+
+    @data(
+        entities.Architecture,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
     )
     def test_post_unauthorized(self, entity):
-        """@Test: POST an entity-dependent path without credentials.
+        """@Test: POST to an entity-dependent path without credentials.
 
         @Assert: HTTP 401 is returned
 
