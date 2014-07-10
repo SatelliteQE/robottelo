@@ -9,13 +9,16 @@ Test class for Locations UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
+from robottelo.common import conf
 from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
-                                      generate_email_address)
+                                      generate_email_address, get_data_file)
+from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_loc, make_subnet, make_domain,
-                                  make_user, make_org, make_hostgroup)
+from robottelo.ui.factory import (make_loc, make_subnet, make_domain, make_env,
+                                  make_user, make_org, make_hostgroup,
+                                  make_resource, make_media, make_templates)
 from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -103,6 +106,60 @@ class Location(UITestCase):
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertTrue(error)
+
+    # Positive Update
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_positive_update_1(self, new_name):
+        """
+        @feature: Locations
+        @test: Create Location with valid values then update its name
+        @assert: Location name is updated
+        """
+
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            self.location.update(loc_name, new_name=new_name)
+            self.assertIsNotNone(self.location.search(new_name))
+
+    # Negative Update
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_negative_update_1(self, loc_name):
+        """
+        @feature: Locations
+        @test: Create Location with valid values then fail to update
+        its name
+        @assert: Location name is not updated
+        """
+
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            new_name = generate_string("alpha", 256)
+            self.org.update(loc_name, new_name=new_name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertTrue(error)
+
+    # Miscellaneous
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_search_key_1(self, loc_name):
+        """
+        @feature: Locations
+        @test: Create location and search/find it
+        @assert: location can be found
+        """
+
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -237,4 +294,114 @@ class Location(UITestCase):
                 tab_locators["context.tab_organizations"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % org))
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_environment_1(self, env):
+        """
+        @feature: Locations
+        @test: Add environment by using location name and evironment name
+        @assert: environment is added
+        """
+
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            make_env(session, name=env, orgs=None)
+            self.assertIsNotNone(self.environment.search(env))
+            self.location.update(loc_name, new_envs=[env])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_env"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % env))
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_computeresource_1(self, resource_name):
+        """
+        @feature: Locations
+        @test: Add compute resource using the location
+        name and computeresource name
+        @assert: computeresource is added
+        """
+
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        loc_name = generate_string("alpha", 8)
+        libvirt_url = "qemu+tcp://%s:16509/system"
+        url = (libvirt_url % conf.properties['main.server.hostname'])
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            make_resource(session, name=resource_name, orgs=None,
+                          provider_type="Libvirt", url=url)
+            self.assertIsNotNone(self.compute_resource.search(resource_name))
+            self.location.update(loc_name, new_resources=[resource_name])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_resources"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % resource_name))
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_medium_1(self, medium):
+        """
+        @feature: Locations
+        @test: Add medium by using the location name and medium name
+        @assert: medium is added
+        """
+
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        loc_name = generate_string("alpha", 8)
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            make_media(session, name=medium, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(medium))
+            self.location.update(loc_name, new_medias=[medium])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_media"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % medium))
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_add_configtemplate_1(self, template):
+        """
+        @feature: Locations
+        @test: Add config template by using location name and
+        configtemplate name
+        @assert: configtemplate is added
+        """
+
+        strategy = common_locators["entity_deselect"][0]
+        value = common_locators["entity_deselect"][1]
+        loc_name = generate_string("alpha", 8)
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            make_templates(session, name=template, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.search(template))
+            self.location.update(loc_name, new_templates=[template])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_template"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % template))
             self.assertTrue(element)
