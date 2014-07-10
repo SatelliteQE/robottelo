@@ -83,7 +83,7 @@ class IntegerField(booby.fields.Integer):
 
 class StringField(booby.fields.String):
     """Field that represents a string"""
-    def __init__(self, max_len=1000, *args, **kwargs):
+    def __init__(self, max_len=100, *args, **kwargs):
         self.max_len = max_len
         super(StringField, self).__init__(*args, **kwargs)
 
@@ -111,7 +111,7 @@ class ShortStringField(booby.fields.String):
     def get_value(self):
         return FauxFactory.generate_string(
             'utf8',
-            FauxFactory.generate_integer(1, 255)
+            FauxFactory.generate_integer(1, 100)
         )
 
 
@@ -157,6 +157,8 @@ class OneToOneField(booby.fields.Embedded):
         Return an instance of the :class:`robottelo.orm.Entity` this field
         points to.
         """
+        if isinstance(self.model, type) and issubclass(self.model, Factory):
+            return self.model()
         class_name = self.model
         module = importlib.import_module("robottelo.entities")
         module_class = getattr(module, class_name)
@@ -173,7 +175,7 @@ class OneToManyField(Field):
      Examples of how to set OneToManyField value::
 
         >>> class OneEntity(Entity):
-        ...     name = StringField()
+        ...     name =  StringField()
         ...
         >>> class OtherEntity(Entity):
         ...     ones = OneToManyField(OneEntity)
