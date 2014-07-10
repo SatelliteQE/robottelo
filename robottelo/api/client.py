@@ -196,7 +196,7 @@ def post(url, data=None, **kwargs):
     if kwargs.get('json', None) is not None:
         data = json.dumps(kwargs['json'])
         kwargs.setdefault('headers', {})
-        kwargs['headers']['Content-Type'] = 'application/json'
+        kwargs['headers'].setdefault(['Content-Type'], 'application/json')
         del kwargs['json']
     _log_request('POST', url, kwargs, data)
     response = _call_requests_post(url, data, **kwargs)
