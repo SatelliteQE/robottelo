@@ -7,7 +7,7 @@ Implements Medium UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
-from robottelo.ui.navigator import Navigator
+from robottelo.ui.navigator import Navigator as nav
 from selenium.webdriver.support.select import Select
 
 
@@ -50,8 +50,7 @@ class Medium(Base):
         """
         Searches existing medium from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_installation_media()
+        nav(self.browser).go_to_installation_media()
         element = self.search_entity(name, locators["medium.medium_name"])
         return element
 
