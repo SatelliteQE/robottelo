@@ -104,15 +104,14 @@ def _log_request(method, url, kwargs, data=None):
             'data {0}'.format(data) if data is not None else 'no data',
         )
     )
-# logger.info(
-    print 'Equivalent curl command: curl -X {0} {1}{2}{3} {4}'.format(
-        method,
-        _curl_arg_user(kwargs),
-        _curl_arg_insecure(kwargs),
-        _curl_arg_data(kwargs),
-        url
-    )
-   # )
+    logger.info(
+        'Equivalent curl command: curl -X {0} {1}{2}{3} -d "{4}"'.format(
+            method,
+            _curl_arg_user(kwargs),
+            _curl_arg_insecure(kwargs),
+            _curl_arg_data(kwargs),
+            url
+        ))
 
 
 def _log_response(response):
@@ -149,7 +148,7 @@ def _call_requests_get(url, **kwargs):
 
 def _call_requests_post(url, data=None, **kwargs):
     """Call ``requests.post``."""
-    return requests.post(url, data, **kwargs)
+    return requests.post(url, data=data, **kwargs)
 
 
 def _call_requests_put(url, data=None, **kwargs):
@@ -193,15 +192,15 @@ def get(url, **kwargs):
 
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
-    print kwargs['json']
     if kwargs.get('json', None):
         try:
             data = js.dumps(kwargs['json'])
+            kwargs.setdefault('headers', {})
+            kwargs['headers']['Content-Type'] = 'application/json'
         except:
             pass
         finally:
             del kwargs['json']
-    print data
     _log_request('POST', url, kwargs, data)
     response = _call_requests_post(url, data, **kwargs)
     _log_response(response)
