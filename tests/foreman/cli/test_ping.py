@@ -15,6 +15,7 @@ class PingTestCase(CLITestCase):
         @steps:
         1. Execute hammer ping
         2. Check its return code, should be 0 if all services are ok else != 0
+        @assert: hammer ping returns a right return code
         @bz: 1094826
         """
         result = ssh.command('hammer ping')
