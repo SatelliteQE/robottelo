@@ -266,14 +266,18 @@ class Factory(object):
                 values[name] = value
 
         # Create the current entity.
+        path = urljoin(get_server_url(), self._get_path())
         response = _call_client_post(
-            urljoin(get_server_url(), self._get_path()),
+            path,
             _copy_and_update_keys(values, self._get_field_names('api')),
             auth=get_server_credentials(),
             verify=False,
         ).json()
         if 'error' in response.keys():
-            raise FactoryError(response['error'])
+            raise FactoryError(
+                'Error encountered while POSTing to {0}. Error received: {1}'
+                ''.format(path, response['error'])
+            )
 
         # Tell caller about created entity.
         response = self._unpack_response(response)
