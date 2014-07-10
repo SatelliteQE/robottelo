@@ -8,6 +8,7 @@ import collections
 import random
 import importlib
 
+
 class Entity(booby.Model):
     """A logical representation of a Foreman entity.
 
@@ -105,17 +106,6 @@ class DefaultField(booby.fields.String):
         return self.ddefault
 
 
-class ChoiceField(booby.fields.String):
-    """Field that represents a string"""
-    def __init__(self, ddefault, *args, **kwargs):
-        self.ddefault = ddefault
-        super(DefaultField, self).__init__(*args, **kwargs)
-
-    def get_value(self):
-        """Return a value suitable for a :class:`StringField`."""
-        return self.ddefault
-
-
 class ShortStringField(booby.fields.String):
     """Field that represents a string, no longer than 255 chars."""
     def get_value(self):
@@ -188,6 +178,7 @@ class OneToManyField(Field):
         >>> class OtherEntity(Entity):
         ...     ones = OneToManyField(OneEntity)
         ...
+        >>> ent = OneToManyField()
         >>> ent.ones = OneEntity(name='name')
         >>> ent.ones
         [<__main__.OneEntity(name='name')>]
