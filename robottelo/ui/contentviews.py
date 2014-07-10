@@ -89,6 +89,62 @@ class ContentViews(Base):
                 raise Exception(
                     'Could not delete the %s content view.' % name)
 
+    def move_affected_components(self, env="Library",
+                                 cv='Default Organization View'):
+        """
+        Moves the affected components (e.g. ak or content-hosts)
+        to other env or CV
+        """
+        strategy, value = locators['contentviews.change_env']
+        env_element = self.wait_until_element((strategy, value % env))
+        if env_element:
+            env_element.click()
+            self.wait_for_ajax()
+        else:
+            raise Exception(
+                'Could not find %s environment' % env)
+        Select(self.find_element(locators
+                                 ['contentviews.change_cv']
+                                 )).select_by_visible_text(cv)
+        self.wait_until_element(locators['contentviews.next_button']).click()
+        self.wait_for_ajax()
+
+    def delete_version(self, name, is_affected_comps=False,
+                       env=None, cv=None, really=True):
+        """
+        Deletes published content view's version
+        and handles the associated entities
+        before deleting the selected CV.
+        """
+        element = self.search(name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.wait_until_element(locators['contentviews.remove']).click()
+            self.wait_for_ajax()
+            self.wait_until_element(locators
+                                    ['contentviews.remove_cv_version']
+                                    ).click()
+            self.wait_for_ajax()
+            self.wait_until_element(locators
+                                    ['contentviews.remove_checkbox']
+                                    ).click()
+            self.wait_until_element(locators
+                                    ['contentviews.next_button']).click()
+            if is_affected_comps:
+                rm_ver = self.wait_until_element(locators
+                                                 ['contentviews.remove_ver'])
+                while not rm_ver:
+                    self.move_affected_components(env, cv)
+            self.find_element(locators
+                              ['contentviews.remove_ver']
+                              ).click()
+            self.wait_for_ajax()
+        else:
+            raise Exception(
+                'Could not find the %s content view.' % name)
+
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements """
 
