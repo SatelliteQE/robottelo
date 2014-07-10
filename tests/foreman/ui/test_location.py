@@ -38,8 +38,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_positive_create_1(self, loc_name):
         """
-        @feature: Locations
         @test: Create Location with valid name only
+        @feature: Locations
         @assert: Location is created, label is auto-generated
         """
 
@@ -51,8 +51,8 @@ class Location(UITestCase):
     @data(*generate_strings_list(len1=256))
     def test_negative_create_1(self, loc_name):
         """
-        @feature: Locations
         @test: Create location with name as too long
+        @feature: Locations
         @assert: location is not created
         """
         with Session(self.browser) as session:
@@ -63,8 +63,8 @@ class Location(UITestCase):
 
     def test_negative_create_2(self):
         """
-        @feature: Locations
         @test: Create location with name as blank
+        @feature: Locations
         @assert: location is not created
         """
 
@@ -77,8 +77,8 @@ class Location(UITestCase):
 
     def test_negative_create_3(self):
         """
-        @feature: Locations
         @test: Create location with name as whitespace
+        @feature: Locations
         @assert: location is not created
         """
 
@@ -93,9 +93,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_negative_create_4(self, loc_name):
         """
-        @feature: Locations
         @test: Create location with valid values, then create a new one
         with same values.
+        @feature: Locations
         @assert: location is not created
         """
 
@@ -113,8 +113,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
         """
-        @feature: Locations
         @test: Create Location with valid values then update its name
+        @feature: Locations
         @assert: Location name is updated
         """
 
@@ -131,9 +131,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_negative_update_1(self, loc_name):
         """
-        @feature: Locations
         @test: Create Location with valid values then fail to update
         its name
+        @feature: Locations
         @assert: Location name is not updated
         """
 
@@ -152,8 +152,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_search_key_1(self, loc_name):
         """
-        @feature: Locations
         @test: Create location and search/find it
+        @feature: Locations
         @assert: location can be found
         """
 
@@ -179,8 +179,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_subnet_1(self):
         """
-        @feature: Locations
         @test: Add a subnet by using location name and subnet name
+        @feature: Locations
         @assert: subnet is added
         """
         subnet_name = "fed121"
@@ -206,8 +206,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain):
         """
-        @feature: Locations
         @test: Add a domain to a Location
+        @feature: Locations
         @assert: Domain is added to Location
         """
 
@@ -230,9 +230,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_user_1(self, user):
         """
-        @feature: Locations
         @test: Create user then add user
         by using the location name
+        @feature: Locations
         @assert: User is added to location
         """
 
@@ -259,9 +259,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp):
         """
-        @feature: Locations
         @test: Add a hostgroup by using the location
         name and hostgroup name
+        @feature: Locations
         @assert: hostgroup is added to location
         """
 
@@ -284,9 +284,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_org_1(self, org):
         """
-        @feature: Locations
         @test: Add a organization by using the location
         name
+        @feature: Locations
         @assert: organization is added to location
         """
 
@@ -309,8 +309,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_environment_1(self, env):
         """
-        @feature: Locations
         @test: Add environment by using location name and evironment name
+        @feature: Locations
         @assert: environment is added
         """
 
@@ -333,9 +333,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
         """
-        @feature: Locations
         @test: Add compute resource using the location
         name and computeresource name
+        @feature: Locations
         @assert: computeresource is added
         """
 
@@ -361,8 +361,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium):
         """
-        @feature: Locations
         @test: Add medium by using the location name and medium name
+        @feature: Locations
         @assert: medium is added
         """
 
@@ -387,9 +387,9 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
         """
-        @feature: Locations
         @test: Add config template by using location name and
         configtemplate name
+        @feature: Locations
         @assert: configtemplate is added
         """
 
@@ -415,8 +415,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_remove_environment_1(self, env):
         """
-        @feature: Locations
         @test: Remove environment by using location name & evironment name
+        @feature: Locations
         @assert: environment is removed from Location
         """
 
@@ -447,8 +447,8 @@ class Location(UITestCase):
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
         """
-        @feature: Locations
         @test: Remove subnet by using location name and subnet name
+        @feature: Locations
         @assert: subnet is added then removed
         """
 
