@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Utility wrappers for the ``requests`` library."""
 from robottelo.common import conf
-import json as js
+import json
 import logging
 import requests
 
@@ -69,9 +69,7 @@ def request(method, **kwargs):
 
     if kwargs.get('json', None):
         try:
-            kwargs.setdefault('data', js.dumps(kwargs['json']))
-            kwargs.setdefault('headers', {})
-            kwargs['headers']['Content-Type'] = 'application/json'
+            kwargs.setdefault('data', json.dumps(kwargs['json']))
         except:
             pass
         finally:

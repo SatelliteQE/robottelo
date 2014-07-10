@@ -98,17 +98,6 @@ class StringField(booby.fields.String):
         )
 
 
-class DefaultField(booby.fields.String):
-    """Field that represents a string"""
-    def __init__(self, ddefault, *args, **kwargs):
-        self.ddefault = ddefault
-        super(DefaultField, self).__init__(*args, **kwargs)
-
-    def get_value(self):
-        """Return a value suitable for a :class:`StringField`."""
-        return self.ddefault
-
-
 class ShortStringField(booby.fields.String):
     """Field that represents a string, no longer than 255 chars."""
     def get_value(self):
