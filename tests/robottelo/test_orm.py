@@ -227,4 +227,4 @@ class StringFieldTestCase(unittest.TestCase):
         """
         string = orm.StringField(max_len=20).get_value()
         self.assertGreater(len(string), 0)
-        self.assertLess(len(string), 20)
+        self.assertLessEqual(len(string), 20)
