@@ -412,6 +412,10 @@ tab_locators = {
         By.XPATH, "//a[contains(@ui-sref, 'package_group.available')]"),
     "contentviews.tab_pkg_group_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'package_group.list')]"),
+    "contentviews.tab_add": (
+        By.XPATH, "//a[contains(@ui-sref, 'available')]"),
+    "contentviews.tab_remove": (
+        By.XPATH, "//a[contains(@ui-sref, 'list')]"),
 
     # Sync Plans
     # Third level UI
@@ -1364,6 +1368,22 @@ locators = {
         By.XPATH, "//button[@ng-click='addPackageGroups(filter)']"),
     "contentviews.remove_pkg_group": (
         By.XPATH, "//button[@ng-click='removePackageGroups(filter)']"),
+    "contentviews.select_errata_checkbox": (
+        By.XPATH,
+        ("//tr[@row-select='errata']"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "contentviews.add_errata": (
+        By.XPATH, "//button[@ng-click='addErrata(filter)']"),
+    "contentviews.remove_errata": (
+        By.XPATH, "//button[@ng-click='removeErrata(filter)']"),
+    "contentviews.search_filters": (
+        By.XPATH,
+        ("//div[@data-block='search']"
+         "//input[@ng-model='detailsTable.searchTerm']")),
+    "contentviews.search_button": (
+        By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
 
     # System Groups
     "system-groups.new": (
