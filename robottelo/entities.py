@@ -33,15 +33,19 @@ class ActivationKey(orm.Entity):
         )
 
 
-class Architecture(orm.Entity):
+class Architecture(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
-    name = orm.StringField(required=True)
+    name = orm.StringField(required=True, max_len=255)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = (
             '/api/v2/architectures',  # Create an architecture.
+        )
+        api_names = (
+            ('name', 'architecture[name]'),
+            ('operatingsystems', 'architecture[operatingsystem_ids]'),
         )
 
 

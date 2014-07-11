@@ -5,6 +5,8 @@ import booby.fields
 import booby.inspection
 import booby.validators
 import collections
+import importlib
+import inspect
 import random
 
 
@@ -145,77 +147,106 @@ class OneToOneField(booby.fields.Embedded):
         Return an instance of the :class:`robottelo.orm.Entity` this field
         points to.
         """
-        return self.model()
+        return _get_class(self.model)()
 
 
-# FIXME: implement get_value()
 class OneToManyField(Field):
-    """Field that represents a one to many related entity
+    """Field that points to zero or more other entities.
 
-    The value could be a single or a list of entities, or a dictionary or even
-    a list of dictionaries.
+    When used in an entity definition, you declare what type of entity this
+    field can point to. When that entity is instantiated, the
+    ``OneToManyField`` acts as a list that points to other entity instances.
+    Roughly speaking, this field acts like a list of foreign keys to a certain
+    type of entity.
 
-     Examples of how to set OneToManyField value::
+    There are several ways to assign values to a ``OneToManyField``. You can
+    assign a single entity, a list of entities, a dict of entity fields, or a
+    list of dicts. For example::
 
-        >>> class OneEntity(Entity):
+        >>> class PetEntity(Entity):
         ...     name = StringField()
         ...
-        >>> class OtherEntity(Entity):
-        ...     ones = OneToManyField(OneEntity)
+        >>> class OwnerEntity(Entity):
+        ...     pets = OneToManyField(PetEntity)
         ...
-        >>> ent.ones = OneEntity(name='name')
-        >>> ent.ones
-        [<__main__.OneEntity(name='name')>]
-        >>> ent.ones = [OneEntity(name='name')]
-        >>> ent.ones
-        [<__main__.OneEntity(name='name')>]
-        >>> ent.ones = {'name': 'test'}
-        >>> ent.ones
-        [<__main__.OneEntity(name='test')>]
-        >>> ent.ones = [{'name': 'test'}]
-        >>> ent.ones
-        [<__main__.OneEntity(name='test')>]
+        >>> owner = OwnerEntity()
+        >>> owner.pets = PetEntity(name='fido')
+        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
+        True
+        >>> owner.pets = [PetEntity(name='buster')]
+        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
+        True
+        >>> owner.pets = {'name': 'Liberty'}
+        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
+        True
+        >>> owner.pets = [{'name': 'Willow'}]
+        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
+        True
 
-    All examples shows that the value will be converted to a list of a model
-    entities.
+    The example above shows that the value assigned to a ``OneToManyField`` is
+    converted to a list of entity instances.
 
     """
-
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, entity, *args, **kwargs):
+        """Record the ``entity`` argument and call ``super``."""
         super(OneToManyField, self).__init__(
-            booby.validators.List(booby.validators.Model(model)),
+            booby.validators.List(booby.validators.Model(entity)),
             *args,
             **kwargs
         )
-
-        self.model = model
+        self.entity = entity
 
     def __set__(self, instance, value):
-        """Override __set__ to process the value before setting it.
+        """Manipulate ``value`` before calling ``super``.
 
-        If the value is a single entity instance it is wrapped in a list.
+        Several types of values are accepted, and the manipulation performed
+        varies depending upon the type of ``value``:
 
-        If the value is a dict convert to a self.model instance and wrap in a
-        list.
+        * If ``value`` is a single entity instance it is placed into a list.
+        * If ``value`` is a dict, it is converted to an instance of type
+          ``self.entity`` and placed into a list.
+        * If the value is a list and it contains any dicts, those dicts are
+          converted to instances of type ``self.entity``.
 
-        If the value is a list and have any dict on it, convert that dict to a
-        self.model instance and override the dict on the list.
         """
-        if isinstance(value, self.model):
-            # if received a single instance wraps it in a list
+        if isinstance(value, self.entity):
+            # entity -> [entity]
             value = [value]
         elif isinstance(value, collections.MutableMapping):
-            # convert a dict to a self.model instance and wraps in a list
-            value = [self.model(**value)]
+            # {dict} -> [entity]
+            value = [self.entity(**value)]
         elif isinstance(value, collections.MutableSequence):
-            # if an element in a list is a dict convert it to a self.model
-            # instance
+            # [entity, {dict}] -> [entity, entity]
             for index, val in enumerate(value):
                 if isinstance(val, collections.MutableMapping):
-                    value[index] = self.model(**val)
-
+                    value[index] = self.entity(**val)
         super(OneToManyField, self).__set__(instance, value)
+
+    def get_value(self):
+        """
+        Return a list of :class:`robottelo.orm.Entity` instances of type
+        ``self.entity``.
+        """
+        return [_get_class(self.entity)()]
 
 
 class URLField(StringField):
     """Field that represents an URL"""
+
+
+def _get_class(class_or_name, module='robottelo.entities'):
+    """Return a class object.
+
+    If ``class_or_name`` is a class, it is returned untouched. Otherwise,
+    ``class_or_name`` is assumed to be a string. In this case,
+    :mod:`robottelo.entities` is searched for a class by that name and
+    returned.
+
+    :param class_or_name: Either a class or the name of a class.
+    :param str module: A dotted module name.
+    :return: Either the class passed in or a class from ``module``.
+
+    """
+    if inspect.isclass(class_or_name):
+        return class_or_name
+    return getattr(importlib.import_module(module), class_or_name)
