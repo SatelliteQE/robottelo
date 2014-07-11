@@ -269,6 +269,33 @@ class TestContentViewsUI(UITestCase):
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
 
+    def test_create_errata_filter(self):
+        """
+        @test: create content views errata filter(positive)
+        @feature: Content Views
+        @assert: content views filter created and selected errata-id
+        can be added for inclusion/exclusion
+        """
+        cv_name = generate_string("alpha", 8)
+        filter_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        content_type = FILTER_CONTENT_TYPE['erratum by id']
+        filter_type = FILTER_TYPE['include']
+        errata_ids = ['RHEA-2012:0001', 'RHEA-2012:0004']
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.setup_to_create_cv(cv_name, repo_name, repo_url)
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.content_views.add_filter(cv_name, filter_name,
+                                          content_type, filter_type)
+            self.content_views.add_remove_errata_to_filter(cv_name,
+                                                           filter_name,
+                                                           errata_ids)
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit(self):
         """

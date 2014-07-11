@@ -29,6 +29,12 @@ class ContentViews(Base):
             self.wait_until_element(locators
                                     ["contentviews.content_filters"]).click()
             self.wait_for_ajax()
+            self.text_field_update(locators
+                                   ["contentviews.search_filters"],
+                                   filter_name)
+            self.wait_for_ajax()
+            self.find_element(locators["contentviews.search_button"]).click()
+            self.wait_for_ajax()
             strategy, value = locators["contentviews.select_filter_name"]
             element = self.wait_until_element((strategy,
                                                value % filter_name))
@@ -431,6 +437,7 @@ class ContentViews(Base):
                            (locators
                             ["contentviews.content_type"]
                             )).select_by_visible_text(content_type)
+                    self.wait_for_ajax()
                 else:
                     raise Exception(
                         "Couldn't create filter without content type")
@@ -439,6 +446,7 @@ class ContentViews(Base):
                            (locators
                             ["contentviews.type"]
                             )).select_by_visible_text(filter_type)
+                    self.wait_for_ajax()
                 else:
                     raise Exception(
                         "Couldn't create filter without"
@@ -587,4 +595,34 @@ class ContentViews(Base):
         else:
             self.find_element(locators
                               ["contentviews.remove_pkg_group"]).click()
+        self.wait_for_ajax()
+
+    def add_remove_errata_to_filter(self, cv_name, filter_name,
+                                    errata_ids, is_add=True):
+        """
+        Add/Remove errata to/from selected filter for inclusion/exclusion
+        """
+        self.go_to_filter_page(cv_name, filter_name)
+        if is_add:
+            self.wait_until_element(tab_locators
+                                    ["contentviews.tab_add"]).click()
+        else:
+            self.wait_until_element(tab_locators
+                                    ["contentviews.tab_remove"]
+                                    ).click()
+        self.wait_for_ajax()
+        strategy, value = locators["contentviews.select_errata_checkbox"]
+        for errata_id in errata_ids:
+            element = self.wait_until_element((strategy,
+                                               value % errata_id))
+            if element:
+                element.click()
+            else:
+                raise Exception(
+                    "Couldn't find errata with ID '%s'" % errata_id)
+        if is_add:
+            self.find_element(locators["contentviews.add_errata"]).click()
+        else:
+            self.find_element(locators
+                              ["contentviews.remove_errata"]).click()
         self.wait_for_ajax()
