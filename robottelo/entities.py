@@ -591,7 +591,7 @@ class Location(orm.Entity, factory.EntityFactoryMixin):
         )
 
 
-class Media(orm.Entity):
+class Media(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Media entity."""
     # Name of media
     # validator: String
@@ -602,8 +602,8 @@ class Media(orm.Entity):
     # substituted for the host's actual OS architecture and $version, $major
     # and $minor will be substituted for the version of the operating system.
     # Solaris and Debian media may also use $release.
-    path = orm.StringField(required=True)
     # The family that the operating system belongs to.
+    path = orm.URLField(required=True)
     # Available families: AIX, Archlinux, Debian, Freebsd, Gentoo, Junos,
     # Redhat, Solaris, Suse, Windows
     os_family = orm.StringField(choices=(
@@ -617,8 +617,6 @@ class Media(orm.Entity):
         api_path = (
             '/api/v2/media',  # Create a medium.
         )
-        # FIXME: is this mapping correct?
-        api_names = (('name', 'host[name]'),)
 
 
 class Model(orm.Entity, factory.EntityFactoryMixin):
@@ -864,7 +862,7 @@ class Report(orm.Entity):
         )
 
 
-class Repository(orm.Entity):
+class Repository(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -877,7 +875,15 @@ class Repository(orm.Entity):
     # true if this repository can be published via HTTP
     unprotected = orm.BooleanField()
     # type of repo (either 'yum' or 'puppet', defaults to 'yum')
-    content_type = orm.StringField(choices=('puppet', 'yum'), default='yum')
+    content_type = orm.StringField(default='yum', required=True)
+    #choices=('puppet', 'yum'),
+    url = orm.StringField(
+        default=(
+            'http://inecas.fedorapeople.org/' +
+            'fakerepos/new_cds/content/zoo/1.1/x86_64/rpms/'
+        ),
+        required=True
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -939,7 +945,7 @@ class SmartVariable(orm.Entity):
         )
 
 
-class Subnet(orm.Entity):
+class Subnet(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Subnet entity."""
     name = orm.StringField(required=True)
     network = orm.IPAddressField(required=True)
@@ -1032,16 +1038,19 @@ class SystemPackage(orm.Entity):
         )
 
 
-class System(orm.Entity):
+class System(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a System entity."""
-    name = orm.StringField(required=True)
+    name = orm.StringField(style='alpha', required=True)
     description = orm.StringField()
     # Physical location of the content host
     location = orm.StringField()
     # Any number of facts about this content host
-    fact = orm.StringField(null=True)
+    facts = orm.StringField(
+        default={"uname.machine": "unknown"},
+        required=True
+    )
     # Type of the content host, it should always be 'content host'
-    system_type = orm.StringField(default='content host', required=True)
+    system_type = orm.StringField(default='system', required=True)
     # IDs of the guests running on this content host
     # FIXME figure out related resource
     # guest = orm.OneToManyField()
@@ -1053,9 +1062,9 @@ class System(orm.Entity):
     service_level = orm.StringField(null=True)
     # Last check-in time of this content host
     last_checkin = orm.DateTimeField()
+    environment_id = orm.StringField(default='1', required=True)
+    content_view_id = orm.StringField(default='1', required=True)
     organization = orm.OneToOneField('Organization', required=True)
-    environment = orm.OneToOneField('Environment')
-    content_view = orm.OneToOneField('ContentView')
     host_collection = orm.OneToOneField('HostCollection')
 
     class Meta(object):
@@ -1091,7 +1100,7 @@ class TemplateKind(orm.Entity):
     # FIXME figure out fields
 
 
-class UserGroup(orm.Entity):
+class UserGroup(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a User Group entity."""
     name = orm.StringField(required=True)
 
@@ -1110,7 +1119,7 @@ class User(orm.Entity, factory.EntityFactoryMixin):
     mail = orm.EmailField(required=True)
     # Is an admin account?
     admin = orm.BooleanField(null=True)
-    password = orm.StringField(style='alpha', required=True)
+    password = orm.StringField(style='alphanumeric', required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
     auth_source_id = orm.StringField(default='1', required=True)
@@ -1120,3 +1129,6 @@ class User(orm.Entity, factory.EntityFactoryMixin):
         api_path = (
             '/api/v2/users',  # Create an user.
         )
+
+    def _pack_request(self, request):
+        return {"user": request}

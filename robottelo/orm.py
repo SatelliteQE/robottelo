@@ -229,3 +229,5 @@ class OneToManyField(Field):
 
 class URLField(StringField):
     """Field that represents an URL"""
+    def get_value(self):
+        return FauxFactory.generate_url()

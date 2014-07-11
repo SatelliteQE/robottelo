@@ -12,10 +12,15 @@ from robottelo.entities import (
     ContentView,
     LifecycleEnvironment,
     Location,
+    Media,
     Model,
     OperatingSystem,
     Organization,
     Product,
+    Repository,
+    Subnet,
+    System,
+    UserGroup,
     User
     )
 
@@ -26,8 +31,9 @@ class TestFactoryCreate(APITestCase):
 
     @data(
         ActivationKey, Architecture, ContentView,
-        LifecycleEnvironment, Location, Model,
-        OperatingSystem, Organization, Product, User)
+        LifecycleEnvironment, Location, Model, Media,
+        OperatingSystem, Organization, Product,
+        Repository, Subnet, System, UserGroup, User)
     def test_basic_create(self, test_data):
         """
         @feature: Permissions

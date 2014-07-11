@@ -146,6 +146,11 @@ class Factory(object):
         return tuple()
 
     # Pylint warns that `self` is unused. This is OK, as subclasses may use it.
+    def _pack_request(self, request):  # pylint:disable=R0201
+        """Pack the request if requires wrapping."""
+        return request
+
+    # Pylint warns that `self` is unused. This is OK, as subclasses may use it.
     def _unpack_response(self, response):  # pylint:disable=R0201
         """Unpack the server's response after creating an entity.
 
@@ -258,7 +263,9 @@ class Factory(object):
                 values[name] = val_or_factory
 
         # Create the current entity.
-        json_data = _copy_and_update_keys(values, self._get_field_names('api'))
+        json_data = self._pack_request(
+            _copy_and_update_keys(values, self._get_field_names('api'))
+            )
         response = _call_client_post(
             urljoin(get_server_url(), self._get_path()),
             data=None,
