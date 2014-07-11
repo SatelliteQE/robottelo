@@ -605,10 +605,10 @@ class Location(UITestCase):
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_resources"]).click()
-            element = self.location.wait_until_element((strategy1,
-                                                        value1 % resource_name))
+            ele = self.location.wait_until_element((strategy1,
+                                                    value1 % resource_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertTrue(ele)
             self.location.update(loc_name, resources=[resource_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -668,7 +668,7 @@ class Location(UITestCase):
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
             make_templates(session, name=template, template_path=template_path,
-                       template_type=temp_type, custom_really=True)
+                           template_type=temp_type, custom_really=True)
             self.assertIsNotNone(self.template.search(template))
             make_loc(session, name=loc_name, templates=[template], edit=True)
             self.location.search(loc_name).click()
