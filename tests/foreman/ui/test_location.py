@@ -319,7 +319,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_env(session, name=env, orgs=None)
+            make_env(session, name=env)
             self.assertIsNotNone(self.environment.search(env))
             self.location.update(loc_name, new_envs=[env])
             self.location.search(loc_name).click()
@@ -346,7 +346,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_resource(session, name=resource_name, orgs=None,
+            make_resource(session, name=resource_name,
                           provider_type="Libvirt", url=url)
             self.assertIsNotNone(self.compute_resource.search(resource_name))
             self.location.update(loc_name, new_resources=[resource_name])
@@ -475,5 +475,214 @@ class Location(UITestCase):
                 tab_locators["context.tab_subnets"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % subnet_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_domain_1(self, domain):
+        """
+        @test: Add a domain to an location and remove it by location
+        name and domain name
+        @feature: Locations
+        @assert: the domain is removed from the location
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_domain(session, name=domain)
+            self.assertIsNotNone(self.domain.search(domain))
+            make_loc(session, name=loc_name, domains=[domain], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_domains"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % domain))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, domains=[domain])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_domains"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % domain))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_user_1(self, user_name):
+        """
+        @test: Create admin users then add user and remove it
+        by using the location name
+        @feature: Locations
+        @assert: The user is added then removed from the location
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        password = generate_string("alpha", 8)
+        email = generate_email_address()
+        search_key = "login"
+        with Session(self.browser) as session:
+            make_user(session, username=user_name, email=email,
+                      password1=password, password2=password)
+            self.assertIsNotNone(self.user.search(user_name, search_key))
+            make_loc(session, name=loc_name, users=[user_name], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_users"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % user_name))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, users=[user_name])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_users"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % user_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_hostgroup_1(self, host_grp):
+        """
+        @test: Add a hostgroup and remove it by using the location
+        name and hostgroup name
+        @feature: Locations
+        @assert: hostgroup is added to location then removed
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_hostgroup(session, name=host_grp)
+            self.assertIsNotNone(self.hostgroup.search(host_grp))
+            make_loc(session, name=loc_name, hostgroups=[host_grp], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_hostgrps"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % host_grp))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, hostgroups=[host_grp])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_hostgrps"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % host_grp))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_computeresource_1(self, resource_name):
+        """
+        @test: Remove computeresource by using the location
+        name and computeresource name
+        @feature: Locations
+        @assert: computeresource is added then removed
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        libvirt_url = "qemu+tcp://%s:16509/system"
+        url = (libvirt_url % conf.properties['main.server.hostname'])
+        with Session(self.browser) as session:
+            make_resource(session, name=resource_name, provider_type="Libvirt",
+                          url=url)
+            self.assertIsNotNone(self.compute_resource.search(resource_name))
+            make_loc(session, name=loc_name, resources=[resource_name],
+                     edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_resources"]).click()
+            element = self.location.wait_until_element((strategy1,
+                                                        value1 % resource_name))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, resources=[resource_name])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_resources"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % resource_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_medium_1(self, medium):
+        """
+        @test: Remove medium by using location name and medium name
+        @feature: Locations
+        @assert: medium is added then removed
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=medium, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(medium))
+            make_loc(session, name=loc_name, medias=[medium], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_media"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % medium))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, medias=[medium])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_media"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % medium))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
+
+    @attr('ui', 'location', 'implemented')
+    @data(*generate_strings_list())
+    def test_remove_configtemplate_1(self, template):
+        """
+        @test: Remove config template
+        @feature: Locations
+        @assert: configtemplate is added then removed
+        """
+
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        loc_name = generate_string("alpha", 8)
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=template, template_path=template_path,
+                       template_type=temp_type, custom_really=True)
+            self.assertIsNotNone(self.template.search(template))
+            make_loc(session, name=loc_name, templates=[template], edit=True)
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_template"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % template))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.location.update(loc_name, templates=[template])
+            self.location.search(loc_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_template"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % template))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertTrue(element)
