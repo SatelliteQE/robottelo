@@ -60,7 +60,7 @@ def field_is_required(field_type):
     return False
 
 
-def _call_client_post(url, data, auth, verify):
+def _call_client_post(url, data, auth, verify, **kwargs):
     """Call ``client.post`` with the provided arguments.
 
     This method is extremely simple and does nothing with the data passed in or
@@ -68,7 +68,7 @@ def _call_client_post(url, data, auth, verify):
     performing unit testing.
 
     """
-    return client.post(url, data, auth=auth, verify=verify)
+    return client.post(url, data, auth=auth, verify=verify, **kwargs)
 
 
 class FactoryError(Exception):
@@ -144,6 +144,11 @@ class Factory(object):
 
         """
         return tuple()
+
+    # Pylint warns that `self` is unused. This is OK, as subclasses may use it.
+    def _pack_request(self, request):  # pylint:disable=R0201
+        """Pack the request if requires wrapping."""
+        return request
 
     # Pylint warns that `self` is unused. This is OK, as subclasses may use it.
     def _unpack_response(self, response):  # pylint:disable=R0201
@@ -252,17 +257,26 @@ class Factory(object):
             if name in values.keys():
                 continue
             if isinstance(val_or_factory, Factory):
-                values[name] = val_or_factory.create()['id']
+                cr = val_or_factory.create()
+                values[name+"_id"] = cr['id']
             else:
                 values[name] = val_or_factory
 
         # Create the current entity.
+        json_data = self._pack_request(
+            _copy_and_update_keys(values, self._get_field_names('api'))
+            )
         response = _call_client_post(
             urljoin(get_server_url(), self._get_path()),
-            _copy_and_update_keys(values, self._get_field_names('api')),
+            data=None,
             auth=get_server_credentials(),
             verify=False,
-        ).json()
+            json=json_data
+        )
+
+        if not response.ok:
+            raise FactoryError(response.status_code, response.content)
+        response = response.json()
         if 'error' in response.keys():
             raise FactoryError(response['error'])
 
@@ -299,7 +313,11 @@ class EntityFactoryMixin(Factory):
         for name, field in self.get_fields().items():
             if field_is_required(field):
                 # `get_value` returns either a value or a Factory instance.
-                values[name] = field.get_value()
+                values[name] = (
+                    field.default
+                    if field.default is not None
+                    else field.get_value()
+                )
         return values
 
     def _get_field_names(self, fmt):

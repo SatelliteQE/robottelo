@@ -26,6 +26,7 @@ sent, and they log out information about the response received.
 
 """
 from urllib import urlencode
+import json
 import logging
 import requests
 
@@ -103,13 +104,15 @@ def _log_request(method, url, kwargs, data=None):
             'data {0}'.format(data) if data is not None else 'no data',
         )
     )
-    logger.info('Equivalent curl command: curl -X {0} {1}{2}{3} {4}'.format(
-        method,
-        _curl_arg_user(kwargs),
-        _curl_arg_insecure(kwargs),
-        _curl_arg_data(kwargs),
-        url
-    ))
+    logger.info(
+        'Equivalent curl command: curl -X {0} {1}{2}{3} -d "{4}"'.format(
+            method,
+            _curl_arg_user(kwargs),
+            _curl_arg_insecure(kwargs),
+            _curl_arg_data(kwargs),
+            url
+        )
+    )
 
 
 def _log_response(response):
@@ -190,6 +193,11 @@ def get(url, **kwargs):
 
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
+    if kwargs.get('json', None) is not None:
+        data = json.dumps(kwargs['json'])
+        kwargs.setdefault('headers', {})
+        kwargs['headers'].setdefault('Content-Type', 'application/json')
+        del kwargs['json']
     _log_request('POST', url, kwargs, data)
     response = _call_requests_post(url, data, **kwargs)
     _log_response(response)

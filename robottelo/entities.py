@@ -16,12 +16,12 @@ from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
 
-class ActivationKey(orm.Entity):
+class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Activtion Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    environment = orm.OneToOneField('Environment')
+    environment = orm.OneToOneField('LifecycleEnvironment')
     content_view = orm.OneToOneField('ContentView')
     # maximum number of registered content hosts, or 'unlimited'
     usage_limit = orm.IntegerField()
@@ -33,7 +33,7 @@ class ActivationKey(orm.Entity):
         )
 
 
-class Architecture(orm.Entity):
+class Architecture(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
@@ -276,7 +276,7 @@ class ContentViewPuppetModule(orm.Entity):
         )
 
 
-class ContentView(orm.Entity):
+class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -291,9 +291,9 @@ class ContentView(orm.Entity):
         """Non-field information about this entity."""
         api_path = (
             # Create a content view
-            '/katello/api/v2/organizations/:organization_id/content_views',
-            # Create a content view
             '/katello/api/v2/content_views',
+            # Create a content view
+            '/katello/api/v2/organizations/:organization_id/content_views',
         )
 
 
@@ -334,7 +334,7 @@ class Domain(orm.Entity):
         )
 
 
-class Environment(orm.Entity):
+class Environment(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Environment entity."""
     name = orm.StringField(required=True)
 
@@ -561,14 +561,14 @@ class Interface(orm.Entity):
         )
 
 
-class LifecycleEnvironment(orm.Entity):
+class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    # Name of an environment that is prior to the new environment in the chain.
+    # ID of an environment that is prior to the new environment in the chain.
     # It has to be either 'Library' or an environment at the end of a chain.
-    prior = orm.StringField(default='Library', required=True)
+    prior = orm.StringField(default='1', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -580,7 +580,7 @@ class LifecycleEnvironment(orm.Entity):
         )
 
 
-class Location(orm.Entity):
+class Location(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Location entity."""
     name = orm.StringField(required=True)
 
@@ -591,7 +591,7 @@ class Location(orm.Entity):
         )
 
 
-class Media(orm.Entity):
+class Media(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Media entity."""
     # Name of media
     # validator: String
@@ -602,8 +602,8 @@ class Media(orm.Entity):
     # substituted for the host's actual OS architecture and $version, $major
     # and $minor will be substituted for the version of the operating system.
     # Solaris and Debian media may also use $release.
-    path = orm.StringField(required=True)
     # The family that the operating system belongs to.
+    path = orm.URLField(required=True)
     # Available families: AIX, Archlinux, Debian, Freebsd, Gentoo, Junos,
     # Redhat, Solaris, Suse, Windows
     os_family = orm.StringField(choices=(
@@ -617,8 +617,6 @@ class Media(orm.Entity):
         api_path = (
             '/api/v2/media',  # Create a medium.
         )
-        # FIXME: is this mapping correct?
-        api_names = (('name', 'host[name]'),)
 
 
 class Model(orm.Entity, factory.EntityFactoryMixin):
@@ -630,12 +628,6 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (
-            ('name', 'model[name]'),
-            ('info', 'model[info]'),
-            ('vendor_class', 'model[vendor_class]'),
-            ('hardware_model', 'model[hardware_model]'),
-        )
         api_path = (
             '/api/v2/models',  # Create a model.
         )
@@ -646,16 +638,11 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
 
 
 class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
-    """A representation of a Operating System entity.
-
-    ``major`` is listed as a string field in the API docs, but only numeric
-    values are accepted, and they may be no longer than 5 digits long.
-
-    """
+    """A representation of a Operating System entity."""
     # validator: Must match regular expression /\A(\S+)\Z/.
-    name = orm.StringField(required=True, max_len=255)
-    major = orm.IntegerField(required=True, min_val=0, max_val=99999)
-    minor = orm.StringField(null=True)
+    name = orm.StringField(required=True)
+    major = orm.IntegerField(min_val=1, max_val=10, required=True)
+    minor = orm.IntegerField(null=True)
     description = orm.StringField(null=True)
     family = orm.StringField(null=True)
     release_name = orm.StringField(null=True)
@@ -664,14 +651,6 @@ class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = (
             '/api/v2/operatingsystems',  # Create an OS.
-        )
-        api_names = (
-            ('name', 'operatingsystem[name]'),
-            ('major', 'operatingsystem[major]'),
-            ('minor', 'operatingsystem[minor]'),
-            ('description', 'operatingsystem[description]'),
-            ('family', 'operatingsystem[family]'),
-            ('release_name', 'operatingsystem[release_name]'),
         )
 
 
@@ -718,6 +697,10 @@ class Organization(orm.Entity, factory.EntityFactoryMixin):
         api_path = (
             '/katello/api/v2/organizations',  # Create organization
         )
+
+    def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
+        """Unpack the server's response after creating an entity."""
+        return response['organization']
 
 
 class OSDefaultTemplate(orm.Entity):
@@ -879,7 +862,7 @@ class Report(orm.Entity):
         )
 
 
-class Repository(orm.Entity):
+class Repository(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -892,7 +875,15 @@ class Repository(orm.Entity):
     # true if this repository can be published via HTTP
     unprotected = orm.BooleanField()
     # type of repo (either 'yum' or 'puppet', defaults to 'yum')
-    content_type = orm.StringField(choices=('puppet', 'yum'), default='yum')
+    content_type = orm.StringField(default='yum', required=True)
+    #choices=('puppet', 'yum'),
+    url = orm.StringField(
+        default=(
+            'http://inecas.fedorapeople.org/' +
+            'fakerepos/new_cds/content/zoo/1.1/x86_64/rpms/'
+        ),
+        required=True
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -954,7 +945,7 @@ class SmartVariable(orm.Entity):
         )
 
 
-class Subnet(orm.Entity):
+class Subnet(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Subnet entity."""
     name = orm.StringField(required=True)
     network = orm.IPAddressField(required=True)
@@ -1047,16 +1038,19 @@ class SystemPackage(orm.Entity):
         )
 
 
-class System(orm.Entity):
+class System(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a System entity."""
-    name = orm.StringField(required=True)
+    name = orm.StringField(style='alpha', required=True)
     description = orm.StringField()
     # Physical location of the content host
     location = orm.StringField()
     # Any number of facts about this content host
-    fact = orm.StringField(null=True)
+    facts = orm.StringField(
+        default={"uname.machine": "unknown"},
+        required=True
+    )
     # Type of the content host, it should always be 'content host'
-    system_type = orm.StringField(default='content host', required=True)
+    system_type = orm.StringField(default='system', required=True)
     # IDs of the guests running on this content host
     # FIXME figure out related resource
     # guest = orm.OneToManyField()
@@ -1068,9 +1062,9 @@ class System(orm.Entity):
     service_level = orm.StringField(null=True)
     # Last check-in time of this content host
     last_checkin = orm.DateTimeField()
+    environment_id = orm.StringField(default='1', required=True)
+    content_view_id = orm.StringField(default='1', required=True)
     organization = orm.OneToOneField('Organization', required=True)
-    environment = orm.OneToOneField('Environment')
-    content_view = orm.OneToOneField('ContentView')
     host_collection = orm.OneToOneField('HostCollection')
 
     class Meta(object):
@@ -1106,7 +1100,7 @@ class TemplateKind(orm.Entity):
     # FIXME figure out fields
 
 
-class UserGroup(orm.Entity):
+class UserGroup(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a User Group entity."""
     name = orm.StringField(required=True)
 
@@ -1117,21 +1111,24 @@ class UserGroup(orm.Entity):
         )
 
 
-class User(orm.Entity):
+class User(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a User entity."""
-    login = orm.StringField(required=True)
+    login = orm.StringField(style='alpha', required=True)
     firstname = orm.StringField(null=True)
     lastname = orm.StringField(null=True)
-    mail = orm.StringField(required=True)
+    mail = orm.EmailField(required=True)
     # Is an admin account?
     admin = orm.BooleanField(null=True)
-    password = orm.StringField(required=True)
+    password = orm.StringField(style='alphanumeric', required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', required=True)
+    auth_source_id = orm.StringField(default='1', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = (
             '/api/v2/users',  # Create an user.
         )
+
+    def _pack_request(self, request):
+        return {"user": request}

@@ -6,6 +6,9 @@ import booby.inspection
 import booby.validators
 import collections
 import random
+import importlib
+import inspect
+from robottelo.factory import Factory
 
 
 class Entity(booby.Model):
@@ -82,14 +85,15 @@ class IntegerField(booby.fields.Integer):
 
 class StringField(booby.fields.String):
     """Field that represents a string"""
-    def __init__(self, max_len=1000, *args, **kwargs):
+    def __init__(self, style='utf8', max_len=80, *args, **kwargs):
+        self.style = style
         self.max_len = max_len
         super(StringField, self).__init__(*args, **kwargs)
 
     def get_value(self):
         """Return a value suitable for a :class:`StringField`."""
         return FauxFactory.generate_string(
-            'utf8',
+            self.style,
             FauxFactory.generate_integer(1, self.max_len)
         )
 
@@ -99,7 +103,7 @@ class ShortStringField(booby.fields.String):
     def get_value(self):
         return FauxFactory.generate_string(
             'utf8',
-            FauxFactory.generate_integer(1, 255)
+            FauxFactory.generate_integer(1, 80)
         )
 
 
@@ -145,7 +149,12 @@ class OneToOneField(booby.fields.Embedded):
         Return an instance of the :class:`robottelo.orm.Entity` this field
         points to.
         """
-        return self.model()
+        if inspect.isclass(self.model) and issubclass(self.model, Factory):
+            return self.model()
+        class_name = self.model
+        module = importlib.import_module("robottelo.entities")
+        module_class = getattr(module, class_name)
+        return module_class()
 
 
 # FIXME: implement get_value()
@@ -163,6 +172,7 @@ class OneToManyField(Field):
         >>> class OtherEntity(Entity):
         ...     ones = OneToManyField(OneEntity)
         ...
+        >>> ent = OneToManyField()
         >>> ent.ones = OneEntity(name='name')
         >>> ent.ones
         [<__main__.OneEntity(name='name')>]
@@ -219,3 +229,5 @@ class OneToManyField(Field):
 
 class URLField(StringField):
     """Field that represents an URL"""
+    def get_value(self):
+        return FauxFactory.generate_url()

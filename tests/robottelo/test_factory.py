@@ -272,7 +272,7 @@ class SampleFactoryTestCase(TestCase):
 
         """
         factory._call_client_post = \
-            lambda url, data, auth, verify: MockResponse()
+            lambda url, data, auth, verify, **kwargs: MockResponse()
         self.assertEqual(
             SampleFactory()._get_fields(),  # See: MockResponse.json
             SampleFactory().create()
