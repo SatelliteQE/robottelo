@@ -349,6 +349,15 @@ class Environment(orm.Entity):
         )
 
 
+class Errata(orm.Entity):
+    """A representation of an Errata entity."""
+    # You cannot create an errata. Instead, errata are a read-only entity.
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = ('/api/v2/errata')
+
+
 class Filter(orm.Entity):
     """A representation of a Filter entity."""
     role = orm.OneToOneField('Role', required=True)
