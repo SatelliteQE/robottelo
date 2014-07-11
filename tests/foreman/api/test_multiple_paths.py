@@ -136,6 +136,32 @@ class EntityIdTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
     )
+    def test_put(self, entity):
+        """@Test Create an entity and update (PUT) it.
+
+        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+
+        """
+        attrs = entity().create()
+        path = urljoin(
+            get_server_url(),
+            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
+        )
+        response = client.put(
+            path,
+            entity().attributes(fmt='api'),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/json', response.headers['content-type'])
+
+    @data(
+        entities.Architecture,
+        entities.Model,
+        entities.OperatingSystem,
+        entities.Organization,
+    )
     def test_delete(self, entity):
         """@Test Create an entity, fetch it, DELETE it, and fetch it again.
 
