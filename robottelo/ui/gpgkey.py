@@ -49,7 +49,7 @@ class GPGKey(Base):
         """
         Uses the search box to locate an element from a list of elements.
         """
-
+        Navigator(self.browser).go_to_gpg_keys()
         element = None
         strategy = locators["gpgkey.key_name"][0]
         value = locators["gpgkey.key_name"][1]

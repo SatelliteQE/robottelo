@@ -1,18 +1,53 @@
 # -*- encoding: utf-8 -*-
 
 from robottelo.common.helpers import update_dictionary
+from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.domain import Domain
+from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.org import Org
 from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
+from robottelo.ui.medium import Medium
 from robottelo.ui.products import Products
 from robottelo.ui.subnet import Subnet
+from robottelo.ui.template import Template
 from robottelo.ui.user import User
 
 
+def core_factory(create_args, kwargs, session, page, org=None, loc=None,
+                 force_context=False):
+    """
+    Updates the args dictionary, calls the set_context function to set
+    org and loc context and finally navigates to the entites page.
+    """
+    create_args = update_dictionary(create_args, kwargs)
+    create_args.update(kwargs)
+    if org or loc:
+        set_context(session, org, loc, force_context=force_context)
+    page()
+
+
+def set_context(session, org, loc, force_context=False):
+    """
+    First checks whether '@' exists in context_text, otherwise configures
+    the context as per the org and loc values passed.
+    """
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text']).text
+    # Change context only if required or when force_context is set to True
+    if '@' not in str(current_text) or force_context:
+        if org:
+            session.nav.go_to_select_org(org)
+        if loc:
+            session.nav.go_to_select_loc(loc)
+
+
 def make_org(session, **kwargs):
+    """
+    Creates an organization
+    """
     create_args = {
         'org_name': None,
         'parent_org': None,
@@ -31,14 +66,15 @@ def make_org(session, **kwargs):
         'edit': False,
         'select': True,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    session.nav.go_to_org()
+    page = session.nav.go_to_org
+    core_factory(create_args, kwargs, session, page)
     Org(session.browser).create(**create_args)
 
 
 def make_loc(session, **kwargs):
+    """
+    Creates a location
+    """
     create_args = {
         'name': None,
         'parent': None,
@@ -55,14 +91,15 @@ def make_loc(session, **kwargs):
         'edit': False,
         'select': True,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    session.nav.go_to_loc()
+    page = session.nav.go_to_loc
+    core_factory(create_args, kwargs, session, page)
     Location(session.browser).create(**create_args)
 
 
 def make_product(session, org=None, loc=None, **kwargs):
+    """
+    Creates a product
+    """
     create_args = {
         'name': None,
         'description': None,
@@ -72,44 +109,32 @@ def make_product(session, org=None, loc=None, **kwargs):
         'gpg_key': None,
         'sync_interval': None,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
-    # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text):
-        if org:
-            session.nav.go_to_select_org(org)
-        if loc:
-            session.nav.go_to_select_loc(loc)
-    session.nav.go_to_products()
+    page = session.nav.go_to_products
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
     Products(session.browser).create(**create_args)
 
 
 def make_gpgkey(session, org=None, loc=None, **kwargs):
+    """
+    Creates a gpgkey
+    """
     create_args = {
         'name': None,
         'upload_key': False,
         'key_path': None,
         'key_content': None,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
-    # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text):
-        if org:
-            session.nav.go_to_select_org(org)
-        if loc:
-            session.nav.go_to_select_loc(loc)
-    session.nav.go_to_gpg_keys()
+    page = session.nav.go_to_gpg_keys
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
     GPGKey(session.browser).create(**create_args)
 
 
 def make_subnet(session, org=None, loc=None, **kwargs):
+    """
+    Creates a subnet
+    """
     create_args = {
         'orgs': None,
         'subnet_name': None,
@@ -117,43 +142,31 @@ def make_subnet(session, org=None, loc=None, **kwargs):
         'subnet_mask': None,
         'org_select': False,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
-    # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text):
-        if org:
-            session.nav.go_to_select_org(org)
-        if loc:
-            session.nav.go_to_select_loc(loc)
-    session.nav.go_to_subnets()
+    page = session.nav.go_to_subnets
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
     Subnet(session.browser).create(**create_args)
 
 
 def make_domain(session, org=None, loc=None, **kwargs):
+    """
+    Creates a domain
+    """
     create_args = {
         'name': None,
         'description': None,
         'dns_proxy': None,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
-    # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text):
-        if org:
-            session.nav.go_to_select_org(org)
-        if loc:
-            session.nav.go_to_select_loc(loc)
-    session.nav.go_to_domains()
+    page = session.nav.go_to_domains
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
     Domain(session.browser).create(**create_args)
 
 
 def make_user(session, org=None, loc=None, **kwargs):
+    """
+    Creates a user
+    """
     create_args = {
         'username': None,
         'email': None,
@@ -169,37 +182,93 @@ def make_user(session, org=None, loc=None, **kwargs):
         'edit': False,
         'select': True,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
-    # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text):
-        if org:
-            session.nav.go_to_select_org(org)
-        if loc:
-            session.nav.go_to_select_loc(loc)
-    session.nav.go_to_users()
+    page = session.nav.go_to_users
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
     User(session.browser).create(**create_args)
 
 
 def make_hostgroup(session, org=None, loc=None, **kwargs):
+    """
+    Creates a host_group
+    """
     create_args = {
         'name': None,
         'parent': None,
         'environment': None,
     }
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
-
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
-    # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text):
-        if org:
-            session.nav.go_to_select_org(org)
-        if loc:
-            session.nav.go_to_select_loc(loc)
-    session.nav.go_to_host_groups()
+    page = session.nav.go_to_host_groups
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
     Hostgroup(session.browser).create(**create_args)
+
+
+def make_env(session, org=None, loc=None, **kwargs):
+    """
+    Creates an Environment
+    """
+    create_args = {
+        'name': None,
+        'orgs': None,
+        'org_select': False,
+    }
+    page = session.nav.go_to_environments
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Environment(session.browser).create(**create_args)
+
+
+def make_resource(session, org=None, loc=None, **kwargs):
+    """
+    Creates a compute resource
+    """
+    create_args = {
+        'name': None,
+        'orgs': None,
+        'org_select': False,
+        'provider_type': None,
+        'url': None,
+        'user': None,
+        'password': None,
+        'region': None,
+        'libvirt_display': None,
+        'libvirt_set_passwd': True,
+        'tenant': None,
+    }
+    page = session.nav.go_to_compute_resources
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    ComputeResource(session.browser).create(**create_args)
+
+
+def make_media(session, org=None, loc=None, **kwargs):
+    """
+    Creates an installation media
+    """
+    create_args = {
+        'name': None,
+        'path': None,
+        'os_family': None,
+    }
+    page = session.nav.go_to_installation_media
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Medium(session.browser).create(**create_args)
+
+
+def make_templates(session, org=None, loc=None, **kwargs):
+    """
+    Creates a provisioning template
+    """
+    create_args = {
+        'name': None,
+        'template_path': None,
+        'custom_really': None,
+        'template_type': None,
+        'snippet': None,
+        'os_list': None,
+    }
+    page = session.nav.go_to_provisioning_templates
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Template(session.browser).create(**create_args)

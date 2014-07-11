@@ -36,8 +36,7 @@ class Architecture(Base):
         """
         Searches existing architecture from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_architectures()
+        Navigator(self.browser).go_to_architectures()
         element = self.search_entity(name, locators['arch.arch_name'])
         return element
 

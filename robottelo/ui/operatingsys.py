@@ -90,8 +90,7 @@ class OperatingSys(Base):
         """
         Searches existing operating system from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_operating_systems()
+        Navigator(self.browser).go_to_operating_systems()
         element = self.search_entity(
             name, locators['operatingsys.operatingsys_name'])
         return element

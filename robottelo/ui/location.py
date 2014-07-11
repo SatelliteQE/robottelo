@@ -172,3 +172,27 @@ class Location(Base):
         self.delete_entity(name, really, locators["location.select_name"],
                            locators['location.delete'],
                            drop_locator=locators["location.dropdown"])
+
+    def auto_complete_search(self, partial_name, name, search_key):
+        """
+        Auto complete search by giving partial name of location
+        """
+
+        strategy1, value1 = locators["location.select_name"]
+        nav(self.browser).go_to_loc()
+        searchbox = self.wait_until_element(common_locators["search"])
+        if searchbox is None:
+            raise Exception("Search box not found.")
+        else:
+            searchbox.clear()
+            searchbox.send_keys(search_key + " = " + partial_name)
+            strategy, value = common_locators["auto_search"]
+            element = self.wait_until_element((strategy, value % name))
+            if element:
+                element.click()
+                self.wait_for_ajax()
+                loc_elem = self.wait_until_element((strategy1, value1 % name))
+                return loc_elem
+            else:
+                raise Exception(
+                    "Couldn't find any entity via auto search completion")

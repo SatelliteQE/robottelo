@@ -50,8 +50,7 @@ class Medium(Base):
         """
         Searches existing medium from UI
         """
-        nav = Navigator(self.browser)
-        nav.go_to_installation_media()
+        Navigator(self.browser).go_to_installation_media()
         element = self.search_entity(name, locators["medium.medium_name"])
         return element
 
