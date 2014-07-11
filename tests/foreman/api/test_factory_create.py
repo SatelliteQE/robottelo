@@ -5,6 +5,7 @@
 from ddt import ddt
 from robottelo.common.decorators import data
 from robottelo.test import APITestCase
+from robottelo.factory import FactoryError
 from robottelo.entities import (
     ActivationKey,
     Architecture,
@@ -34,4 +35,8 @@ class TestFactoryCreate(APITestCase):
         @assert: entity is created
         """
         factory = test_data()
-        factory.create()
+        try:
+            factory.create()
+        except FactoryError as factory_error:
+            self.fail(factory_error)
+

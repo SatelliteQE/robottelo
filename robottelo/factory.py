@@ -258,13 +258,13 @@ class Factory(object):
                 values[name] = val_or_factory
 
         # Create the current entity.
-        json = _copy_and_update_keys(values, self._get_field_names('api'))
+        json_data = _copy_and_update_keys(values, self._get_field_names('api'))
         response = _call_client_post(
             urljoin(get_server_url(), self._get_path()),
             data=None,
             auth=get_server_credentials(),
             verify=False,
-            json=json
+            json=json_data
         )
 
         if not response.ok:
