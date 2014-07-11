@@ -39,4 +39,3 @@ class TestFactoryCreate(APITestCase):
             factory.create()
         except FactoryError as factory_error:
             self.fail(factory_error)
-
