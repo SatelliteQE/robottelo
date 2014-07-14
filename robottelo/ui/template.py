@@ -17,8 +17,8 @@ class Template(Base):
     Provides the CRUD functionality for Templates.
     """
 
-    def create(self, name, template_path, custom_really,
-               template_type, snippet, os_list=None):
+    def create(self, name, template_path=None, custom_really=None,
+               template_type=None, snippet=None, os_list=None):
         """
         Creates a provisioning template from UI.
         """
@@ -72,7 +72,7 @@ class Template(Base):
                                      locators["provision.template_select"])
         return element
 
-    def update(self, name, custom_really, new_name=None,
+    def update(self, name, custom_really=None, new_name=None,
                template_path=None, template_type=None,
                os_list=None, new_os_list=None):
         """
