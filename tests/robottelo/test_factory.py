@@ -1,6 +1,7 @@
 """Tests for :mod:`robottelo.factory`."""
 # (Too many public methods) pylint: disable=R0904
 from fauxfactory import FauxFactory
+from robottelo.api import client
 from robottelo.common import conf
 from robottelo import factory, orm
 from unittest import TestCase
@@ -31,9 +32,9 @@ class SampleFactory(factory.Factory):
         return response['sample']
 
 
-class MockResponse(object):
+class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
     """A mock ``requests.response`` object."""
-    def json(self):
+    def json(self):  # (no-self-use) pylint:disable=R0201
         """A stub method that returns the same data every time.
 
         :return: ``{'sample': SampleFactory()._get_values()}``
@@ -43,9 +44,9 @@ class MockResponse(object):
         return {'sample': SampleFactory()._get_values()}
 
 
-class MockErrorResponse(object):
+class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
     """A mock ``requests.response`` object."""
-    def json(self):
+    def json(self):  # (no-self-use) pylint:disable=R0201
         """A stub method that returns the same data every time.
 
         :return: ``{'error': {'error name': 'error message'}}``
@@ -178,10 +179,17 @@ class SampleFactoryTestCase(TestCase):
 
     """
     def setUp(self):  # pylint:disable=C0103
-        """Insert several values into the global config."""
+        """Backup, customize and override objects."""
+        self.client_post = client.post
+        self.conf_properties = conf.properties
         conf.properties['main.server.hostname'] = 'example.com'
         conf.properties['foreman.admin.username'] = 'username'
         conf.properties['foreman.admin.password'] = 'password'
+
+    def tearDown(self):  # pylint:disable=C0103
+        """Restore backed-up objects."""
+        client.post = self.client_post
+        conf.properties = self.conf_properties
 
     # (protected-access) pylint:disable=W0212
     def test_attributes(self):
@@ -271,8 +279,7 @@ class SampleFactoryTestCase(TestCase):
         and returned.
 
         """
-        factory._call_client_post = \
-            lambda url, data, auth, verify: MockResponse()
+        client.post = lambda url, data=None, **kwargs: MockResponse()
         self.assertEqual(
             SampleFactory()._get_values(),  # See: MockResponse.json
             SampleFactory().create()
@@ -285,8 +292,7 @@ class SampleFactoryTestCase(TestCase):
         :class:`robottelo.factory.FactoryError` is raised.
 
         """
-        factory._call_client_post = \
-            lambda url, data, auth, verify: MockErrorResponse()
+        client.post = lambda url, data=None, **kwargs: MockErrorResponse()
         with self.assertRaises(factory.FactoryError):
             SampleFactory().create()
 
@@ -296,8 +302,7 @@ class SampleFactoryTestCase(TestCase):
         Assert that the response keys are formatted correctly.
 
         """
-        factory._call_client_post = \
-            lambda url, data, auth, verify: MockResponse()
+        client.post = lambda url, data=None, **kwargs: MockResponse()
         attrs = SampleFactory().create('api')
         self.assertIn('sample[name]', attrs.keys())
         self.assertIn('sample[cost]', attrs.keys())

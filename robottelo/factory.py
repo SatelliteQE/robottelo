@@ -60,17 +60,6 @@ def field_is_required(field_type):
     return False
 
 
-def _call_client_post(url, data, auth, verify):
-    """Call ``client.post`` with the provided arguments.
-
-    This method is extremely simple and does nothing with the data passed in or
-    the data returned by ``client.post``. It exists for convenience when
-    performing unit testing.
-
-    """
-    return client.post(url, data, auth=auth, verify=verify)
-
-
 class FactoryError(Exception):
     """Indicates an error occurred while creating an entity."""
 
@@ -295,7 +284,7 @@ class Factory(object):
         # field names returned by _get_values(), so we use _get_field_names()
         # to perform a field name translation.
         path = urljoin(get_server_url(), self._get_path())
-        response = _call_client_post(
+        response = client.post(
             path,
             _copy_and_update_keys(values, self._get_field_names('api')),
             auth=get_server_credentials(),

@@ -134,8 +134,13 @@ class CurlArgDataTestCase(TestCase):
 class RequestTestCase(TestCase):
     """Tests for function ``request``."""
     def setUp(self):  # pylint: disable=C0103
-        """Override function ``_call_requests_request``."""
+        """Backup and override ``client._call_requests_request``."""
+        self._call_requests_request = client._call_requests_request
         client._call_requests_request = MockRequest
+
+    def tearDown(self):  # pylint: disable=C0103
+        """Restore ``client._call_requests_request``."""
+        client._call_requests_request = self._call_requests_request
 
     def test_null(self):
         """Do not provide any optional args."""
@@ -157,10 +162,19 @@ class RequestTestCase(TestCase):
 class HeadGetDeleteTestCase(TestCase):
     """Tests for functions ``head``, ``get`` and ``delete``."""
     def setUp(self):  # pylint: disable=C0103
-        """Override calls to real ``requests`` functions."""
+        """Backup and override several objects."""
+        self._call_requests_head = client._call_requests_head
+        self._call_requests_get = client._call_requests_get
+        self._call_requests_delete = client._call_requests_delete
         client._call_requests_head = MockHeadGetDelete
         client._call_requests_get = MockHeadGetDelete
         client._call_requests_delete = MockHeadGetDelete
+
+    def tearDown(self):  # pylint: disable=C0103
+        """Restore backed-up objects."""
+        client._call_requests_head = self._call_requests_head
+        client._call_requests_get = self._call_requests_get
+        client._call_requests_delete = self._call_requests_delete
 
     def test_null(self):
         """Do not provide any optional args."""
@@ -183,10 +197,19 @@ class HeadGetDeleteTestCase(TestCase):
 class PostPutPatchTestCase(TestCase):
     """Tests for functions ``post``, ``put`` and ``patch``."""
     def setUp(self):  # pylint: disable=C0103
-        """Override calls to real ``requests`` functions."""
+        """Backup and override several objects."""
+        self._call_requests_post = client._call_requests_post
+        self._call_requests_put = client._call_requests_put
+        self._call_requests_patch = client._call_requests_patch
         client._call_requests_post = MockPostPutPatch
         client._call_requests_put = MockPostPutPatch
         client._call_requests_patch = MockPostPutPatch
+
+    def tearDown(self):  # pylint: disable=C0103
+        """Restore backed-up objects."""
+        client._call_requests_post = self._call_requests_post
+        client._call_requests_put = self._call_requests_put
+        client._call_requests_patch = self._call_requests_patch
 
     def test_null(self):
         """Do not provide any optional args."""
