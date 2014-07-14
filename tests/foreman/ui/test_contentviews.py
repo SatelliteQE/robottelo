@@ -296,15 +296,80 @@ class TestContentViewsUI(UITestCase):
             self.assertTrue(self.content_views.wait_until_element
                             (common_locators["alert.success"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_edit(self):
+    @data(*valid_names_list())
+    def test_positive_cv_update_name(self, new_name):
         """
-        @test: edit content views - name, description, etc.
+        @test: Positive update content views - name.
         @feature: Content Views
         @assert: edited content view save is successful and info is
         updated
-        @status: Manual
         """
+        name = generate_string("alpha", 8)
+        desc = generate_string("alpha", 15)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name=name, description=desc)
+            self.assertIsNotNone(self.content_views.search(name))
+            self.content_views.update(name, new_name)
+            self.assertIsNotNone(self.content_views.search(new_name))
+
+    @data(*invalid_names_list())
+    def test_negative_cv_update_name(self, new_name):
+        """
+        @test: Negative update content views - name.
+        @feature: Content Views
+        @assert: Content View is not updated,  Appropriate error shown.
+        """
+        name = generate_string("alpha", 8)
+        desc = generate_string("alpha", 15)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name=name, description=desc)
+            self.assertIsNotNone(self.content_views.search(name))
+            self.content_views.update(name, new_name)
+            invalid = self.content_views.wait_until_element(common_locators
+                                                            ["alert.error"])
+            self.assertTrue(invalid)
+            self.assertIsNone(self.content_views.search(new_name))
+
+    @data(*valid_names_list())
+    def test_positive_cv_update_description(self, new_description):
+        """
+        @test: Positive update content views - description.
+        @feature: Content Views
+        @assert: edited content view save is successful and info is
+        updated
+        """
+        name = generate_string("alpha", 8)
+        desc = generate_string("alpha", 15)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name=name, description=desc)
+            self.assertIsNotNone(self.content_views.search(name))
+            self.content_views.update(name, new_description=new_description)
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+
+    def test_negative_cv_update_description(self):
+        """
+        @test: Negative update content views - description.
+        @feature: Content Views
+        @assert: Content View is not updated,  Appropriate error shown.
+        """
+        name = generate_string("alpha", 8)
+        desc = generate_string("alpha", 15)
+        new_description = generate_string("alpha", 256)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name=name, description=desc)
+            self.assertIsNotNone(self.content_views.search(name))
+            self.content_views.update(name, new_description=new_description)
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.error"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit_rh_custom_spin(self):
@@ -413,37 +478,70 @@ class TestContentViewsUI(UITestCase):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_custom_content(self):
         """
         @test: associate Red Hat content in a view
         @feature: Content Views
         @setup: Sync custom content
         @assert: Custom content can be seen in a view
-        @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        cv_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.setup_to_create_cv(cv_name, repo_name, repo_url)
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
         """
-        @test: attempt to associate puppet repos within a custom
+        @test: attempt to associate puppet repos within a composite
         content view
         @feature: Content Views
         @assert: User cannot create a composite content view
         that contains direct puppet repos.
-        @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+        composite_name = generate_string("alpha", 8)
+        puppet_module = "httpd"
+        module_ver = 'Latest'
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(name=composite_name, is_composite=True)
+            with self.assertRaises(Exception) as context:
+                self.content_views.add_puppet_module(composite_name,
+                                                     puppet_module,
+                                                     filter_term=module_ver)
+            self.assertEqual(context.exception.message,
+                             'Could not find tab to add puppet_modules')
+
     def test_cv_associate_components_composite_negative(self):
         """
-        @test: attempt to associate components n a non-composite
+        @test: attempt to associate components to a non-composite
         content view
         @feature: Content Views
         @assert: User cannot add components to the view
-        @status: Manual
         """
+        cv1_name = generate_string("alpha", 8)
+        cv2_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.content_views.create(cv1_name)
+            self.assertIsNotNone(self.content_views.search(cv1_name))
+            self.content_views.create(cv2_name)
+            self.assertIsNotNone(self.content_views.search(cv2_name))
+            with self.assertRaises(Exception) as context:
+                self.content_views.add_remove_cv(cv1_name, [cv2_name])
+            self.assertEqual(context.exception.message,
+                             'Could not find ContentView tab, Please '
+                             'make sure selected view is composite')
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_composite_dupe_repos_negative(self):
