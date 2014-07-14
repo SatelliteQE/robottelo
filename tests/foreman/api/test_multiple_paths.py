@@ -8,6 +8,30 @@ from urlparse import urljoin
 # (too many public methods) pylint: disable=R0904
 
 
+def _status_code_error(path, desired, response):
+    """Return an error message.
+
+    ``desired`` and ``path`` are used as-is. The following must be present on
+    ``response``:
+
+    * ``response.status_code``
+    * ``response.json()``
+
+    :param int desired: The desired return status code.
+    :param str path: The path to which a request was sent.
+    :param response: The ``Response`` object returned.
+    :return: An error message.
+    :rtype: str
+
+    """
+    try:
+        err_msg = response.json().get('error', 'No error message provided.')
+    except ValueError:
+        err_msg = 'Could not decode response; not in JSON format.'
+    return 'Desired HTTP {0} but received HTTP {1} after sending request to ' \
+        '{2}. {3}'.format(desired, response.status_code, path, err_msg)
+
+
 @ddt
 class EntityTestCase(TestCase):
     """Issue HTTP GET and POST requests to base entity URLs."""
@@ -24,12 +48,18 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
+        path = urljoin(get_server_url(), entity.Meta.api_path[0])
         response = client.get(
-            urljoin(get_server_url(), entity.Meta.api_path[0]),
+            path,
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 200)
+        status_code = 200
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
+        )
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -45,11 +75,14 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        response = client.get(
-            urljoin(get_server_url(), entity.Meta.api_path[0]),
-            verify=False,
+        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        response = client.get(path, verify=False)
+        status_code = 401
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
         )
-        self.assertEqual(response.status_code, 401)
 
     @data(
         entities.Architecture,
@@ -74,12 +107,7 @@ class EntityTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            'Desired HTTP {0} after POSTing to {1}. Got {2}. {3}'.format(
-                status_code,
-                path,
-                response.status_code,
-                response.json().get('error', 'No error received.')
-            )
+            _status_code_error(path, status_code, response),
         )
 
     @data(
@@ -95,11 +123,14 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        response = client.post(
-            urljoin(get_server_url(), entity.Meta.api_path[0]),
-            verify=False,
+        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        response = client.post(path, verify=False)
+        status_code = 401
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
         )
-        self.assertEqual(response.status_code, 401)
 
 
 @ddt
@@ -127,7 +158,12 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 200)
+        status_code = 200
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
+        )
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -153,7 +189,12 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 200)
+        status_code = 200
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
+        )
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -179,10 +220,20 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 200)
+        status_code = 200
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
+        )
         response = client.get(
             path,
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, 404)
+        status_code = 404
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            _status_code_error(path, status_code, response),
+        )
