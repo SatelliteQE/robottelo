@@ -187,6 +187,11 @@ You can generate the documentation for Robottelo as follows, so long as you have
     $ cd docs
     $ make html
 
+You can generate a graph of Foreman entities and their dependencies, so long as
+you have `graphviz`_ installed::
+
+    $ make graph-entities
+
 To check for code smells::
 
     $ ./lint.py | less
@@ -195,6 +200,7 @@ The design and development for this software is led by `Og Maciel`_.
 
 .. _data driven: http://en.wikipedia.org/wiki/Data-driven_testing
 .. _DDT module: http://ddt.readthedocs.org/en/latest/
+.. _graphviz: http://graphviz.org/
 .. _nose: https://nose.readthedocs.org/en/latest/index.html
 .. _Og Maciel: http://www.ogmaciel.com
 .. _Paramiko: http://www.paramiko.org/
