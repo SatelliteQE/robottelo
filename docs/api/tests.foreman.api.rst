@@ -75,10 +75,10 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_model_v2`
---------------------------------------
+:mod:`tests.foreman.api.test_multiple_paths`
+--------------------------------------------
 
-.. automodule:: tests.foreman.api.test_model_v2
+.. automodule:: tests.foreman.api.test_multiple_paths
     :members:
     :undoc-members:
 

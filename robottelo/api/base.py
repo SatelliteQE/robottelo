@@ -13,33 +13,30 @@ def request(method, **kwargs):
     values for ``domain``, ``auth`` and ``json``, adding new params for each.
 
     :param method: method for the new ``Request`` object.
-    :param optional url: URL for the new ``Request`` object.
-    :param optional domain: set to main.server.hostname as default
-    :param optional path: sets url to "%/%".format(domain,path)
-    :param optional params: Dictionary or bytes to be sent
-        in the query string for the ``Request``.
-    :param optional data: Dictionary, bytes, or file-like object to send
-        in the body of the ``Request``.
-    :param optional json: converts python data structure with json.dumps
-        and sends it as data, if the data param is empty
-    :param optional headers: Dictionary of HTTP Headers to send
-    :param optional cookies: Dict or CookieJar object to send
-    :param optional files: Dictionary of 'name': file-like-objects
-        (or {'name': ('filename', fileobj)}) for multipart encoding upload.
-    :param optional auth: Auth tuple to enable Basic/Digest/Custom HTTP Auth.
-    :param optional timeout: Float describing the timeout of the request.
-    :param optional bool allow_redirects: Set to True if POST/PUT/DELETE
-        redirect following is allowed.
-    :param optional proxies: Dictionary mapping protocol to the URL of the
-        proxy.
-    :param optional verify: If ``True``, the SSL cert will be verified. A
-        ``CA_BUNDLE`` path can also be provided.
-    :param optional stream: If ``False``, the response content will be
-        immediately downloaded.
+    :param url: URL for the new ``Request`` object.
+    :param domain: set to main.server.hostname as default
+    :param path: sets url to "%/%".format(domain,path)
+    :param params: Dictionary or bytes to be sent in the query string for the
+        ``Request``.
+    :param data: Dictionary, bytes, or file-like object to send in the body of
+        the ``Request``.
+    :param json: converts python data structure with json.dumps and sends it as
+        data, if the data param is empty
+    :param headers: Dictionary of HTTP Headers to send
+    :param cookies: Dict or CookieJar object to send
+    :param files: Dictionary of 'name': file-like-objects (or {'name':
+        ('filename', fileobj)}) for multipart encoding upload.
+    :param auth: Auth tuple to enable Basic/Digest/Custom HTTP Auth.
+    :param timeout: Float describing the timeout of the request.
+    :param bool allow_redirects: Set to True if POST/PUT/DELETE redirect
+        following is allowed.
+    :param proxies: Dictionary mapping protocol to the URL of the proxy.
+    :param verify: If ``True``, the SSL cert will be verified. A ``CA_BUNDLE``
+        path can also be provided.
+    :param stream: If ``False``, the response content will be immediately
+        downloaded.
     :param cert: If ``string``, path to SSL client cert file (.pem). If
-        ``tuple``, a ``('cert', 'key')`` pair.
-
-    :type cert: tuple or string. Optional.
+        ``tuple``, a ``('cert', 'key')`` pair. Optional.
 
     """
     if "user" in kwargs:
@@ -105,7 +102,7 @@ def get(**kwargs):
     # pylint: disable=W1401
     """Sends a GET request.
 
-    :param optional \**kwargs: Arguments for ``request``.
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """
@@ -117,7 +114,7 @@ def options(**kwargs):
     # pylint: disable=W1401
     """Sends a OPTIONS request.
 
-    :param optional \**kwargs: Arguments for ``request``.
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """
@@ -129,7 +126,7 @@ def head(**kwargs):
     # pylint: disable=W1401
     """Sends a HEAD request.
 
-    :param optional \**kwargs: Arguments for ``request``.
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """
@@ -141,8 +138,8 @@ def post(json=None, **kwargs):
     # pylint: disable=W1401
     """Sends a POST request.
 
-    :param optional json: Dictionary, bytes, or file-like object to send
-    :param optional \**kwargs: Arguments for ``request``.
+    :param json: Dictionary, bytes, or file-like object to send
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """
@@ -153,8 +150,8 @@ def put(json=None, **kwargs):
     # pylint: disable=W1401
     """Sends a PUT request.
 
-    :param optional data: A dictionary, bytes, or file-like object to send
-    :param optional \**kwargs: Arguments for ``request``.
+    :param data: A dictionary, bytes, or file-like object to send
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """
@@ -165,9 +162,9 @@ def patch(json=None, **kwargs):
     # pylint: disable=W1401
     """Sends a PATCH request.
 
-    :param optional data: A dictionary, bytes, or file-like object to send in
-        the body of the ``Request``.
-    :param optional \**kwargs: Arguments for ``request``.
+    :param data: A dictionary, bytes, or file-like object to send in the body
+        of the ``Request``.
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """
@@ -178,7 +175,7 @@ def delete(**kwargs):
     # pylint: disable=W1401
     """Sends a DELETE request.
 
-    :param optional \**kwargs: Arguments for ``request``.
+    :param \**kwargs: Arguments for ``request``.
     :return: A ``Response`` object.
 
     """

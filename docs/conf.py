@@ -87,6 +87,19 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# If true, Sphinx will warn about all references where the target cannot be
+# found.
+nitpicky = True
+
+# A list of (type, target) tuples (by default empty) that should be ignored when
+# generating warnings in “nitpicky mode”.
+nitpick_ignore = [
+    ('py:obj', 'bool'),
+    ('py:obj', 'dict'),
+    ('py:obj', 'str'),
+    ('py:obj', 'tuple'),
+]
+
 
 # -- Options for HTML output ---------------------------------------------------
 
