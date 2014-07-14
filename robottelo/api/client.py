@@ -26,11 +26,37 @@ sent, and they log out information about the response received.
 
 """
 from urllib import urlencode
+import json
 import logging
 import requests
 
 
 logger = logging.getLogger(__name__)  # (bad var name) pylint: disable=C0103
+
+
+def _content_type_is_json(kwargs):
+    """Check whether the content-type in ``kwargs`` is 'application/json'.
+
+    :param dict kwargs: The keyword args supplied to :func:`request` or one of
+        the convenience functions like it.
+    :returns: ``True`` or ``False``
+    :rtype: bool
+
+    """
+    return kwargs['headers']['content-type'].lower() == 'application/json'
+
+
+def _set_content_type(kwargs):
+    """If the 'content-type' header is unset, set it to 'applcation/json'.
+
+    :param dict kwargs: The keyword args supplied to :func:`request` or one of
+        the convenience functions like it.
+    :return: Nothing. ``kwargs`` is modified in-place.
+
+    """
+    headers = kwargs.pop('headers', {})
+    headers.setdefault('content-type', 'application/json')
+    kwargs['headers'] = headers
 
 
 def _curl_arg_user(kwargs):
@@ -167,6 +193,9 @@ def _call_requests_delete(url, **kwargs):
 def request(method, url, **kwargs):
     """A wrapper for ``requests.request``."""
     _log_request(method, url, kwargs)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
     response = _call_requests_request(method, url, **kwargs)
     _log_response(response)
     return response
@@ -191,6 +220,9 @@ def get(url, **kwargs):
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
     _log_request('POST', url, kwargs, data)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        data = json.dumps(data)
     response = _call_requests_post(url, data, **kwargs)
     _log_response(response)
     return response
@@ -199,6 +231,9 @@ def post(url, data=None, **kwargs):
 def put(url, data=None, **kwargs):
     """A wrapper for ``requests.put``. Sends a PUT request."""
     _log_request('PUT', url, kwargs, data)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        data = json.dumps(data)
     response = _call_requests_put(url, data, **kwargs)
     _log_response(response)
     return response
@@ -207,6 +242,9 @@ def put(url, data=None, **kwargs):
 def patch(url, data=None, **kwargs):
     """A wrapper for ``requests.patch``. Sends a PATCH request."""
     _log_request('PATCH', url, kwargs, data)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        data = json.dumps(data)
     response = _call_requests_patch(url, data, **kwargs)
     _log_response(response)
     return response

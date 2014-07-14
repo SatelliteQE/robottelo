@@ -56,6 +56,41 @@ class MockPostPutPatch(object):  # (too few methods) pylint: disable=R0903
 # Start test case definitions -------------------------------------------------
 
 
+@ddt.ddt
+class ContentTypeIsJsonTestCase(TestCase):
+    """Tests for ``_content_type_is_json``."""
+    def test_true(self):
+        """Ensure function returns ``True`` when appropriate."""
+        mock_kwargs = {'headers': {'content-type': 'appLICatiON/JSoN'}}
+        self.assertTrue(client._content_type_is_json(mock_kwargs))
+
+    @ddt.data(
+        {'headers': {'content-type': 'application-json'}},
+        {'headers': {'content-type': ''}},
+    )
+    def test_false(self, mock_kwargs):
+        """Ensure function returns ``False`` when given ``mock_kwargs``."""
+        self.assertFalse(client._content_type_is_json(mock_kwargs))
+
+
+class SetContentTypeTestCase(TestCase):
+    """Tests for ``_set_content_type``."""
+    def test_no_value(self):
+        """Ensure 'content-type' is set if no existing value is provided."""
+        mock_kwargs = {'headers': {}}
+        client._set_content_type(mock_kwargs)
+        self.assertEqual(
+            mock_kwargs,
+            {'headers': {'content-type': 'application/json'}},
+        )
+
+    def test_existing_value(self):
+        """Ensure 'content-type' is not set if a value is provided."""
+        mock_kwargs = {'headers': {'content-type': ''}}
+        client._set_content_type(mock_kwargs)
+        self.assertEqual(mock_kwargs, {'headers': {'content-type': ''}})
+
+
 class CurlArgUserTestCase(TestCase):
     """Tests for function ``_curl_arg_user``."""
     def test_null(self):
