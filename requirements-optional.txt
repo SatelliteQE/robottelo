@@ -7,8 +7,5 @@ testimony
 # Voluntary (recommended!) tool for checking code quality.
 pylint
 
-# For `make graph-entities` command.
-graphviz
-
 # ???
 nose_xunitmp
