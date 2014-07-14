@@ -18,7 +18,7 @@ if ROBOTTELO_PATH not in sys.path:
     sys.path.append(ROBOTTELO_PATH)
 
 # Proceed with normal imports.
-from robottelo import entities, orm
+from robottelo import entities, factory, orm
 import inspect
 
 
@@ -31,13 +31,21 @@ for name, klass in inspect.getmembers(entities, inspect.isclass):
 # Generate DOT-formatted output.
 print('digraph dependencies {')  # (superfluous-parens) pylint:disable=C0325
 for entity_name, entity in entities_.items():
+    # Graph out which entities this entity depends on.
     for field_name, field in entity.get_fields().items():
         if (isinstance(field, orm.OneToOneField)
                 or isinstance(field, orm.OneToManyField)):
+            if isinstance(field, orm.OneToOneField):
+                dependency = field.model  # *sigh* This is not so great.
+            else:
+                dependency = field.entity
             print('{0} -> {1} [label="{2}"{3}]'.format(
                 entity_name,
-                field.model,
+                dependency,
                 field_name,
                 ' color=red' if field.options.get('required', False) else ''
             ))
+    # Make entities that are not factories more... ethereal.
+    if not issubclass(entity, factory.Factory):
+        print('{0} [style=dotted]'.format(entity_name))
 print('}')  # (superfluous-parens) pylint:disable=C0325
