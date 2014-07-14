@@ -16,7 +16,7 @@ class SampleFactory(factory.Factory):
         """Return a path for creating a "Sample" entity."""
         return 'api/v2/samples'
 
-    def _get_fields(self):
+    def _get_values(self):
         """Return a "Sample" entity's field names and types."""
         return {'name': SAMPLE_FACTORY_NAME, 'cost': SAMPLE_FACTORY_COST}
 
@@ -36,11 +36,11 @@ class MockResponse(object):
     def json(self):
         """A stub method that returns the same data every time.
 
-        :return: ``{'sample': SampleFactory()._get_fields()}``
+        :return: ``{'sample': SampleFactory()._get_values()}``
 
         """
         # (protected-access) pylint:disable=W0212
-        return {'sample': SampleFactory()._get_fields()}
+        return {'sample': SampleFactory()._get_values()}
 
 
 class MockErrorResponse(object):
@@ -138,14 +138,14 @@ class FactoryTestCase(TestCase):
         """Call ``_get_field_names``. Assert the method returns a tuple."""
         self.assertEqual(tuple(), factory.Factory()._get_field_names(None))
 
-    def test__get_fields(self):
-        """Call ``_get_fields``.
+    def test__get_values(self):
+        """Call ``_get_values``.
 
         Ensure the method raises a ``NotImplementedError`` exception.
 
         """
         with self.assertRaises(NotImplementedError):
-            factory.Factory()._get_fields()
+            factory.Factory()._get_values()
 
     def test__get_path(self):
         """Call ``_get_path``.
@@ -187,12 +187,12 @@ class SampleFactoryTestCase(TestCase):
     def test_attributes(self):
         """Call ``attributes`` with no arguments.
 
-        Assert that the values provided by ``_get_fields`` are returned
+        Assert that the values provided by ``_get_values`` are returned
         untouched.
 
         """
         self.assertEqual(
-            SampleFactory()._get_fields(),
+            SampleFactory()._get_values(),
             SampleFactory().attributes()
         )
 
@@ -274,7 +274,7 @@ class SampleFactoryTestCase(TestCase):
         factory._call_client_post = \
             lambda url, data, auth, verify: MockResponse()
         self.assertEqual(
-            SampleFactory()._get_fields(),  # See: MockResponse.json
+            SampleFactory()._get_values(),  # See: MockResponse.json
             SampleFactory().create()
         )
 

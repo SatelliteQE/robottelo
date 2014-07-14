@@ -89,16 +89,16 @@ class Factory(object):
     Subclasses may override the following methods:
 
     * :meth:`Factory._get_path`
-    * :meth:`Factory._get_fields`
+    * :meth:`Factory._get_values`
     * :meth:`Factory._get_field_names`
     * :meth:`Factory._unpack_response`
 
-    At a minimum, subclasses should override :meth:`Factory._get_fields`. Read
+    At a minimum, subclasses should override :meth:`Factory._get_values`. Read
     the docstrings on those methods for a full description of exactly what they
     do and should return.
 
     """
-    def _get_fields(self):
+    def _get_values(self):
         """Provide names and values for a Foreman entity's fields.
 
         This method provides a description of a Foreman entity's fields. The
@@ -176,8 +176,9 @@ class Factory(object):
 
         When this method is called, no entity is created on a Foreman server.
         Instead, a dict is returned, and the information in that dict can be
-        used to create an entity manually. Each dict key represents a field
-        name, and each key can be used to access a corresponding field value.
+        used to manually create an entity at the path returned by
+        :meth:`Factory._get_path`. Within the dict of information returnd, each
+        dict key and value represent a field name and value, respectively.
 
         Fields can be given specific values:
 
@@ -216,7 +217,7 @@ class Factory(object):
         values = fields.copy()
 
         # Fetch remaining values from subclass and ignore FK fields.
-        for name, value in self._get_fields().items():
+        for name, value in self._get_values().items():
             # `OneToOneField`s return a Factory instance.
             # `OneToManyField`s return a list of Factory instances.
             # Other field types return a value that can be used as-is.
@@ -230,13 +231,54 @@ class Factory(object):
             return _copy_and_update_keys(values, self._get_field_names(fmt))
         return values
 
+    def build(self, fmt=None, fields=None):
+        """Create dependent entities and return attributes for the current
+        entity.
+
+        Create all dependent entities, then return a dict of information that
+        can be used to create an entity at the URL returned by
+        :meth:`Factory._get_path`.
+
+        """
+        # Use the values provided by the user.
+        if fields is None:
+            fields = {}
+        values = fields.copy()
+
+        # Populate all remaining required fields with values.
+        # self._get_values() returns field names and values, and there are
+        # three types of values:
+        #
+        # * A Factory subclass. This is typically returned by
+        #   OneToOneField.get_value(). We must call create() on this factory
+        #   and get the created object's ID.
+        # * A list of factory subclasses. This is typically returned by
+        #   OneToManyField.get_value(). We must call create() on all of the
+        #   factories in that list and collect all of their IDs.
+        # * Some other type of value. We must use this value verbatim.
+        #
+        for name, value in self._get_values().items():
+            if name in values.keys():
+                continue
+            if isinstance(value, Factory):
+                values[name] = value.create()['id']
+            elif isinstance(value, list):
+                values[name] = [factory.create()['id'] for factory in value]
+            else:
+                values[name] = value
+
+        # We now have a dict of field names and values, which can be returned
+        # to the caller.
+        if fmt is not None:
+            return _copy_and_update_keys(values, self._get_field_names(fmt))
+        return values
+
     def create(self, fmt=None, fields=None):
         """Create a new entity, plus all of its dependent entities.
 
-        Create an entity and all of its dependent entities, then return a dict
-        of information about the newly created entity. Each field on the newly
-        created entity is represented by a dict key, and that key can be used
-        to access the value of that field.
+        Create an entity at the path returned by :meth:`Factory._get_path`. If
+        necessary, recursively create dependent entities. When done, return a
+        dict of information about the newly created entity.
 
         :param str fmt: The desired format of the returned keys.
         :param dict fields: A dict mapping field names to field values.
@@ -246,42 +288,29 @@ class Factory(object):
             when attempting to create an entity.
 
         """
-        # Start with values provided by user.
-        if fields is None:
-            fields = {}
-        values = fields.copy()
+        # Create dependent entities and generate values for remaining fields.
+        values = self.build(fmt, fields)
 
-        # Fetch remaining values from subclass and populate FK fields.
-        for name, value in self._get_fields().items():
-            if name in values.keys():
-                continue
-            # `OneToOneField`s return a Factory instance.
-            # `OneToManyField`s return a list of Factory instances.
-            # Other field types return a value that can be used as-is.
-            if isinstance(value, Factory):
-                values[name] = value.create()['id']
-            elif isinstance(value, list):
-                values[name] = [factory.create()['id'] for factory in value]
-            else:
-                values[name] = value
-
-        # Create the current entity.
+        # Create the current entity. The Foreman API may not understand the
+        # field names returned by _get_values(), so we use _get_field_names()
+        # to perform a field name translation.
+        path = urljoin(get_server_url(), self._get_path())
         response = _call_client_post(
-            urljoin(get_server_url(), self._get_path()),
+            path,
             _copy_and_update_keys(values, self._get_field_names('api')),
             auth=get_server_credentials(),
             verify=False,
         ).json()
         if 'error' in response.keys():
-            raise FactoryError(response['error'])
+            raise FactoryError(
+                'Error encountered while POSTing to {0}. Error received: {1}'
+                ''.format(path, response['error'])
+            )
 
         # Tell caller about created entity.
         response = self._unpack_response(response)
         if fmt is not None:
-            return _copy_and_update_keys(
-                response,
-                self._get_field_names(fmt)
-            )
+            return _copy_and_update_keys(response, self._get_field_names(fmt))
         return response
 
 
@@ -301,7 +330,7 @@ class EntityFactoryMixin(Factory):
         """Return a path for creating the mixed-in entity."""
         return self.Meta.api_path[0]
 
-    def _get_fields(self):
+    def _get_values(self):
         """Return name-value pairs for each required field on the entity."""
         values = {}
         # The base Entity class defines a `get_fields` method.
