@@ -543,15 +543,29 @@ class TestContentViewsUI(UITestCase):
                              'Could not find ContentView tab, Please '
                              'make sure selected view is composite')
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_composite_dupe_repos_negative(self):
         """
         @test: attempt to associate the same repo multiple times within a
         content view
         @feature: Content Views
         @assert: User cannot add repos multiple times to the view
-        @status: Manual
         """
+
+        cv_name = generate_string("alpha", 8)
+        repo_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            self.setup_to_create_cv(cv_name, repo_name, repo_url)
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+            with self.assertRaises(Exception) as context:
+                self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertEqual(context.exception.message,
+                             "Couldn't find repo '%s'"
+                             "to add into CV" % repo_name)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_composite_dupe_modules_negative(self):
