@@ -59,7 +59,7 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
-            self.assertTrue(error)
+            self.assertIsNotNone(error)
 
     def test_negative_create_2(self):
         """
@@ -73,7 +73,7 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
-            self.assertTrue(error)
+            self.assertIsNotNone(error)
 
     def test_negative_create_3(self):
         """
@@ -87,7 +87,7 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
-            self.assertTrue(error)
+            self.assertIsNotNone(error)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -105,7 +105,7 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
-            self.assertTrue(error)
+            self.assertIsNotNone(error)
 
     # Positive Update
 
@@ -144,7 +144,7 @@ class Location(UITestCase):
             self.org.update(loc_name, new_name=new_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
-            self.assertTrue(error)
+            self.assertIsNotNone(error)
 
     # Miscellaneous
 
@@ -200,7 +200,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_subnets"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % subnet_name))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -224,7 +224,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_domains"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % domain))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -253,7 +253,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_users"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % user))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -278,7 +278,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_hostgrps"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % host_grp))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -303,7 +303,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_organizations"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % org))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -327,7 +327,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_env"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % env))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -355,7 +355,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_resources"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % resource_name))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -381,7 +381,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_media"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % medium))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -409,7 +409,7 @@ class Location(UITestCase):
                 tab_locators["context.tab_template"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % template))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -433,7 +433,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % env))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, envs=[env])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -441,7 +441,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % env))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -468,7 +468,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % subnet_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, subnets=[subnet_name])
             self.location.search(loc_name).click()
             self.location.wait_until_element(
@@ -476,7 +476,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % subnet_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -501,7 +501,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % domain))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, domains=[domain])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -509,7 +509,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % domain))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -538,7 +538,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % user_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, users=[user_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -546,7 +546,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % user_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -571,7 +571,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % host_grp))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, hostgroups=[host_grp])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -579,7 +579,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % host_grp))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -608,7 +608,7 @@ class Location(UITestCase):
             ele = self.location.wait_until_element((strategy1,
                                                     value1 % resource_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(ele)
+            self.assertIsNotNone(ele)
             self.location.update(loc_name, resources=[resource_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -616,7 +616,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % resource_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -642,7 +642,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % medium))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, medias=[medium])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -650,7 +650,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % medium))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -677,7 +677,7 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % template))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.location.update(loc_name, templates=[template])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -685,4 +685,4 @@ class Location(UITestCase):
             element = session.nav.wait_until_element((strategy,
                                                       value % template))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
