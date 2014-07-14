@@ -2,6 +2,9 @@
 from robottelo.api import client
 from unittest import TestCase
 from urllib import urlencode
+import ddt
+import inspect
+import requests
 
 
 # (accessing private members) pylint: disable=W0212
@@ -202,3 +205,30 @@ class PostPutPatchTestCase(TestCase):
             self.assertTrue(isinstance(response, MockPostPutPatch))
             self.assertEqual(response.url, 'example.com')
             self.assertEqual(response.kwargs, kwargs)
+
+
+@ddt.ddt
+class ArgTestCase(TestCase):
+    """Tests which inspect function arguments."""
+    @ddt.data(
+        (requests.delete, client._call_requests_delete),
+        (requests.delete, client.delete),
+        (requests.get, client._call_requests_get),
+        (requests.get, client.get),
+        (requests.head, client._call_requests_head),
+        (requests.head, client.head),
+        (requests.patch, client._call_requests_patch),
+        (requests.patch, client.patch),
+        (requests.post, client._call_requests_post),
+        (requests.post, client.post),
+        (requests.put, client._call_requests_put),
+        (requests.put, client.put),
+        (requests.request, client._call_requests_request),
+        (requests.request, client.request),
+    )
+    def test_identical_args(self, functions):
+        """Assert that both ``functions`` accept identical arguments."""
+        self.assertEqual(
+            inspect.getargspec(functions[0]),
+            inspect.getargspec(functions[1]),
+        )
