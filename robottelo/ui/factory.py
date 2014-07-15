@@ -17,7 +17,7 @@ from robottelo.ui.user import User
 
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,
-                 force_context=False):
+                 force_context=None):
     """
     Updates the args dictionary, calls the set_context function to set
     org and loc context and finally navigates to the entites page.

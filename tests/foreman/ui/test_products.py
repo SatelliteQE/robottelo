@@ -24,7 +24,7 @@ class Products(UITestCase):
     def setUp(self):
         super(Products, self).setUp()
         # Make sure to use the Class' org_name instance
-        if Products.org_name and Products.loc_name is None:
+        if Products.org_name is None and Products.loc_name is None:
             Products.org_name = generate_string("alpha", 8)
             Products.loc_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
@@ -33,7 +33,7 @@ class Products(UITestCase):
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
-    def test_positive_create_0(self, prd_name):
+    def test_positive_create_1(self, prd_name):
         """
         @Test: Create Content Product minimal input parameters
         @Feature: Content Product - Positive Create
@@ -42,13 +42,13 @@ class Products(UITestCase):
 
         description = "test 123"
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
+            make_product(session, org=self.org_name, loc=self.loc_name,
+                         name=prd_name, description=description)
             self.assertIsNotNone(self.products.search(prd_name))
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
-    def test_positive_create_1(self, prd_name):
+    def test_positive_create_2(self, prd_name):
         """
         @Test: Create Content Product with same name but in another org
         @Feature: Content Product - Positive Create
@@ -67,7 +67,7 @@ class Products(UITestCase):
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list(len1=256))
-    def test_negative_create_0(self, prd_name):
+    def test_negative_create_1(self, prd_name):
         """
         @Test: Create Content Product with too long input parameters
         @Feature: Content Product - Negative Create too long
@@ -82,7 +82,7 @@ class Products(UITestCase):
             error = session.nav.wait_until_element(locator)
             self.assertIsNotNone(error)
 
-    def test_negative_create_1(self):
+    def test_negative_create_2(self):
         """
         @Test: Create Content Product without input parameter
         @Feature: Content Product - Negative Create zero length
@@ -98,7 +98,7 @@ class Products(UITestCase):
             invalid = self.products.wait_until_element(locator)
             self.assertIsNotNone(invalid)
 
-    def test_negative_create_2(self):
+    def test_negative_create_3(self):
         """
         @Test: Create Content Product with whitespace input parameter
         @Feature: Content Product - Negative Create with whitespace
@@ -116,7 +116,7 @@ class Products(UITestCase):
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
-    def test_negative_create_3(self, prd_name):
+    def test_negative_create_4(self, prd_name):
         """
         @Test: Create Content Product with same name input parameter
         @Feature: Content Product - Negative Create with same name
@@ -135,7 +135,7 @@ class Products(UITestCase):
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
-    def test_positive_update_0(self, prd_name):
+    def test_positive_update_1(self, prd_name):
         """
         @Test: Update Content Product with minimal input parameters
         @Feature: Content Product - Positive Update
@@ -153,7 +153,7 @@ class Products(UITestCase):
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
-    def test_negative_update_0(self, prd_name):
+    def test_negative_update_1(self, prd_name):
         """
         @Test: Update Content Product with too long input parameters
         @Feature: Content Product - Negative Update
