@@ -598,15 +598,34 @@ class TestContentViewsUI(UITestCase):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_custom_content(self):
         """
         @test: attempt to promote a content view containing custom content
         @feature: Content Views
         @setup: Multiple environments for an org; custom content synced
         @assert: Content view can be promoted
-        @status: Manual
         """
+        repo_name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        publish_version = "Version 1"
+        name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_life_cycle_environments()
+            self.contentenv.create(env_name)
+            self.assertTrue(self.contentenv.wait_until_element
+                            (common_locators["alert.success"]))
+            self.setup_to_create_cv(name, repo_name, repo_url)
+            self.content_views.add_remove_repos(name, [repo_name])
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+            self.content_views.publish(name)
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+            self.content_views.promote(name, publish_version, env_name)
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_composite(self):
@@ -653,15 +672,31 @@ class TestContentViewsUI(UITestCase):
         @status: Manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_custom_content(self):
         """
         @test: attempt to publish a content view containing custom content
         @feature: Content Views
         @setup: Multiple environments for an org; custom content synced
         @assert: Content view can be published
-        @status: Manual
         """
+
+        repo_name = generate_string("alpha", 8)
+        env_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_life_cycle_environments()
+            self.contentenv.create(env_name)
+            self.assertTrue(self.contentenv.wait_until_element
+                            (common_locators["alert.success"]))
+            self.setup_to_create_cv(name, repo_name, repo_url)
+            self.content_views.add_remove_repos(name, [repo_name])
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
+            self.content_views.publish(name)
+            self.assertTrue(self.content_views.wait_until_element
+                            (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_composite(self):
