@@ -237,7 +237,9 @@ class HeadGetDeleteTestCase(TestCase):
         response = function('example.com', **kwargs)  # flake8:noqa pylint:disable=W0142
         self.assertTrue(isinstance(response, MockHeadGetDelete))
         self.assertEqual(response.url, 'example.com')
-        self.assertEqual(response.kwargs, kwargs)
+        for key, val in kwargs.items():
+            self.assertIn(key, response.kwargs.keys())
+            self.assertEqual(val, response.kwargs[key])
 
 
 @ddt.ddt
