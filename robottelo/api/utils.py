@@ -64,3 +64,27 @@ def get_packages(repository_id):
             ''.format(path, response['errors'])
         )
     return response['results']
+
+
+def status_code_error(path, desired, response):
+    """Compose an error message using ``path``, ``desired`` and ``response``.
+
+    ``desired`` and ``path`` are used as-is. The following must be present on
+    ``response``:
+
+    * ``response.status_code``
+    * ``response.json()``
+
+    :param int desired: The desired return status code.
+    :param str path: The path to which a request was sent.
+    :param response: The ``Response`` object returned.
+    :return: An error message.
+    :rtype: str
+
+    """
+    try:
+        err_msg = response.json().get('error', 'No error message provided.')
+    except ValueError:
+        err_msg = 'Could not decode response; not in JSON format.'
+    return u'Desired HTTP {0} but received HTTP {1} after sending request ' \
+        'to {2}. {3}'.format(desired, response.status_code, path, err_msg)
