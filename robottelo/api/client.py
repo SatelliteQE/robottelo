@@ -9,16 +9,16 @@ wrapper functions. They do not alter the arguments passed to them in any way,
 nor do they do anything else such as logging. They exist soley to ease unit
 testing: each one can be overridden in a unit test for mocking purposes.
 
-The following methods are also simple wrappers for the corresponding methods in
-the ``requests`` module:
+The following functions are also simple wrappers for the corresponding
+functions in the ``requests`` module:
 
-* request
-* head
-* get
-* post
-* put
-* patch
-* delete
+* :func:`request`
+* :func:`head`
+* :func:`get`
+* :func:`post`
+* :func:`put`
+* :func:`patch`
+* :func:`delete`
 
 These methods do not functionally alter the behaviour of their wrapped methods.
 However, they do log out information about the request being made before it is

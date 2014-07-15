@@ -58,7 +58,7 @@ class MockPostPutPatch(object):  # (too few methods) pylint: disable=R0903
 
 @ddt.ddt
 class ContentTypeIsJsonTestCase(TestCase):
-    """Tests for ``_content_type_is_json``."""
+    """Tests for function ``_content_type_is_json``."""
     def test_true(self):
         """Ensure function returns ``True`` when appropriate."""
         mock_kwargs = {'headers': {'content-type': 'appLICatiON/JSoN'}}
@@ -74,7 +74,7 @@ class ContentTypeIsJsonTestCase(TestCase):
 
 
 class SetContentTypeTestCase(TestCase):
-    """Tests for ``_set_content_type``."""
+    """Tests for function ``_set_content_type``."""
     def test_no_value(self):
         """Ensure 'content-type' is set if no existing value is provided."""
         mock_kwargs = {'headers': {}}
@@ -167,7 +167,7 @@ class CurlArgDataTestCase(TestCase):
 
 
 class RequestTestCase(TestCase):
-    """Tests for function ``request``."""
+    """Tests for :func:`robottelo.api.client.request`."""
     def setUp(self):  # pylint: disable=C0103
         """Backup and override ``client._call_requests_request``."""
         self._call_requests_request = client._call_requests_request
@@ -191,11 +191,17 @@ class RequestTestCase(TestCase):
         self.assertTrue(isinstance(response, MockRequest))
         self.assertEqual(response.method, 'GET')
         self.assertEqual(response.url, 'example.com')
-        self.assertEqual(response.kwargs, kwargs)
+        for key, val in kwargs.items():
+            self.assertIn(key, response.kwargs.keys())
+            self.assertEqual(val, response.kwargs[key])
 
 
+@ddt.ddt
 class HeadGetDeleteTestCase(TestCase):
-    """Tests for functions ``head``, ``get`` and ``delete``."""
+    """
+    Tests for :func:`robottelo.api.client.head`,
+    :func:`robottelo.api.client.get` and :func:`robottelo.api.client.delete`.
+    """
     def setUp(self):  # pylint: disable=C0103
         """Backup and override several objects."""
         self._call_requests_head = client._call_requests_head
@@ -211,26 +217,35 @@ class HeadGetDeleteTestCase(TestCase):
         client._call_requests_get = self._call_requests_get
         client._call_requests_delete = self._call_requests_delete
 
-    def test_null(self):
+    @ddt.data(
+        client.delete,
+        client.get,
+        client.head,
+    )
+    def test_null(self, function):
         """Do not provide any optional args."""
-        for function in (client.head, client.get, client.delete):
-            self.assertTrue(isinstance(
-                function('example.com'),
-                MockHeadGetDelete,
-            ))
+        self.assertTrue(isinstance(function('example.com'), MockHeadGetDelete))
 
-    def test_non_null(self):
+    @ddt.data(
+        client.delete,
+        client.get,
+        client.head,
+    )
+    def test_non_null(self, function):
         """Provide optional args. Ensure they are given to wrapped function."""
         kwargs = {'foo': 2, 'verify': False}
-        for function in (client.head, client.get, client.delete):
-            response = function('example.com', **kwargs)  # flake8:noqa pylint:disable=W0142
-            self.assertTrue(isinstance(response, MockHeadGetDelete))
-            self.assertEqual(response.url, 'example.com')
-            self.assertEqual(response.kwargs, kwargs)
+        response = function('example.com', **kwargs)  # flake8:noqa pylint:disable=W0142
+        self.assertTrue(isinstance(response, MockHeadGetDelete))
+        self.assertEqual(response.url, 'example.com')
+        self.assertEqual(response.kwargs, kwargs)
 
 
+@ddt.ddt
 class PostPutPatchTestCase(TestCase):
-    """Tests for functions ``post``, ``put`` and ``patch``."""
+    """
+    Tests for :func:`robottelo.api.client.post`,
+    :func:`robottelo.api.client.put` and :func:`robottelo.api.client.patch`.
+    """
     def setUp(self):  # pylint: disable=C0103
         """Backup and override several objects."""
         self._call_requests_post = client._call_requests_post
@@ -246,23 +261,31 @@ class PostPutPatchTestCase(TestCase):
         client._call_requests_put = self._call_requests_put
         client._call_requests_patch = self._call_requests_patch
 
-    def test_null(self):
+    @ddt.data(
+        client.patch,
+        client.post,
+        client.put,
+    )
+    def test_null(self, function):
         """Do not provide any optional args."""
-        for function in (client.post, client.put, client.patch):
-            self.assertTrue(isinstance(
-                function('example.com'),
-                MockPostPutPatch,
-            ))
+        self.assertTrue(isinstance(function('example.com'), MockPostPutPatch))
 
-    def test_non_null(self):
+    @ddt.data(
+        client.patch,
+        client.post,
+        client.put,
+    )
+    def test_non_null(self, function):
         """Provide optional args. Ensure they are given to wrapped function."""
         data = 'arbitrary value'
         kwargs = {'foo': 2, 'verify': False}
-        for function in (client.post, client.put, client.patch):
-            response = function('example.com', data=data, **kwargs)  # flake8:noqa pylint:disable=W0142
-            self.assertTrue(isinstance(response, MockPostPutPatch))
-            self.assertEqual(response.url, 'example.com')
-            self.assertEqual(response.kwargs, kwargs)
+        response = function('example.com', data=data, **kwargs)  # flake8:noqa pylint:disable=W0142
+
+        self.assertTrue(isinstance(response, MockPostPutPatch))
+        self.assertEqual(response.url, 'example.com')
+        for key, val in kwargs.items():
+            self.assertIn(key, response.kwargs.keys())
+            self.assertEqual(val, response.kwargs[key])
 
 
 @ddt.ddt
