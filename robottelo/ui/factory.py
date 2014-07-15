@@ -47,7 +47,7 @@ def set_context(session, org=None, loc=None, force_context=False):
             session.nav.go_to_select_loc(loc)
 
 
-def make_org(session, force_context=None, **kwargs):
+def make_org(session, force_context=False, **kwargs):
     """
     Creates an organization
     """
@@ -70,11 +70,11 @@ def make_org(session, force_context=None, **kwargs):
         'select': True,
     }
     page = session.nav.go_to_org
-    core_factory(create_args, kwargs, session, page, force_context=None)
+    core_factory(create_args, kwargs, session, page, force_context=False)
     Org(session.browser).create(**create_args)
 
 
-def make_loc(session, force_context=None, **kwargs):
+def make_loc(session, force_context=False, **kwargs):
     """
     Creates a location
     """
@@ -100,7 +100,7 @@ def make_loc(session, force_context=None, **kwargs):
     Location(session.browser).create(**create_args)
 
 
-def make_product(session, org=None, loc=None, force_context=None, **kwargs):
+def make_product(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a product
     """
@@ -119,7 +119,7 @@ def make_product(session, org=None, loc=None, force_context=None, **kwargs):
     Products(session.browser).create(**create_args)
 
 
-def make_gpgkey(session, org=None, loc=None, force_context=None, **kwargs):
+def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a gpgkey
     """
@@ -135,7 +135,7 @@ def make_gpgkey(session, org=None, loc=None, force_context=None, **kwargs):
     GPGKey(session.browser).create(**create_args)
 
 
-def make_subnet(session, org=None, loc=None, force_context=None, **kwargs):
+def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a subnet
     """
@@ -152,7 +152,7 @@ def make_subnet(session, org=None, loc=None, force_context=None, **kwargs):
     Subnet(session.browser).create(**create_args)
 
 
-def make_domain(session, org=None, loc=None, force_context=None, **kwargs):
+def make_domain(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a domain
     """
@@ -167,7 +167,7 @@ def make_domain(session, org=None, loc=None, force_context=None, **kwargs):
     Domain(session.browser).create(**create_args)
 
 
-def make_user(session, org=None, loc=None, force_context=None, **kwargs):
+def make_user(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a user
     """
@@ -192,7 +192,7 @@ def make_user(session, org=None, loc=None, force_context=None, **kwargs):
     User(session.browser).create(**create_args)
 
 
-def make_hostgroup(session, org=None, loc=None, force_context=None, **kwargs):
+def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a host_group
     """
@@ -207,7 +207,7 @@ def make_hostgroup(session, org=None, loc=None, force_context=None, **kwargs):
     Hostgroup(session.browser).create(**create_args)
 
 
-def make_env(session, org=None, loc=None, force_context=None, **kwargs):
+def make_env(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates an Environment
     """
@@ -222,7 +222,7 @@ def make_env(session, org=None, loc=None, force_context=None, **kwargs):
     Environment(session.browser).create(**create_args)
 
 
-def make_resource(session, org=None, loc=None, force_context=None, **kwargs):
+def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a compute resource
     """
@@ -245,7 +245,7 @@ def make_resource(session, org=None, loc=None, force_context=None, **kwargs):
     ComputeResource(session.browser).create(**create_args)
 
 
-def make_media(session, org=None, loc=None, force_context=None, **kwargs):
+def make_media(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates an installation media
     """
@@ -260,7 +260,7 @@ def make_media(session, org=None, loc=None, force_context=None, **kwargs):
     Medium(session.browser).create(**create_args)
 
 
-def make_templates(session, org=None, loc=None, force_context=None, **kwargs):
+def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a provisioning template
     """
