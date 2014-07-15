@@ -3,13 +3,12 @@
 The functions in this module wrap `functions from`_ the `Requests`_ module.
 Each function is modified with the following behaviours:
 
-1. If the function accepts a ``data`` argument (e.g. :func:`post`):
-    1. It sets its 'content-type' of 'application/json', so long as no
-       content-type is already set.
-    2. It encodes its ``data`` argument as JSON (using the ``json`` module) if
-       its 'content-type' is 'application/json'.
-2. It logs out information about the request before it is sent.
-3. It logs out information about the response when it is received.
+1. It sets its 'content-type' of 'application/json', so long as no content-type
+   is already set.
+2. It encodes its ``data`` argument as JSON (using the ``json`` module) if its
+   'content-type' is 'application/json'.
+3. It logs out information about the request before it is sent.
+4. It logs out information about the response when it is received.
 
 The various ``_call_requests_*`` functions in this module are extremely simple
 wrapper functions. They sit in the call chain between this module's public
@@ -192,67 +191,76 @@ def _call_requests_delete(url, **kwargs):
 
 def request(method, url, **kwargs):
     """A wrapper for ``requests.request``."""
-    _log_request(method, url, kwargs)
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         kwargs['data'] = json.dumps(kwargs.pop('data', {}))
     response = _call_requests_request(method, url, **kwargs)
+    _log_request(method, url, kwargs)
     _log_response(response)
     return response
 
 
 def head(url, **kwargs):
     """A wrapper for ``requests.head``."""
-    _log_request('HEAD', url, kwargs)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
     response = _call_requests_head(url, **kwargs)
+    _log_request('HEAD', url, kwargs)
     _log_response(response)
     return response
 
 
 def get(url, **kwargs):
     """A wrapper for ``requests.get``."""
-    _log_request('GET', url, kwargs)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
     response = _call_requests_get(url, **kwargs)
+    _log_request('GET', url, kwargs)
     _log_response(response)
     return response
 
 
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
-    _log_request('POST', url, kwargs, data)
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         data = json.dumps(data)
     response = _call_requests_post(url, data, **kwargs)
+    _log_request('POST', url, kwargs, data)
     _log_response(response)
     return response
 
 
 def put(url, data=None, **kwargs):
     """A wrapper for ``requests.put``. Sends a PUT request."""
-    _log_request('PUT', url, kwargs, data)
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         data = json.dumps(data)
     response = _call_requests_put(url, data, **kwargs)
+    _log_request('PUT', url, kwargs, data)
     _log_response(response)
     return response
 
 
 def patch(url, data=None, **kwargs):
     """A wrapper for ``requests.patch``. Sends a PATCH request."""
-    _log_request('PATCH', url, kwargs, data)
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         data = json.dumps(data)
     response = _call_requests_patch(url, data, **kwargs)
+    _log_request('PATCH', url, kwargs, data)
     _log_response(response)
     return response
 
 
 def delete(url, **kwargs):
     """A wrapper for ``requests.delete``. Sends a DELETE request."""
-    _log_request('DELETE', url, kwargs)
+    _set_content_type(kwargs)
+    if _content_type_is_json(kwargs):
+        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
     response = _call_requests_delete(url, **kwargs)
+    _log_request('DELETE', url, kwargs)
     _log_response(response)
     return response
