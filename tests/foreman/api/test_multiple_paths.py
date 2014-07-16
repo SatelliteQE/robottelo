@@ -15,6 +15,7 @@ class EntityTestCase(TestCase):
     """Issue HTTP GET and POST requests to base entity URLs."""
     @data(
         entities.Architecture,
+        entities.Domain,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
@@ -42,6 +43,7 @@ class EntityTestCase(TestCase):
 
     @data(
         entities.Architecture,
+        entities.Domain,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
@@ -64,9 +66,12 @@ class EntityTestCase(TestCase):
 
     @data(
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_post(self, entity):
         """@Test: POST to an entity-dependent path.
@@ -89,11 +94,15 @@ class EntityTestCase(TestCase):
         )
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_post_unauthorized(self, entity):
         """@Test: POST to an entity-dependent path without credentials.
@@ -115,10 +124,14 @@ class EntityTestCase(TestCase):
 class EntityIdTestCase(TestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_get(self, entity):
         """@Test: Create an entity and GET it.
@@ -145,10 +158,14 @@ class EntityIdTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_put(self, entity):
         """@Test Create an entity and update (PUT) it.
@@ -176,10 +193,14 @@ class EntityIdTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_delete(self, entity):
         """@Test Create an entity, fetch it, DELETE it, and fetch it again.

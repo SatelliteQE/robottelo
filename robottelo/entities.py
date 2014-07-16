@@ -16,13 +16,13 @@ from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
 
-class ActivationKey(orm.Entity):
+class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Activtion Key entity."""
-    organization = orm.OneToOneField('Organization', required=True)
+    organization_id = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    environment = orm.OneToOneField('Environment')
-    content_view = orm.OneToOneField('ContentView')
+    environment_id = orm.OneToOneField('Environment')
+    content_view_id = orm.OneToOneField('ContentView')
     # maximum number of registered content hosts, or 'unlimited'
     usage_limit = orm.IntegerField()
 
@@ -279,9 +279,9 @@ class ContentViewPuppetModule(orm.Entity):
         )
 
 
-class ContentView(orm.Entity):
+class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
-    organization = orm.OneToOneField('Organization', required=True)
+    organization_id = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     label = orm.StringField()
     composite = orm.BooleanField()
@@ -294,9 +294,9 @@ class ContentView(orm.Entity):
         """Non-field information about this entity."""
         api_path = (
             # Create a content view
-            '/katello/api/v2/organizations/:organization_id/content_views',
-            # Create a content view
             '/katello/api/v2/content_views',
+            # Create a content view
+            '/katello/api/v2/organizations/:organization_id/content_views',
         )
 
 
@@ -318,7 +318,7 @@ class CustomInfo(orm.Entity):
         )
 
 
-class Domain(orm.Entity):
+class Domain(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Domain entity."""
     # The full DNS Domain name
     name = orm.StringField(required=True)
@@ -335,6 +335,10 @@ class Domain(orm.Entity):
         api_path = (
             '/api/v2/domains',  # Create a domain.
         )
+
+    def _unpack_response(self, response):
+        """Unpack the server's response after creating an entity."""
+        return response['domain']
 
 
 class Environment(orm.Entity):
@@ -801,7 +805,7 @@ class Permission(orm.Entity):
 
 class Product(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Product entity."""
-    organization = orm.OneToOneField('Organization', required=True)
+    organization_id = orm.OneToOneField('Organization', required=True)
     description = orm.StringField()
     gpg_key = orm.OneToOneField('GPGKey')
     sync_plan = orm.OneToOneField('SyncPlan', null=True)
@@ -872,20 +876,24 @@ class Report(orm.Entity):
         )
 
 
-class Repository(orm.Entity):
+class Repository(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
     # Product the repository belongs to
-    product = orm.OneToOneField('Product', required=True)
+    product_id = orm.OneToOneField('Product', required=True)
     # repository source url
-    url = orm.StringField(required=True)
+    url = orm.URLField(required=True)
     # id of the gpg key that will be assigned to the new repository
     gpg_key = orm.OneToOneField('GPGKey')
     # true if this repository can be published via HTTP
     unprotected = orm.BooleanField()
     # type of repo (either 'yum' or 'puppet', defaults to 'yum')
-    content_type = orm.StringField(choices=('puppet', 'yum'), default='yum')
+    content_type = orm.StringField(
+        choices=('puppet', 'yum', 'file'),
+        default='yum',
+        required=True,
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1011,7 +1019,9 @@ class SyncPlan(orm.Entity):
     # how often synchronization should run must be one of: none, hourly, daily,
     # weekly.
     interval = orm.StringField(
-        choices=('none', 'hourly', 'daily', 'weekly'), required=True)
+        choices=('none', 'hourly', 'daily', 'weekly'),
+        required=True,
+    )
     # start datetime of synchronization
     sync_date = orm.DateTimeField(required=True)
     description = orm.StringField()
