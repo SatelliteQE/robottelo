@@ -47,9 +47,12 @@ class Entity(booby.Model):
 def _get_value(field, default):
     """Return a value for ``field``.
 
-    If ``field`` has a default value, return that value. Otherwise, if
-    it has defined a set of choices, randomly return one of those choices.
-    Otherwise, return ``default()``.
+    Use the following strategies, in order, to find a value for ``field``:
+
+    1. If ``field`` has a default value, return that value.
+    2. If ``field`` provides choices, randomly return one of those choices.
+    3. If ``default`` is callable, return ``default()``.
+    4. Finally, fall back to returning ``default``.
 
     :param field: A :class:`Field`, or one of its more specialized brethren.
     :param default: A callable which yields a value.
@@ -60,8 +63,10 @@ def _get_value(field, default):
         return field.options['default']
     elif 'choices' in field.options.keys():
         return FauxFactory.generate_choice(field.options['choices'])
-    else:
+    elif callable(default):
         return default()
+    else:
+        return default
 
 
 # Wrappers for booby fields
@@ -87,7 +92,7 @@ class FloatField(booby.fields.Float):
     """Field that represents a float"""
     def get_value(self):
         """Return a value suitable for a :class:`FloatField`."""
-        return _get_value(self, lambda: random.random() * 10000)
+        return _get_value(self, random.random() * 10000)
 
 
 class IntegerField(booby.fields.Integer):
@@ -101,7 +106,7 @@ class IntegerField(booby.fields.Integer):
         """Return a value suitable for a :class:`IntegerField`."""
         return _get_value(
             self,
-            lambda: FauxFactory.generate_integer(self.min_val, self.max_val)
+            FauxFactory.generate_integer(self.min_val, self.max_val)
         )
 
 

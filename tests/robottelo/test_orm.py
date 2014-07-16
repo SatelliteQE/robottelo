@@ -297,6 +297,7 @@ class GetValueTestCase(unittest.TestCase):
         """
         field = orm.StringField()
         self.assertEqual(orm._get_value(field, lambda: value), value)
+        self.assertEqual(orm._get_value(field, value), value)
 
     def test_field_default_and_choices(self):
         """Pass in a field that has a default and choices.
