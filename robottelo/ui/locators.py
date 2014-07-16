@@ -631,7 +631,7 @@ locators = {
         ("//td/a[contains(., '%s')]"
          "/following::td/div/ul/li/a[@class='delete']")),
     "resource.edit": (
-        By.XPATH, "//a[contains(.,'Edit') and contains(@href,'%s')]"),
+        By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
 
     # resource - libvirt
     "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
