@@ -87,10 +87,8 @@ class ComputeResource(Base):
         """
         element = self.search(oldname)
         if element:
-            element.click()
-            strategy = locators["resource.edit"][0]
-            value = locators["resource.edit"][1]
-            edit = self.wait_until_element((strategy, value % oldname))
+            strategy, value = locators["resource.edit"]
+            edit = self.wait_until_element((strategy, value % oldname.lower()))
             edit.click()
             if self.wait_until_element(locators["resource.name"]) and newname:
                 self.field_update("resource.name", newname)
