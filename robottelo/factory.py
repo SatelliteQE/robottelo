@@ -290,10 +290,14 @@ class Factory(object):
             auth=get_server_credentials(),
             verify=False,
         ).json()
-        if 'error' in response.keys():
+        if 'error' in response.keys() or 'errors' in response.keys():
+            if 'error' in response.keys():
+                message = response['error']
+            else:
+                message = response['errors']
             raise FactoryError(
                 'Error encountered while POSTing to {0}. Error received: {1}'
-                ''.format(path, response['error'])
+                ''.format(path, message)
             )
 
         # Tell caller about created entity.

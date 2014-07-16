@@ -82,9 +82,21 @@ def status_code_error(path, desired, response):
     :rtype: str
 
     """
+    # Decode response into JSON format, if possible.
     try:
-        err_msg = response.json().get('error', 'No error message provided.')
+        json_response = response.json()
     except ValueError:
+        json_response = None
+
+    # Generate error message.
+    if json_response is None:
         err_msg = 'Could not decode response; not in JSON format.'
+    else:
+        if 'error' in json_response.keys():
+            err_msg = json_response['error']
+        elif 'errors' in json_response.keys():
+            err_msg = json_response['errors']
+        else:
+            err_msg = 'Response in JSON format, but contains no error message.'
     return u'Desired HTTP {0} but received HTTP {1} after sending request ' \
         'to {2}. {3}'.format(desired, response.status_code, path, err_msg)
