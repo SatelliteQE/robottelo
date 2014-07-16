@@ -18,21 +18,44 @@ from robottelo.ui.user import User
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,
                  force_context=False):
-    """
-    Updates the args dictionary, calls the set_context function to set
-    org and loc context and finally navigates to the entites page.
+    """ Performs various factory tasks.
+
+    Updates the ``create_args`` dictionary, calls the ``set_context`` function
+    to set ``org`` and ``loc`` context and finally navigates to the entities
+    page.
+
+    :param dict create_args: Default entities arguments.
+    :param kwargs: Arbitrary keyword arguments to update create_args.
+    :param session: The browser session.
+    :param page: The entity function for navigation.
+    :param str org: The organization context to set.
+    :param str loc: The location context to set.
+    :param bool force_context: If True set the context again.
+    :return: None.
+
     """
     create_args = update_dictionary(create_args, kwargs)
     create_args.update(kwargs)
     if org or loc:
-        set_context(session, org, loc, force_context=force_context)
+        set_context(session, org=org, loc=loc, force_context=force_context)
     page()
 
 
-def set_context(session, org, loc, force_context=False):
-    """
-    First checks whether '@' exists in context_text, otherwise configures
-    the context as per the org and loc values passed.
+def set_context(session, org=None, loc=None, force_context=False):
+    """Configures the context.
+
+    If '@' is not present in ``context_text``, configure the context.
+    When configuring the context, use ``org`` and ``loc``. If ``force_context``
+    is ``True``, set the ``org`` and ``loc`` context again. This method is
+    useful when, for example, creating entities with the same name but
+    different organizations.
+
+    :param session: The browser session.
+    :param str org: The organization context to set.
+    :param str loc: The location context to set.
+    :param bool force_context: IF true set the context again.
+    :return: None.
+
     """
     current_text = session.nav.wait_until_element(
         menu_locators['menu.current_text']).text
@@ -44,7 +67,7 @@ def set_context(session, org, loc, force_context=False):
             session.nav.go_to_select_loc(loc)
 
 
-def make_org(session, **kwargs):
+def make_org(session, force_context=False, **kwargs):
     """
     Creates an organization
     """
@@ -67,11 +90,11 @@ def make_org(session, **kwargs):
         'select': True,
     }
     page = session.nav.go_to_org
-    core_factory(create_args, kwargs, session, page)
+    core_factory(create_args, kwargs, session, page, force_context=False)
     Org(session.browser).create(**create_args)
 
 
-def make_loc(session, **kwargs):
+def make_loc(session, force_context=False, **kwargs):
     """
     Creates a location
     """
@@ -92,11 +115,12 @@ def make_loc(session, **kwargs):
         'select': True,
     }
     page = session.nav.go_to_loc
-    core_factory(create_args, kwargs, session, page)
+    core_factory(create_args, kwargs, session, page,
+                 force_context=force_context)
     Location(session.browser).create(**create_args)
 
 
-def make_product(session, org=None, loc=None, **kwargs):
+def make_product(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a product
     """
@@ -111,11 +135,11 @@ def make_product(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_products
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Products(session.browser).create(**create_args)
 
 
-def make_gpgkey(session, org=None, loc=None, **kwargs):
+def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a gpgkey
     """
@@ -127,11 +151,11 @@ def make_gpgkey(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_gpg_keys
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     GPGKey(session.browser).create(**create_args)
 
 
-def make_subnet(session, org=None, loc=None, **kwargs):
+def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a subnet
     """
@@ -144,11 +168,11 @@ def make_subnet(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_subnets
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Subnet(session.browser).create(**create_args)
 
 
-def make_domain(session, org=None, loc=None, **kwargs):
+def make_domain(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a domain
     """
@@ -159,11 +183,11 @@ def make_domain(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_domains
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Domain(session.browser).create(**create_args)
 
 
-def make_user(session, org=None, loc=None, **kwargs):
+def make_user(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a user
     """
@@ -184,11 +208,11 @@ def make_user(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_users
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     User(session.browser).create(**create_args)
 
 
-def make_hostgroup(session, org=None, loc=None, **kwargs):
+def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a host_group
     """
@@ -199,11 +223,11 @@ def make_hostgroup(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_host_groups
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Hostgroup(session.browser).create(**create_args)
 
 
-def make_env(session, org=None, loc=None, **kwargs):
+def make_env(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates an Environment
     """
@@ -214,11 +238,11 @@ def make_env(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_environments
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Environment(session.browser).create(**create_args)
 
 
-def make_resource(session, org=None, loc=None, **kwargs):
+def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a compute resource
     """
@@ -237,11 +261,11 @@ def make_resource(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_compute_resources
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     ComputeResource(session.browser).create(**create_args)
 
 
-def make_media(session, org=None, loc=None, **kwargs):
+def make_media(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates an installation media
     """
@@ -252,11 +276,11 @@ def make_media(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_installation_media
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Medium(session.browser).create(**create_args)
 
 
-def make_templates(session, org=None, loc=None, **kwargs):
+def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a provisioning template
     """
@@ -270,5 +294,5 @@ def make_templates(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_provisioning_templates
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Template(session.browser).create(**create_args)

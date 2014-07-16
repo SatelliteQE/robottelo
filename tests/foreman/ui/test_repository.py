@@ -37,7 +37,7 @@ class Repos(UITestCase):
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
-    def test_create_repo(self, repo_name):
+    def test_create_repo_1(self, repo_name):
         """
         @Feature: Content Repos - Positive Create
         @Test: Create Content Repos with minimal input parameters
@@ -49,6 +49,33 @@ class Repos(UITestCase):
         description = "test 123"
         with Session(self.browser) as session:
             make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            self.assertIsNotNone(self.repository.search(repo_name))
+
+    @attr('ui', 'repo', 'implemented')
+    @data(*generate_strings_list())
+    def test_create_repo_2(self, repo_name):
+        """
+        @Test: Create Content Repos in two different orgs with same name
+        @Feature: Content Repos - Positive Create
+        @Assert: Repos is created
+        """
+
+        prd_name = generate_string("alpha", 8)
+        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+        description = "test 123"
+        org2_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_product(session, self.org_name, self.loc_name, name=prd_name,
+                         description=description)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            make_org(session, org_name=org2_name)
+            make_product(session, org=org2_name, loc=self.loc_name,
+                         force_context=True, name=prd_name,
                          description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             self.repository.create(repo_name, product=prd_name, url=repo_url)
