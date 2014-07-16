@@ -21,10 +21,6 @@ class SampleFactory(factory.Factory):
         """Return a "Sample" entity's field names and types."""
         return {'name': SAMPLE_FACTORY_NAME, 'cost': SAMPLE_FACTORY_COST}
 
-    def _unpack_response(self, response):
-        """Unpack the server's response after creating an entity."""
-        return response['sample']
-
 
 class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
     """A mock ``requests.response`` object."""
@@ -35,7 +31,7 @@ class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
 
         """
         # (protected-access) pylint:disable=W0212
-        return {'sample': SampleFactory()._factory_data()}
+        return SampleFactory()._factory_data()
 
 
 class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
@@ -146,18 +142,6 @@ class FactoryTestCase(TestCase):
         """
         with self.assertRaises(NotImplementedError):
             factory.Factory()._factory_path()
-
-    def test__unpack_response(self):
-        """Call :meth:`robottelo.factory.Factory._unpack_response`.
-
-        Ensure the method returns the response untouched.
-
-        """
-        response = {'entity name': {'field name': 'field value'}}
-        self.assertEqual(
-            response,
-            factory.Factory()._unpack_response(response)
-        )
 
 
 class SampleFactoryTestCase(TestCase):
