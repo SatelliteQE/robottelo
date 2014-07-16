@@ -27,7 +27,7 @@ class ComputeResource(UITestCase):
         super(ComputeResource, self).setUp()
         # Make sure to use the Class' org_name instance
         if (ComputeResource.org_name is None and
-            ComputeResource.loc_name is None):
+           ComputeResource.loc_name is None):
             ComputeResource.org_name = generate_string("alpha", 8)
             ComputeResource.loc_name = generate_string("alpha", 8)
             with Session(self.browser) as session:
