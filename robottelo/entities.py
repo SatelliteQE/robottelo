@@ -683,7 +683,7 @@ class OrganizationDefaultInfo(orm.Entity):
     # FIXME figure out related resource
     # informable = orm.OneToOneField(required=True)
     keyname = orm.StringField(required=True)
-    name = orm.ShortStringField(required=True)
+    name = orm.StringField(required=True)
     info = orm.StringField()
     vendor_class = orm.StringField()
     hardware_model = orm.StringField()

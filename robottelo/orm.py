@@ -132,18 +132,6 @@ class StringField(booby.fields.String):
         )
 
 
-class ShortStringField(booby.fields.String):
-    """Field that represents a string, no longer than 255 chars."""
-    def get_value(self):
-        return _get_value(
-            self,
-            lambda: FauxFactory.generate_string(
-                'utf8',
-                FauxFactory.generate_integer(1, 255)
-            )
-        )
-
-
 # Additional fields
 class DateField(Field):
     """Field that represents a date"""
