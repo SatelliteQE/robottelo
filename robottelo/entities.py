@@ -44,8 +44,7 @@ class Architecture(orm.Entity, factory.EntityFactoryMixin):
             '/api/v2/architectures',  # Create an architecture.
         )
         api_names = (
-            ('name', 'architecture[name]'),
-            ('operatingsystems', 'architecture[operatingsystem_ids]'),
+            ('operatingsystems', 'operatingsystem_ids'),
         )
 
 
@@ -527,7 +526,7 @@ class Host(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('name', 'host[name]'),)
+        api_names = (('name', 'name'),)
         api_path = (
             '/api/v2/hosts',  # Create a host.
         )
@@ -630,8 +629,6 @@ class Media(orm.Entity):
         api_path = (
             '/api/v2/media',  # Create a medium.
         )
-        # FIXME: is this mapping correct?
-        api_names = (('name', 'host[name]'),)
 
 
 class Model(orm.Entity, factory.EntityFactoryMixin):
@@ -643,12 +640,6 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (
-            ('name', 'model[name]'),
-            ('info', 'model[info]'),
-            ('vendor_class', 'model[vendor_class]'),
-            ('hardware_model', 'model[hardware_model]'),
-        )
         api_path = (
             '/api/v2/models',  # Create a model.
         )
@@ -678,14 +669,6 @@ class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
         api_path = (
             '/api/v2/operatingsystems',  # Create an OS.
         )
-        api_names = (
-            ('name', 'operatingsystem[name]'),
-            ('major', 'operatingsystem[major]'),
-            ('minor', 'operatingsystem[minor]'),
-            ('description', 'operatingsystem[description]'),
-            ('family', 'operatingsystem[family]'),
-            ('release_name', 'operatingsystem[release_name]'),
-        )
 
 
 class OrganizationDefaultInfo(orm.Entity):
@@ -707,13 +690,6 @@ class OrganizationDefaultInfo(orm.Entity):
             '/katello/api/v2/organizations/:organization_id/default_info/'
             ':informable_type',  # Create default info
         )
-        # FIXME: is this mapping correct?
-        api_names = (
-            ('name', 'model[name]'),
-            ('info', 'model[info]'),
-            ('vendor_class', 'model[vendor_class]'),
-            ('hardware_model', 'model[hardware_model]'),
-        )
 
     def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
         """Unpack the server's response after creating an entity."""
@@ -722,7 +698,7 @@ class OrganizationDefaultInfo(orm.Entity):
 
 class Organization(orm.Entity, factory.EntityFactoryMixin):
     """A representation of an Organization entity."""
-    name = orm.StringField(required=True)
+    name = orm.StringField(required=True, max_len=80)
     label = orm.StringField()
     description = orm.StringField()
 
@@ -731,6 +707,10 @@ class Organization(orm.Entity, factory.EntityFactoryMixin):
         api_path = (
             '/katello/api/v2/organizations',  # Create organization
         )
+
+    def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
+        """Unpack the server's response after creating an entity."""
+        return response['organization']
 
 
 class OSDefaultTemplate(orm.Entity):
