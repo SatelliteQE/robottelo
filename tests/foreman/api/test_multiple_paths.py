@@ -5,6 +5,7 @@ from robottelo.common.helpers import get_server_url, get_server_credentials
 from robottelo import entities
 from unittest import TestCase
 from urlparse import urljoin
+import httplib
 # (too many public methods) pylint: disable=R0904
 
 
@@ -54,7 +55,7 @@ class EntityTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = 200
+        status_code = httplib.OK
         self.assertEqual(
             status_code,
             response.status_code,
@@ -77,7 +78,7 @@ class EntityTestCase(TestCase):
         """
         path = urljoin(get_server_url(), entity.Meta.api_path[0])
         response = client.get(path, verify=False)
-        status_code = 401
+        status_code = httplib.UNAUTHORIZED
         self.assertEqual(
             status_code,
             response.status_code,
@@ -103,7 +104,7 @@ class EntityTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = 201
+        status_code = httplib.CREATED
         self.assertEqual(
             status_code,
             response.status_code,
@@ -125,7 +126,7 @@ class EntityTestCase(TestCase):
         """
         path = urljoin(get_server_url(), entity.Meta.api_path[0])
         response = client.post(path, verify=False)
-        status_code = 401
+        status_code = httplib.UNAUTHORIZED
         self.assertEqual(
             status_code,
             response.status_code,
@@ -158,7 +159,7 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = 200
+        status_code = httplib.OK
         self.assertEqual(
             status_code,
             response.status_code,
@@ -189,7 +190,7 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = 200
+        status_code = httplib.OK
         self.assertEqual(
             status_code,
             response.status_code,
@@ -220,7 +221,7 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = 200
+        status_code = httplib.OK
         self.assertEqual(
             status_code,
             response.status_code,
@@ -231,7 +232,7 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = 404
+        status_code = httplib.NOT_FOUND
         self.assertEqual(
             status_code,
             response.status_code,

@@ -9,6 +9,7 @@ from robottelo.api import client
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from unittest import TestCase
 from urlparse import urljoin
+import httplib
 # (too many public methods) pylint: disable=R0904
 
 
@@ -35,7 +36,7 @@ class HostsTestCase(TestCase):
             params={'search': query},
             verify=False,
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, httplib.OK)
         self.assertEqual(response.json()['search'], query)
 
     def test_get_per_page(self):
@@ -52,5 +53,5 @@ class HostsTestCase(TestCase):
             params={'per_page': per_page},
             verify=False,
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, httplib.OK)
         self.assertEqual(response.json()['per_page'], per_page)
