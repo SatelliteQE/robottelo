@@ -173,7 +173,7 @@ class ContentViews(Base):
         if element:
             element.click()
             self.wait_for_ajax()
-            self.find_element(tab_locators['contentviews.info']).click()
+            self.find_element(tab_locators['contentviews.tab_details']).click()
 
             if new_name:
                 self.edit_entity(
@@ -331,9 +331,14 @@ class ContentViews(Base):
         if element:
             element.click()
             self.wait_for_ajax()
-            self.wait_until_element(tab_locators
-                                    ["contentviews.tab_puppet_modules"]
-                                    ).click()
+            if self.wait_until_element(tab_locators
+                                       ["contentviews.tab_puppet_modules"]):
+                self.wait_until_element(tab_locators
+                                        ["contentviews.tab_puppet_modules"]
+                                        ).click()
+            else:
+                raise Exception(
+                    "Could not find tab to add puppet_modules")
             self.wait_until_element(locators
                                     ["contentviews.add_module"]).click()
             self.wait_for_ajax()
@@ -381,8 +386,14 @@ class ContentViews(Base):
         if element:
             element.click()
             self.wait_for_ajax()
-            self.find_element(tab_locators
-                              ["contentviews.tab_content_views"]).click()
+            if self.wait_until_element(tab_locators
+                                       ["contentviews.tab_content_views"]):
+                self.find_element(tab_locators
+                                  ["contentviews.tab_content_views"]).click()
+            else:
+                raise Exception(
+                    "Could not find ContentView tab, "
+                    "Please make sure selected view is composite")
             self.wait_for_ajax()
             if is_add:
                 self.find_element(tab_locators
