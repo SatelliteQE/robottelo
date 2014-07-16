@@ -44,19 +44,39 @@ class Entity(booby.Model):
         return booby.inspection.get_fields(cls)
 
 
+def _get_value(field, default):
+    """Return a value for ``field``.
+
+    If ``field`` has a default value, return that value. Otherwise, if
+    it has defined a set of choices, randomly return one of those choices.
+    Otherwise, return ``default()``.
+
+    :param field: A :class:`Field`, or one of its more specialized brethren.
+    :param default: A callable which yields a value.
+    :return: A value appropriate for that field.
+
+    """
+    if 'default' in field.options.keys():
+        return field.options['default']
+    elif 'choices' in field.options.keys():
+        return FauxFactory.generate_choice(field.options['choices'])
+    else:
+        return default()
+
+
 # Wrappers for booby fields
 class BooleanField(booby.fields.Boolean):
     """Field that represents a boolean"""
     def get_value(self):
         """Return a value suitable for a :class:`BooleanField`."""
-        return FauxFactory.generate_boolean()
+        return _get_value(self, FauxFactory.generate_boolean)
 
 
 class EmailField(booby.fields.Email):
     """Field that represents a boolean"""
     def get_value(self):
         """Return a value suitable for a :class:`EmailField`."""
-        return FauxFactory.generate_email()
+        return _get_value(self, FauxFactory.generate_email)
 
 
 class Field(booby.fields.Field):
@@ -67,7 +87,7 @@ class FloatField(booby.fields.Float):
     """Field that represents a float"""
     def get_value(self):
         """Return a value suitable for a :class:`FloatField`."""
-        return random.random() * 10000
+        return _get_value(self, lambda: random.random() * 10000)
 
 
 class IntegerField(booby.fields.Integer):
@@ -79,7 +99,10 @@ class IntegerField(booby.fields.Integer):
 
     def get_value(self):
         """Return a value suitable for a :class:`IntegerField`."""
-        return FauxFactory.generate_integer(self.min_val, self.max_val)
+        return _get_value(
+            self,
+            lambda: FauxFactory.generate_integer(self.min_val, self.max_val)
+        )
 
 
 class StringField(booby.fields.String):
@@ -90,18 +113,24 @@ class StringField(booby.fields.String):
 
     def get_value(self):
         """Return a value suitable for a :class:`StringField`."""
-        return FauxFactory.generate_string(
-            'utf8',
-            FauxFactory.generate_integer(1, self.max_len)
+        return _get_value(
+            self,
+            lambda: FauxFactory.generate_string(
+                'utf8',
+                FauxFactory.generate_integer(1, self.max_len)
+            )
         )
 
 
 class ShortStringField(booby.fields.String):
     """Field that represents a string, no longer than 255 chars."""
     def get_value(self):
-        return FauxFactory.generate_string(
-            'utf8',
-            FauxFactory.generate_integer(1, 255)
+        return _get_value(
+            self,
+            lambda: FauxFactory.generate_string(
+                'utf8',
+                FauxFactory.generate_integer(1, 255)
+            )
         )
 
 
@@ -118,7 +147,7 @@ class IPAddressField(StringField):
     """Field that represents an IP adrress"""
     def get_value(self):
         """Return a value suitable for a :class:`IPAddressField`."""
-        return FauxFactory.generate_ipaddr()
+        return _get_value(self, FauxFactory.generate_ipaddr)
 
 
 # FIXME: implement get_value()
@@ -137,7 +166,7 @@ class MACAddressField(StringField):
     """Field that represents a MAC adrress"""
     def get_value(self):
         """Return a value suitable for a :class:`MACAddressField`."""
-        return FauxFactory.generate_mac()
+        return _get_value(self, FauxFactory.generate_mac)
 
 
 class OneToOneField(booby.fields.Embedded):
@@ -232,6 +261,9 @@ class OneToManyField(Field):
 
 class URLField(StringField):
     """Field that represents an URL"""
+    def get_value(self):
+        """Return a value suitable for a :class:`URLField`."""
+        return _get_value(self, FauxFactory.generate_url)
 
 
 def _get_class(class_or_name, module='robottelo.entities'):
