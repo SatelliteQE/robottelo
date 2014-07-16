@@ -128,22 +128,18 @@ class TestContentViewsUI(UITestCase):
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_life_cycle_environments()
         self.contentenv.create(env_name)
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.contentenv.wait_until_element
+                             (common_locators["alert.success"]))
         self.setup_to_create_cv(name, repo_name, repo_url)
-        # Navigating to dashboard is a workaround to
-        # refresh filters under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(name, [repo_name])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.content_views.wait_until_element
+                             (common_locators["alert.success"]))
         self.content_views.publish(name)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.content_views.wait_until_element
+                             (common_locators["alert.success"]))
         self.content_views.promote(name, publish_version, env_name)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.content_views.wait_until_element
+                             (common_locators["alert.success"]))
 
     def test_associate_puppet_module(self):
         """
@@ -163,10 +159,6 @@ class TestContentViewsUI(UITestCase):
         self.navigator.go_to_select_org(self.org_name)
         self.setup_to_create_cv(name, repo_url=repo_url,
                                 repo_type=REPO_TYPE['puppet'])
-        # Navigating to dashboard is a workaround to
-        # refresh modules under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         module = self.content_views.add_puppet_module(name,
                                                       puppet_module,
                                                       filter_term=module_ver)
@@ -189,13 +181,9 @@ class TestContentViewsUI(UITestCase):
         self.assertIsNotNone(self.content_views.search(cv_name))
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
-        # Navigating to dashboard is a workaround to
-        # refresh filters under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.remove_filter(cv_name, [filter_name])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.content_views.wait_until_element
+                             (common_locators["alert.success"]))
 
     def test_create_package_filter(self):
         """
@@ -219,17 +207,9 @@ class TestContentViewsUI(UITestCase):
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
         self.setup_to_create_cv(cv_name, repo_name, repo_url)
-        # Navigating to dashboard is a workaround to
-        # refresh the repos under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(cv_name, [repo_name])
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
-        # Navigating to dashboard is a workaround to
-        # refresh the filters under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.add_packages_to_filter(cv_name, filter_name,
                                                   package_names, version_types,
                                                   values, max_values)
@@ -252,22 +232,14 @@ class TestContentViewsUI(UITestCase):
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_content_views()
         self.setup_to_create_cv(cv_name, repo_name, repo_url)
-        # Navigating to dashboard is a workaround to
-        # refresh the repos under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.add_remove_repos(cv_name, [repo_name])
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
-        # Navigating to dashboard is a workaround to
-        # refresh filters under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.add_remove_package_groups_to_filter(cv_name,
                                                                filter_name,
                                                                [package_group])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.content_views.wait_until_element
+                             (common_locators["alert.success"]))
 
     def test_create_errata_filter(self):
         """
@@ -293,8 +265,8 @@ class TestContentViewsUI(UITestCase):
             self.content_views.add_remove_errata_to_filter(cv_name,
                                                            filter_name,
                                                            errata_ids)
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @data(*valid_names_list())
     def test_positive_cv_update_name(self, new_name):
@@ -433,23 +405,15 @@ class TestContentViewsUI(UITestCase):
         self.navigator.go_to_select_org(self.org_name)
         self.setup_to_create_cv(cv_name, repo_url=repo_url,
                                 repo_type=REPO_TYPE['puppet'])
-        # Navigating to dashboard is a workaround to
-        # refresh puppet modules under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         module = self.content_views.add_puppet_module(cv_name,
                                                       puppet_module,
                                                       filter_term=module_ver)
         self.assertIsNotNone(module)
         self.content_views.publish(cv_name)
         self.content_views.create(composite_name, is_composite=True)
-        # Navigating to dashboard is a workaround to
-        # refresh CV's under selected composite-view
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
         self.content_views.add_remove_cv(composite_name, [cv_name])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
+        self.assertIsNotNone(self.content_views.wait_until_element
+                             (common_locators["alert.success"]))
         # TODO: Need to add RH contents
 
     @unittest.skip(NOT_IMPLEMENTED)
