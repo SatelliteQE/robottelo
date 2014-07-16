@@ -106,8 +106,18 @@ class IntegerField(booby.fields.Integer):
 
 
 class StringField(booby.fields.String):
-    """Field that represents a string"""
-    def __init__(self, max_len=1000, *args, **kwargs):
+    """Field that represents a string."""
+    def __init__(self, max_len=80, *args, **kwargs):
+        """Constructor for a ``StringField``.
+
+        ``max_len`` is set to 80 for convenience. Many fields have a maximum
+        length of 255 1-byte characters, and 80 3-byte unicode characters will
+        always fit into a field of this size.
+
+        :param int max_len: The maximum length of the string generated when
+            :meth:`get_value` is called.
+
+        """
         self.max_len = max_len
         super(StringField, self).__init__(*args, **kwargs)
 

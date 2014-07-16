@@ -35,7 +35,7 @@ class ActivationKey(orm.Entity):
 
 class Architecture(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
-    name = orm.StringField(required=True, max_len=255)
+    name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
 
     class Meta(object):
@@ -186,7 +186,7 @@ class ConfigTemplate(orm.Entity):
     # not relevant for snippet
     template_kind = orm.OneToOneField('TemplateKind', null=True)
     # Array of template combinations (hostgroup_id, environment_id)
-    template_combinations_attributes = orm.ListField(null=True)
+    template_combinations_attributes = orm.ListField(null=True)  # flake8:noqa pylint:disable=C0103
     # Array of operating systems ID to associate the template with
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
 
@@ -633,7 +633,7 @@ class Media(orm.Entity):
 
 class Model(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Model entity."""
-    name = orm.StringField(max_len=255, required=True)
+    name = orm.StringField(required=True)
     info = orm.StringField(null=True)
     vendor_class = orm.StringField(null=True)
     hardware_model = orm.StringField(null=True)
@@ -657,7 +657,7 @@ class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
 
     """
     # validator: Must match regular expression /\A(\S+)\Z/.
-    name = orm.StringField(required=True, max_len=255)
+    name = orm.StringField(required=True)
     major = orm.IntegerField(required=True, min_val=0, max_val=99999)
     minor = orm.StringField(null=True)
     description = orm.StringField(null=True)
@@ -698,7 +698,7 @@ class OrganizationDefaultInfo(orm.Entity):
 
 class Organization(orm.Entity, factory.EntityFactoryMixin):
     """A representation of an Organization entity."""
-    name = orm.StringField(required=True, max_len=80)
+    name = orm.StringField(required=True)
     label = orm.StringField()
     description = orm.StringField()
 
