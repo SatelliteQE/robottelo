@@ -331,7 +331,7 @@ class TestContentViewsUI(UITestCase):
             self.content_views.update(name, new_name)
             invalid = self.content_views.wait_until_element(common_locators
                                                             ["alert.error"])
-            self.assertTrue(invalid)
+            self.assertIsNotNone(invalid)
             self.assertIsNone(self.content_views.search(new_name))
 
     @data(*valid_names_list())
@@ -350,8 +350,8 @@ class TestContentViewsUI(UITestCase):
             self.content_views.create(name=name, description=desc)
             self.assertIsNotNone(self.content_views.search(name))
             self.content_views.update(name, new_description=new_description)
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     def test_negative_cv_update_description(self):
         """
@@ -368,8 +368,8 @@ class TestContentViewsUI(UITestCase):
             self.content_views.create(name=name, description=desc)
             self.assertIsNotNone(self.content_views.search(name))
             self.content_views.update(name, new_description=new_description)
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.error"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.error"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_edit_rh_custom_spin(self):
@@ -494,8 +494,8 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_content_views()
             self.setup_to_create_cv(cv_name, repo_name, repo_url)
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
@@ -559,8 +559,8 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_content_views()
             self.setup_to_create_cv(cv_name, repo_name, repo_url)
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
             with self.assertRaises(Exception) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertEqual(context.exception.message,
@@ -614,18 +614,18 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_life_cycle_environments()
             self.contentenv.create(env_name)
-            self.assertTrue(self.contentenv.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
             self.setup_to_create_cv(name, repo_name, repo_url)
             self.content_views.add_remove_repos(name, [repo_name])
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
             self.content_views.publish(name)
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
             self.content_views.promote(name, publish_version, env_name)
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_composite(self):
@@ -688,15 +688,15 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_life_cycle_environments()
             self.contentenv.create(env_name)
-            self.assertTrue(self.contentenv.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
             self.setup_to_create_cv(name, repo_name, repo_url)
             self.content_views.add_remove_repos(name, [repo_name])
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
             self.content_views.publish(name)
-            self.assertTrue(self.content_views.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_composite(self):
