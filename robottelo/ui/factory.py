@@ -26,8 +26,8 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
 
     :param dict create_args: Default entities arguments.
     :param kwargs: Arbitrary keyword arguments to update create_args.
-    :param obj session: The browser session.
-    :param func page: Calls the entity function for navigation.
+    :param session: The browser session.
+    :param page: The entity function for navigation.
     :param str org: The organization context to set.
     :param str loc: The location context to set.
     :param bool force_context: If True set the context again.
@@ -50,7 +50,7 @@ def set_context(session, org=None, loc=None, force_context=False):
     useful when, for example, creating entities with the same name but
     different organizations.
 
-    :param obj session: The browser session.
+    :param session: The browser session.
     :param str org: The organization context to set.
     :param str loc: The location context to set.
     :param bool force_context: IF true set the context again.
