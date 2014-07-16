@@ -18,9 +18,21 @@ from robottelo.ui.user import User
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,
                  force_context=False):
-    """
-    Updates the args dictionary, calls the set_context function to set
-    org and loc context and finally navigates to the entites page.
+    """ Performs various factory tasks.
+
+    Updates the ``create_args`` dictionary, calls the ``set_context`` function
+    to set ``org`` and ``loc`` context and finally navigates to the entities
+    page.
+
+    :param dict create_args: Default entities arguments.
+    :param kwargs: Arbitrary keyword arguments to update create_args.
+    :param obj session: The browser session.
+    :param func page: Calls the entity function for navigation.
+    :param str org: The organization context to set.
+    :param str loc: The location context to set.
+    :param boolean force_context: If True set the context again.
+    :return: None.
+
     """
     create_args = update_dictionary(create_args, kwargs)
     create_args.update(kwargs)
@@ -30,12 +42,20 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
 
 
 def set_context(session, org=None, loc=None, force_context=False):
-    """
-    First checks whether '@' exists in context_text, otherwise configures
-    the context as per the org and loc values passed.
-    If force_context is true set the org and loc context again.
-    Example:- Would be required when creating entities with same name but
-    in different orgs.
+    """Configures the context.
+
+    If '@' is not present in ``context_text``, configure the context.
+    When configuring the context, use ``org`` and ``loc``. If ``force_context``
+    is ``True``, set the ``org`` and ``loc`` context again. This method is
+    useful when, for example, creating entities with the same name but
+    different organizations.
+
+    :param obj session: The browser session.
+    :param str org: The organization context to set.
+    :param str loc: The location context to set.
+    :param boolean force_context: IF true set the context again.
+    :return: None.
+
     """
     current_text = session.nav.wait_until_element(
         menu_locators['menu.current_text']).text
