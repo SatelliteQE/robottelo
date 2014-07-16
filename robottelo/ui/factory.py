@@ -30,7 +30,7 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
     :param func page: Calls the entity function for navigation.
     :param str org: The organization context to set.
     :param str loc: The location context to set.
-    :param boolean force_context: If True set the context again.
+    :param bool force_context: If True set the context again.
     :return: None.
 
     """
@@ -53,7 +53,7 @@ def set_context(session, org=None, loc=None, force_context=False):
     :param obj session: The browser session.
     :param str org: The organization context to set.
     :param str loc: The location context to set.
-    :param boolean force_context: IF true set the context again.
+    :param bool force_context: IF true set the context again.
     :return: None.
 
     """
