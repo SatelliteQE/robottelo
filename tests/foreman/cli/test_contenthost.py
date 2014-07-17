@@ -296,16 +296,15 @@ class TestContentHost(CLITestCase):
         @Assert: Content host is created using new published, promoted cv
         """
 
-        cv = make_content_view(
+        con_view = make_content_view(
             {u'organization-id': TestContentHost.NEW_ORG['id']}
         )
         with self.assertRaises(Exception):
             make_content_host({
                 u'name': generate_string('alpha', 15),
                 u'organization-id': TestContentHost.NEW_ORG['id'],
-                u'content-view-id': cv['id'],
+                u'content-view-id': con_view['id'],
                 u'environment-id': TestContentHost.NEW_LIFECYCLE['id']})
-
 
     @data(
         {u'name': generate_string('alpha', 15)},
