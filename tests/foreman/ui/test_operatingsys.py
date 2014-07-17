@@ -29,7 +29,7 @@ class OperatingSys(UITestCase):
     org_name = None
     loc_name = None
 
-    def setup(self):
+    def setUp(self):
         super(OperatingSys, self).setUp()
         #  Make sure to use the Class' org_name instance
         if (OperatingSys.org_name is None and OperatingSys.loc_name is None):
@@ -41,8 +41,8 @@ class OperatingSys(UITestCase):
 
     def test_create_os(self):
         """
-        @Feature: OS - Positive Create
         @Test: Create a new OS
+        @Feature: OS - Positive Create
         @Assert: OS is created
         """
 
@@ -81,9 +81,10 @@ class OperatingSys(UITestCase):
            u'os_family': "SUSE"})
     def test_positive_create_os(self, test_data):
         """
+        @Test: Create a new OS with different data values
         @Feature: OS - Positive Create
-        @Test: Create a new OS
         @Assert: OS is created
+        @BZ: 1120568
         """
 
         arch = "i386"
@@ -98,9 +99,10 @@ class OperatingSys(UITestCase):
     @skip_if_bz_bug_open(1120181)
     def test_negative_create_os_1(self):
         """
-        @Feature: OS - Create a new OS with 256 characters in name
-        @Test: Create a new OS - Negative
+        @Test: OS - Create a new OS with 256 characters in name
+        @Feature: Create a new OS - Negative
         @Assert: OS is not created
+        @BZ: 1120181
         """
 
         name = generate_string("alpha", 256)
@@ -119,8 +121,8 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_2(self):
         """
-        @Feature: OS - Create a new OS with blank name
-        @Test: Create a new OS - Negative
+        @Test: OS - Create a new OS with blank name
+        @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
         name = ""
@@ -139,9 +141,9 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_3(self):
         """
-        @Feature: OS - Create a new OS with description containing
+        @Test: OS - Create a new OS with description containing
         256 characters
-        @Test: Create a new OS - Negative
+        @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
         name = generate_string("alpha", 6)
@@ -162,8 +164,8 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_4(self):
         """
-        @Feature: OS - Create a new OS with long major version
-        @Test: Create a new OS - Negative
+        @Test: OS - Create a new OS with long major version
+        @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
         name = generate_string("alpha", 6)
@@ -182,8 +184,8 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_5(self):
         """
-        @Feature: OS - Create a new OS with long minor version
-        @Test: Create a new OS - Negative
+        @Test: OS - Create a new OS with long minor version
+        @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
         name = generate_string("alpha", 6)
@@ -202,8 +204,8 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_6(self):
         """
-        @Feature: OS - Create a new OS without major version
-        @Test: Create a new OS - Negative
+        @Test: OS - Create a new OS without major version
+        @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
         name = generate_string("alpha", 6)
@@ -222,8 +224,8 @@ class OperatingSys(UITestCase):
 
     def test_remove_os(self):
         """
-        @Feature: OS - Positive Delete
         @Test: Delete an existing OS
+        @Feature: OS - Positive Delete
         @Assert: OS is deleted
         """
 
@@ -244,9 +246,9 @@ class OperatingSys(UITestCase):
 
     def test_update_os_1(self):
         """
-        @Feature: OS - Positive Update
         @Test: Update OS name, major_version, minor_version, os_family
         and arch
+        @Feature: OS - Positive Update
         @Assert: OS is updated
         """
 
@@ -275,8 +277,8 @@ class OperatingSys(UITestCase):
 
     def test_update_os_medium(self):
         """
-        @Feature: OS - Positive Update
         @Test: Update OS medium
+        @Feature: OS - Positive Update
         @Assert: OS is updated
         """
 
@@ -298,8 +300,8 @@ class OperatingSys(UITestCase):
 
     def test_update_os_partition_table(self):
         """
-        @Feature: OS - Positive Update
         @Test: Update OS partition table
+        @Feature: OS - Positive Update
         @Assert: OS is updated
         """
 
@@ -321,8 +323,8 @@ class OperatingSys(UITestCase):
 
     def test_update_os_template(self):
         """
-        @Feature: OS - Positive Update
         @Test: Update provisioning template
+        @Feature: OS - Positive Update
         @Assert: OS is updated
         """
 
@@ -348,8 +350,8 @@ class OperatingSys(UITestCase):
 
     def test_set_parameter(self):
         """
-        @Feature: OS - Positive Update
         @Test: Set OS parameter
+        @Feature: OS - Positive Update
         @Assert: OS is updated
         """
         name = generate_string("alpha", 4)
@@ -364,8 +366,8 @@ class OperatingSys(UITestCase):
 
     def test_remove_parameter(self):
         """
-        @Feature: OS - Positive Update
         @Test: Remove selected OS parameter
+        @Feature: OS - Positive Update
         @Assert: OS is updated
         """
         name = generate_string("alpha", 6)
