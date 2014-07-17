@@ -18,8 +18,9 @@ class OperatingSys(Base):
     """
 
     def _configure_os(self, archs, ptables, mediums, select,
-                      minor_version=None, os_family=None, template=None,
-                      arch_list=None, ptable_list=None, medium_list=None):
+                      minor_version=None, description=None, os_family=None,
+                      template=None, arch_list=None, ptable_list=None,
+                      medium_list=None):
         """
         Configures the operating system details
         """
@@ -28,9 +29,13 @@ class OperatingSys(Base):
         tab_medium_locator = tab_locators["operatingsys.tab_medium"]
 
         if minor_version:
-            if self.wait_until_element(locators
-                                       ["operatingsys.minor_version"]):
+            if self.wait_until_element(
+                    locators["operatingsys.minor_version"]):
                 self.field_update("operatingsys.minor_version", minor_version)
+        if description:
+            if self.wait_until_element(
+                    locators["operatingsys.description"]):
+                self.field_update("operatingsys.description", description)
         if os_family:
             Select(self.find_element(locators
                                      ["operatingsys.family"]
@@ -58,7 +63,7 @@ class OperatingSys(Base):
                                      )).select_by_visible_text(template)
 
     def create(self, name, major_version=None,
-               minor_version=None, os_family=None,
+               minor_version=None, description=None, os_family=None,
                archs=None, ptables=None, mediums=None, select=True,
                template=None):
         """
@@ -74,8 +79,8 @@ class OperatingSys(Base):
             if self.wait_until_element(os_major_locator):
                 self.find_element(os_major_locator).send_keys(major_version)
                 self._configure_os(archs, ptables, mediums, select,
-                                   minor_version, os_family, template,
-                                   arch_list=None, ptable_list=None,
+                                   minor_version, description, os_family,
+                                   template, arch_list=None, ptable_list=None,
                                    medium_list=None)
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
@@ -106,7 +111,7 @@ class OperatingSys(Base):
 
     def update(self, os_name, new_name=None,
                major_version=None, minor_version=None,
-               os_family=None, archs=None,
+               description=None, os_family=None, archs=None,
                ptables=None, mediums=None, new_archs=None,
                new_ptables=None, new_mediums=None, select=False,
                template=None):
@@ -126,7 +131,7 @@ class OperatingSys(Base):
                     self.field_update("operatingsys.major_version",
                                       major_version)
             self._configure_os(archs, ptables, mediums, select,
-                               minor_version, os_family, template,
+                               minor_version, description, os_family, template,
                                arch_list=new_archs, ptable_list=new_ptables,
                                medium_list=new_mediums)
             self.find_element(common_locators["submit"]).click()
