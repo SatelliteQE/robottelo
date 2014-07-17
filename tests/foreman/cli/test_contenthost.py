@@ -27,8 +27,8 @@ class TestContentHost(CLITestCase):
     """
 
     NEW_ORG = None
-    NEW_CW = None
-    PROMOTED_CW = None
+    NEW_CV = None
+    PROMOTED_CV = None
     NEW_LIFECYCLE = None
     LIBRARY = None
     DEFAULT_CV = None
@@ -58,12 +58,12 @@ class TestContentHost(CLITestCase):
                  u'name': u'Default Organization View'}
             )
             TestContentHost.DEFAULT_CV = cv_result.stdout
-        if TestContentHost.NEW_CW is None:
-            TestContentHost.NEW_CW = make_content_view(
+        if TestContentHost.NEW_CV is None:
+            TestContentHost.NEW_CV = make_content_view(
                 {u'organization-id': TestContentHost.NEW_ORG['id']}
             )
-            TestContentHost.PROMOTED_CW = None
-            cw_id = TestContentHost.NEW_CW['id']
+            TestContentHost.PROMOTED_CV = None
+            cw_id = TestContentHost.NEW_CV['id']
             ContentView.publish({u'id': cw_id})
             result = ContentView.version_list({u'content-view-id': cw_id})
             version_id = result.stdout[0]['id']
@@ -73,7 +73,7 @@ class TestContentHost(CLITestCase):
                 u'organization-id': TestContentHost.NEW_ORG['id']
             })
             if promotion.stderr == []:
-                TestContentHost.PROMOTED_CW = TestContentHost.NEW_CW
+                TestContentHost.PROMOTED_CV = TestContentHost.NEW_CW
 
     @data(
         {u'name': generate_string('alpha', 15)},
@@ -250,18 +250,18 @@ class TestContentHost(CLITestCase):
         @Assert: Content host is created using new published, promoted cv
         """
 
-        if TestContentHost.PROMOTED_CW is None:
+        if TestContentHost.PROMOTED_CV is None:
             self.fail("Couldn't prepare promoted contentview for this test")
 
         new_system = make_content_host({
             u'name': generate_string('alpha', 15),
             u'organization-id': TestContentHost.NEW_ORG['id'],
-            u'content-view-id': TestContentHost.PROMOTED_CW['id'],
+            u'content-view-id': TestContentHost.PROMOTED_CV['id'],
             u'environment-id': TestContentHost.NEW_LIFECYCLE['id']})
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['content-view'],
-            TestContentHost.PROMOTED_CW['name'],
+            TestContentHost.PROMOTED_CV['name'],
             "Content Views don't match"
         )
 
@@ -303,11 +303,14 @@ class TestContentHost(CLITestCase):
         @Feature: Content Hosts
         @Assert: Content host is created and name is updated
         """
-
-        new_system = make_content_host({
-            u'organization-id': self.NEW_ORG['id'],
-            u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+        new_system = None
+        try:
+            new_system = make_content_host({
+                u'organization-id': self.NEW_ORG['id'],
+                u'content-view-id': self.DEFAULT_CV['id'],
+                u'environment-id': self.LIBRARY['id']})
+        except Exception as e:
+                self.fail(e)
         # Assert that name does not matches data passed
         self.assertNotEqual(
             new_system['name'],
