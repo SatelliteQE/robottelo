@@ -1,6 +1,7 @@
 """Data-driven unit tests for multiple paths."""
 from ddt import data, ddt
 from robottelo.api import client
+from robottelo.api.utils import status_code_error
 from robottelo.common.helpers import get_server_url, get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -9,35 +10,12 @@ import httplib
 # (too many public methods) pylint: disable=R0904
 
 
-def _status_code_error(path, desired, response):
-    """Return an error message.
-
-    ``desired`` and ``path`` are used as-is. The following must be present on
-    ``response``:
-
-    * ``response.status_code``
-    * ``response.json()``
-
-    :param int desired: The desired return status code.
-    :param str path: The path to which a request was sent.
-    :param response: The ``Response`` object returned.
-    :return: An error message.
-    :rtype: str
-
-    """
-    try:
-        err_msg = response.json().get('error', 'No error message provided.')
-    except ValueError:
-        err_msg = 'Could not decode response; not in JSON format.'
-    return 'Desired HTTP {0} but received HTTP {1} after sending request to ' \
-        '{2}. {3}'.format(desired, response.status_code, path, err_msg)
-
-
 @ddt
 class EntityTestCase(TestCase):
     """Issue HTTP GET and POST requests to base entity URLs."""
     @data(
         entities.Architecture,
+        entities.Domain,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
@@ -59,12 +37,13 @@ class EntityTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
         entities.Architecture,
+        entities.Domain,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
@@ -82,14 +61,17 @@ class EntityTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
 
     @data(
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_post(self, entity):
         """@Test: POST to an entity-dependent path.
@@ -100,7 +82,7 @@ class EntityTestCase(TestCase):
         path = urljoin(get_server_url(), entity.Meta.api_path[0])
         response = client.post(
             path,
-            entity().build(fmt='api'),
+            entity().build(),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -108,15 +90,19 @@ class EntityTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Host,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_post_unauthorized(self, entity):
         """@Test: POST to an entity-dependent path without credentials.
@@ -130,7 +116,7 @@ class EntityTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
 
 
@@ -138,10 +124,14 @@ class EntityTestCase(TestCase):
 class EntityIdTestCase(TestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_get(self, entity):
         """@Test: Create an entity and GET it.
@@ -163,15 +153,19 @@ class EntityIdTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_put(self, entity):
         """@Test Create an entity and update (PUT) it.
@@ -186,7 +180,7 @@ class EntityIdTestCase(TestCase):
         )
         response = client.put(
             path,
-            entity().attributes(fmt='api'),
+            entity().attributes(),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -194,15 +188,19 @@ class EntityIdTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
     )
     def test_delete(self, entity):
         """@Test Create an entity, fetch it, DELETE it, and fetch it again.
@@ -225,7 +223,7 @@ class EntityIdTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
         response = client.get(
             path,
@@ -236,5 +234,5 @@ class EntityIdTestCase(TestCase):
         self.assertEqual(
             status_code,
             response.status_code,
-            _status_code_error(path, status_code, response),
+            status_code_error(path, status_code, response),
         )
