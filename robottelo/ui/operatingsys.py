@@ -29,12 +29,12 @@ class OperatingSys(Base):
         tab_medium_locator = tab_locators["operatingsys.tab_medium"]
 
         if minor_version:
-            if self.wait_until_element(locators
-                                       ["operatingsys.minor_version"]):
+            if self.wait_until_element(
+                    locators["operatingsys.minor_version"]):
                 self.field_update("operatingsys.minor_version", minor_version)
         if description:
-            if self.wait_until_element(locators
-                                       ["operatingsys.description"]):
+            if self.wait_until_element(
+                    locators["operatingsys.description"]):
                 self.field_update("operatingsys.description", description)
         if os_family:
             Select(self.find_element(locators
