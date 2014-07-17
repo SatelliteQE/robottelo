@@ -16,14 +16,15 @@ class ComputeResource(Base):
     def _configure_resource(self, provider_type, url,
                             user, password, region,
                             libvirt_display, tenant,
-                            libvirt_set_passwd, desc=None):
+                            libvirt_set_passwd, description=None):
         """
         Configures the compute resource.
         """
-        if desc:
-            desc_ele = self.wait_until_element(
+        if description:
+            description_element = self.wait_until_element(
                 locators['resource.description'])
-            desc_ele.send_keys(desc)
+            description_element.clear()
+            description_element.send_keys(description)
         if provider_type:
             type_ele = self.find_element(locators["resource.provider_type"])
             Select(type_ele).select_by_visible_text(provider_type)
@@ -56,7 +57,7 @@ class ComputeResource(Base):
         self.find_element(locators["resource.test_connection"]).click()
         self.wait_for_ajax()
 
-    def create(self, name, orgs, desc=None, org_select=True,
+    def create(self, name, orgs, description=None, org_select=True,
                provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
                libvirt_set_passwd=True, tenant=None):
@@ -68,7 +69,7 @@ class ComputeResource(Base):
             self.find_element(locators["resource.name"]).send_keys(name)
         self._configure_resource(provider_type, url, user, password, region,
                                  libvirt_display, tenant, libvirt_set_passwd,
-                                 desc=desc)
+                                 description=description)
         if orgs:
             self.configure_entity(orgs, FILTER['cr_org'],
                                   tab_locator=tab_locators["tab_org"],
@@ -87,7 +88,7 @@ class ComputeResource(Base):
     def update(self, oldname, newname, orgs, new_orgs, org_select=False,
                provider_type=None, url=None, user=None, password=None,
                region=None, libvirt_display=None, libvirt_set_passwd=True,
-               tenant=None):
+               tenant=None, new_description=None):
         """
         Updates a compute resource.
         """
@@ -100,7 +101,8 @@ class ComputeResource(Base):
                 self.field_update("resource.name", newname)
             self._configure_resource(provider_type, url, user, password,
                                      region, libvirt_display, tenant,
-                                     libvirt_set_passwd)
+                                     libvirt_set_passwd,
+                                     description=new_description)
             if orgs is not None or new_orgs is not None:
                 self.configure_entity(orgs, FILTER['cr_org'],
                                       tab_locator=tab_locators["tab_org"],
