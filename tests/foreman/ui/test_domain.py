@@ -111,8 +111,11 @@ class Domain(UITestCase):
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)
             self.assertIsNotNone(element)
-            self.domain.set_domain_parameter(description, param_name,
-                                             param_value)
+            try:
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
+            except Exception as e:
+                self.fail(e)
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
@@ -129,6 +132,8 @@ class Domain(UITestCase):
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)
             self.assertIsNotNone(element)
-            self.domain.set_domain_parameter(description, param_name,
-                                             param_value)
-            self.domain.remove_domain_parameter(description, param_name)
+            try:
+                self.domain.set_domain_parameter(description, param_name, param_value)
+                self.domain.remove_domain_parameter(description, param_name)
+            except Exception as e:
+                self.fail(e)
