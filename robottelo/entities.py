@@ -18,11 +18,11 @@ from robottelo import factory, orm
 
 class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Activtion Key entity."""
-    organization_id = orm.OneToOneField('Organization', required=True)
+    organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    environment_id = orm.OneToOneField('Environment')
-    content_view_id = orm.OneToOneField('ContentView')
+    environment = orm.OneToOneField('Environment')
+    content_view = orm.OneToOneField('ContentView')
     # maximum number of registered content hosts, or 'unlimited'
     usage_limit = orm.IntegerField()
 
@@ -42,9 +42,6 @@ class Architecture(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = (
             '/api/v2/architectures',  # Create an architecture.
-        )
-        api_names = (
-            ('operatingsystems', 'operatingsystem_ids'),
         )
 
 
@@ -281,7 +278,7 @@ class ContentViewPuppetModule(orm.Entity):
 
 class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
-    organization_id = orm.OneToOneField('Organization', required=True)
+    organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     label = orm.StringField()
     composite = orm.BooleanField()
@@ -805,7 +802,7 @@ class Permission(orm.Entity):
 
 class Product(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Product entity."""
-    organization_id = orm.OneToOneField('Organization', required=True)
+    organization = orm.OneToOneField('Organization', required=True)
     description = orm.StringField()
     gpg_key = orm.OneToOneField('GPGKey')
     sync_plan = orm.OneToOneField('SyncPlan', null=True)
@@ -881,7 +878,7 @@ class Repository(orm.Entity, factory.EntityFactoryMixin):
     name = orm.StringField(required=True)
     label = orm.StringField()
     # Product the repository belongs to
-    product_id = orm.OneToOneField('Product', required=True)
+    product = orm.OneToOneField('Product', required=True)
     # repository source url
     url = orm.URLField(required=True)
     # id of the gpg key that will be assigned to the new repository

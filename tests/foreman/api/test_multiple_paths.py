@@ -82,7 +82,7 @@ class EntityTestCase(TestCase):
         path = urljoin(get_server_url(), entity.Meta.api_path[0])
         response = client.post(
             path,
-            entity().build(fmt='api'),
+            entity().build(),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -180,7 +180,7 @@ class EntityIdTestCase(TestCase):
         )
         response = client.put(
             path,
-            entity().attributes(fmt='api'),
+            entity().attributes(),
             auth=get_server_credentials(),
             verify=False,
         )
