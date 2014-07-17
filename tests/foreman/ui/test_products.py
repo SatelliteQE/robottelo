@@ -128,10 +128,10 @@ class Products(UITestCase):
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.products.create(prd_name, description)
-        error = self.products.wait_until_element(locator)
-        self.assertIsNotNone(error)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.products.create(prd_name, description)
+            error = self.products.wait_until_element(locator)
+            self.assertIsNotNone(error)
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
@@ -147,9 +147,9 @@ class Products(UITestCase):
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.products.update(prd_name, new_name=new_prd_name)
-        self.assertIsNotNone(self.products.search(new_prd_name))
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.products.update(prd_name, new_name=new_prd_name)
+            self.assertIsNotNone(self.products.search(new_prd_name))
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
@@ -166,10 +166,10 @@ class Products(UITestCase):
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.products.update(prd_name, new_name=new_prd_name)
-        error = self.products.wait_until_element(locator)
-        self.assertIsNotNone(error)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.products.update(prd_name, new_name=new_prd_name)
+            error = self.products.wait_until_element(locator)
+            self.assertIsNotNone(error)
 
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
@@ -184,6 +184,6 @@ class Products(UITestCase):
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.products.delete(prd_name, True)
-        self.assertIsNone(self.products.search(prd_name))
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.products.delete(prd_name, True)
+            self.assertIsNone(self.products.search(prd_name))
