@@ -63,9 +63,9 @@ class TestContentHost(CLITestCase):
                 {u'organization-id': TestContentHost.NEW_ORG['id']}
             )
             TestContentHost.PROMOTED_CV = None
-            cw_id = TestContentHost.NEW_CV['id']
-            ContentView.publish({u'id': cw_id})
-            result = ContentView.version_list({u'content-view-id': cw_id})
+            cv_id = TestContentHost.NEW_CV['id']
+            ContentView.publish({u'id': cv_id})
+            result = ContentView.version_list({u'content-view-id': cv_id})
             version_id = result.stdout[0]['id']
             promotion = ContentView.version_promote({
                 u'id': version_id,
@@ -73,7 +73,7 @@ class TestContentHost(CLITestCase):
                 u'organization-id': TestContentHost.NEW_ORG['id']
             })
             if promotion.stderr == []:
-                TestContentHost.PROMOTED_CV = TestContentHost.NEW_CW
+                TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
 
     @data(
         {u'name': generate_string('alpha', 15)},
