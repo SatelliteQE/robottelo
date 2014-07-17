@@ -52,7 +52,7 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @ skip_if_bz_bug_open("1120271")
+    @skip_if_bz_bug_open("1120271")
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=255))
     def test_create_resource_2(self, name):
@@ -72,14 +72,33 @@ class ComputeResource(UITestCase):
             self.assertIsNotNone(search)
 
     @attr('ui', 'resource', 'implemented')
+    @data(*generate_strings_list(len1=255))
+    def test_create_resource_3(self, desc):
+        """
+        @Test: Create a new libvirt Compute Resource with 255 char desc.
+        @Feature: Compute Resource - Create with long desc.
+        @Assert: A libvirt Compute Resource is not created with 256 char desc.
+        """
+        name = generate_string("alpha", 8)
+        org_name = generate_string("alpha", 8)
+        libvirt_url = "qemu+tcp://%s:16509/system"
+        provider_type = FOREMAN_PROVIDERS['libvirt']
+        url = (libvirt_url % conf.properties['main.server.hostname'])
+        with Session(self.browser) as session:
+            make_resource(session, name=name, orgs=[org_name], desc=desc,
+                          provider_type=provider_type, url=url)
+            search = self.compute_resource.search(name)
+            self.assertIsNotNone(search)
+
+    @skip_if_bz_bug_open("1120271")
+    @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
-    def test_create_resource_negative_1(self):
+    def test_create_resource_negative_1(self, name):
         """
         @Test: Create a new libvirt Compute Resource with 256 char name
         @Feature: Compute Resource - Create
         @Assert: A libvirt Compute Resource is not created
         """
-        name = generate_string("alpha", 256)
         org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
@@ -90,7 +109,28 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    def test_create_resource_negative_2(self):
+    @skip_if_bz_bug_open("1120271")
+    @attr('ui', 'resource', 'implemented')
+    @data(*generate_strings_list(len1=256))
+    def test_create_resource_negative_2(self, desc):
+        """
+        @Test: Create a new libvirt Compute Resource with 256 char desc.
+        @Feature: Compute Resource - Create with long desc.
+        @Assert: A libvirt Compute Resource is not created with 256 char desc.
+        """
+        name = generate_string("alpha", 8)
+        org_name = generate_string("alpha", 8)
+        libvirt_url = "qemu+tcp://%s:16509/system"
+        provider_type = FOREMAN_PROVIDERS['libvirt']
+        url = (libvirt_url % conf.properties['main.server.hostname'])
+        with Session(self.browser) as session:
+            make_resource(session, name=name, orgs=[org_name], desc=desc,
+                          provider_type=provider_type, url=url)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
+
+    def test_create_resource_negative_3(self):
         """
         @Test: Create a new libvirt Compute Resource with whitespace
         @Feature: Compute Resource - Create
@@ -108,7 +148,7 @@ class ComputeResource(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    def test_create_resource_negative_3(self):
+    def test_create_resource_negative_4(self):
         """
         @Test: Create a new libvirt Compute Resource with name blank
         @Feature: Compute Resource - Create
