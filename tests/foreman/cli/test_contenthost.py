@@ -247,7 +247,7 @@ class TestContentHost(CLITestCase):
         """
         @Test: Check if content host can be created with new content view
         @Feature: Content Hosts
-        @Assert: Content host is created using new published, promoted content view
+        @Assert: Content host is created using new published, promoted cv
         """
 
         if TestContentHost.PROMOTED_CW is None:
@@ -467,4 +467,3 @@ class TestContentHost(CLITestCase):
             0,
             "Expected an error here"
         )
-
