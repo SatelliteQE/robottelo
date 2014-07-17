@@ -133,7 +133,8 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name, param_value)
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
                 self.domain.remove_domain_parameter(description, param_name)
             except Exception as e:
                 self.fail(e)
