@@ -141,7 +141,7 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
             new_name = generate_string("alpha", 256)
-            self.org.update(loc_name, new_name=new_name)
+            self.location.update(loc_name, new_name=new_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -177,13 +177,12 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_add_subnet_1(self):
+    def test_add_subnet_1(self, subnet_name):
         """
         @test: Add a subnet by using location name and subnet name
         @feature: Locations
         @assert: subnet is added
         """
-        subnet_name = "fed121"
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
