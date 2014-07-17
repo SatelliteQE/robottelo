@@ -126,7 +126,7 @@ PRDS = {'rhcf': "Red Hat CloudForms",
 REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
            'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)"}
 
-DEFAULT_ORG = "acme"
+DEFAULT_ORG = "Default_Organization"
 
 LANGUAGES = ["de", "en", "en_GB",
              "es", "fr", "gl",
