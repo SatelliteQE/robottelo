@@ -252,6 +252,7 @@ def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
     create_args = {
         'name': None,
         'orgs': None,
+        'desc': None,
         'org_select': False,
         'provider_type': None,
         'url': None,
