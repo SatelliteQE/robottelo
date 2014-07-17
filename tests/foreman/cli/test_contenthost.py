@@ -27,6 +27,8 @@ class TestContentHost(CLITestCase):
     """
 
     NEW_ORG = None
+    NEW_CV = None
+    PROMOTED_CV = None
     NEW_LIFECYCLE = None
     LIBRARY = None
     DEFAULT_CV = None
@@ -56,6 +58,22 @@ class TestContentHost(CLITestCase):
                  u'name': u'Default Organization View'}
             )
             TestContentHost.DEFAULT_CV = cv_result.stdout
+        if TestContentHost.NEW_CV is None:
+            TestContentHost.NEW_CV = make_content_view(
+                {u'organization-id': TestContentHost.NEW_ORG['id']}
+            )
+            TestContentHost.PROMOTED_CV = None
+            cv_id = TestContentHost.NEW_CV['id']
+            ContentView.publish({u'id': cv_id})
+            result = ContentView.version_list({u'content-view-id': cv_id})
+            version_id = result.stdout[0]['id']
+            promotion = ContentView.version_promote({
+                u'id': version_id,
+                u'environment-id': TestContentHost.NEW_LIFECYCLE['id'],
+                u'organization-id': TestContentHost.NEW_ORG['id']
+            })
+            if promotion.stderr == []:
+                TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
 
     @data(
         {u'name': generate_string('alpha', 15)},
@@ -224,29 +242,26 @@ class TestContentHost(CLITestCase):
             "Environments don't match"
         )
 
-    @skip_if_bz_bug_open(1114046)
     @attr('cli', 'content-host')
     def test_positive_create_8(self):
         """
         @Test: Check if content host can be created with new content view
         @Feature: Content Hosts
-        @Assert: Content host is created using new content view
-        @BZ: 1114046
+        @Assert: Content host is created using new published, promoted cv
         """
 
-        # Make a new content view
-        new_cv = make_content_view({
-            u'organization-id': self.NEW_ORG['id']})
+        if TestContentHost.PROMOTED_CV is None:
+            self.fail("Couldn't prepare promoted contentview for this test")
 
         new_system = make_content_host({
             u'name': generate_string('alpha', 15),
-            u'organization-id': self.NEW_ORG['id'],
-            u'content-view-id': new_cv['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'organization-id': TestContentHost.NEW_ORG['id'],
+            u'content-view-id': TestContentHost.PROMOTED_CV['id'],
+            u'environment-id': TestContentHost.NEW_LIFECYCLE['id']})
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['content-view'],
-            new_cv['name'],
+            TestContentHost.PROMOTED_CV['name'],
             "Content Views don't match"
         )
 
@@ -288,11 +303,14 @@ class TestContentHost(CLITestCase):
         @Feature: Content Hosts
         @Assert: Content host is created and name is updated
         """
-
-        new_system = make_content_host({
-            u'organization-id': self.NEW_ORG['id'],
-            u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+        new_system = None
+        try:
+            new_system = make_content_host({
+                u'organization-id': self.NEW_ORG['id'],
+                u'content-view-id': self.DEFAULT_CV['id'],
+                u'environment-id': self.LIBRARY['id']})
+        except Exception as e:
+                self.fail(e)
         # Assert that name does not matches data passed
         self.assertNotEqual(
             new_system['name'],
