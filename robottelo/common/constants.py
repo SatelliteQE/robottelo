@@ -32,12 +32,14 @@ HTML_TAGS = [
     'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL', 'VAR']
 
 OPERATING_SYSTEMS = [
-    'Archlinux',
+    'Aix'
+    'Arch Linux',
     'Debian',
+    'FreeBSD'
     'Gentoo',
-    'Redhat',
+    'Red Hat',
     'Solaris',
-    'Suse',
+    'SUSE',
     'Windows',
 ]
 

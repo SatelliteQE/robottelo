@@ -1,12 +1,15 @@
 # -*- encoding: utf-8 -*-
 
 from robottelo.common.helpers import update_dictionary
+from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hostgroup import Hostgroup
+from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
+from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
@@ -272,3 +275,54 @@ def make_templates(session, org=None, loc=None, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
     Template(session.browser).create(**create_args)
+
+
+def make_os(session, org=None, loc=None, **kwargs):
+    """
+    Creates an Operating system
+    """
+    create_args = {
+        'name': None,
+        'major_version': None,
+        'minor_version': None,
+        'description': None,
+        'os_family': None,
+        'archs': None,
+        'ptables': None,
+        'mediums': None,
+        'select': True,
+        'template': None
+    }
+    page = session.nav.go_to_operating_systems
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    OperatingSys(session.browser).create(**create_args)
+
+
+def make_arch(session, org=None, loc=None, **kwargs):
+    """
+    Creates new architecture from webUI
+    """
+    create_args = {
+        'name': None,
+        'os_names': None
+    }
+    page = session.nav.go_to_architectures
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Architecture(session.browser).create(**create_args)
+
+
+def make_partitiontable(session, org=None, loc=None, **kwargs):
+    """
+    Creates new Partition table from webUI
+    """
+    create_args = {
+        'name': None,
+        'layout': None,
+        'os_family': None
+    }
+    page = session.nav.go_to_partition_tables
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    PartitionTable(session.browser).create(**create_args)

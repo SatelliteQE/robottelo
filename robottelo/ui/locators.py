@@ -593,6 +593,7 @@ locators = {
     "operatingsys.name": (By.ID, "operatingsystem_name"),
     "operatingsys.major_version": (By.ID, "operatingsystem_major"),
     "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
+    "operatingsys.description": (By.ID, "operatingsystem_description"),
     "operatingsys.family": (By.ID, "operatingsystem_family"),
     "operatingsys.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
