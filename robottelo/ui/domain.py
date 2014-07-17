@@ -41,20 +41,22 @@ class Domain(Base):
             raise Exception(
                 "Could not create new domain '%s'" % name)
 
-    def search(self, name):
+    def search(self, description, timeout=None):
         """
         Searches existing domain from UI
         """
         Navigator(self.browser).go_to_domains()
-        element = self.search_entity(name,
-                                     locators['domain.domain_description'])
+        element = self.search_entity(description,
+                                     locators["domain.domain_description"],
+                                     timeout=timeout)
         return element
 
-    def delete(self, name, really):
+    def delete(self, description, really):
         """
         Delete existing domain from UI
         """
-        self.delete_entity(name, really, locators['domain.domain_description'],
+        self.delete_entity(description, really,
+                           locators['domain.domain_description'],
                            locators['domain.delete'])
 
     def update(self, old_description, new_name=None,
