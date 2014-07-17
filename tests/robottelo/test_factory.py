@@ -13,19 +13,13 @@ SAMPLE_FACTORY_COST = 150
 
 class SampleFactory(factory.Factory):
     """An example factory which overrides all four overridable methods."""
-    def _get_path(self):
+    def _factory_path(self):
         """Return a path for creating a "Sample" entity."""
         return 'api/v2/samples'
 
-    def _get_values(self):
+    def _factory_data(self):
         """Return a "Sample" entity's field names and types."""
         return {'name': SAMPLE_FACTORY_NAME, 'cost': SAMPLE_FACTORY_COST}
-
-    def _get_field_names(self, fmt):
-        """Return alternate field names for a "Sample"."""
-        if fmt == 'api':
-            return (('name', 'sample[name]'), ('cost', 'sample[cost]'))
-        return tuple()
 
     def _unpack_response(self, response):
         """Unpack the server's response after creating an entity."""
@@ -37,11 +31,11 @@ class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
     def json(self):  # (no-self-use) pylint:disable=R0201
         """A stub method that returns the same data every time.
 
-        :return: ``{'sample': SampleFactory()._get_values()}``
+        :return: ``{'sample': SampleFactory()._factory_data()}``
 
         """
         # (protected-access) pylint:disable=W0212
-        return {'sample': SampleFactory()._get_values()}
+        return {'sample': SampleFactory()._factory_data()}
 
 
 class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
@@ -133,32 +127,28 @@ class CopyAndUpdateKeysTestCase(TestCase):
 
 
 class FactoryTestCase(TestCase):
-    """Tests for class ``Factory``."""
+    """Tests for :class:`robottelo.factory.Factory`."""
     # (protected-access) pylint:disable=W0212
-    def test__get_field_names(self):
-        """Call ``_get_field_names``. Assert the method returns a tuple."""
-        self.assertEqual(tuple(), factory.Factory()._get_field_names(None))
-
-    def test__get_values(self):
-        """Call ``_get_values``.
+    def test__factory_data(self):
+        """Call :meth:`robottelo.factory.Factory._factory_data`.
 
         Ensure the method raises a ``NotImplementedError`` exception.
 
         """
         with self.assertRaises(NotImplementedError):
-            factory.Factory()._get_values()
+            factory.Factory()._factory_data()
 
-    def test__get_path(self):
-        """Call ``_get_path``.
+    def test__factory_path(self):
+        """Call :meth:`robottelo.factory.Factory._factory_path`.
 
         Ensure the method raises a ``NotImplementedError`` exception.
 
         """
         with self.assertRaises(NotImplementedError):
-            factory.Factory()._get_path()
+            factory.Factory()._factory_path()
 
     def test__unpack_response(self):
-        """Call ``_unpack_response``.
+        """Call :meth:`robottelo.factory.Factory._unpack_response`.
 
         Ensure the method returns the response untouched.
 
@@ -195,29 +185,14 @@ class SampleFactoryTestCase(TestCase):
     def test_attributes(self):
         """Call ``attributes`` with no arguments.
 
-        Assert that the values provided by ``_get_values`` are returned
+        Assert that the values provided by ``_factory_data`` are returned
         untouched.
 
         """
         self.assertEqual(
-            SampleFactory()._get_values(),
+            SampleFactory()._factory_data(),
             SampleFactory().attributes()
         )
-
-    def test_attributes_fmt(self):
-        """Call ``attributes`` and specify the ``fmt`` argument.
-
-        Use the ``fmt`` argument to ask for a variety of output formats.
-        Assert that the key names returned are adjusted appropriately.
-
-        """
-        attrs = SampleFactory().attributes('no-op')
-        self.assertIn('name', attrs.keys())
-        self.assertIn('cost', attrs.keys())
-
-        attrs = SampleFactory().attributes('api')
-        self.assertIn('sample[name]', attrs.keys())
-        self.assertIn('sample[cost]', attrs.keys())
 
     def test_attributes_fields(self):
         """Call ``attributes`` and specify the ``fields`` argument.
@@ -249,29 +224,6 @@ class SampleFactoryTestCase(TestCase):
             ),
         )
 
-    def test_attributes_fmt_fields(self):
-        """Call ``attributes`` and provide values for ``fmt`` and ``fields``.
-
-        Assert that the values provided by ``fields`` are used and that key
-        names are adjusted according to ``fmt``.
-
-        """
-        cost = FauxFactory.generate_integer()
-        val = FauxFactory.generate_boolean()
-        attrs = SampleFactory().attributes('api', {'cost': cost, 'val': val})
-
-        self.assertIn('sample[name]', attrs.keys())
-        self.assertIn('sample[cost]', attrs.keys())
-        self.assertIn('val', attrs.keys())
-        self.assertEqual(
-            {
-                'sample[name]': SAMPLE_FACTORY_NAME,
-                'sample[cost]': cost,
-                'val': val,
-            },
-            attrs
-        )
-
     def test_create(self):
         """Call ``create`` with no arguments.
 
@@ -281,7 +233,7 @@ class SampleFactoryTestCase(TestCase):
         """
         client.post = lambda url, data=None, **kwargs: MockResponse()
         self.assertEqual(
-            SampleFactory()._get_values(),  # See: MockResponse.json
+            SampleFactory()._factory_data(),  # See: MockResponse.json
             SampleFactory().create()
         )
 
@@ -295,14 +247,3 @@ class SampleFactoryTestCase(TestCase):
         client.post = lambda url, data=None, **kwargs: MockErrorResponse()
         with self.assertRaises(factory.FactoryError):
             SampleFactory().create()
-
-    def test_create_fmt(self):
-        """Call ``create`` and specify the ``fmt`` argument.
-
-        Assert that the response keys are formatted correctly.
-
-        """
-        client.post = lambda url, data=None, **kwargs: MockResponse()
-        attrs = SampleFactory().create('api')
-        self.assertIn('sample[name]', attrs.keys())
-        self.assertIn('sample[cost]', attrs.keys())
