@@ -24,9 +24,7 @@ from robottelo.test import CLITestCase
 class TestSmoke(CLITestCase):
     """Smoke tests for a brand new Satellite installation"""
 
-    org = None
-    product = None
-
+    @attr('smoke')
     def test_find_default_org(self):
         """
         @Test: Check if Default_Organization is present
@@ -52,6 +50,7 @@ class TestSmoke(CLITestCase):
             "Could not find the Default_Organization"
         )
 
+    @attr('smoke')
     def test_find_default_location(self):
         """
         @Test: Check if Default_Location is present
@@ -77,6 +76,7 @@ class TestSmoke(CLITestCase):
             "Could not find the Default_Location"
         )
 
+    @attr('smoke')
     def test_find_admin_user(self):
         """
         @Test: Check if Admin User is present
@@ -109,6 +109,7 @@ class TestSmoke(CLITestCase):
                 result.stdout['admin'])
         )
 
+    @attr('smoke')
     def test_smoke(self):
         """
         @Test: Check that basic content can be created as new user

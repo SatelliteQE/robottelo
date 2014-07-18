@@ -69,7 +69,8 @@ class TestContentHost(CLITestCase):
             version_id = result.stdout[0]['id']
             promotion = ContentView.version_promote({
                 u'id': version_id,
-                u'environment-id': TestContentHost.NEW_LIFECYCLE['id'],
+                u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE[
+                    'id'],
                 u'organization-id': TestContentHost.NEW_ORG['id']
             })
             if promotion.stderr == []:

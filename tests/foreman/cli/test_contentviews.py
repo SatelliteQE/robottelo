@@ -795,7 +795,7 @@ class TestContentView(CLITestCase):
         # Promote the Published version of CV to the next env
         result = ContentView.version_promote(
             {u'id': result.stdout['versions'][0]['id'],
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertEqual(result.return_code, 0,
                          "Promoting a version of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -892,7 +892,7 @@ class TestContentView(CLITestCase):
 
         result = ContentView.version_promote(
             {u'id': result.stdout['versions'][0]['id'],
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertEqual(result.return_code, 0,
                          "Promoting a version of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -929,7 +929,7 @@ class TestContentView(CLITestCase):
 
         result = ContentView.version_promote(
             {u'id': cv_id,
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here.")
@@ -983,7 +983,8 @@ class TestContentView(CLITestCase):
         # to the previous env which is Library
         result = ContentView.version_promote(
             {u'id': result.stdout['versions'][0]['id'],
-             u'environment-id': result.stdout['environments'][0]['id']})
+             u'lifecycle-environment-id': result.stdout[
+                 'environments'][0]['id']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here.")
@@ -1222,7 +1223,7 @@ class TestContentView(CLITestCase):
         # Promotion of version1 to Dev env
         result = ContentView.version_promote(
             {u'id': version1_id,
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertEqual(result.return_code, 0,
                          "Promoting version1 of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -1264,7 +1265,7 @@ class TestContentView(CLITestCase):
         # Promotion of version2 to Dev env
         result = ContentView.version_promote(
             {u'id': version2_id,
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertEqual(result.return_code, 0,
                          "Promoting version2 of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -1346,7 +1347,7 @@ class TestContentView(CLITestCase):
         # Promotion of version1 to Dev env
         result = ContentView.version_promote(
             {u'id': version1_id,
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertEqual(result.return_code, 0,
                          "Promoting version1 of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -1391,7 +1392,7 @@ class TestContentView(CLITestCase):
         # Promotion of version2 to next env
         result = ContentView.version_promote(
             {u'id': version2_id,
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         self.assertEqual(result.return_code, 0,
                          "Promoting version2 of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
