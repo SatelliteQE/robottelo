@@ -222,6 +222,55 @@ class OperatingSys(UITestCase):
                                  (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
+    @skip_if_bz_bug_open(1120199)
+    def test_negative_create_os_7(self):
+        """
+        @Test: OS - Create a new OS with -ve value of major version
+        @Feature: Create a new OS - Negative
+        @Assert: OS is not created
+        @BZ: 1120199
+        """
+        name = generate_string("alpha", 6)
+        major_version = "-6"
+        minor_version = "-5"
+        os_family = "Red Hat"
+        arch = "x86_64"
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version,
+                    minor_version=minor_version,
+                    os_family=os_family, archs=[arch])
+            self.assertIsNotNone(self.operatingsys.wait_until_element
+                                 (common_locators["alert.error"]))
+            self.assertIsNone(self.operatingsys.search(name))
+
+    @skip_if_bz_bug_open(1120985)
+    def test_negative_create_os_8(self):
+        """
+        @Test: OS - Create a new OS with same name and version
+        @Feature: Create a new OS - Negative
+        @Assert: OS is not created
+        @BZ: 1120985
+        """
+        name = generate_string("alpha", 6)
+        major_version = generate_string('numeric', 1)
+        minor_version = generate_string('numeric', 1)
+        os_family = "Red Hat"
+        arch = "x86_64"
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version,
+                    minor_version=minor_version,
+                    os_family=os_family, archs=[arch])
+            self.assertIsNotNone(self.operatingsys.search(name))
+            make_os(session, name=name,
+                    major_version=major_version,
+                    minor_version=minor_version,
+                    os_family=os_family, archs=[arch])
+            self.assertIsNotNone(self.operatingsys.wait_until_element
+                                (common_locators["haserror"]))
+            self.assertIsNone(self.operatingsys.search(name))
+
     def test_remove_os(self):
         """
         @Test: Delete an existing OS
@@ -379,3 +428,82 @@ class OperatingSys(UITestCase):
                     major_version=major_version)
             self.operatingsys.set_os_parameter(name, param_name, param_value)
             self.operatingsys.remove_os_parameter(name, param_name)
+
+    @skip_if_bz_bug_open(1120663)
+    def test_negative_set_parameter_1(self):
+        """
+        @Test: Set same OS parameter again as it was set earlier
+        @Feature: OS - Negative Update
+        @Assert: Proper error should be raised, Name already taken
+        @BZ: 1120663
+        """
+        name = generate_string("alpha", 4)
+        major_version = generate_string('numeric', 1)
+        param_name = generate_string("alpha", 4)
+        param_value = generate_string("alpha", 3)
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version)
+            self.assertIsNotNone(self.operatingsys.search(name))
+            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            self.assertIsNotNone(self.operatingsys.wait_until_element
+                                 (common_locators["alert.error"]))
+
+    @skip_if_bz_bug_open(1120663)
+    def test_negative_set_parameter_2(self):
+        """
+        @Test: Set OS parameter with blank name and value
+        @Feature: OS - Negative Update
+        @Assert: Proper error should be raised, Name can't contain whitespaces
+        @BZ: 1120663
+        """
+        name = generate_string("alpha", 4)
+        major_version = generate_string('numeric', 1)
+        param_name = " "
+        param_value = " "
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version)
+            self.assertIsNotNone(self.operatingsys.search(name))
+            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            self.assertIsNotNone(self.operatingsys.wait_until_element
+                                (common_locators["alert.error"]))
+
+    @skip_if_bz_bug_open(1120685)
+    def test_negative_set_parameter_3(self):
+        """
+        @Test: Set OS parameter with name and  blank value
+        @Feature: OS - Negative Update
+        @Assert: Proper error should be raised, Name should contain a value
+        @BZ: 1120685
+        """
+        name = generate_string("alpha", 4)
+        major_version = generate_string('numeric', 1)
+        param_name = generate_string("alpha", 4)
+        param_value = ""
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version)
+            self.assertIsNotNone(self.operatingsys.search(name))
+            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            self.assertIsNotNone(self.operatingsys.wait_until_element
+                                 (common_locators["alert.error"]))
+
+    def test_negative_set_parameter_4(self):
+        """
+        @Test: Set OS parameter with name and value exceeding 255 characters
+        @Feature: OS - Negative Update
+        @Assert: Proper error should be raised, Name should contain a value
+        """
+        name = generate_string("alpha", 4)
+        major_version = generate_string('numeric', 1)
+        param_name = generate_string("alpha", 256)
+        param_value = generate_string("alpha", 256)
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version)
+            self.assertIsNotNone(self.operatingsys.search(name))
+            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            self.assertIsNotNone(self.operatingsys.wait_until_element
+                                 (common_locators["alert.error"]))
