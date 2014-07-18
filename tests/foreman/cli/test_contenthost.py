@@ -293,7 +293,7 @@ class TestContentHost(CLITestCase):
         """
         @Test: Check if content host can be created with new content view
         @Feature: Content Hosts
-        @Assert: Content host is created using new published, promoted cv
+        @Assert: Content host is not created using new unpublished cv
         """
 
         con_view = make_content_view(
