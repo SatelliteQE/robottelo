@@ -288,6 +288,24 @@ class TestContentHost(CLITestCase):
                 u'content-view-id': self.DEFAULT_CV['id'],
                 u'environment-id': self.LIBRARY['id']})
 
+    @attr('cli', 'content-host')
+    def test_negative_create_2(self):
+        """
+        @Test: Check if content host can be created with new content view
+        @Feature: Content Hosts
+        @Assert: Content host is not created using new unpublished cv
+        """
+
+        con_view = make_content_view(
+            {u'organization-id': TestContentHost.NEW_ORG['id']}
+        )
+        with self.assertRaises(Exception):
+            make_content_host({
+                u'name': generate_string('alpha', 15),
+                u'organization-id': TestContentHost.NEW_ORG['id'],
+                u'content-view-id': con_view['id'],
+                u'environment-id': TestContentHost.NEW_LIFECYCLE['id']})
+
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
