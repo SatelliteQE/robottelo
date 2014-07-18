@@ -14,7 +14,7 @@ class BaseCliTestCase(unittest.TestCase):
     """Tests for the Base cli class"""
     def setUp(self):
         super(BaseCliTestCase, self).setUp()
-        self.old_properties = conf.properties
+        self.old_properties = conf.properties.copy()
         conf.properties['foreman.admin.username'] = 'configusername'
         conf.properties['foreman.admin.password'] = 'configpassword'
 
