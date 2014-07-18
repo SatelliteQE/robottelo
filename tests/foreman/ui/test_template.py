@@ -7,7 +7,6 @@ Test class for Template UI
 from ddt import ddt
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
-from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       valid_names_list)
 from robottelo.test import UITestCase
@@ -35,19 +34,6 @@ class Template(UITestCase):
             with Session(self.browser) as session:
                 make_org(session, org_name=Template.org_name)
                 make_loc(session, name=Template.loc_name)
-
-    def create_template(self, name, template_path, custom_really,
-                        temp_type, snippet, os_list=None):
-        """
-        Method to creates new template with navigation
-        """
-
-        name = name or generate_string("alpha", 6)
-        temp_type = temp_type
-        self.navigator.go_to_provisioning_templates()
-        self.template.create(name, template_path, custom_really,
-                             temp_type, snippet, os_list)
-        self.assertIsNotNone(self.template.search(name))
 
     @data(*valid_names_list())
     def test_create_template(self):
