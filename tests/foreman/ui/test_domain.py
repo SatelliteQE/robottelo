@@ -6,7 +6,7 @@ Test class for Domain UI
 """
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
@@ -37,10 +37,25 @@ class Domain(UITestCase):
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
-    def test_create_domain(self, name):
+    def test_create_domain_1(self, name):
         """
         @Test: Create a new domain
-        @Feature: Domain - Create
+        @Feature: Domain - Positive Create domain
+        @Assert: Domain is created
+        """
+        domain_name = description = DOMAIN % name
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            element = self.domain.search(description)
+            self.assertIsNotNone(element)
+
+    @attr('ui', 'domain', 'implemented')
+    # The length of chars is in accordance with DOMAIN global variable.
+    @data(*generate_strings_list(len1=243))
+    def test_create_domain_2(self, name):
+        """
+        @Test: Create a new domain
+        @Feature: Domain - Positive Create domain with 255 chars
         @Assert: Domain is created
         """
         domain_name = description = DOMAIN % name
@@ -97,10 +112,51 @@ class Domain(UITestCase):
             self.assertIsNotNone(self.domain.search(new_description))
 
     @attr('ui', 'domain', 'implemented')
-    @data(*generate_strings_list(len1=4))
-    def test_set_parameter(self, name):
+    # The length of chars is in accordance with DOMAIN global variable.
+    @data(*generate_strings_list(len1=244))
+    def test_negative_create_domain_1(self, name):
         """
-        @Test: Set a paramter in a domain
+        @Test: Negative create a domain with name and description\
+        @Feature: Domain - Negative Create
+        @Assert: Domain is not created
+        """
+        domain_name = description = DOMAIN % name
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            element = self.domain.search(description, timeout=5)
+            self.assertIsNone(element)
+
+    def test_negative_create_domain_2(self):
+        """
+        @Test: Negative create a domain with blank name
+        @Feature: Domain - Negative Create
+        @Assert: Domain is not created
+        """
+        domain_name = description = ""
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
+
+    def test_negative_create_domain_3(self):
+        """
+        @Test: Negative create a domain with whitespce name
+        @Feature: Domain - Negative Create
+        @Assert: Domain is not created
+        """
+        domain_name = description = "   "
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
+
+    @attr('ui', 'domain', 'implemented')
+    @data(*generate_strings_list(len1=4))
+    def test_set_parameter_1(self, name):
+        """
+        @Test: Set paramter name and value for domain
         @Feature: Domain - Misc
         @Assert: Domain is updated
         """
@@ -116,6 +172,95 @@ class Domain(UITestCase):
                                                  param_value)
             except Exception as e:
                 self.fail(e)
+
+    def test_set_parameter_2(self):
+        """
+        @Test: Set a paramter in a domain with 255 chars in name and value.
+        @Feature: Domain - Misc.
+        @Assert: Domain parameter is created.
+        """
+        name = generate_string("alpha", 4)
+        domain_name = description = DOMAIN % name
+        param_name = generate_string("alpha", 255)
+        param_value = generate_string("alpha", 255)
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            element = self.domain.search(description)
+            self.assertIsNotNone(element)
+            try:
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
+            except Exception as e:
+                self.fail(e)
+
+    @skip_if_bz_bug_open(1120685)
+    def test_set_parameter_negative_1(self):
+        """
+        @Test: Set a paramter in a domain with blank value.
+        @Feature: Domain - Misc.
+        @Assert: Domain parameter is not updated.
+        """
+        name = generate_string("alpha", 4)
+        domain_name = description = DOMAIN % name
+        param_name = generate_string("alpha", 4)
+        param_value = ""
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            element = self.domain.search(description)
+            self.assertIsNotNone(element)
+            try:
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
+            except Exception as e:
+                self.fail(e)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                common_locators["alert.error"]))
+
+    def test_set_parameter_negative_2(self):
+        """
+        @Test: Set a paramter in a domain with 256 chars in name and value.
+        @Feature: Domain - Misc.
+        @Assert: Domain parameter is not updated.
+        """
+        name = generate_string("alpha", 4)
+        domain_name = description = DOMAIN % name
+        param_name = generate_string("alpha", 256)
+        param_value = generate_string("alpha", 256)
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            element = self.domain.search(description)
+            self.assertIsNotNone(element)
+            try:
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
+            except Exception as e:
+                self.fail(e)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                common_locators["alert.error"]))
+
+    def test_set_parameter_negative_3(self):
+        """
+        @Test: Again set the same paramter for domain with name and value.
+        @Feature: Domain - Misc.
+        @Assert: Domain parameter is not updated.
+        """
+        name = generate_string("alpha", 4)
+        domain_name = description = DOMAIN % name
+        param_name = generate_string("alpha", 8)
+        param_value = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_domain(session, name=domain_name, description=description)
+            element = self.domain.search(description)
+            self.assertIsNotNone(element)
+            try:
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
+                self.domain.set_domain_parameter(description, param_name,
+                                                 param_value)
+            except Exception as e:
+                self.fail(e)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                common_locators["alert.error"]))
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
