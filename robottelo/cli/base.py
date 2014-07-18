@@ -131,15 +131,36 @@ class Base(object):
         return result
 
     @classmethod
+    def _get_username_password(cls, username=None, password=None):
+        """Lookup for the username and password for cli command in following
+        order:
+
+        1. ``user`` or ``password`` parameters
+        2. ``foreman_admin_username`` or ``foreman_admin_password`` attributes
+        3. foreman.admin.username or foreman.admin.password configuration
+
+        :return: A tuple with the username and password found
+        :rtype: tuple
+
+        """
+        if username is None:
+            try:
+                username = getattr(cls, 'foreman_admin_username')
+            except AttributeError:
+                username = conf.properties['foreman.admin.username']
+        if password is None:
+            try:
+                password = getattr(cls, 'foreman_admin_password')
+            except AttributeError:
+                password = conf.properties['foreman.admin.password']
+
+        return (username, password)
+
+    @classmethod
     def execute(cls, command, user=None, password=None,
                 expect_csv=False, timeout=None):
-        """
-        Executes the command
-        """
-        if user is None:
-            user = conf.properties['foreman.admin.username']
-        if password is None:
-            password = conf.properties['foreman.admin.password']
+        """Executes the cli ``command`` on the server via ssh"""
+        user, password = cls._get_username_password(user, password)
 
         output_csv = u""
 
@@ -294,10 +315,14 @@ class Base(object):
         if password is None:
             password = conf.properties['foreman.admin.password']
 
-        class NUserBase(cls):
-            katello_user = username
-            katello_passwd = password
-        return NUserBase
+        class Wrapper(cls):
+            """Wrapper class which defines the foreman admin username and
+            password to be used when executing any cli command.
+
+            """
+            foreman_admin_username = username
+            foreman_admin_password = password
+        return Wrapper
 
     @classmethod
     def _construct_command(cls, options=None):
