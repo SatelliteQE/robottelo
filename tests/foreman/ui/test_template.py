@@ -36,7 +36,7 @@ class Template(UITestCase):
                 make_loc(session, name=Template.loc_name)
 
     @data(*valid_names_list())
-    def test_create_template(self):
+    def test_create_template(self, name):
         """
         @Test: Create new template
         @Feature: Template - Positive Create
@@ -44,7 +44,6 @@ class Template(UITestCase):
         should be created successfully
         """
 
-        name = generate_string("alpha", 6)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
