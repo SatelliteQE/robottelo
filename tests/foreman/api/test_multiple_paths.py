@@ -27,7 +27,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = urljoin(get_server_url(), entity.Meta.api_path)
         response = client.get(
             path,
             auth=get_server_credentials(),
@@ -55,7 +55,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = urljoin(get_server_url(), entity.Meta.api_path)
         response = client.get(path, verify=False)
         status_code = httplib.UNAUTHORIZED
         self.assertEqual(
@@ -79,7 +79,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 201 is returned.
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = urljoin(get_server_url(), entity.Meta.api_path)
         response = client.post(
             path,
             entity().build(),
@@ -110,7 +110,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = urljoin(get_server_url(), entity.Meta.api_path)
         response = client.post(path, verify=False)
         status_code = httplib.UNAUTHORIZED
         self.assertEqual(
@@ -142,7 +142,7 @@ class EntityIdTestCase(TestCase):
         attrs = entity().create()
         path = urljoin(
             get_server_url(),
-            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
+            '{0}/{1}'.format(entity.Meta.api_path, attrs['id'])
         )
         response = client.get(
             path,
@@ -176,7 +176,7 @@ class EntityIdTestCase(TestCase):
         attrs = entity().create()
         path = urljoin(
             get_server_url(),
-            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
+            '{0}/{1}'.format(entity.Meta.api_path, attrs['id'])
         )
         response = client.put(
             path,
@@ -212,7 +212,7 @@ class EntityIdTestCase(TestCase):
         attrs = entity().create()
         path = urljoin(
             get_server_url(),
-            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
+            '{0}/{1}'.format(entity.Meta.api_path, attrs['id'])
         )
         response = client.delete(
             path,

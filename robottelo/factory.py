@@ -281,7 +281,7 @@ class EntityFactoryMixin(Factory):
     """
     def _factory_path(self):
         """Return a path for creating the mixed-in entity."""
-        return self.Meta.api_path[0]
+        return self.Meta.api_path
 
     def _factory_data(self):
         """Return name-value pairs for each required field on the entity.
