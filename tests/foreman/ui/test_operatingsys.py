@@ -411,7 +411,11 @@ class OperatingSys(UITestCase):
             make_os(session, name=name,
                     major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+            except Exception as e:
+                self.fail(e)
 
     def test_remove_parameter(self):
         """
@@ -426,8 +430,12 @@ class OperatingSys(UITestCase):
         with Session(self.browser) as session:
             make_os(session, name=name,
                     major_version=major_version)
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
-            self.operatingsys.remove_os_parameter(name, param_name)
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+                self.operatingsys.remove_os_parameter(name, param_name)
+            except Exception as e:
+                self.fail(e)
 
     @skip_if_bz_bug_open(1120663)
     def test_negative_set_parameter_1(self):
@@ -445,8 +453,13 @@ class OperatingSys(UITestCase):
             make_os(session, name=name,
                     major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+            except Exception as e:
+                self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["alert.error"]))
 
@@ -466,7 +479,11 @@ class OperatingSys(UITestCase):
             make_os(session, name=name,
                     major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+            except Exception as e:
+                self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["alert.error"]))
 
@@ -486,7 +503,11 @@ class OperatingSys(UITestCase):
             make_os(session, name=name,
                     major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+            except Exception as e:
+                self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["alert.error"]))
 
@@ -504,6 +525,10 @@ class OperatingSys(UITestCase):
             make_os(session, name=name,
                     major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.set_os_parameter(name, param_name, param_value)
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+            except Exception as e:
+                self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["alert.error"]))
