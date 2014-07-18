@@ -288,12 +288,12 @@ class EntityFactoryMixin(Factory):
 
         This method does the following:
 
-        1. Ask ``self.get_fields`` for a dict of field names and types.
-           (see :meth:`orm.Entity.get_fields`)
+        1. Ask ``self.get_fields`` for a dict of field names and types. (see
+           :meth:`robottelo.orm.Entity.get_fields`)
         2. Filter out all non-required fields.
         3. Change field names using ``self.Meta.api_names``, if present.
-        4. Append the suffix '_id' and '_ids' to the name of ``OneToOneField``s
-           and ``OneTomanyField``s, respectively.
+        4. Append the suffix '_id' and '_ids' to the name of each
+           ``OneToOneField`` and ``OneTomanyField``, respectively.
         5. Generate values for each field.
 
         """

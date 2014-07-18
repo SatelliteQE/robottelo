@@ -4,7 +4,6 @@
 Submodules:
 
 .. toctree::
-
     robottelo.api
     robottelo.cli
     robottelo.common
