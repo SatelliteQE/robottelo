@@ -171,7 +171,7 @@ class SampleFactoryTestCase(TestCase):
     def setUp(self):  # pylint:disable=C0103
         """Backup, customize and override objects."""
         self.client_post = client.post
-        self.conf_properties = conf.properties
+        self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
         conf.properties['foreman.admin.username'] = 'username'
         conf.properties['foreman.admin.password'] = 'password'

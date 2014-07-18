@@ -6,19 +6,15 @@ can be found here: http://theforeman.org/api/apidoc/v2/hosts
 """
 from fauxfactory import FauxFactory
 from robottelo.api import client
-from robottelo.common.helpers import get_server_url, get_server_credentials
+from robottelo.common.helpers import get_server_credentials
+from robottelo import entities
 from unittest import TestCase
-from urlparse import urljoin
 import httplib
 # (too many public methods) pylint: disable=R0904
 
 
 class HostsTestCase(TestCase):
-    """Tests for path ``api/v2/hosts``."""
-    def setUp(self):  # pylint: disable=C0103
-        """Set ``self.path``."""
-        self.path = urljoin(get_server_url(), 'api/v2/hosts')
-
+    """Tests for ``entities.Host().path()``."""
     def test_get_search(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
@@ -31,7 +27,7 @@ class HostsTestCase(TestCase):
             FauxFactory.generate_integer(1, 100)
         )
         response = client.get(
-            self.path,
+            entities.Host().path(),
             auth=get_server_credentials(),
             params={'search': query},
             verify=False,
@@ -48,7 +44,7 @@ class HostsTestCase(TestCase):
         """
         per_page = FauxFactory.generate_integer(1, 1000)
         response = client.get(
-            self.path,
+            entities.Host().path(),
             auth=get_server_credentials(),
             params={'per_page': per_page},
             verify=False,

@@ -275,13 +275,13 @@ class EntityFactoryMixin(Factory):
     defined on :class:`robottelo.factory.Factory`, such as
     :meth:`Factory.attributes` and :meth:`Factory.create`.
 
-    An :class:`robottelo.orm.Entity` which wishes to use this mixin must define
-    the ``api_path`` attribute on its ``Meta`` class.
+    An :class:`robottelo.orm.Entity` which wishes to use this mixin must ensure
+    that its ``path()`` method functions correctly.
 
     """
     def _factory_path(self):
         """Return a path for creating the mixed-in entity."""
-        return self.Meta.api_path
+        return self.path()
 
     def _factory_data(self):
         """Return name-value pairs for each required field on the entity.
