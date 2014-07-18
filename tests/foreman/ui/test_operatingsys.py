@@ -268,7 +268,7 @@ class OperatingSys(UITestCase):
                     minor_version=minor_version,
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                (common_locators["haserror"]))
+                                 (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_remove_os(self):
@@ -468,7 +468,7 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.search(name))
             self.operatingsys.set_os_parameter(name, param_name, param_value)
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                (common_locators["alert.error"]))
+                                 (common_locators["alert.error"]))
 
     @skip_if_bz_bug_open(1120685)
     def test_negative_set_parameter_3(self):
