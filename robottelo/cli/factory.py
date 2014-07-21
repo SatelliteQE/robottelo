@@ -837,7 +837,7 @@ def make_hostgroup(options=None):
 
 def make_medium(options=None):
     """
-    Usage::
+    Usage:
 
         hammer medium create [OPTIONS]
 
