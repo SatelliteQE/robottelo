@@ -180,8 +180,8 @@ class ContentUpload(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = \
-            '/katello/api/v2/repositories/:repository_id/content_uploads'
+        api_path = ('katello/api/v2/repositories/:repository_id/'
+                    'content_uploads')
 
 
 class ContentViewFilterRule(orm.Entity):
@@ -206,8 +206,8 @@ class ContentViewFilterRule(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'katello/api/v2/content_view_filters/' \
-            ':content_view_filter_id/rules'
+        api_path = ('katello/api/v2/content_view_filters/'
+                    ':content_view_filter_id/rules')
 
 
 class ContentViewFilter(orm.Entity):
@@ -241,8 +241,8 @@ class ContentViewPuppetModule(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'katello/api/v2/content_views/:content_view_id/' \
-            'content_view_puppet_modules'
+        api_path = ('katello/api/v2/content_views/:content_view_id/'
+                    'content_view_puppet_modules')
 
 
 class ContentView(orm.Entity, factory.EntityFactoryMixin):
@@ -276,8 +276,8 @@ class CustomInfo(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = \
-            '/katello/api/v2/custom_info/:informable_type/:informable_id'
+        api_path = ('katello/api/v2/custom_info/:informable_type/'
+                    ':informable_id')
 
 
 class Domain(orm.Entity, factory.EntityFactoryMixin):
@@ -363,8 +363,8 @@ class HostCollectionErrata(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'katello/api/v2/organizations/:organization_id/' \
-            'host_collections/:host_collection_id/errata'
+        api_path = ('katello/api/v2/organizations/:organization_id/'
+                    'host_collections/:host_collection_id/errata')
 
 
 class HostCollectionPackage(orm.Entity):
@@ -374,8 +374,8 @@ class HostCollectionPackage(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'katello/api/v2/organizations/:organization_id/' \
-            'host_collections/:host_collection_id/packages'
+        api_path = ('katello/api/v2/organizations/:organization_id/'
+                    'host_collections/:host_collection_id/packages')
 
 
 class HostCollection(orm.Entity):
@@ -612,8 +612,8 @@ class OrganizationDefaultInfo(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'katello/api/v2/organizations/:organization_id/' \
-            'default_info/:informable_type'
+        api_path = ('katello/api/v2/organizations/:organization_id/'
+                    'default_info/:informable_type')
 
     def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
         """Unpack the server's response after creating an entity."""
@@ -643,8 +643,8 @@ class OSDefaultTemplate(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = \
-            '/api/v2/operatingsystems/:operatingsystem_id/os_default_templates'
+        api_path = ('api/v2/operatingsystems/:operatingsystem_id/'
+                    'os_default_templates')
 
 
 class OverrideValue(orm.Entity):
@@ -968,8 +968,8 @@ class TemplateCombination(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'api/v2/config_templates/:config_template_id/' \
-            'template_combinations'
+        api_path = ('api/v2/config_templates/:config_template_id/'
+                    'template_combinations')
 
 
 class TemplateKind(orm.Entity):
