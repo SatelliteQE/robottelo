@@ -615,7 +615,7 @@ class TestProduct(CLITestCase):
             len(result.stderr), 0, "Error was expected")
 
     @attr('cli', 'product')
-    def test_add_syncplan_1(self, test_name):
+    def test_add_syncplan_1(self):
         """
         @Test: Check if product can be assigned a syncplan
         @Feature: Product
@@ -651,7 +651,7 @@ class TestProduct(CLITestCase):
 
     @skip_if_bz_bug_open('1121136')
     @attr('cli', 'product')
-    def test_remove_syncplan_1(self, test_name):
+    def test_remove_syncplan_1(self):
         """
         @Test: Check if product can be assigned a syncplan
         @Feature: Product
