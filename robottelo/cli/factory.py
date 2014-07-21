@@ -787,32 +787,48 @@ def make_hostgroup(options=None):
 
     Options::
 
-        --name NAME
-        --parent-id PARENT_ID
-        --environment-id ENVIRONMENT_ID
-        --operatingsystem-id OPERATINGSYSTEM_ID
+        --architecture ARCHITECTURE_NAME Architecture name
         --architecture-id ARCHITECTURE_ID
+        --domain DOMAIN_NAME          Domain name
+        --domain-id DOMAIN_ID         May be numerical id or domain name
+        --environment ENVIRONMENT_NAME Environment name
+        --environment-id ENVIRONMENT_ID
+        --medium MEDIUM_NAME          Medium name
         --medium-id MEDIUM_ID
+        --name NAME
+        --operatingsystem-id OPERATINGSYSTEM_ID
+        --parent-id PARENT_ID
+        --ptable PTABLE_NAME          Partition table name
         --ptable-id PTABLE_ID
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
-        --subnet-id SUBNET_ID
-        --domain-id DOMAIN_ID
         --puppet-proxy-id PUPPET_PROXY_ID
-
+        --puppetclass-ids PUPPETCLASS_IDS Comma separated list of values.
+        --realm REALM_NAME            Name to search by
+        --realm-id REALM_ID           May be numerical id or realm name
+        --subnet SUBNET_NAME          Subnet name
+        --subnet-id SUBNET_ID
     """
     # Assigning default values for attributes
     args = {
-        'name': generate_name(6),
-        'parent-id': None,
-        'environment-id': None,
-        'operatingsystem-id': None,
-        'architecture-id': None,
-        'medium-id': None,
-        'ptable-id': None,
-        'puppet-ca-proxy-id': None,
-        'subnet-id': None,
-        'domain-id': None,
-        'puppet-proxy-id': None,
+        u'architecture': None,
+        u'architecture-id': None,
+        u'domain': None,
+        u'domain-id': None,
+        u'environment': None,
+        u'medium': None,
+        u'medium-id': None,
+        u'name': generate_name(6),
+        u'operatingsystem-id': None,
+        u'parent-id': None,
+        u'ptable': None,
+        u'ptable-id': None,
+        u'puppet-ca-proxy-id': None,
+        u'puppet-proxy-id': None,
+        u'puppetclass-ids': None,
+        u'realm': None,
+        u'realm-id': None,
+        u'subnet': None,
+        u'subnet-id': None,
     }
     args = update_dictionary(args, options)
     args.update(create_object(HostGroup, args))
@@ -822,7 +838,7 @@ def make_hostgroup(options=None):
 
 def make_medium(options=None):
     """
-    Usage::
+    Usage:
 
         hammer medium create [OPTIONS]
 
