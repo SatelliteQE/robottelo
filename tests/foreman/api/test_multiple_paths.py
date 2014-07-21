@@ -2,10 +2,9 @@
 from ddt import data, ddt
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.helpers import get_server_url, get_server_credentials
+from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
-from urlparse import urljoin
 import httplib
 # (too many public methods) pylint: disable=R0904
 
@@ -27,7 +26,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = entity().path()
         response = client.get(
             path,
             auth=get_server_credentials(),
@@ -55,7 +54,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = entity().path()
         response = client.get(path, verify=False)
         status_code = httplib.UNAUTHORIZED
         self.assertEqual(
@@ -79,7 +78,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 201 is returned.
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = entity().path()
         response = client.post(
             path,
             entity().build(),
@@ -110,7 +109,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        path = urljoin(get_server_url(), entity.Meta.api_path[0])
+        path = entity().path()
         response = client.post(path, verify=False)
         status_code = httplib.UNAUTHORIZED
         self.assertEqual(
@@ -140,10 +139,7 @@ class EntityIdTestCase(TestCase):
 
         """
         attrs = entity().create()
-        path = urljoin(
-            get_server_url(),
-            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
-        )
+        path = entity(id=attrs['id']).path()
         response = client.get(
             path,
             auth=get_server_credentials(),
@@ -174,10 +170,7 @@ class EntityIdTestCase(TestCase):
 
         """
         attrs = entity().create()
-        path = urljoin(
-            get_server_url(),
-            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
-        )
+        path = entity(id=attrs['id']).path()
         response = client.put(
             path,
             entity().attributes(),
@@ -210,10 +203,7 @@ class EntityIdTestCase(TestCase):
 
         """
         attrs = entity().create()
-        path = urljoin(
-            get_server_url(),
-            '{0}/{1}'.format(entity.Meta.api_path[0], attrs['id'])
-        )
+        path = entity(id=attrs['id']).path()
         response = client.delete(
             path,
             auth=get_server_credentials(),

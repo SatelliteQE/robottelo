@@ -1,5 +1,6 @@
 """Module that define the model layer used to define entities"""
 from fauxfactory import FauxFactory
+from robottelo.common import helpers
 import booby
 import booby.fields
 import booby.inspection
@@ -8,40 +9,7 @@ import collections
 import importlib
 import inspect
 import random
-
-
-class Entity(booby.Model):
-    """A logical representation of a Foreman entity.
-
-    This class is rather useless as is, and it is intended to be subclassed.
-    Subclasses can specify two useful types of information:
-
-    * fields
-    * metadata
-
-    Fields are represented by setting class attributes, and metadata is
-    represented by settings attributes on the inner class named ``Meta``.
-
-    """
-    class Meta(object):
-        """Non-field information about this entity.
-
-        Examples of information which can be set on this class are the
-        ``api_names`` and ``cli_names`` dicts. See :mod:`robottelo.factory` for
-        details.
-
-        """
-
-    @classmethod
-    def get_fields(cls):
-        """Return all defined fields as a dictionary.
-
-        :return: A dictionary mapping ``str`` field names to ``robottelo.orm``
-            field types.
-        :rtype: dict
-
-        """
-        return booby.inspection.get_fields(cls)
+import urlparse
 
 
 def _get_value(field, default):
@@ -69,7 +37,12 @@ def _get_value(field, default):
         return default
 
 
-# Wrappers for booby fields
+# -----------------------------------------------------------------------------
+# Definition of individual entity fields. Wrappers for existing booby fields
+# come first, and custom fields come second.
+# -----------------------------------------------------------------------------
+
+
 class BooleanField(booby.fields.Boolean):
     """Field that represents a boolean"""
     def get_value(self):
@@ -82,10 +55,6 @@ class EmailField(booby.fields.Email):
     def get_value(self):
         """Return a value suitable for a :class:`EmailField`."""
         return _get_value(self, FauxFactory.generate_email)
-
-
-class Field(booby.fields.Field):
-    """Base field class to implement other fields"""
 
 
 class FloatField(booby.fields.Float):
@@ -137,7 +106,10 @@ class StringField(booby.fields.String):
         )
 
 
-# Additional fields
+class Field(booby.fields.Field):
+    """Base field class to implement other fields"""
+
+
 class DateField(Field):
     """Field that represents a date"""
 
@@ -285,3 +257,106 @@ def _get_class(class_or_name, module='robottelo.entities'):
     if inspect.isclass(class_or_name):
         return class_or_name
     return getattr(importlib.import_module(module), class_or_name)
+
+
+# -----------------------------------------------------------------------------
+# Definition of parent Entity class and its dependencies.
+# -----------------------------------------------------------------------------
+
+
+class NoSuchPathError(Exception):
+    """Indicates that the requested path cannot be constructed."""
+
+
+class Entity(booby.Model):
+    """A logical representation of a Foreman entity.
+
+    This class is rather useless as is, and it is intended to be subclassed.
+    Subclasses can specify two useful types of information:
+
+    * fields
+    * metadata
+
+    Fields are represented by setting class attributes, and metadata is
+    represented by settings attributes on the inner class named ``Meta``.
+
+    """
+    # The id() builtin is still available within instance methods, class
+    # methods, static methods, inner classes, and so on. However, id() is *not*
+    # available at the current level of lexical scoping after this point.
+    id = IntegerField()
+
+    class Meta(object):
+        """Non-field information about this entity.
+
+        Examples of information which can be set on this class are the
+        ``api_names`` and ``cli_names`` dicts. See :mod:`robottelo.factory` for
+        details.
+
+        """
+
+    def path(self, which=None):
+        """Return the path to the current entity.
+
+        Return the path to all entities of this entity's type if:
+
+        * ``which`` is ``'all'``, or
+        * ``which`` is ``None`` and instance attribute ``id`` is unset.
+
+        Return the path to this exact entity if instance attribute ``id`` is
+        set and:
+
+        * ``which`` is ``'this'``, or
+        * ``which`` is ``None``.
+
+        Raise :class:`NoSuchPathError` otherwise.
+
+        Child classes may choose to extend this method, especially if a child
+        entity offers more than the two URLs supported by default. If extended,
+        then the extending class should check for custom parameters before
+        calling ``super``:
+
+            def path(self, which):
+                if which == 'custom':
+                    return urlparse.urljoin(...)
+                super(ChildEntity, self).__init__(which)
+
+        This will allow the extending method to accept a custom parameter
+        without accidentally raising a :class:`NoSuchPathError`.
+
+        :param str which: Optional. Valid arguments are 'this' and 'all'.
+        :return: A fully qualified URL.
+        :rtype: str
+        :raises NoSuchPathError: If no path can be built.
+
+        """
+        # (no-member) pylint:disable=E1101
+        # It is OK that member ``self.Meta.api_path`` is not found. Subclasses
+        # are required to set that attribute if they wish to use this method.
+        #
+        # Beware of leading and trailing slashes:
+        #
+        # urljoin('example.com', 'foo') => 'foo'
+        # urljoin('example.com/', 'foo') => 'example.com/foo'
+        # urljoin('example.com', '/foo') => '/foo'
+        # urljoin('example.com/', '/foo') => '/foo'
+        base = urlparse.urljoin(
+            helpers.get_server_url() + '/',
+            self.Meta.api_path
+        )
+        if which == 'all' or which is None and self.id is None:
+            return base
+        elif self.id is not None and (which is None or which == 'this'):
+            return urlparse.urljoin(base + '/', str(self.id))
+        raise NoSuchPathError
+
+    @classmethod
+    def get_fields(cls):
+        """Return all defined fields as a dictionary.
+
+        :return: A dictionary mapping ``str`` field names to ``robottelo.orm``
+            field types.
+        :rtype: dict
+
+        """
+        return booby.inspection.get_fields(cls)

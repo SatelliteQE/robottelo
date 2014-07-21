@@ -28,9 +28,7 @@ class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/activation_keys',  # Create an activation key
-        )
+        api_path = 'katello/api/v2/activation_keys'
 
 
 class Architecture(orm.Entity, factory.EntityFactoryMixin):
@@ -40,9 +38,7 @@ class Architecture(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/architectures',  # Create an architecture.
-        )
+        api_path = 'api/v2/architectures'
 
 
 class AuthSourceLDAP(orm.Entity):
@@ -69,9 +65,7 @@ class AuthSourceLDAP(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/auth_source_ldaps',  # Create an auth_source_ldap.
-        )
+        api_path = 'api/v2/auth_source_ldaps'
 
 
 class Bookmark(orm.Entity):
@@ -83,9 +77,7 @@ class Bookmark(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/bookmarks',  # Create a bookmark.
-        )
+        api_path = 'api/v2/bookmarks'
 
 
 class CommonParameter(orm.Entity):
@@ -95,9 +87,7 @@ class CommonParameter(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/common_parameters',  # Create a common_parameter
-        )
+        api_path = 'api/v2/common_parameters'
 
 
 class ComputeAttribute(orm.Entity):
@@ -107,21 +97,19 @@ class ComputeAttribute(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a compute attribute.
-            '/api/v2/compute_resources/:compute_resource_id/compute_profiles/'
-            ':compute_profile_id/compute_attributes',
-            # Create a compute attribute.
-            '/api/v2/compute_profiles/:compute_profile_id/compute_resources/'
-            ':compute_resource_id/compute_attributes',
-            # Create a compute attribute.
-            '/api/v2/compute_resources/:compute_resource_id/'
-            'compute_attributes',
-            # Create a compute attribute.
-            '/api/v2/compute_profiles/:compute_profile_id/compute_attributes',
-            # Create a compute attribute.
-            '/api/v2/compute_attributes',
-        )
+        api_path = 'api/v2/compute_attributes'
+        # Alternative paths:
+        #
+        # '/api/v2/compute_resources/:compute_resource_id/compute_profiles/'
+        # ':compute_profile_id/compute_attributes',
+        #
+        # '/api/v2/compute_profiles/:compute_profile_id/compute_resources/'
+        # ':compute_resource_id/compute_attributes',
+        #
+        # '/api/v2/compute_resources/:compute_resource_id/'
+        # 'compute_attributes',
+        #
+        # '/api/v2/compute_profiles/:compute_profile_id/compute_attributes',
 
 
 class ComputeProfile(orm.Entity):
@@ -130,9 +118,7 @@ class ComputeProfile(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/compute_profiles',  # Create a compute profile.
-        )
+        api_path = 'api/v2/compute_profiles'
 
 
 class ComputeResource(orm.Entity):
@@ -158,9 +144,7 @@ class ComputeResource(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/compute_resources',  # Create a compute resource.
-        )
+        api_path = 'api/v2/compute_resources'
 
 
 class ConfigGroup(orm.Entity):
@@ -169,9 +153,7 @@ class ConfigGroup(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/config_groups',  # Create a config group.
-        )
+        api_path = 'api/v2/config_groups'
 
 
 class ConfigTemplate(orm.Entity):
@@ -189,9 +171,7 @@ class ConfigTemplate(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/config_templates',  # Create a template
-        )
+        api_path = 'api/v2/config_templates'
 
 
 class ContentUpload(orm.Entity):
@@ -200,10 +180,8 @@ class ContentUpload(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create an upload request
-            '/katello/api/v2/repositories/:repository_id/content_uploads',
-        )
+        api_path = ('katello/api/v2/repositories/:repository_id/'
+                    'content_uploads')
 
 
 class ContentViewFilterRule(orm.Entity):
@@ -228,12 +206,8 @@ class ContentViewFilterRule(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a filter rule. The parameters included should be based
-            # upon the filter type.
-            '/katello/api/v2/content_view_filters/:content_view_filter_id/'
-            'rules',
-        )
+        api_path = ('katello/api/v2/content_view_filters/'
+                    ':content_view_filter_id/rules')
 
 
 class ContentViewFilter(orm.Entity):
@@ -252,12 +226,10 @@ class ContentViewFilter(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('filter_type', 'type'),)
-        api_path = (
-            # Create a filter for a content view
-            '/katello/api/v2/content_views/:content_view_id/filters',
-            # Create a filter for a content view
-            '/katello/api/v2/content_view_filters',
-        )
+        api_path = 'katello/api/v2/content_view_filters'
+        # Alternative path
+        #
+        # '/katello/api/v2/content_views/:content_view_id/filters',
 
 
 class ContentViewPuppetModule(orm.Entity):
@@ -269,11 +241,8 @@ class ContentViewPuppetModule(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Add a puppet module to the content view
-            '/katello/api/v2/content_views/:content_view_id/'
-            'content_view_puppet_modules',
-        )
+        api_path = ('katello/api/v2/content_views/:content_view_id/'
+                    'content_view_puppet_modules')
 
 
 class ContentView(orm.Entity, factory.EntityFactoryMixin):
@@ -289,12 +258,10 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a content view
-            '/katello/api/v2/content_views',
-            # Create a content view
-            '/katello/api/v2/organizations/:organization_id/content_views',
-        )
+        api_path = 'katello/api/v2/content_views'
+        # Alternative paths
+        #
+        # '/katello/api/v2/organizations/:organization_id/content_views',
 
 
 class CustomInfo(orm.Entity):
@@ -309,10 +276,8 @@ class CustomInfo(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create custom info
-            '/katello/api/v2/custom_info/:informable_type/:informable_id',
-        )
+        api_path = ('katello/api/v2/custom_info/:informable_type/'
+                    ':informable_id')
 
 
 class Domain(orm.Entity, factory.EntityFactoryMixin):
@@ -329,9 +294,7 @@ class Domain(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/domains',  # Create a domain.
-        )
+        api_path = 'api/v2/domains'
 
     def _unpack_response(self, response):
         """Unpack the server's response after creating an entity."""
@@ -344,9 +307,7 @@ class Environment(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/environments',  # Create an environment.
-        )
+        api_path = 'api/v2/environments'
 
 
 class Errata(orm.Entity):
@@ -355,7 +316,7 @@ class Errata(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = ('/api/v2/errata')
+        api_path = 'api/v2/errata'
 
 
 class Filter(orm.Entity):
@@ -368,9 +329,7 @@ class Filter(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/filters',  # Create a filter.
-        )
+        api_path = 'api/v2/filters'
 
 
 class GPGKey(orm.Entity):
@@ -385,9 +344,7 @@ class GPGKey(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/gpg_keys',  # Create a gpg key
-        )
+        api_path = 'katello/api/v2/gpg_keys'
 
 
 class HostClasses(orm.Entity):
@@ -397,10 +354,7 @@ class HostClasses(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Add a puppetclass to host
-            '/api/v2/hosts/:host_id/puppetclass_ids',
-        )
+        api_path = 'api/v2/hosts/:host_id/puppetclass_ids'
 
 
 class HostCollectionErrata(orm.Entity):
@@ -409,10 +363,8 @@ class HostCollectionErrata(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/organizations/:organization_id/host_collections/'
-            ':host_collection_id/errata',  # Install errata remotely
-        )
+        api_path = ('katello/api/v2/organizations/:organization_id/'
+                    'host_collections/:host_collection_id/errata')
 
 
 class HostCollectionPackage(orm.Entity):
@@ -422,10 +374,8 @@ class HostCollectionPackage(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/organizations/:organization_id/host_collections/'
-            ':host_collection_id/packages',  # Install packages remotely
-        )
+        api_path = ('katello/api/v2/organizations/:organization_id/'
+                    'host_collections/:host_collection_id/packages')
 
 
 class HostCollection(orm.Entity):
@@ -442,12 +392,10 @@ class HostCollection(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a host collection
-            '/katello/api/v2/host_collections',
-            # Create a host collection
-            '/katello/api/v2/organizations/:organization_id/host_collections',
-        )
+        api_path = 'katello/api/v2/host_collections'
+        # Alternative paths.
+        #
+        # '/katello/api/v2/organizations/:organization_id/host_collections'
 
 
 class HostGroupClasses(orm.Entity):
@@ -457,10 +405,7 @@ class HostGroupClasses(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Add a puppetclass to hostgroup
-            '/api/v2/hostgroups/:hostgroup_id/puppetclass_ids',
-        )
+        api_path = 'api/v2/hostgroups/:hostgroup_id/puppetclass_ids'
 
 
 class HostGroup(orm.Entity):
@@ -482,9 +427,7 @@ class HostGroup(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/hostgroups',  # Create an hostgroup.
-        )
+        api_path = 'api/v2/hostgroups'
 
 
 class Host(orm.Entity, factory.EntityFactoryMixin):
@@ -528,9 +471,7 @@ class Host(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('name', 'name'),)
-        api_path = (
-            '/api/v2/hosts',  # Create a host.
-        )
+        api_path = 'api/v2/hosts'
 
 
 class Image(orm.Entity):
@@ -544,10 +485,7 @@ class Image(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a image
-            '/api/v2/compute_resources/:compute_resource_id/images',
-        )
+        api_path = 'api/v2/compute_resources/:compute_resource_id/images'
 
 
 class Interface(orm.Entity):
@@ -568,10 +506,7 @@ class Interface(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('interface_type', 'type'),)
-        api_path = (
-            # Create an interface linked to a host
-            '/api/v2/hosts/:host_id/interfaces',
-        )
+        api_path = 'api/v2/hosts/:host_id/interfaces'
 
 
 class LifecycleEnvironment(orm.Entity):
@@ -585,12 +520,10 @@ class LifecycleEnvironment(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create an environment
-            '/katello/api/v2/environments',
-            # Create an environment in an organization
-            '/katello/api/v2/organizations/:organization_id/environments',
-        )
+        api_path = 'katello/api/v2/environments'
+        # Alternative paths.
+        #
+        # '/katello/api/v2/organizations/:organization_id/environments'
 
 
 class Location(orm.Entity):
@@ -599,9 +532,7 @@ class Location(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/locations',  # Create a location
-        )
+        api_path = 'api/v2/locations'
 
 
 class Media(orm.Entity):
@@ -627,9 +558,7 @@ class Media(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/media',  # Create a medium.
-        )
+        api_path = 'api/v2/media'
 
 
 class Model(orm.Entity, factory.EntityFactoryMixin):
@@ -641,9 +570,7 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/models',  # Create a model.
-        )
+        api_path = 'api/v2/models'
 
     def _unpack_response(self, response):
         """Unpack the server's response after creating an entity."""
@@ -667,9 +594,7 @@ class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/operatingsystems',  # Create an OS.
-        )
+        api_path = 'api/v2/operatingsystems'
 
 
 class OrganizationDefaultInfo(orm.Entity):
@@ -687,10 +612,8 @@ class OrganizationDefaultInfo(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/organizations/:organization_id/default_info/'
-            ':informable_type',  # Create default info
-        )
+        api_path = ('katello/api/v2/organizations/:organization_id/'
+                    'default_info/:informable_type')
 
     def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
         """Unpack the server's response after creating an entity."""
@@ -705,9 +628,7 @@ class Organization(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/organizations',  # Create organization
-        )
+        api_path = 'katello/api/v2/organizations'
 
     def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
         """Unpack the server's response after creating an entity."""
@@ -722,11 +643,8 @@ class OSDefaultTemplate(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a os default template for operating system
-            '/api/v2/operatingsystems/:operatingsystem_id/'
-            'os_default_templates',
-        )
+        api_path = ('api/v2/operatingsystems/:operatingsystem_id/'
+                    'os_default_templates')
 
 
 class OverrideValue(orm.Entity):
@@ -737,6 +655,7 @@ class OverrideValue(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
+        # FIXME: This is tricky. Overriding path() may be a solution.
         api_path = (
             # Create an override value for a specific smart_variable
             '/api/v2/smart_variables/:smart_variable_id/override_values',
@@ -759,20 +678,14 @@ class Parameter(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a nested parameter for host
-            '/api/v2/hosts/:host_id/parameters',
-            # Create a nested parameter for hostgroup
-            '/api/v2/hostgroups/:hostgroup_id/parameters',
-            # Create a nested parameter for domain
-            '/api/v2/domains/:domain_id/parameters',
-            # Create a nested parameter for operating system
-            '/api/v2/operatingsystems/:operatingsystem_id/parameters',
-            # Create a nested parameter for location
-            '/api/v2/locations/:location_id/parameters',
-            # Create a nested parameter for organization
-            '/api/v2/organizations/:organization_id/parameters',
-        )
+        api_path = 'api/v2/hosts/:host_id/parameters'
+        # Alternative paths.
+        #
+        # '/api/v2/hostgroups/:hostgroup_id/parameters'
+        # '/api/v2/domains/:domain_id/parameters'
+        # '/api/v2/operatingsystems/:operatingsystem_id/parameters'
+        # '/api/v2/locations/:location_id/parameters'
+        # '/api/v2/organizations/:organization_id/parameters'
 
 
 class Permission(orm.Entity):
@@ -794,10 +707,7 @@ class Permission(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('permission_type', 'type'),)
-        api_path = (
-            # Create a roles permission
-            '/katello/api/v2/roles/:role_id/permissions',
-        )
+        api_path = 'katello/api/v2/roles/:role_id/permissions'
 
 
 class Product(orm.Entity, factory.EntityFactoryMixin):
@@ -811,9 +721,7 @@ class Product(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/products',  # Create a product
-        )
+        api_path = 'katello/api/v2/products'
 
 
 class PartitionTable(orm.Entity):
@@ -824,9 +732,7 @@ class PartitionTable(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/ptables',  # Create a ptable.
-        )
+        api_path = 'api/v2/ptables'
 
 
 class PuppetClass(orm.Entity):
@@ -835,9 +741,7 @@ class PuppetClass(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/puppetclasses',  # Create a puppetclass.
-        )
+        api_path = 'api/v2/puppetclasses'
 
 
 class Realm(orm.Entity):
@@ -852,9 +756,7 @@ class Realm(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/realms',  # Create a realm.
-        )
+        api_path = 'api/v2/realms'
 
 
 class Report(orm.Entity):
@@ -868,9 +770,7 @@ class Report(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/reports',  # Create a report.
-        )
+        api_path = 'api/v2/reports'
 
 
 class Repository(orm.Entity, factory.EntityFactoryMixin):
@@ -894,9 +794,7 @@ class Repository(orm.Entity, factory.EntityFactoryMixin):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/repositories',  # Create a custom repository
-        )
+        api_path = 'katello/api/v2/repositories'
 
 
 class RoleLDAPGroups(orm.Entity):
@@ -905,10 +803,7 @@ class RoleLDAPGroups(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Add group to list of LDAP groups associated with the role
-            '/katello/api/v2/roles/:role_id/ldap_groups',
-        )
+        api_path = 'katello/api/v2/roles/:role_id/ldap_groups'
 
 
 class Role(orm.Entity):
@@ -917,9 +812,7 @@ class Role(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/katello/api/v2/roles',  # Create an role.
-        )
+        api_path = 'katello/api/v2/roles'
 
 
 class SmartProxy(orm.Entity):
@@ -929,9 +822,7 @@ class SmartProxy(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/smart_proxies',  # Create a Capsule.
-        )
+        api_path = 'api/v2/smart_proxies'
 
 
 class SmartVariable(orm.Entity):
@@ -947,9 +838,7 @@ class SmartVariable(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/smart_variables',  # Create a smart variable.
-        )
+        api_path = 'api/v2/smart_variables'
 
 
 class Subnet(orm.Entity):
@@ -980,9 +869,7 @@ class Subnet(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/subnets',  # Create a subnet
-        )
+        api_path = 'api/v2/subnets'
 
 
 class Subscription(orm.Entity):
@@ -999,14 +886,11 @@ class Subscription(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('pool_uuid', 'id'),)
-        api_path = (
-            # Add a subscription to a resource
-            '/katello/api/v2/subscriptions/:id',
-            # Add a subscription to a system
-            '/katello/api/v2/systems/:system_id/subscriptions',
-            # Add a subscription to an activation key
-            '/katello/api/v2/activation_keys/:activation_key_id/subscriptions',
-        )
+        api_path = 'katello/api/v2/subscriptions/:id'
+        # Alternative paths.
+        #
+        # '/katello/api/v2/systems/:system_id/subscriptions',
+        # '/katello/api/v2/activation_keys/:activation_key_id/subscriptions',
 
 
 class SyncPlan(orm.Entity):
@@ -1025,10 +909,7 @@ class SyncPlan(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Create a sync plan
-            '/katello/api/v2/organizations/:organization_id/sync_plans',
-        )
+        api_path = 'katello/api/v2/organizations/:organization_id/sync_plans'
 
 
 class SystemPackage(orm.Entity):
@@ -1041,10 +922,7 @@ class SystemPackage(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Install packages remotely
-            '/katello/api/v2/systems/:system_id/packages',
-        )
+        api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
 class System(orm.Entity):
@@ -1076,14 +954,10 @@ class System(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('system_type', 'type'),)
-        api_path = (
-            # Register a content host
-            '/katello/api/v2/systems',
-            # Register a content host in environment
-            '/katello/api/v2/environments/:environment_id/systems',
-            # Register a content host in environment
-            '/katello/api/v2/host_collections/:host_collection_id/systems',
-        )
+        api_path = 'katello/api/v2/systems'
+        # Alternative paths.
+        # '/katello/api/v2/environments/:environment_id/systems'
+        # '/katello/api/v2/host_collections/:host_collection_id/systems'
 
 
 class TemplateCombination(orm.Entity):
@@ -1094,11 +968,8 @@ class TemplateCombination(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            # Add a Template Combination
-            '/api/v2/config_templates/:config_template_id/'
-            'template_combinations',
-        )
+        api_path = ('api/v2/config_templates/:config_template_id/'
+                    'template_combinations')
 
 
 class TemplateKind(orm.Entity):
@@ -1112,9 +983,7 @@ class UserGroup(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/usergroups',  # Create a usergroup.
-        )
+        api_path = 'api/v2/usergroups'
 
 
 class User(orm.Entity):
@@ -1132,6 +1001,4 @@ class User(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = (
-            '/api/v2/users',  # Create an user.
-        )
+        api_path = 'api/v2/users'

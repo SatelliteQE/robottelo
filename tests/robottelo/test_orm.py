@@ -5,10 +5,12 @@
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import FauxFactory
+from robottelo.common import conf
+from robottelo.common import helpers
 from robottelo import entities, orm
 from sys import version_info
-import socket
 import ddt
+import socket
 import unittest
 
 
@@ -17,6 +19,9 @@ class SampleEntity(orm.Entity):
     name = orm.StringField()
     value = orm.IntegerField()
 
+    class Meta(object):
+        api_path = 'foo'
+
 
 class ManyRelatedEntity(orm.Entity):
     """An entity with a OneToManyField"""
@@ -24,16 +29,39 @@ class ManyRelatedEntity(orm.Entity):
 
 
 class EntityTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.Entity`."""
+    def setUp(self):  # pylint:disable=C0103
+        """
+        Back up and configure ``conf.properties``, and set ``self.base_path``.
+        """
+        self.conf_properties = conf.properties.copy()
+        conf.properties['main.server.hostname'] = 'example.com'
+        self.base_path = '{0}/{1}'.format(
+            helpers.get_server_url(),
+            SampleEntity.Meta.api_path
+        )
+
+    def tearDown(self):  # pylint:disable=C0103
+        """Restore ``conf.properties``."""
+        conf.properties = self.conf_properties
+
     def test_entity_get_fields(self):
-        """Test Entity instance ``get_fields`` method."""
-        entity = SampleEntity()
-        fields = entity.get_fields()
+        """Test :meth:`robottelo.orm.Entity.get_fields`."""
+        fields = SampleEntity().get_fields()
 
         self.assertIn('name', fields)
         self.assertIn('value', fields)
 
         self.assertIsInstance(fields['name'], orm.StringField)
         self.assertIsInstance(fields['value'], orm.IntegerField)
+
+    def test_path(self):
+        """Test :meth:`robottelo.orm.Entity.path`."""
+        self.assertEqual(SampleEntity().path(), self.base_path)
+        self.assertEqual(SampleEntity(id=5).path(), self.base_path + '/5')
+        self.assertEqual(SampleEntity(id=5).path('all'), self.base_path)
+        with self.assertRaises(orm.NoSuchPathError):
+            SampleEntity().path('this')
 
 
 class OneToManyFieldTestCase(unittest.TestCase):

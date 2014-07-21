@@ -20,13 +20,18 @@ class GetServerURLTestCase(unittest.TestCase):
     that particular test.
 
     """
-    def setUp(self):
-        """Set some default values in the config file."""
+    def setUp(self):  # pylint:disable=C0103
+        """Back up and customize ``conf.properties``."""
+        self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
         if 'main.server.scheme' in conf.properties:
             del conf.properties['main.server.scheme']
         if 'main.server.port' in conf.properties:
             del conf.properties['main.server.port']
+
+    def tearDown(self):  # pylint:disable=C0103
+        """Restore ``conf.properties``."""
+        conf.properties = self.conf_properties
 
     def test_default_v1(self):
         """Hostname set."""
@@ -79,10 +84,15 @@ class GetServerURLTestCase(unittest.TestCase):
 
 class GetServerCredentialsTestCase(unittest.TestCase):
     """Tests for method ``get_server_credentials``."""
-    def setUp(self):
-        """Set some default values in the config file."""
+    def setUp(self):  # pylint:disable=C0103
+        """Back up and customize ``conf.properties``."""
+        self.conf_properties = conf.properties.copy()
         conf.properties['foreman.admin.username'] = 'alice'
         conf.properties['foreman.admin.password'] = 'hackme'
+
+    def tearDown(self):  # pylint:disable=C0103
+        """Restore ``conf.properties``."""
+        conf.properties = self.conf_properties
 
     def test_default(self):
         """Run method under normal conditions."""

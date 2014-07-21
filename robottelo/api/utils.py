@@ -75,8 +75,8 @@ def status_code_error(path, desired, response):
     * ``response.status_code``
     * ``response.json()``
 
-    :param int desired: The desired return status code.
     :param str path: The path to which a request was sent.
+    :param int desired: The desired return status code.
     :param response: The ``Response`` object returned.
     :return: An error message.
     :rtype: str
