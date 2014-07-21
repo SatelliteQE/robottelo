@@ -446,7 +446,11 @@ tab_locators = {
     "subs.tab_details": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.details')]"),
     "subs.import_history": (
-        By.XPATH, "//a[contains(@ui-sref,'manifest.history')]")}
+        By.XPATH, "//a[contains(@ui-sref,'manifest.history')]"),
+
+    # Subnet
+    "subnet.tab_domain": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'domains')]")}
 
 common_locators = {
 
@@ -838,11 +842,34 @@ locators = {
     "subnet.name": (By.ID, "subnet_name"),
     "subnet.network": (By.ID, "subnet_network"),
     "subnet.mask": (By.ID, "subnet_mask"),
+    "subnet.gateway": (By.ID, "subnet_gateway"),
+    "subnet.primarydns": (By.ID, "subnet_dns_primary"),
+    "subnet.secondarydns": (By.ID, "subnet_dns_secondary"),
     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
     "subnet.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "subnet.proxies_tab": (By.XPATH, "//a[@href='#proxies']"),
+    "subnet.network_haserror": (
+        By.XPATH,
+        ("//label[@for='network']/../../"
+         "div[contains(@class,'has-error')]")),
+    "subnet.mask_haserror": (
+        By.XPATH,
+        ("//label[@for='mask']/../../"
+         "div[contains(@class,'has-error')]")),
+    "subnet.gateway_haserror": (
+        By.XPATH,
+        ("//label[@for='gateway']/../../"
+         "div[contains(@class,'has-error')]")),
+    "subnet.dnsprimary_haserror": (
+        By.XPATH,
+        ("//label[@for='dns_primary']/../../"
+         "div[contains(@class,'has-error')]")),
+    "subnet.dnssecondary_haserror": (
+        By.XPATH,
+        ("//label[@for='dns_secondary']/../../"
+         "div[contains(@class,'has-error')]")),
 
     # Products
     "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),

@@ -14,17 +14,38 @@ class Subnet(Base):
     """
     Provides the CRUD functionality for Subnet
     """
-
-    def _configure_subnet(self, subnet_network, subnet_mask):
+    def _configure_subnet(self, subnet_network, subnet_mask, domains=None,
+                          subnet_gateway=None, subnet_primarydns=None,
+                          subnet_secondarydns=None):
+        domain_tablocator = tab_locators['subnet.tab_domain']
         if subnet_network:
             if self.wait_until_element(locators["subnet.network"]):
-                self.field_update("subnet.network", subnet_network)
+                self.text_field_update(locators["subnet.network"],
+                                       subnet_network)
         if subnet_mask:
             if self.wait_until_element(locators["subnet.mask"]):
-                self.field_update("subnet.mask", subnet_mask)
+                self.text_field_update(locators["subnet.mask"],
+                                       subnet_mask)
+        if subnet_gateway:
+            if self.wait_until_element(locators["subnet.gateway"]):
+                self.text_field_update(locators["subnet.gateway"],
+                                       subnet_gateway)
+        if subnet_primarydns:
+            if self.wait_until_element(locators["subnet.primarydns"]):
+                self.text_field_update(locators["subnet.primarydns"],
+                                       subnet_primarydns)
+        if subnet_secondarydns:
+            if self.wait_until_element(locators["subnet.secondarydns"]):
+                self.text_field_update(locators["subnet.secondarydns"],
+                                       subnet_secondarydns)
+        if domains:
+            self.configure_entity(domains, FILTER['sub_domain'],
+                                  tab_locator=domain_tablocator)
 
     def create(self, orgs, subnet_name=None,
-               subnet_network=None, subnet_mask=None, org_select=True):
+               subnet_network=None, subnet_mask=None, subnet_gateway=None,
+               subnet_primarydns=None, subnet_secondarydns=None,
+               domains=None, org_select=True):
         """
         Create Subnet from UI
         """
@@ -33,7 +54,9 @@ class Subnet(Base):
 
         if self.wait_until_element(locators["subnet.name"]):
             self.find_element(locators["subnet.name"]).send_keys(subnet_name)
-        self._configure_subnet(subnet_network, subnet_mask)
+        self._configure_subnet(subnet_network, subnet_mask, domains,
+                               subnet_gateway, subnet_primarydns,
+                               subnet_secondarydns)
         if orgs:
             self.configure_entity(orgs, FILTER['subnet_org'],
                                   tab_locator=tab_locators["tab_org"],
