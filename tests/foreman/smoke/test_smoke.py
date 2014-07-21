@@ -8,15 +8,20 @@ Test class for Repository CLI
 from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
-from robottelo.cli.factory import make_user
-from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.domain import Domain
+from robottelo.cli.factory import make_user
+from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
+from robottelo.cli.subnet import Subnet
 from robottelo.cli.user import User
+from robottelo.common import conf
 from robottelo.test import CLITestCase
 
 
@@ -32,22 +37,22 @@ class TestSmoke(CLITestCase):
         @Assert: Default_Organization is found
         """
 
-        result = Org.info({'name': 'Default_Organization'})
+        result = Org.info({u'name': u'Default_Organization'})
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code)
+            u"Return code is non-zero: {0}".format(result.return_code)
         )
         self.assertEqual(
             len(result.stderr),
             0,
-            "There was an error fetching the default org: {0}".format(
+            u"There was an error fetching the default org: {0}".format(
                 result.stderr)
         )
         self.assertEqual(
             result.stdout['name'],
             'Default_Organization',
-            "Could not find the Default_Organization"
+            u"Could not find the Default_Organization"
         )
 
     @attr('smoke')
@@ -58,22 +63,22 @@ class TestSmoke(CLITestCase):
         @Assert: Default_Location is found
         """
 
-        result = Location.info({'name': 'Default_Location'})
+        result = Location.info({u'name': u'Default_Location'})
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code)
+            u"Return code is non-zero: {0}".format(result.return_code)
         )
         self.assertEqual(
             len(result.stderr),
             0,
-            "There was an error fetching the default location: {0}".format(
+            u"There was an error fetching the default location: {0}".format(
                 result.stderr)
         )
         self.assertEqual(
             result.stdout['name'],
             'Default_Location',
-            "Could not find the Default_Location"
+            u"Could not find the Default_Location"
         )
 
     @attr('smoke')
@@ -84,28 +89,28 @@ class TestSmoke(CLITestCase):
         @Assert: Admin User is found and has Admin role
         """
 
-        result = User.info({'login': 'admin'})
+        result = User.info({u'login': u'admin'})
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code)
+            u"Return code is non-zero: {0}".format(result.return_code)
         )
         self.assertEqual(
             len(result.stderr),
             0,
-            "There was an error fetching the admin user: {0}".format(
+            u"There was an error fetching the admin user: {0}".format(
                 result.stderr)
         )
         self.assertEqual(
             result.stdout['login'],
             'admin',
-            "Admin User login does not match: 'admin' != '{0}'".format(
+            u"Admin User login does not match: 'admin' != '{0}'".format(
                 result.stdout['login'])
         )
         self.assertEqual(
             result.stdout['admin'],
             'yes',
-            "Admin User does not have admin role: 'Admin' = '{0}'".format(
+            u"Admin User does not have admin role: 'Admin' = '{0}'".format(
                 result.stdout['admin'])
         )
 
@@ -180,22 +185,22 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to synchronize YUM repo: {0}".format(result.stderr))
+            u"Failed to synchronize YUM repo: {0}".format(result.stderr))
 
         # Synchronize puppet repository
         result = Repository.synchronize({'id': new_repo2['id']})
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to synchronize Puppet repo: {0}".format(result.stderr))
+            u"Failed to synchronize Puppet repo: {0}".format(result.stderr))
 
         # Create a Content View
         new_cv = self._create_entity(
@@ -212,11 +217,11 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to add YUM repo to content view: {0}".format(
+            u"Failed to add YUM repo to content view: {0}".format(
                 result.stderr))
 
         # Fetch puppet module
@@ -226,11 +231,12 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             puppet_result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(puppet_result.stderr),
             0,
-            "Puppet modules list was not generated: {0}".format(result.stderr))
+            u"Puppet modules list was not generated: {0}".format(
+                result.stderr))
 
         # Associate puppet repository to content view
         result = ContentView.puppet_module_add(
@@ -242,11 +248,11 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to add YUM repo to content view: {0}".format(
+            u"Failed to add YUM repo to content view: {0}".format(
                 result.stderr))
 
         # Publish content view
@@ -254,22 +260,22 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to publish content view: {0}".format(result.stderr))
+            u"Failed to publish content view: {0}".format(result.stderr))
 
         # Only after we publish version1 the info is populated.
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Could not fetch content view info: {0}".format(result.stderr))
+            u"Could not fetch content view info: {0}".format(result.stderr))
 
         # Let us now store the version1 id
         version1_id = result.stdout['versions'][0]['id']
@@ -281,11 +287,11 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to promote content view to lifecycle '{0}': {1}".format(
+            u"Failed to promote content view to lifecycle '{0}': {1}".format(
                 lifecycle1['name'], result.stderr))
 
         # Promote content view to second lifecycle
@@ -295,12 +301,70 @@ class TestSmoke(CLITestCase):
         self.assertEqual(
             result.return_code,
             0,
-            "Return code is non-zero: {0}".format(result.return_code))
+            u"Return code is non-zero: {0}".format(result.return_code))
         self.assertEqual(
             len(result.stderr),
             0,
-            "Failed to promote content view to lifecycle '{0}': {1}".format(
+            u"Failed to promote content view to lifecycle '{0}': {1}".format(
                 lifecycle2['name'], result.stderr))
+
+        # Create a new libvirt compute resource
+        result = self._create_entity(
+            new_user,
+            ComputeResource,
+            {
+                u'name': self._generate_name(),
+                u'provider': u'Libvirt',
+                u'url': (u"qemu+tcp://%s:16509/system" %
+                         conf.properties['main.server.hostname'])
+            })
+
+        # Create a new subnet
+        new_subnet = self._create_entity(
+            new_user,
+            Subnet,
+            {
+                u'name': self._generate_name(),
+                u'network': FauxFactory.generate_ipaddr(ip3=True),
+                u'mask': u'255.255.255.0'
+            }
+        )
+
+        # Create a domain
+        new_domain = self._create_entity(
+            new_user,
+            Domain,
+            {
+                u'name': self._generate_name(),
+            }
+        )
+
+        # Create a hostgroup...
+        new_hg = self._create_entity(
+            new_user,
+            HostGroup,
+            {
+                u'name': self._generate_name(),
+                u'domain-id': new_domain['id'],
+                u'subnet-id': new_subnet['id'],
+            }
+        )
+        # ...and add it to the organization
+        result = Org.add_hostgroup(
+            {
+                u'id': new_org['id'],
+                u'hostgroup-id': new_hg['id']
+            }
+        )
+        self.assertEqual(
+            result.return_code,
+            0,
+            u"Return code is non-zero: {0}".format(result.return_code))
+        self.assertEqual(
+            len(result.stderr),
+            0,
+            u"Failed to add hostgroup '{0}' to org '{1}': {2}".format(
+                new_hg['name'], new_org['name'], result.stderr))
 
     def _generate_name(self):
         """
@@ -310,7 +374,7 @@ class TestSmoke(CLITestCase):
         """
 
         name = unicode(FauxFactory.generate_string(
-            FauxFactory.generate_choice(['alpha', 'latin1', 'utf8']),
+            FauxFactory.generate_choice(['alpha', 'cjk', 'latin1', 'utf8']),
             FauxFactory.generate_integer(1, 30)))
 
         return name
