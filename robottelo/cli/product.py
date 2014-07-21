@@ -36,7 +36,7 @@ class Product(Base):
         Delete assignment sync plan and product.
         """
 
-        cls.command_sub = "remove_sync_plan"
+        cls.command_sub = "remove-sync-plan"
 
         result = cls.execute(cls._construct_command(options))
 
@@ -48,7 +48,7 @@ class Product(Base):
         Assign sync plan to product.
         """
 
-        cls.command_sub = "set_sync_plan"
+        cls.command_sub = "set-sync-plan"
 
         result = cls.execute(cls._construct_command(options))
 
