@@ -781,10 +781,12 @@ def make_domain(options=None):
 
 def make_hostgroup(options=None):
     """
-    Usage:
+    Usage::
+
         hammer hostgroup create [OPTIONS]
 
-    Options:
+    Options::
+
         --architecture ARCHITECTURE_NAME Architecture name
         --architecture-id ARCHITECTURE_ID
         --domain DOMAIN_NAME          Domain name
@@ -805,7 +807,6 @@ def make_hostgroup(options=None):
         --realm-id REALM_ID           May be numerical id or realm name
         --subnet SUBNET_NAME          Subnet name
         --subnet-id SUBNET_ID
-        -h, --help                    print help
     """
     # Assigning default values for attributes
     args = {
