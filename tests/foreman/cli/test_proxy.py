@@ -63,9 +63,9 @@ class TestProxy(CLITestCase):
     )
     def test_proxy_delete(self, data):
         """
-        @Test: Proxy creation with the home proxy
+        @Test: Proxy deletion with the home proxy
         @Feature: Smart Proxy
-        @Assert: Proxy is created
+        @Assert: Proxy is deleted
         """
         test = make_proxy({'name': data['name'], 'url': valid_default_url()})
         try:
@@ -124,7 +124,7 @@ class TestProxy(CLITestCase):
     )
     def test_proxy_update(self, data):
         """
-        @Test: Proxy creation with the home proxy
+        @Test: Proxy name update with the home proxy
         @Feature: Smart Proxy
         @Assert: Proxy is created
         """
