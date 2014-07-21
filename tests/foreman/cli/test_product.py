@@ -621,12 +621,16 @@ class TestProduct(CLITestCase):
         @Feature: Product
         @Assert: Product has syncplan
         """
-        new_product = make_product(
-            {
-                u'organization-id': self.org['id']
-            }
-        )
-        s = make_sync_plan({'organization-id': self.org['id']})
+        try:
+            new_product = make_product(
+                {
+                    u'organization-id': self.org['id']
+                }
+            )
+            s = make_sync_plan({'organization-id': self.org['id']})
+        except Exception as e:
+            self.fail(e)
+
         s_result = Product.set_sync_plan(
             {
                 'sync-plan-id': s['id'],
@@ -654,18 +658,22 @@ class TestProduct(CLITestCase):
         @Assert: Product has syncplan
         @BZ: 1121136
         """
-        new_product = make_product(
-            {
-                u'organization-id': self.org['id']
-            }
-        )
-        s = make_sync_plan({'organization-id': self.org['id']})
-        s_result = Product.set_sync_plan(
-            {
-                'sync-plan-id': s['id'],
-                'id': new_product['id']
-            }
-        )
+        try:
+            new_product = make_product(
+                {
+                    u'organization-id': self.org['id']
+                }
+            )
+            s = make_sync_plan({'organization-id': self.org['id']})
+            s_result = Product.set_sync_plan(
+                {
+                    'sync-plan-id': s['id'],
+                    'id': new_product['id']
+                }
+            )
+        except Exception as e:
+            self.fail(e)
+
         self.assertEqual(
             s_result.stderr, [],
             "Running set_sync_plan should cause no errors.")
