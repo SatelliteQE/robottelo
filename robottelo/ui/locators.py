@@ -707,6 +707,8 @@ locators = {
             "and normalize-space(.)='%s']")),
     "provision.template_name": (
         By.ID, "config_template_name"),
+    "provision.audit_comment": (
+        By.ID, "config_template_audit_comment"),
     "provision.template_template": (
         By.XPATH, "//input[@id='config_template_template']"),
     "provision.template_delete": (

@@ -7,6 +7,7 @@ Test class for Template UI
 from ddt import ddt
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       valid_names_list)
 from robottelo.test import UITestCase
@@ -36,7 +37,7 @@ class Template(UITestCase):
                 make_loc(session, name=Template.loc_name)
 
     @data(*valid_names_list())
-    def test_create_template(self, name):
+    def test_positive_create_template(self, name):
         """
         @Test: Create new template
         @Feature: Template - Positive Create
@@ -51,7 +52,127 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(name))
 
-    def test_create_snippet_template(self):
+    @skip_if_bz_bug_open(1121521)
+    def test_negative_create_template_1(self):
+        """
+        @Test: Template - Create a new template with 256 characters in name
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        @BZ: 1121521
+        """
+
+        name = generate_string("alpha", 256)
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.wait_until_element
+                                 (common_locators["alert.error"]))
+            self.assertIsNone(self.template.search(name))
+
+    def test_negative_create_template_2(self):
+        """
+        @Test: Template - Create a new template with whitespace
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        """
+        name = " "
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.wait_until_element
+                                 (common_locators["name_haserror"]))
+            self.assertIsNone(self.template.search(name))
+
+    def test_negative_create_template_3(self):
+        """
+        @Test: Template - Create a new template with blank name
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        """
+        name = ""
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.wait_until_element
+                                 (common_locators["name_haserror"]))
+            self.assertIsNone(self.template.search(name))
+
+    def test_negative_create_template_4(self):
+        """
+        @Test: Template - Create a new template with same name
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        """
+        name = generate_string("alpha", 16)
+        temp_type = 'provision'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.search(name))
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    def test_negative_create_template_5(self):
+        """
+        @Test: Template - Create a new template without selecting its type
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        """
+        name = generate_string("alpha", 16)
+        temp_type = ""
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            with self.assertRaises(Exception) as context:
+                make_templates(session, name=name, template_path=template_path,
+                               custom_really=True, template_type=temp_type)
+            self.assertEqual(context.exception.message,
+                             "Could not create template '%s'"
+                             " without type" % name)
+
+    def test_negative_create_template_6(self):
+        """
+        @Test: Template - Create a new template without uploading a template
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        """
+        name = generate_string("alpha", 16)
+        temp_type = 'PXELinux'
+        template_path = ""
+        with Session(self.browser) as session:
+            with self.assertRaises(Exception) as context:
+                make_templates(session, name=name, template_path=template_path,
+                               custom_really=True, template_type=temp_type)
+            self.assertEqual(context.exception.message,
+                             "Could not create blank template '%s'" % name)
+
+    def test_negative_create_template_7(self):
+        """
+        @Test: Create a new template with 256 characters in audit comments
+        @Feature: Template - Negative Create
+        @Assert: Template is not created
+        """
+        name = generate_string("alpha", 16)
+        audit_comment = generate_string("alpha", 256)
+        temp_type = 'PXELinux'
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, audit_comment=audit_comment,
+                           template_type=temp_type)
+            self.assertIsNotNone(self.template.wait_until_element
+                                 (common_locators["alert.error"]))
+            self.assertIsNone(self.template.search(name))
+
+    def test_positive_create_snippet_template(self):
         """
         @Test: Create new template of type snippet
         @Feature: Template - Positive Create

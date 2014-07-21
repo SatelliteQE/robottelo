@@ -18,7 +18,8 @@ class Template(Base):
     """
 
     def create(self, name, template_path=None, custom_really=None,
-               template_type=None, snippet=None, os_list=None):
+               audit_comment=None, template_type=None, snippet=None,
+               os_list=None):
         """
         Creates a provisioning template from UI.
         """
@@ -37,6 +38,10 @@ class Template(Base):
             else:
                 raise Exception(
                     "Could not create blank template '%s'" % name)
+            if audit_comment:
+                self.find_element(
+                    locators["provision.audit_comment"]
+                    ).send_keys(audit_comment)
             if template_type:
                 self.wait_until_element(tab_locators
                                         ["provision.tab_type"]).click()
