@@ -9,7 +9,7 @@ from ddt import ddt
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc, make_os,
+from robottelo.ui.factory import (make_org, make_loc,
                                   make_media)
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
