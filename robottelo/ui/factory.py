@@ -167,6 +167,9 @@ def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
         'subnet_name': None,
         'subnet_network': None,
         'subnet_mask': None,
+        'subnet_gateway': None,
+        'subnet_primarydns': None,
+        'subnet_secondarydns': None,
         'org_select': False,
     }
     page = session.nav.go_to_subnets

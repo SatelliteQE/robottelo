@@ -91,7 +91,8 @@ FILTER = {'arch_os': "architecture_operatingsystem",
           'loc_domain': "location_domain",
           'loc_envs': "location_environment",
           'loc_hostgroup': "location_hostgroup",
-          'loc_org': "location_organization"}
+          'loc_org': "location_organization",
+          'sub_domain': "subnet_domain"}
 
 RESOURCE_DEFAULT = "baremetal"
 
