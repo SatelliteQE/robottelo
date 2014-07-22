@@ -314,7 +314,7 @@ class Entity(booby.Model):
         Child classes may choose to extend this method, especially if a child
         entity offers more than the two URLs supported by default. If extended,
         then the extending class should check for custom parameters before
-        calling ``super``:
+        calling ``super``::
 
             def path(self, which):
                 if which == 'custom':
@@ -327,7 +327,7 @@ class Entity(booby.Model):
         :param str which: Optional. Valid arguments are 'this' and 'all'.
         :return: A fully qualified URL.
         :rtype: str
-        :raises NoSuchPathError: If no path can be built.
+        :raises robottelo.orm.NoSuchPathError: If no path can be built.
 
         """
         # (no-member) pylint:disable=E1101
