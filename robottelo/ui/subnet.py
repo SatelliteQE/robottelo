@@ -17,6 +17,9 @@ class Subnet(Base):
     def _configure_subnet(self, subnet_network, subnet_mask, domains=None,
                           subnet_gateway=None, subnet_primarydns=None,
                           subnet_secondarydns=None):
+        """
+        Configures the subnet.
+        """
         domain_tablocator = tab_locators['subnet.tab_domain']
         if subnet_network:
             if self.wait_until_element(locators["subnet.network"]):
