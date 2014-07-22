@@ -72,8 +72,8 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
     )
-    def test_post(self, entity):
-        """@Test: POST to an entity-dependent path.
+    def test_post_status_code(self, entity):
+        """@Test: Issue a POST request and check the returned status code.
 
         @Assert: HTTP 201 is returned.
 
@@ -91,6 +91,41 @@ class EntityTestCase(TestCase):
             response.status_code,
             status_code_error(path, status_code, response),
         )
+
+    @data(
+        entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
+        entities.Model,
+        entities.OperatingSystem,
+        entities.Organization,
+        entities.Repository,
+    )
+    def test_post_and_get(self, entity):
+        """@Test Issue a POST request and GET the created entity.
+
+        @Assert: The created entity has the correct attributes.
+
+        """
+        # Generate some attributes and use them to create an entity.
+        gen_attrs = entity().build()
+        response = client.post(
+            entity().path(),
+            gen_attrs,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        self.assertIn(response.status_code, (httplib.OK, httplib.CREATED))
+
+        # Get the just-created entity and examine its attributes.
+        real_attrs = client.get(
+            entity(id=response.json()['id']).path(),
+            auth=get_server_credentials(),
+            verify=False,
+        ).json()
+        for key, value in gen_attrs.items():
+            self.assertIn(key, real_attrs.keys())
+            self.assertEqual(value, real_attrs[key])
 
     @data(
         entities.ActivationKey,
