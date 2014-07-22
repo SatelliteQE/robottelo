@@ -126,7 +126,7 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def add_computeresource(cls, options=None):
+    def add_compute_resource(cls, options=None):
         """
         Adds a computeresource to an org
         """
@@ -136,7 +136,7 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def remove_computeresource(cls, options=None):
+    def remove_compute_resource(cls, options=None):
         """
         Removes a computeresource from an org
         """
@@ -166,7 +166,7 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def add_configtemplate(cls, options=None):
+    def add_config_template(cls, options=None):
         """
         Adds a configtemplate to an org
         """
@@ -176,7 +176,7 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def remove_configtemplate(cls, options=None):
+    def remove_config_template(cls, options=None):
         """
         Removes a configtemplate from an org
         """
@@ -206,7 +206,7 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def add_smartproxy(cls, options=None):
+    def add_smart_proxy(cls, options=None):
         """
         Adds a smartproxy to an org
         """
@@ -216,7 +216,7 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def remove_smartproxy(cls, options=None):
+    def remove_smart_proxy(cls, options=None):
         """
         Removes a smartproxy from an org
         """
