@@ -10,14 +10,15 @@ FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  docs             to make documentation in the default format"
-	@echo "  docs-clean       to remove docs and doc build artifacts"
-	@echo "  test-docstrings  to check whether docstrings are good quality"
-	@echo "  test-robottelo   to run internal robottelo tests"
-	@echo "  test-foreman-api to test a Foreman deployment API"
-	@echo "  test-foreman-cli to test a Foreman deployment CLI"
-	@echo "  test-foreman-ui  to test a Foreman deployment UI"
-	@echo "  graph-entities   to graph entity relationships"
+	@echo "  docs                  to make documentation in the default format"
+	@echo "  docs-clean            to remove docs and doc build artifacts"
+	@echo "  test-docstrings       to check whether docstrings are good quality"
+	@echo "  test-robottelo        to run internal robottelo tests"
+	@echo "  test-foreman-api      to test a Foreman deployment API"
+	@echo "  test-foreman-cli      to test a Foreman deployment CLI"
+	@echo "  test-foreman-ui       to test a Foreman deployment UI"
+	@echo "  test-foreman-ui-xvfb  to test a Foreman deployment UI using xvfb-run"
+	@echo "  graph-entities        to graph entity relationships"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -42,10 +43,14 @@ test-foreman-cli:
 test-foreman-ui:
 	nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
 
+test-foreman-ui-xvfb:
+	xvfb-run nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
+
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
 
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
-        test-foreman-api test-foreman-cli test-foreman-ui graph-entities
+        test-foreman-api test-foreman-cli test-foreman-ui \
+        test-foreman-ui-xvfb graph-entities
