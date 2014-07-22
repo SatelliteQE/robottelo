@@ -57,3 +57,32 @@ class TestPartitionTable(MetaCLITestCase):
         PartitionTable().delete(args)
         self.assertFalse(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
+
+    def test_create_ptable(self):
+        """
+        @Feature: Partition Table - Create
+        @Test: Check if Partition Table can be created
+        @Assert: Partition Table is created
+        """
+
+        content = "Fake ptable"
+        name = generate_name(6)
+
+        file = open('/tmp/test.txt', 'w+')
+        file.write("This is a test partition table file")
+        file.close()
+
+        args = {
+            'name': name,
+            'os-family': 'Redhat',
+            'file': '/tmp/test.txt',
+            'content': content
+        }
+
+        try:
+            make_partition_table(args)
+        except Exception as e:
+                self.fail(e)
+
+        self.assertTrue(
+            PartitionTable().exists(tuple_search=('name', name)).stdout)
