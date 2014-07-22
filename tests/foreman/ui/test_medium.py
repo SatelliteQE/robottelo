@@ -5,58 +5,184 @@
 Test class for Medium UI
 """
 
-from robottelo.common.helpers import generate_string
+from ddt import ddt
+from robottelo.common.decorators import data
+from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
+from robottelo.ui.factory import (make_org, make_loc, make_os,
+                                  make_media)
 from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
+@ddt
 class Medium(UITestCase):
     """
     Implements all Installation Media tests
     """
 
-    def create_medium(self, name=None, path=None, os_family=None):
-        "Create Installation media with navigation steps"
-        name = name or generate_string("alpha", 6)
-        path = path or URL % generate_string("alpha", 6)
-        self.navigator.go_to_installation_media()  # go to media page
-        self.medium.create(name, path, os_family)
-        self.assertIsNotNone(self.medium.search(name))
+    org_name = None
+    loc_name = None
 
-    def test_create_medium(self):
+    def setUp(self):
+        super(Medium, self).setUp()
+        #  Make sure to use the Class' org_name instance
+        if (Medium.org_name is None and Medium.loc_name is None):
+            Medium.org_name = generate_string("alpha", 8)
+            Medium.loc_name = generate_string("alpha", 8)
+            with Session(self.browser) as session:
+                make_org(session, org_name=Medium.org_name)
+                make_loc(session, name=Medium.loc_name)
+
+    @data(*generate_strings_list(len1=4))
+    def test_positive_create_medium_1(self, name):
         """
-        @Feature: Media - Create
         @Test: Create a new media
+        @Feature:  Media - Positive Create
         @Assert: Media is created
         """
+
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(name))
+
+    @data(*generate_strings_list(len1=255))
+    def test_positive_create_medium_2(self, name):
+        """
+        @Test: Create a new media with 255 characters in name
+        @Feature:  Media - Positive Create
+        @Assert: Media is created
+        """
+
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(name))
+
+    def test_negative_create_medium_1(self):
+        """
+        @Test: Create a new install media with 256 characters in name
+        @Feature:  Media - Negative Create
+        @Assert: Media is not created
+        """
+
+        name = generate_string("alpha", 256)
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.wait_until_element
+                                 (common_locators["alert.error"]))
+            self.assertIsNone(self.medium.search(name))
+
+    def test_negative_create_medium_2(self):
+        """
+        @Test: Create a new install media with whitespace in name
+        @Feature:  Media - Negative Create
+        @Assert: Media is not created
+        """
+
+        name = " "
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    def test_negative_create_medium_3(self):
+        """
+        @Test: Create a new install media with blank name
+        @Feature:  Media - Negative Create
+        @Assert: Media is not created
+        """
+
+        name = ""
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    def test_negative_create_medium_4(self):
+        """
+        @Test: Create a new install media with same name
+        @Feature:  Media - Negative Create
+        @Assert: Media is not created
+        """
+
         name = generate_string("alpha", 6)
         path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_medium(name, path, os_family)
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(name))
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    def test_negative_create_medium_5(self):
+        """
+        @Test: Create a new install media without media URL
+        @Feature:  Media - Negative Create
+        @Assert: Media is not created
+        """
+
+        name = generate_string("alpha", 6)
+        path = ""
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.wait_until_element
+                                 (common_locators["haserror"]))
+            self.assertIsNone(self.medium.search(name))
+
+    def test_negative_create_medium_6(self):
+        """
+        @Test: Create an install media with an existing URL
+        @Feature:  Media - Negative Create
+        @Assert: Media is not created
+        """
+
+        name = generate_string("alpha", 6)
+        new_name = generate_string("alpha", 6)
+        path = URL % generate_string("alpha", 6)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(name))
+            make_media(session, name=new_name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.wait_until_element
+                                 (common_locators["haserror"]))
+            self.assertIsNone(self.medium.search(new_name))
 
     def test_remove_medium(self):
         """
-        @Feature: Media - Delete
         @Test: Delete a media
+        @Feature: Media - Delete
         @Assert: Media is deleted
         """
         name = generate_string("alpha", 6)
         path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_medium(name, path, os_family)
-        self.medium.delete(name, True)
-        self.assertTrue(self.medium.wait_until_element
-                        (common_locators["notif.success"]))
-        self.assertIsNone(self.medium.search(name))
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(name))
+            self.medium.delete(name, True)
+            self.assertTrue(self.medium.wait_until_element
+                            (common_locators["notif.success"]))
+            self.assertIsNone(self.medium.search(name))
 
     def test_update_medium(self):
         """
+        @Test: Updates Install media with name, path, OS family
         @Feature: Media - Update
-        @Test: Update a media with name, path, OS family
         @Assert: Media is updated
         """
         name = generate_string("alpha", 6)
@@ -65,7 +191,8 @@ class Medium(UITestCase):
         newpath = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         new_os_family = "Debian"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_medium(name, path, os_family)
-        self.medium.update(name, newname, newpath, new_os_family)
-        self.assertTrue(self, self.medium.search(newname))
+        with Session(self.browser) as session:
+            make_media(session, name=name, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(name))
+            self.medium.update(name, newname, newpath, new_os_family)
+            self.assertTrue(self, self.medium.search(newname))
