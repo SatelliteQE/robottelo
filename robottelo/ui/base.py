@@ -290,3 +290,44 @@ class Base(object):
         self.find_element(locators[edit_loc]).click()
         self.field_update(edit_text_loc, entity_value)
         self.find_element(locators[save_loc]).click()
+
+    def auto_complete_search(self, go_to_page, entity_locator, partial_name,
+                             name, search_key):
+        """
+        Auto complete search by giving partial name of any entity.
+
+        :param go_to_page: Navigates to the entities page.
+        :param entity_locator: The locator of the entity.
+        :param str partial_name: The partial name of the entity.
+        :param str name: The name of the entity. Ex: org, loc
+        :param str search_key: The search key for searching an entity. Ex: name
+        :return: Returns the searched element.
+
+        """
+        go_to_page()
+        strategy1, value1 = entity_locator
+        searchbox = self.wait_until_element(common_locators["search"])
+        if searchbox is None:
+            raise Exception("Search box not found.")
+        else:
+            searchbox.clear()
+            searchbox.send_keys(search_key + " = " + partial_name)
+            self.wait_for_ajax()
+            strategy, value = common_locators["auto_search"]
+            element = self.wait_until_element((strategy, value % name))
+            if element:
+                element.click()
+                self.wait_for_ajax()
+                search_element = self.wait_until_element(
+                    common_locators['search_button'])
+                if search_element:
+                    search_element.click()
+                else:
+                    raise Exception(
+                        "Couldn't find the search button")
+                entity_elem = self.wait_until_element((strategy1,
+                                                       value1 % name))
+                return entity_elem
+            else:
+                raise Exception(
+                    "Couldn't find any entity via auto search completion")

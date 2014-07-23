@@ -19,7 +19,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_loc, make_subnet, make_domain, make_env,
                                   make_user, make_org, make_hostgroup,
                                   make_resource, make_media, make_templates)
-from robottelo.ui.locators import common_locators, tab_locators
+from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -31,6 +31,24 @@ class Location(UITestCase):
     """
     Implements Location tests in UI
     """
+
+    # Auto Search
+
+    def test_auto_search(self):
+        """
+        @test: Can auto-complete search for location by partial name
+        @feature: Locations
+        @assert: Created location can be auto search by its partial name
+        """
+        loc_name = generate_string("alpha", 8)
+        part_string = loc_name[:3]
+        with Session(self.browser) as session:
+            page = session.nav.go_to_loc
+            make_loc(session, name=loc_name)
+            auto_search = self.location.auto_complete_search(
+                page, locators['location.select_name'], part_string,
+                loc_name, search_key='name')
+            self.assertIsNotNone(auto_search)
 
     # Positive Create
 
@@ -160,20 +178,6 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-
-    def test_autocomplete_search(self):
-        """
-        @test: Can auto-complete search for an location by partial name
-        @feature: Locations
-        @assert: Created location can be auto search by its partial name
-        """
-
-        loc_name = generate_string("alpha", 8)
-        part_string = loc_name[:3]
-        with Session(self.browser) as session:
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.auto_complete_search(
-                part_string, loc_name, search_key='name'))
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())

@@ -22,7 +22,9 @@ from robottelo.common.helpers import (generate_strings_list,
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
+from robottelo.ui.session import Session
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
@@ -35,22 +37,22 @@ class Org(UITestCase):
 
     # Tests for issues
 
-    def test_redmine_4443(self):
+    def test_auto_search(self):
         """
         @test: Can auto-complete search for an organization by partial name
         @feature: Organizations
         @assert: Created organization can be auto search by its partial name
-        @BZ: redmine #4443
         """
 
         org_name = generate_string("alpha", 8)
         part_string = org_name[:3]
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.auto_complete_search
-                             (part_string, org_name, search_key='name'))
+        with Session(self.browser) as session:
+            page = session.nav.go_to_org
+            make_org(session, org_name=org_name)
+            auto_search = self.org.auto_complete_search(
+                page, locators["org.org_name"], part_string, org_name,
+                search_key='name')
+            self.assertIsNotNone(auto_search)
 
     # Positive Create
 
