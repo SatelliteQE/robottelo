@@ -9,6 +9,8 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.factory import make_partition_table
 from robottelo.common.helpers import generate_name
 from robottelo.test import MetaCLITestCase
+from robottelo.common import ssh
+import tempfile
 
 
 class TestPartitionTable(MetaCLITestCase):
@@ -68,14 +70,15 @@ class TestPartitionTable(MetaCLITestCase):
         content = "Fake ptable"
         name = generate_name(6)
 
-        file = open('/tmp/test.txt', 'w+')
-        file.write("This is a test partition table file")
+        file = tempfile.NamedTemporaryFile(delete=False)
+        file.write("This is a test partition table file \n")
         file.close()
+        ssh.upload_file(file.name, remote_file=file.name)
 
         args = {
             'name': name,
             'os-family': 'Redhat',
-            'file': '/tmp/test.txt',
+            'file': file.name,
             'content': content
         }
 
