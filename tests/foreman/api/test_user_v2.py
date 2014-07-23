@@ -31,16 +31,11 @@ class UsersTestCase(TestCase):
         @Feature: User
         """
         path = entities.User().path()
-        attrs = entities.User().build(
-            fields={
-                u'login': login,
-            }
-        )
+        attrs = entities.User().build(fields={u'login': login})
         response = client.post(
             path,
             attrs,
             auth=get_server_credentials(),
-            headers={'content-type': 'application/json'},
             verify=False,
         )
         status_code = (httplib.OK, httplib.CREATED)
@@ -56,11 +51,6 @@ class UsersTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         ).json()
-        self.assertEqual(
-            real_attrs['login'],
-            login,
-            u'Logins do not match: \'{0}\' != \'{1}\'.'.format(
-                real_attrs['login'],
-                login,
-            )
-        )
+        for key, value in attrs.items():
+            self.assertIn(key, real_attrs.keys())
+            self.assertEqual(value, real_attrs[key])
