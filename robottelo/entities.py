@@ -41,10 +41,10 @@ class Architecture(orm.Entity, factory.EntityFactoryMixin):
         api_path = 'api/v2/architectures'
 
 
-class AuthSourceLDAP(orm.Entity):
+class AuthSourceLDAP(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a AuthSourceLDAP entity."""
-    name = orm.StringField(required=True)
-    host = orm.StringField(required=True)
+    name = orm.StringField(required=True, max_len=60)
+    host = orm.StringField(required=True, max_len=60)
     # defaults to 389
     port = orm.IntegerField(null=True)
     account = orm.StringField(null=True)
@@ -58,7 +58,7 @@ class AuthSourceLDAP(orm.Entity):
     # required if onthefly_register is true
     attr_lastname = orm.StringField(null=True)
     # required if onthefly_register is true
-    attr_mail = orm.StringField(null=True)
+    attr_mail = orm.EmailField(null=True)
     attr_photo = orm.StringField(null=True)
     onthefly_register = orm.BooleanField(null=True)
     tls = orm.BooleanField(null=True)
@@ -970,12 +970,12 @@ class UserGroup(orm.Entity):
         api_path = 'api/v2/usergroups'
 
 
-class User(orm.Entity):
+class User(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a User entity."""
     login = orm.StringField(required=True)
-    firstname = orm.StringField(null=True)
-    lastname = orm.StringField(null=True)
-    mail = orm.StringField(required=True)
+    firstname = orm.StringField(null=True, max_len=60)
+    lastname = orm.StringField(null=True, max_len=60)
+    mail = orm.EmailField(required=True)
     # Is an admin account?
     admin = orm.BooleanField(null=True)
     password = orm.StringField(required=True)
