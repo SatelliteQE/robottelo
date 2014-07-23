@@ -81,7 +81,7 @@ class IntegerField(booby.fields.Integer):
 
 class StringField(booby.fields.String):
     """Field that represents a string."""
-    def __init__(self, max_len=80, *args, **kwargs):
+    def __init__(self, max_len=80, str_type=('utf8',), *args, **kwargs):
         """Constructor for a ``StringField``.
 
         ``max_len`` is set to 80 for convenience. Many fields have a maximum
@@ -90,9 +90,13 @@ class StringField(booby.fields.String):
 
         :param int max_len: The maximum length of the string generated when
             :meth:`get_value` is called.
+        :param sequence str_type: The types of characters to generate when
+            :meth:`get-value` is called. Any argument which can be passed to
+            ``FauxFactory.generate_string`` can be provided in the sequence.
 
         """
         self.max_len = max_len
+        self.str_type = str_type
         super(StringField, self).__init__(*args, **kwargs)
 
     def get_value(self):
@@ -100,7 +104,7 @@ class StringField(booby.fields.String):
         return _get_value(
             self,
             lambda: FauxFactory.generate_string(
-                'utf8',
+                FauxFactory.generate_choice(self.str_type),
                 FauxFactory.generate_integer(1, self.max_len)
             )
         )
@@ -284,7 +288,7 @@ class Entity(booby.Model):
     # The id() builtin is still available within instance methods, class
     # methods, static methods, inner classes, and so on. However, id() is *not*
     # available at the current level of lexical scoping after this point.
-    id = IntegerField()
+    id = IntegerField()  # pylint:disable=C0103
 
     class Meta(object):
         """Non-field information about this entity.
