@@ -972,7 +972,10 @@ class UserGroup(orm.Entity):
 
 class User(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a User entity."""
-    login = orm.StringField(required=True)
+    login = orm.StringField(
+        required=True,
+        # Passing UTF8 characters to ``login`` yields 500s.
+        str_type=('alpha', 'alphanumeric', 'cjk', 'latin1'))
     firstname = orm.StringField(null=True, max_len=60)
     lastname = orm.StringField(null=True, max_len=60)
     mail = orm.EmailField(required=True)
