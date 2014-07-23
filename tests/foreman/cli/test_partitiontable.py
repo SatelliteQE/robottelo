@@ -9,6 +9,8 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.factory import make_partition_table
 from robottelo.common.helpers import generate_name
 from robottelo.test import MetaCLITestCase
+from robottelo.common import ssh
+import tempfile
 
 
 class TestPartitionTable(MetaCLITestCase):
