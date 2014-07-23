@@ -9,6 +9,8 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.factory import make_partition_table
 from robottelo.common.helpers import generate_name
 from robottelo.test import MetaCLITestCase
+from robottelo.common import ssh
+import tempfile
 
 
 class TestPartitionTable(MetaCLITestCase):
@@ -56,4 +58,34 @@ class TestPartitionTable(MetaCLITestCase):
 
         PartitionTable().delete(args)
         self.assertFalse(
+            PartitionTable().exists(tuple_search=('name', name)).stdout)
+
+    def test_create_ptable(self):
+        """
+        @Feature: Partition Table - Create
+        @Test: Check if Partition Table can be created
+        @Assert: Partition Table is created
+        """
+
+        content = "Fake ptable"
+        name = generate_name(6)
+
+        file = tempfile.NamedTemporaryFile(delete=False)
+        file.write("This is a test partition table file \n")
+        file.close()
+        ssh.upload_file(file.name, remote_file=file.name)
+
+        args = {
+            'name': name,
+            'os-family': 'Redhat',
+            'file': file.name,
+            'content': content
+        }
+
+        try:
+            make_partition_table(args)
+        except Exception as e:
+                self.fail(e)
+
+        self.assertTrue(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
