@@ -391,7 +391,7 @@ class TestOrg(CLITestCase):
         """
         org_result = make_org()
         template_result = make_template()
-        return_value = Org.add_configtemplate({
+        return_value = Org.add_config_template({
             'name': org_result['name'],
             'config-template': template_result['name']})
         self.assertEqual(return_value.return_code, 0,
@@ -407,10 +407,10 @@ class TestOrg(CLITestCase):
         """
         org_result = make_org()
         template_result = make_template()
-        Org.add_configtemplate({
+        Org.add_config_template({
             'name': org_result['name'],
             'config-template': template_result['name']})
-        return_value = Org.remove_configtemplate({
+        return_value = Org.remove_config_template({
             'name': org_result['name'],
             'config-template': template_result['name']})
         self.assertEqual(return_value.return_code, 0,
@@ -849,7 +849,7 @@ class TestOrg(CLITestCase):
         """
         org_result = make_org()
         proxy_result = make_proxy()
-        return_value = Org.add_smartproxy({
+        return_value = Org.add_smart_proxy({
             'name': org_result['name'],
             'smart-proxy': proxy_result['name']})
         self.assertEqual(return_value.return_code, 0,
@@ -866,10 +866,10 @@ class TestOrg(CLITestCase):
         """
         org_result = make_org()
         proxy_result = make_proxy()
-        Org.add_smartproxy({
+        Org.add_smart_proxy({
             'name': org_result['name'],
             'smart-proxy': proxy_result['name']})
-        return_value = Org.remove_smartproxy({
+        return_value = Org.remove_smart_proxy({
             'name': org_result['name'],
             'smart-proxy': proxy_result['name']})
         self.assertEqual(return_value.return_code, 0,

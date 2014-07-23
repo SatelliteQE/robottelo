@@ -11,12 +11,14 @@ from nose.plugins.attrib import attr
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.domain import Domain
+from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_user
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
+from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
@@ -315,8 +317,8 @@ class TestSmoke(CLITestCase):
             {
                 u'name': self._generate_name(),
                 u'provider': u'Libvirt',
-                u'url': (u"qemu+tcp://%s:16509/system" %
-                         conf.properties['main.server.hostname'])
+                u'url': u'qemu+tcp://{0}:16509/system'.format(
+                    conf.properties['main.server.hostname'])
             })
 
         # Create a new subnet
@@ -339,6 +341,66 @@ class TestSmoke(CLITestCase):
             }
         )
 
+        # Fetch Puppet environment for second lifecycle
+        # (unfortunately it is not straight forward to extract this)
+
+        # The puppet environment we want has a name like this...
+        env_name = u'KT_{0}_{1}_'.format(
+            #  Hyphens are replaced by underscores
+            new_org['label'].replace('-', '_',),
+            lifecycle2['label'].replace('-', '_')
+        )
+        # We fetch all the puppet environments for our organization...
+        result = Environment.list(
+            {
+                u'search': u'organization=\"{0}\"'.format(
+                    new_org['name'])
+            })
+        self.assertEqual(
+            result.return_code,
+            0,
+            u"Return code is non-zero: {0}".format(result.return_code))
+        self.assertEqual(
+            len(result.stderr),
+            0,
+            u"Failed to fetch puppet environments: {0}".format(
+                result.stderr))
+        # Now look for the puppet environment that matches lifecycle2
+        puppet_env = [
+            env for env in result.stdout if env['name'].startswith(
+                env_name)]
+        self.assertEqual(
+            len(puppet_env),
+            1,
+            u'Could not find the puppet environment: {0}'.format(env_name))
+
+        # Create new Capsule...
+        new_capsule = self._create_entity(
+            new_user,
+            Proxy,
+            {
+                u'name': self._generate_name(),
+                u'url': u'https://{0}:9090/'.format(
+                    conf.properties['main.server.hostname'])
+            }
+        )
+        # ...and add it to the organization
+        result = Org.add_smart_proxy(
+            {
+                u'id': new_org['id'],
+                u'smart-proxy-id': new_capsule['id']
+            }
+        )
+        self.assertEqual(
+            result.return_code,
+            0,
+            u"Return code is non-zero: {0}".format(result.return_code))
+        self.assertEqual(
+            len(result.stderr),
+            0,
+            u"Failed to add capsule '{0}' to org '{1}': {2}".format(
+                new_capsule['name'], new_org['name'], result.stderr))
+
         # Create a hostgroup...
         new_hg = self._create_entity(
             new_user,
@@ -347,6 +409,9 @@ class TestSmoke(CLITestCase):
                 u'name': self._generate_name(),
                 u'domain-id': new_domain['id'],
                 u'subnet-id': new_subnet['id'],
+                u'environment-id': puppet_env[0]['id'],
+                u'puppet-ca-proxy-id': new_capsule['id'],
+                u'puppet-proxy-id': new_capsule['id'],
             }
         )
         # ...and add it to the organization
