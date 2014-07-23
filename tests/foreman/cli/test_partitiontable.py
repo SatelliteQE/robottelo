@@ -4,17 +4,28 @@
 """
 Test class for Partition table CLI
 """
-
-from robottelo.cli.partitiontable import PartitionTable
-from robottelo.cli.factory import make_partition_table
 from robottelo.common.helpers import generate_name
+from robottelo.cli.factory import make_partition_table
 from robottelo.test import MetaCLITestCase
+from robottelo.cli.partitiontable import PartitionTable
+from robottelo.common import ssh
+import tempfile
 
 
 class TestPartitionTable(MetaCLITestCase):
 
     factory = make_partition_table
     factory_obj = PartitionTable
+    file = ""
+
+    def setUp(self):
+        """Set up file"""
+        self.file = tempfile.NamedTemporaryFile(delete=True)
+        self.file.write("This is a test partition table file \n")
+
+    def tearDown(self):
+        """Remove the file"""
+        self.file.close()
 
     def test_dump_ptable_1(self):
         """
@@ -57,3 +68,70 @@ class TestPartitionTable(MetaCLITestCase):
         PartitionTable().delete(args)
         self.assertFalse(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
+
+    def test_create_ptable(self):
+        """
+        @Feature: Partition Table - Create
+        @Test: Check if Partition Table can be created
+        @Assert: Partition Table is created
+        """
+
+        content = "Fake ptable"
+        name = generate_name(6)
+
+        ssh.upload_file(self.file.name, remote_file=self.file.name)
+
+        args = {
+            'name': name,
+            'os-family': 'Redhat',
+            'file': self.file.name,
+            'content': content
+        }
+
+        try:
+            make_partition_table(args)
+        except Exception as e:
+                self.fail(e)
+
+        self.assertTrue(
+            PartitionTable().exists(tuple_search=('name', name)).stdout)
+
+    def test_update_ptable(self):
+        """
+        @Feature: Partition Table - Update
+        @Test: Check if Partition Table can be updated
+        @Assert: Partition Table is updated
+        """
+
+        content = "Fake ptable"
+        name = generate_name(6)
+        new_name = generate_name(6)
+
+        ssh.upload_file(self.file.name, remote_file=self.file.name)
+
+        args = {
+            'name': name,
+            'os-family': 'Redhat',
+            'file': self.file.name,
+            'content': content
+        }
+
+        try:
+            make_partition_table(args)
+        except Exception as e:
+                self.fail(e)
+
+        self.assertTrue(
+            PartitionTable().exists(tuple_search=('name', name)).stdout)
+
+        args = {
+            'name': name,
+            'os-family': 'Redhat',
+            'file': self.file.name,
+            'new-name': new_name
+        }
+
+        PartitionTable().update(args)
+        self.assertFalse(
+            PartitionTable().exists(tuple_search=('new-name',
+                                                  new_name)).stdout)
