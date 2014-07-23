@@ -258,6 +258,31 @@ class StringFieldTestCase(unittest.TestCase):
         self.assertGreater(len(string), 0)
         self.assertLessEqual(len(string), 20)
 
+    def test_str_type(self):
+        """Set a ``str_type`` can call ``get_value``.
+
+        Assert the string generated is comprised of characters within the
+        specified character set.
+
+        """
+        # This can be shrunk down to about 5 lines of idiomatic code, but doing
+        # so totally destroys readability.
+        self.assertTrue(
+            orm.StringField(str_type=('alpha',)).get_value().isalpha()
+        )
+        self.assertTrue(
+            orm.StringField(str_type=['alpha']).get_value().isalpha()
+        )
+        self.assertTrue(
+            orm.StringField(str_type=('numeric',)).get_value().isnumeric()
+        )
+        self.assertTrue(
+            orm.StringField(str_type=['numeric']).get_value().isnumeric()
+        )
+
+        string = orm.StringField(str_type=('alpha', 'numeric')).get_value()
+        self.assertTrue(string.isalpha() or string.isnumeric())
+
 
 class GetClassTestCase(unittest.TestCase):
     """Tests for :func:`robottelo.orm._get_class`."""
