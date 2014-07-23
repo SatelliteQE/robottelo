@@ -5,10 +5,10 @@ can be found here: http://theforeman.org/api/apidoc/v2/users
 
 """
 from ddt import data, ddt
-from fauxfactory import FauxFactory
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.helpers import get_server_credentials
+from robottelo.orm import StringField
 from robottelo import entities
 from unittest import TestCase
 import httplib
@@ -19,10 +19,10 @@ import httplib
 class UsersTestCase(TestCase):
     """Tests for the ``users`` path."""
     @data(
-        FauxFactory.generate_alpha(FauxFactory.generate_integer(1, 60)),
-        FauxFactory.generate_alphanumeric(FauxFactory.generate_integer(1, 60)),
-        FauxFactory.generate_cjk(FauxFactory.generate_integer(1, 60)),
-        FauxFactory.generate_latin1(FauxFactory.generate_integer(1, 60)),
+        StringField(max_len=60, str_type='alpha'),
+        StringField(max_len=60, str_type='alphanumeric'),
+        StringField(max_len=60, str_type='cjk'),
+        StringField(max_len=60, str_type='latin1'),
     )
     def test_positive_create_1(self, login):
         """
