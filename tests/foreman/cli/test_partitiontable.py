@@ -4,11 +4,10 @@
 """
 Test class for Partition table CLI
 """
-
-from robottelo.cli.partitiontable import PartitionTable
-from robottelo.cli.factory import make_partition_table
 from robottelo.common.helpers import generate_name
+from robottelo.cli.factory import make_partition_table
 from robottelo.test import MetaCLITestCase
+from robottelo.cli.partitiontable import PartitionTable
 from robottelo.common import ssh
 import tempfile
 
@@ -23,7 +22,6 @@ class TestPartitionTable(MetaCLITestCase):
         """Set up file"""
         self.file = tempfile.NamedTemporaryFile(delete=True)
         self.file.write("This is a test partition table file \n")
-        return self.file.name
 
     def tearDown(self):
         """Remove the file"""
@@ -81,13 +79,12 @@ class TestPartitionTable(MetaCLITestCase):
         content = "Fake ptable"
         name = generate_name(6)
 
-        file_name = self.setUp()
-        ssh.upload_file(file_name, remote_file=file_name)
+        ssh.upload_file(self.file.name, remote_file=self.file.name)
 
         args = {
             'name': name,
             'os-family': 'Redhat',
-            'file': file_name,
+            'file': self.file.name,
             'content': content
         }
 
@@ -98,7 +95,6 @@ class TestPartitionTable(MetaCLITestCase):
 
         self.assertTrue(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
-        self.tearDown()
 
     def test_update_ptable(self):
         """
@@ -111,13 +107,12 @@ class TestPartitionTable(MetaCLITestCase):
         name = generate_name(6)
         new_name = generate_name(6)
 
-        file_name = self.setUp()
-        ssh.upload_file(file_name, remote_file=file_name)
+        ssh.upload_file(self.file.name, remote_file=self.file.name)
 
         args = {
             'name': name,
             'os-family': 'Redhat',
-            'file': file_name,
+            'file': self.file.name,
             'content': content
         }
 
@@ -132,7 +127,7 @@ class TestPartitionTable(MetaCLITestCase):
         args = {
             'name': name,
             'os-family': 'Redhat',
-            'file': file_name,
+            'file': self.file.name,
             'new-name': new_name
         }
 
@@ -140,4 +135,3 @@ class TestPartitionTable(MetaCLITestCase):
         self.assertFalse(
             PartitionTable().exists(tuple_search=('new-name',
                                                   new_name)).stdout)
-        self.tearDown()
