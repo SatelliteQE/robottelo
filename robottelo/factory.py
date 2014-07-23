@@ -77,13 +77,11 @@ class Factory(object):
 
     * :meth:`Factory._factory_data`
     * :meth:`Factory._factory_path`
-    * :meth:`Factory._unpack_response`
 
     A subclass may use :meth:`Factory.attributes` if it overrides
     :meth:`Factory._factory_data`. A subclass may also use
     :meth:`Factory.build` and :meth:`Factory.create` if it overrides
-    :meth:`Factory._factory_path` (and sometimes
-    :meth:`Factory._unpack_response` too).
+    :meth:`Factory._factory_path`.
 
     """
     def _factory_data(self):
@@ -114,32 +112,6 @@ class Factory(object):
 
         """
         raise NotImplementedError
-
-    # Pylint warns that `self` is unused. This is OK, as subclasses may use it.
-    def _unpack_response(self, response):  # pylint:disable=R0201
-        """Unpack the server's response after creating an entity.
-
-        After sucessfully creating an entity on a server, a response is sent
-        back. For example, after creating a "Model" entity::
-
-            {u'model': {
-                u'info': None, u'hosts_count': 0, u'name': u'foo',
-                u'created_at': u'2014-07-07T16:06:23Z', u'updated_at':
-                u'2014-07-07T16:06:23Z', u'hardware_model': None,
-                u'vendor_class': None, u'id': 11
-            }}
-
-        The job of this method is to return information about the entity which
-        was just created. In the example above, the inner dict should be
-        returned.
-
-        :param dict response: The data sent back from the server after creating
-            an entity.
-        :return: Information about the just-created entity.
-        :rtype: dict
-
-        """
-        return response
 
     def attributes(self, fields=None):
         """Return values for populating a new entity.
@@ -264,7 +236,7 @@ class Factory(object):
             )
 
         # Tell caller about created entity.
-        return self._unpack_response(response)
+        return response
 
 
 class EntityFactoryMixin(Factory):

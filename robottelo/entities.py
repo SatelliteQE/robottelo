@@ -296,10 +296,6 @@ class Domain(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = 'api/v2/domains'
 
-    def _unpack_response(self, response):
-        """Unpack the server's response after creating an entity."""
-        return response['domain']
-
 
 class Environment(orm.Entity):
     """A representation of a Environment entity."""
@@ -572,10 +568,6 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = 'api/v2/models'
 
-    def _unpack_response(self, response):
-        """Unpack the server's response after creating an entity."""
-        return response['model']
-
 
 class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Operating System entity.
@@ -615,10 +607,6 @@ class OrganizationDefaultInfo(orm.Entity):
         api_path = ('katello/api/v2/organizations/:organization_id/'
                     'default_info/:informable_type')
 
-    def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
-        """Unpack the server's response after creating an entity."""
-        return response['model']
-
 
 class Organization(orm.Entity, factory.EntityFactoryMixin):
     """A representation of an Organization entity."""
@@ -629,10 +617,6 @@ class Organization(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/organizations'
-
-    def _unpack_response(self, response):  # (no-self-use) pylint:disable=R0201
-        """Unpack the server's response after creating an entity."""
-        return response['organization']
 
 
 class OSDefaultTemplate(orm.Entity):
