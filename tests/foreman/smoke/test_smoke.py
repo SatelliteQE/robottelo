@@ -183,7 +183,10 @@ class TestSmoke(CLITestCase):
         )
 
         # Synchronize YUM repository
-        result = Repository.synchronize({'id': new_repo1['id']})
+        result = Repository.with_user(
+            new_user['login'],
+            new_user['password']
+        ).synchronize({'id': new_repo1['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -194,7 +197,10 @@ class TestSmoke(CLITestCase):
             u"Failed to synchronize YUM repo: {0}".format(result.stderr))
 
         # Synchronize puppet repository
-        result = Repository.synchronize({'id': new_repo2['id']})
+        result = Repository.with_user(
+            new_user['login'],
+            new_user['password']
+        ).synchronize({'id': new_repo2['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -213,7 +219,10 @@ class TestSmoke(CLITestCase):
         )
 
         # Associate yum repository to content view
-        result = ContentView.add_repository(
+        result = ContentView.with_user(
+            new_user['login'],
+            new_user['password']
+        ).add_repository(
             {u'id': new_cv['id'],
              u'repository-id': new_repo1['id']})
         self.assertEqual(
@@ -227,7 +236,10 @@ class TestSmoke(CLITestCase):
                 result.stderr))
 
         # Fetch puppet module
-        puppet_result = PuppetModule.list(
+        puppet_result = PuppetModule.with_user(
+            new_user['login'],
+            new_user['password']
+        ).list(
             {u'repository-id': new_repo2['id'],
              u'per-page': False})
         self.assertEqual(
@@ -241,7 +253,10 @@ class TestSmoke(CLITestCase):
                 result.stderr))
 
         # Associate puppet repository to content view
-        result = ContentView.puppet_module_add(
+        result = ContentView.with_user(
+            new_user['login'],
+            new_user['password']
+        ).puppet_module_add(
             {
                 u'content-view-id': new_cv['id'],
                 u'name': puppet_result.stdout[0]['name']
@@ -258,7 +273,10 @@ class TestSmoke(CLITestCase):
                 result.stderr))
 
         # Publish content view
-        result = ContentView.publish({u'id': new_cv['id']})
+        result = ContentView.with_user(
+            new_user['login'],
+            new_user['password']
+        ).publish({u'id': new_cv['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -269,7 +287,10 @@ class TestSmoke(CLITestCase):
             u"Failed to publish content view: {0}".format(result.stderr))
 
         # Only after we publish version1 the info is populated.
-        result = ContentView.info({u'id': new_cv['id']})
+        result = ContentView.with_user(
+            new_user['login'],
+            new_user['password']
+        ).info({u'id': new_cv['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -283,7 +304,10 @@ class TestSmoke(CLITestCase):
         version1_id = result.stdout['versions'][0]['id']
 
         # Promote content view to first lifecycle
-        result = ContentView.version_promote(
+        result = ContentView.with_user(
+            new_user['login'],
+            new_user['password']
+        ).version_promote(
             {u'id': result.stdout['versions'][0]['id'],
              u'lifecycle-environment-id': lifecycle1['id']})
         self.assertEqual(
@@ -297,7 +321,10 @@ class TestSmoke(CLITestCase):
                 lifecycle1['name'], result.stderr))
 
         # Promote content view to second lifecycle
-        result = ContentView.version_promote(
+        result = ContentView.with_user(
+            new_user['login'],
+            new_user['password']
+        ).version_promote(
             {u'id': version1_id,
              u'lifecycle-environment-id': lifecycle2['id']})
         self.assertEqual(
@@ -351,7 +378,10 @@ class TestSmoke(CLITestCase):
             lifecycle2['label'].replace('-', '_')
         )
         # We fetch all the puppet environments for our organization...
-        result = Environment.list(
+        result = Environment.with_user(
+            new_user['login'],
+            new_user['password']
+        ).list(
             {
                 u'search': u'organization=\"{0}\"'.format(
                     new_org['name'])
@@ -385,7 +415,10 @@ class TestSmoke(CLITestCase):
             }
         )
         # ...and add it to the organization
-        result = Org.add_smart_proxy(
+        result = Org.with_user(
+            new_user['login'],
+            new_user['password']
+        ).add_smart_proxy(
             {
                 u'id': new_org['id'],
                 u'smart-proxy-id': new_capsule['id']
@@ -415,7 +448,10 @@ class TestSmoke(CLITestCase):
             }
         )
         # ...and add it to the organization
-        result = Org.add_hostgroup(
+        result = Org.with_user(
+            new_user['login'],
+            new_user['password']
+        ).add_hostgroup(
             {
                 u'id': new_org['id'],
                 u'hostgroup-id': new_hg['id']
