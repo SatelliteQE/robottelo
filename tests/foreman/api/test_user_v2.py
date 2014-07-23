@@ -19,10 +19,10 @@ import httplib
 class UsersTestCase(TestCase):
     """Tests for the ``users`` path."""
     @data(
-        StringField(max_len=60, str_type='alpha'),
-        StringField(max_len=60, str_type='alphanumeric'),
-        StringField(max_len=60, str_type='cjk'),
-        StringField(max_len=60, str_type='latin1'),
+        StringField(max_len=60, str_type=('alpha',)).get_value(),
+        StringField(max_len=60, str_type=('alphanumeric',)).get_value(),
+        StringField(max_len=60, str_type=('cjk',)).get_value(),
+        StringField(max_len=60, str_type=('latin1',)).get_value(),
     )
     def test_positive_create_1(self, login):
         """
@@ -51,6 +51,10 @@ class UsersTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         ).json()
+        # Remove the ``password`` field from ``attrs`` since it isn't
+        # returned by GET.
+        attrs.pop('password')
+        # Assert that keys and values match
         for key, value in attrs.items():
             self.assertIn(key, real_attrs.keys())
             self.assertEqual(value, real_attrs[key])
