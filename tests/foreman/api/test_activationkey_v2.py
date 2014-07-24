@@ -26,7 +26,10 @@ class ActivationKeysTestCase(TestCase):
         @Assert: Activationkey is created, defaults to unlimited content host
         @Feature: ActivationKey
         """
-        attrs = entities.ActivationKey().create()
+        try:
+            attrs = entities.ActivationKey().create()
+        except FactoryError as err:
+            self.fail(err)
         # Assert that it defaults to unlimited content host
         self.assertTrue(
             attrs['unlimited_content_hosts'],
@@ -44,12 +47,13 @@ class ActivationKeysTestCase(TestCase):
         @Assert: Activationkey is created, defaults to limited content host
         @Feature: ActivationKey
         """
-        attrs = entities.ActivationKey().create(
-            fields={
+        try:
+            attrs = entities.ActivationKey().create(fields={
                 u'unlimited_content_hosts': False,
                 u'max_content_hosts': max_content_hosts
-            }
-        )
+            })
+        except FactoryError as err:
+            self.fail(err)
         # Assert that it defaults to limited content host...
         self.assertFalse(
             attrs['unlimited_content_hosts'],
@@ -79,12 +83,13 @@ class ActivationKeysTestCase(TestCase):
           3. max content hosts is None
         @Feature: ActivationKey
         """
-        attrs = entities.ActivationKey().create(
-            fields={
+        try:
+            attrs = entities.ActivationKey().create(fields={
                 u'unlimited_content_hosts': True,
                 u'max_content_hosts': max_content_hosts
-            }
-        )
+            })
+        except FactoryError as err:
+            self.fail(err)
         # Assert that it defaults to limited content host...
         self.assertTrue(
             attrs['unlimited_content_hosts'],
@@ -110,24 +115,14 @@ class ActivationKeysTestCase(TestCase):
         @Assert: Activationkey is created and contains provided name.
         @Feature: ActivationKey
         """
-        path = entities.ActivationKey().path()
-        attrs = entities.ActivationKey().build(fields={u'name': name})
-        response = client.post(
-            path,
-            attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = (httplib.OK, httplib.CREATED)
-        self.assertIn(
-            response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
-        )
+        try:
+            attrs = entities.ActivationKey().create(fields={u'name': name})
+        except FactoryError as err:
+            self.fail(err)
 
         # Fetch the activationeky
         real_attrs = client.get(
-            entities.ActivationKey(id=response.json()['id']).path(),
+            entities.ActivationKey(id=attrs['id']).path(),
             auth=get_server_credentials(),
             verify=False,
         ).json()
@@ -180,7 +175,10 @@ class ActivationKeysTestCase(TestCase):
         @Assert: ActivationKey is created, updated to limited content host
         @Feature: ActivationKey
         """
-        attrs = entities.ActivationKey().create()
+        try:
+            attrs = entities.ActivationKey().create()
+        except FactoryError as err:
+            self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
 
         # Make a copy of the activationkey...
@@ -252,12 +250,13 @@ class ActivationKeysTestCase(TestCase):
           3. Record is not changed
         @Feature: ActivationKey
         """
-        attrs = entities.ActivationKey().create(
-            fields={
+        try:
+            attrs = entities.ActivationKey().create(fields={
                 u'unlimited_content_hosts': False,
                 u'max_content_hosts': max_content_hosts
-            }
-        )
+            })
+        except FactoryError as err:
+            self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
 
         # Make a copy of the activationkey...
