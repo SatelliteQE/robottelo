@@ -131,7 +131,7 @@ class Org(Base):
             raise Exception("Search box not found.")
         else:
             searchbox.clear()
-            searchbox.sendkeys(escape_search(name))
+            searchbox.send_keys(escape_search(name))
             self.wait_until_element(common_locators["search_button"]).click()
             self.wait_for_ajax()
             element = self.wait_until_element((strategy,

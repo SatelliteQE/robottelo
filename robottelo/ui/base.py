@@ -4,7 +4,7 @@
 """
 Base class for all UI operations
 """
-import logging.config
+import logging
 from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
@@ -12,6 +12,12 @@ from selenium.common.exceptions import WebDriverException
 from robottelo.common.helpers import escape_search
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+
+class UINoSuchElementError(Exception):
+    """
+    Indicates that UI Element is not found.
+    """
 
 
 class Base(object):
@@ -38,12 +44,13 @@ class Base(object):
                 return _webelement
             else:
                 return None
-        except NoSuchElementException:
-            self.logger.debug("Could not locate element '%s'." % locator[1])
+        except NoSuchElementException as e:
+            logging.debug("%s: Could not locate element %s.",
+                         type(e).__name__,
+                         locator[1])
             return None
         except Exception, error:
-            self.logger.debug(
-                "Failed to locate element. ERROR: %s" % str(error))
+            logging.debug("Failed to locate element. ERROR: %s", str(error))
             return None
 
     def search_entity(self, element_name, element_locator, search_key=None,
@@ -159,35 +166,30 @@ class Base(object):
             strategy1 = del_locator[0]
             value1 = del_locator[1]
             element = self.wait_until_element((strategy1, value1 % name))
-            if element:
-                element.click()
-                self.handle_alert(really)
-            else:
-                raise Exception(
+            if element is None:
+                raise UINoSuchElementError(
                     "Could not select the entity '%s' for deletion." % name)
+            element.click()
+            self.handle_alert(really)
         else:
             raise Exception("Could not search the entity '%s'" % name)
 
-    def wait_until_element(self, locator, delay=20):
+    def wait_until_element(self, locator, delay=3):
         """
         Wrapper around Selenium's WebDriver that allows you to pause your test
         until an element in the web page is present.
         """
         try:
             element = WebDriverWait(
-                self.browser, delay
-            ).until(EC.visibility_of_element_located((locator)))
+                self.browser, delay).until(EC.visibility_of_element_located(
+                    locator))
             return element
-        except TimeoutException:
-            self.logger.debug(
-                "Timed out waiting for element '%s' to display." % locator[1])
-            return None
-        except NoSuchElementException:
-            self.logger.debug("Element '%s' was never found." % locator[1])
+        except TimeoutException as e:
+            logging.debug("%s: Timed out waiting for element '%s' to display.",
+                type(e).__name__, locator[1])
             return None
         except Exception, error:
-            self.logger.debug(
-                "Failed to locate element. ERROR: %s" % str(error))
+            logging.debug("Failed to locate element. ERROR: %s", str(error))
             return None
 
     def ajax_complete(self, driver):
@@ -308,26 +310,22 @@ class Base(object):
         strategy1, value1 = entity_locator
         searchbox = self.wait_until_element(common_locators["search"])
         if searchbox is None:
-            raise Exception("Search box not found.")
-        else:
-            searchbox.clear()
-            searchbox.send_keys(search_key + " = " + partial_name)
-            self.wait_for_ajax()
-            strategy, value = common_locators["auto_search"]
-            element = self.wait_until_element((strategy, value % name))
-            if element:
-                element.click()
-                self.wait_for_ajax()
-                search_element = self.wait_until_element(
-                    common_locators['search_button'])
-                if search_element:
-                    search_element.click()
-                else:
-                    raise Exception(
-                        "Couldn't find the search button")
-                entity_elem = self.wait_until_element((strategy1,
-                                                       value1 % name))
-                return entity_elem
-            else:
-                raise Exception(
-                    "Couldn't find any entity via auto search completion")
+            raise UINoSuchElementError("Search box not found.")
+        searchbox.clear()
+        searchbox.send_keys(search_key + " = " + partial_name)
+        self.wait_for_ajax()
+        strategy, value = common_locators["auto_search"]
+        element = self.wait_until_element((strategy, value % name))
+        if element is None:
+            raise UINoSuchElementError(
+                "Entity not found via auto search completion.")
+        element.click()
+        self.wait_for_ajax()
+        search_button = self.wait_until_element(
+            common_locators['search_button'])
+        if search_button is None:
+            raise UINoSuchElementError("Search button not found.")
+        search_button.click()
+        entity_elem = self.wait_until_element((strategy1,
+                                                   value1 % name))
+        return entity_elem
