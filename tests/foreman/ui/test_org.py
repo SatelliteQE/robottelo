@@ -22,7 +22,7 @@ from robottelo.common.helpers import (generate_strings_list,
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
+from robottelo.ui.factory import make_org, make_templates
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -735,48 +735,41 @@ class Org(UITestCase):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
         """
-        @feature: Organizations
         @test: Remove config template
+        @feature: Organizations
         @assert: configtemplate is added then removed
-        @BZ: 1076562
         """
 
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_provisioning_templates()
-        self.template.create(template, template_path, True,
-                             temp_type, None)
-        self.assertIsNotNone(self.template.search(template))
-        self.navigator.go_to_org()
-        self.org.create(org_name, templates=[template],
-                        edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_template"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % template))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, templates=[template])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_template"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % template))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_templates(session, name=template, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.search(template))
+            make_org(session, org_name=org_name, templates=[template],
+                     edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_template"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % template))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertTrue(element)
+            self.org.update(org_name, templates=[template])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_template"]).click()
+            element = self.org.wait_until_element((strategy,
+                                                   value % template))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertTrue(element)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
@@ -785,7 +778,6 @@ class Org(UITestCase):
         @feature: Organizations
         @test: Add environment by using organization name and evironment name
         @assert: environment is added
-        @status: manual
         """
 
         strategy = common_locators["entity_deselect"][0]
@@ -897,7 +889,6 @@ class Org(UITestCase):
                                                value % medium))
         self.assertTrue(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
@@ -906,33 +897,27 @@ class Org(UITestCase):
         @test: Add config template by using organization name and
         configtemplate name
         @assert: configtemplate is added
-        @BZ: 1076562
         """
-
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
         org_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_provisioning_templates()
-        self.template.create(template, template_path, True,
-                             temp_type, None)
-        self.assertIsNotNone(self.template.search(template))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_templates=[template])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_template"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % template))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            session.nav.go_to_provisioning_templates()
+            make_templates(session, name=template, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.search(template))
+            self.org.update(org_name, new_templates=[template])
+            self.org.search(org_name).click()
+            self.org.wait_until_element(
+                tab_locators["context.tab_template"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % template))
+            self.assertTrue(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_environment_1(self, env):
@@ -940,7 +925,6 @@ class Org(UITestCase):
         @feature: Organizations
         @test: Remove environment by using organization name & evironment name
         @assert: environment is removed from Organization
-        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
@@ -972,7 +956,6 @@ class Org(UITestCase):
         # Item is listed in 'All Items' list and not 'Selected Items' list.
         self.assertTrue(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
@@ -980,7 +963,6 @@ class Org(UITestCase):
         @feature: Organizations
         @test: Remove subnet by using organization name and subnet name
         @assert: subnet is added then removed
-        @BZ: 1076562
         """
 
         strategy = common_locators["entity_select"][0]
