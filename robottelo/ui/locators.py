@@ -1002,12 +1002,12 @@ locators = {
     "ak.content_view": (By.ID, "content_view_id"),
     "ak.usage_limit_checkbox": (
         By.XPATH,
-        "//input[@ng-checked='isUnlimited(activationKey)']"),
+        "//input[@ng-model='activationKey.unlimited_content_hosts']"),
     "ak.usage_limit": (
-        By.XPATH, "//input[@ng-model='activationKey.usage_limit']"),
+        By.XPATH, "//input[@ng-model='activationKey.max_content_hosts']"),
     "ak.invalid_limit": (
         By.XPATH,
-        "//input[@id='usage_limit' and contains(@class, 'ng-invalid')]"),
+        "//input[@id='max_content_hosts' and contains(@class, 'ng-invalid')]"),
     "ak.close": (
         By.XPATH,
         "//button[@ui-sref='activation-keys.index']"),
@@ -1038,11 +1038,11 @@ locators = {
         "//form[@alch-edit-textarea='activationKey.description']\
         //button[@ng-click='save()']"),
     "ak.edit_limit": (
-        By.XPATH, "//div[@alch-edit-custom='activationKey.usage_limit']\
+        By.XPATH, "//div[@alch-edit-custom='activationKey.max_content_hosts']\
         //div/span/i"),
     "ak.save_limit": (
         By.XPATH,
-        "//div[@alch-edit-custom='activationKey.usage_limit']\
+        "//div[@alch-edit-custom='activationKey.max_content_hosts']\
         //button[@ng-click='save()']"),
     "ak.edit_content_view": (
         By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
