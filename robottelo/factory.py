@@ -258,7 +258,7 @@ class EntityFactoryMixin(Factory):
     def _factory_data(self):
         """Return name-value pairs for each required field on the entity.
 
-        This method does the following:
+        This method follows the following logical steps:
 
         1. Ask ``self.get_fields`` for a dict of field names and types. (see
            :meth:`robottelo.orm.Entity.get_fields`)
@@ -266,29 +266,33 @@ class EntityFactoryMixin(Factory):
         3. Change field names using ``self.Meta.api_names``, if present.
         4. Append the suffix '_id' and '_ids' to the name of each
            ``OneToOneField`` and ``OneTomanyField``, respectively.
-        5. Generate values for each field.
+        5. Generate values for each field. If an explicit value was provided
+           when the entity was created (e.g. `SomeFactory(name='foo')`), that
+           is used instead.
+
+        The actual method implementation differs from the above description.
 
         """
-        # Step 1 and 2
-        fields = {}
-        for name, field in self.get_fields().items():
-            if field_is_required(field):
-                fields[name] = field
+        values = self.get_values()  # explicit values provided by user
+        fields = self.get_fields()  # fields from entity definition
 
-        # Step 3
+        # When this loop is complete, `values` is complete. We just need to
+        # adjust field for Foreman.
+        for name, field in fields.items():
+            if name not in values.keys() and field_is_required(field):
+                values[name] = field.get_value()
+
+        # If self.Meta.api_names is present, then we must use it to transform
+        # field names *before* appending _id and _ids to field names.
         if hasattr(self.Meta, 'api_names'):
             fields = _copy_and_update_keys(fields, self.Meta.api_names)
+            values = _copy_and_update_keys(values, self.Meta.api_names)
 
-        # Step 4
-        for name, field in fields.items():
-            if isinstance(field, orm.OneToOneField):
-                fields[name + '_id'] = fields.pop(name)
-            elif isinstance(field, orm.OneToManyField):
-                fields[name + '_ids'] = fields.pop(name)
-
-        # Step 5
-        values = {}
-        for name, field in fields.items():
-            values[name] = field.get_value()
+        # Append _id and _ids to foreign key fields.
+        for name in values.keys():
+            if isinstance(fields[name], orm.OneToOneField):
+                values[name + '_id'] = values.pop(name)
+            elif isinstance(fields[name], orm.OneToManyField):
+                values[name + '_ids'] = values.pop(name)
 
         return values

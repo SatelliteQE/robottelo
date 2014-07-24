@@ -364,3 +364,28 @@ class Entity(booby.Model):
 
         """
         return booby.inspection.get_fields(cls)
+
+    # FIXME: See GitHub issue #1082.
+    def get_values(self):
+        """Return all field values as a dictionary.
+
+        All fields with a value of ``None`` are omitted from the returned dict.
+        For example, if this entity is created::
+
+            SomeEntity(name='foo', description=None)
+
+        This dict is returned::
+
+            {'name': 'foo'}
+
+        This is a bug. See GitHub issue #1082.
+
+        :return: A dictionary mapping field names to field values.
+        :rtype: dict
+
+        """
+        fields = dict(self)
+        for key, value in fields.items():
+            if value is None:
+                fields.pop(key)
+        return fields

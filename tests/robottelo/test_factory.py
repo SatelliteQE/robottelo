@@ -45,6 +45,15 @@ class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
         return {'error': {'error name': 'error message'}}
 
 
+class SampleEntityFactory(orm.Entity, factory.EntityFactoryMixin):
+    """
+    A class which inherits from :class:`robottelo.factory.Factory` and
+    :class:`robottelo.factory.EntityFactoryMixin`.
+    """
+    name = orm.StringField(required=True)
+    label = orm.StringField()
+
+
 class IsRequiredTestCase(TestCase):
     """Tests for :func:`robottelo.factory.field_is_required`."""
     # (protected-access) pylint:disable=W0212
@@ -231,3 +240,29 @@ class SampleFactoryTestCase(TestCase):
         client.post = lambda url, data=None, **kwargs: MockErrorResponse()
         with self.assertRaises(factory.FactoryError):
             SampleFactory().create()
+
+
+class SampleEntityFactoryTestCase(TestCase):
+    """Tests for :class:`SampleEntityFactory`."""
+    # (protected-access) pylint:disable=W0212
+    def test_implicit_fields(self):
+        """
+        Assert :meth:`robottelo.factory.EntityFactoryMixin._factory_data`
+        returns only required fields.
+        """
+        attrs = SampleEntityFactory()._factory_data()
+        self.assertIn('name', attrs.keys())
+        self.assertNotIn('label', attrs.keys())
+
+    def test_explicit_fields(self):
+        """
+        Assert :meth:`robottelo.factory.EntityFactoryMixin._factory_data`
+        returns explicitly-specified values.
+        """
+        name = orm.StringField().get_value()
+        label = orm.StringField().get_value()
+        attrs = SampleEntityFactory(name=name, label=label)._factory_data()
+        self.assertIn('name', attrs.keys())
+        self.assertIn('label', attrs.keys())
+        self.assertEqual(attrs['name'], name)
+        self.assertEqual(attrs['label'], label)
