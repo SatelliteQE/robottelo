@@ -12,6 +12,13 @@
     :members:
     :undoc-members:
 
+:mod:`tests.foreman.api.test_activationkey_v2`
+----------------------------------------------
+
+.. automodule:: tests.foreman.api.test_activationkey_v2
+    :members:
+    :undoc-members:
+
 :mod:`tests.foreman.api.test_computeresource`
 ---------------------------------------------
 
