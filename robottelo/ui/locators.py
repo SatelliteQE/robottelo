@@ -1024,32 +1024,35 @@ locators = {
         "//form[@alch-edit-text='activationKey.name']/div/input"),
     "ak.save_name": (
         By.XPATH,
-        "//form[@alch-edit-text='activationKey.name']\
-        //button[@ng-click='save()']"),
+        ("//form[@alch-edit-text='activationKey.name']"
+         "//button[@ng-click='save()']")),
     "ak.edit_description": (
         By.XPATH,
         "//form[@alch-edit-textarea='activationKey.description']//div/span/i"),
     "ak.edit_description_text": (
         By.XPATH,
-        "//form[@alch-edit-textarea='activationKey.description']\
-        /div/textarea"),
+        ("//form[@alch-edit-textarea='activationKey.description']"
+         "/div/textarea")),
     "ak.save_description": (
         By.XPATH,
-        "//form[@alch-edit-textarea='activationKey.description']\
-        //button[@ng-click='save()']"),
+        ("//form[@alch-edit-textarea='activationKey.description']"
+         "//button[@ng-click='save()']")),
     "ak.edit_limit": (
-        By.XPATH, "//div[@alch-edit-custom='activationKey.max_content_hosts']\
-        //div/span/i"),
+        By.XPATH,
+        ("//div[@alch-edit-custom='activationKey.max_content_hosts']"
+         "//div/span/i")),
     "ak.save_limit": (
         By.XPATH,
-        "//div[@alch-edit-custom='activationKey.max_content_hosts']\
-        //button[@ng-click='save()']"),
+        ("//div[@alch-edit-custom='activationKey.max_content_hosts']"
+         "//button[@ng-click='save()']")),
     "ak.edit_content_view": (
-        By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        //div//span/i"),
+        By.XPATH,
+        ("//form[@alch-edit-select='activationKey.content_view.name']"
+         "//div//span/i")),
     "ak.edit_content_view_select": (
-        By.XPATH, "//form[@alch-edit-select='activationKey.content_view.name']\
-        /div/select"),
+        By.XPATH,
+        ("//form[@alch-edit-select='activationKey.content_view.name']"
+         "/div/select")),
     "ak.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
     "ak.cancel": (
@@ -1169,8 +1172,8 @@ locators = {
         By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
     "content_env.select_name": (
         By.XPATH,
-        "//div[contains(., '%s')]/parent::label\
-        [@ng-click='selectEnvironment(env)']"),
+        ("//div[contains(., '%s')]/parent::label"
+         "[@ng-click='selectEnvironment(env)']")),
     "content_env.remove": (
         By.XPATH,
         "//button[@ng-click='openModal()']"),
@@ -1220,8 +1223,8 @@ locators = {
         "//form[@alch-edit-text='gpgKey.name']/div/input"),
     "gpgkey.save_name": (
         By.XPATH,
-        "//form[@alch-edit-text='gpgKey.name']\
-        //button[@ng-click='save()']"),
+        ("//form[@alch-edit-text='gpgKey.name']"
+         "//button[@ng-click='save()']")),
     "gpgkey.upload_button": (
         By.XPATH, "//button[@ng-click='progress.uploading = true']"),
     "gpgkey.product_repo_search": (
@@ -1244,19 +1247,19 @@ locators = {
         "//form[@alch-edit-text='contentView.name']/div/input"),
     "contentviews.save_name": (
         By.XPATH,
-        "//form[@alch-edit-text='contentView.name']\
-        //button[@ng-click='save()']"),
+        ("//form[@alch-edit-text='contentView.name']"
+         "//button[@ng-click='save()']")),
     "contentviews.edit_description": (
         By.XPATH,
         "//form[@alch-edit-textarea='contentView.description']//div/span/i"),
     "contentviews.edit_description_text": (
         By.XPATH,
-        "//form[@alch-edit-textarea='contentView.description']\
-        /div/textarea"),
+        ("//form[@alch-edit-textarea='contentView.description']"
+         "/div/textarea")),
     "contentviews.save_description": (
         By.XPATH,
-        "//form[@alch-edit-textarea='contentView.description']\
-        //button[@ng-click='save()']"),
+        ("//form[@alch-edit-textarea='contentView.description']"
+         "//button[@ng-click='save()']")),
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
