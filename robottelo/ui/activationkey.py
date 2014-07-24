@@ -21,11 +21,9 @@ class ActivationKey(Base):
         Sets the finite limit of activation key
         """
         limit_checkbox_locator = locators["ak.usage_limit_checkbox"]
-        unlimited_set = self.find_element(limit_checkbox_locator
-                                          ).get_attribute("checked")
-        if unlimited_set is None and limit == "Unlimited":
+        if limit == 'Unlimited':
             self.find_element(limit_checkbox_locator).click()
-        elif unlimited_set:
+        else:
             self.find_element(limit_checkbox_locator).click()
             self.field_update("ak.usage_limit", limit)
 
@@ -43,6 +41,7 @@ class ActivationKey(Base):
             self.wait_for_ajax()
             if limit:
                 self.set_limit(limit)
+                self.wait_for_ajax()
             if description:
                 self.text_field_update(common_locators
                                        ["description"], description)

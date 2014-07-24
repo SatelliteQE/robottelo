@@ -743,7 +743,7 @@ class ActivationKey(UITestCase):
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, limit)
+        self.activationkey.update(name, limit=limit)
         invalid = self.activationkey.wait_until_element(locators
                                                         ["ak.invalid_limit"])
         self.assertTrue(invalid)
