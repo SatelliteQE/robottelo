@@ -269,7 +269,9 @@ class LongMessageTestCase(TestCase):
         ).json()
         for key, value in gen_attrs.items():
             self.assertIn(key, real_attrs.keys(), path)
-            self.assertEqual(value, real_attrs[key], path)
+            self.assertEqual(
+                value, real_attrs[key], '{0} {1}'.format(key, path)
+            )
 
     @data(
         entities.Architecture,
@@ -307,4 +309,6 @@ class LongMessageTestCase(TestCase):
         ).json()
         for key, value in gen_attrs.items():
             self.assertIn(key, real_attrs.keys(), path)
-            self.assertEqual(value, real_attrs[key], path)
+            self.assertEqual(
+                value, real_attrs[key], '{0} {1}'.format(key, path)
+            )

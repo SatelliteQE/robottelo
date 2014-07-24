@@ -573,12 +573,13 @@ class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
-    values are accepted, and they may be no longer than 5 digits long.
+    values are accepted, and they may be no longer than 5 digits long. Also see
+    bugzilla bug #1122261.
 
     """
     # validator: Must match regular expression /\A(\S+)\Z/.
     name = orm.StringField(required=True)
-    major = orm.IntegerField(required=True, min_val=0, max_val=99999)
+    major = orm.StringField(required=True, str_type=('numeric',), max_len=5)
     minor = orm.StringField(null=True)
     description = orm.StringField(null=True)
     family = orm.StringField(null=True)
