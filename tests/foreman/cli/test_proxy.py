@@ -124,7 +124,7 @@ class TestProxy(CLITestCase):
         """
         @Test: Proxy name update with the home proxy
         @Feature: Smart Proxy
-        @Assert: Proxy is created
+        @Assert: Proxy has the name updated
         """
         try:
             proxy = make_proxy({'name': data['name']})

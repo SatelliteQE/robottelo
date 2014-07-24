@@ -344,7 +344,7 @@ def make_product(options=None):
     if not options or not options.get('organization-id', None):
         raise Exception("Please provide a valid ORG ID.")
 
-    args = options and{
+    args = {
         'name': generate_string('alpha', 20),
         'label': generate_string('alpha', 20),
         'description': generate_string('alpha', 20),
