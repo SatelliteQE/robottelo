@@ -6,6 +6,7 @@ Test class for Partition table CLI
 """
 from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_partition_table
+from robottelo.cli.metatest import MetaCLITest
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.common import ssh
 import tempfile
@@ -17,7 +18,22 @@ factory_obj = PartitionTable
 file = ""
 
 
-class TestPartitionTableDelete(TestCase):
+class CLITestCase(TestCase):
+    """Test case for CLI tests."""
+
+    def setUp(self):
+        """Set up file"""
+        self.file = tempfile.NamedTemporaryFile(delete=True)
+        print self.file.name
+        self.file.write("This is a test partition table file")
+        print self.file.name
+
+    def tearDown(self):
+        """Remove the file"""
+        self.file.close()
+
+
+class TestPartitionTableDelete(CLITestCase):
 
     def test_dump_ptable_1(self):
         """
@@ -62,18 +78,7 @@ class TestPartitionTableDelete(TestCase):
             PartitionTable().exists(tuple_search=('name', name)).stdout)
 
 
-class TestPartitionTableCreateUpdate(TestCase):
-
-    def setUp(self):
-        """Set up file"""
-        self.file = tempfile.NamedTemporaryFile(delete=True)
-        print self.file.name
-        self.file.write("This is a test partition table file")
-        print self.file.name
-
-    def tearDown(self):
-        """Remove the file"""
-        self.file.close()
+class TestPartitionTableCreateUpdate(CLITestCase):
 
     def test_create_ptable(self):
         """
