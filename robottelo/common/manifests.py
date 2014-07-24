@@ -6,9 +6,52 @@ Implements Manifest functions
 """
 
 import logging
+import zipfile
+import tempfile
+import json
+import uuid
+import shutil
+import os
 
 
-class Manifests():
+def edit_in_zip(zipfname, file_edit_functions):
+    tempdir = tempfile.mkdtemp()
+    try:
+        tempname = os.path.join(tempdir, 'new.zip')
+        with zipfile.ZipFile(zipfname, 'r') as zipread:
+            with zipfile.ZipFile(tempname, 'w') as zipwrite:
+                for item in zipread.infolist():
+                    if item.filename not in file_edit_functions:
+                        data = zipread.read(item.filename)
+                        zipwrite.writestr(item, data)
+                    else:
+                        data = file_edit_functions[item.filename](
+                            zipread.read(item.filename)
+                            )
+                        zipwrite.writestr(item, data)
+        shutil.move(tempname, zipfname)
+    finally:
+        shutil.rmtree(tempdir)
+
+
+def edit_consumer(data):
+    content_dict = json.loads(data)
+    content_dict['uuid'] = str(uuid.uuid1())
+    return json.dumps(content_dict)
+
+
+def clone(oldpath, newpath):
+    shutil.copy(oldpath, newpath)
+    tempdir = tempfile.mkdtemp()
+    with zipfile.ZipFile(newpath) as oldzip:
+        oldzip.extractall(tempdir)
+        edit_in_zip(tempdir+"/consumer_export.zip",
+                    {"/export/consumer.json": edit_consumer})
+    with zipfile.ZipFile(newpath, "w") as oldzip:
+        oldzip.write(tempdir+"/consumer_export.zip", "/consumer_export.zip")
+
+
+class Manifests(object):
     """
     Handles Red Hat manifest files.
     """
