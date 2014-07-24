@@ -46,8 +46,8 @@ class Base(object):
                 return None
         except NoSuchElementException as e:
             logging.debug("%s: Could not locate element %s.",
-                         type(e).__name__,
-                         locator[1])
+                          type(e).__name__,
+                          locator[1])
             return None
         except Exception, error:
             logging.debug("Failed to locate element. ERROR: %s", str(error))
@@ -186,7 +186,7 @@ class Base(object):
             return element
         except TimeoutException as e:
             logging.debug("%s: Timed out waiting for element '%s' to display.",
-                type(e).__name__, locator[1])
+                          type(e).__name__, locator[1])
             return None
         except Exception, error:
             logging.debug("Failed to locate element. ERROR: %s", str(error))
@@ -327,5 +327,5 @@ class Base(object):
             raise UINoSuchElementError("Search button not found.")
         search_button.click()
         entity_elem = self.wait_until_element((strategy1,
-                                                   value1 % name))
+                                               value1 % name))
         return entity_elem
