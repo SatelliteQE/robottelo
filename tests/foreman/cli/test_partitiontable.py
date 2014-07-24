@@ -4,35 +4,65 @@
 """
 Test class for Partition table CLI
 """
+from robottelo.test import CLITestCase
 from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.common import ssh
 import tempfile
-from unittest import TestCase
 
 
-factory = make_partition_table
-factory_obj = PartitionTable
-file = ""
-
-
-class CLITestCase(TestCase):
+class TestPartitionTableUpdateCreate(CLITestCase):
     """Test case for CLI tests."""
 
     def setUp(self):
         """Set up file"""
+        super(TestPartitionTableUpdateCreate, self).setUp()
         self.file = tempfile.NamedTemporaryFile(delete=True)
-        print self.file.name
         self.file.write("This is a test partition table file")
-        print self.file.name
+        self.content = "Fake ptable"
+        self.name = generate_name(6)
+        ssh.upload_file(self.file.name, remote_file=self.file.name)
+        self.args = {
+            'name': self.name,
+            'os-family': 'Redhat',
+            'file': self.file.name,
+            'content': self.content
+        }
+        try:
+            make_partition_table(self.args)
+        except Exception as e:
+                self.fail(e)
+        self.assertTrue(
+            PartitionTable().exists(tuple_search=('name', self.name)).stdout)
 
     def tearDown(self):
         """Remove the file"""
         self.file.close()
 
+    def test_update_ptable(self):
+        """
+        @Feature: Partition Table - Update
+        @Test: Check if Partition Table can be updated
+        @Assert: Partition Table is updated
+        """
+
+        new_name = generate_name(6)
+        self.args = {
+            'name': self.name,
+            'os-family': 'Redhat',
+            'file': self.file.name,
+            'new-name': new_name
+        }
+
+        PartitionTable().update(self.args)
+        self.assertFalse(
+            PartitionTable().exists(tuple_search=('new-name',
+                                                  new_name)).stdout)
+
 
 class TestPartitionTableDelete(CLITestCase):
+    """Test case for Dump/Delete CLI tests."""
 
     def test_dump_ptable_1(self):
         """
@@ -75,73 +105,3 @@ class TestPartitionTableDelete(CLITestCase):
         PartitionTable().delete(args)
         self.assertFalse(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
-
-
-class TestPartitionTableCreateUpdate(CLITestCase):
-
-    def test_create_ptable(self):
-        """
-        @Feature: Partition Table - Create
-        @Test: Check if Partition Table can be created
-        @Assert: Partition Table is created
-        """
-
-        content = "Fake ptable"
-        name = generate_name(6)
-
-        ssh.upload_file(self.file.name, remote_file=self.file.name)
-
-        args = {
-            'name': name,
-            'os-family': 'Redhat',
-            'file': self.file.name,
-            'content': content
-        }
-
-        try:
-            make_partition_table(args)
-        except Exception as e:
-                self.fail(e)
-
-        self.assertTrue(
-            PartitionTable().exists(tuple_search=('name', name)).stdout)
-
-    def test_update_ptable(self):
-        """
-        @Feature: Partition Table - Update
-        @Test: Check if Partition Table can be updated
-        @Assert: Partition Table is updated
-        """
-
-        content = "Fake ptable"
-        name = generate_name(6)
-        new_name = generate_name(6)
-
-        ssh.upload_file(self.file.name, remote_file=self.file.name)
-
-        args = {
-            'name': name,
-            'os-family': 'Redhat',
-            'file': self.file.name,
-            'content': content
-        }
-
-        try:
-            make_partition_table(args)
-        except Exception as e:
-                self.fail(e)
-
-        self.assertTrue(
-            PartitionTable().exists(tuple_search=('name', name)).stdout)
-
-        args = {
-            'name': name,
-            'os-family': 'Redhat',
-            'file': self.file.name,
-            'new-name': new_name
-        }
-
-        PartitionTable().update(args)
-        self.assertFalse(
-            PartitionTable().exists(tuple_search=('new-name',
-                                                  new_name)).stdout)
