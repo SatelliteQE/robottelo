@@ -24,7 +24,7 @@ class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     environment = orm.OneToOneField('Environment')
     content_view = orm.OneToOneField('ContentView')
     # maximum number of registered content hosts, or 'unlimited'
-    usage_limit = orm.IntegerField()
+    max_content_hosts = orm.IntegerField()
 
     class Meta(object):
         """Non-field information about this entity."""
