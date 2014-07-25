@@ -1,10 +1,4 @@
-# -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Repository CLI
-"""
-
+"""Smoke tests for the ``CLI`` end-to-end scenario."""
 from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
@@ -25,11 +19,12 @@ from robottelo.cli.subnet import Subnet
 from robottelo.cli.user import User
 from robottelo.common import conf
 from robottelo.test import CLITestCase
+# (too many public methods) pylint: disable=R0904
 
 
 @ddt
 class TestSmoke(CLITestCase):
-    """Smoke tests for a brand new Satellite installation"""
+    """End-to-end tests using the ``CLI`` path."""
 
     @attr('smoke')
     def test_find_default_org(self):
@@ -39,18 +34,8 @@ class TestSmoke(CLITestCase):
         @Assert: Default_Organization is found
         """
 
-        result = Org.info({u'name': u'Default_Organization'})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code)
-        )
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"There was an error fetching the default org: {0}".format(
-                result.stderr)
-        )
+        query = {u'name': u'Default_Organization'}
+        result = self._search(Org, query)
         self.assertEqual(
             result.stdout['name'],
             'Default_Organization',
@@ -65,18 +50,8 @@ class TestSmoke(CLITestCase):
         @Assert: Default_Location is found
         """
 
-        result = Location.info({u'name': u'Default_Location'})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code)
-        )
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"There was an error fetching the default location: {0}".format(
-                result.stderr)
-        )
+        query = {u'name': u'Default_Location'}
+        result = self._search(Location, query)
         self.assertEqual(
             result.stdout['name'],
             'Default_Location',
@@ -91,18 +66,8 @@ class TestSmoke(CLITestCase):
         @Assert: Admin User is found and has Admin role
         """
 
-        result = User.info({u'login': u'admin'})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code)
-        )
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"There was an error fetching the admin user: {0}".format(
-                result.stderr)
-        )
+        query = {u'login': u'admin'}
+        result = self._search(User, query)
         self.assertEqual(
             result.stdout['login'],
             'admin',
@@ -119,23 +84,40 @@ class TestSmoke(CLITestCase):
     @attr('smoke')
     def test_smoke(self):
         """
-        @Test: Check that basic content can be created as new user
+        @Test: Check that basic content can be created
+            * Create a new user with admin permissions
+            * Using the new user from above:
+              * Create a new organization
+              * Create two new lifecycle environments
+              * Create a custom product
+              * Create a custom YUM repository
+              * Create a custom PUPPET repository
+              * Synchronize both custom repositories
+              * Create a new content view
+              * Associate both repositories to new content view
+              * Publish content view
+              * Promote content view to both lifecycles
+              * Create a new libvirt compute resource
+              * Create a new subnet
+              * Create a new domain
+              * Create a new capsule
+              * Create a new hostgroup and associate previous entities to it
         @Feature: Smoke Test
-        @Assert: All entities are created by new user
+        @Assert: All entities are created and associated.
         """
 
         # Create new user
         new_user = make_user({'admin': 'true'})
 
         # Create new org as new user
-        new_org = self._create_entity(
+        new_org = self._create(
             new_user,
             Org,
             {u'name': self._generate_name()}
         )
 
         # Create new lifecycle environment 1
-        lifecycle1 = self._create_entity(
+        lifecycle1 = self._create(
             new_user,
             LifecycleEnvironment,
             {u'organization-id': new_org['id'],
@@ -144,7 +126,7 @@ class TestSmoke(CLITestCase):
         )
 
         # Create new lifecycle environment 2
-        lifecycle2 = self._create_entity(
+        lifecycle2 = self._create(
             new_user,
             LifecycleEnvironment,
             {u'organization-id': new_org['id'],
@@ -153,7 +135,7 @@ class TestSmoke(CLITestCase):
         )
 
         # Create a new product
-        new_product = self._create_entity(
+        new_product = self._create(
             new_user,
             Product,
             {u'organization-id': new_org['id'],
@@ -161,7 +143,7 @@ class TestSmoke(CLITestCase):
         )
 
         # Create a YUM repository
-        new_repo1 = self._create_entity(
+        new_repo1 = self._create(
             new_user,
             Repository,
             {u'product-id': new_product['id'],
@@ -172,7 +154,7 @@ class TestSmoke(CLITestCase):
         )
 
         # Create a Puppet repository
-        new_repo2 = self._create_entity(
+        new_repo2 = self._create(
             new_user,
             Repository,
             {u'product-id': new_product['id'],
@@ -211,7 +193,7 @@ class TestSmoke(CLITestCase):
             u"Failed to synchronize Puppet repo: {0}".format(result.stderr))
 
         # Create a Content View
-        new_cv = self._create_entity(
+        new_cv = self._create(
             new_user,
             ContentView,
             {u'organization-id': new_org['id'],
@@ -338,7 +320,7 @@ class TestSmoke(CLITestCase):
                 lifecycle2['name'], result.stderr))
 
         # Create a new libvirt compute resource
-        result = self._create_entity(
+        result = self._create(
             new_user,
             ComputeResource,
             {
@@ -349,7 +331,7 @@ class TestSmoke(CLITestCase):
             })
 
         # Create a new subnet
-        new_subnet = self._create_entity(
+        new_subnet = self._create(
             new_user,
             Subnet,
             {
@@ -360,7 +342,7 @@ class TestSmoke(CLITestCase):
         )
 
         # Create a domain
-        new_domain = self._create_entity(
+        new_domain = self._create(
             new_user,
             Domain,
             {
@@ -405,7 +387,7 @@ class TestSmoke(CLITestCase):
             u'Could not find the puppet environment: {0}'.format(env_name))
 
         # Create new Capsule...
-        new_capsule = self._create_entity(
+        new_capsule = self._create(
             new_user,
             Proxy,
             {
@@ -435,7 +417,7 @@ class TestSmoke(CLITestCase):
                 new_capsule['name'], new_org['name'], result.stderr))
 
         # Create a hostgroup...
-        new_hg = self._create_entity(
+        new_hg = self._create(
             new_user,
             HostGroup,
             {
@@ -467,20 +449,7 @@ class TestSmoke(CLITestCase):
             u"Failed to add hostgroup '{0}' to org '{1}': {2}".format(
                 new_hg['name'], new_org['name'], result.stderr))
 
-    def _generate_name(self):
-        """
-        Generates a random name string.
-
-        :return: A random string of random length.
-        """
-
-        name = unicode(FauxFactory.generate_string(
-            FauxFactory.generate_choice(['alpha', 'cjk', 'latin1', 'utf8']),
-            FauxFactory.generate_integer(1, 30)))
-
-        return name
-
-    def _create_entity(self, user, entity, attrs):
+    def _create(self, user, entity, attrs):
         """
         Creates a Foreman entity and returns it.
 
@@ -488,7 +457,8 @@ class TestSmoke(CLITestCase):
         :param obj entity: A valid CLI entity.
         :param dict attrs: A python dictionary with attributes to use when
             creating entity.
-        :return: A python dictionary representing the entity.
+        :return: A ``dict`` representing the Foreman entity.
+        :rtype: dict
         """
 
         # Create new entity as new user
@@ -510,3 +480,43 @@ class TestSmoke(CLITestCase):
                 result.return_code))
 
         return result.stdout
+
+    def _generate_name(self):
+        """
+        Generates a random name string.
+
+        :return: A random string of random length.
+        :rtype: str
+        """
+
+        name = unicode(FauxFactory.generate_string(
+            FauxFactory.generate_choice(['alpha', 'cjk', 'latin1', 'utf8']),
+            FauxFactory.generate_integer(1, 30)))
+
+        return name
+
+    def _search(self, entity, attrs):
+        """
+        Looks up for a Foreman entity by specifying using its ``Info``
+        CLI subcommand with ``attrs`` arguments.
+
+        :param robottelo.cli.Base entity: A logical representation of a
+            Foreman CLI entity.
+        :param string query: A ``search`` parameter.
+        :return: A ``SSHCommandResult`` instance.
+        :rtype: robottelo.common.ssh.SSHCommandResult
+        """
+        result = entity.info(attrs)
+        self.assertEqual(
+            result.return_code,
+            0,
+            u"Return code is non-zero: {0}".format(result.return_code)
+        )
+        self.assertEqual(
+            len(result.stderr),
+            0,
+            u"There was an error fetching the entity: {0}".format(
+                result.stderr)
+        )
+
+        return result
