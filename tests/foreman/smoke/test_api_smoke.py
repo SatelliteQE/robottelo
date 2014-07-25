@@ -42,6 +42,49 @@ class TestSmoke(TestCase):
         query = u'admin'
         self._search(entities.User, query)
 
+    @attr('smoke')
+    def test_ping(self):
+        """
+        @Test: Check if all services are running
+        @Feature: Smoke Test
+        @Assert: Overall and individual services status should be 'ok'.
+        """
+        path = entities.Ping().path()
+        response = client.get(
+            path,
+            auth=get_server_credentials(),
+            verify=False)
+        self.assertEqual(
+            response.status_code,
+            httplib.OK,
+            status_code_error(path, httplib.OK, response)
+        )
+        # Check overal status
+        self.assertEqual(
+            response.json()['status'],
+            u'ok',
+            U"The server does not seem to be configured properly!"
+        )
+
+        # Extract all services status information returned with the format:
+        # {u'services': {
+        #    u'candlepin': {u'duration_ms': u'40', u'status': u'ok'},
+        #    u'candlepin_auth': {u'duration_ms': u'41', u'status': u'ok'},
+        #    u'elasticsearch': {u'duration_ms': u'22', u'status': u'ok'},
+        #    u'katello_jobs': {u'duration_ms': u'43', u'status': u'ok'},
+        #    u'pulp': {u'duration_ms': u'18', u'status': u'ok'},
+        #    u'pulp_auth': {u'duration_ms': u'30', u'status': u'ok'}},
+        #    u'status': u'ok'}
+        services = response.json()['services']
+        # Check if all services are 'OK'
+        ok_status = all(
+            [service['status'] == u'ok' for service in services.values()]
+        )
+        self.assertTrue(
+            ok_status,
+            u"Not all services seem to be up and running!"
+        )
+
     # FIXME: This test is still being developed and is not complete yet.
     @attr('smoke')
     def test_smoke(self):
