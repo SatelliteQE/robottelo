@@ -309,14 +309,16 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
-    def test_add_environment_1(self, env):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_add_environment_1(self, testdata):
         """
         @test: Add environment by using location name and evironment name
         @feature: Locations
         @assert: environment is added
         """
-
+        env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
@@ -415,14 +417,16 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
-    def test_remove_environment_1(self, env):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_remove_environment_1(self, testdata):
         """
         @test: Remove environment by using location name & evironment name
         @feature: Locations
         @assert: environment is removed from Location
         """
-
+        env = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
