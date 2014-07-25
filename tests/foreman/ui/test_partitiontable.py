@@ -68,40 +68,25 @@ class PartitionTable(UITestCase):
                                  (common_locators["alert.error"]))
             self.assertIsNone(self.partitiontable.search(name))
 
-    def test_negative_create_partition_table_2(self):
+    @data({u'name': ""},
+          {u'name': "  "})
+    def test_negative_create_partition_table_2(self, test_data):
         """
-        @Test: Create a new partition table with Blank name
+        @Test: Create partition table with blank and whitespace in name
         @Feature: Partition table - Negative Create
         @Assert: Partition table is not created
         """
 
-        name = ""
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Red Hat"
         with Session(self.browser) as session:
-            make_partitiontable(session, name=name, layout=layout,
-                                os_family=os_family)
-            self.assertIsNotNone(self.partitiontable.wait_until_element
-                                 (common_locators["name_haserror"]))
-
-    def test_negative_create_partition_table_3(self):
-        """
-        @Test: Create a new partition table with whitespace in name
-        @Feature: Partition table - Negative Create
-        @Assert: Partition table is not created
-        """
-
-        name = "  "
-        layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
-        os_family = "Red Hat"
-        with Session(self.browser) as session:
-            make_partitiontable(session, name=name, layout=layout,
+            make_partitiontable(session, name=test_data['name'], layout=layout,
                                 os_family=os_family)
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators["name_haserror"]))
 
     @data(*generate_strings_list(len1=6))
-    def test_negative_create_partition_table_4(self, name):
+    def test_negative_create_partition_table_3(self, name):
         """
         @Test: Create a new partition table with same name
         @Feature: Partition table - Negative Create
@@ -113,11 +98,14 @@ class PartitionTable(UITestCase):
         with Session(self.browser) as session:
             make_partitiontable(session, name=name, layout=layout,
                                 os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.search(name))
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators["name_haserror"]))
 
     @data(*generate_strings_list(len1=6))
-    def test_negative_create_partition_table_5(self, name):
+    def test_negative_create_partition_table_4(self, name):
         """
         @Test: Create a new partition table with empty layout
         @Feature: Partition table - Negative Create
