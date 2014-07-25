@@ -4,9 +4,11 @@
 """
 Test class for Partition Table UI
 """
-
+from ddt import ddt
+from robottelo.common.decorators import data
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.common.helpers import generate_string, read_data_file
+from robottelo.common.helpers import (generate_string, read_data_file,
+                                      valid_names_list, generate_strings_list)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
                                   make_partitiontable)
@@ -14,6 +16,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@ddt
 class PartitionTable(UITestCase):
     """
     Implements the partition table tests from UI
@@ -33,25 +36,14 @@ class PartitionTable(UITestCase):
                 make_org(session, org_name=PartitionTable.org_name)
                 make_loc(session, name=PartitionTable.loc_name)
 
-    def create_partition_table(self, name, layout, os_family=None):
+    @data(*valid_names_list())
+    def test_positive_create_partition_table(self, name):
         """
-        Creates partition table with navigation
-        """
-        name = name or generate_string("alpha", 8)
-        layout = layout or read_data_file(PARTITION_SCRIPT_DATA_FILE)
-        os_family = os_family or "Red Hat"
-        self.navigator.go_to_partition_tables()
-        self.partitiontable.create(name, layout, os_family)
-        self.assertIsNotNone(self.partitiontable.search(name))
-
-    def test_create_partition_table(self):
-        """
-        @Feature: Partition table - Positive Create
         @Test: Create a new partition table
+        @Feature: Partition table - Positive Create
         @Assert: Partition table is created
         """
 
-        name = generate_string("alpha", 8)
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -59,14 +51,96 @@ class PartitionTable(UITestCase):
                                 os_family=os_family)
             self.assertIsNotNone(self.partitiontable.search(name))
 
-    def test_remove_partition_table(self):
+    @data(*generate_strings_list(len1=256))
+    def test_negative_create_partition_table_1(self, name):
         """
-        @Feature: Partition table - Positive Delete
+        @Test: Create a new partition table with 256 characters in name
+        @Feature: Partition table - Negative Create
+        @Assert: Partition table is not created
+        """
+
+        layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.wait_until_element
+                                 (common_locators["alert.error"]))
+            self.assertIsNone(self.partitiontable.search(name))
+
+    def test_negative_create_partition_table_2(self):
+        """
+        @Test: Create a new partition table with Blank name
+        @Feature: Partition table - Negative Create
+        @Assert: Partition table is not created
+        """
+
+        name = ""
+        layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    def test_negative_create_partition_table_3(self):
+        """
+        @Test: Create a new partition table with whitespace in name
+        @Feature: Partition table - Negative Create
+        @Assert: Partition table is not created
+        """
+
+        name = "  "
+        layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    @data(*generate_strings_list(len1=6))
+    def test_negative_create_partition_table_4(self, name):
+        """
+        @Test: Create a new partition table with same name
+        @Feature: Partition table - Negative Create
+        @Assert: Partition table is not created
+        """
+
+        layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.wait_until_element
+                                 (common_locators["name_haserror"]))
+
+    @data(*generate_strings_list(len1=6))
+    def test_negative_create_partition_table_5(self, name):
+        """
+        @Test: Create a new partition table with empty layout
+        @Feature: Partition table - Negative Create
+        @Assert: Partition table is not created
+        """
+
+        layout = ""
+        os_family = "Red Hat"
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.wait_until_element
+                                 (common_locators["haserror"]))
+            self.assertIsNone(self.partitiontable.search(name))
+
+    @data(*valid_names_list())
+    def test_remove_partition_table(self, name):
+        """
         @Test: Delete a partition table
+        @Feature: Partition table - Positive Delete
         @Assert: Partition table is deleted
         """
 
-        name = generate_string("alpha", 6)
         layout = "test layout"
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -78,23 +152,31 @@ class PartitionTable(UITestCase):
                             (common_locators["notif.success"]))
             self.assertIsNone(self.partitiontable.search(name))
 
-    def test_update_partition_table(self):
+    @data({u'name': generate_string('alpha', 10),
+           u'new_name': generate_string('alpha', 10)},
+          {u'name': generate_string('html', 10),
+           u'new_name': generate_string('html', 10)},
+          {u'name': generate_string('utf8', 10),
+           u'new_name': generate_string('utf8', 10)},
+          {u'name': generate_string('alphanumeric', 255),
+           u'new_name': generate_string('alphanumeric', 255)})
+    def test_update_partition_table(self, test_data):
         """
-        @Feature: Partition table - Positive Update
         @Test: Update partition table with its name, layout and OS family
+        @Feature: Partition table - Positive Update
         @Assert: Partition table is updated
         """
 
-        name = generate_string("alpha", 6)
-        new_name = generate_string("alpha", 4)
         layout = "test layout"
         new_layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Debian"
         new_os_family = "Red Hat"
         with Session(self.browser) as session:
-            make_partitiontable(session, name=name, layout=layout,
+            make_partitiontable(session, name=test_data['name'], layout=layout,
                                 os_family=os_family)
-            self.assertIsNotNone(self.partitiontable.search(name))
-            self.partitiontable.update(name, new_name, new_layout,
-                                       new_os_family)
-            self.assertIsNotNone(self.partitiontable.search(new_name))
+            self.assertIsNotNone(self.partitiontable.search(test_data['name']))
+            self.partitiontable.update(test_data['name'],
+                                       test_data['new_name'],
+                                       new_layout, new_os_family)
+            self.assertIsNotNone(self.partitiontable.search
+                                 (test_data['new_name']))
