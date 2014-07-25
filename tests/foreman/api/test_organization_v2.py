@@ -1,7 +1,7 @@
 """Unit tests for the ``organizations`` paths.
 
 Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/organizations
+can be found here: http://theforeman.org/api/apidoc/v2/organizations.html
 
 """
 from robottelo.api import client
