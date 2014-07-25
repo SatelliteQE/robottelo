@@ -33,8 +33,10 @@ class TestPartitionTableUpdateCreate(CLITestCase):
             make_partition_table(self.args)
         except Exception as e:
                 self.fail(e)
-        self.assertTrue(
-            PartitionTable().exists(tuple_search=('name', self.name)).stdout)
+        result = PartitionTable().exists(tuple_search=('name', self.name))
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
 
     def tearDown(self):
         """Remove the file"""
@@ -55,7 +57,10 @@ class TestPartitionTableUpdateCreate(CLITestCase):
             'new-name': new_name
         }
 
-        PartitionTable().update(self.args)
+        result = PartitionTable().update(self.args)
+        self.assertEqual(result.return_code, 0, "Failed to update object")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
         self.assertFalse(
             PartitionTable().exists(tuple_search=('new-name',
                                                   new_name)).stdout)
@@ -102,6 +107,9 @@ class TestPartitionTableDelete(CLITestCase):
             'id': ptable['id'],
         }
 
-        PartitionTable().delete(args)
+        result = PartitionTable().delete(args)
+        self.assertEqual(result.return_code, 0, "Deletion Failed")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
         self.assertFalse(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
