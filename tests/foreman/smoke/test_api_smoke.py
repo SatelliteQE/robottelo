@@ -1,6 +1,4 @@
-"""Smoke tests for the ``API`` end-to-end scenario.
-
-"""
+"""Smoke tests for the ``API`` end-to-end scenario."""
 from nose.plugins.attrib import attr
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
@@ -44,6 +42,7 @@ class TestSmoke(TestCase):
         query = u'admin'
         self._search(entities.User, query)
 
+    # FIXME: This test is still being developed and is not complete yet.
     @attr('smoke')
     def test_smoke(self):
         """
@@ -74,6 +73,10 @@ class TestSmoke(TestCase):
             entities.User(admin=True).build()
         )
 
+    # FIXME: Until we can pass ``auth`` to ``Entity().crate()`` and
+    # ``Entity().build()``, I need to rely on ``client.post`` to make
+    # sure that certain actions can be performed by a non-default
+    # admin user.
     def _create(self, entity, attrs, auth=None):
         """
         Performs a POST ``api/v2/<entity>`` and creates a new Foreman entity
@@ -83,7 +86,9 @@ class TestSmoke(TestCase):
             Foreman entity.
         :param dict attrs: A ``dict`` representing a Foreman entity.
         :param tuple auth: A ``tuple`` containing the credentials to be used
-            for authentication when accessing the API.
+            for authentication when accessing the API. If ``None``,
+            credentials are automatically read from
+            :func:`robottelo.common.helpers.get_server_credentials`.
         :return: A ``dict`` representing a Foreman entity.
         :rtype: dict
         """
@@ -115,7 +120,9 @@ class TestSmoke(TestCase):
             Foreman entity.
         :param string query: A ``search`` parameter.
         :param tuple auth: A ``tuple`` containing the credentials to be used
-            for authentication when accessing the API.
+            for authentication when accessing the API. If ``None``,
+            credentials are automatically read from
+            :func:`robottelo.common.helpers.get_server_credentials`.
         :return: A ``dict`` representing a Foreman entity.
         :rtype: dict
         """

@@ -1,6 +1,4 @@
-"""Smoke tests for the ``API`` end-to-end scenario.
-
-"""
+"""Smoke tests for the ``CLI`` end-to-end scenario."""
 from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
@@ -26,7 +24,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestSmoke(CLITestCase):
-    """End-to-end tests using the ``API`` path."""
+    """End-to-end tests using the ``CLI`` path."""
 
     @attr('smoke')
     def test_find_default_org(self):
@@ -502,8 +500,8 @@ class TestSmoke(CLITestCase):
         Looks up for a Foreman entity by specifying using its ``Info``
         CLI subcommand with ``attrs`` arguments.
 
-        :param robottelo.orm.Entity entity: A logical representation of a
-            Foreman entity.
+        :param robottelo.cli.Base entity: A logical representation of a
+            Foreman CLI entity.
         :param string query: A ``search`` parameter.
         :return: A ``SSHCommandResult`` instance.
         :rtype: robottelo.common.ssh.SSHCommandResult
