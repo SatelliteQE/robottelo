@@ -137,7 +137,6 @@ class OperatingSys(UITestCase):
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["name_haserror"]))
-            self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_3(self):
         """
