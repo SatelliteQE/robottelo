@@ -8,13 +8,31 @@ Test class for Partition Table UI
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.common.helpers import generate_string, read_data_file
 from robottelo.test import UITestCase
+from robottelo.ui.factory import (make_org, make_loc,
+                                  make_partitiontable)
 from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 
 
 class PartitionTable(UITestCase):
     """
     Implements the partition table tests from UI
     """
+
+    org_name = None
+    loc_name = None
+
+    def setUp(self):
+        super(PartitionTable, self).setUp()
+        #  Make sure to use the Class' org_name instance
+        if (PartitionTable.org_name is None
+                and PartitionTable.loc_name is None):
+            PartitionTable.org_name = generate_string("alpha", 8)
+            PartitionTable.loc_name = generate_string("alpha", 8)
+            with Session(self.browser) as session:
+                make_org(session, org_name=PartitionTable.org_name)
+                make_loc(session, name=PartitionTable.loc_name)
+
     def create_partition_table(self, name, layout, os_family=None):
         """
         Creates partition table with navigation
@@ -36,8 +54,10 @@ class PartitionTable(UITestCase):
         name = generate_string("alpha", 8)
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_partition_table(name, layout, os_family)
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.search(name))
 
     def test_remove_partition_table(self):
         """
@@ -49,12 +69,14 @@ class PartitionTable(UITestCase):
         name = generate_string("alpha", 6)
         layout = "test layout"
         os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_partition_table(name, layout, os_family)
-        self.partitiontable.delete(name, really=True)
-        self.assertTrue(self.partitiontable.wait_until_element
-                        (common_locators["notif.success"]))
-        self.assertIsNone(self.partitiontable.search(name))
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.search(name))
+            self.partitiontable.delete(name, really=True)
+            self.assertTrue(self.partitiontable.wait_until_element
+                            (common_locators["notif.success"]))
+            self.assertIsNone(self.partitiontable.search(name))
 
     def test_update_partition_table(self):
         """
@@ -69,7 +91,10 @@ class PartitionTable(UITestCase):
         new_layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Debian"
         new_os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_partition_table(name, layout, os_family)
-        self.partitiontable.update(name, new_name, new_layout, new_os_family)
-        self.assertIsNotNone(self, self.partitiontable.search(new_name))
+        with Session(self.browser) as session:
+            make_partitiontable(session, name=name, layout=layout,
+                                os_family=os_family)
+            self.assertIsNotNone(self.partitiontable.search(name))
+            self.partitiontable.update(name, new_name, new_layout,
+                                       new_os_family)
+            self.assertIsNotNone(self.partitiontable.search(new_name))
