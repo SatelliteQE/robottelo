@@ -77,9 +77,9 @@ class TestSmoke(TestCase):
         #    u'status': u'ok'}
         services = response.json()['services']
         # Check if all services are 'OK'
-        ok_status = all([
-            services[key]['status'] == u'ok' for key in services.keys()
-        ])
+        ok_status = all(
+            [services[key]['status'] == u'ok' for key in services.keys()]
+        )
         self.assertTrue(
             ok_status,
             u"Not all services seem to be up and running!"
