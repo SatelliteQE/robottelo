@@ -23,14 +23,26 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         self.content = "Fake ptable"
         self.name = generate_name(6)
         ssh.upload_file(self.file.name, remote_file=self.file.name)
-        self.args = {
+
+    def tearDown(self):
+        """Remove the file"""
+        self.file.close()
+
+    def test_create_ptable(self):
+        """
+        @Feature: Partition Table - Create
+        @Test: Check if Partition Table can be created
+        @Assert: Partition Table is created
+        """
+
+        args = {
             'name': self.name,
             'os-family': 'Redhat',
             'file': self.file.name,
             'content': self.content
         }
         try:
-            make_partition_table(self.args)
+            make_partition_table(args)
         except Exception as e:
                 self.fail(e)
         result = PartitionTable().exists(tuple_search=('name', self.name))
@@ -38,16 +50,27 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
 
-    def tearDown(self):
-        """Remove the file"""
-        self.file.close()
-
     def test_update_ptable(self):
         """
         @Feature: Partition Table - Update
         @Test: Check if Partition Table can be updated
         @Assert: Partition Table is updated
         """
+
+        args = {
+            'name': self.name,
+            'os-family': 'Redhat',
+            'file': self.file.name,
+            'content': self.content
+        }
+        try:
+            make_partition_table(args)
+        except Exception as e:
+                self.fail(e)
+        result = PartitionTable().exists(tuple_search=('name', self.name))
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
 
         new_name = generate_name(6)
         self.args = {
