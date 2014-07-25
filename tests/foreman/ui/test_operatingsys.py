@@ -137,7 +137,6 @@ class OperatingSys(UITestCase):
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["name_haserror"]))
-            self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_3(self):
         """
@@ -334,14 +333,12 @@ class OperatingSys(UITestCase):
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         medium = generate_string("alpha", 4)
-        os_family = "x86_64"
         path = INSTALL_MEDIUM_URL % generate_string("alpha", 6)
         with Session(self.browser) as session:
             make_media(session, name=medium, path=path)
             self.assertIsNotNone(self.medium.search(medium))
             make_os(session, name=name,
-                    major_version=major_version,
-                    os_family=os_family)
+                    major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
             self.operatingsys.update(name, new_mediums=[medium])
             result_object = self.operatingsys.get_os_entities(name, "medium")
@@ -389,7 +386,7 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.search(os_name))
             make_templates(session, name=template_name,
                            template_path=template_path,
-                           custom_really=True, temp_type=temp_type,
+                           custom_really=True, template_type=temp_type,
                            os_list=os_list)
             self.assertIsNotNone(self.template.search(template_name))
             self.navigator.go_to_operating_systems()
