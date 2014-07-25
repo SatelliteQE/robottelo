@@ -5,19 +5,17 @@
 Implements Login UI
 """
 
-from robottelo.common.helpers import generate_name
-from robottelo.ui.base import Base
-from robottelo.ui.location import Location
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 
 
-class Login(Base):
+class Login(Base, UINoSuchElementError):
     """
     Implements login, logout functions for Foreman UI
     """
 
-    def login(self, username, password, organization=None):
+    def login(self, username, password, organization=None, location=None):
         """
         Logins user from UI
         """
@@ -30,9 +28,9 @@ class Login(Base):
 
             if self.find_element(common_locators["notif.error"]):
                 return
-            if self.find_element(locators["location.new"]):
-                loc = Location(self.browser)
-                loc.create(generate_name())
+            if location:
+                nav = Navigator(self.browser)
+                nav.go_to_select_loc(location)
             if organization:
                 nav = Navigator(self.browser)
                 nav.go_to_select_org(organization)
@@ -42,12 +40,11 @@ class Login(Base):
         Logout user from UI
         """
 
-        if self.find_element(locators["login.gravatar"]):
-            nav = Navigator(self.browser)
-            nav.go_to_sign_out()
-        else:
-            raise Exception(
+        if self.find_element(locators["login.gravatar"]) is None:
+            raise UINoSuchElementError(
                 "could not find login.gravatar to sign out")
+        nav = Navigator(self.browser)
+        nav.go_to_sign_out()
 
     def is_logged(self):
         """
