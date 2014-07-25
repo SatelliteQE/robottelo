@@ -695,6 +695,14 @@ class Permission(orm.Entity):
         api_path = 'katello/api/v2/roles/:role_id/permissions'
 
 
+class Ping(orm.Entity):
+    """A representation of a Ping entity."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/ping'
+
+
 class Product(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Product entity."""
     organization = orm.OneToOneField('Organization', required=True)
@@ -824,6 +832,14 @@ class SmartVariable(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/smart_variables'
+
+
+class Status(orm.Entity):
+    """A representation of a Status entity."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/status'
 
 
 class Subnet(orm.Entity):
