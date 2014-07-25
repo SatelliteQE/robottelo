@@ -334,14 +334,12 @@ class OperatingSys(UITestCase):
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
         medium = generate_string("alpha", 4)
-        os_family = "x86_64"
         path = INSTALL_MEDIUM_URL % generate_string("alpha", 6)
         with Session(self.browser) as session:
             make_media(session, name=medium, path=path)
             self.assertIsNotNone(self.medium.search(medium))
             make_os(session, name=name,
-                    major_version=major_version,
-                    os_family=os_family)
+                    major_version=major_version)
             self.assertIsNotNone(self.operatingsys.search(name))
             self.operatingsys.update(name, new_mediums=[medium])
             result_object = self.operatingsys.get_os_entities(name, "medium")
