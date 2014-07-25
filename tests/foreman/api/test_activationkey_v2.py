@@ -238,12 +238,14 @@ class ActivationKeysTestCase(TestCase):
         )
 
     @data(
-        IntegerField(min_val=1, max_val=30).get_value(),
-        IntegerField(min_val=10000, max_val=20000).get_value(),
+        StringField(max_len=30, str_type=('alpha',)).get_value(),
+        IntegerField(min_val=-200, max_val=-1).get_value(),
+        -1,
+        0
     )
     def test_negative_update_1(self, max_content_hosts):
         """
-        @Test Create activationkey then update its max content hosts
+        @Test Create activationkey then update its limit to invalid value
         @Assert:
           1. ActivationKey is created
           2. Update fails
@@ -251,10 +253,7 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
         """
         try:
-            attrs = entities.ActivationKey().create(fields={
-                u'unlimited_content_hosts': False,
-                u'max_content_hosts': max_content_hosts
-            })
+            attrs = entities.ActivationKey().create()
         except FactoryError as err:
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
@@ -262,8 +261,8 @@ class ActivationKeysTestCase(TestCase):
         # Make a copy of the activationkey...
         ak_copy = attrs.copy()
         # ...and update a few fields
-        ak_copy['max_content_hosts'] = StringField(
-            max_len=10, str_type=('alpha',)).get_value()
+        ak_copy['unlimited_content_hosts'] = False
+        ak_copy['max_content_hosts'] = max_content_hosts
 
         # Update the activationkey
         response = client.put(
@@ -292,7 +291,7 @@ class ActivationKeysTestCase(TestCase):
                 real_attrs['unlimited_content_hosts'],
                 attrs['unlimited_content_hosts'])
         )
-        self.assertFalse(
+        self.assertTrue(
             real_attrs['unlimited_content_hosts'],
             u"Unlimited content hosts is {0}".format(
                 real_attrs['unlimited_content_hosts']
