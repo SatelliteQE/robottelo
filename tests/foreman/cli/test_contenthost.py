@@ -22,6 +22,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestContentHost(CLITestCase):
+
     """
     content-host CLI tests.
     """
@@ -96,7 +97,7 @@ class TestContentHost(CLITestCase):
             u'name': test_data['name'],
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
@@ -124,7 +125,7 @@ class TestContentHost(CLITestCase):
             u'description': test_data['description'],
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Assert that description matches data passed
         self.assertEqual(
             new_system['description'],
@@ -144,7 +145,7 @@ class TestContentHost(CLITestCase):
             u'name': generate_string('alpha', 15),
             u'organization': self.NEW_ORG['name'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Info does not tell us information about the organization so
         # let's assert that content view and environments match instead
         self.assertEqual(
@@ -168,7 +169,7 @@ class TestContentHost(CLITestCase):
             u'name': generate_string('alpha', 15),
             u'organization-label': self.NEW_ORG['label'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Info does not tell us information about the organization so
         # let's assert that content view and environments match instead
         self.assertEqual(
@@ -192,7 +193,7 @@ class TestContentHost(CLITestCase):
             u'name': generate_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view': self.DEFAULT_CV['name'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['content-view'],
@@ -235,7 +236,7 @@ class TestContentHost(CLITestCase):
             u'name': generate_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.NEW_LIFECYCLE['id']})
+            u'lifecycle-environment-id': self.NEW_LIFECYCLE['id']})
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['lifecycle-environment'],
@@ -258,7 +259,7 @@ class TestContentHost(CLITestCase):
             u'name': generate_string('alpha', 15),
             u'organization-id': TestContentHost.NEW_ORG['id'],
             u'content-view-id': TestContentHost.PROMOTED_CV['id'],
-            u'environment-id': TestContentHost.NEW_LIFECYCLE['id']})
+            u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE['id']})
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['content-view'],
@@ -287,7 +288,7 @@ class TestContentHost(CLITestCase):
                 u'name': test_data['name'],
                 u'organization-id': self.NEW_ORG['id'],
                 u'content-view-id': self.DEFAULT_CV['id'],
-                u'environment-id': self.LIBRARY['id']})
+                u'lifecycle-environment-id': self.LIBRARY['id']})
 
     @attr('cli', 'content-host')
     def test_negative_create_2(self):
@@ -301,11 +302,12 @@ class TestContentHost(CLITestCase):
             {u'organization-id': TestContentHost.NEW_ORG['id']}
         )
         with self.assertRaises(Exception):
+            env = TestContentHost.NEW_LIFECYCLE['id']
             make_content_host({
                 u'name': generate_string('alpha', 15),
                 u'organization-id': TestContentHost.NEW_ORG['id'],
                 u'content-view-id': con_view['id'],
-                u'environment-id': TestContentHost.NEW_LIFECYCLE['id']})
+                u'lifecycle-environment-id': env})
 
     @data(
         {u'name': generate_string('alpha', 15)},
@@ -327,9 +329,9 @@ class TestContentHost(CLITestCase):
             new_system = make_content_host({
                 u'organization-id': self.NEW_ORG['id'],
                 u'content-view-id': self.DEFAULT_CV['id'],
-                u'environment-id': self.LIBRARY['id']})
+                u'lifecycle-environment-id': self.LIBRARY['id']})
         except Exception as e:
-                self.fail(e)
+            self.fail(e)
         # Assert that name does not matches data passed
         self.assertNotEqual(
             new_system['name'],
@@ -394,7 +396,7 @@ class TestContentHost(CLITestCase):
         new_system = make_content_host({
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Assert that description does not match data passed
         self.assertNotEqual(
             new_system['description'],
@@ -459,7 +461,7 @@ class TestContentHost(CLITestCase):
             u'name': test_data['name'],
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id']})
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
