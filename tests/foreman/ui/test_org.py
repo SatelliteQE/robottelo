@@ -772,14 +772,16 @@ class Org(UITestCase):
             self.assertTrue(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
-    def test_add_environment_1(self, env):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_add_environment_1(self, testdata):
         """
         @feature: Organizations
         @test: Add environment by using organization name and evironment name
         @assert: environment is added
         """
-
+        env = testdata['name']
         strategy = common_locators["entity_deselect"][0]
         value = common_locators["entity_deselect"][1]
         org_name = generate_string("alpha", 8)
@@ -919,14 +921,16 @@ class Org(UITestCase):
             self.assertTrue(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
-    def test_remove_environment_1(self, env):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_remove_environment_1(self, testdata):
         """
         @feature: Organizations
         @test: Remove environment by using organization name & evironment name
         @assert: environment is removed from Organization
         """
-
+        env = testdata['name']
         strategy = common_locators["entity_select"][0]
         value = common_locators["entity_select"][1]
         strategy1 = common_locators["entity_deselect"][0]
