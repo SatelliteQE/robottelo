@@ -293,9 +293,11 @@ class Entity(booby.Model):
     class Meta(object):
         """Non-field information about this entity.
 
-        Examples of information which can be set on this class are the
-        ``api_names`` and ``api_path`` dicts. See
-        :meth:`robottelo.orm.Entity.path` for details.
+        This class is a convenient place to store any non-field information
+        about an entity. For example, you can add the ``api_path`` and
+        ``api_names`` variables. See :meth:`robottelo.orm.Entity.path` and
+        :meth:`robottelo.factory.EntityFactoryMixin._factory_data` for
+        details on the two variables, respectively.
         """
 
     def path(self, which=None):
