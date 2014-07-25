@@ -46,11 +46,12 @@ class TestProxy(CLITestCase):
         """
         try:
             proxy = make_proxy({'name': data['name']})
-            self.assertEquals(
-                proxy['name'],
-                data['name'], "Input and output name should be consistent")
         except Exception as e:
             self.fail(e)
+
+        self.assertEquals(
+            proxy['name'],
+            data['name'], "Input and output name should be consistent")
 
     @data(
         {u'name': generate_string('alpha', 15)},
@@ -67,11 +68,12 @@ class TestProxy(CLITestCase):
         """
         try:
             proxy = make_proxy({'name': data['name']})
-            self.assertEquals(
-                proxy['name'],
-                data['name'], "Input and output name should be consistent")
         except Exception as e:
             self.fail(e)
+
+        self.assertEquals(
+            proxy['name'],
+            data['name'], "Input and output name should be consistent")
 
         result = Proxy.info({'id': proxy['id']})
         self.assertEqual(
@@ -128,11 +130,12 @@ class TestProxy(CLITestCase):
         """
         try:
             proxy = make_proxy({'name': data['name']})
-            self.assertEquals(
-                proxy['name'],
-                data['name'], "Input and output name should be consistent")
         except Exception as e:
             self.fail(e)
+
+        self.assertEquals(
+            proxy['name'],
+            data['name'], "Input and output name should be consistent")
 
         with default_url_on_new_port(9090, random.randint(9091, 49090)) as url:
             result = Proxy.update({
