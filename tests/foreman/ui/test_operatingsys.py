@@ -389,7 +389,7 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.search(os_name))
             make_templates(session, name=template_name,
                            template_path=template_path,
-                           custom_really=True, temp_type=temp_type,
+                           custom_really=True, template_type=temp_type,
                            os_list=os_list)
             self.assertIsNotNone(self.template.search(template_name))
             self.navigator.go_to_operating_systems()
