@@ -1,7 +1,7 @@
 """Unit tests for the ``users`` paths.
 
 Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/users
+can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
 from ddt import data, ddt
