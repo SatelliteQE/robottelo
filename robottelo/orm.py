@@ -294,9 +294,8 @@ class Entity(booby.Model):
         """Non-field information about this entity.
 
         Examples of information which can be set on this class are the
-        ``api_names`` and ``cli_names`` dicts. See :mod:`robottelo.factory` for
-        details.
-
+        ``api_names`` and ``api_path`` dicts. See
+        :meth:`robottelo.orm.Entity.path` for details.
         """
 
     def path(self, which=None):
