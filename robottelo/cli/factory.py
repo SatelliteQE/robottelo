@@ -27,7 +27,7 @@ from robottelo.cli.model import Model
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import Proxy
+from robottelo.cli.proxy import Proxy, default_url_on_new_port
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
@@ -373,12 +373,16 @@ def make_proxy(options=None):
 
     args = {
         'name': generate_name(),
-        'url': 'http://%s:%s' % (generate_string('alpha', 6),
-                                 generate_string('numeric', 4)),
     }
 
     args = update_dictionary(args, options)
-    args.update(create_object(Proxy, args))
+    if options and 'url' in options:
+        args.update(create_object(Proxy, args))
+    else:
+        newport = random.randint(9191, 49090)
+        with default_url_on_new_port(9090, newport) as url:
+            args['url'] = url
+            args.update(create_object(Proxy, args))
 
     return args
 
