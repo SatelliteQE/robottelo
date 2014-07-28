@@ -7,6 +7,7 @@ Test class for Partition table CLI
 from robottelo.test import CLITestCase
 from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_partition_table
+from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.common import ssh
 import tempfile
@@ -120,3 +121,36 @@ class TestPartitionTableDelete(CLITestCase):
                          "There should not be an exception here")
         self.assertFalse(
             PartitionTable().exists(tuple_search=('name', name)).stdout)
+
+    def test_addoperatingsystem_ptable(self):
+        """
+        @Feature: Partition Table - Add operating system
+        @Test: Check if Partition Table can be associated with operating system
+        @Assert: Operating system added
+        """
+
+        content = "Fake ptable"
+        name = generate_name(6)
+        try:
+            make_partition_table({'name': name, 'content': content})
+        except Exception as e:
+            self.fail(e)
+        result = PartitionTable().exists(tuple_search=('name', name))
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+
+        ptable = result.stdout
+
+        os_list = OperatingSys.list()
+        self.assertEqual(os_list.return_code, 0, "Failed to list os")
+        self.assertEqual(
+            len(os_list.stderr), 0, "Should not have gotten an error")
+
+        args = {'id': ptable['id'],
+                'operatingsystem-id': os_list.stdout[0]['id']}
+
+        result = PartitionTable().add_operating_system(args)
+        self.assertEqual(result.return_code, 0, "Association Failed")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
