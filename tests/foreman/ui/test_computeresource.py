@@ -60,6 +60,7 @@ class ComputeResource(UITestCase):
         @Test: Create a new libvirt Compute Resource with 255 char name
         @Feature: Compute Resource - Create
         @Assert: A libvirt Compute Resource is created
+        @BZ: 1120271
         """
         org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -77,7 +78,7 @@ class ComputeResource(UITestCase):
         """
         @Test: Create a new libvirt Compute Resource with 255 char description.
         @Feature: Compute Resource - Create with long description.
-        @Assert: A libvirt Compute Resource is not created with 256 char
+        @Assert: A libvirt Compute Resource is not created with 255 char
         description.
         """
         name = generate_string("alpha", 8)
@@ -100,6 +101,7 @@ class ComputeResource(UITestCase):
         @Test: Create a new libvirt Compute Resource with 256 char name
         @Feature: Compute Resource - Create
         @Assert: A libvirt Compute Resource is not created
+        @BZ: 1120271
         """
         org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -120,6 +122,7 @@ class ComputeResource(UITestCase):
         @Feature: Compute Resource - Create with long description.
         @Assert: A libvirt Compute Resource is not created with 256 char
         description.
+        @BZ: 1120271
         """
         name = generate_string("alpha", 8)
         org_name = generate_string("alpha", 8)
@@ -170,6 +173,7 @@ class ComputeResource(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
+    @skip_if_bz_bug_open("1123352")
     @attr('ui', 'resource', 'implemented')
     @data({'name': generate_string('alpha', 10),
            'newname': generate_string('alpha', 10)},
@@ -188,6 +192,7 @@ class ComputeResource(UITestCase):
         @Test: Update a libvirt Compute Resource's Organization
         @Feature: Compute Resource - Update
         @Assert: The libvirt Compute Resource is updated
+        @BZ: 1123352
         """
         name = testdata['name']
         newname = testdata['newname']

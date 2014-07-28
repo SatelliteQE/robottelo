@@ -174,22 +174,23 @@ class Base(object):
         else:
             raise Exception("Could not search the entity '%s'" % name)
 
-    def wait_until_element(self, locator, delay=3):
+    def wait_until_element(self, locator, delay=7):
         """
         Wrapper around Selenium's WebDriver that allows you to pause your test
         until an element in the web page is present.
         """
         try:
-            element = WebDriverWait(
-                self.browser, delay).until(EC.visibility_of_element_located(
-                    locator))
+            element = WebDriverWait(self.browser, delay).until(
+                EC.visibility_of_element_located(locator)
+            )
             return element
         except TimeoutException as e:
             logging.debug("%s: Timed out waiting for element '%s' to display.",
                           type(e).__name__, locator[1])
             return None
         except Exception, error:
-            logging.debug("Failed to locate element. ERROR: %s", str(error))
+            logging.debug("Failed to locate element. ERROR: %s",
+                          type(error).__name__)
             return None
 
     def ajax_complete(self, driver):
@@ -326,6 +327,5 @@ class Base(object):
         if search_button is None:
             raise UINoSuchElementError("Search button not found.")
         search_button.click()
-        entity_elem = self.wait_until_element((strategy1,
-                                               value1 % name))
+        entity_elem = self.wait_until_element((strategy1, value1 % name))
         return entity_elem

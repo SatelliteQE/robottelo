@@ -7,7 +7,6 @@ Test class for Environment UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
@@ -35,9 +34,10 @@ class Environment(UITestCase):
                 make_org(session, org_name=Environment.org_name)
                 make_loc(session, name=Environment.loc_name)
 
-    @skip_if_bz_bug_open('1079999')
     @attr('ui', 'environment', 'implemented')
-    @data(*generate_strings_list(len1=8))
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
     def test_create_env_positive_1(self, name):
         """
         @Test: Create new environment
@@ -51,13 +51,16 @@ class Environment(UITestCase):
             self.assertIsNotNone(search)
 
     @attr('ui', 'environment', 'implemented')
-    @data(*generate_strings_list(len1=255))
-    def test_create_env_positive_2(self, name):
+    @data({'name': generate_string('alpha', 255)},
+          {'name': generate_string('numeric', 255)},
+          {'name': generate_string('alphanumeric', 255)})
+    def test_create_env_positive_2(self, testdata):
         """
         @Test: Create new environment with 255 chars
         @Feature: Environment - Positive Create
         @Assert: Environment is created
         """
+        name = testdata['name']
         org_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_env(session, name=name, orgs=[org_name])
