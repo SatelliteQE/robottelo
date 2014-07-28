@@ -10,7 +10,7 @@ from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 
 
-class Login(Base, UINoSuchElementError):
+class Login(Base):
     """
     Implements login, logout functions for Foreman UI
     """
