@@ -49,6 +49,19 @@ CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
 LIFECYCLE_KEYS = ['environment', 'environment-id']
 
 
+class CLIFactoryError(Exception):
+    """Indicates an error occurred while creating an entity using hammer"""
+
+
+def _format_error_msg(msg):
+    """Ident each line by two spaces of an error ``msg``
+
+    :param str msg: command error message to be formated.
+
+    """
+    return u'\n'.join(['  {0}'.format(line) for line in msg.split('\n')])
+
+
 def create_object(cli_object, args):
     """
     Creates <object> with dictionary of arguments.
@@ -71,8 +84,13 @@ def create_object(cli_object, args):
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0:
         logger.debug(result.stderr)  # Show why creation failed.
-        raise Exception(
-            'Failed to create %s with %r data.' % (cli_object.__name__, args))
+        raise CLIFactoryError(
+            'Failed to create %s with %r data due to:\n%s' % (
+                cli_object.__name__,
+                args,
+                _format_error_msg(result.stderr),
+            )
+        )
 
     # Sometimes we get a list with a dictionary and not
     # a dictionary.
