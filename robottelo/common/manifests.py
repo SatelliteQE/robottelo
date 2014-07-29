@@ -12,7 +12,18 @@ import json
 import uuid
 import shutil
 import os
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
 
+
+def sign(signature_file, file_to_sign):
+    k = open(signature_file).read()
+    key = RSA.importKey(k)
+    signature = PKCS1_v1_5.new(key)
+    data = open(file_to_sign, "rb").read()
+    digest = SHA256.new(data)
+    return signature.sign(digest)
 
 def edit_in_zip(zipfname, file_edit_functions):
     tempdir = tempfile.mkdtemp()
@@ -40,15 +51,19 @@ def edit_consumer(data):
     return json.dumps(content_dict)
 
 
-def clone(oldpath, newpath):
+def clone(key, oldpath, newpath):
     shutil.copy(oldpath, newpath)
     tempdir = tempfile.mkdtemp()
     with zipfile.ZipFile(newpath) as oldzip:
         oldzip.extractall(tempdir)
         edit_in_zip(tempdir+"/consumer_export.zip",
                     {"/export/consumer.json": edit_consumer})
+        signature = sign(key, tempdir+"/consumer_export.zip")
+        with open(tempdir+"/signature", "wb") as sign_file:
+            sign_file.write(signature)
     with zipfile.ZipFile(newpath, "w") as oldzip:
         oldzip.write(tempdir+"/consumer_export.zip", "/consumer_export.zip")
+        oldzip.write(tempdir+"/signature", "/signature")
 
 
 class Manifests(object):
