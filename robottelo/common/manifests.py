@@ -25,6 +25,7 @@ def sign(signature_file, file_to_sign):
     digest = SHA256.new(data)
     return signature.sign(digest)
 
+
 def edit_in_zip(zipfname, file_edit_functions):
     tempdir = tempfile.mkdtemp()
     try:
