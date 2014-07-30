@@ -42,7 +42,8 @@ def edit_in_zip(zip_file, file_edit_functions):
     filler.txt and large.txt and you'd want small.txt contain 1 and large.txt
     contain 1000, you would call
 
-    edit_in_zip("/tmp/test.zip", {'small.txt': lambda x: "1", 'large.txt': lambda x: "1000"}
+    edit_in_zip("/tmp/test.zip",
+        {'small.txt': lambda x: "1", 'large.txt': lambda x: "1000"})
 
     """
     tempdir = tempfile.mkdtemp()
@@ -59,7 +60,7 @@ def edit_in_zip(zip_file, file_edit_functions):
                             zipread.read(item.filename)
                             )
                         zipwrite.writestr(item, data)
-        shutil.move(tempname, zipfname)
+        shutil.move(tempname, zip_file)
     finally:
         shutil.rmtree(tempdir)
 
