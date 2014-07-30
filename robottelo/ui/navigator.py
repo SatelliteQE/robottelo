@@ -17,7 +17,7 @@ class Navigator(Base):
 
     def menu_click(self, top_menu_locator, sub_menu_locator,
                    tertiary_menu_locator=None, entity=None):
-        menu_element = self.find_element(top_menu_locator)
+        menu_element = self.wait_until_element(top_menu_locator)
 
         if menu_element:
             ActionChains(self.browser).move_to_element(menu_element).perform()

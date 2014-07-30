@@ -678,13 +678,16 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
-    def test_add_environment_1(self, env):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_add_environment_1(self, testdata):
         """
         @test: Add environment by using organization name and evironment name.
         @feature: Organizations associate environment.
         @assert: environment is added.
         """
+        env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
@@ -802,14 +805,16 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
-    def test_remove_environment_1(self, env):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_remove_environment_1(self, testdata):
         """
         @test: Remove environment by using organization name & evironment name.
         @feature: Organizations dis-associate environment.
         @assert: environment is removed from Organization.
         """
-
+        env = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)

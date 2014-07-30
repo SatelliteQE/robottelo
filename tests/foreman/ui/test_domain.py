@@ -238,11 +238,13 @@ class Domain(UITestCase):
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators["alert.error"]))
 
+    @skip_if_bz_bug_open("1123360")
     def test_set_parameter_negative_3(self):
         """
         @Test: Again set the same paramter for domain with name and value.
         @Feature: Domain - Misc.
         @Assert: Domain parameter is not updated.
+        @BZ: 1123360
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
