@@ -19,6 +19,7 @@ from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.gpgkey import GPGKey
+from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
@@ -37,9 +38,9 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common import ssh
 from robottelo.common.constants import (FOREMAN_PROVIDERS, OPERATING_SYSTEMS,
                                         SYNC_INTERVAL, TEMPLATE_TYPES)
-from robottelo.common.helpers import (generate_ipaddr, generate_name,
-                                      generate_string, sleep_for_seconds,
-                                      update_dictionary)
+from robottelo.common.helpers import (
+    generate_ipaddr, generate_mac, generate_name, generate_string,
+    sleep_for_seconds, update_dictionary)
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -133,17 +134,17 @@ def make_activation_key(options=None):
         raise CLIFactoryError("Please provide a valid Organization.")
 
     args = {
-        'content-view': None,
-        'content-view-id': None,
-        'description': None,
-        'lifecycle-environment': None,
-        'lifecycle-environment-id': None,
-        'max-content-hosts': None,
-        'name': generate_name(),
-        'organization': None,
-        'organization-id': None,
-        'organization-label': None,
-        'unlimited-content-hosts': True,
+        u'content-view': None,
+        u'content-view-id': None,
+        u'description': None,
+        u'lifecycle-environment': None,
+        u'lifecycle-environment-id': None,
+        u'max-content-hosts': None,
+        u'name': generate_name(),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
+        u'unlimited-content-hosts': True,
     }
 
     # Override default dictionary with updated one
@@ -167,8 +168,8 @@ def make_architecture(options=None):
     """
 
     args = {
-        'name': generate_name(),
-        'operatingsystem-ids': None,
+        u'name': generate_name(),
+        u'operatingsystem-ids': None,
     }
 
     # Override default dictionary with updated one
@@ -205,13 +206,13 @@ def make_content_view(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        'name': generate_string("alpha", 10),
-        'organization-id': None,
-        'composite': False,
-        'component-ids': None,
-        'label': None,
-        'description': None,
-        'repository-ids': None
+        u'name': generate_string("alpha", 10),
+        u'organization-id': None,
+        u'composite': False,
+        u'component-ids': None,
+        u'label': None,
+        u'description': None,
+        u'repository-ids': None
     }
 
     # Override default dictionary with updated one
@@ -251,9 +252,9 @@ def make_gpg_key(options=None):
         key_filename = options.pop('key')
 
     args = {
-        'name': generate_name(),
-        'key': "/tmp/%s" % generate_name(),
-        'organization-id': None,
+        u'name': generate_name(),
+        u'key': "/tmp/%s" % generate_name(),
+        u'organization-id': None,
     }
 
     # Upload file to server
@@ -283,10 +284,10 @@ def make_model(options=None):
     """
 
     args = {
-        'name': generate_name(),
-        'info': None,
-        'vendor-class': None,
-        'hardware-model': None,
+        u'name': generate_name(),
+        u'info': None,
+        u'vendor-class': None,
+        u'hardware-model': None,
     }
 
     # Override default dictionary with updated one
@@ -331,9 +332,9 @@ def make_partition_table(options=None):
         ptable.write(options.get('content', 'default ptable content'))
 
     args = {
-        'name': generate_name(),
-        'file': "/tmp/%s" % generate_name(),
-        'os-family': random.choice(OPERATING_SYSTEMS)
+        u'name': generate_name(),
+        u'file': "/tmp/%s" % generate_name(),
+        u'os-family': random.choice(OPERATING_SYSTEMS)
     }
 
     # Upload file to server
@@ -367,12 +368,12 @@ def make_product(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        'name': generate_string('alpha', 20),
-        'label': generate_string('alpha', 20),
-        'description': generate_string('alpha', 20),
-        'organization-id': None,
-        'gpg-key-id': None,
-        'sync-plan-id': None,
+        u'name': generate_string('alpha', 20),
+        u'label': generate_string('alpha', 20),
+        u'description': generate_string('alpha', 20),
+        u'organization-id': None,
+        u'gpg-key-id': None,
+        u'sync-plan-id': None,
     }
 
     args = update_dictionary(args, options)
@@ -394,7 +395,7 @@ def make_proxy(options=None):
     """
 
     args = {
-        'name': generate_name(),
+        u'name': generate_name(),
     }
 
     args = update_dictionary(args, options)
@@ -439,18 +440,18 @@ def make_repository(options=None):
         raise CLIFactoryError("Please provide a valid Product ID.")
 
     args = {
-        'name': generate_string('alpha', 15),
-        'label': None,
-        'content-type': u'yum',
-        'product': None,
-        'product-id': None,
-        'publish-via-http': u'true',
-        'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
-        'gpg-key': None,
-        'gpg-key-id': None,
-        'organization': None,
-        'organization-id': None,
-        'organization-label': None,
+        u'name': generate_string('alpha', 15),
+        u'label': None,
+        u'content-type': u'yum',
+        u'product': None,
+        u'product-id': None,
+        u'publish-via-http': u'true',
+        u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
+        u'gpg-key': None,
+        u'gpg-key-id': None,
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
     }
 
     args = update_dictionary(args, options)
@@ -485,19 +486,19 @@ def make_subnet(options=None):
     """
 
     args = {
-        'name': generate_name(8, 8),
-        'network': generate_ipaddr(ip3=True),
-        'mask': u'255.255.255.0',
-        'gateway': None,
-        'dns-primary': None,
-        'dns-secondary': None,
-        'from': None,
-        'to': None,
-        'vlanid': None,
-        'domain-ids': None,
-        'dhcp-id': None,
-        'tftp-id': None,
-        'dns-id': None,
+        u'name': generate_name(8, 8),
+        u'network': generate_ipaddr(ip3=True),
+        u'mask': u'255.255.255.0',
+        u'gateway': None,
+        u'dns-primary': None,
+        u'dns-secondary': None,
+        u'from': None,
+        u'to': None,
+        u'vlanid': None,
+        u'domain-ids': None,
+        u'dhcp-id': None,
+        u'tftp-id': None,
+        u'dns-id': None,
     }
 
     args = update_dictionary(args, options)
@@ -532,11 +533,11 @@ def make_sync_plan(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        'name': generate_string('alpha', 20),
-        'description': generate_string('alpha', 20),
-        'organization-id': None,
-        'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'interval': random.choice(SYNC_INTERVAL.values()),
+        u'name': generate_string('alpha', 20),
+        u'description': generate_string('alpha', 20),
+        u'organization-id': None,
+        u'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        u'interval': random.choice(SYNC_INTERVAL.values()),
     }
 
     args = update_dictionary(args, options)
@@ -586,34 +587,185 @@ def make_content_host(options=None):
     # Do we have at least one content view field?
     if not any(options.get(key) for key in CONTENT_VIEW_KEYS):
         raise CLIFactoryError(
-            'Please provide one of %s.'.format(', '.join(CONTENT_VIEW_KEYS)))
+            'Please provide one of {0}.'.format(', '.join(CONTENT_VIEW_KEYS)))
 
     # Do we have at least one lifecycle-environment field?
     if not any(options.get(key) for key in LIFECYCLE_KEYS):
         raise CLIFactoryError(
-            'Please provide one of %s.'.format(', '.join(LIFECYCLE_KEYS)))
+            'Please provide one of {0}.'.format(', '.join(LIFECYCLE_KEYS)))
 
     args = {
-        'name': generate_string('alpha', 20),
-        'description': generate_string('alpha', 20),
-        'organization': None,
-        'organization-id': None,
-        'organization-label': None,
-        'content-view': None,
-        'content-view-id': None,
-        'environment': None,
-        'environment-id': None,
-        'guest-ids': None,
-        'host-collection': None,
-        'host-collection-id': None,
-        'last-checking': None,
-        'location': None,
-        'release-ver': None,
-        'service-level': None,
+        u'name': generate_string('alpha', 20),
+        u'description': generate_string('alpha', 20),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
+        u'content-view': None,
+        u'content-view-id': None,
+        u'environment': None,
+        u'environment-id': None,
+        u'guest-ids': None,
+        u'host-collection': None,
+        u'host-collection-id': None,
+        u'last-checking': None,
+        u'location': None,
+        u'release-ver': None,
+        u'service-level': None,
     }
 
     args = update_dictionary(args, options)
     args.update(create_object(ContentHost, args))
+
+    return args
+
+
+def make_host(options=None):
+    """
+    Usage::
+
+        hammer host create [OPTIONS]
+
+    Options::
+
+        --architecture ARCHITECTURE_NAME Architecture name
+        --architecture-id ARCHITECTURE_ID
+        --ask-root-password ASK_ROOT_PW One of true/false, yes/no, 1/0.
+        --build BUILD                 One of true/false, yes/no, 1/0.
+                                    Default: "true"
+        --compute-attributes COMPUTE_ATTRS Compute resource attributes.
+                                    Comma-separated list of key=value.
+        --compute-profile COMPUTE_PROFILE_NAME Name to search by
+        --compute-profile-id COMPUTE_PROFILE_ID
+        --compute-resource COMPUTE_RESOURCE_NAME Compute resource name
+        --compute-resource-id COMPUTE_RESOURCE
+        --domain DOMAIN_NAME          Domain name
+        --domain-id DOMAIN_ID
+        --enabled ENABLED             One of true/false, yes/no, 1/0.
+                                    Default: "true"
+        --environment ENVIRONMENT_NAME Environment name
+        --environment-id ENVIRONMENT_ID
+        --hostgroup HOSTGROUP_NAME    Hostgroup name
+        --hostgroup-id HOSTGROUP_ID
+        --image-id IMAGE_ID
+        --interface INTERFACE         Interface parameters.
+                                      Comma-separated list of key=value.
+                                      Can be specified multiple times.
+        --ip IP                       not required if using a subnet with dhcp
+                                      proxy
+        --location LOCATION_NAME      Location name
+        --location-id LOCATION_ID
+        --mac MAC                     not required if its a virtual machine
+        --managed MANAGED             One of true/false, yes/no, 1/0.
+                                    Default: "true"
+        --medium MEDIUM_NAME          Medium name
+        --medium-id MEDIUM_ID
+        --model MODEL_NAME            Model name
+        --model-id MODEL_ID
+        --name NAME
+        --operatingsystem-id OPERATINGSYSTEM_ID
+        --organization ORGANIZATION_NAME Organization name
+        --organization-id ORGANIZATION_ID
+        --owner-id OWNER_ID
+        --parameters PARAMS           Host parameters.
+                                    Comma-separated list of key=value.
+        --partition-table-id PARTITION_TABLE_ID
+        --progress-report-id PROGRESS_REPORT_ID UUID to track orchestration
+                                    tasks status, GET
+                                    /api/orchestration/:UUID/tasks
+        --provision-method METHOD     One of 'build', 'image'
+        --ptable PTABLE_NAME          Partition table name
+        --ptable-id PTABLE_ID
+        --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
+        --puppet-proxy-id PUPPET_PROXY_ID
+        --puppetclass-ids PUPPETCLASS_IDS Comma separated list of values.
+        --realm REALM_NAME            Name to search by
+        --realm-id REALM_ID           May be numerical id or realm name
+        --root-password ROOT_PW
+        --sp-subnet-id SP_SUBNET_ID
+        --subnet SUBNET_NAME          Subnet name
+        --subnet-id SUBNET_ID
+        --volume VOLUME               Volume parameters
+                                    Comma-separated list of key=value.
+                                    Can be specified multiple times.
+    """
+    # Check for required options
+    required_options = (
+        'architecture-id',
+        'domain-id',
+        'environment-id',
+        'medium-id',
+        'operatingsystem-id',
+        'partition-table-id',
+        'puppet-proxy-id',
+    )
+
+    if options is None:
+        raise CLIFactoryError(
+            'Options {0} are required'.format(', '.join(required_options))
+        )
+
+    missing_options = [
+        option for option in required_options if options.get(option) is None
+    ]
+
+    if missing_options:
+        raise CLIFactoryError(
+            'Options {0} are required'.format(', '.join(missing_options))
+        )
+
+    args = {
+        u'architecture': None,
+        u'architecture-id': None,
+        u'ask-root-password': None,
+        u'build': None,
+        u'compute-attributes': None,
+        u'compute-profile': None,
+        u'compute-profile-id': None,
+        u'compute-resource': None,
+        u'compute-resource-id': None,
+        u'domain': None,
+        u'domain-id': None,
+        u'enabled': None,
+        u'environment': None,
+        u'environment-id': None,
+        u'hostgroup': None,
+        u'hostgroup-id': None,
+        u'image-id': None,
+        u'interface': None,
+        u'ip': generate_ipaddr(),
+        u'location': None,
+        u'location-id': None,
+        u'mac': generate_mac(),
+        u'managed': None,
+        u'medium': None,
+        u'medium-id': None,
+        u'model': None,
+        u'model-id': None,
+        u'name': generate_string('alpha', 10),
+        u'operatingsystem-id': None,
+        u'organization': None,
+        u'organization-id': None,
+        u'owner-id': None,
+        u'parameters': None,
+        u'partition-table-id': None,
+        u'progress-report-id': None,
+        u'provision-method': None,
+        u'ptable': None,
+        u'ptable-id': None,
+        u'puppet-ca-proxy-id': None,
+        u'puppet-proxy-id': None,
+        u'puppetclass-ids': None,
+        u'realm': None,
+        u'realm-id': None,
+        u'root-password': generate_string('alpha', 8),
+        u'sp-subnet-id': None,
+        u'subnet': None,
+        u'subnet-id': None,
+        u'volume': None,
+    }
+
+    args = update_dictionary(args, options)
+    args.update(create_object(Host, args))
 
     return args
 
@@ -644,11 +796,11 @@ def make_host_collection(options=None):
 
     # Assigning default values for attributes
     args = {
-        'description': None,
-        'max-content-hosts': None,
-        'name': generate_string('alpha', 15),
-        'organization-id': None,
-        'system-ids': None,
+        u'description': None,
+        u'max-content-hosts': None,
+        u'name': generate_string('alpha', 15),
+        u'organization-id': None,
+        u'system-ids': None,
     }
 
     args = update_dictionary(args, options)
@@ -678,13 +830,13 @@ def make_user(options=None):
 
     # Assigning default values for attributes
     args = {
-        'login': login,
-        'firstname': generate_name(),
-        'lastname': generate_name(),
-        'mail': "%s@example.com" % login,
-        'admin': None,
-        'password': generate_name(),
-        'auth-source-id': 1,
+        u'login': login,
+        u'firstname': generate_name(),
+        u'lastname': generate_name(),
+        u'mail': "%s@example.com" % login,
+        u'admin': None,
+        u'password': generate_name(),
+        u'auth-source-id': 1,
     }
 
     args = update_dictionary(args, options)
@@ -717,16 +869,16 @@ def make_compute_resource(options=None):
         -h, --help                    print help
     """
     args = {
-        'name': generate_name(8, 8),
-        'provider': None,
-        'url': None,
-        'description': None,
-        'user': None,
-        'password': None,
-        'uuid': None,
-        'region': None,
-        'tenant': None,
-        'server': None
+        u'name': generate_name(8, 8),
+        u'provider': None,
+        u'url': None,
+        u'description': None,
+        u'user': None,
+        u'password': None,
+        u'uuid': None,
+        u'region': None,
+        u'tenant': None,
+        u'server': None
     }
 
     args = update_dictionary(args, options)
@@ -754,9 +906,9 @@ def make_org(options=None):
 
     # Assigning default values for attributes
     args = {
-        'name': generate_name(6),
-        'label': None,
-        'description': None,
+        u'name': generate_name(6),
+        u'label': None,
+        u'description': None,
     }
 
     args = update_dictionary(args, options)
@@ -767,13 +919,37 @@ def make_org(options=None):
 
 def make_os(options=None):
     """
-        Creates the operating system
-        """
+    Usage:
+        hammer os create [OPTIONS]
+
+    Options:
+        --architecture-ids ARCH_IDS   set associated architectures
+                                    Comma separated list of values.
+        --config-template-ids CONFIG_TPL_IDS set associated templates
+                                    Comma separated list of values.
+        --description DESCRIPTION
+        --family FAMILY
+        --major MAJOR
+        --medium-ids MEDIUM_IDS       set associated installation media
+                                    Comma separated list of values.
+        --minor MINOR
+        --name NAME
+        --ptable-ids PTABLE_IDS       set associated partition tables
+                                    Comma separated list of values.
+        --release-name RELEASE_NAME
+    """
     # Assigning default values for attributes
     args = {
-        'name': generate_name(6),
-        'major': random.randint(0, 10),
-        'minor': random.randint(0, 10),
+        u'architecture-ids': None,
+        u'config-template-ids': None,
+        u'description': None,
+        u'family': None,
+        u'major': random.randint(0, 10),
+        u'medium-ids': None,
+        u'minor': random.randint(0, 10),
+        u'name': generate_name(6),
+        u'ptable-ids': None,
+        u'release-name': None,
     }
 
     args = update_dictionary(args, options)
@@ -796,9 +972,9 @@ def make_domain(options=None):
     """
     # Assigning default values for attributes
     args = {
-        'name': generate_name(6),
-        'dns-id': None,
-        'description': None,
+        u'name': generate_name(6),
+        u'dns-id': None,
+        u'description': None,
     }
 
     args = update_dictionary(args, options)
@@ -899,10 +1075,10 @@ def make_medium(options=None):
     """
     # Assigning default values for attributes
     args = {
-        'name': generate_name(6),
-        'path': 'http://%s' % (generate_string('alpha', 6)),
-        'os-family': None,
-        'operatingsystem-ids': None,
+        u'name': generate_name(6),
+        u'path': 'http://%s' % (generate_string('alpha', 6)),
+        u'os-family': None,
+        u'operatingsystem-ids': None,
     }
 
     args = update_dictionary(args, options)
@@ -923,7 +1099,7 @@ def make_environment(options=None):
     """
     # Assigning default values for attributes
     args = {
-        'name': generate_name(6),
+        u'name': generate_name(6),
     }
 
     args = update_dictionary(args, options)
@@ -958,10 +1134,10 @@ def make_lifecycle_environment(options=None):
 
     # Assigning default values for attributes
     args = {
-        'organization-id': None,
-        'name': generate_name(6),
-        'description': None,
-        'prior': None,
+        u'organization-id': None,
+        u'name': generate_name(6),
+        u'description': None,
+        u'prior': None,
     }
 
     args = update_dictionary(args, options)
@@ -989,12 +1165,12 @@ def make_template(options=None):
     """
     # Assigning default values for attribute
     args = {
-        'file': "/tmp/%s" % generate_name(),
-        'type': random.choice(TEMPLATE_TYPES),
-        'name': generate_name(6),
-        'audit-comment': None,
-        'operatingsystem-ids': None,
-        }
+        u'file': "/tmp/%s" % generate_name(),
+        u'type': random.choice(TEMPLATE_TYPES),
+        u'name': generate_name(6),
+        u'audit-comment': None,
+        u'operatingsystem-ids': None,
+    }
 
     # Write content to file or random text
     if options is not None and 'content' in options.keys():

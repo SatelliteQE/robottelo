@@ -13,22 +13,23 @@ Parameters::
 
 Subcommands::
 
-    set_parameter                 Create or update parameter for a host.
-    puppet_classes                List all puppetclasses.
-    create                        Create a host.
-    info                          Show a host.
-    stop                          Power a host off
-    reports                       List all reports.
-    facts                         List all fact values.
-    list                          List all hosts.
-    status
-    update                        Update a host.
-    puppetrun                     Force a puppet run on the agent.
+    create                        Create a host
+    delete                        Delete a host
+    delete-parameter              Delete parameter for a host.
+    facts                         List all fact values
+    info                          Show a host
+    list                          List all hosts
+    puppet-classes                List all Puppet classes
+    puppetrun                     Force a Puppet agent run on the host
     reboot                        Reboot a host
-    sc_params                     List all smart class parameters
+    reports                       List all reports
+    sc-params                     List all smart class parameters
+    set-parameter                 Create or update parameter for a host.
     start                         Power a host on
-    delete                        Delete an host.
-    delete_parameter              Delete parameter for a host.
+    status                        Get status of host
+    stop                          Power a host off
+    update                        Update a host
+
 """
 
 from robottelo.cli.base import Base
