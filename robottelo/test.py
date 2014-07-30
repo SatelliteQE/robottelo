@@ -33,6 +33,7 @@ from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
+from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.subscription import Subscriptions
 from robottelo.ui.sync import Sync
@@ -160,6 +161,7 @@ class UITestCase(TestCase):
         self.products = Products(self.browser)
         self.repository = Repos(self.browser)
         self.role = Role(self.browser)
+        self.settings = Settings(self.browser)
         self.subnet = Subnet(self.browser)
         self.subscriptions = Subscriptions(self.browser)
         self.sync = Sync(self.browser)
