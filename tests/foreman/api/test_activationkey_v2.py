@@ -69,47 +69,12 @@ class ActivationKeysTestCase(TestCase):
         )
 
     @data(
-        IntegerField(min_val=-10, max_val=-1).get_value(),
-        IntegerField(min_val=1, max_val=20).get_value(),
-        StringField(str_type=('alpha',)).get_value(),
-    )
-    def test_positive_create_3(self, max_content_hosts):
-        """
-        @Test Create activationkey with unlimited content hosts and set
-          max content hosts of varied values
-        @Assert:
-          1. Activationkey is created
-          2. Unlimited content host is True
-          3. max content hosts is None
-        @Feature: ActivationKey
-        """
-        try:
-            attrs = entities.ActivationKey().create(fields={
-                u'unlimited_content_hosts': True,
-                u'max_content_hosts': max_content_hosts
-            })
-        except FactoryError as err:
-            self.fail(err)
-        # Assert that it defaults to limited content host...
-        self.assertTrue(
-            attrs['unlimited_content_hosts'],
-            u"Unlimited content hosts is {0}".format(
-                attrs['unlimited_content_hosts'])
-        )
-        # ...and max_content_host is None
-        self.assertIsNone(
-            attrs['max_content_hosts'],
-            u"Max content hosts value is not None: {0}".format(
-                attrs['max_content_hosts'])
-        )
-
-    @data(
         StringField(str_type=('alpha',)).get_value(),
         StringField(str_type=('alphanumeric',)).get_value(),
         StringField(str_type=('cjk',)).get_value(),
         StringField(str_type=('latin1',)).get_value(),
     )
-    def test_positive_create_4(self, name):
+    def test_positive_create_3(self, name):
         """
         @Test Create an activationkey providing the initial name.
         @Assert: Activationkey is created and contains provided name.
@@ -164,6 +129,25 @@ class ActivationKeysTestCase(TestCase):
                     u'max_content_hosts': max_content_hosts
                 }
             )
+
+    @data(
+        IntegerField(min_val=-10, max_val=-1).get_value(),
+        IntegerField(min_val=1, max_val=20).get_value(),
+        StringField(str_type=('alpha',)).get_value(),
+    )
+    def test_negative_create_3(self, max_content_hosts):
+        """
+        @Test Create activationkey with unlimited content hosts and set
+          max content hosts of varied values
+        @Assert:
+          1. Activationkey is not created
+        @Feature: ActivationKey
+        """
+        with self.assertRaises(FactoryError):
+            entities.ActivationKey().create(fields={
+                u'unlimited_content_hosts': True,
+                u'max_content_hosts': max_content_hosts
+            })
 
     @data(
         IntegerField(min_val=1, max_val=30).get_value(),
