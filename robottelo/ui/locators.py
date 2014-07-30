@@ -532,7 +532,7 @@ common_locators = {
     "parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
     "parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
     "parameter_remove": (
-        By.XPATH, "//div/input[@value='%s']/following-    ::span/a/i"),
+        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
 
     # Katello Common Locators
     "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
@@ -1518,5 +1518,4 @@ locators = {
     "settings.save": (
         By.XPATH,
         ("//td[@class='setting_value']"
-         "/span/form/button[@type='submit']"))
-    }
+         "/span/form/button[@type='submit']"))}
