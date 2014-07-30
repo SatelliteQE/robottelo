@@ -194,12 +194,13 @@ class EntityIdTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.User,
     )
     def test_delete(self, entity):
         """@Test Create an entity, fetch it, DELETE it, and fetch it again.
 
-        @Assert DELETE succeeds. HTTP 200 is returned before deleting entity,
-        and 404 is returned after deleting entity.
+        @Assert DELETE succeeds. HTTP 200, 202 or 204 is returned before
+        deleting entity, and 404 is returned after deleting entity.
 
         """
         attrs = entity().create()
@@ -209,10 +210,10 @@ class EntityIdTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = httplib.OK
-        self.assertEqual(
-            status_code,
+        status_code = (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
+        self.assertIn(
             response.status_code,
+            status_code,
             status_code_error(path, status_code, response),
         )
         response = client.get(
