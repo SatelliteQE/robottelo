@@ -24,11 +24,11 @@ def sign(key_file, file_to_sign):
 
     Returns binary signature data.
     """
-    with open(key_file).read() as k:
-        key = RSA.importKey(k)
+    with open(key_file) as k:
+        key = RSA.importKey(k.read())
         signature = PKCS1_v1_5.new(key)
-        with open(file_to_sign, "rb").read() as data:
-            digest = SHA256.new(data)
+        with open(file_to_sign, "rb") as data:
+            digest = SHA256.new(data.read())
             return signature.sign(digest)
 
 
