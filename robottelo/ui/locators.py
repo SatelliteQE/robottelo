@@ -1502,7 +1502,7 @@ locators = {
     "subs.manifest_exists": (
         By.XPATH, "//a[contains(@href,'distributors')]"),
 
-    #Settings
+    # Settings
     "settings.param": (
         By.XPATH, "//tr/td[contains(., '%s')]"),
     "settings.edit_param": (
