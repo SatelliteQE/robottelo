@@ -173,7 +173,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @stubbed('Organization deletion is disabled')
     def test_bugzilla_1076568_1(self):
         """
         @test: Delete organization by name
@@ -211,7 +210,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @stubbed('Organization deletion is disabled')
     def test_bugzilla_1076568_2(self):
         """
         @test: Delete organization by ID
@@ -249,7 +247,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @stubbed('Organization deletion is disabled')
     def test_bugzilla_1076568_3(self):
         """
         @test: Delete organization by label
@@ -358,15 +355,11 @@ class TestOrg(CLITestCase):
 
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @stubbed('Organization deletion is disabled')
-    @skip_if_bz_bug_open('1096241')
-    @skip_if_bz_bug_open('1061658')
     def test_bugzilla_1061658(self):
         """
         @Test: Organization delete fails with 500 Server / Candlepin 404 error
         @Feature: Org
         @Assert: Organization is created and deleted
-        @bz: 1096241, 1061658
         """
         new_obj = make_org()
         return_value = Org.delete({'id': new_obj['id']})
@@ -956,7 +949,6 @@ class TestOrg(CLITestCase):
 
     # Positive Delete
 
-    @stubbed('Organization deletion is disabled')
     @data(*positive_name_desc_label_data())
     def test_positive_delete_1(self, test_data):
         """
@@ -989,7 +981,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @stubbed('Organization deletion is disabled')
     @data(*positive_name_desc_label_data())
     def test_positive_delete_2(self, test_data):
         """
@@ -1022,7 +1013,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @stubbed('Organization deletion is disabled')
     @data(*positive_name_desc_label_data())
     def test_positive_delete_3(self, test_data):
         """
