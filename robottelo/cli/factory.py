@@ -46,7 +46,7 @@ logger = logging.getLogger("robottelo")
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
-LIFECYCLE_KEYS = ['environment', 'environment-id']
+LIFECYCLE_KEYS = ['lifecycle-environment', 'lifecycle-environment-id']
 
 
 class CLIFactoryError(Exception):
@@ -575,20 +575,21 @@ def make_content_host(options=None):
 
     # Organization ID is a required field.
     if not options:
-        raise CLIFactoryError("Please provide required parameters")
+        raise CLIFactoryError('Please provide required parameters')
 
     # Do we have at least one organization field?
     if not any(options.get(key) for key in ORG_KEYS):
-        raise CLIFactoryError("Please provide a valid organization field.")
+        raise CLIFactoryError('Please provide a valid organization field.')
 
     # Do we have at least one content view field?
     if not any(options.get(key) for key in CONTENT_VIEW_KEYS):
-        raise CLIFactoryError("Please provide a valid content view field.")
+        raise CLIFactoryError(
+            'Please provide one of %s.'.format(', '.join(CONTENT_VIEW_KEYS)))
 
     # Do we have at least one lifecycle-environment field?
     if not any(options.get(key) for key in LIFECYCLE_KEYS):
         raise CLIFactoryError(
-            "Please provide a valid lifecycle-environment field.")
+            'Please provide one of %s.'.format(', '.join(LIFECYCLE_KEYS)))
 
     args = {
         'name': generate_string('alpha', 20),
