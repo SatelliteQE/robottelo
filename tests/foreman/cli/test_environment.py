@@ -5,6 +5,7 @@
 Test class for Environment  CLI
 """
 
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
 from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_environment
@@ -77,3 +78,27 @@ class TestEnvironment(MetaCLITestCase):
         result = Environment().list({'search': name})
         self.assertTrue(len(result.stdout) == 1,
                         "Environment list - stdout contains 'Name'")
+
+    def test_delete(self):
+        """
+        @Test: Delete the environment
+        @Feature: Environment - Delete
+        @Assert: Environment Delete is displayed
+        """
+
+        name = generate_string("utf8", 10)
+        try:
+            make_environment({'name': name})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = Environment().delete({'name': name})
+        self.assertEqual(result.return_code, 0, "Deletion failed")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+
+        result = Environment().info({'name': name})
+        self.assertNotEqual(
+            result.return_code, 0, "Environment should be deleted")
+        self.assertGreater(len(result.stderr), 0,
+                           "There should be an exception here")
