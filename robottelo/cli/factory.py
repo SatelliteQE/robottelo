@@ -70,7 +70,7 @@ def create_object(cli_object, args):
     @param args: A python dictionary containing all valid
     attributes for creating a new object.
 
-    @raise Exception: Raise an exception if object cannot be
+    @raise CLIFactoryError: Raise an exception if object cannot be
     created.
 
     @rtype: dict
@@ -200,7 +200,7 @@ def make_content_view(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
         'name': generate_string("alpha", 10),
@@ -235,11 +235,11 @@ def make_gpg_key(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     # Create a fake gpg key file if none was provided
     if not options.get('key', None):
-        (file_handle, key_filename) = mkstemp(text=True)
+        (_, key_filename) = mkstemp(text=True)
         os.chmod(key_filename, 0700)
         with open(key_filename, "w") as gpg_key_file:
             gpg_key_file.write(generate_name(minimum=20, maximum=50))
@@ -323,7 +323,7 @@ def make_partition_table(options=None):
     """
     if options is None:
         options = {}
-    (file_handle, layout) = mkstemp(text=True)
+    (_, layout) = mkstemp(text=True)
     os.chmod(layout, 0700)
     with open(layout, "w") as ptable:
         ptable.write(options.get('content', 'default ptable content'))
@@ -362,7 +362,7 @@ def make_product(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
         'name': generate_string('alpha', 20),
@@ -434,7 +434,7 @@ def make_repository(options=None):
 
     # Product ID is a required field.
     if not options or not options.get('product-id', None):
-        raise Exception("Please provide a valid Product ID.")
+        raise CLIFactoryError("Please provide a valid Product ID.")
 
     args = {
         'name': generate_string('alpha', 15),
@@ -527,7 +527,7 @@ def make_sync_plan(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
         'name': generate_string('alpha', 20),
@@ -575,19 +575,20 @@ def make_content_host(options=None):
 
     # Organization ID is a required field.
     if not options:
-        raise Exception("Please provide required parameters")
+        raise CLIFactoryError("Please provide required parameters")
 
     # Do we have at least one organization field?
     if not any(options.get(key) for key in ORG_KEYS):
-        raise Exception("Please provide a valid organization field.")
+        raise CLIFactoryError("Please provide a valid organization field.")
 
     # Do we have at least one content view field?
     if not any(options.get(key) for key in CONTENT_VIEW_KEYS):
-        raise Exception("Please provide a valid content view field.")
+        raise CLIFactoryError("Please provide a valid content view field.")
 
     # Do we have at least one lifecycle-environment field?
     if not any(options.get(key) for key in LIFECYCLE_KEYS):
-        raise Exception("Please provide a valid lifecycle-environment field.")
+        raise CLIFactoryError(
+            "Please provide a valid lifecycle-environment field.")
 
     args = {
         'name': generate_string('alpha', 20),
@@ -636,7 +637,7 @@ def make_host_collection(options=None):
 
     # Organization ID is required
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORGANIZATION_ID.")
+        raise CLIFactoryError("Please provide a valid ORGANIZATION_ID.")
 
     # Assigning default values for attributes
     args = {
@@ -948,7 +949,7 @@ def make_lifecycle_environment(options=None):
 
     # Organization ID is required
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
     if not options.get('prior', None):
         options['prior'] = 'Library'
 
