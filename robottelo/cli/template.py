@@ -47,3 +47,15 @@ class Template(Base):
             kinds = result.stdout
 
         return kinds
+
+    @classmethod
+    def add_operatingsystem(cls, options=None):
+        """
+        Returns list of types of templates.
+        """
+
+        cls.command_sub = "add-operatingsystem"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result
