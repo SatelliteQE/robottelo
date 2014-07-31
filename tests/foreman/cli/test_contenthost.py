@@ -214,7 +214,7 @@ class TestContentHost(CLITestCase):
             u'name': generate_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'environment': self.LIBRARY['name']})
+            u'lifecycle-environment': self.LIBRARY['name']})
         # Assert that lifecycles matches data passed
         self.assertEqual(
             new_system['lifecycle-environment'],
