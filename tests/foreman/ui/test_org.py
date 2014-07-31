@@ -22,7 +22,9 @@ from robottelo.common.helpers import (generate_strings_list,
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_templates
+from robottelo.ui.factory import (
+    make_org, make_templates, make_domain, make_user, make_hostgroup,
+    make_subnet, make_loc, make_resource, make_media, make_env)
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -60,15 +62,13 @@ class Org(UITestCase):
     @data(*generate_strings_list())
     def test_positive_create_1(self, org_name):
         """
+        @test: Create organization with valid name only.
         @feature: Organizations
-        @test: Create organization with valid name only
         @assert: organization is created, label is auto-generated
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
 
     @unittest.skip("parent_org feature is disabled currently")
     @attr('ui', 'org', 'implemented')
@@ -92,24 +92,19 @@ class Org(UITestCase):
            'desc': generate_string('html', 10)})
     def test_positive_create_2(self, test_data):
         """
+        @test: Create organization with valid name, label, parent_org, desc.
         @feature: Organizations
-        @test: Create organization with valid name, label, parent_org, desc
-        @assert: organization is created
+        @assert: organization is created.
         """
-
         parent = generate_string("alpha", 8)
         desc = test_data['desc']
         label = test_data['label']
         org_name = test_data['name']
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        # If parent org is not required to be static.
-        self.org.create(parent)
-        self.navigator.go_to_org()
-        self.org.create(org_name, label=label, desc=desc,
-                        parent_org=parent)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
+        with Session(self.browser) as session:
+            make_org(session, org_name=parent)
+            make_org(session, org_name=org_name, label=label,
+                     desc=desc, parent_org=parent)
+            self.assertIsNotNone(self.org.search(org_name))
 
     @attr('ui', 'org', 'implemented')
     @data({'name': generate_string('alpha', 10),
@@ -130,14 +125,14 @@ class Org(UITestCase):
         label_loc = locators["org.label"]
         org_name = test_data['name']
         org_label = test_data['label']
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name, label=org_label)
-        self.navigator.go_to_org()
-        self.org.search(org_name).click()
-        name = self.org.wait_until_element(name_loc).get_attribute("value")
-        label = self.org.wait_until_element(label_loc).get_attribute("value")
-        self.assertNotEqual(name, label)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name, label=org_label)
+            self.org.search(org_name).click()
+            name = session.nav.wait_until_element(
+                name_loc).get_attribute("value")
+            label = session.nav.wait_until_element(
+                label_loc).get_attribute("value")
+            self.assertNotEqual(name, label)
 
     @attr('ui', 'org', 'implemented')
     @data({'data': generate_string('alpha', 10)},
@@ -146,21 +141,20 @@ class Org(UITestCase):
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_4(self, test_data):
         """
+        @test: Create organization with valid matching name and label only.
         @feature: Organizations
-        @test: Create organization with valid matching name and label only
         @assert: organization is created, label matches name
         """
         name_loc = locators["org.name"]
         label_loc = locators["org.label"]
         org_name = org_label = test_data['data']
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name, label=org_label)
-        self.navigator.go_to_org()
-        self.org.search(org_name).click()
-        name = self.org.wait_until_element(name_loc).get_attribute("value")
-        label = self.org.wait_until_element(label_loc).get_attribute("value")
-        self.assertEqual(name, label)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name, label=org_label)
+            name = self.org.wait_until_element(
+                name_loc).get_attribute("value")
+            label = self.org.wait_until_element(
+                label_loc).get_attribute("value")
+            self.assertEqual(name, label)
 
     @skip_if_bz_bug_open("1079482")
     @attr('ui', 'org', 'implemented')
@@ -178,8 +172,8 @@ class Org(UITestCase):
            'desc': generate_string('html', 10)})
     def test_positive_create_5(self, test_data):
         """
+        @test: Create organization with valid name and description only.
         @feature: Organizations
-        @test: Create organization with valid name and description only
         @assert: organization is created, label is auto-generated
         @BZ: 1079482
         """
@@ -187,80 +181,73 @@ class Org(UITestCase):
         desc = test_data['desc']
         org_name = test_data['name']
         label_loc = locators["org.label"]
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name, desc=desc)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_org()
-        self.org.search(org_name).click()
-        label_ele = self.org.wait_until_element(label_loc)
-        label_value = label_ele.get_attribute("value")
-        self.assertTrue(label_value)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name, desc=desc)
+            self.assertIsNotNone(self.org.search(org_name))
+            self.org.search(org_name).click()
+            label_ele = session.nav.wait_until_element(label_loc)
+            label_value = label_ele.get_attribute("value")
+            self.assertIsNotNone(label_value)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_0(self, org_name):
         """
-        @feature: Organizations
         @test: Create organization with valid label and description, name is
-        too long
+        too long.
+        @feature: Organizations Negative Tests
         @assert: organization is not created
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        error = self.org.wait_until_element(common_locators["name_haserror"])
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
 
     def test_negative_create_1(self):
         """
-        @feature: Organizations
         @test: Create organization with valid label and description, name is
-        blank
+        blank.
+        @feature: Organizations - Negative Tests
         @assert: organization is not created
         """
-
         org_name = ""
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        error = self.org.wait_until_element(common_locators["name_haserror"])
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
 
     def test_negative_create_2(self):
         """
-        @feature: Organizations
         @test: Create organization with valid label and description, name is
-        whitespace
+        whitespace.
+        @feature: Organizations Negative Test.
         @assert: organization is not created
         """
-
         org_name = "    "
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        error = self.org.wait_until_element(common_locators["name_haserror"])
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, org_name):
         """
-        @feature: Organizations
         @test: Create organization with valid values, then create a new one
         with same values.
+        @feature: Organizations Negative Test.
         @assert: organization is not created
         """
-
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.org.create(org_name)
-        error = self.org.wait_until_element(common_locators["name_haserror"])
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            self.org.create(org_name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
 
     # Positive Delete
 
@@ -269,18 +256,15 @@ class Org(UITestCase):
     @data(*generate_strings_list())
     def test_positive_delete_1(self, org_name):
         """
-        @feature: Organizations
-        @test: Create organization with valid values then delete it
+        @test: Create organization with valid values then delete it.
+        @feature: Organizations Positive Delete test.
         @assert: organization is deleted
         """
-
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.org.remove(org_name, really=True)
-        self.assertIsNone(self.org.search(org_name))
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            self.org.remove(org_name, really=True)
+            self.assertIsNone(self.org.search(org_name))
 
     # Negative Delete
 
@@ -290,19 +274,17 @@ class Org(UITestCase):
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
         """
-        @feature: Organizations
-        @test: Create organization with valid values then update its name
+        @test: Create organization with valid values then update its name.
+        @feature: Organizations Positive Update test.
         @assert: organization name is updated
         """
 
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.org.update(org_name, new_name=new_name)
-        self.assertIsNotNone(self.org.search(new_name))
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            self.org.update(org_name, new_name=new_name)
+            self.assertIsNotNone(self.org.search(new_name))
 
     # Negative Update
 
@@ -310,21 +292,19 @@ class Org(UITestCase):
     @data(*generate_strings_list())
     def test_negative_update_1(self, org_name):
         """
-        @feature: Organizations
         @test: Create organization with valid values then fail to update
-        its name
+        its name.
+        @feature: Organizations Negative Update test.
         @assert: organization name is not updated
         """
-
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        new_name = generate_string("alpha", 256)
-        self.org.update(org_name, new_name=new_name)
-        error = self.org.wait_until_element(common_locators["name_haserror"])
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            new_name = generate_string("alpha", 256)
+            self.org.update(org_name, new_name=new_name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
 
     # Miscellaneous
 
@@ -332,141 +312,118 @@ class Org(UITestCase):
     @data(*generate_strings_list())
     def test_search_key_1(self, org_name):
         """
-        @feature: Organizations
-        @test: Create organization and search/find it
+        @test: Create organization and search/find it.
+        @feature: Organizations search.
         @assert: organization can be found
         """
-
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
 
     # Associations
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain):
         """
-        @feature: Organizations
         @test: Add a domain to an organization and remove it by organization
-        name and domain name
+        name and domain name.
+        @feature: Organizations Disassociate domain.
         @assert: the domain is removed from the organization
-        @BZ: 1076562
         """
-
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_domains()
-        self.domain.create(domain)
-        self.assertIsNotNone(self.domain.search(domain))
-        self.navigator.go_to_org()
-        self.org.create(org_name, domains=[domain], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_domains"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % domain))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, domains=[domain])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_domains"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % domain))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_domain(session, name=domain)
+            self.assertIsNotNone(self.domain.search(domain))
+            make_org(session, org_name=org_name, domains=[domain],
+                     edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_domains"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % domain))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.org.update(org_name, domains=[domain])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_domains"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % domain))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_user_3(self, user_name):
         """
-        @feature: Organizations
         @test: Create admin users then add user and remove it
-        by using the organization name
+        by using the organization name.
+        @feature: Organizations dis-associate user.
         @assert: The user is added then removed from the organization
-        @BZ: 1076562
         """
-
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_users()
-        self.user.create(user_name, email, password, password)
-        self.assertIsNotNone(self.user.search(user_name, search_key))
-        self.navigator.go_to_org()
-        self.org.create(org_name, users=[user_name], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_users"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % user_name))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, users=[user_name], new_users=None)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_users"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % user_name))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_user(session, username=user_name, email=email,
+                      password1=password, password2=password)
+            self.assertIsNotNone(self.user.search(user_name, search_key))
+            make_org(session, org_name=org_name, users=[user_name], edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_users"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % user_name))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.org.update(org_name, users=[user_name], new_users=None)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_users"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % user_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp):
         """
-        @feature: Organizations
         @test: Add a hostgroup and remove it by using the organization
-        name and hostgroup name
-        @assert: hostgroup is added to organization then removed
-        @BZ: 1076562
+        name and hostgroup name.
+        @feature: Organizations remove hostgroup.
+        @assert: hostgroup is added to organization then removed.
         """
-
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_host_groups()
-        self.hostgroup.create(host_grp)
-        self.assertIsNotNone(self.hostgroup.search(host_grp))
-        self.navigator.go_to_org()
-        self.org.create(org_name, hostgroups=[host_grp], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_hostgrps"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % host_grp))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, hostgroups=[host_grp], new_hostgroups=None)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_hostgrps"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % host_grp))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_hostgroup(session, name=host_grp)
+            self.assertIsNotNone(self.hostgroup.search(host_grp))
+            make_org(session, org_name=org_name, hostgroups=[host_grp],
+                     edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_hostgrps"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % host_grp))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.org.update(org_name, hostgroups=[host_grp],
+                            new_hostgroups=None)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_hostgrps"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % host_grp))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
 
     @stubbed
     @data("""DATADRIVENGOESHERE
@@ -487,263 +444,211 @@ class Org(UITestCase):
 
         pass
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
         """
-        @feature: Organizations
-        @test: Add a subnet by using organization name and subnet name
-        @assert: subnet is added
-        @BZ: 1076562
+        @feature: Organizations associate subnet.
+        @test: Add a subnet by using organization name and subnet name.
+        @assert: subnet is added.
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_subnets()
-        self.subnet.create(None, subnet_name, subnet_network,
-                           subnet_mask)
-        self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_subnets=[subnet_name])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_subnets"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % subnet_name))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_subnet(session, subnet_name=subnet_name,
+                        subnet_network=subnet_network, subnet_mask=subnet_mask)
+            self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
+            self.org.update(org_name, new_subnets=[subnet_name])
+            self.org.search(org_name).click()
+            self.org.wait_until_element(
+                tab_locators["context.tab_subnets"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % subnet_name))
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain):
         """
-        @feature: Organizations
-        @test: Add a domain to an organization
-        @assert: Domain is added to organization
-        @BZ: 1076562
+        @test: Add a domain to an organization.
+        @feature: Organizations associate domain.
+        @assert: Domain is added to organization.
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_domains()
-        self.domain.create(domain)
-        self.assertIsNotNone(self.domain.search(domain))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_domains=[domain])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_domains"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % domain))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_domain(session, name=domain)
+            self.assertIsNotNone(self.domain.search(domain))
+            self.org.update(org_name, new_domains=[domain])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_domains"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % domain))
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_user_2(self, user):
         """
-        @feature: Organizations
         @test: Create different types of users then add user
-        by using the organization name
-        @assert: User is added to organization
-        @BZ: 1076562
+        by using the organization name.
+        @feature: Organizations associate user.
+        @assert: User is added to organization.
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_users()
-        self.user.create(user, email, password, password)
-        self.assertIsNotNone(self.user.search(user, search_key))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_users=[user])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["context.tab_users"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % user))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_user(session, username=user, email=email,
+                      password1=password, password2=password)
+            self.assertIsNotNone(self.user.search(user, search_key))
+            self.org.update(org_name, new_users=[user])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_users"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % user))
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp):
         """
-        @feature: Organizations
         @test: Add a hostgroup by using the organization
-        name and hostgroup name
+        name and hostgroup name.
+        @feature: Organizations associate host-group.
         @assert: hostgroup is added to organization
-        @BZ: 1076562
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_host_groups()
-        self.hostgroup.create(host_grp)
-        self.assertIsNotNone(self.hostgroup.search(host_grp))
-        self.org.update(org_name, new_hostgroups=[host_grp])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_hostgrps"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % host_grp))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_hostgroup(session, name=host_grp)
+            self.assertIsNotNone(self.hostgroup.search(host_grp))
+            self.org.update(org_name, new_hostgroups=[host_grp])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_hostgrps"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % host_grp))
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_location_1(self, location):
         """
-        @feature: Organizations
         @test: Add a location by using the organization
-        name and location name
-        @assert: location is added to organization
-        @BZ: 1076562
+        name and location name.
+        @feature: Organizations associate location.
+        @assert: location is added to organization.
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_loc()
-        self.location.create(location)
-        self.assertIsNotNone(self.location.search(location))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_locations=[location])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_locations"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % location))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_loc(session, name=location)
+            self.assertIsNotNone(self.location.search(location))
+            self.org.update(org_name, new_locations=[location])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_locations"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % location))
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
         """
-        @feature: Organizations
         @test: Remove computeresource by using the organization
-        name and computeresource name
-        @assert: computeresource is added then removed
-        @BZ: 1076562
+        name and computeresource name.
+        @feature: Organizations dis-associate compute-resource.
+        @assert: computeresource is added then removed.
         """
-
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_compute_resources()
-        self.compute_resource.create(resource_name, None,
-                                     provider_type="Libvirt",
-                                     url=url)
-        self.navigator.go_to_compute_resources()
-        self.assertIsNotNone(self.compute_resource.search(resource_name))
-        self.navigator.go_to_org()
-        self.org.create(org_name, resources=[resource_name], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_resources"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % resource_name))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, resources=[resource_name],
-                        new_resources=None)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_resources"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % resource_name))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_resource(session, name=resource_name, provider_type="Libvirt",
+                          url=url)
+            self.assertIsNotNone(self.compute_resource.search(resource_name))
+            make_org(session, org_name=org_name, resources=[resource_name],
+                     edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_resources"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % resource_name))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.org.update(org_name, resources=[resource_name],
+                            new_resources=None)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_resources"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % resource_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium):
         """
-        @feature: Organizations
-        @test: Remove medium by using organization name and medium name
-        @assert: medium is added then removed
-        @BZ: 1076562
+        @feature: Organizations disassociate installation media.
+        @test: Remove medium by using organization name and medium name.
+        @assert: medium is added then removed.
         """
-
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_installation_media()
-        self.medium.create(medium, path, os_family)
-        self.assertIsNotNone(self.medium.search(medium))
-        self.navigator.go_to_org()
-        self.org.create(org_name, medias=[medium], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["context.tab_media"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % medium))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, medias=[medium],
-                        new_medias=None)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["context.tab_media"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % medium))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_media(session, name=medium, path=path, os_family=os_family)
+            self.assertIsNotNone(self.medium.search(medium))
+            make_org(session, org_name=org_name, medias=[medium], edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_media"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % medium))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.navigator.go_to_org()
+            self.org.update(org_name, medias=[medium],
+                            new_medias=None)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_media"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % medium))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
         """
-        @test: Remove config template
-        @feature: Organizations
-        @assert: configtemplate is added then removed
+        @test: Remove config template.
+        @feature: Organizations dissociate config templates.
+        @assert: configtemplate is added then removed.
         """
-
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -761,7 +666,7 @@ class Org(UITestCase):
             element = session.nav.wait_until_element((strategy1,
                                                       value1 % template))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
             self.org.update(org_name, templates=[template])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
@@ -769,7 +674,7 @@ class Org(UITestCase):
             element = self.org.wait_until_element((strategy,
                                                    value % template))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
     @data({'name': generate_string('alpha', 8)},
@@ -777,30 +682,26 @@ class Org(UITestCase):
           {'name': generate_string('alphanumeric', 8)})
     def test_add_environment_1(self, testdata):
         """
-        @feature: Organizations
-        @test: Add environment by using organization name and evironment name
-        @assert: environment is added
+        @test: Add environment by using organization name and evironment name.
+        @feature: Organizations associate environment.
+        @assert: environment is added.
         """
         env = testdata['name']
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_environments()
-        self.environment.create(env, None)
-        search = self.environment.search(env)
-        self.assertIsNotNone(search)
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_envs=[env])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(tab_locators["context.tab_env"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % env))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_env(session, name=env)
+            search = self.environment.search(env)
+            self.assertIsNotNone(search)
+            self.org.update(org_name, new_envs=[env])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_env"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % env))
+            self.assertIsNotNone(element)
 
     @stubbed
     @data("""DATADRIVENGOESHERE
@@ -821,87 +722,69 @@ class Org(UITestCase):
 
         pass
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
         """
-        @feature: Organizations
         @test: Add compute resource using the organization
-        name and computeresource name
-        @assert: computeresource is added
-        @BZ: 1076562
+        name and computeresource name.
+        @feature: Organizations associate compute resource.
+        @assert: computeresource is added.
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_compute_resources()
-        self.compute_resource.create(resource_name, [org_name],
-                                     provider_type="Libvirt",
-                                     url=url)
-        self.navigator.go_to_compute_resources()
-        self.assertIsNotNone(self.compute_resource.search(resource_name))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_resources=[resource_name])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_resources"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % resource_name))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_resource(session, name=resource_name, orgs=[org_name],
+                          provider_type="Libvirt", url=url)
+            self.assertIsNotNone(self.compute_resource.search(resource_name))
+            self.org.update(org_name, new_resources=[resource_name])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_resources"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % resource_name))
+            self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open('1076562')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium):
         """
-        @feature: Organizations
-        @test: Add medium by using the organization name and medium name
-        @assert: medium is added
-        @BZ: 1076562
+        @test: Add medium by using the organization name and medium name.
+        @feature: Organizations associate medium.
+        @assert: medium is added.
         """
-
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_org()
-        self.org.create(org_name)
-        self.navigator.go_to_org()
-        self.assertIsNotNone(self.org.search(org_name))
-        self.navigator.go_to_installation_media()
-        self.medium.create(medium, path, os_family)
-        self.assertIsNotNone(self.medium.search(medium))
-        self.navigator.go_to_org()
-        self.org.update(org_name, new_medias=[medium])
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_media"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % medium))
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            make_media(session, name=medium, path=path,
+                       os_family=os_family)
+            self.assertIsNotNone(self.medium.search(medium))
+            self.org.update(org_name, new_medias=[medium])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_media"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % medium))
+            self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
         """
-        @feature: Organizations
         @test: Add config template by using organization name and
-        configtemplate name
+        configtemplate name.
+        @feature: Organizations associate config template.
         @assert: configtemplate is added
         """
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -918,7 +801,7 @@ class Org(UITestCase):
                 tab_locators["context.tab_template"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % template))
-            self.assertTrue(element)
+            self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
     @data({'name': generate_string('alpha', 8)},
@@ -926,76 +809,67 @@ class Org(UITestCase):
           {'name': generate_string('alphanumeric', 8)})
     def test_remove_environment_1(self, testdata):
         """
-        @feature: Organizations
-        @test: Remove environment by using organization name & evironment name
-        @assert: environment is removed from Organization
+        @test: Remove environment by using organization name & evironment name.
+        @feature: Organizations dis-associate environment.
+        @assert: environment is removed from Organization.
         """
         env = testdata['name']
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_environments()
-        self.environment.create(env, None)
-        search = self.environment.search(env)
-        self.assertIsNotNone(search)
-        self.navigator.go_to_org()
-        self.org.create(org_name, envs=[env], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_env"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % env))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, envs=[env], new_envs=None)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_env"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % env))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_env(session, name=env)
+            search = self.environment.search(env)
+            self.assertIsNotNone(search)
+            make_org(session, org_name=org_name, envs=[env],
+                     edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_env"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % env))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.org.update(org_name, envs=[env])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_env"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % env))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
         """
-        @feature: Organizations
-        @test: Remove subnet by using organization name and subnet name
-        @assert: subnet is added then removed
+        @test: Remove subnet by using organization name and subnet name.
+        @feature: Organizations dis-associate subnet.
+        @assert: subnet is added then removed.
         """
-
-        strategy = common_locators["entity_select"][0]
-        value = common_locators["entity_select"][1]
-        strategy1 = common_locators["entity_deselect"][0]
-        value1 = common_locators["entity_deselect"][1]
+        strategy, value = common_locators["entity_select"]
+        strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_subnets()
-        self.subnet.create(None, subnet_name, subnet_network,
-                           subnet_mask)
-        self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
-        self.navigator.go_to_org()
-        self.org.create(org_name, subnets=[subnet_name], edit=True)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_subnets"]).click()
-        element = self.org.wait_until_element((strategy1,
-                                               value1 % subnet_name))
-        # Item is listed in 'Selected Items' list and not 'All Items' list.
-        self.assertTrue(element)
-        self.navigator.go_to_org()
-        self.org.update(org_name, subnets=[subnet_name], new_subnets=None)
-        self.org.search(org_name).click()
-        self.org.wait_until_element(
-            tab_locators["context.tab_subnets"]).click()
-        element = self.org.wait_until_element((strategy,
-                                               value % subnet_name))
-        # Item is listed in 'All Items' list and not 'Selected Items' list.
-        self.assertTrue(element)
+        with Session(self.browser) as session:
+            make_subnet(session, subnet_name=subnet_name,
+                        subnet_network=subnet_network, subnet_mask=subnet_mask)
+            self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
+            make_org(session, org_name=org_name, subnets=[subnet_name],
+                     edit=True)
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_subnets"]).click()
+            element = session.nav.wait_until_element((strategy1,
+                                                      value1 % subnet_name))
+            # Item is listed in 'Selected Items' list and not 'All Items' list.
+            self.assertIsNotNone(element)
+            self.org.update(org_name, subnets=[subnet_name])
+            self.org.search(org_name).click()
+            session.nav.wait_until_element(
+                tab_locators["context.tab_subnets"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % subnet_name))
+            # Item is listed in 'All Items' list and not 'Selected Items' list.
+            self.assertIsNotNone(element)
