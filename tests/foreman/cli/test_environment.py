@@ -77,3 +77,30 @@ class TestEnvironment(MetaCLITestCase):
         result = Environment().list({'search': name})
         self.assertTrue(len(result.stdout) == 1,
                         "Environment list - stdout contains 'Name'")
+
+    def test_delete(self):
+        """
+        @Feature: Environment - Delete
+        @Test: Test Environment Delete
+        @Assert: Environment Delete is displayed
+        """
+        name = generate_string("alpha", 10)
+        Environment().create({'name': name})
+        result = Environment().info({'name': name})
+
+        self.assertTrue(result.return_code == 0,
+                        "Environment info - retcode")
+
+        self.assertEquals(result.stdout['name'], name,
+                          "Environment info - stdout contains 'Name'")
+        self.assertEqual(name, result.stdout['name'])
+        result = Environment().delete({'name': result.stdout['name']})
+        self.assertEqual(result.return_code, 0, "Deletion failed")
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+
+        result = Environment().info({'name': name})
+        self.assertNotEqual(
+            result.return_code, 0, "Environment should be deleted")
+        self.assertGreater(len(result.stderr), 0,
+                           "There should not be an exception here")
