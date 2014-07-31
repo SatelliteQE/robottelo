@@ -12,16 +12,12 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
     make_lifecycle_environment, make_user)
-from robottelo.api.apicrud import ApiCrud
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
 from robottelo.common.helpers import generate_string
-from robottelo.records.content_view_definition import ContentViewDefinitionApi
-from robottelo.records.role import add_permission_to_user
-from robottelo.records.user import User
 from robottelo.test import CLITestCase
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
@@ -1541,9 +1537,8 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0,
             "There should have been an exception here")
 
-    @data(*positive_create_data())
-    @skip_if_bz_bug_open("1092111")
-    def test_cv_roles_readonly_user(self, test_data):
+    @stubbed
+    def test_cv_roles_readonly_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user with read-only permissions
@@ -1561,36 +1556,9 @@ class TestContentView(CLITestCase):
         Variations above
         @status: Manual
         """
-        readonly_rights_user = User()
-        ApiCrud.record_create(readonly_rights_user)
-        perm = ApiCrud.record_resolve(
-            ContentViewDefinitionApi.permissions.resolve
-            )
-        add_permission_to_user(readonly_rights_user, perm)
 
-        org_obj = make_org()
-
-        result = Org.info({'id': org_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
-        test_data['organization-id'] = org_obj['id']
-
-        # test that user can read
-        con_view = make_content_view(test_data)
-
-        result = ContentView.with_user(
-            readonly_rights_user.login,
-            readonly_rights_user.password
-            ).info({'id': con_view['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(con_view['name'], result.stdout['name'])
-
-    @data(*positive_create_data())
-    @skip_if_bz_bug_open("1092111")
-    def test_cv_roles_readonly_user_negative(self, test_data):
+    @stubbed
+    def test_cv_roles_readonly_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user withOUT read-only permissions
@@ -1608,30 +1576,3 @@ class TestContentView(CLITestCase):
         Variations above
         @status: Manual
         """
-        readonly_rights_user = User()
-        ApiCrud.record_create(readonly_rights_user)
-        readonly_rights_user = User()
-        ApiCrud.record_create(readonly_rights_user)
-        perm = ApiCrud.record_resolve(
-            ContentViewDefinitionApi.permissions.resolve
-            )
-        add_permission_to_user(readonly_rights_user, perm)
-
-        org_obj = make_org()
-
-        result = Org.info({'id': org_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
-        test_data['organization-id'] = org_obj['id']
-
-        # test that user can't create
-        result = ContentView.with_user(
-            readonly_rights_user.login,
-            readonly_rights_user.password
-            ).create(test_data)
-        self.assertGreater(
-            result.return_code, 0, "User shouldn't be able to create object")
-        self.assertGreater(
-            len(result.stderr), 0, "There should have been an exception here")
