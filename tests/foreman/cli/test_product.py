@@ -6,8 +6,8 @@ Test class for Product CLI
 """
 
 from ddt import ddt
-from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
-                                   make_sync_plan)
+from robottelo.cli.factory import (
+    CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
 from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, skip_if_bz_bug_open
@@ -273,7 +273,7 @@ class TestProduct(CLITestCase):
         @Assert: Product is not created
         """
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             make_product(
                 {
                     u'name': test_name['name'],
@@ -297,7 +297,7 @@ class TestProduct(CLITestCase):
         @Assert: Product is not created
         """
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             make_product(
                 {
                     u'name': test_name['name'],
@@ -627,26 +627,30 @@ class TestProduct(CLITestCase):
                     u'organization-id': self.org['id']
                 }
             )
-            s = make_sync_plan({'organization-id': self.org['id']})
-        except Exception as e:
-            self.fail(e)
+            sync_plan = make_sync_plan({'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
-        s_result = Product.set_sync_plan(
+        result = Product.set_sync_plan(
             {
-                'sync-plan-id': s['id'],
+                'sync-plan-id': sync_plan['id'],
                 'id': new_product['id']
             }
         )
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            s_result.stderr, [],
+            len(result.stderr), 0,
             "Running set_sync_plan should cause no errors.")
-        splan_id = s_result.stdout['id']
-        i_result = Product.info({'id': new_product['id']})
+        result = Product.info({
+            'id': new_product['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            i_result.stderr, [],
+            result.stderr, [],
             "Running product info should cause no errors.")
         self.assertEqual(
-            i_result.stdout['sync-plan-id'], splan_id,
+            result.stdout['sync-plan-id'], sync_plan['id'],
             "Info should have consistent sync ids.")
 
     @skip_if_bz_bug_open('1121136')
@@ -671,8 +675,8 @@ class TestProduct(CLITestCase):
                     'id': new_product['id']
                 }
             )
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         self.assertEqual(
             s_result.stderr, [],
