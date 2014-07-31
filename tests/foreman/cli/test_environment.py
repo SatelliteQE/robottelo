@@ -92,7 +92,7 @@ class TestEnvironment(MetaCLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = Environment().delete({'name': result.stdout['name']})
+        result = Environment().delete({'name': name})
         self.assertEqual(result.return_code, 0, "Deletion failed")
         self.assertEqual(
             len(result.stderr), 0, "There should not be an error here")
