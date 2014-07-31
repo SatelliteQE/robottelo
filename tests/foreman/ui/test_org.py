@@ -22,10 +22,9 @@ from robottelo.common.helpers import (generate_strings_list,
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_templates, make_domain,
-                                  make_user, make_hostgroup, make_subnet,
-                                  make_loc, make_resource, make_media,
-                                  make_env)
+from robottelo.ui.factory import (
+    make_org, make_templates, make_domain, make_user, make_hostgroup,
+    make_subnet, make_loc, make_resource, make_media, make_env)
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
