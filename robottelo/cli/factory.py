@@ -103,22 +103,23 @@ def create_object(cli_object, args):
 def make_activation_key(options=None):
     """
     Usage::
-
         hammer activation-key create [OPTIONS]
 
     Options::
-
-        --content-view CONTENT_VIEW_NAME
-        --content-view-id CONTENT_VIEW_ID content view id
+        --content-view CONTENT_VIEW_NAME Content view name to search by
+        --content-view-id CONTENT_VIEW_ID content view numeric identifier
         --description DESCRIPTION     description
-        --environment ENVIRONMENT_NAME
-        --environment-id ENVIRONMENT_ID environment id
+        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME Name to search by
+        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
+        --max-content-hosts MAX_CONTENT_HOSTS maximum number of registered
+                                              content hosts
         --name NAME                   name
-        --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID organization identifier
-        --organization-label ORGANIZATION_LABEL
-        --usage-limit USAGE_LIMIT     maximum number of registered
-                                      content hosts, or 'unlimited'
+        --organization ORGANIZATION_NAME Organization name to search by
+        --organization-id ORGANIZATION_ID
+        --organization-label ORGANIZATION_LABEL Organization label to search by
+        --unlimited-content-hosts UNLIMITED_CONTENT_HOSTS can the activation
+                                                          key have unlimited
+                                                          content hosts
     """
 
     # Organization Name, Label or ID is a required field.
@@ -127,19 +128,20 @@ def make_activation_key(options=None):
             or not options.get('organization', None)
             and not options.get('organization-label', None)
             and not options.get('organization-id', None)):
-        raise Exception("Please provide a valid Organization.")
+        raise CLIFactoryError("Please provide a valid Organization.")
 
     args = {
-        'name': generate_name(),
+        'content-view': None,
+        'content-view-id': None,
         'description': None,
+        'lifecycle-environment': None,
+        'lifecycle-environment-id': None,
+        'max-content-hosts': None,
+        'name': generate_name(),
         'organization': None,
         'organization-id': None,
         'organization-label': None,
-        'content-view': None,
-        'content-view-id': None,
-        'environment': None,
-        'environment-id': None,
-        'usage-limit': 'unlimited',
+        'unlimited-content-hosts': True,
     }
 
     # Override default dictionary with updated one
