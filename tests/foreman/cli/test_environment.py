@@ -81,8 +81,8 @@ class TestEnvironment(MetaCLITestCase):
 
     def test_delete(self):
         """
-        @Feature: Environment - Delete
         @Test: Delete the environment
+        @Feature: Environment - Delete
         @Assert: Environment Delete is displayed
         """
 
