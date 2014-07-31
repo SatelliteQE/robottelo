@@ -46,7 +46,7 @@ logger = logging.getLogger("robottelo")
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
-LIFECYCLE_KEYS = ['environment', 'environment-id']
+LIFECYCLE_KEYS = ['lifecycle-environment', 'lifecycle-environment-id']
 
 
 class CLIFactoryError(Exception):
@@ -70,7 +70,7 @@ def create_object(cli_object, args):
     @param args: A python dictionary containing all valid
     attributes for creating a new object.
 
-    @raise Exception: Raise an exception if object cannot be
+    @raise CLIFactoryError: Raise an exception if object cannot be
     created.
 
     @rtype: dict
@@ -103,22 +103,23 @@ def create_object(cli_object, args):
 def make_activation_key(options=None):
     """
     Usage::
-
         hammer activation-key create [OPTIONS]
 
     Options::
-
-        --content-view CONTENT_VIEW_NAME
-        --content-view-id CONTENT_VIEW_ID content view id
+        --content-view CONTENT_VIEW_NAME Content view name to search by
+        --content-view-id CONTENT_VIEW_ID content view numeric identifier
         --description DESCRIPTION     description
-        --environment ENVIRONMENT_NAME
-        --environment-id ENVIRONMENT_ID environment id
+        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME Name to search by
+        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
+        --max-content-hosts MAX_CONTENT_HOSTS maximum number of registered
+                                              content hosts
         --name NAME                   name
-        --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID organization identifier
-        --organization-label ORGANIZATION_LABEL
-        --usage-limit USAGE_LIMIT     maximum number of registered
-                                      content hosts, or 'unlimited'
+        --organization ORGANIZATION_NAME Organization name to search by
+        --organization-id ORGANIZATION_ID
+        --organization-label ORGANIZATION_LABEL Organization label to search by
+        --unlimited-content-hosts UNLIMITED_CONTENT_HOSTS can the activation
+                                                          key have unlimited
+                                                          content hosts
     """
 
     # Organization Name, Label or ID is a required field.
@@ -127,19 +128,20 @@ def make_activation_key(options=None):
             or not options.get('organization', None)
             and not options.get('organization-label', None)
             and not options.get('organization-id', None)):
-        raise Exception("Please provide a valid Organization.")
+        raise CLIFactoryError("Please provide a valid Organization.")
 
     args = {
-        'name': generate_name(),
+        'content-view': None,
+        'content-view-id': None,
         'description': None,
+        'lifecycle-environment': None,
+        'lifecycle-environment-id': None,
+        'max-content-hosts': None,
+        'name': generate_name(),
         'organization': None,
         'organization-id': None,
         'organization-label': None,
-        'content-view': None,
-        'content-view-id': None,
-        'environment': None,
-        'environment-id': None,
-        'usage-limit': 'unlimited',
+        'unlimited-content-hosts': True,
     }
 
     # Override default dictionary with updated one
@@ -198,7 +200,7 @@ def make_content_view(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
         'name': generate_string("alpha", 10),
@@ -233,11 +235,11 @@ def make_gpg_key(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     # Create a fake gpg key file if none was provided
     if not options.get('key', None):
-        (file_handle, key_filename) = mkstemp(text=True)
+        (_, key_filename) = mkstemp(text=True)
         os.chmod(key_filename, 0700)
         with open(key_filename, "w") as gpg_key_file:
             gpg_key_file.write(generate_name(minimum=20, maximum=50))
@@ -321,7 +323,7 @@ def make_partition_table(options=None):
     """
     if options is None:
         options = {}
-    (file_handle, layout) = mkstemp(text=True)
+    (_, layout) = mkstemp(text=True)
     os.chmod(layout, 0700)
     with open(layout, "w") as ptable:
         ptable.write(options.get('content', 'default ptable content'))
@@ -360,7 +362,7 @@ def make_product(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
         'name': generate_string('alpha', 20),
@@ -432,7 +434,7 @@ def make_repository(options=None):
 
     # Product ID is a required field.
     if not options or not options.get('product-id', None):
-        raise Exception("Please provide a valid Product ID.")
+        raise CLIFactoryError("Please provide a valid Product ID.")
 
     args = {
         'name': generate_string('alpha', 15),
@@ -525,7 +527,7 @@ def make_sync_plan(options=None):
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
         'name': generate_string('alpha', 20),
@@ -573,19 +575,21 @@ def make_content_host(options=None):
 
     # Organization ID is a required field.
     if not options:
-        raise Exception("Please provide required parameters")
+        raise CLIFactoryError('Please provide required parameters')
 
     # Do we have at least one organization field?
     if not any(options.get(key) for key in ORG_KEYS):
-        raise Exception("Please provide a valid organization field.")
+        raise CLIFactoryError('Please provide a valid organization field.')
 
     # Do we have at least one content view field?
     if not any(options.get(key) for key in CONTENT_VIEW_KEYS):
-        raise Exception("Please provide a valid content view field.")
+        raise CLIFactoryError(
+            'Please provide one of %s.'.format(', '.join(CONTENT_VIEW_KEYS)))
 
     # Do we have at least one lifecycle-environment field?
     if not any(options.get(key) for key in LIFECYCLE_KEYS):
-        raise Exception("Please provide a valid lifecycle-environment field.")
+        raise CLIFactoryError(
+            'Please provide one of %s.'.format(', '.join(LIFECYCLE_KEYS)))
 
     args = {
         'name': generate_string('alpha', 20),
@@ -634,7 +638,7 @@ def make_host_collection(options=None):
 
     # Organization ID is required
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORGANIZATION_ID.")
+        raise CLIFactoryError("Please provide a valid ORGANIZATION_ID.")
 
     # Assigning default values for attributes
     args = {
@@ -946,7 +950,7 @@ def make_lifecycle_environment(options=None):
 
     # Organization ID is required
     if not options or not options.get('organization-id', None):
-        raise Exception("Please provide a valid ORG ID.")
+        raise CLIFactoryError("Please provide a valid ORG ID.")
     if not options.get('prior', None):
         options['prior'] = 'Library'
 
