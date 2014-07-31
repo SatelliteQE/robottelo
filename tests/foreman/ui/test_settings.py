@@ -7,11 +7,12 @@ Test class for Setting Parameter values
 
 from ddt import ddt
 from robottelo.common.decorators import data
+from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
                                   edit_param)
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import tab_locators, common_locators
 from robottelo.ui.session import Session
 
 
@@ -105,3 +106,175 @@ class Settings(UITestCase):
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
+
+    @skip_if_bz_bug_open(1125156)
+    @data({u'param_value': " "},
+          {u'param_value': "-1"},
+          {u'param_value': "text"},
+          {u'param_value': "0"})
+    def test_negative_update_general_param_4(self, test_data):
+        """
+        @Test: Updates param "entries_per_page"
+        under General tab with negative values
+        @Feature: Settings - Negative Update Parameters
+        @Assert: Parameter is not updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "entries_per_page"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 (common_locators["notif.error"]))
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertNotEqual(test_data['param_value'], saved_element)
+
+    def test_positive_update_general_param_5(self):
+        """
+        @Test: Updates param "entries_per_page"
+        under General tab with negative values
+        @Feature: Settings - Positive Update Parameters
+        @Assert: Parameter is updated
+        """
+        param_value = generate_string("numeric", 5)
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "entries_per_page"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type, param_value=param_value)
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(param_value, saved_element)
+
+    @data({u'param_value': generate_string("latin1", 10) +
+           "@somemail.com"},
+          {u'param_value': generate_string("utf8", 10) +
+           "@somemail.com"},
+          {u'param_value': generate_string("alpha", 10) + "@somemail.com"},
+          {u'param_value': generate_string("alphanumeric", 10) +
+           "@somemail.com"},
+          {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
+          {u'param_value': generate_string("alphanumeric", 50) + "@somem.com"})
+    def test_positive_update_general_param_6(self, test_data):
+        """
+        @Test: Updates param "email_reply_address" under General tab
+        @Feature: Settings - Update Parameters
+        @Assert: Parameter is updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "email_reply_address"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(test_data['param_value'], saved_element)
+
+    @data({u'param_value': "true"},
+          {u'param_value': "false"})
+    def test_positive_update_general_param_7(self, test_data):
+        """
+        @Test: Updates param "fix_db_cache"
+        under General tab
+        @Feature: Settings - Update Parameters
+        @Assert: Parameter is updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "fix_db_cache"
+        value_type = "dropdown"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(test_data['param_value'], saved_element)
+
+    @data({u'param_value': "true"},
+          {u'param_value': "false"})
+    def test_positive_update_general_param_8(self, test_data):
+        """
+        @Test: Updates param "use_gravatar"
+        under General tab
+        @Feature: Settings - Update Parameters
+        @Assert: Parameter is updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "use_gravatar"
+        value_type = "dropdown"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(test_data['param_value'], saved_element)
+
+    @skip_if_bz_bug_open(1125156)
+    @data({u'param_value': " "},
+          {u'param_value': "-1"},
+          {u'param_value': "text"},
+          {u'param_value': "0"})
+    def test_negative_update_general_param_9(self, test_data):
+        """
+        @Test: Updates param "max_trends"
+        under General tab with negative values
+        @Feature: Settings - Negative Update Parameters
+        @Assert: Parameter is not updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "max_trends"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 (common_locators["notif.error"]))
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertNotEqual(test_data['param_value'], saved_element)
+
+    @skip_if_bz_bug_open(1125156)
+    @data({u'param_value': " "},
+          {u'param_value': "-1"},
+          {u'param_value': "text"},
+          {u'param_value': "0"})
+    def test_negative_update_general_param_10(self, test_data):
+        """
+        @Test: Updates param "idle_timeout"
+        under General tab with negative values
+        @Feature: Settings - Negative Update Parameters
+        @Assert: Parameter is not updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "idle_timeout"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 (common_locators["notif.error"]))
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertNotEqual(test_data['param_value'], saved_element)
