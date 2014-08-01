@@ -10,7 +10,7 @@ from robottelo.ui.locators import locators
 from selenium.webdriver.support.select import Select
 
 
-class UnknownValueType(Exception):
+class OptionError(ValueError):
     """Indicates that value_type is other than 'input' and 'dropdown'"""
 
 
@@ -29,6 +29,16 @@ class Settings(Base):
     def update(self, tab_locator, param_name, value_type, param_value):
         """
         Updates the value of selected parameter under settings
+
+        @param tab_locator: Selenium locator to select appropriate tab.
+        @param param_name: A valid parameter name.
+        @param value_type: Valid value type either 'input' or 'dropdown'
+        @param param_value: Value of selected parameter
+
+        @raise OptionError: Raise an exception when value type is different
+        than 'input' and 'dropdown'.
+        @raise UINoSuchElementError: Raise an exception when UI element is
+        not found
         """
 
         if self.wait_until_element(tab_locator):
@@ -45,7 +55,7 @@ class Settings(Base):
                 elif value_type == "input":
                     self.field_update("settings.input_value", param_value)
                 else:
-                    raise UnknownValueType(
+                    raise OptionError(
                         "Please input appropriate value type")
                 self.wait_for_ajax()
                 self.wait_until_element(locators["settings.save"]).click()

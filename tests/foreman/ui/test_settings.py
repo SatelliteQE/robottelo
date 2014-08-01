@@ -116,7 +116,7 @@ class Settings(UITestCase):
     def test_negative_update_general_param_4(self, test_data):
         """
         @Test: Updates param "entries_per_page"
-        under General tab with negative values
+        under General tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
         """
@@ -145,7 +145,7 @@ class Settings(UITestCase):
         param_value = generate_string("numeric", 5)
         tab_locator = tab_locators["settings.tab_general"]
         param_name = "entries_per_page"
-        value_type = "input"
+        value_type = "input1"
         with Session(self.browser) as session:
             edit_param(session, tab_locator=tab_locator,
                        param_name=param_name,
@@ -236,7 +236,7 @@ class Settings(UITestCase):
     def test_negative_update_general_param_9(self, test_data):
         """
         @Test: Updates param "max_trend"
-        under General tab with negative values
+        under General tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
         """
@@ -285,7 +285,7 @@ class Settings(UITestCase):
     def test_negative_update_general_param_11(self, test_data):
         """
         @Test: Updates param "idle_timeout"
-        under General tab with negative values
+        under General tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
         """
