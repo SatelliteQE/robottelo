@@ -5,12 +5,13 @@
 Test class for Medium  CLI
 """
 
-from ddt import ddt
-from robottelo.cli.factory import make_medium
-from robottelo.cli.medium import Medium
-from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
+from robottelo.common.decorators import data
+from ddt import ddt
+from robottelo.common.helpers import generate_name, generate_string
+from robottelo.cli.factory import make_medium, make_os
+from robottelo.cli.medium import Medium
 
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -92,3 +93,30 @@ class TestMedium(CLITestCase):
                            "There should be an exception here")
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
+
+    def test_addoperatingsystem_medium(self):
+        """
+        @Test: Check if Medium can be associated with operating system
+        @Feature: Medium - Add operating system
+        @Assert: Operating system added
+        """
+
+        name = generate_name(6)
+        try:
+            medium = make_medium({'name': name})
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        try:
+            os = make_os()
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        args = {'id': medium['id'],
+                'operatingsystem-id': os['id']}
+
+        result = Medium().add_operating_system(args)
+        self.assertEqual(result.return_code, 0,
+                         "Could not associate the operating system to media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
