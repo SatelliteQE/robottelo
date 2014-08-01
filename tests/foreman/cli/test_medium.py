@@ -5,12 +5,14 @@
 Test class for Medium  CLI
 """
 
+from robottelo.test import CLITestCase
+from robottelo.common.decorators import data
 from ddt import ddt
+from robottelo.common.helpers import generate_name
+from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_medium
 from robottelo.cli.medium import Medium
-from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string
-from robottelo.test import CLITestCase
+from robottelo.cli.operatingsys import OperatingSys
 
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -92,3 +94,35 @@ class TestMedium(CLITestCase):
                            "There should be an exception here")
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
+
+    def test_addoperatingsystem_medium(self):
+        """
+        @Test: Check if Medium can be associated with operating system
+        @Feature: Medium - Add operating system
+        @Assert: Operating system added
+        """
+
+        name = generate_name(6)
+        try:
+            make_medium({'name': name})
+        except Exception as e:
+            self.fail(e)
+        result = Medium().exists(tuple_search=('name', name))
+        self.assertEqual(result.return_code, 0, "Failed to create object")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+
+        medium = result.stdout
+
+        os_list = OperatingSys.list()
+        self.assertEqual(os_list.return_code, 0, "Failed to list os")
+        self.assertEqual(
+            len(os_list.stderr), 0, "Should not have gotten an error")
+
+        args = {'id': medium['id'],
+                'operatingsystem-id': os_list.stdout[0]['id']}
+
+        result = Medium().add_operating_system(args)
+        self.assertEqual(result.return_code, 0, "Association Failed")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
