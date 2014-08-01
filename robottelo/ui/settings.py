@@ -5,9 +5,13 @@
 Implements Settings UI
 """
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators
 from selenium.webdriver.support.select import Select
+
+
+class UnknownValueType(Exception):
+    """Indicates that value_type is other than 'input' and 'dropdown'"""
 
 
 class Settings(Base):
@@ -41,16 +45,16 @@ class Settings(Base):
                 elif value_type == "input":
                     self.field_update("settings.input_value", param_value)
                 else:
-                    raise Exception(
-                        "Unknown value type")
+                    raise UnknownValueType(
+                        "Please input appropriate value type")
                 self.wait_for_ajax()
                 self.wait_until_element(locators["settings.save"]).click()
                 self.wait_for_ajax()
             else:
-                raise Exception(
+                raise UINoSuchElementError(
                     "Couldn't find edit button to update selected param")
         else:
-            raise Exception(
+            raise UINoSuchElementError(
                 "Couldn't find the tab with name: '%s'" % tab_locator)
 
     def get_saved_value(self, tab_locator, param_name):
@@ -66,5 +70,5 @@ class Settings(Base):
             if element:
                 return element.text
             else:
-                raise Exception(
+                raise UINoSuchElementError(
                     "Couldn't find element to fetch the param's value")
