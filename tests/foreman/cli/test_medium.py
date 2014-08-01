@@ -12,7 +12,6 @@ from ddt import ddt
 from robottelo.common.helpers import generate_name, generate_string
 from robottelo.cli.factory import make_medium, make_os
 from robottelo.cli.medium import Medium
-from robottelo.cli.operatingsys import OperatingSys
 
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
