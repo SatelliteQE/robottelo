@@ -450,7 +450,25 @@ tab_locators = {
 
     # Subnet
     "subnet.tab_domain": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'domains')]")}
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'domains')]"),
+
+    # Settings
+    "settings.tab_general": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'General')]"),
+    "settings.tab_auth": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Auth')]"),
+    "settings.tab_bootdisk": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Bootdisk')]"),
+    "settings.tab_puppet": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Puppet')]"),
+    "settings.tab_discovered": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Discovered')]"),
+    "settings.tab_foremantasks": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href, 'ForemanTasks')]"),
+    "settings.tab_provisioning": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]")}
 
 common_locators = {
 
@@ -1482,4 +1500,22 @@ locators = {
         By.XPATH, ("//form[contains(@alch-edit-text,'redhat_repository_url')]"
                    "//div/input")),
     "subs.manifest_exists": (
-        By.XPATH, "//a[contains(@href,'distributors')]")}
+        By.XPATH, "//a[contains(@href,'distributors')]"),
+
+    # Settings
+    "settings.param": (
+        By.XPATH, "//tr/td[contains(., '%s')]"),
+    "settings.edit_param": (
+        By.XPATH,
+        ("//tr/td[contains(., '%s')]"
+         "/following::td[@class='setting_value']/span")),
+    "settings.select_value": (
+        By.XPATH,
+        ("//select[@name='setting[value]']")),
+    "settings.input_value": (
+        By.XPATH,
+        ("//input[@name='setting[value]']")),
+    "settings.save": (
+        By.XPATH,
+        ("//td[@class='setting_value']"
+         "/span/form/button[@type='submit']"))}

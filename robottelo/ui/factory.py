@@ -14,6 +14,7 @@ from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
 from robottelo.ui.products import Products
+from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
@@ -354,3 +355,19 @@ def make_partitiontable(session, org=None, loc=None, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
     PartitionTable(session.browser).create(**create_args)
+
+
+def edit_param(session, org=None, loc=None, **kwargs):
+    """
+    Updates selected parameter value under settings
+    """
+    update_args = {
+        'tab_locator': None,
+        'param_name': None,
+        'value_type': None,
+        'param_value': None
+    }
+    page = session.nav.go_to_settings
+    core_factory(update_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Settings(session.browser).update(**update_args)
