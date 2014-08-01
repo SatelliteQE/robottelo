@@ -8,7 +8,7 @@ Test class for Environment UI
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_string
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_env
 from robottelo.ui.locators import common_locators
@@ -18,7 +18,8 @@ from robottelo.ui.session import Session
 @ddt
 class Environment(UITestCase):
     """
-    Implements environment tests in UI
+    Implements environment tests in UI.
+    Please note that, Environment will accept only alphanumeric chars as name.
     """
     org_name = None
     loc_name = None
@@ -38,15 +39,15 @@ class Environment(UITestCase):
     @data({'name': generate_string('alpha', 8)},
           {'name': generate_string('numeric', 8)},
           {'name': generate_string('alphanumeric', 8)})
-    def test_create_env_positive_1(self, name):
+    def test_create_env_positive_1(self, testdata):
         """
         @Test: Create new environment
         @Feature: Environment - Positive Create
         @Assert: Environment is created
         """
-        org_name = generate_string("alpha", 8)
+        name = testdata['name']
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
+            make_env(session, name=name)
             search = self.environment.search(name)
             self.assertIsNotNone(search)
 
@@ -61,23 +62,24 @@ class Environment(UITestCase):
         @Assert: Environment is created
         """
         name = testdata['name']
-        org_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
+            make_env(session, name=name)
             search = self.environment.search(name)
             self.assertIsNotNone(search)
 
     @attr('ui', 'environment', 'implemented')
-    @data(*generate_strings_list(len1=256))
-    def test_create_env_negative_1(self, name):
+    @data({'name': generate_string('alpha', 256)},
+          {'name': generate_string('numeric', 256)},
+          {'name': generate_string('alphanumeric', 256)})
+    def test_create_env_negative_1(self, testdata):
         """
         @Test: Create new environment with 256 chars
         @Feature: Environment - Negative Create
         @Assert: Environment is not created
         """
-        org_name = generate_string("alpha", 8)
+        name = testdata['name']
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
+            make_env(session, name=name)
             search = self.environment.search(name)
             self.assertIsNone(search)
 
@@ -88,9 +90,8 @@ class Environment(UITestCase):
         @Assert: Environment is not created
         """
         name = ""
-        org_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
+            make_env(session, name=name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -102,42 +103,46 @@ class Environment(UITestCase):
         @Assert: Environment is not created
         """
         name = "   "
-        org_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
+            make_env(session, name=name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
     @attr('ui', 'environment', 'implemented')
-    @data(*generate_strings_list(len1=8))
-    def test_update_env(self, new_name):
+    @data({'name': generate_string('alpha', 8),
+           'new_name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8),
+           'new_name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8),
+           'new_name': generate_string('alphanumeric', 8)})
+    def test_update_env(self, testdata):
         """
         @Test: Update an environment and associated OS
         @Feature: Environment - Positive Update
         @Assert: Environment is updated
         """
-        name = generate_string("alpha", 6)
-        org_name = generate_string("alpha", 8)
-        new_org = generate_string("alpha", 8)
+        name = testdata['name']
+        new_name = testdata['new_name']
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
-            self.environment.update(name, [org_name], [new_org],
-                                    new_name=new_name)
+            make_env(session, name=name)
+            self.environment.update(name, new_name=new_name)
             search = self.environment.search(new_name)
             self.assertIsNotNone(search)
 
     @attr('ui', 'environment', 'implemented')
-    @data(*generate_strings_list(len1=8))
-    def test_remove_env(self, name):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)})
+    def test_remove_env(self, testdata):
         """
         @Test: Delete an environment
         @Feature: Environment - Positive Delete
         @Assert: Environment is deleted
         """
-        org_name = generate_string("alpha", 8)
+        name = testdata['name']
         with Session(self.browser) as session:
-            make_env(session, name=name, orgs=[org_name])
+            make_env(session, name=name)
             self.environment.delete(name, really=True)
             notif = session.nav.wait_until_element(
                 common_locators["notif.success"])

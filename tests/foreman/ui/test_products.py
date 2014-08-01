@@ -75,7 +75,7 @@ class Products(UITestCase):
         """
 
         locator = common_locators["common_haserror"]
-        description = "test_negative_create_0"
+        description = "test_negative_create_1"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
@@ -91,7 +91,7 @@ class Products(UITestCase):
 
         locator = common_locators["common_invalid"]
         prd_name = ""
-        description = "test_negative_create_1"
+        description = "test_negative_create_2"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
@@ -107,7 +107,7 @@ class Products(UITestCase):
 
         locator = common_locators["common_invalid"]
         prd_name = "   "
-        description = "test_negative_create_2"
+        description = "test_negative_create_3"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
@@ -124,7 +124,7 @@ class Products(UITestCase):
         """
 
         locator = common_locators["common_haserror"]
-        description = "test_negative_create_3"
+        description = "test_negative_create_4"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
@@ -160,7 +160,7 @@ class Products(UITestCase):
         @Assert: Product is not updated
         """
 
-        locator = common_locators["common_haserror"]
+        locator = common_locators["alert.error"]
         new_prd_name = generate_string("alpha", 256)
         description = "test_negative_update_0"
         with Session(self.browser) as session:

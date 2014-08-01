@@ -525,7 +525,9 @@ common_locators = {
     "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
     "submit": (By.NAME, "commit"),
-    "filter": (By.XPATH, "//div[@id='ms-%s_ids']//input[@class='ms-filter']"),
+    "filter": (By.XPATH,
+               ("//div[@id='ms-%s_ids']"
+                "//input[contains(@class,'ms-filter')]")),
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
     "add_parameter": (
         By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
@@ -908,7 +910,7 @@ locators = {
         By.XPATH, "//button[@ui-sref='products.index']"),
     "prd.remove": (
         By.XPATH,
-        "//button[contains(@ng-disabled,'product.permissions.deletable')]"),
+        "//button[contains(@ng-hide,'product.readonly')]"),
     "prd.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'product')]")),
@@ -949,7 +951,8 @@ locators = {
     "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
     "repo.remove": (
         By.XPATH,
-        "//button[contains(@ng-disabled,'repository.permissions.deletable')]"),
+        ("//script[contains(@alch-modal,'removeRepository(repository)')]"
+         "/../button[contains(@ng-hide, 'delete_products')]")),
     "repo.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'repository')]")),

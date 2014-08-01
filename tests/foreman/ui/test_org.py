@@ -355,15 +355,21 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    #  Note: HTML username is invalid as per the UI msg.
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
-    def test_remove_user_3(self, user_name):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)},
+          {'name': generate_string('utf8', 8)},
+          {'name': generate_string('latin1', 8)})
+    def test_remove_user_3(self, testdata):
         """
         @test: Create admin users then add user and remove it
         by using the organization name.
         @feature: Organizations dis-associate user.
         @assert: The user is added then removed from the organization
         """
+        user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -494,14 +500,19 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
-    def test_add_user_2(self, user):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)},
+          {'name': generate_string('utf8', 8)},
+          {'name': generate_string('latin1', 8)})
+    def test_add_user_2(self, testdata):
         """
         @test: Create different types of users then add user
         by using the organization name.
         @feature: Organizations associate user.
         @assert: User is added to organization.
         """
+        user = testdata['name']
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)

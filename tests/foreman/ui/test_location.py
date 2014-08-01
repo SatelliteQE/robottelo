@@ -232,15 +232,19 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
-    def test_add_user_1(self, user):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)},
+          {'name': generate_string('utf8', 8)},
+          {'name': generate_string('latin1', 8)})
+    def test_add_user_1(self, testdata):
         """
         @test: Create user then add user
         by using the location name
         @feature: Locations
         @assert: User is added to location
         """
-
+        user = testdata['name']
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)
@@ -521,15 +525,19 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
-    def test_remove_user_1(self, user_name):
+    @data({'name': generate_string('alpha', 8)},
+          {'name': generate_string('numeric', 8)},
+          {'name': generate_string('alphanumeric', 8)},
+          {'name': generate_string('utf8', 8)},
+          {'name': generate_string('latin1', 8)})
+    def test_remove_user_1(self, testdata):
         """
         @test: Create admin users then add user and remove it
         by using the location name
         @feature: Locations
         @assert: The user is added then removed from the location
         """
-
+        user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -669,7 +677,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: configtemplate is added then removed
         """
-
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
