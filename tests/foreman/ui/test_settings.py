@@ -56,6 +56,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @skip_if_bz_bug_open(1125181)
     @data({u'param_value': generate_string("latin1", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("utf8", 10) +
@@ -153,6 +154,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(param_value, saved_element)
 
+    @skip_if_bz_bug_open(1125181)
     @data({u'param_value': generate_string("latin1", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("utf8", 10) +
@@ -349,6 +351,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @skip_if_bz_bug_open(1125156)
     @data({u'param_value': "http://\\" + generate_string("alpha", 10) +
            ".dom.com"},
           {u'param_value': "http://" + generate_string("utf8", 10) +
