@@ -9,7 +9,7 @@ from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
 from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
-                                      valid_names_list)
+                                      generate_strings_list)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc, make_templates,
                                   make_os)
@@ -36,7 +36,7 @@ class Template(UITestCase):
                 make_org(session, org_name=Template.org_name)
                 make_loc(session, name=Template.loc_name)
 
-    @data(*valid_names_list())
+    @data(*generate_strings_list())
     def test_positive_create_template(self, name):
         """
         @Test: Create new template
@@ -52,7 +52,7 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(name))
 
-    @skip_if_bz_bug_open(1121521)
+    @skip_if_bz_bug_open("1121521")
     def test_negative_create_template_1(self):
         """
         @Test: Template - Create a new template with 256 characters in name

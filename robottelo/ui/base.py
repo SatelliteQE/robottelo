@@ -105,25 +105,29 @@ class Base(object):
     def select_deselect_entity(self, filter_key, loc, entity_list):
         """
         Function to select and deselect entity like OS, Partition Table, Arch
-        from selection list or by selecting relevant checkbox
+        from selection list or by selecting relevant checkbox.
         """
         for entity in entity_list:
-            strategy = common_locators["filter"][0]
-            value = common_locators["filter"][1]
+            strategy, value = common_locators["filter"]
             txt_field = self.find_element((strategy, value % filter_key))
-            if txt_field:
-                txt_field.clear()
-                txt_field.send_keys(entity)
-            strategy = loc[0]
-            value = loc[1]
-            strategy1 = common_locators["entity_checkbox"][0]
-            value1 = common_locators["entity_checkbox"][1]
-            checkbox_element = self.find_element((strategy1, value1 % entity))
-            select_element = self.find_element((strategy, value % entity))
+            if txt_field is None:
+                raise UINoSuchElementError(
+                    "The filter text field is not found.")
+            txt_field.clear()
+            txt_field.send_keys(entity)
+            strategy, value = loc
+            strategy1, value1 = common_locators["entity_checkbox"]
+            checkbox_element = self.wait_until_element((strategy1,
+                                                        value1 % entity))
+            select_element = self.wait_until_element((strategy,
+                                                      value % entity))
             if checkbox_element:
                 checkbox_element.click()
             elif select_element:
                 select_element.click()
+            else:
+                raise UINoSuchElementError(
+                    "Neither checkbox nor select element was found.")
 
     def configure_entity(self, entity_list, filter_key, tab_locator=None,
                          new_entity_list=None, entity_select=True):

@@ -42,12 +42,11 @@ class ComputeResource(UITestCase):
         @Feature: Compute Resource - Create
         @Assert: A libvirt Compute Resource is created
         """
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
@@ -62,12 +61,11 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is created
         @BZ: 1120271
         """
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
@@ -82,12 +80,11 @@ class ComputeResource(UITestCase):
         description.
         """
         name = generate_string("alpha", 8)
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           description=description,
                           provider_type=provider_type, url=url)
             search = self.compute_resource.search(name)
@@ -103,12 +100,11 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created
         @BZ: 1120271
         """
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
@@ -125,12 +121,11 @@ class ComputeResource(UITestCase):
         @BZ: 1120271
         """
         name = generate_string("alpha", 8)
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           description=description,
                           provider_type=provider_type, url=url)
             error = session.nav.wait_until_element(
@@ -144,12 +139,11 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created
         """
         name = "   "
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
@@ -162,12 +156,11 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created
         """
         name = ""
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
@@ -220,16 +213,15 @@ class ComputeResource(UITestCase):
         @Feature: Compute Resource - Delete
         @Assert: The Compute Resource is deleted
         """
-        org_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
             self.compute_resource.delete(name, really=True)
             notif = session.nav.wait_until_element(
                 common_locators["notif.success"])
-            self.assertTrue(notif)
+            self.assertIsNotNone(notif)

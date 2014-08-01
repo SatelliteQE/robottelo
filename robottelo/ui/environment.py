@@ -30,7 +30,7 @@ class Environment(Base):
         self.find_element(common_locators["submit"]).click()
         self.wait_for_ajax()
 
-    def update(self, old_name, orgs, new_orgs, new_name=None,
+    def update(self, old_name, orgs=None, new_orgs=None, new_name=None,
                org_select=False):
         """
         Updates an environment.
