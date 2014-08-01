@@ -381,3 +381,25 @@ class Settings(UITestCase):
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
+
+    @data({u'param_value': "true"},
+          {u'param_value': "false"})
+    def test_positive_update_foremantasks_param_15(self, test_data):
+        """
+        @Test: Updates param "dynflow_enable_console"
+        under ForemanTasks tab
+        @Feature: Settings - Update Parameters
+        @Assert: Parameter is updated
+        """
+
+        tab_locator = tab_locators["settings.tab_foremantasks"]
+        param_name = "dynflow_enable_console"
+        value_type = "dropdown"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(test_data['param_value'], saved_element)
