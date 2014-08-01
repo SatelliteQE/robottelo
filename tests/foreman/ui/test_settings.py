@@ -61,6 +61,7 @@ class Settings(UITestCase):
           {u'param_value': generate_string("utf8", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("alpha", 10) + "@somemail.com"},
+          {u'param_value': generate_string("html", 10) + "@somemail.com"},
           {u'param_value': generate_string("alphanumeric", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
@@ -157,6 +158,7 @@ class Settings(UITestCase):
           {u'param_value': generate_string("utf8", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("alpha", 10) + "@somemail.com"},
+          {u'param_value': generate_string("html", 10) + "@somemail.com"},
           {u'param_value': generate_string("alphanumeric", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
@@ -251,12 +253,34 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
+    @data({'param_value': generate_string("numeric", 1)},
+          {'param_value': generate_string("numeric", 5)})
+    def test_positive_update_general_param_10(self, test_data):
+        """
+        @Test: Updates param "max_trend"
+        under General tab
+        @Feature: Settings - Positive Update Parameters
+        @Assert: Parameter is updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "max_trend"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(test_data['param_value'], saved_element)
+
     @skip_if_bz_bug_open(1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"},
           {u'param_value': "0"})
-    def test_negative_update_general_param_10(self, test_data):
+    def test_negative_update_general_param_11(self, test_data):
         """
         @Test: Updates param "idle_timeout"
         under General tab with negative values
@@ -278,13 +302,35 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
+    @data({'param_value': generate_string("numeric", 1)},
+          {'param_value': generate_string("numeric", 5)})
+    def test_positive_update_general_param_12(self, test_data):
+        """
+        @Test: Updates param "idle_timeout"
+        under General tab
+        @Feature: Settings - Positive Update Parameters
+        @Assert: Parameter is updated
+        """
+
+        tab_locator = tab_locators["settings.tab_general"]
+        param_name = "idle_timeout"
+        value_type = "input"
+        with Session(self.browser) as session:
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=test_data['param_value'])
+            saved_element = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
+            self.assertEqual(test_data['param_value'], saved_element)
+
     @data({u'param_value': "http://" + generate_string("alpha", 10) +
            ".dom.com"},
           {u'param_value': "https://" + generate_string("alphanumeric", 10) +
            ".dom.com"},
           {u'param_value': "http://" + generate_string("numeric", 10) +
            ".dom.com"})
-    def test_positive_update_general_param_11(self, test_data):
+    def test_positive_update_general_param_13(self, test_data):
         """
         @Test: Updates param "foreman_url" under General tab
         @Feature: Settings - Update Parameters
@@ -312,7 +358,7 @@ class Settings(UITestCase):
           {u'param_value': "http://" + generate_string("html", 10) +
            ".dom.com"},
           {u'param_value': " "})
-    def test_negative_update_general_param_12(self, test_data):
+    def test_negative_update_general_param_14(self, test_data):
         """
         @Test: Updates param "foreman_url" under General tab
         @Feature: Settings - Negative update Parameters
