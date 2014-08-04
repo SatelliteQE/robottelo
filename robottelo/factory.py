@@ -160,13 +160,16 @@ class Factory(object):
         # to the caller.
         return values
 
-    def build(self, fields=None):
+    def build(self, fields=None, auth=None):
         """Create dependent entities and return attributes for the current
         entity.
 
         Create all dependent entities, then return a dict of information that
         can be used to create an entity at the URL returned by
         :meth:`Factory._factory_path`.
+
+        For information about this method's parameters, return values and so
+        on, see :meth:`Factory.create`.
 
         """
         # Use the values provided by the user.
@@ -190,9 +193,11 @@ class Factory(object):
             if name in values.keys():
                 continue
             if isinstance(value, Factory):
-                values[name] = value.create()['id']
+                values[name] = value.create(auth=auth)['id']
             elif isinstance(value, list):
-                values[name] = [factory.create()['id'] for factory in value]
+                values[name] = [
+                    factory.create(auth=auth)['id'] for factory in value
+                ]
             else:
                 values[name] = value
 
@@ -200,7 +205,7 @@ class Factory(object):
         # to the caller.
         return values
 
-    def create(self, fields=None):
+    def create(self, fields=None, auth=None):
         """Create a new entity, plus all of its dependent entities.
 
         Create an entity at the path returned by :meth:`Factory._factory_path`.
@@ -208,23 +213,25 @@ class Factory(object):
         a dict of information about the newly created entity.
 
         :param dict fields: A dict mapping field names to field values.
+        :param tuple auth: A ``(username, password)`` pair to use when
+            communicating with the API. If ``None``, the credentials returned
+            by :func:`robottelo.common.helpers.get_server_credentials` are
+            used.
         :return: Information about the newly created entity.
         :rtype: dict
         :raises robottelo.factory.FactoryError: If the server returns an error
             when attempting to create an entity.
 
         """
+        if auth is None:
+            auth = get_server_credentials()
+
         # Create dependent entities and generate values for remaining fields.
-        values = self.build(fields)
+        values = self.build(fields, auth)
 
         # Create the current entity.
         path = urljoin(get_server_url(), self._factory_path())
-        response = client.post(
-            path,
-            values,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
+        response = client.post(path, values, auth=auth, verify=False).json()
         if 'error' in response.keys() or 'errors' in response.keys():
             if 'error' in response.keys():
                 message = response['error']

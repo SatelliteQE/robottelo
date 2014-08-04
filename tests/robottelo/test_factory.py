@@ -1,6 +1,7 @@
 """Tests for :mod:`robottelo.factory`."""
 # (Too many public methods) pylint: disable=R0904
 from fauxfactory import FauxFactory
+from mock import Mock
 from robottelo.api import client
 from robottelo.common import conf
 from robottelo import factory, orm
@@ -12,24 +13,20 @@ SAMPLE_FACTORY_COST = 150
 
 
 class SampleFactory(factory.Factory):
-    """An example factory which overrides all four overridable methods."""
+    """An example factory whose abstract methods have been implemented."""
     def _factory_path(self):
         """Return a path for creating a "Sample" entity."""
         return 'api/v2/samples'
 
     def _factory_data(self):
-        """Return a "Sample" entity's field names and types."""
+        """Return data for creating a "Sample" entity."""
         return {'name': SAMPLE_FACTORY_NAME, 'cost': SAMPLE_FACTORY_COST}
 
 
 class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
     """A mock ``requests.response`` object."""
     def json(self):  # (no-self-use) pylint:disable=R0201
-        """A stub method that returns the same data every time.
-
-        :return: ``{'sample': SampleFactory()._factory_data()}``
-
-        """
+        """A wrapper around method ``SampleFactory._factory_data``."""
         # (protected-access) pylint:disable=W0212
         return SampleFactory()._factory_data()
 
@@ -37,19 +34,17 @@ class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
 class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
     """A mock ``requests.response`` object."""
     def json(self):  # (no-self-use) pylint:disable=R0201
-        """A stub method that returns the same data every time.
+        """Return a simple error message.
 
-        :return: ``{'error': {'error name': 'error message'}}``
+        The error message returned by this method is similar to what might be
+        returned by a real Foreman server.
 
         """
         return {'error': {'error name': 'error message'}}
 
 
 class SampleEntityFactory(orm.Entity, factory.EntityFactoryMixin):
-    """
-    A class which inherits from :class:`robottelo.factory.Factory` and
-    :class:`robottelo.factory.EntityFactoryMixin`.
-    """
+    """A class which is both an entity and a factory."""
     name = orm.StringField(required=True)
     label = orm.StringField()
 
@@ -218,28 +213,40 @@ class SampleFactoryTestCase(TestCase):
         )
 
     def test_create(self):
-        """Call ``create`` with no arguments.
+        """Call ``create`` with no arguments. Receive a normal response.
 
-        Assert that the values provided by ``MockResponse.json`` are unpacked
-        and returned.
+        Assert that ``create`` returns the values contained in a (mock) server
+        response.
 
         """
-        client.post = lambda url, data=None, **kwargs: MockResponse()
-        self.assertEqual(
-            SampleFactory()._factory_data(),  # See: MockResponse.json
-            SampleFactory().create()
-        )
+        client.post = Mock(return_value=MockResponse())
+        self.assertEqual(MockResponse().json(), SampleFactory().create())
 
     def test_create_error(self):
-        """Call ``create`` with no arguments.
+        """Call ``create`` with no arguments. Receive an error response.
 
-        Assert that, if an error is countered while creating an object, a
-        :class:`robottelo.factory.FactoryError` is raised.
+        Assert that ``create`` raises a :class:`robottelo.factory.FactoryError`
+        if a (mock) server response contains an error message.
 
         """
-        client.post = lambda url, data=None, **kwargs: MockErrorResponse()
+        client.post = Mock(return_value=MockErrorResponse())
         with self.assertRaises(factory.FactoryError):
             SampleFactory().create()
+
+    def test_create_auth(self):
+        """Call ``create`` and specify the ``auth`` argument.
+
+        Assert that the values provided for the ``auth`` argument are passed to
+        :func:`robottelo.api.client.post`.
+
+        """
+        client.post = Mock(return_value=MockResponse())
+        auth = (
+            FauxFactory.generate_string('utf8', 10),  # username
+            FauxFactory.generate_string('utf8', 10),  # password
+        )
+        SampleFactory().create(auth=auth)
+        self.assertEqual(auth, client.post.call_args[1]['auth'])
 
 
 class SampleEntityFactoryTestCase(TestCase):
