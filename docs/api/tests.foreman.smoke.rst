@@ -5,16 +5,16 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.installer.test_api_smoke`
----------------------------------------------
+:mod:`tests.foreman.smoke.test_api_smoke`
+-----------------------------------------
 
-.. automodule:: tests.foreman.installer.test_api_smoke
+.. automodule:: tests.foreman.smoke.test_api_smoke
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.installer.test_cli_smoke`
----------------------------------------------
+:mod:`tests.foreman.smoke.test_cli_smoke`
+-----------------------------------------
 
-.. automodule:: tests.foreman.installer.test_cli_smoke
+.. automodule:: tests.foreman.smoke.test_cli_smoke
     :members:
     :undoc-members:

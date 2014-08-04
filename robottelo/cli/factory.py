@@ -103,9 +103,11 @@ def create_object(cli_object, args):
 def make_activation_key(options=None):
     """
     Usage::
+
         hammer activation-key create [OPTIONS]
 
     Options::
+
         --content-view CONTENT_VIEW_NAME Content view name to search by
         --content-view-id CONTENT_VIEW_ID content view numeric identifier
         --description DESCRIPTION     description
