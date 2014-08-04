@@ -118,7 +118,7 @@ class ActivationKeysTestCase(TestCase):
     def test_negative_create_2(self, max_content_hosts):
         """
         @Test Create activationkey with limited content hosts but
-          with invalid limit values
+        with invalid limit values
         @Assert: Activationkey is not created
         @Feature: ActivationKey
         """
@@ -138,9 +138,9 @@ class ActivationKeysTestCase(TestCase):
     def test_negative_create_3(self, max_content_hosts):
         """
         @Test Create activationkey with unlimited content hosts and set
-          max content hosts of varied values
+        max content hosts of varied values
         @Assert:
-          1. Activationkey is not created
+        1. Activationkey is not created
         @Feature: ActivationKey
         """
         with self.assertRaises(FactoryError):
@@ -231,9 +231,9 @@ class ActivationKeysTestCase(TestCase):
         """
         @Test Create activationkey then update its limit to invalid value
         @Assert:
-          1. ActivationKey is created
-          2. Update fails
-          3. Record is not changed
+        1. ActivationKey is created
+        2. Update fails
+        3. Record is not changed
         @Feature: ActivationKey
         """
         try:

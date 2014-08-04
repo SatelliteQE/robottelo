@@ -90,23 +90,25 @@ class TestSmoke(TestCase):
     def test_smoke(self):
         """
         @Test: Check that basic content can be created
-            * Create a new user with admin permissions
-            * Using the new user from above:
-              * Create a new organization
-              * Create two new lifecycle environments
-              * Create a custom product
-              * Create a custom YUM repository
-              * Create a custom PUPPET repository
-              * Synchronize both custom repositories
-              * Create a new content view
-              * Associate both repositories to new content view
-              * Publish content view
-              * Promote content view to both lifecycles
-              * Create a new libvirt compute resource
-              * Create a new subnet
-              * Create a new domain
-              * Create a new capsule
-              * Create a new hostgroup and associate previous entities to it
+        * Create a new user with admin permissions
+        * Using the new user from above:
+
+            * Create a new organization
+            * Create two new lifecycle environments
+            * Create a custom product
+            * Create a custom YUM repository
+            * Create a custom PUPPET repository
+            * Synchronize both custom repositories
+            * Create a new content view
+            * Associate both repositories to new content view
+            * Publish content view
+            * Promote content view to both lifecycles
+            * Create a new libvirt compute resource
+            * Create a new subnet
+            * Create a new domain
+            * Create a new capsule
+            * Create a new hostgroup and associate previous entities to it
+
         @Feature: Smoke Test
         @Assert: All entities are created and associated.
         """
