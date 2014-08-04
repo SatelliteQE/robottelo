@@ -41,9 +41,9 @@ class TestTemplate(CLITestCase):
 
     def test_add_operating_system_1(self):
         """
-        @Test: Check if Template can be created
-        @Feature: Template - Create
-        @Assert: Template is created
+        @Test: Check if Template can be assigned operating system
+        @Feature: Template - Add Operating System
+        @Assert: Template has an operating system
         """
 
         content = generate_string("alpha", 10)
@@ -76,6 +76,61 @@ class TestTemplate(CLITestCase):
             new_os['name'], new_os['major'], new_os['minor']
         )
         self.assertIn(os_string, result.stdout['operating-systems'])
+
+    def test_remove_operating_system_1(self):
+        """
+        @Test: Check if OS can be removed Template
+        @Feature: Template - Add Operating System
+        @Assert: Template no longer has an operating system
+        """
+
+        content = generate_string("alpha", 10)
+        name = generate_string("alpha", 10)
+
+        try:
+            new_obj = make_template(
+                {
+                    'name': name,
+                    'content': content,
+                }
+            )
+            new_os = make_os()
+        except Exception as e:
+            self.fail(e.message)
+
+        result = Template.add_operatingsystem(
+            {
+                "id": new_obj["id"],
+                "operatingsystem-id": new_os["id"]
+            }
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = Template.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        os_string = "%s %s.%s" % (
+            new_os['name'], new_os['major'], new_os['minor']
+        )
+        self.assertIn(os_string, result.stdout['operating-systems'])
+
+        result = Template.remove_operatingsystem(
+            {
+                "id": new_obj["id"],
+                "operatingsystem-id": new_os["id"]
+            }
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = Template.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        os_string = "%s %s.%s" % (
+            new_os['name'], new_os['major'], new_os['minor']
+        )
+        self.assertNotIn(os_string, result.stdout['operating-systems'])
 
     def test_dump_template_1(self):
         """
