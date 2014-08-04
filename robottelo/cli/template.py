@@ -47,3 +47,27 @@ class Template(Base):
             kinds = result.stdout
 
         return kinds
+
+    @classmethod
+    def add_operatingsystem(cls, options=None):
+        """
+        Adds operating system, requires "id" and "operatingsystem-id".
+        """
+
+        cls.command_sub = "add-operatingsystem"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result
+
+    @classmethod
+    def remove_operatingsystem(cls, options=None):
+        """
+        Remove operating system, requires "id" and "operatingsystem-id".
+        """
+
+        cls.command_sub = "remove-operatingsystem"
+
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+
+        return result
