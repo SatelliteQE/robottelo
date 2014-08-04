@@ -31,6 +31,7 @@ from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
+from robottelo.ui.puppetclasses import PuppetClasses
 from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
@@ -158,6 +159,7 @@ class UITestCase(TestCase):
         self.operatingsys = OperatingSys(self.browser)
         self.org = Org(self.browser)
         self.partitiontable = PartitionTable(self.browser)
+        self.puppetclasses = PuppetClasses(self.browser)
         self.products = Products(self.browser)
         self.repository = Repos(self.browser)
         self.role = Role(self.browser)
