@@ -5,7 +5,7 @@
 Test class for Template CLI
 """
 
-from robottelo.cli.factory import make_template, make_os
+from robottelo.cli.factory import CLIFactoryError, make_template, make_os
 from robottelo.cli.template import Template
 from robottelo.common.decorators import skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
@@ -27,12 +27,15 @@ class TestTemplate(CLITestCase):
         content = generate_string("alpha", 10)
         name = generate_string("alpha", 10)
 
-        new_obj = make_template(
-            {
-                'name': name,
-                'content': content,
-            }
-        )
+        try:
+            new_obj = make_template(
+                {
+                    'name': name,
+                    'content': content,
+                }
+            )
+        except CLIFactoryError as e:
+            self.fail(e)
 
         result = Template.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -49,12 +52,15 @@ class TestTemplate(CLITestCase):
         content = generate_string("alpha", 10)
         name = generate_string("alpha", 10)
 
-        new_obj = make_template(
-            {
-                'name': name,
-                'content': content,
-            }
-        )
+        try:
+            new_obj = make_template(
+                {
+                    'name': name,
+                    'content': content,
+                }
+            )
+        except CLIFactoryError as e:
+            self.fail(e)
 
         result = Template.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -86,8 +92,8 @@ class TestTemplate(CLITestCase):
                 }
             )
             new_os = make_os()
-        except Exception as e:
-            self.fail(e.message)
+        except CLIFactoryError as e:
+            self.fail(e)
 
         result = Template.add_operatingsystem(
             {
@@ -124,8 +130,8 @@ class TestTemplate(CLITestCase):
                 }
             )
             new_os = make_os()
-        except Exception as e:
-            self.fail(e.message)
+        except CLIFactoryError as e:
+            self.fail(e)
 
         result = Template.add_operatingsystem(
             {
