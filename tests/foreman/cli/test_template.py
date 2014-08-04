@@ -39,6 +39,35 @@ class TestTemplate(CLITestCase):
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
+    def test_update_template_1(self):
+        """
+        @Test: Check if Template can be updated
+        @Feature: Template - Update
+        @Assert: Template is updated
+        """
+
+        content = generate_string("alpha", 10)
+        name = generate_string("alpha", 10)
+
+        new_obj = make_template(
+            {
+                'name': name,
+                'content': content,
+            }
+        )
+
+        result = Template.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
+
+        updated_name = generate_string("alpha", 10)
+        Template.update({'id': new_obj['id'], 'name': updated_name})
+        result = Template.info({'id': new_obj['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(updated_name, result.stdout['name'])
+
     def test_add_operating_system_1(self):
         """
         @Test: Check if Template can be assigned operating system
@@ -80,7 +109,7 @@ class TestTemplate(CLITestCase):
     def test_remove_operating_system_1(self):
         """
         @Test: Check if OS can be removed Template
-        @Feature: Template - Add Operating System
+        @Feature: Template - Remove Operating System
         @Assert: Template no longer has an operating system
         """
 
