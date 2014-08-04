@@ -20,7 +20,7 @@ class EntityTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
     )
-    def test_get(self, entity):
+    def test_get_status_code(self, entity):
         """@Test GET an entity-dependent path.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
@@ -133,7 +133,7 @@ class EntityIdTestCase(TestCase):
         entities.Organization,
         entities.Repository,
     )
-    def test_get(self, entity):
+    def test_get_status_code(self, entity):
         """@Test: Create an entity and GET it.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
