@@ -153,3 +153,26 @@ class TestMedium(CLITestCase):
                          "Removed the operating system from media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+
+    def test_medium_update(self):
+        """
+        @Test: Check if medium can be updated
+        @Feature: Medium - Update medium
+        @Assert: Medium updated
+        """
+
+        name = generate_name(6)
+        new_name = generate_name(6)
+        try:
+            medium = make_medium({'name': name})
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        args = {'name': name,
+                'new-name': new_name}
+
+        result = Medium().update(args)
+        self.assertEqual(result.return_code, 0,
+                         "Could not update media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
