@@ -3,7 +3,7 @@ from nose.plugins.attrib import attr
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
+from robottelo import entities, orm
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
@@ -90,71 +90,65 @@ class TestSmoke(TestCase):
     def test_smoke(self):
         """
         @Test: Check that basic content can be created
-        * Create a new user with admin permissions
-        * Using the new user from above:
 
-            * Create a new organization
-            * Create two new lifecycle environments
-            * Create a custom product
-            * Create a custom YUM repository
-            * Create a custom PUPPET repository
-            * Synchronize both custom repositories
-            * Create a new content view
-            * Associate both repositories to new content view
-            * Publish content view
-            * Promote content view to both lifecycles
-            * Create a new libvirt compute resource
-            * Create a new subnet
-            * Create a new domain
-            * Create a new capsule
-            * Create a new hostgroup and associate previous entities to it
+        1. Create a new user with admin permissions
+        2. Using the new user from above:
+            1. Create a new organization
+            2. Create two new lifecycle environments
+            3. Create a custom product
+            4. Create a custom YUM repository
+            5. Create a custom PUPPET repository
+            6. Synchronize both custom repositories
+            7. Create a new content view
+            8. Associate both repositories to new content view
+            9. Publish content view
+            10. Promote content view to both lifecycles
+            11. Create a new libvirt compute resource
+            12. Create a new subnet
+            13. Create a new domain
+            14. Create a new capsule
+            15. Create a new hostgroup and associate previous entities to it
 
         @Feature: Smoke Test
+
         @Assert: All entities are created and associated.
         """
-        # Create a new user with admin permissions
-        self._create(
-            entities.User,
-            entities.User(admin=True).build()
-        )
+        # prep work
+        #
+        # FIXME: Use a larger charset when authenticating users.
+        #
+        # It is possible to create a user with a wide range of characters. (see
+        # the "User" entity). However, Foreman supports only HTTP Basic
+        # authentication, and the requests lib enforces the latin1 charset in
+        # this auth mode. We then further restrict ourselves to the
+        # alphanumeric charset, because Foreman complains about incomplete
+        # multi-byte chars when latin1 chars are used.
+        #
+        login = orm.StringField(str_type=('alphanumeric',)).get_value()
+        password = orm.StringField(str_type=('alphanumeric',)).get_value()
 
-    # FIXME: Until we can pass ``auth`` to ``Entity().crate()`` and
-    # ``Entity().build()``, I need to rely on ``client.post`` to make
-    # sure that certain actions can be performed by a non-default
-    # admin user.
-    def _create(self, entity, attrs, auth=None):
-        """
-        Performs a POST ``api/v2/<entity>`` and creates a new Foreman entity
-        using ``attrs`` as its attributes.
+        # step 1
+        entities.User(admin=True, login=login, password=password).create()
 
-        :param robottelo.orm.Entity entity: A logical representation of a
-            Foreman entity.
-        :param dict attrs: A ``dict`` representing a Foreman entity.
-        :param tuple auth: A ``tuple`` containing the credentials to be used
-            for authentication when accessing the API. If ``None``,
-            credentials are automatically read from
-            :func:`robottelo.common.helpers.get_server_credentials`.
-        :return: A ``dict`` representing a Foreman entity.
-        :rtype: dict
-        """
-        # Use the server credentials if None are provided
-        if auth is None:
-            auth = get_server_credentials()
+        # step 2.1
+        entities.Organization().create(auth=(login, password))
 
-        path = entity().path()
-        response = client.post(
-            path,
-            attrs,
-            auth=auth,
-            verify=False,
-        )
-        status_code = (httplib.OK, httplib.CREATED)
-        self.assertIn(
-            response.status_code,
-            status_code,
-            status_code_error(path, status_code, response))
-
-        return response.json()
+        # step 2.2
+        #
+        # FIXME: Creation of LifecycleEnvironment entities is broken.
+        # Error message: "Couldn't find Katello::KTEnvironment with id=Library"
+        #
+        # le_1_attrs = entities.LifecycleEnvironment(
+        #     organization=org_attrs['id']
+        # ).create(auth=(login, password))
+        # le_2_attrs = entities.LifecycleEnvironment(
+        #     organization=org_attrs['id'],
+        #     prior=le_1_attrs['name']
+        # ).create(auth=(login, password))
+        # entities.LifecycleEnvironment(
+        #     organization=org_attrs['id'],
+        #     prior=le_2_attrs['name']
+        # ).create(auth=(login, password))
 
     def _search(self, entity, query, auth=None):
         """
