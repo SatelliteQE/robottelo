@@ -120,3 +120,36 @@ class TestMedium(CLITestCase):
                          "Could not associate the operating system to media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+
+    def test_removeoperatingsystem_medium(self):
+        """
+        @Test: Check if operating system can be removed
+        @Feature: Medium - Remove operating system
+        @Assert: Operating system removed
+        """
+
+        name = generate_name(6)
+        try:
+            medium = make_medium({'name': name})
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        try:
+            os = make_os()
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        args = {'id': medium['id'],
+                'operatingsystem-id': os['id']}
+
+        result = Medium().add_operating_system(args)
+        self.assertEqual(result.return_code, 0,
+                         "Could not associate the operating system to media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+
+        result = Medium().remove_operating_system(args)
+        self.assertEqual(result.return_code, 0,
+                         "Removed the operating system from media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
