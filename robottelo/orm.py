@@ -81,12 +81,19 @@ class IntegerField(booby.fields.Integer):
 
 class StringField(booby.fields.String):
     """Field that represents a string."""
-    def __init__(self, max_len=80, str_type=('utf8',), *args, **kwargs):
+    def __init__(self, max_len=30, str_type=('utf8',), *args, **kwargs):
         """Constructor for a ``StringField``.
 
-        ``max_len`` is set to 80 for convenience. Many fields have a maximum
-        length of 255 1-byte characters, and 80 3-byte unicode characters will
-        always fit into a field of this size.
+        The default ``max_len`` of string fields is short for two reasons:
+
+        1. Foreman's database backend limits many fields to 255 bytes in
+           length. As a result, ``max_len`` should be no longer than 85
+           characters long, as 85 unicode characters may be up to 255 bytes
+           long.
+        2. Humans have to read through the error messages produced by
+           Robottelo. Long error messages are hard to read through, and that
+           hurts productivity. Thus, a ``max_len`` even shorter than 85 chars
+           is desirable.
 
         :param int max_len: The maximum length of the string generated when
             :meth:`get_value` is called.
