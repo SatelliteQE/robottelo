@@ -988,7 +988,14 @@ class UserGroup(orm.Entity):
 
 
 class User(orm.Entity, factory.EntityFactoryMixin):
-    """A representation of a User entity."""
+    """A representation of a User entity.
+
+    The LDAP authentication source with an ID of 1 is internal. It is nearly
+    guaranteed to exist and be functioning. Thus, ``auth_source`` is set to "1"
+    by default for a practical reason: it is much easier to use internal
+    authentication than to spawn LDAP authentication servers for each new user.
+
+    """
     login = orm.StringField(
         required=True,
         # Passing UTF8 characters to ``login`` yields 500s.
@@ -1001,7 +1008,7 @@ class User(orm.Entity, factory.EntityFactoryMixin):
     password = orm.StringField(required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', required=True)
+    auth_source = orm.OneToOneField('AuthSourceLDAP', default=1, required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
