@@ -70,8 +70,10 @@ def _curl_arg_user(kwargs):
     :rtype: str
 
     """
-    if 'auth' in kwargs:
-        return '--user {0}:{1} '.format(kwargs['auth'][0], kwargs['auth'][1])
+    # True if user provided creds in this form: auth=('username', 'password')
+    # False if no creds or in e.g. this form: auth=HTTPBasicAuth('usr', 'pass')
+    if 'auth' in kwargs and isinstance(kwargs['auth'], tuple):
+        return u'--user {0}:{1} '.format(kwargs['auth'][0], kwargs['auth'][1])
     return ''
 
 
@@ -121,20 +123,20 @@ def _log_request(method, url, kwargs, data=None):
 
     """
     logger.info(
-        'Making HTTP {0} request to {1} with {2} and {3}.'.format(
-            method,
-            url,
-            'options {0}'.format(kwargs) if len(kwargs) > 0 else 'no options',
-            'data {0}'.format(data) if data is not None else 'no data',
-        )
+        'Making HTTP %s request to %s with %s and %s.',
+        method,
+        url,
+        'options {0}'.format(kwargs) if len(kwargs) > 0 else 'no options',
+        'data {0}'.format(data) if data is not None else 'no data',
     )
-    logger.info('Equivalent curl command: curl -X {0} {1}{2}{3} {4}'.format(
+    logger.info(
+        'Equivalent curl command: curl -X %s %s%s%s %s',
         method,
         _curl_arg_user(kwargs),
         _curl_arg_insecure(kwargs),
         _curl_arg_data(kwargs),
-        url
-    ))
+        url,
+    )
 
 
 def _log_response(response):
@@ -148,10 +150,11 @@ def _log_response(response):
     :rtype: None
 
     """
-    logger.debug('Received HTTP {0} response: {1}'.format(
+    logger.debug(
+        'Received HTTP %s response: %s',
         response.status_code,
         response.content,
-    ))
+    )
 
 
 def _call_requests_request(method, url, **kwargs):
@@ -194,8 +197,8 @@ def request(method, url, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         kwargs['data'] = json.dumps(kwargs.pop('data', {}))
-    response = _call_requests_request(method, url, **kwargs)
     _log_request(method, url, kwargs)
+    response = _call_requests_request(method, url, **kwargs)
     _log_response(response)
     return response
 
@@ -205,8 +208,8 @@ def head(url, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         kwargs['data'] = json.dumps(kwargs.pop('data', {}))
-    response = _call_requests_head(url, **kwargs)
     _log_request('HEAD', url, kwargs)
+    response = _call_requests_head(url, **kwargs)
     _log_response(response)
     return response
 
@@ -216,8 +219,8 @@ def get(url, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         kwargs['data'] = json.dumps(kwargs.pop('data', {}))
-    response = _call_requests_get(url, **kwargs)
     _log_request('GET', url, kwargs)
+    response = _call_requests_get(url, **kwargs)
     _log_response(response)
     return response
 
@@ -227,8 +230,8 @@ def post(url, data=None, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         data = json.dumps(data)
-    response = _call_requests_post(url, data, **kwargs)
     _log_request('POST', url, kwargs, data)
+    response = _call_requests_post(url, data, **kwargs)
     _log_response(response)
     return response
 
@@ -238,8 +241,8 @@ def put(url, data=None, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         data = json.dumps(data)
-    response = _call_requests_put(url, data, **kwargs)
     _log_request('PUT', url, kwargs, data)
+    response = _call_requests_put(url, data, **kwargs)
     _log_response(response)
     return response
 
@@ -249,8 +252,8 @@ def patch(url, data=None, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         data = json.dumps(data)
-    response = _call_requests_patch(url, data, **kwargs)
     _log_request('PATCH', url, kwargs, data)
+    response = _call_requests_patch(url, data, **kwargs)
     _log_response(response)
     return response
 
@@ -260,7 +263,7 @@ def delete(url, **kwargs):
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs):
         kwargs['data'] = json.dumps(kwargs.pop('data', {}))
-    response = _call_requests_delete(url, **kwargs)
     _log_request('DELETE', url, kwargs)
+    response = _call_requests_delete(url, **kwargs)
     _log_response(response)
     return response
