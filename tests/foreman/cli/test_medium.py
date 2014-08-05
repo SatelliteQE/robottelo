@@ -168,7 +168,7 @@ class TestMedium(CLITestCase):
         except CLIFactoryError as e:
             self.fail(e)
 
-        args = {'name': name,
+        args = {'name': medium['name'],
                 'new-name': new_name}
 
         result = Medium().update(args)
