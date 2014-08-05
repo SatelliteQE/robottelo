@@ -1511,7 +1511,8 @@ locators = {
     "settings.edit_param": (
         By.XPATH,
         ("//tr/td[contains(., '%s')]"
-         "/following::td[@class='setting_value']/span")),
+         "/../td[@class='setting_value']"
+         "/span[contains(@class, 'editable')]")),
     "settings.select_value": (
         By.XPATH,
         ("//select[@name='setting[value]']")),
