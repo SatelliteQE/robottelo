@@ -14,6 +14,7 @@ from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
 from robottelo.ui.products import Products
+from robottelo.ui.puppetclasses import PuppetClasses
 from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -355,6 +356,20 @@ def make_partitiontable(session, org=None, loc=None, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
     PartitionTable(session.browser).create(**create_args)
+
+
+def make_puppetclasses(session, org=None, loc=None, **kwargs):
+    """
+    Creates new Puppet Classes from webUI
+    """
+    create_args = {
+        'name': None,
+        'environment': None,
+    }
+    page = session.nav.go_to_puppet_classes
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    PuppetClasses(session.browser).create(**create_args)
 
 
 def edit_param(session, org=None, loc=None, **kwargs):

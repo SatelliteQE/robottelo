@@ -942,6 +942,18 @@ locators = {
     "prd.sync_plan_update": (
         By.XPATH, ("//form[@selector='product.sync_plan_id']"
                    "/div/select")),
+    # Puppet Classes
+    "puppetclass.new": (
+        By.XPATH, "//a[@data-id='aid_puppetclasses_new']"),
+    "puppetclass.name": (
+        By.ID, "puppetclass_name"),
+    "puppetclass.environments": (
+        By.ID, "puppetclass_environments"),
+    "puppetclass.select_name": (
+        By.XPATH, ("//a[contains(@href, 'puppetclasses')"
+                   " and contains(.,'%s')]")),
+    "puppetclass.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     # Repository
     "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
