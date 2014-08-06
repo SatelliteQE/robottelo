@@ -65,6 +65,7 @@ class PuppetClasses(UITestCase):
         @Test: Create new puppet-class with 256 chars
         @Feature: Puppet-Classes - Negative Create
         @Assert: Puppet-Classes is not created with 256 chars
+        @BZ: 1126496
         """
         with Session(self.browser) as session:
             make_puppetclasses(session, name=name)
@@ -130,6 +131,7 @@ class PuppetClasses(UITestCase):
         @Test: Create new puppet-class
         @Feature: Puppet-Classes - Positive delete
         @Assert: Puppet-Class is deleted
+        @BZ: 1126473
         """
         with Session(self.browser) as session:
             make_puppetclasses(session, name=name)
