@@ -32,6 +32,13 @@ Submodules:
     :members:
     :undoc-members:
 
+:mod:`tests.robottelo.test_entities`
+------------------------------------
+
+.. automodule:: tests.robottelo.test_entities
+    :members:
+    :undoc-members:
+
 :mod:`tests.robottelo.test_helpers`
 -----------------------------------
 

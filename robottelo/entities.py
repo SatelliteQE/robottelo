@@ -15,6 +15,7 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo import factory, orm
+import urlparse
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -31,6 +32,21 @@ class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/activation_keys'
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of ``'releases'``, return a path in the
+        format ``/activation_keys/<id>/releases``. Otherwise, call ``super``.
+
+        """
+        if which == 'releases':
+            return urlparse.urljoin(
+                super(ActivationKey, self).path(which='this') + '/',
+                'releases'
+            )
+        return super(ActivationKey, self).path()
 
 
 class Architecture(orm.Entity, factory.EntityFactoryMixin):
