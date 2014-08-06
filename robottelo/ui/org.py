@@ -8,7 +8,6 @@ Implements Org UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator as nav
-from robottelo.common.helpers import escape_search
 from robottelo.common.constants import FILTER
 from selenium.webdriver.support.select import Select
 
