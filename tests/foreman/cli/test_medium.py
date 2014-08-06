@@ -123,7 +123,7 @@ class TestMedium(CLITestCase):
 
     def test_removeoperatingsystem_medium(self):
         """
-        @Test: Check if operating system can be removed
+        @Test: Check if operating system can be removed from media
         @Feature: Medium - Remove operating system
         @Assert: Operating system removed
         """
@@ -147,12 +147,20 @@ class TestMedium(CLITestCase):
                          "Could not associate the operating system to media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+        result = Medium().info({'id': medium['id']})
+        self.assertEqual(result.stdout['operating-systems'][0],
+                         os['full-name'],
+                         "Operating system is not added to the media")
 
         result = Medium().remove_operating_system(args)
         self.assertEqual(result.return_code, 0,
                          "Removed the operating system from media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+        result = Medium().info({'id': medium['id']})
+        self.assertEqual(result.stdout['operating-systems'],
+                         {},
+                         "Operating system is not removed from the media")
 
     def test_medium_update(self):
         """
@@ -176,3 +184,7 @@ class TestMedium(CLITestCase):
                          "Could not update media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+
+        result = Medium().info({'id': medium['id']})
+        self.assertEqual(result.stdout['name'], new_name,
+                         "Medium name was not updated")
