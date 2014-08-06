@@ -10,6 +10,7 @@ from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
+from robottelo.entities import Organization, LifecycleEnvironment, ContentView, System
 from robottelo.test import APITestCase
 
 
@@ -509,8 +510,37 @@ class TestContentView(APITestCase):
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
-        @status: Manual
         """
+        depends = ApiCrud.record_create_dependencies(data)
+        result = ApiCrud.record_create(depends)
+        self.assertIntersects(data, result)
+        new_org = Organization().create()
+        new_lifecycle = LifecycleEnvironment().create(
+            {u'organization-id': new_org['id']}
+        )
+
+        new_cv = ContentView().create(
+            {u'organization-id': new_org['id']}
+        )
+        promoted_cv = None
+        cv_id = new_cv['id']
+        ContentView.publish({u'id': cv_id})
+        result = ContentView.version_list({u'content-view-id': cv_id})
+        version_id = result.stdout[0]['id']
+        promotion = ContentView.version_promote({
+            u'id': version_id,
+            u'lifecycle-environment-id': new_lifecycle[
+                'id'],
+            u'organization-id': new_org['id']
+        })
+        if promotion.stderr == []:
+            promoted_cv = new_cv
+
+        new_system = make_content_host({
+            u'name': generate_string('alpha', 15),
+            u'organization-id': new_org['id'],
+            u'content-view-id': promoted_cv['id'],
+            u'lifecycle-environment-id': new_lifecycle['id']})
 
     @skip_if_bug_open('bugzilla', 1094758)
     def test_custom_cv_subscribe_system(self):
