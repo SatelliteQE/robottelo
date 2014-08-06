@@ -256,6 +256,10 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
     # List of component content view version ids for composite views
     components = orm.OneToManyField('ContentView')
 
+
+    def publish(self):
+        return None
+
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/content_views'
