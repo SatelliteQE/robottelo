@@ -72,6 +72,7 @@ class Settings(UITestCase):
         @Test: Updates param "administrator" under General tab
         @Feature: Settings - Update Parameters
         @Assert: Parameter is updated
+        @BZ: 1125181
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -119,6 +120,7 @@ class Settings(UITestCase):
         under General tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -170,6 +172,7 @@ class Settings(UITestCase):
         @Test: Updates param "email_reply_address" under General tab
         @Feature: Settings - Update Parameters
         @Assert: Parameter is updated
+        @BZ: 1125181
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -239,6 +242,7 @@ class Settings(UITestCase):
         under General tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -288,6 +292,7 @@ class Settings(UITestCase):
         under General tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -366,6 +371,7 @@ class Settings(UITestCase):
         @Test: Updates param "foreman_url" under General tab
         @Feature: Settings - Negative update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -581,6 +587,7 @@ class Settings(UITestCase):
         @Test: Updates param "signo_url" under Auth tab
         @Feature: Settings - Negative update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -631,6 +638,7 @@ class Settings(UITestCase):
         @Test: Updates param "trusted_puppetmaster_hosts" under Auth tab
         @Feature: Settings - Negative update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -767,6 +775,7 @@ class Settings(UITestCase):
         under Provisioning tab with invalid values
         @Feature: Settings - Negative Update Parameters
         @Assert: Parameter is not updated
+        @BZ: 1125156
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
