@@ -731,9 +731,9 @@ def make_compute_resource(options=None):
 
     args = update_dictionary(args, options)
     if args['provider'] is None:
-        options['provider'] = FOREMAN_PROVIDERS['libvirt']
+        args['provider'] = FOREMAN_PROVIDERS['libvirt']
         if args['url'] is None:
-            options['url'] = "qemu+tcp://localhost:16509/system"
+            args['url'] = "qemu+tcp://localhost:16509/system"
     args.update(create_object(ComputeResource, args))
 
     return args
