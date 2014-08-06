@@ -650,7 +650,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bz_bug_open('1127090')
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """
@@ -660,7 +660,7 @@ class ActivationKey(UITestCase):
         1. Create Activation key
         2. Update Usage limit from definite number to Unlimited
         @Assert: Activation key is updated
-        @BZ: 1078676
+        @BZ: 1127090
         """
 
         name = generate_string("alpha", 10)
