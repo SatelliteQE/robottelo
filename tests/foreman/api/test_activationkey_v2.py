@@ -291,3 +291,49 @@ class ActivationKeysTestCase(TestCase):
                 real_attrs['max_content_hosts'],
                 attrs['max_content_hosts'])
         )
+
+    def test_get_releases_status_code(self):
+        """@Test: Get an activation key's releases. Check response format.
+
+        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+
+        @Feature: ActivationKey
+
+        """
+        try:
+            attrs = entities.ActivationKey().create()
+        except FactoryError as err:
+            self.fail(err)
+        path = entities.ActivationKey(id=attrs['id']).path(which='releases')
+        response = client.get(
+            path,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        status_code = httplib.OK
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            status_code_error(path, status_code, response),
+        )
+        self.assertIn('application/json', response.headers['content-type'])
+
+    def test_get_releases_content(self):
+        """@Test: Get an activation key's releases. Check response contents.
+
+        @Assert: A list of results is returned.
+
+        @Feature: ActivationKey
+
+        """
+        try:
+            attrs = entities.ActivationKey().create()
+        except FactoryError as err:
+            self.fail(err)
+        response = client.get(
+            entities.ActivationKey(id=attrs['id']).path(which='releases'),
+            auth=get_server_credentials(),
+            verify=False,
+        ).json()
+        self.assertIn('results', response.keys())
+        self.assertEqual(type(response['results']), list)
