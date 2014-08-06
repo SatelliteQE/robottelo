@@ -18,9 +18,9 @@ class OrganizationsTestCase(TestCase):
     """Tests for the ``organizations`` path."""
     @skip_if_bz_bug_open(1116043)
     def test_create(self):
-        """@Test Create an organization.
+        """@Test Create an organization using a 'text/plain' content-type.
 
-        @Assert: HTTP 201 is returned.
+        @Assert: HTTP 415 is returned.
         @Feature: Organization
 
         """
@@ -33,7 +33,7 @@ class OrganizationsTestCase(TestCase):
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        status_code = httplib.CREATED
+        status_code = httplib.UNSUPPORTED_MEDIA_TYPE
         self.assertEqual(
             status_code,
             response.status_code,
