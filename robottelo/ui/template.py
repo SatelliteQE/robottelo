@@ -114,5 +114,6 @@ class Template(Base):
         """
         Deletes a template.
         """
+        Navigator(self.browser).go_to_provisioning_templates()
         self.delete_entity(name, really, locators["provision.template_select"],
                            locators["provision.template_delete"])

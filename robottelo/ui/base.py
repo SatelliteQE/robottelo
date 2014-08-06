@@ -333,3 +333,28 @@ class Base(object):
         search_button.click()
         entity_elem = self.wait_until_element((strategy1, value1 % name))
         return entity_elem
+
+    def check_all_values(self, go_to_page, entity_name, entity_locator,
+                         tab_locator, context=None):
+        """
+        Checks whether the 'All values' checkbox is checked/selected.
+
+        :param go_to_page: Navigates to the entities page.
+        :param str entity_name: The name of the entity. Ex: org, loc
+        :param entity_locator: The locator of the entity.
+        :param tab_locator: The tab locator to switch to the entity's tab.
+        :return: Returns whether the element is checked/selected or not.
+        :rtype: boolean value
+        :raises UINosuchElementError: If the entity is not found via search.
+
+        """
+        go_to_page()
+        strategy, value = common_locators['all_values']
+        searched = self.search_entity(entity_name, entity_locator)
+        if searched is None:
+            raise UINoSuchElementError("Entity not found via search.")
+        searched.click()
+        self.wait_until_element(tab_locator).click()
+        selected = self.find_element((strategy,
+                                      value % context)).is_selected()
+        return selected

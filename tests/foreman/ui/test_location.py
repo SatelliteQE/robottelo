@@ -73,6 +73,7 @@ class Location(UITestCase):
         @test: Create location with name as too long
         @feature: Locations
         @assert: location is not created
+        @BZ: 1123818
         """
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -155,6 +156,7 @@ class Location(UITestCase):
         its name
         @feature: Locations
         @assert: Location name is not updated
+        @BZ: 1123818
         """
 
         with Session(self.browser) as session:
@@ -176,7 +178,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: location can be found
         """
-
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -215,7 +216,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: Domain is added to Location
         """
-
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
@@ -264,6 +264,22 @@ class Location(UITestCase):
                                                       value % user))
             self.assertIsNotNone(element)
 
+    def test_allvalues_hostgroup(self):
+        """
+        @test: check whether host group has the 'All values' checked.
+        @feature: Locations
+        @assert: host group 'All values' checkbox is checked.
+        """
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            page = session.nav.go_to_loc
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            selected = self.location.check_all_values(
+                page, loc_name, locators["location.select_name"],
+                tab_locators["context.tab_hostgrps"], context="location")
+            self.assertIsNotNone(selected)
+
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp):
@@ -273,15 +289,13 @@ class Location(UITestCase):
         @feature: Locations
         @assert: hostgroup is added to location
         """
-
-        strategy, value = common_locators["entity_deselect"]
+        strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
             make_hostgroup(session, name=host_grp)
             self.assertIsNotNone(self.hostgroup.search(host_grp))
-            self.location.update(loc_name, new_hostgroups=[host_grp])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
@@ -298,7 +312,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: organization is added to location
         """
-
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
@@ -349,7 +362,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: computeresource is added
         """
-
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -376,7 +388,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: medium is added
         """
-
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
         path = URL % generate_string("alpha", 6)
@@ -394,17 +405,32 @@ class Location(UITestCase):
                                                       value % medium))
             self.assertIsNotNone(element)
 
+    def test_allvalues_configtemplate(self):
+        """
+        @test: check whether config template has the 'All values' checked.
+        @feature: Locations
+        @assert: configtemplate 'All values' checkbox is checked.
+        """
+        loc_name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            page = session.nav.go_to_loc
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            selected = self.location.check_all_values(
+                page, loc_name, locators["location.select_name"],
+                tab_locators["context.tab_template"], context="location")
+            self.assertIsNotNone(selected)
+
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
         """
         @test: Add config template by using location name and
-        configtemplate name
+        configtemplate name.
         @feature: Locations
-        @assert: configtemplate is added
+        @assert: configtemplate is added.
         """
-
-        strategy, value = common_locators["entity_deselect"]
+        strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -414,7 +440,6 @@ class Location(UITestCase):
             make_templates(session, name=template, template_path=template_path,
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(template))
-            self.location.update(loc_name, new_templates=[template])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
@@ -464,7 +489,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: subnet is added then removed
         """
-
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -574,29 +598,27 @@ class Location(UITestCase):
         @feature: Locations
         @assert: hostgroup is added to location then removed
         """
-
-        strategy, value = common_locators["entity_select"]
-        strategy1, value1 = common_locators["entity_deselect"]
+        strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_hostgroup(session, name=host_grp)
             self.assertIsNotNone(self.hostgroup.search(host_grp))
-            make_loc(session, name=loc_name, hostgroups=[host_grp], edit=True)
+            make_loc(session, name=loc_name, edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
-            element = session.nav.wait_until_element((strategy1,
-                                                      value1 % host_grp))
+            element = session.nav.wait_until_element((strategy,
+                                                      value % host_grp))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.location.update(loc_name, hostgroups=[host_grp])
+            self.hostgroup.delete(host_grp, True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % host_grp))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertIsNotNone(element)
+            self.assertIsNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
@@ -607,7 +629,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: computeresource is added then removed
         """
-
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -643,7 +664,6 @@ class Location(UITestCase):
         @feature: Locations
         @assert: medium is added then removed
         """
-
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -677,8 +697,7 @@ class Location(UITestCase):
         @feature: Locations
         @assert: configtemplate is added then removed
         """
-        strategy, value = common_locators["entity_select"]
-        strategy1, value1 = common_locators["entity_deselect"]
+        strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -686,19 +705,19 @@ class Location(UITestCase):
             make_templates(session, name=template, template_path=template_path,
                            template_type=temp_type, custom_really=True)
             self.assertIsNotNone(self.template.search(template))
-            make_loc(session, name=loc_name, templates=[template], edit=True)
+            make_loc(session, name=loc_name, edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
-            element = session.nav.wait_until_element((strategy1,
-                                                      value1 % template))
+            element = session.nav.wait_until_element((strategy,
+                                                      value % template))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.location.update(loc_name, templates=[template])
+            self.template.delete(template, True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
             element = session.nav.wait_until_element((strategy,
                                                       value % template))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
-            self.assertIsNotNone(element)
+            self.assertIsNone(element)

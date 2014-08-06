@@ -7,6 +7,7 @@ Implements Host Group UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -40,6 +41,7 @@ class Hostgroup(Base):
         """
         Searches existing hostgroup from UI
         """
+        Navigator(self.browser).go_to_host_groups()
         element = self.search_entity(name, locators["hostgroups.hostgroup"])
         return element
 
@@ -47,7 +49,7 @@ class Hostgroup(Base):
         """
         Deletes existing hostgroup from UI
         """
-
+        Navigator(self.browser).go_to_host_groups()
         self.delete_entity(name, really, locators["hostgroups.hostgroup"],
                            locators['hostgroups.delete'],
                            drop_locator=locators["hostgroups.dropdown"])
