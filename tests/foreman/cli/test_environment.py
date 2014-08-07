@@ -86,7 +86,7 @@ class TestEnvironment(MetaCLITestCase):
         @Assert: Environment Delete is displayed
         """
 
-        name = generate_string("utf8", 10)
+        name = generate_string("alphanumeric", 10)
         try:
             make_environment({'name': name})
         except CLIFactoryError as err:

@@ -165,12 +165,11 @@ class TestActivationKey(CLITestCase):
         @Steps:
         1. Create Activation key for variations of Name / associated to Library
         @Assert: Activation key is created and associated to Library
-        @Status: Manual
         """
 
         new_ackey = self._make_activation_key(
             {u'name': test_data['name'],
-             u'environment-id': self.library['id']})
+             u'lifecycle-environment-id': self.library['id']})
         # Description should match passed data
         self.assertEqual(
             new_ackey['lifecycle-environment'],
@@ -195,12 +194,11 @@ class TestActivationKey(CLITestCase):
         @Steps:
         1. Create Activation key for variations of Name / associated to environ
         @Assert: Activation key is created and associated to environment
-        @Status: Manual
         """
 
         new_ackey = self._make_activation_key(
             {u'name': test_data['name'],
-             u'environment-id': self.env1['id']})
+             u'lifecycle-environment-id': self.env1['id']})
         # Description should match passed data
         self.assertEqual(
             new_ackey['lifecycle-environment'],
@@ -570,6 +568,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.update({
             u'id': activation_key['id'],
             u'new-name': test_data['name'],
+            u'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0,
                          'Failed to update activation key')
@@ -1076,6 +1075,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.update({
             u'id': activation_key['id'],
             u'new-name': new_name,
+            u'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0,
                          'Failed to update activation key')
