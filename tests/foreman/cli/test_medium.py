@@ -148,9 +148,9 @@ class TestMedium(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         result = Medium().info({'id': medium['id']})
-        self.assertEqual(result.stdout['operating-systems'][0],
-                         os['full-name'],
-                         "Operating system is not added to the media")
+        self.assertIn(result.stdout['operating-systems'][0],
+                      os['full-name'],
+                      "Operating system is not added to the media")
 
         result = Medium().remove_operating_system(args)
         self.assertEqual(result.return_code, 0,
@@ -158,8 +158,8 @@ class TestMedium(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         result = Medium().info({'id': medium['id']})
-        self.assertEqual(result.stdout['operating-systems'],
-                         {},
+        self.assertNotIn(os['full-name'],
+                         result.stdout['operating-systems'],
                          "Operating system is not removed from the media")
 
     def test_medium_update(self):
@@ -184,7 +184,6 @@ class TestMedium(CLITestCase):
                          "Could not update media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
-
-        result = Medium().info({'id': medium['id']})
-        self.assertEqual(result.stdout['name'], new_name,
+        print result.stdout
+        self.assertEqual(result.stdout[0]['name'], new_name,
                          "Medium name was not updated")
