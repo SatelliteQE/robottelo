@@ -7,7 +7,7 @@ Test class for Environment UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, skip_if_bz_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_env
@@ -109,6 +109,7 @@ class Environment(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
+    @skip_if_bz_bug_open(1126033)
     @attr('ui', 'environment', 'implemented')
     @data({'name': generate_string('alpha', 8),
            'new_name': generate_string('alpha', 8)},
@@ -121,6 +122,7 @@ class Environment(UITestCase):
         @Test: Update an environment and associated OS
         @Feature: Environment - Positive Update
         @Assert: Environment is updated
+        @BZ: 1126033
         """
         name = testdata['name']
         new_name = testdata['new_name']

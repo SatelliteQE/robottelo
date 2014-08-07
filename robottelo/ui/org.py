@@ -8,7 +8,6 @@ Implements Org UI
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator as nav
-from robottelo.common.helpers import escape_search
 from robottelo.common.constants import FILTER
 from selenium.webdriver.support.select import Select
 
@@ -122,21 +121,9 @@ class Org(Base):
         """
         Searches existing Organization from UI
         """
-
-        # latin1 and html requires escape search, Bug: 1071253
         nav(self.browser).go_to_org()
-        strategy, value = locators["org.org_name"]
-        searchbox = self.wait_until_element(common_locators["search"])
-        if searchbox is None:
-            raise Exception("Search box not found.")
-        else:
-            searchbox.clear()
-            searchbox.send_keys(escape_search(name))
-            self.wait_until_element(common_locators["search_button"]).click()
-            self.wait_for_ajax()
-            element = self.wait_until_element((strategy,
-                                               value % name))
-            return element
+        element = self.search_entity(name, locators["org.org_name"])
+        return element
 
     def update(self, org_name, new_parent_org=None, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,
