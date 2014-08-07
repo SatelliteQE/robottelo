@@ -184,6 +184,5 @@ class TestMedium(CLITestCase):
                          "Could not update media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
-        print result.stdout
         self.assertEqual(result.stdout[0]['name'], new_name,
                          "Medium name was not updated")
