@@ -284,7 +284,7 @@ class EntityFactoryMixin(Factory):
         fields = self.get_fields()  # fields from entity definition
 
         # When this loop is complete, `values` is complete. We just need to
-        # adjust field for Foreman.
+        # adjust field names for Foreman.
         for name, field in fields.items():
             if name not in values.keys() and field_is_required(field):
                 values[name] = field.get_value()

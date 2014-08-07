@@ -12,6 +12,8 @@ inner class contains non-field information. This information is especially
 useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
+from robottelo.common.constants import VALID_GPG_KEY_FILE
+from robottelo.common.helpers import get_data_file
 from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
@@ -328,7 +330,18 @@ class Filter(orm.Entity):
         api_path = 'api/v2/filters'
 
 
-class GPGKey(orm.Entity):
+def _gpgkey_content():
+    """Return default content for a GPG key.
+
+    :return: The contents of a GPG key.
+    :rtype: str
+
+    """
+    with open(get_data_file(VALID_GPG_KEY_FILE)) as handle:
+        return handle.read()
+
+
+class GPGKey(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a GPG Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     # identifier of the gpg key
@@ -336,7 +349,7 @@ class GPGKey(orm.Entity):
     # characters, space, '_', '-' with no leading or trailing space.
     name = orm.StringField(required=True)
     # public key block in DER encoding
-    content = orm.StringField(required=True)
+    content = orm.StringField(required=True, default=_gpgkey_content())
 
     class Meta(object):
         """Non-field information about this entity."""
