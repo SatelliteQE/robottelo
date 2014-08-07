@@ -184,5 +184,7 @@ class TestMedium(CLITestCase):
                          "Could not update media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
-        self.assertEqual(result.stdout[0]['name'], new_name,
+
+        result = Medium().info({'id': medium['id']})
+        self.assertEqual(result.stdout['name'], new_name,
                          "Medium name was not updated")
