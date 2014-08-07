@@ -120,3 +120,71 @@ class TestMedium(CLITestCase):
                          "Could not associate the operating system to media")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+
+    def test_removeoperatingsystem_medium(self):
+        """
+        @Test: Check if operating system can be removed from media
+        @Feature: Medium - Remove operating system
+        @Assert: Operating system removed
+        """
+
+        name = generate_name(6)
+        try:
+            medium = make_medium({'name': name})
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        try:
+            os = make_os()
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        args = {'id': medium['id'],
+                'operatingsystem-id': os['id']}
+
+        result = Medium().add_operating_system(args)
+        self.assertEqual(result.return_code, 0,
+                         "Could not associate the operating system to media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+        result = Medium().info({'id': medium['id']})
+        self.assertIn(os['full-name'],
+                      result.stdout['operating-systems'],
+                      "Operating system is not added to the media")
+
+        result = Medium().remove_operating_system(args)
+        self.assertEqual(result.return_code, 0,
+                         "Removed the operating system from media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+        result = Medium().info({'id': medium['id']})
+        self.assertNotIn(os['full-name'],
+                         result.stdout['operating-systems'],
+                         "Operating system is not removed from the media")
+
+    def test_medium_update(self):
+        """
+        @Test: Check if medium can be updated
+        @Feature: Medium - Update medium
+        @Assert: Medium updated
+        """
+
+        name = generate_name(6)
+        new_name = generate_name(6)
+        try:
+            medium = make_medium({'name': name})
+        except CLIFactoryError as e:
+            self.fail(e)
+
+        args = {'name': medium['name'],
+                'new-name': new_name}
+
+        result = Medium().update(args)
+        self.assertEqual(result.return_code, 0,
+                         "Could not update media")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+
+        result = Medium().info({'id': medium['id']})
+        self.assertEqual(result.stdout['name'], new_name,
+                         "Medium name was not updated")

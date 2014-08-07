@@ -9,8 +9,6 @@ from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.common import ssh
-import tempfile
 
 
 class TestPartitionTableUpdateCreate(CLITestCase):
@@ -19,19 +17,13 @@ class TestPartitionTableUpdateCreate(CLITestCase):
     def setUp(self):
         """Set up file"""
         super(TestPartitionTableUpdateCreate, self).setUp()
-        self.file = tempfile.NamedTemporaryFile(delete=True)
-        self.file.write("This is a test partition table file")
         self.content = "Fake ptable"
         self.name = generate_name(6)
         self.args = {'name': self.name,
-                     'os-family': 'Redhat',
-                     'file': self.file.name,
                      'content': self.content}
-        ssh.upload_file(self.file.name, remote_file=self.file.name)
 
     def tearDown(self):
         """Remove the file"""
-        self.file.close()
 
     def test_create_ptable(self):
         """
@@ -67,8 +59,6 @@ class TestPartitionTableUpdateCreate(CLITestCase):
 
         nw_nm = generate_name(6)
         args = {'name': self.name,
-                'os-family': 'Redhat',
-                'file': self.file.name,
                 'new-name': nw_nm}
         result = PartitionTable().update(args)
         self.assertEqual(result.return_code, 0, "Failed to update object")
