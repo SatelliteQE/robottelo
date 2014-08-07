@@ -10,7 +10,7 @@ from robottelo.cli.factory import (
     CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
 from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -33,7 +33,7 @@ class TestProduct(CLITestCase):
         if TestProduct.org is None:
             TestProduct.org = make_org()
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -73,7 +73,7 @@ class TestProduct(CLITestCase):
             len(result.stdout['label']), 0, "Label not automatically created"
         )
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15),
          u'label': generate_string('alpha', 15)},
@@ -120,7 +120,7 @@ class TestProduct(CLITestCase):
             result.stdout['label'], new_product['label'], "Labels don't match"
         )
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15),
          u'description': generate_string('alpha', 15)},
@@ -169,7 +169,7 @@ class TestProduct(CLITestCase):
             "Descriptions don't match"
         )
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -214,7 +214,7 @@ class TestProduct(CLITestCase):
             new_gpg_key['id'],
             "GPG Keys don't match")
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -306,7 +306,7 @@ class TestProduct(CLITestCase):
                 }
             )
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'description': generate_string('alpha', 15)},
         {u'description': generate_string('alphanumeric', 15)},
@@ -366,7 +366,7 @@ class TestProduct(CLITestCase):
             "Descriptions should not match"
         )
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -460,7 +460,7 @@ class TestProduct(CLITestCase):
             first_gpg_key['id'],
             "GPG Keys should not match")
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -555,7 +555,7 @@ class TestProduct(CLITestCase):
             first_sync_plan['id'],
             "Sync plans should not match")
 
-    @skip_if_bz_bug_open('1096320')
+    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -653,7 +653,7 @@ class TestProduct(CLITestCase):
             result.stdout['sync-plan-id'], sync_plan['id'],
             "Info should have consistent sync ids.")
 
-    @skip_if_bz_bug_open('1121136')
+    @skip_if_bug_open('bugzilla', 1121136)
     @attr('cli', 'product')
     def test_remove_syncplan_1(self):
         """

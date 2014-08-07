@@ -6,7 +6,7 @@ Test class for Smart Class Parameter CLI.
 """
 
 from robottelo.cli.smartclass import SmartClassParameter
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common import ssh
 from robottelo.test import CLITestCase
 
@@ -24,7 +24,7 @@ class TestSmartClassParameter(CLITestCase):
 
         ssh.command('puppet module install --force puppetlabs/ntp')
 
-    @skip_if_bz_bug_open('1047794')
+    @skip_if_bug_open('bugzilla', 1047794)
     def test_bugzilla_1047794(self):
         """
         @Test: Check if SmartClass Paramter Info generates an error

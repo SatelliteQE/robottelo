@@ -6,7 +6,7 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
@@ -512,7 +512,7 @@ class TestContentView(APITestCase):
         @status: Manual
         """
 
-    @skip_if_bz_bug_open('1094758')
+    @skip_if_bug_open('bugzilla', 1094758)
     def test_custom_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)

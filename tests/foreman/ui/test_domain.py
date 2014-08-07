@@ -6,7 +6,7 @@ Test class for Domain UI
 """
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
@@ -193,7 +193,7 @@ class Domain(UITestCase):
             except Exception as e:
                 self.fail(e)
 
-    @skip_if_bz_bug_open(1120685)
+    @skip_if_bug_open('bugzilla', 1120685)
     def test_set_parameter_negative_1(self):
         """
         @Test: Set a paramter in a domain with blank value.
@@ -238,7 +238,7 @@ class Domain(UITestCase):
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators["alert.error"]))
 
-    @skip_if_bz_bug_open("1123360")
+    @skip_if_bug_open('bugzilla', 1123360)
     def test_set_parameter_negative_3(self):
         """
         @Test: Again set the same paramter for domain with name and value.

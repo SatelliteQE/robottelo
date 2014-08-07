@@ -9,7 +9,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_org, make_host_collection
 from robottelo.cli.hostcollection import HostCollection
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -149,7 +149,7 @@ class TestHostCollection(CLITestCase):
         with self.assertRaises(Exception):
             self._new_host_collection({'name': test_data['name']})
 
-    @skip_if_bz_bug_open('1084240')
+    @skip_if_bug_open('bugzilla', 1084240)
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -219,7 +219,7 @@ class TestHostCollection(CLITestCase):
             "Names should not match"
         )
 
-    @skip_if_bz_bug_open('1084240')
+    @skip_if_bug_open('bugzilla', 1084240)
     @data(
         {'description': generate_string('alpha', 15)},
         {'description': generate_string('alphanumeric', 15)},
@@ -289,7 +289,7 @@ class TestHostCollection(CLITestCase):
             "Descriptions should not match"
         )
 
-    @skip_if_bz_bug_open('1084240')
+    @skip_if_bug_open('bugzilla', 1084240)
     @data('3', '6', '9', '12', '15', '17', '19')
     @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):

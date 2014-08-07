@@ -5,7 +5,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
@@ -51,7 +51,7 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @skip_if_bz_bug_open("1120271")
+    @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=255))
     def test_create_resource_2(self, name):
@@ -90,7 +90,7 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @skip_if_bz_bug_open("1120271")
+    @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_1(self, name):
@@ -109,7 +109,7 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @skip_if_bz_bug_open("1120271")
+    @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_2(self, description):
@@ -166,7 +166,7 @@ class ComputeResource(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    @skip_if_bz_bug_open("1123352")
+    @skip_if_bug_open('bugzilla', 1123352)
     @attr('ui', 'resource', 'implemented')
     @data({'name': generate_string('alpha', 10),
            'newname': generate_string('alpha', 10)},

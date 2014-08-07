@@ -8,7 +8,7 @@ proxy class for Smart proxy CLI
 from ddt import ddt
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
-from robottelo.common.decorators import data, skip_if_rm_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 import random
@@ -17,7 +17,7 @@ import random
 @ddt
 class TestProxy(CLITestCase):
 
-    @skip_if_rm_bug_open('3875')
+    @skip_if_bug_open('redmine', 3875)
     def test_redmine_3875(self):
         """
         @Test: Proxy creation with random URL

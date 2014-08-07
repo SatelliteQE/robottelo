@@ -18,7 +18,6 @@ else:
 
 
 from ddt import data as ddt_data
-from functools import wraps
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common import conf
 from xml.parsers.expat import ExpatError, errors
@@ -105,7 +104,7 @@ def _get_bugzilla_bug(bug_id):
     """
     # Is bug ``bug_id`` in the cache?
     if bug_id in _bugzilla:
-        logging.info('Bugzilla bug {0} found in cache.'.format(bug_id))
+        logging.debug('Bugzilla bug {0} found in cache.'.format(bug_id))
     else:
         logging.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
@@ -129,60 +128,6 @@ def _get_bugzilla_bug(bug_id):
             )
 
     return _bugzilla[bug_id]
-
-
-def skip_if_bz_bug_open(bug_id):
-    """A decorator that returns a customized decorator.
-
-    The customized decorator will either run or skip its decorated function
-    based on the status of Bugzilla bug ``bug_id``.
-
-    ``skip_if_bz_bug_open`` should only be applied to methods in a
-    ``unittest.TestCase`` subclass.
-
-    :param str bug_id: The ID of a bug in the Bugzilla database.
-    :return: A customized decorator function.
-    :rtype: function
-
-    """
-    def decorator(decorated_func):
-        """Make ``decorated_func`` available through ``wrapper``.
-
-        The ``wrapper`` function exists to prevent the business logic contained
-        therein from executing when this decorator is evaluated.
-
-        :param function decorated_func: The function to be wrapped.
-        :return: A function decorated with ``wrapper``.
-        :rtype: function
-
-        """
-        @wraps(decorated_func)
-        def wrapper(*args, **kwargs):
-            """Run ``decorated_func`` or skip it by raising an exception.
-
-            If information about bug ``bug_id`` can be fetched and the bug is
-            open, skip test ``decorated_func``. Otherwise, run the test.
-
-            :return: The return value of function ``decorated_func``.
-            :raises unittest.SkipTest: If bug ``bug_id`` is open.
-
-            """
-            # Fetch info about bug `bug_id`.
-            bug = None
-            try:
-                bug = _get_bugzilla_bug(bug_id)
-            except BugFetchError as err:
-                logging.warning(err.message)
-
-            # Skip or run the test.
-            if bug is not None and bug.status in BUGZILLA_OPEN_BUG_STATUSES:
-                raise unittest.SkipTest(
-                    'Skipping test due to open bug report: {0}'.format(bug)
-                )
-            return decorated_func(*args, **kwargs)
-
-        return wrapper
-    return decorator
 
 
 # FIXME: It would be better to collect a list of statuses which indicate an
@@ -221,7 +166,7 @@ def _get_redmine_bug_status_id(bug_id):
 
     """
     if bug_id in _redmine['issues']:
-        logging.info('Redmine bug {0} found in cache.'.format(bug_id))
+        logging.debug('Redmine bug {0} found in cache.'.format(bug_id))
     else:
         # Get info about bug.
         logging.info('Redmine bug {0} not in cache. Fetching.'.format(bug_id))
@@ -246,56 +191,79 @@ def _get_redmine_bug_status_id(bug_id):
     return _redmine['issues'][bug_id]
 
 
-def skip_if_rm_bug_open(bug_id):
-    """A decorator that returns a customized decorator.
+class BugTypeError(Exception):
+    """Indicates that an incorrect bug type was specified."""
 
-    The customized decorator will either run or skip its decorated function
-    based on the status of Redmine bug ``bug_id``.
 
-    ``skip_if_bz_bug_open`` should only be applied to methods in a
-    ``unittest.TestCase`` subclass.
+class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
+    """A decorator that can be used to skip a unit test."""
 
-    :param str bug_id: The ID of a bug in the Redmine database.
-    :return: A customized decorator function.
-    :rtype: function
+    def __init__(self, bug_type, bug_id):
+        """Record decorator arguments.
 
-    """
-    def decorator(decorated_func):
-        """Make ``decorated_func`` available through ``wrapper``.
-
-        The ``wrapper`` function exists to prevent the business logic contained
-        therein from executing when this decorator is evaluated.
-
-        :param function decorated_func: The function to be wrapped.
-        :return: A function decorated with ``wrapper``.
-        :rtype: function
+        :param str bug_type: Either 'bugzilla' or 'redmine'.
+        :param int bug_id: The ID of the bug to check when the decorator is
+            run.
 
         """
-        @wraps(decorated_func)
-        def wrapper(*args, **kwargs):
-            """Run ``decorated_func`` or skip it by raising an exception.
+        self.bug_type = bug_type
+        self.bug_id = bug_id
+
+    def __call__(self, func):
+        """Define and return a replacement for ``func``.
+
+        :param func: The function being decorated.
+
+        """
+        def wrapper_func(*args, **kwargs):
+            """Run ``func`` or skip it by raising an exception.
 
             If information about bug ``bug_id`` can be fetched and the bug is
-            open, skip test ``decorated_func``. Otherwise, run the test.
+            open, skip test ``func``. Otherwise, run the test.
 
-            :return: The return value of function ``decorated_func``.
+            :return: The return value of test method ``func``.
             :raises unittest.SkipTest: If bug ``bug_id`` is open.
+            :raises BugTypeError: If ``bug_type`` is not recognized.
 
             """
-            # Fetch status ID of bug `bug_id`.
-            status_id = None
-            try:
-                status_id = _get_redmine_bug_status_id(bug_id)
-            except BugFetchError as err:
-                logging.warning(err.message)
+            if self.bug_type == 'redmine':
+                # Fetch info about bug `bug_id`.
+                status_id = None
+                try:
+                    status_id = _get_redmine_bug_status_id(self.bug_id)
+                except BugFetchError as err:
+                    logging.warning(err.message)
+                # Skip or run the test.
+                if status_id is not None and \
+                        status_id not in _redmine_closed_issue_statuses():
+                    raise unittest.SkipTest(
+                        'Skipping test due to open Redmine bug #{0}.'
+                        ''.format(self.bug_id)
+                    )
 
-            # Skip or run the test.
-            if status_id is not None \
-                    and status_id not in _redmine_closed_issue_statuses():
-                raise unittest.SkipTest(
-                    'Skipping test due to open Redmine bug #{0}'.format(bug_id)
+            elif self.bug_type == 'bugzilla':
+                # Fetch info about bug `bug_id`.
+                bug = None
+                try:
+                    bug = _get_bugzilla_bug(self.bug_id)
+                except BugFetchError as err:
+                    logging.warning(err.message)
+                # Skip or run the test.
+                if bug is not None and \
+                        bug.status in BUGZILLA_OPEN_BUG_STATUSES:
+                    raise unittest.SkipTest(
+                        'Skipping test due to open bug report: {0}.'
+                        ''.format(bug)
+                    )
+
+            else:
+                raise BugTypeError(
+                    '"{0}" is not a recognized bug type. Did you mean '
+                    '"bugzilla" or "redmine"?'.format(self.bug_type)
                 )
-            return decorated_func(*args, **kwargs)
 
-        return wrapper
-    return decorator
+            # Run the test method.
+            return func(*args, **kwargs)
+
+        # This function replaces what is being decorated.
+        return wrapper_func

@@ -16,7 +16,7 @@ else:
 from ddt import ddt
 from robottelo.common.constants import (FILTER_CONTENT_TYPE, FILTER_TYPE,
                                         REPO_TYPE, NOT_IMPLEMENTED)
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, invalid_names_list,
                                       valid_names_list)
 from robottelo.ui.factory import make_org
@@ -63,7 +63,7 @@ class TestContentViewsUI(UITestCase):
         self.content_views.create(cv_name)
         self.assertIsNotNone(self.content_views.search(cv_name))
 
-    @skip_if_bz_bug_open('1083086')
+    @skip_if_bug_open('bugzilla', 1083086)
     @data(*valid_names_list())
     def test_cv_create(self, name):
         """
@@ -82,7 +82,7 @@ class TestContentViewsUI(UITestCase):
                 'Failed to find content view %s from %s org' % (
                     name, self.org_name))
 
-    @skip_if_bz_bug_open('1083086')
+    @skip_if_bug_open('bugzilla', 1083086)
     @data(*invalid_names_list())
     def test_cv_create_negative(self, name):
         # variations (subject to change):

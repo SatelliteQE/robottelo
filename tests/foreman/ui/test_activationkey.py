@@ -14,7 +14,7 @@ else:
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import ENVIRONMENT, NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, invalid_names_list,
                                       valid_names_list)
 from robottelo.ui.factory import make_org
@@ -80,7 +80,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.content_views.wait_until_element
                         (common_locators["alert.success"]))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_1(self, name):
@@ -100,7 +100,7 @@ class ActivationKey(UITestCase):
                                   description=generate_string("alpha", 16))
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_create_activation_key_2(self, description):
@@ -180,7 +180,7 @@ class ActivationKey(UITestCase):
                                   content_view=cv_name)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_activation_key_5(self):
         """
@@ -195,7 +195,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """
@@ -215,7 +215,7 @@ class ActivationKey(UITestCase):
         self.activationkey.create(name, ENVIRONMENT, description=description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """
@@ -236,7 +236,7 @@ class ActivationKey(UITestCase):
         self.activationkey.create(name, ENVIRONMENT, limit, description)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """
@@ -255,7 +255,7 @@ class ActivationKey(UITestCase):
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1083471')
+    @skip_if_bug_open('bugzilla', 1083471)
     @data(*invalid_names_list())
     def test_negative_create_activation_key_1(self, name):
         """
@@ -276,7 +276,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1083438')
+    @skip_if_bug_open('bugzilla', 1083438)
     def test_negative_create_activation_key_2(self):
         """
         @Feature: Activation key - Negative Create
@@ -297,7 +297,7 @@ class ActivationKey(UITestCase):
                         (common_locators["common_haserror"]))
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1083027')
+    @skip_if_bug_open('bugzilla', 1083027)
     @data(*invalid_names_list())
     def test_negative_create_activation_key_3(self, limit):
         """
@@ -429,7 +429,7 @@ class ActivationKey(UITestCase):
         self.activationkey.delete(name, True)
         self.assertIsNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1063273')
+    @skip_if_bug_open('bugzilla', 1063273)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_5(self):
         """
@@ -444,7 +444,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open(1117753)
+    @skip_if_bug_open('bugzilla', 1117753)
     def test_positive_delete_activation_key_6(self):
         """
         @Feature: Activation key - Positive Delete
@@ -500,7 +500,7 @@ class ActivationKey(UITestCase):
         self.activationkey.delete(name, really=False)
         self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_1(self, new_name):
@@ -523,7 +523,7 @@ class ActivationKey(UITestCase):
         self.activationkey.update(name, new_name)
         self.assertIsNotNone(self.activationkey.search_key(new_name))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_2(self, new_description):
@@ -548,7 +548,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @skip_if_bz_bug_open('1089637')
+    @skip_if_bug_open('bugzilla', 1089637)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_update_activation_key_3(self, env_name):
@@ -626,7 +626,7 @@ class ActivationKey(UITestCase):
         self.assertEqual(cv2_name, selected_cv)
         # TODO: Need to check for RH Product too
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """
@@ -650,7 +650,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @skip_if_bz_bug_open('1127090')
+    @skip_if_bug_open('bugzilla', 1127090)
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """
@@ -675,7 +675,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @skip_if_bz_bug_open('1083875')
+    @skip_if_bug_open('bugzilla', 1083875)
     @data(*invalid_names_list())
     def test_negative_update_activation_key_1(self, new_name):
         """
@@ -700,7 +700,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(invalid)
         self.assertIsNone(self.activationkey.search_key(new_name))
 
-    @skip_if_bz_bug_open('1110486')
+    @skip_if_bug_open('bugzilla', 1110486)
     def test_negative_update_activation_key_2(self):
         """
         @Feature: Activation key - Negative Update
@@ -724,7 +724,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.error"]))
 
-    @skip_if_bz_bug_open('1083027')
+    @skip_if_bug_open('bugzilla', 1083027)
     @data(*invalid_names_list())
     def test_negative_update_activation_key_3(self, limit):
         """
@@ -748,7 +748,7 @@ class ActivationKey(UITestCase):
                                                         ["ak.invalid_limit"])
         self.assertTrue(invalid)
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_usage_limit(self):
         """
@@ -765,7 +765,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
         """
@@ -781,7 +781,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_1(self):
         """
@@ -854,7 +854,7 @@ class ActivationKey(UITestCase):
         self.assertTrue(self.activationkey.wait_until_element
                         (common_locators["alert.success"]))
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
         """
@@ -870,7 +870,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_delete_manifest(self):
         """
@@ -886,7 +886,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_multiple_activation_keys_to_system(self):
         """
@@ -901,7 +901,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1078676')
+    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):
         """

@@ -13,8 +13,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import (data, skip_if_bz_bug_open,
-                                         skip_if_rm_bug_open, stubbed)
+from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import (generate_name, generate_string,
                                       get_data_file)
 from tempfile import mkstemp
@@ -94,7 +93,7 @@ class TestGPGKey(CLITestCase):
 
     # Bug verification
 
-    @skip_if_rm_bug_open('4271')
+    @skip_if_bug_open('redmine', 4271)
     def test_redmine_4271(self):
         """
         @Test: cvs output for gpg subcommand doesn\'t work
@@ -126,7 +125,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
-    @skip_if_rm_bug_open('4272')
+    @skip_if_bug_open('redmine', 4272)
     def test_redmine_4272(self):
         """
         @Test: gpg info should display key content
@@ -161,7 +160,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(
             result.stdout['content'], content)
 
-    @skip_if_bz_bug_open('1108227')
+    @skip_if_bug_open('bugzilla', 1108227)
     def test_bugzilla_1108227(self):
         """
         @Test: Hammer fails to get a gpg info by name

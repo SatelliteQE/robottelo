@@ -10,7 +10,7 @@ Test class for Locations UI
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common import conf
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
@@ -65,7 +65,7 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
 
-    @skip_if_bz_bug_open("1123818")
+    @skip_if_bug_open('bugzilla', 1123818)
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list(len1=247))
     def test_negative_create_1(self, loc_name):
@@ -147,7 +147,7 @@ class Location(UITestCase):
 
     # Negative Update
 
-    @skip_if_bz_bug_open("1123818")
+    @skip_if_bug_open('bugzilla', 1123818)
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, loc_name):

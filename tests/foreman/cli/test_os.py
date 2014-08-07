@@ -11,8 +11,7 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.template import Template
 from robottelo.cli.factory import (make_architecture, make_os,
                                    make_partition_table, make_template)
-from robottelo.common.decorators import (data, skip_if_bz_bug_open,
-                                         skip_if_rm_bug_open)
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -92,7 +91,7 @@ class TestOperatingSystem(CLITestCase):
     """
 
     # Issues
-    @skip_if_rm_bug_open('4547')
+    @skip_if_bug_open('redmine', 4547)
     def test_redmine_4547(self):
         """
         @test: Search for newly created OS by name
@@ -113,7 +112,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertGreater(len(result.stdout), length)
         self.assertEqual(result.return_code, 0)
 
-    @skip_if_bz_bug_open('1051557')
+    @skip_if_bug_open('bugzilla', 1051557)
     def test_bugzilla_1051557(self):
         """
         @test: Update an Operating System's major version.

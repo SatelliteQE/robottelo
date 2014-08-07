@@ -1,13 +1,13 @@
 from itertools import izip
 from robottelo.common import ssh
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
 class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
-    @skip_if_bz_bug_open(1094826)
+    @skip_if_bug_open('bugzilla', 1094826)
     def test_hammer_ping(self):
         """
         @test: hammer ping return code

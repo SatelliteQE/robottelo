@@ -7,7 +7,7 @@ Test class for Template UI
 from ddt import ddt
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       generate_strings_list)
 from robottelo.test import UITestCase
@@ -52,7 +52,7 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(name))
 
-    @skip_if_bz_bug_open("1121521")
+    @skip_if_bug_open('bugzilla', 1121521)
     def test_negative_create_template_1(self):
         """
         @Test: Template - Create a new template with 256 characters in name

@@ -20,7 +20,7 @@ from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
-from robottelo.common.decorators import skip_if_bz_bug_open, stubbed
+from robottelo.common.decorators import skip_if_bug_open, stubbed
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_org, make_templates, make_domain, make_user, make_hostgroup,
@@ -156,7 +156,7 @@ class Org(UITestCase):
                 label_loc).get_attribute("value")
             self.assertEqual(name, label)
 
-    @skip_if_bz_bug_open("1079482")
+    @skip_if_bug_open('bugzilla', 1079482)
     @attr('ui', 'org', 'implemented')
     @data({'name': generate_string('alpha', 10),
            'desc': generate_string('alpha', 10)},

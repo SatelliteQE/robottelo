@@ -5,7 +5,7 @@
 Test class for Roles UI
 """
 
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import generate_name
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
@@ -73,7 +73,7 @@ class Role(UITestCase):
                          resource_type=resource_type,
                          permission_list=permission_list)
 
-    @skip_if_bz_bug_open(1122898)
+    @skip_if_bug_open('bugzilla', 1122898)
     def test_update_role_org(self):
         """
         @Feature: Role - Positive Update

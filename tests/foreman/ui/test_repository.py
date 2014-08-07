@@ -6,7 +6,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import (VALID_GPG_KEY_BETA_FILE,
                                         VALID_GPG_KEY_FILE)
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string,
                                       generate_strings_list, get_data_file)
 from robottelo.test import UITestCase
@@ -121,7 +121,7 @@ class Repos(UITestCase):
             invalid = self.products.wait_until_element(locator)
             self.assertTrue(invalid)
 
-    @skip_if_bz_bug_open("1081059")
+    @skip_if_bug_open('bugzilla', 1081059)
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, repo_name):

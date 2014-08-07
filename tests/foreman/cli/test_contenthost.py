@@ -15,7 +15,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -201,7 +201,7 @@ class TestContentHost(CLITestCase):
             "Content views don't match"
         )
 
-    @skip_if_bz_bug_open('1107319')
+    @skip_if_bug_open('bugzilla', 1107319)
     @attr('cli', 'content-host')
     def test_positive_create_6(self):
         """
@@ -222,7 +222,7 @@ class TestContentHost(CLITestCase):
             "Lifecycle environments don't match"
         )
 
-    @skip_if_bz_bug_open(1114046)
+    @skip_if_bug_open('bugzilla', 1114046)
     @attr('cli', 'content-host')
     def test_positive_create_7(self):
         """
