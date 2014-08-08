@@ -175,6 +175,10 @@ menu_locators = {
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_lookup_keys']")),
+    "menu.configure_groups": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_config_groups']")),
 
     # Infrastructure Menu
     "menu.infrastructure": (
@@ -1540,4 +1544,16 @@ locators = {
     "settings.save": (
         By.XPATH,
         ("//td[@class='setting_value']"
-         "/span/form/button[@type='submit']"))}
+         "/span/form/button[@type='submit']")),
+
+    # Config Groups
+    "config_groups.new": (
+        By.XPATH, "//a[@data-id='aid_config_groups_new']"),
+    "config_groups.name": (
+        By.XPATH, "//input[@id='config_group_name']"),
+    "config_groups.select_name": (
+        By.XPATH, "//a[contains(.,'%s') and contains(@href, 'edit')]"),
+    "config_groups.dropdown": (
+        By.XPATH, "//a[@data-toggle='dropdown']"),
+    "config_groups.delete": (
+        By.XPATH, "//a[contains(@data-id, '%s') and @class='delete']")}

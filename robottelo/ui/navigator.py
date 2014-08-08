@@ -241,7 +241,14 @@ class Navigator(Base):
 
     def go_to_smart_variables(self):
         self.menu_click(
-            menu_locators['menu.configure'], menu_locators['menu.'],
+            menu_locators['menu.configure'],
+            menu_locators['menu.smart_variables'],
+        )
+
+    def go_to_config_groups(self):
+        self.menu_click(
+            menu_locators['menu.configure'],
+            menu_locators['menu.configure_groups']
         )
 
     def go_to_smart_proxies(self):
