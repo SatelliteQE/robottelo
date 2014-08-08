@@ -2,12 +2,18 @@
 from ddt import data, ddt
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
+
+
+BZ_1118015_ENTITIES = (
+    entities.Architecture, entities.ContentView, entities.GPGKey,
+    entities.OperatingSystem, entities.Repository
+)
 
 
 @ddt
@@ -82,6 +88,8 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
         """
+        if entity in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
+            self.skipTest("Bugzilla bug 1118015 is open.""")
         path = entity().path()
         response = client.post(
             path,
