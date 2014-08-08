@@ -191,6 +191,48 @@ def _get_redmine_bug_status_id(bug_id):
     return _redmine['issues'][bug_id]
 
 
+def bz_bug_is_open(bug_id):
+    """Tell whether Bugzilla bug ``bug_id`` is open.
+
+    If information about bug ``bug_id`` cannot be fetched, the bug is assumed
+    to be closed.
+
+    :param bug_id: The ID of the bug being inspected.
+    :return: ``True`` if the bug is open. ``False`` otherwise.
+    :rtype: bool
+
+    """
+    bug = None
+    try:
+        bug = _get_bugzilla_bug(bug_id)
+    except BugFetchError as err:
+        logging.warning(err.message)
+    if bug is None or bug.status not in BUGZILLA_OPEN_BUG_STATUSES:
+        return False
+    return True
+
+
+def rm_bug_is_open(bug_id):
+    """Tell whether Redmine bug ``bug_id`` is open.
+
+    If information about bug ``bug_id`` cannot be fetched, the bug is assumed
+    to be closed.
+
+    :param bug_id: The ID of the bug being inspected.
+    :return: ``True`` if the bug is open. ``False`` otherwise.
+    :rtype: bool
+
+    """
+    status_id = None
+    try:
+        status_id = _get_redmine_bug_status_id(bug_id)
+    except BugFetchError as err:
+        logging.warning(err.message)
+    if status_id is None or status_id in _redmine_closed_issue_statuses():
+        return False
+    return True
+
+
 class BugTypeError(Exception):
     """Indicates that an incorrect bug type was specified."""
 
@@ -226,42 +268,21 @@ class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
             :raises BugTypeError: If ``bug_type`` is not recognized.
 
             """
-            if self.bug_type == 'redmine':
-                # Fetch info about bug `bug_id`.
-                status_id = None
-                try:
-                    status_id = _get_redmine_bug_status_id(self.bug_id)
-                except BugFetchError as err:
-                    logging.warning(err.message)
-                # Skip or run the test.
-                if status_id is not None and \
-                        status_id not in _redmine_closed_issue_statuses():
-                    raise unittest.SkipTest(
-                        'Skipping test due to open Redmine bug #{0}.'
-                        ''.format(self.bug_id)
-                    )
-
-            elif self.bug_type == 'bugzilla':
-                # Fetch info about bug `bug_id`.
-                bug = None
-                try:
-                    bug = _get_bugzilla_bug(self.bug_id)
-                except BugFetchError as err:
-                    logging.warning(err.message)
-                # Skip or run the test.
-                if bug is not None and \
-                        bug.status in BUGZILLA_OPEN_BUG_STATUSES:
-                    raise unittest.SkipTest(
-                        'Skipping test due to open bug report: {0}.'
-                        ''.format(bug)
-                    )
-
-            else:
+            if self.bug_type not in ('bugzilla', 'redmine'):
                 raise BugTypeError(
                     '"{0}" is not a recognized bug type. Did you mean '
                     '"bugzilla" or "redmine"?'.format(self.bug_type)
                 )
-
+            if self.bug_type == 'bugzilla' and bz_bug_is_open(self.bug_id):
+                raise unittest.SkipTest(
+                    'Skipping test due to open Bugzilla bug #{0}.'
+                    ''.format(self.bug_id)
+                )
+            if self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id):
+                raise unittest.SkipTest(
+                    'Skipping test due to open Redmine bug #{0}.'
+                    ''.format(self.bug_id)
+                )
             # Run the test method.
             return func(*args, **kwargs)
 
