@@ -3,7 +3,7 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import data, skip_if_rm_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.records.user import User
 from robottelo.test import APITestCase
 
@@ -35,9 +35,9 @@ class TestUser(APITestCase):
 
         ApiCrud.record_create_recursive(test_data)
 
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
-    @skip_if_rm_bug_open('4296')
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
+    @skip_if_bug_open('redmine', 4296)
     @data(*User.enumerate())
     def test_remove_user_1(self, test_data):
         """
@@ -54,9 +54,9 @@ class TestUser(APITestCase):
         ur = ApiCrud.record_update(u)
         self.assertFalse("organizations" in ur)
 
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
-    @skip_if_rm_bug_open('4296')
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
+    @skip_if_bug_open('redmine', 4296)
     @data(*User.enumerate(admin=True))
     def test_remove_user_3(self, test_data):
         """

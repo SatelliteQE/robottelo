@@ -16,7 +16,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
+from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -633,7 +633,7 @@ class TestContentView(CLITestCase):
                 new_repo['name'],
                 "No new entry of same repo is expected")
 
-    @skip_if_bz_bug_open('1089905')
+    @skip_if_bug_open('bugzilla', 1089905)
     def test_cv_associate_composite_dupe_modules_negative(self):
         """
         @test: attempt to associate duplicate puppet module(s) within a
@@ -930,7 +930,7 @@ class TestContentView(CLITestCase):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here.")
 
-    @skip_if_bz_bug_open('1091494')
+    @skip_if_bug_open('bugzilla', 1091494)
     def test_cv_promote_badenvironment_negative(self):
         """
         @test: attempt to promote a content view using an invalid environment

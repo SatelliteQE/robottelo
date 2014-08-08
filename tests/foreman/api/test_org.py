@@ -5,7 +5,7 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
+from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import STR
 from robottelo.common.records.base import NoEnum
 from robottelo.common.records.fields import BasicPositiveField
@@ -148,7 +148,7 @@ class TestOrganization(APITestCase):
     # Positive Delete
 
     @stubbed('Organization deletion is disabled')
-    @skip_if_bz_bug_open('1061658')
+    @skip_if_bug_open('bugzilla', 1061658)
     @data(*Organization.enumerate())
     def test_positive_delete_1(self, test_data):
         """
@@ -196,7 +196,7 @@ class TestOrganization(APITestCase):
         org.description = test_data.description
         ApiCrud.record_update(org)
 
-    @skip_if_bz_bug_open('1061658')
+    @skip_if_bug_open('bugzilla', 1061658)
     @data(*Organization.enumerate())
     def test_positive_update_4(self, test_data):
         """
@@ -273,7 +273,7 @@ class TestOrganization(APITestCase):
         orgs = ApiCrud.record_list(org)
         self.assertTrue(any(org.name == ol.name for ol in orgs))
 
-    @skip_if_bz_bug_open('1072905')
+    @skip_if_bug_open('bugzilla', 1072905)
     @data(*Organization.enumerate())
     def test_search_key_1(self, test_data):
         """
@@ -287,7 +287,7 @@ class TestOrganization(APITestCase):
         org_res = ApiCrud.record_resolve(test_data)
         self.assertEqual(org_res.name, test_data.name)
 
-    @skip_if_bz_bug_open('1072905')
+    @skip_if_bug_open('bugzilla', 1072905)
     @data(*Organization.enumerate(exclude=[STR.html]))
     def test_search_name_1(self, test_data):
         """

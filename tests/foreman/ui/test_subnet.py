@@ -7,7 +7,7 @@ Test class for Subnet UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_ipaddr, generate_string,
                                       generate_strings_list)
 from robottelo.ui.factory import (make_org, make_loc,
@@ -54,7 +54,7 @@ class Subnet(UITestCase):
                         subnet_mask=mask)
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
 
-    @skip_if_bz_bug_open("1123815")
+    @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=255))
     def test_create_subnet_2(self, name):
@@ -96,7 +96,7 @@ class Subnet(UITestCase):
                                                       value % domain_name))
             self.assertIsNotNone(element)
 
-    @skip_if_bz_bug_open("1123815")
+    @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_subnet_negative_1(self, name):

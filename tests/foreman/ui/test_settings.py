@@ -6,7 +6,7 @@ Test class for Setting Parameter values
 """
 
 from ddt import ddt
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
@@ -56,7 +56,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125181)
+    @skip_if_bug_open('bugzilla', 1125181)
     @data({u'param_value': generate_string("latin1", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("utf8", 10) +
@@ -109,7 +109,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"},
@@ -156,7 +156,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(param_value, saved_element)
 
-    @skip_if_bz_bug_open(1125181)
+    @skip_if_bug_open('bugzilla', 1125181)
     @data({u'param_value': generate_string("latin1", 10) +
            "@somemail.com"},
           {u'param_value': generate_string("utf8", 10) +
@@ -231,7 +231,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"},
@@ -281,7 +281,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"},
@@ -356,7 +356,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': "http://\\" + generate_string("alpha", 10) +
            ".dom.com"},
           {u'param_value': "http://" + generate_string("utf8", 10) +
@@ -573,7 +573,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': "http://\\" + generate_string("alpha", 10) +
            ".dom.com"},
           {u'param_value': "http://" + generate_string("utf8", 10) +
@@ -628,7 +628,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"},
@@ -765,7 +765,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @skip_if_bz_bug_open(1125156)
+    @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"})

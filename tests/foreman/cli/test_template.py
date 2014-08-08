@@ -7,7 +7,7 @@ Test class for Template CLI
 
 from robottelo.cli.factory import CLIFactoryError, make_template, make_os
 from robottelo.cli.template import Template
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -192,7 +192,7 @@ class TestTemplate(CLITestCase):
         template_content = Template.dump({'id': new_obj['id']})
         self.assertIn(content, template_content.stdout[0])
 
-    @skip_if_bz_bug_open('1096333')
+    @skip_if_bug_open('bugzilla', 1096333)
     def test_delete_template_1(self):
         """
         @Test: Check if Template can be deleted

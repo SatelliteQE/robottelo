@@ -7,7 +7,7 @@ can be found here: http://theforeman.org/api/apidoc/v2/activation_keys.html
 from ddt import data, ddt
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.factory import FactoryError
 from robottelo import entities
@@ -75,7 +75,7 @@ class ActivationKeysTestCase(TestCase):
         StringField(str_type=('cjk',)).get_value(),
         StringField(str_type=('latin1',)).get_value(),
     )
-    @skip_if_bz_bug_open(1127335)
+    @skip_if_bug_open('bugzilla', 1127335)
     def test_positive_create_3(self, name):
         """
         @Test Create an activationkey providing the initial name.

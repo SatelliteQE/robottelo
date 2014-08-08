@@ -10,7 +10,7 @@ from robottelo.common.constants import (INSTALL_MEDIUM_URL,
                                         OS_TEMPLATE_DATA_FILE,
                                         PARTITION_SCRIPT_DATA_FILE)
 from robottelo.common.decorators import data
-from robottelo.common.decorators import skip_if_bz_bug_open
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import generate_string, get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc, make_os,
@@ -58,7 +58,7 @@ class OperatingSys(UITestCase):
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.search(name))
 
-    @skip_if_bz_bug_open('1120568')
+    @skip_if_bug_open('bugzilla', 1120568)
     @data({u'name': generate_string('alpha', 10),
            u'major_version': generate_string('numeric', 1),
            u'minor_version': generate_string('numeric', 1),
@@ -96,7 +96,7 @@ class OperatingSys(UITestCase):
                     os_family=test_data['os_family'], archs=[arch])
             self.assertIsNotNone(self.operatingsys.search(test_data['name']))
 
-    @skip_if_bz_bug_open(1120181)
+    @skip_if_bug_open('bugzilla', 1120181)
     def test_negative_create_os_1(self):
         """
         @Test: OS - Create a new OS with 256 characters in name
@@ -221,7 +221,7 @@ class OperatingSys(UITestCase):
                                  (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
-    @skip_if_bz_bug_open(1120199)
+    @skip_if_bug_open('bugzilla', 1120199)
     def test_negative_create_os_7(self):
         """
         @Test: OS - Create a new OS with -ve value of major version
@@ -243,7 +243,7 @@ class OperatingSys(UITestCase):
                                  (common_locators["alert.error"]))
             self.assertIsNone(self.operatingsys.search(name))
 
-    @skip_if_bz_bug_open(1120985)
+    @skip_if_bug_open('bugzilla', 1120985)
     def test_negative_create_os_8(self):
         """
         @Test: OS - Create a new OS with same name and version
@@ -434,7 +434,7 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
 
-    @skip_if_bz_bug_open(1120663)
+    @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_parameter_1(self):
         """
         @Test: Set same OS parameter again as it was set earlier
@@ -460,7 +460,7 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["alert.error"]))
 
-    @skip_if_bz_bug_open(1120663)
+    @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_parameter_2(self):
         """
         @Test: Set OS parameter with blank name and value
@@ -484,7 +484,7 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["alert.error"]))
 
-    @skip_if_bz_bug_open(1120685)
+    @skip_if_bug_open('bugzilla', 1120685)
     def test_negative_set_parameter_3(self):
         """
         @Test: Set OS parameter with name and  blank value

@@ -4,7 +4,7 @@ Test class for Puppet Classes UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string, generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_puppetclasses
@@ -57,7 +57,7 @@ class PuppetClasses(UITestCase):
             search = self.puppetclasses.search(name)
             self.assertIsNotNone(search)
 
-    @skip_if_bz_bug_open(1126496)
+    @skip_if_bug_open('bugzilla', 1126496)
     @attr('ui', 'puppet-classes', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_negative_1(self, name):
@@ -123,7 +123,7 @@ class PuppetClasses(UITestCase):
             self.assertIsNotNone(search)
             self.puppetclasses.update(name, new_name)
 
-    @skip_if_bz_bug_open(1126473)
+    @skip_if_bug_open('bugzilla', 1126473)
     @attr('ui', 'puppet-classes', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):

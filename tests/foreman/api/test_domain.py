@@ -10,7 +10,7 @@ else:
 
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_rm_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.test import APITestCase
 
 
@@ -18,9 +18,9 @@ from robottelo.test import APITestCase
 class TestDomain(APITestCase):
     """Testing /api/organization entrypoint"""
 
-    @skip_if_rm_bug_open('4219')
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
+    @skip_if_bug_open('redmine', 4219)
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -43,9 +43,9 @@ class TestDomain(APITestCase):
 
     # Associations
 
-    @skip_if_rm_bug_open('4219')
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
+    @skip_if_bug_open('redmine', 4219)
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -67,9 +67,9 @@ class TestDomain(APITestCase):
 
         pass
 
-    @skip_if_rm_bug_open('4219')
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
+    @skip_if_bug_open('redmine', 4219)
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -91,9 +91,9 @@ class TestDomain(APITestCase):
 
         pass
 
-    @skip_if_rm_bug_open('4219')
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
+    @skip_if_bug_open('redmine', 4219)
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -115,9 +115,9 @@ class TestDomain(APITestCase):
 
         pass
 
-    @skip_if_rm_bug_open('4219')
-    @skip_if_rm_bug_open('4294')
-    @skip_if_rm_bug_open('4295')
+    @skip_if_bug_open('redmine', 4219)
+    @skip_if_bug_open('redmine', 4294)
+    @skip_if_bug_open('redmine', 4295)
     @unittest.skip(NOT_IMPLEMENTED)
     @data("""DATADRIVENGOESHERE
         domain name is alpha

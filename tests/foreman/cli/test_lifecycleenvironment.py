@@ -8,7 +8,7 @@ Test class for Host CLI
 from ddt import ddt
 from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -33,7 +33,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     # Issues validation
 
-    @skip_if_bz_bug_open('1077386')
+    @skip_if_bug_open('bugzilla', 1077386)
     def test_bugzilla_1077386(self):
         """
         @Test: List subcommand returns standard output
@@ -60,8 +60,8 @@ class TestLifeCycleEnvironment(CLITestCase):
             len(result.stdout), 0, "No output was returned"
         )
 
-    @skip_if_bz_bug_open('1077333')
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1077333)
+    @skip_if_bug_open('bugzilla', 1099655)
     def test_bugzilla_1077333(self):
         """
         @Test: Search lifecycle environment via its name containing UTF-8 chars
@@ -103,7 +103,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     # CRUD
 
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -151,7 +151,7 @@ class TestLifeCycleEnvironment(CLITestCase):
             "Could not find lifecycle environment \'%s\'" % new_obj['name']
         )
 
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -206,7 +206,7 @@ class TestLifeCycleEnvironment(CLITestCase):
             "Descriptions don't match"
         )
 
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -278,8 +278,8 @@ class TestLifeCycleEnvironment(CLITestCase):
             len(result.stderr), 0, "There should be an error here"
         )
 
-    @skip_if_bz_bug_open('1095937')
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1095937)
+    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': generate_string("alpha", 15)},
         {'name': generate_string("alphanumeric", 15)},
@@ -344,8 +344,8 @@ class TestLifeCycleEnvironment(CLITestCase):
             "Name should have been updated"
         )
 
-    @skip_if_bz_bug_open('1095937')
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1095937)
+    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'description': generate_string("alpha", 15)},
         {'description': generate_string("alphanumeric", 15)},

@@ -17,7 +17,7 @@ from robottelo.cli.factory import (
     make_org, make_product,
     make_host_collection
 )
-from robottelo.common.decorators import data, skip_if_bz_bug_open, stubbed
+from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -318,7 +318,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open(1109648)
+    @skip_if_bug_open('bugzilla', 1109648)
     def test_positive_create_9(self):
         """
         @test: Create Activation key with environment name
@@ -381,7 +381,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open(1109650)
+    @skip_if_bug_open('bugzilla', 1109650)
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -425,7 +425,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, 'Output should be blank')
 
-    @skip_if_bz_bug_open(1109650)
+    @skip_if_bug_open('bugzilla', 1109650)
     @data(
         {'description': generate_string('alpha', 15)},
         {'description': generate_string('alphanumeric', 15)},
@@ -541,7 +541,7 @@ class TestActivationKey(CLITestCase):
         """
         pass  # Skip for CLI as this is UI only
 
-    @skip_if_bz_bug_open(1114109)
+    @skip_if_bug_open('bugzilla', 1114109)
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -586,7 +586,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.stdout['name'], test_data['name'],
                          'Activation key name was not updated')
 
-    @skip_if_bz_bug_open(1109649)
+    @skip_if_bug_open('bugzilla', 1109649)
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -633,7 +633,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.stdout['name'], test_data['name'],
                          'Activation key name was not updated')
 
-    @skip_if_bz_bug_open(1109649)
+    @skip_if_bug_open('bugzilla', 1109649)
     @data(
         {'description': generate_string('alpha', 15)},
         {'description': generate_string('alphanumeric', 15)},
@@ -693,7 +693,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open(1109649)
+    @skip_if_bug_open('bugzilla', 1109649)
     @data(
         {'content-view': generate_string('alpha', 15)},
         {'content-view': generate_string('alphanumeric', 15)},
@@ -826,7 +826,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open(1110476)
+    @skip_if_bug_open('bugzilla', 1110476)
     @data(
         {'host-col': generate_string('alpha', 15)},
         {'host-col': generate_string('alphanumeric', 15)},
@@ -1049,7 +1049,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open(1111723)
+    @skip_if_bug_open('bugzilla', 1111723)
     def test_bugzilla_1111723(self):
         """
         @test: Create activation key, rename it and create another with the

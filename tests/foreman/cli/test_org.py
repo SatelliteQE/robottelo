@@ -13,8 +13,7 @@ from robottelo.cli.factory import (
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.common.decorators import (data, skip_if_bz_bug_open,
-                                         skip_if_rm_bug_open, stubbed)
+from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -135,7 +134,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @skip_if_rm_bug_open('4295')
+    @skip_if_bug_open('redmine', 4295)
     def test_remove_domain(self):
         """
         @Test: Check if a Domain can be removed from an Org
@@ -153,7 +152,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    @skip_if_bz_bug_open('1079587')
+    @skip_if_bug_open('bugzilla', 1079587)
     @data(*positive_create_data_1())
     def test_bugzilla_1079587(self, test_data):
         """
@@ -284,7 +283,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @skip_if_bz_bug_open('1076541')
+    @skip_if_bug_open('bugzilla', 1076541)
     def test_bugzilla_1076541(self):
         """
         @test: Cannot update organization name via CLI
@@ -319,7 +318,7 @@ class TestOrg(CLITestCase):
             "Org name was not updated"
         )
 
-    @skip_if_bz_bug_open('1075163')
+    @skip_if_bug_open('bugzilla', 1075163)
     def test_bugzilla_1075163(self):
         """
         @Test: Add --label as a valid argument to organization info command
@@ -337,7 +336,7 @@ class TestOrg(CLITestCase):
 
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @skip_if_bz_bug_open('1075156')
+    @skip_if_bug_open('bugzilla', 1075156)
     def test_bugzilla_1075156(self):
         """
         @Test: Cannot use CLI info for organizations by name
@@ -433,7 +432,7 @@ class TestOrg(CLITestCase):
             make_org({'name': new_obj['name']})
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
-    # @skip_if_bz_bug_open('1078866')
+    # @skip_if_bug_open('bugzilla', 1078866)
     @stubbed('Bugzilla 1078866')
     def test_bugzilla_1078866(self):
         """
@@ -761,7 +760,7 @@ class TestOrg(CLITestCase):
         """
         pass
 
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1099655)
     def test_add_environment(self):
         """
         @Test: Check if an environment can be added to an Org
@@ -787,7 +786,7 @@ class TestOrg(CLITestCase):
             environment.return_code, 0, "Could not fetch list of environments")
         self.assertEqual(new_env['name'], env_result['name'])
 
-    @skip_if_bz_bug_open('1099655')
+    @skip_if_bug_open('bugzilla', 1099655)
     def test_remove_environment(self):
         """
         @Test: Check if an Environment can be removed from an Org
@@ -1049,7 +1048,7 @@ class TestOrg(CLITestCase):
 
     # Positive Update
 
-    @skip_if_bz_bug_open('1076541')
+    @skip_if_bug_open('bugzilla', 1076541)
     @data({'name': generate_string("latin1", 10)},
           {'name': generate_string("utf8", 10)},
           {'name': generate_string("alpha", 10)},
@@ -1088,7 +1087,7 @@ class TestOrg(CLITestCase):
             "Org name was not updated"
         )
 
-    @skip_if_bz_bug_open(1114136)
+    @skip_if_bug_open('bugzilla', 1114136)
     @data({'description': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10)},
           {'description': generate_string("alpha", 10)},
@@ -1128,8 +1127,8 @@ class TestOrg(CLITestCase):
             "Org desc was not updated"
         )
 
-    @skip_if_bz_bug_open(1076541)
-    @skip_if_bz_bug_open(1114136)
+    @skip_if_bug_open('bugzilla', 1076541)
+    @skip_if_bug_open('bugzilla', 1114136)
     @data({'description': generate_string("latin1", 10),
            'name': generate_string("latin1", 10)},
           {'description': generate_string("utf8", 10),
@@ -1183,7 +1182,7 @@ class TestOrg(CLITestCase):
 
     # Negative Update
 
-    @skip_if_bz_bug_open('1076541')
+    @skip_if_bug_open('bugzilla', 1076541)
     @data({'name': ' '},
           {'name': generate_string('alpha', 300)},
           {'name': generate_string('numeric', 300)},
@@ -1214,7 +1213,7 @@ class TestOrg(CLITestCase):
         self.assertGreater(len(result.stderr), 0,
                            "There should be error - hammer expects error")
 
-    @skip_if_bz_bug_open(1114136)
+    @skip_if_bug_open('bugzilla', 1114136)
     @data({'description': generate_string('alpha', 3000)},
           {'description': generate_string('numeric', 3000)},
           {'description': generate_string('alphanumeric', 3000)},

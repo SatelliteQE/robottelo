@@ -2,6 +2,7 @@
 from ddt import data, ddt
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -108,6 +109,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
     )
+    @skip_if_bug_open('bugzilla', 1122257)
     def test_post_unauthorized(self, entity):
         """@Test: POST to an entity-dependent path without credentials.
 
