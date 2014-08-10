@@ -6,6 +6,7 @@ Implements various decorators
 """
 
 import bugzilla
+import functools
 import logging
 import random
 import requests
@@ -257,6 +258,7 @@ class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
         :param func: The function being decorated.
 
         """
+        @functools.wraps(func)
         def wrapper_func(*args, **kwargs):
             """Run ``func`` or skip it by raising an exception.
 
