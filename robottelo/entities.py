@@ -42,10 +42,7 @@ class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
 
         """
         if which == 'releases':
-            return urlparse.urljoin(
-                super(ActivationKey, self).path(which='this') + '/',
-                'releases'
-            )
+            return super(ActivationKey, self).path(which='this') + '/releases'
         return super(ActivationKey, self).path()
 
 
@@ -546,9 +543,26 @@ class LifecycleEnvironment(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/environments'
-        # Alternative paths.
-        #
-        # '/katello/api/v2/organizations/:organization_id/environments'
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of ``'organization'``, return a path in
+        the format ``/organizations/<id>/environments``. Otherwise, call
+        ``super``.
+
+        :raises robottelo.orm.NoSuchPathError: If no organization ID is
+            provided.
+
+        """
+        if which == 'organization':
+            if self.organization is None:
+                raise orm.NoSuchPathError(
+                    'An organization ID must be provided.'
+                )
+            return Organization(id=self.organization).path() + '/environments'
+        return super(LifecycleEnvironment, self).path()
 
 
 class Location(orm.Entity):
