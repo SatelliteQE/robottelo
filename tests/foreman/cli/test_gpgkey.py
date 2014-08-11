@@ -8,7 +8,7 @@ Test class for GPG Key CLI
 """
 
 from ddt import ddt
-from robottelo.cli.factory import make_gpg_key, make_org
+from robottelo.cli.factory import CLIFactoryError, make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
@@ -110,8 +110,8 @@ class TestGPGKey(CLITestCase):
         data['key'] = VALID_GPG_KEY_FILE_PATH
         try:
             new_obj = make_gpg_key(data)
-        except Exception, e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Can we find the new object?
         result = GPGKey().info(
@@ -145,8 +145,8 @@ class TestGPGKey(CLITestCase):
         data['key'] = gpg_key
         try:
             new_obj = make_gpg_key(data)
-        except Exception, e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Can we find the new object?
         result = GPGKey().info(
@@ -177,8 +177,8 @@ class TestGPGKey(CLITestCase):
         data['key'] = VALID_GPG_KEY_FILE_PATH
         try:
             new_obj = make_gpg_key(data)
-        except Exception, e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Can we find the new object?
         result = GPGKey().info({
@@ -214,8 +214,8 @@ class TestGPGKey(CLITestCase):
 
         try:
             new_obj = make_gpg_key(data)
-        except Exception, e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Can we find the new object?
         result = GPGKey().exists(
@@ -244,8 +244,8 @@ class TestGPGKey(CLITestCase):
         data['organization-id'] = self.org['id']
         try:
             new_obj = make_gpg_key(data)
-        except Exception, e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Can we find the new object?
         result = GPGKey().exists(
@@ -275,8 +275,8 @@ class TestGPGKey(CLITestCase):
         data['organization-id'] = self.org['id']
         try:
             new_obj = make_gpg_key(data)
-        except Exception, e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Can we find the new object?
         result = GPGKey().exists(

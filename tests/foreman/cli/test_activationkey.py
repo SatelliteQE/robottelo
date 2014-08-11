@@ -11,6 +11,7 @@ from nose.plugins.attrib import attr
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
+    CLIFactoryError,
     make_activation_key,
     make_content_view,
     make_lifecycle_environment,
@@ -231,24 +232,19 @@ class TestActivationKey(CLITestCase):
 
         try:
             org_obj = make_org()
-        except Exception as e:
-            self.fail(e)
-
-        try:
-            con_view = make_content_view({u'organization-id': org_obj['id'],
-                                          u'name': test_data['content-view']})
-        except Exception as e:
-            self.fail(e)
-
-        try:
+            con_view = make_content_view({
+                u'organization-id': org_obj['id'],
+                u'name': test_data['content-view']
+            })
             new_ackey = self._make_activation_key({
                 u'name': test_data['name'],
                 u'content-view': con_view['name'],
                 u'environment': self.library['name'],
                 u'organization-id': org_obj['id']
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
+
         # Name should match passed data
         self.assertEqual(
             new_ackey['name'],
@@ -337,8 +333,8 @@ class TestActivationKey(CLITestCase):
                 u'environment': self.library['name'],
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
     @stubbed
     def test_negative_create_activation_key_1(self):
@@ -405,8 +401,8 @@ class TestActivationKey(CLITestCase):
                 u'name': test_data['name'],
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ActivationKey.delete({'id': activation_key['id']})
         self.assertEqual(
@@ -449,8 +445,8 @@ class TestActivationKey(CLITestCase):
                 u'description': test_data['description'],
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ActivationKey.delete({'id': activation_key['id']})
         self.assertEqual(
@@ -562,8 +558,8 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ActivationKey.update({
             u'id': activation_key['id'],
@@ -609,8 +605,8 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ActivationKey.update({
             u'name': activation_key['name'],
@@ -655,8 +651,8 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ActivationKey.update({
             u'name': activation_key['name'],
@@ -715,14 +711,12 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
-
-        try:
-            con_view = make_content_view({u'organization-id': self.org['id'],
-                                          u'name': test_data['content-view']})
-        except Exception as e:
-            self.fail(e)
+            con_view = make_content_view({
+                u'organization-id': self.org['id'],
+                u'name': test_data['content-view']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ActivationKey.update({
             u'name': activation_key['name'],
@@ -849,14 +843,11 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
-
-        try:
-            new_host_col = make_host_collection({'name':
-                                                 test_data['host-col']})
-        except Exception as e:
-            self.fail(e)
+            new_host_col = make_host_collection({
+                'name': test_data['host-col']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Assert that name matches data passed
             self.assertEqual(
@@ -1068,8 +1059,8 @@ class TestActivationKey(CLITestCase):
                 u'name': name,
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         new_name = generate_string('utf8', 15)
         result = ActivationKey.update({
@@ -1097,10 +1088,10 @@ class TestActivationKey(CLITestCase):
                 u'name': name,
                 u'organization-id': self.org['id'],
             })
-        except Exception as e:
+        except CLIFactoryError as err:
             self.fail(
                 ('Failed to create an activation key with a previous name of'
-                 'another activation key: {0}').format(e))
+                 'another activation key: {0}').format(err))
 
         result = ActivationKey.info({
             u'id': new_activation_key['id'],

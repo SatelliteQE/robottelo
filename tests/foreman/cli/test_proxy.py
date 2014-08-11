@@ -6,7 +6,7 @@ proxy class for Smart proxy CLI
 """
 
 from ddt import ddt
-from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
@@ -46,8 +46,8 @@ class TestProxy(CLITestCase):
         """
         try:
             proxy = make_proxy({'name': data['name']})
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         self.assertEquals(
             proxy['name'],
@@ -68,8 +68,8 @@ class TestProxy(CLITestCase):
         """
         try:
             proxy = make_proxy({'name': data['name']})
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         self.assertEquals(
             proxy['name'],
@@ -130,8 +130,8 @@ class TestProxy(CLITestCase):
         """
         try:
             proxy = make_proxy({'name': data['name']})
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         self.assertEquals(
             proxy['name'],

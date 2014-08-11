@@ -10,8 +10,8 @@ Test class for Content-Host CLI
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import (
-    make_org, make_content_view, make_lifecycle_environment,
-    make_content_host)
+    CLIFactoryError, make_org, make_content_view,
+    make_lifecycle_environment, make_content_host)
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
@@ -331,8 +331,8 @@ class TestContentHost(CLITestCase):
                 u'organization-id': self.NEW_ORG['id'],
                 u'content-view-id': self.DEFAULT_CV['id'],
                 u'lifecycle-environment-id': self.LIBRARY['id']})
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
         # Assert that name does not matches data passed
         self.assertNotEqual(
             new_system['name'],
