@@ -6,7 +6,7 @@ Test class for Partition table CLI
 """
 from robottelo.test import CLITestCase
 from robottelo.common.helpers import generate_name
-from robottelo.cli.factory import make_partition_table
+from robottelo.cli.factory import CLIFactoryError, make_partition_table
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
 
@@ -34,8 +34,8 @@ class TestPartitionTableUpdateCreate(CLITestCase):
 
         try:
             make_partition_table(self.args)
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
         result = PartitionTable().exists(tuple_search=('name', self.name))
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -50,8 +50,8 @@ class TestPartitionTableUpdateCreate(CLITestCase):
 
         try:
             make_partition_table(self.args)
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
         result = PartitionTable().exists(tuple_search=('name', self.name))
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
@@ -123,8 +123,8 @@ class TestPartitionTableDelete(CLITestCase):
         name = generate_name(6)
         try:
             make_partition_table({'name': name, 'content': content})
-        except Exception as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
         result = PartitionTable().exists(tuple_search=('name', name))
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
