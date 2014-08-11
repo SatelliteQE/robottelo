@@ -71,7 +71,7 @@ class OperatingSys(UITestCase):
            u'os_family': "Gentoo"},
           {u'name': generate_string('utf8', 10),
            u'major_version': generate_string('numeric', 5),
-           u'minor_version': generate_string('numeric', 5),
+           u'minor_version': generate_string('numeric', 16),
            u'desc': generate_string('utf8', 10),
            u'os_family': "SUSE"},
           {u'name': generate_string('alphanumeric', 255),
@@ -164,6 +164,7 @@ class OperatingSys(UITestCase):
     def test_negative_create_os_4(self):
         """
         @Test: OS - Create a new OS with long major version
+                    (More than 5 characters in major version)
         @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
@@ -184,6 +185,7 @@ class OperatingSys(UITestCase):
     def test_negative_create_os_5(self):
         """
         @Test: OS - Create a new OS with long minor version
+                    (More than 16 characters in minor version)
         @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
