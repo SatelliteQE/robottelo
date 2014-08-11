@@ -99,8 +99,9 @@ def _get_bugzilla_bug(bug_id):
 
     :param int bug_id: The ID of a bug in the Bugzilla database.
     :return: A FRIGGIN UNDOCUMENTED python-bugzilla THING.
-    :raises BugFetchError: If an error occurs while fetching the bug. For
-        example, a network timeout occurs or the bug does not exist.
+    :raises robottelo.common.decorators.BugFetchError: If an error occurs while
+        fetching the bug. For example, a network timeout occurs or the bug does
+        not exist.
 
     """
     # Is bug ``bug_id`` in the cache?
@@ -162,8 +163,9 @@ def _get_redmine_bug_status_id(bug_id):
 
     :param int bug_id: The ID of a bug in the Redmine database.
     :return: The status ID of that bug.
-    :raises BugFetchError: If an error occurs while fetching the bug. For
-        example, a network timeout occurs or the bug does not exist.
+    :raises robottelo.common.decorators.BugFetchError: If an error occurs while
+        fetching the bug. For example, a network timeout occurs or the bug does
+        not exist.
 
     """
     if bug_id in _redmine['issues']:
@@ -234,12 +236,39 @@ def rm_bug_is_open(bug_id):
     return True
 
 
+def _maybe_skip_test(bug_type, bug_id):
+    """If information about bug ``bug_id`` can be fetched and the bug is open,
+    raise ``unittest.SkipTest``. Otherwise, do nothing.
+
+    Parameters ``bug_type`` and ``bug_id`` have the same meaning as for
+    :class:`robottelo.common.decorators.skip_if_bug_open`.
+
+    :raises: ``unittest.SkipTest`` if bug ``bug_id`` is open.
+    :raises robottelo.common.decorators.BugTypeError: If ``bug_type`` is not
+        recognized.
+
+    """
+    if bug_type not in ('bugzilla', 'redmine'):
+        raise BugTypeError(
+            '"{0}" is not a recognized bug type. Did you mean "bugzilla" or '
+            '"redmine"?'.format(bug_type)
+        )
+    if bug_type == 'bugzilla' and bz_bug_is_open(bug_id):
+        raise unittest.SkipTest(
+            'Skipping test due to open Bugzilla bug #{0}.'.format(bug_id)
+        )
+    if bug_type == 'redmine' and rm_bug_is_open(bug_id):
+        raise unittest.SkipTest(
+            'Skipping test due to open Redmine bug #{0}.'.format(bug_id)
+        )
+
+
 class BugTypeError(Exception):
     """Indicates that an incorrect bug type was specified."""
 
 
 class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
-    """A decorator that can be used to skip a unit test."""
+    """A decorator that can cause the decorated ``test_item`` to be skipped."""
 
     def __init__(self, bug_type, bug_id):
         """Record decorator arguments.
@@ -252,41 +281,42 @@ class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
         self.bug_type = bug_type
         self.bug_id = bug_id
 
-    def __call__(self, func):
-        """Define and return a replacement for ``func``.
+    def __call__(self, test_item):
+        """Define and return a replacement for ``test_item``.
 
-        :param func: The function being decorated.
+        :param test_item: Either a ``TestCase`` subclass or a test method.
 
         """
-        @functools.wraps(func)
+        if (isinstance(test_item, type) and
+                issubclass(test_item, unittest.TestCase)):
+            # Defining these variables allows for a closure to be used. A
+            # closure is necessary because, within setUp, references to
+            # self.bug_type and self.bug_id fail.
+            bug_type = self.bug_type
+            bug_id = self.bug_id
+
+            class Replacement(test_item):
+                """A test case whose ``setUp`` method has been altered."""
+                # (no-init, too-few-public-methods) pylint:disable=W0232,R0903
+                def setUp(self, *args, **kwargs):  # pylint:disable=C0103
+                    """Either raise ``unittest.SkipTest`` or run as usual.
+
+                    This method delegates to ``_maybe_skip_test``.
+
+                    """
+                    _maybe_skip_test(bug_type, bug_id)
+                    return super(Replacement, self).setUp(*args, **kwargs)
+            return Replacement
+
+        # test_item must be a test method. If it was a TestCase, we would have
+        # returned already.
+        @functools.wraps(test_item)
         def wrapper_func(*args, **kwargs):
-            """Run ``func`` or skip it by raising an exception.
+            """Either raise ``unittest.SkipTest`` or run as usual.
 
-            If information about bug ``bug_id`` can be fetched and the bug is
-            open, skip test ``func``. Otherwise, run the test.
-
-            :return: The return value of test method ``func``.
-            :raises unittest.SkipTest: If bug ``bug_id`` is open.
-            :raises BugTypeError: If ``bug_type`` is not recognized.
+            This method delegates to ``_maybe_skip_test``.
 
             """
-            if self.bug_type not in ('bugzilla', 'redmine'):
-                raise BugTypeError(
-                    '"{0}" is not a recognized bug type. Did you mean '
-                    '"bugzilla" or "redmine"?'.format(self.bug_type)
-                )
-            if self.bug_type == 'bugzilla' and bz_bug_is_open(self.bug_id):
-                raise unittest.SkipTest(
-                    'Skipping test due to open Bugzilla bug #{0}.'
-                    ''.format(self.bug_id)
-                )
-            if self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id):
-                raise unittest.SkipTest(
-                    'Skipping test due to open Redmine bug #{0}.'
-                    ''.format(self.bug_id)
-                )
-            # Run the test method.
-            return func(*args, **kwargs)
-
-        # This function replaces what is being decorated.
+            _maybe_skip_test(self.bug_type, self.bug_id)
+            return test_item(*args, **kwargs)
         return wrapper_func

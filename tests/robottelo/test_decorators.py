@@ -1,8 +1,9 @@
 """Unit tests for :mod:`robottelo.common.decorators`."""
 from ddt import DATA_ATTR
 from fauxfactory import FauxFactory
+from mock import patch
 from robottelo.common import conf, decorators
-from unittest import TestCase
+from unittest import SkipTest, TestCase
 # (Too many public methods) pylint: disable=R0904
 
 
@@ -111,3 +112,36 @@ class RmBugIsOpenTestCase(TestCase):
             raise decorators.BugFetchError
         decorators._get_redmine_bug_status_id = bomb
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
+
+
+class MaybeSkipTestTestCase(TestCase):
+    """Tests for ``_maybe_skip_test``."""
+    # (protected-access) pylint:disable=W0212
+    def setUp(self):  # pylint:disable=C0103
+        """Back up objects and generate common values."""
+        self.bug_id = FauxFactory.generate_integer()
+
+    @patch('robottelo.common.decorators.bz_bug_is_open', return_value=True)
+    @patch('robottelo.common.decorators.rm_bug_is_open', return_value=True)
+    def test_bug_is_open(self, dummy, dummy2):
+        """Assert ``unittest.SkipTest`` is raised if a bug is open."""
+        for bug_type in ('bugzilla', 'redmine'):
+            with self.assertRaises(SkipTest):
+                decorators._maybe_skip_test(bug_type, self.bug_id)
+
+    @patch('robottelo.common.decorators.bz_bug_is_open', return_value=False)
+    @patch('robottelo.common.decorators.rm_bug_is_open', return_value=False)
+    def test_bug_is_closed(self, dummy, dummy2):
+        """Assert ``None`` is returned if a bug is open."""
+        for bug_type in ('bugzilla', 'redmine'):
+            self.assertIsNone(
+                decorators._maybe_skip_test(bug_type, self.bug_id)
+            )
+
+    def test_bad_bug_type(self):
+        """Assert :class:`robottelo.common.decorators.BugTypeError` is raised
+        if argument ``bug_type`` is invalid.
+
+        """
+        with self.assertRaises(decorators.BugTypeError):
+            decorators._maybe_skip_test('not_bugzilla_or_redmine', self.bug_id)

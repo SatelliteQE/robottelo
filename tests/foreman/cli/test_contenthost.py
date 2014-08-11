@@ -20,6 +20,7 @@ from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 
+@skip_if_bug_open('bugzilla', 1127629)
 @ddt
 class TestContentHost(CLITestCase):
 
@@ -34,7 +35,6 @@ class TestContentHost(CLITestCase):
     LIBRARY = None
     DEFAULT_CV = None
 
-    @skip_if_bug_open('bugzilla', 1127629)  # skip entire class
     def setUp(self):
         """
         Tests for Content Host via Hammer CLI
