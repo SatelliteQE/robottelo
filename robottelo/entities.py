@@ -628,9 +628,6 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/environments'
-        # Alternative paths.
-        #
-        # '/katello/api/v2/organizations/:organization_id/environments'
 
 
 class Location(orm.Entity):
