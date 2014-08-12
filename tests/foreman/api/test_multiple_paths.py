@@ -24,6 +24,7 @@ class EntityTestCase(TestCase):
         entities.Domain,
         # entities.GPGKey,  # must specify an organization id
         entities.Host,
+        # entities.LifecycleEnvironment,  # must specify an organization id
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -53,6 +54,7 @@ class EntityTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         entities.Host,
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -77,6 +79,7 @@ class EntityTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -90,6 +93,8 @@ class EntityTestCase(TestCase):
         """
         if entity in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
             self.skipTest("Bugzilla bug 1118015 is open.""")
+        if entity is entities.LifecycleEnvironment and bz_bug_is_open(1129441):
+            self.skipTest("Bugzilla bug 1129441 is open.""")
         path = entity().path()
         response = client.post(
             path,
@@ -112,6 +117,7 @@ class EntityTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         entities.Host,
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
