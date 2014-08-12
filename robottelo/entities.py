@@ -17,6 +17,8 @@ from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
+import robottelo.api.client as client
+from robottelo.common.helpers import get_server_url, get_server_credentials
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -260,6 +262,16 @@ class ContentViewPuppetModule(orm.Entity):
         api_path = ('katello/api/v2/content_views/:content_view_id/'
                     'content_view_puppet_modules')
 
+
+class ContentViewVersion(orm.Entity, factory.EntityFactoryMixin):
+    """A representation of a Content View Version non-entity."""
+    def api_publish(self, uuid):
+        path = "%s/publish/" % self.path(uuid)
+        return client.post(path)
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/content_view_versions'
 
 class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
@@ -605,6 +617,9 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/environments'
+        # Alternative paths.
+        #
+        # '/katello/api/v2/organizations/:organization_id/environments'
 
 
 class Location(orm.Entity):

@@ -511,10 +511,8 @@ class TestContentView(APITestCase):
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
         """
-        depends = ApiCrud.record_create_dependencies(data)
-        result = ApiCrud.record_create(depends)
-        self.assertIntersects(data, result)
         new_org = Organization().create()
+        library_lifecycle =
         new_lifecycle = LifecycleEnvironment().create(
             {u'organization-id': new_org['id']}
         )
