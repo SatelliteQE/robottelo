@@ -292,6 +292,39 @@ class ActivationKeysTestCase(TestCase):
                 attrs['max_content_hosts'])
         )
 
+    def test_update_max_content_hosts(self):
+        """@Test: Create an activation key with ``max_content_hosts == 1``, then
+        update that field with a string value.
+
+        @Feature: ActivationKey
+
+        @Assert: The update fails with an HTTP 422 return code.
+
+        """
+        attrs = entities.ActivationKey(max_content_hosts=1).create()
+        path = entities.ActivationKey(id=attrs['id']).path()
+        new_attrs = attrs.copy()
+        new_attrs['max_content_hosts'] = 'foo'
+        response = client.put(
+            path,
+            new_attrs,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        self.assertEqual(
+            response.status_code,
+            httplib.UNPROCESSABLE_ENTITY,
+            status_code_error(path, httplib.UNPROCESSABLE_ENTITY, response),
+        )
+
+        # Status code is OK. Was `max_content_hosts` changed, or is it still 1?
+        response = client.get(
+            path,
+            auth=get_server_credentials(),
+            verify=False,
+        ).json()
+        self.assertEqual(response['max_content_hosts'], 1)
+
     def test_get_releases_status_code(self):
         """@Test: Get an activation key's releases. Check response format.
 
