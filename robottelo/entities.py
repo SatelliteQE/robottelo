@@ -13,6 +13,8 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
 from robottelo import factory, orm
+import robottelo.api.client as client
+from robottelo.common.helpers import get_server_url, get_server_credentials
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -245,6 +247,16 @@ class ContentViewPuppetModule(orm.Entity):
                     'content_view_puppet_modules')
 
 
+class ContentViewVersion(orm.Entity, factory.EntityFactoryMixin):
+    """A representation of a Content View Version non-entity."""
+    def api_publish(self, uuid):
+        path = "%s/publish/" % self.path(uuid)
+        return client.post(path)
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/content_view_versions'
+
 class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
@@ -257,14 +269,17 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
     components = orm.OneToManyField('ContentView')
 
 
-    def publish(self):
-        return None
+    def api_publish(self, uuid):
+        return client.post(
+            "%s/publish" % self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+        )
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/content_views'
         # Alternative paths
-        #
         # '/katello/api/v2/organizations/:organization_id/content_views',
 
 
@@ -509,14 +524,23 @@ class Interface(orm.Entity):
         api_path = 'api/v2/hosts/:host_id/interfaces'
 
 
-class LifecycleEnvironment(orm.Entity):
+class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
     # Name of an environment that is prior to the new environment in the chain.
     # It has to be either 'Library' or an environment at the end of a chain.
-    prior = orm.StringField(default='Library', required=True)
+    prior = orm.StringField(default='library', required=True)
+
+    def api_search(self):
+        return client.get(
+            self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+
+
 
     class Meta(object):
         """Non-field information about this entity."""
