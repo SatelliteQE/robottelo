@@ -16,6 +16,7 @@ from robottelo.common import conf
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
+from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.domain import Domain
@@ -143,8 +144,9 @@ class UITestCase(TestCase):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
-        self.contentenv = ContentEnvironment(self.browser)
         self.compute_resource = ComputeResource(self.browser)
+        self.configgroups = ConfigGroups(self.browser)
+        self.contentenv = ContentEnvironment(self.browser)
         self.content_views = ContentViews(self.browser)
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)

@@ -3,6 +3,7 @@
 from robottelo.common.helpers import update_dictionary
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
+from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
@@ -370,6 +371,19 @@ def make_puppetclasses(session, org=None, loc=None, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
     PuppetClasses(session.browser).create(**create_args)
+
+
+def make_config_groups(session, org=None, loc=None, **kwargs):
+    """
+    Creates new Config Groups from webUI
+    """
+    create_args = {
+        'name': None
+    }
+    page = session.nav.go_to_config_groups
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    ConfigGroups(session.browser).create(**create_args)
 
 
 def edit_param(session, org=None, loc=None, **kwargs):
