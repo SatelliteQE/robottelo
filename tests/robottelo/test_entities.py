@@ -45,32 +45,3 @@ class PathTestCase(TestCase):
         # 3
         with self.assertRaises(orm.NoSuchPathError):
             entities.ActivationKey().path(which='releases')
-
-    def test_lifecycleenvironment_path(self):
-        """Tests for :meth:`robottelo.entities.LifecycleEnvironment.path`.
-
-        1. The method returns the correct string when ``which`` is not
-           specified.
-        2. Assert the method returns the correct string when ``which ==
-           'organization'``.
-        3. The method raises :class:`robottelo.orm.NoSuchPathError` when
-           ``which == 'organization'`` and no organization ID is provided.
-
-        """
-        # 1
-        self.assertIn('/environments', entities.LifecycleEnvironment().path())
-        self.assertIn(
-            '/environments/{0}'.format(self.id_),
-            entities.LifecycleEnvironment(id=self.id_).path()
-        )
-        # 2
-        self.assertIn(
-            '/organizations/{0}/environments'.format(self.id_),
-            entities.LifecycleEnvironment(
-                organization=self.id_
-            ).path(which='organization')
-        )
-        # 3
-        # pylint:disable=E1103
-        with self.assertRaises(orm.NoSuchPathError):
-            entities.LifecycleEnvironment().path(which='organization').path()
