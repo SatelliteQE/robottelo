@@ -67,6 +67,7 @@ class TestRepository(CLITestCase):
         # Return the repository dictionary
         return new_repo
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -91,6 +92,7 @@ class TestRepository(CLITestCase):
             "Names don't match"
         )
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -124,6 +126,7 @@ class TestRepository(CLITestCase):
             "Label should not match the repository name"
         )
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
          u'content-type': u'yum'},
@@ -159,6 +162,7 @@ class TestRepository(CLITestCase):
             "Content Types don't match"
         )
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/',
          u'content-type': u'puppet'},
@@ -194,7 +198,7 @@ class TestRepository(CLITestCase):
             "Content Types don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1083236)
+    @skip_if_bug_open('bugzilla', 1083236, 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -238,7 +242,7 @@ class TestRepository(CLITestCase):
             "GPG Keys name don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1103944)
+    @skip_if_bug_open('bugzilla', 1103944, 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -282,7 +286,7 @@ class TestRepository(CLITestCase):
             "GPG Keys name don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1083256)
+    @skip_if_bug_open('bugzilla', 1083256, 1129617)
     @data(u'true', u'yes', u'1')
     @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
@@ -311,6 +315,7 @@ class TestRepository(CLITestCase):
             "Publishing methods don't match"
         )
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(u'false', u'no', u'0')
     @attr('cli', 'repository')
     def test_positive_create_8(self, test_data):
@@ -357,6 +362,7 @@ class TestRepository(CLITestCase):
         with self.assertRaises(Exception):
             self._make_repository({u'name': test_data['name']})
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
          u'content-type': u'yum'},
@@ -398,6 +404,7 @@ class TestRepository(CLITestCase):
             'Finished',
             "The new status of repository should be 'Finished'")
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/'},
         {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/'},
@@ -469,6 +476,7 @@ class TestRepository(CLITestCase):
         @Status: manual
         """
 
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
