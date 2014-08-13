@@ -198,7 +198,8 @@ class TestRepository(CLITestCase):
             "Content Types don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1083236, 1129617)
+    @skip_if_bug_open('bugzilla', 1083236)
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -242,7 +243,8 @@ class TestRepository(CLITestCase):
             "GPG Keys name don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1103944, 1129617)
+    @skip_if_bug_open('bugzilla', 1103944)
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': generate_string('alpha', 15)},
         {u'name': generate_string('alphanumeric', 15)},
@@ -286,7 +288,8 @@ class TestRepository(CLITestCase):
             "GPG Keys name don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1083256, 1129617)
+    @skip_if_bug_open('bugzilla', 1083256)
+    @skip_if_bug_open('bugzilla', 1129617)
     @data(u'true', u'yes', u'1')
     @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
