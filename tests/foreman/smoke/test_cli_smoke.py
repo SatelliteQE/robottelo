@@ -29,33 +29,33 @@ class TestSmoke(CLITestCase):
     @attr('smoke')
     def test_find_default_org(self):
         """
-        @Test: Check if Default_Organization is present
+        @Test: Check if 'Default Organization' is present
         @Feature: Smoke Test
-        @Assert: Default_Organization is found
+        @Assert: 'Default Organization' is found
         """
 
-        query = {u'name': u'Default_Organization'}
+        query = {u'name': u'Default Organization'}
         result = self._search(Org, query)
         self.assertEqual(
             result.stdout['name'],
-            'Default_Organization',
-            u"Could not find the Default_Organization"
+            'Default Organization',
+            u"Could not find the Default Organization"
         )
 
     @attr('smoke')
     def test_find_default_location(self):
         """
-        @Test: Check if Default_Location is present
+        @Test: Check if 'Default Location' is present
         @Feature: Smoke Test
-        @Assert: Default_Location is found
+        @Assert: 'Default Location' is found
         """
 
-        query = {u'name': u'Default_Location'}
+        query = {u'name': u'Default Location'}
         result = self._search(Location, query)
         self.assertEqual(
             result.stdout['name'],
-            'Default_Location',
-            u"Could not find the Default_Location"
+            'Default Location',
+            u"Could not find the 'Default Location'"
         )
 
     @attr('smoke')

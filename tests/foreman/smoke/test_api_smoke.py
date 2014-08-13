@@ -15,21 +15,21 @@ class TestSmoke(TestCase):
     @attr('smoke')
     def test_find_default_org(self):
         """
-        @Test: Check if Default_Organization is present
+        @Test: Check if 'Default Organization' is present
         @Feature: Smoke Test
-        @Assert: Default_Organization is found
+        @Assert: 'Default Organization' is found
         """
-        query = u'Default_Organization'
+        query = u'Default Organization'
         self._search(entities.Organization, query)
 
     @attr('smoke')
     def test_find_default_location(self):
         """
-        @Test: Check if Default_Location is present
+        @Test: Check if 'Default Location' is present
         @Feature: Smoke Test
-        @Assert: Default_Location is found
+        @Assert: 'Default Location' is found
         """
-        query = u'Default_Location'
+        query = u'Default Location'
         self._search(entities.Location, query)
 
     @attr('smoke')
