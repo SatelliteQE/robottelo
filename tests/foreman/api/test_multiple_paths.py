@@ -15,21 +15,26 @@ BZ_1118015_ENTITIES = (
     entities.GPGKey, entities.OperatingSystem, entities.Repository,
     entities.Role, entities.User,
 )
+BZ_1122267_ENTITIES = (
+    entities.ActivationKey, entities.ContentView, entities.Repository
+)
 
 
 @ddt
 class EntityTestCase(TestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
     @data(
-        # entities.ActivationKey,  # need organization id or environment id
+        # entities.ActivationKey,  # need organization_id or environment_id
         entities.Architecture,
+        # entities.ContentView,  # need organization_id
         entities.Domain,
-        # entities.GPGKey,  # must specify an organization id
+        # entities.GPGKey,  # need organization_id
         entities.Host,
-        # entities.LifecycleEnvironment,  # must specify an organization id
+        # entities.LifecycleEnvironment,  # need organization_id
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        # entities.Repository,  # need organization_id
         entities.Role,
         entities.User,
     )
@@ -56,6 +61,7 @@ class EntityTestCase(TestCase):
     @data(
         # entities.ActivationKey,  # need organization id or environment id
         entities.Architecture,
+        entities.ContentView,
         entities.Domain,
         entities.GPGKey,
         entities.Host,
@@ -63,6 +69,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Repository,
         entities.Role,
         entities.User,
     )
@@ -87,6 +94,7 @@ class EntityTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
@@ -161,6 +169,7 @@ class EntityIdTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -197,6 +206,7 @@ class EntityIdTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -231,6 +241,7 @@ class EntityIdTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -282,6 +293,7 @@ class LongMessageTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -325,6 +337,7 @@ class LongMessageTestCase(TestCase):
         entities.ContentView,
         entities.Domain,
         entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -338,7 +351,7 @@ class LongMessageTestCase(TestCase):
         @Assert: The created entity has the correct attributes.
 
         """
-        if entity is entities.ActivationKey and bz_bug_is_open(1122267):
+        if entity in BZ_1122267_ENTITIES and bz_bug_is_open(1122267):
             self.skipTest("Bugzilla bug 1122267 is open.""")
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
