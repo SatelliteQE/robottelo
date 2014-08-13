@@ -54,6 +54,13 @@
     :members:
     :undoc-members:
 
+:mod:`tests.foreman.api.test_gpgkey_v2`
+---------------------------------------
+
+.. automodule:: tests.foreman.api.test_gpgkey_v2
+    :members:
+    :undoc-members:
+
 :mod:`tests.foreman.api.test_hostgroup`
 ---------------------------------------
 

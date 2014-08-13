@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-
-"""
+# FIXME: add a module docstring
 
 from robottelo.cli.base import Base
 

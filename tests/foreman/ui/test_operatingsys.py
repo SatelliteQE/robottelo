@@ -163,8 +163,8 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_4(self):
         """
-        @Test: OS - Create a new OS with long major version
-                    (More than 5 characters in major version)
+        @Test: OS - Create a new OS with long major version (More than 5
+        characters in major version)
         @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
@@ -184,8 +184,8 @@ class OperatingSys(UITestCase):
 
     def test_negative_create_os_5(self):
         """
-        @Test: OS - Create a new OS with long minor version
-                    (More than 16 characters in minor version)
+        @Test: OS - Create a new OS with long minor version (More than 16
+        characters in minor version)
         @Feature: Create a new OS - Negative
         @Assert: OS is not created
         """
