@@ -68,7 +68,7 @@ class Template(UITestCase):
             make_templates(session, name=name, template_path=template_path,
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["name_haserror"]))
             self.assertIsNone(self.template.search(name))
 
     def test_negative_create_template_2(self):

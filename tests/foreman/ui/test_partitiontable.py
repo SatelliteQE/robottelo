@@ -65,7 +65,7 @@ class PartitionTable(UITestCase):
             make_partitiontable(session, name=name, layout=layout,
                                 os_family=os_family)
             self.assertIsNotNone(self.partitiontable.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["name_haserror"]))
             self.assertIsNone(self.partitiontable.search(name))
 
     @data({u'name': ""},

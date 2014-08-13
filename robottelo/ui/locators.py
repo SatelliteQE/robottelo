@@ -522,6 +522,9 @@ common_locators = {
     "common_invalid": (
         By.XPATH,
         "//input[@id='name' and contains(@class,'ng-invalid')]"),
+    "common_param_error": (
+        By.XPATH,
+        "//div[@class='fields']/span[@class='help-block']"),
 
     "cv_filter": (
         By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
