@@ -43,6 +43,16 @@ class ActivationKey(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def remove_host_collection(cls, options=None):
+        """
+        Remove the associated resource
+        """
+
+        cls.command_sub = "remove-host-collection"
+
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def add_subscription(cls, options=None):
         """
         Add subscription

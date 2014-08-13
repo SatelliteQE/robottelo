@@ -1110,3 +1110,83 @@ class TestActivationKey(CLITestCase):
                 result.stdout['name'], name
             )
         )
+
+    @skip_if_bug_open('bugzilla', 1110467)
+    @data(
+        {'host-col': generate_string('alpha', 15)},
+        {'host-col': generate_string('alphanumeric', 15)},
+        {'host-col': generate_string('numeric', 15)},
+        {'host-col': generate_string('latin1', 15)},
+        {'host-col': generate_string('utf8', 15)},
+        {'host-col': generate_string('html', 15)},
+    )
+    def test_remove_host(self, test_data):
+        """
+        @Test: Test that hosts associated to Activation Keys can be removed
+        @Feature: Activation key - Host
+        @Steps:
+        1. Create Activation key
+        2. Create different hosts
+        3. Associate the hosts to Activation key
+        4. Remove the hosts associated to Activation key
+        @Assert: Hosts successfully removed that
+        are associated to Activation key
+        """
+
+        try:
+            org = make_org()
+            activation_key = self._make_activation_key({
+                u'organization-id': org['id'],
+            })
+            new_host_col = make_host_collection({
+                'name': test_data['host-col']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Assert that name matches data passed
+        self.assertEqual(new_host_col['name'],
+                         test_data['host-col'],
+                         "Names don't match")
+
+        result = ActivationKey.add_host_collection({
+            u'name': activation_key['name'],
+            u'host-collection': new_host_col['name'],
+            u'organization-id': org['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to add host-col activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertEqual(
+            result.stdout['host-collection'], test_data['host-col'],
+            'Activation key host-collection added')
+
+        result = ActivationKey.remove_host_collection({
+            u'name': activation_key['name'],
+            u'host-collection': new_host_col['name'],
+            u'organization-id': org['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to remove host-col activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertNotEqual(
+            result.stdout['host-collection'], test_data['host-col'],
+            'Activation key host-collection removed')
