@@ -15,7 +15,6 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo import factory, orm
-import urlparse
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -531,14 +530,18 @@ class Interface(orm.Entity):
         api_path = 'api/v2/hosts/:host_id/interfaces'
 
 
-class LifecycleEnvironment(orm.Entity):
+class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
     # Name of an environment that is prior to the new environment in the chain.
     # It has to be either 'Library' or an environment at the end of a chain.
-    prior = orm.StringField(default='Library', required=True)
+    prior = orm.OneToOneField(
+        'LifecycleEnvironment',
+        default=None,
+        required=True,
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
