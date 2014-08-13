@@ -12,7 +12,7 @@ import httplib
 
 BZ_1118015_ENTITIES = (
     entities.Architecture, entities.ContentView, entities.GPGKey,
-    entities.OperatingSystem, entities.Repository
+    entities.OperatingSystem, entities.Repository, entities.Role,
 )
 
 
@@ -28,6 +28,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Role,
     )
     def test_get_status_code(self, entity):
         """@Test GET an entity-dependent path.
@@ -58,6 +59,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Role,
     )
     def test_get_unauthorized(self, entity):
         """@Test: GET an entity-dependent path without credentials.
@@ -84,6 +86,7 @@ class EntityTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
     )
     def test_post_status_code(self, entity):
         """@Test: Issue a POST request and check the returned status code.
@@ -122,6 +125,7 @@ class EntityTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
     )
     @skip_if_bug_open('bugzilla', 1122257)
     def test_post_unauthorized(self, entity):
@@ -153,6 +157,7 @@ class EntityIdTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
     )
     def test_get_status_code(self, entity):
         """@Test: Create an entity and GET it.
@@ -185,6 +190,7 @@ class EntityIdTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
     )
     def test_put_status_code(self, entity):
         """@Test Issue a PUT request and check the returned status code.
@@ -217,6 +223,7 @@ class EntityIdTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
         entities.User,
     )
     def test_delete(self, entity):
@@ -267,6 +274,7 @@ class LongMessageTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
     )
     def test_put_and_get(self, entity):
         """@Test: Issue a PUT request and GET the updated entity.
@@ -307,6 +315,7 @@ class LongMessageTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Repository,
+        entities.Role,
     )
     def test_post_and_get(self, entity):
         """@Test Issue a POST request and GET the created entity.

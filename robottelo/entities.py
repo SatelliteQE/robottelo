@@ -825,13 +825,14 @@ class RoleLDAPGroups(orm.Entity):
         api_path = 'katello/api/v2/roles/:role_id/ldap_groups'
 
 
-class Role(orm.Entity):
+class Role(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Role entity."""
-    name = orm.StringField(required=True)
+    # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
+    name = orm.StringField(required=True, str_type=('alphanumeric',))
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'katello/api/v2/roles'
+        api_path = 'api/v2/roles'
 
 
 class SmartProxy(orm.Entity):
