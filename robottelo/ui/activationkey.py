@@ -6,7 +6,7 @@ Implements Activation keys UI
 """
 
 from robottelo.common.helpers import escape_search
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
@@ -210,3 +210,41 @@ class ActivationKey(Base):
         else:
             raise Exception(
                 "Couldn't find the selected activation key '%s'" % name)
+
+    def add_host_collection(self, name, host_collection_name):
+        """
+        Associate an existing Host Collection with Activation Key
+        """
+
+        # find activation key
+        activation_key = self.search_key(name)
+        if activation_key:
+            activation_key.click()
+            self.wait_for_ajax()
+
+            self.wait_until_element(
+                tab_locators["ak.host_collections"]).click()
+            self.wait_for_ajax()
+
+            self.wait_until_element(
+                tab_locators["ak.host_collections.add"]).click()
+            self.wait_for_ajax()
+
+            # select host collection
+            strategy, value = tab_locators["ak.host_collections.add.select"]
+            host_collection = self.wait_until_element((
+                strategy, value % host_collection_name))
+            if host_collection:
+                host_collection.click()
+
+                # add host collection
+                add_btn = self.wait_until_element(
+                    tab_locators["ak.host_collections.add.add_selected"])
+                add_btn.click()
+                self.wait_for_ajax()
+            else:
+                raise UINoSuchElementError("Couldn't find host collection '%s'"
+                                           % host_collection_name)
+        else:
+            raise UINoSuchElementError("Couldn't find activation key '%s'" %
+                                       name)

@@ -443,8 +443,19 @@ tab_locators = {
         By.XPATH, "//a[contains(@ui-sref, 'subscriptions.add')]"),
     "ak.subscriptions_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'subscriptions.list')]"),
-    "ak.system_groups": (
-        By.XPATH, "//a[contains(@href, 'system-groups')]"),
+    "ak.host_collections": (
+        By.XPATH, "//a[contains(@href, 'host-collections')]"),
+    "ak.host_collections.add": (
+        By.XPATH, "//a[contains(@ui-sref, 'host-collections.add')]"),
+    "ak.host_collections.add.select": (
+        By.XPATH,
+        "//tr/td/a[contains(., '%s')]"
+        "/parent::*/parent::*"
+        "/td/input[@ng-model='hostCollection.selected']"),
+    "ak.host_collections.add.add_selected": (
+        By.XPATH, "//button[@ng-click='addHostCollections()']"),
+    "ak.host_collections.list": (
+        By.XPATH, "//a[contains(@ui-sref, 'host-collections.list')]"),
 
     # Manifest / subscriptions
     "subs.tab_details": (
