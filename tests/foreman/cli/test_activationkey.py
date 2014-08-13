@@ -1122,8 +1122,8 @@ class TestActivationKey(CLITestCase):
     )
     def test_remove_host(self, test_data):
         """
-        @Feature: Activation key - Host
         @Test: Test that hosts associated to Activation Keys can be removed
+        @Feature: Activation key - Host
         @Steps:
         1. Create Activation key
         2. Create different hosts
@@ -1135,9 +1135,6 @@ class TestActivationKey(CLITestCase):
 
         try:
             org = make_org()
-        except CLIFactoryError as err:
-            self.fail(err)
-        try:
             activation_key = self._make_activation_key({
                 u'organization-id': org['id'],
             })
@@ -1148,11 +1145,9 @@ class TestActivationKey(CLITestCase):
             self.fail(err)
 
         # Assert that name matches data passed
-            self.assertEqual(
-                new_host_col['name'],
-                test_data['host-col'],
-                "Names don't match"
-            )
+        self.assertEqual(new_host_col['name'],
+                         test_data['host-col'],
+                         "Names don't match")
 
         result = ActivationKey.add_host_collection({
             u'name': activation_key['name'],
@@ -1184,3 +1179,14 @@ class TestActivationKey(CLITestCase):
             result.return_code, 0, 'Failed to remove host-col activation key')
         self.assertEqual(
             len(result.stderr), 0, 'There should not be an error here')
+
+        result = ActivationKey.info({
+            u'id': activation_key['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for activation key')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertNotEqual(
+            result.stdout['host-collection'], test_data['host-col'],
+            'Activation key host-collection removed')
