@@ -345,7 +345,8 @@ class Base(object):
         :param tab_locator: The tab locator to switch to the entity's tab.
         :return: Returns whether the element is checked/selected or not.
         :rtype: boolean value
-        :raises UINosuchElementError: If the entity is not found via search.
+        :raises robottelo.ui.base.UINoSuchElementError: If the entity is not
+            found via search.
 
         """
         go_to_page()

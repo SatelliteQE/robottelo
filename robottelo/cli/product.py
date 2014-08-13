@@ -2,14 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
+Usage::
+
     hammer product [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     list                          List products in an environment
     update                        Update a product
     create                        Create a product

@@ -3,14 +3,17 @@
 # (Too many public methods) pylint: disable=R0904
 
 """
-Usage:
+Usage::
+
     hammer location [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     add-compute-resource          Associate a compute resource
     add-config-template           Associate a configuration template
     add-domain                    Associate a domain

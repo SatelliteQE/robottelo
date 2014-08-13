@@ -2,14 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
+Usage::
+
     hammer report [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     info                          Show info for report.
     list                          List reports.
     delete                        Delete report.

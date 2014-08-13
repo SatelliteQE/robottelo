@@ -2,14 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
+Usage::
+
     hammer environment [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     create                        Create an environment.
     info                          Show an environment.
     list                          List all environments.

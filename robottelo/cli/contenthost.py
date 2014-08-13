@@ -2,14 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
+Usage::
+
     hammer content-host [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     create                        Register a system
     delete                        Unregister a system
     info                          Show a system

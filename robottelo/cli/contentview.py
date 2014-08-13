@@ -2,14 +2,17 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """
-Usage:
+Usage::
+
     hammer content-view [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     add-repository                Associate a resource
     add-version                   Associate a resource
     create                        Create a content view
@@ -24,7 +27,8 @@ Subcommands:
     update                        Update a content view
     version                       View and manage content view versions
 
-Options:
+Options::
+
     -h, --help                    print help
 """
 
