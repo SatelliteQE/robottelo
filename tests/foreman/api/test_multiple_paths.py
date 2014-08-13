@@ -11,8 +11,9 @@ import httplib
 
 
 BZ_1118015_ENTITIES = (
-    entities.Architecture, entities.ContentView, entities.GPGKey,
-    entities.OperatingSystem, entities.Repository, entities.Role,
+    entities.ActivationKey, entities.Architecture, entities.ContentView,
+    entities.GPGKey, entities.OperatingSystem, entities.Repository,
+    entities.Role, entities.User,
 )
 
 
@@ -20,6 +21,7 @@ BZ_1118015_ENTITIES = (
 class EntityTestCase(TestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
     @data(
+        # entities.ActivationKey,  # need organization id or environment id
         entities.Architecture,
         entities.Domain,
         # entities.GPGKey,  # must specify an organization id
@@ -29,6 +31,7 @@ class EntityTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Role,
+        entities.User,
     )
     def test_get_status_code(self, entity):
         """@Test GET an entity-dependent path.
@@ -51,6 +54,7 @@ class EntityTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
+        # entities.ActivationKey,  # need organization id or environment id
         entities.Architecture,
         entities.Domain,
         entities.GPGKey,
@@ -60,6 +64,7 @@ class EntityTestCase(TestCase):
         entities.OperatingSystem,
         entities.Organization,
         entities.Role,
+        entities.User,
     )
     def test_get_unauthorized(self, entity):
         """@Test: GET an entity-dependent path without credentials.
@@ -77,6 +82,7 @@ class EntityTestCase(TestCase):
         )
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
@@ -87,6 +93,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.User,
     )
     def test_post_status_code(self, entity):
         """@Test: Issue a POST request and check the returned status code.
@@ -126,6 +133,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.User,
     )
     @skip_if_bug_open('bugzilla', 1122257)
     def test_post_unauthorized(self, entity):
@@ -158,6 +166,7 @@ class EntityIdTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.User,
     )
     def test_get_status_code(self, entity):
         """@Test: Create an entity and GET it.
@@ -165,6 +174,8 @@ class EntityIdTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
+        if entity is entities.ActivationKey and bz_bug_is_open(1127335):
+            self.skipTest("Bugzilla bug 1127335 is open.""")
         attrs = entity().create()
         path = entity(id=attrs['id']).path()
         response = client.get(
@@ -191,6 +202,7 @@ class EntityIdTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.User,
     )
     def test_put_status_code(self, entity):
         """@Test Issue a PUT request and check the returned status code.
@@ -275,6 +287,7 @@ class LongMessageTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.User,  # password not in returned attrs
     )
     def test_put_and_get(self, entity):
         """@Test: Issue a PUT request and GET the updated entity.
@@ -307,6 +320,7 @@ class LongMessageTestCase(TestCase):
             )
 
     @data(
+        entities.ActivationKey,
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
@@ -316,6 +330,7 @@ class LongMessageTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.User,  # password not in returned attrs
     )
     def test_post_and_get(self, entity):
         """@Test Issue a POST request and GET the created entity.
@@ -323,6 +338,8 @@ class LongMessageTestCase(TestCase):
         @Assert: The created entity has the correct attributes.
 
         """
+        if entity is entities.ActivationKey and bz_bug_is_open(1122267):
+            self.skipTest("Bugzilla bug 1122267 is open.""")
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
         response = client.post(
