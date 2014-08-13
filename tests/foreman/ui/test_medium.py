@@ -77,7 +77,7 @@ class Medium(UITestCase):
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["name_haserror"]))
             self.assertIsNone(self.medium.search(name))
 
     def test_negative_create_medium_2(self):

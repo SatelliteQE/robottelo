@@ -141,7 +141,7 @@ class Domain(UITestCase):
 
     def test_negative_create_domain_3(self):
         """
-        @Test: Negative create a domain with whitespce name
+        @Test: Negative create a domain with whitespace name
         @Feature: Domain - Negative Create
         @Assert: Domain is not created
         """
@@ -156,7 +156,7 @@ class Domain(UITestCase):
     @data(*generate_strings_list(len1=4))
     def test_set_parameter_1(self, name):
         """
-        @Test: Set paramter name and value for domain
+        @Test: Set parameter name and value for domain
         @Feature: Domain - Misc
         @Assert: Domain is updated
         """
@@ -196,7 +196,7 @@ class Domain(UITestCase):
     @skip_if_bug_open('bugzilla', 1120685)
     def test_set_parameter_negative_1(self):
         """
-        @Test: Set a paramter in a domain with blank value.
+        @Test: Set a parameter in a domain with blank value.
         @Feature: Domain - Misc.
         @Assert: Domain parameter is not updated.
         """
@@ -214,11 +214,11 @@ class Domain(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators["alert.error"]))
+                common_locators["common_param_error"]))
 
     def test_set_parameter_negative_2(self):
         """
-        @Test: Set a paramter in a domain with 256 chars in name and value.
+        @Test: Set a parameter in a domain with 256 chars in name and value.
         @Feature: Domain - Misc.
         @Assert: Domain parameter is not updated.
         """
@@ -236,12 +236,12 @@ class Domain(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators["alert.error"]))
+                common_locators["common_param_error"]))
 
     @skip_if_bug_open('bugzilla', 1123360)
     def test_set_parameter_negative_3(self):
         """
-        @Test: Again set the same paramter for domain with name and value.
+        @Test: Again set the same parameter for domain with name and value.
         @Feature: Domain - Misc.
         @Assert: Domain parameter is not updated.
         @BZ: 1123360
@@ -262,7 +262,7 @@ class Domain(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators["alert.error"]))
+                common_locators["common_param_error"]))
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))

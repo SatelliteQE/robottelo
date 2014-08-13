@@ -84,7 +84,7 @@ class Architecture(UITestCase):
         with Session(self.browser) as session:
             make_arch(session, name=name)
             self.assertIsNotNone(self.architecture.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["name_haserror"]))
             self.assertIsNone(self.architecture.search(name))
 
     def test_negative_create_arch_2(self):

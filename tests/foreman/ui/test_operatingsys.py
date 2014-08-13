@@ -116,7 +116,7 @@ class OperatingSys(UITestCase):
                     minor_version=minor_version,
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["name_haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_2(self):
@@ -158,7 +158,7 @@ class OperatingSys(UITestCase):
                     description=description,
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_4(self):
@@ -179,7 +179,7 @@ class OperatingSys(UITestCase):
                     minor_version=minor_version,
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_5(self):
@@ -200,7 +200,7 @@ class OperatingSys(UITestCase):
                     minor_version=minor_version,
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_6(self):
@@ -242,7 +242,7 @@ class OperatingSys(UITestCase):
                     minor_version=minor_version,
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
     @skip_if_bug_open('bugzilla', 1120985)
@@ -460,7 +460,7 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["common_param_error"]))
 
     @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_parameter_2(self):
@@ -484,12 +484,12 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["common_param_error"]))
 
     @skip_if_bug_open('bugzilla', 1120685)
     def test_negative_set_parameter_3(self):
         """
-        @Test: Set OS parameter with name and  blank value
+        @Test: Set OS parameter with name and blank value
         @Feature: OS - Negative Update
         @Assert: Proper error should be raised, Name should contain a value
         @BZ: 1120685
@@ -508,7 +508,7 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["common_param_error"]))
 
     def test_negative_set_parameter_4(self):
         """
@@ -530,4 +530,4 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["common_param_error"]))
