@@ -34,11 +34,11 @@ class TestSmoke(CLITestCase):
         @Assert: 'Default Organization' is found
         """
 
-        query = {u'name': u'Default Organization'}
+        query = {u'name': u'Default_Organization'}
         result = self._search(Org, query)
         self.assertEqual(
             result.stdout['name'],
-            'Default Organization',
+            'Default_Organization',
             u"Could not find the Default Organization"
         )
 
@@ -50,11 +50,11 @@ class TestSmoke(CLITestCase):
         @Assert: 'Default Location' is found
         """
 
-        query = {u'name': u'Default Location'}
+        query = {u'name': u'Default_Location'}
         result = self._search(Location, query)
         self.assertEqual(
             result.stdout['name'],
-            'Default Location',
+            'Default_Location',
             u"Could not find the 'Default Location'"
         )
 
