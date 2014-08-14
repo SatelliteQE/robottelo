@@ -2,11 +2,143 @@
 from nose.plugins.attrib import attr
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
+from robottelo.common import helpers
 from robottelo import entities, orm
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
+
+API_PATHS = frozenset((
+    # pylint:disable=C0301
+    u'/api',
+    u'/api/architectures',
+    u'/api/audits',
+    u'/api/auth_source_ldaps',
+    u'/api/bookmarks',
+    u'/api/common_parameters',
+    u'/api/compute_profiles',
+    u'/api/compute_resources',
+    u'/api/compute_resources/:compute_resource_id/images',
+    u'/api/config_groups',
+    u'/api/config_templates',
+    u'/api/config_templates/:config_template_id/template_combinations',
+    u'/api/dashboard',
+    u'/api/discovered_hosts',
+    u'/api/domains',
+    u'/api/environments',
+    u'/api/fact_values',
+    u'/api/filters',
+    u'/api/hostgroups',
+    u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
+    u'/api/hosts',
+    u'/api/hosts/:host_id/interfaces',
+    u'/api/hosts/:host_id/parameters',
+    u'/api/hosts/:host_id/puppetclass_ids',
+    u'/api/locations',
+    u'/api/media',
+    u'/api/models',
+    u'/api/operatingsystems',
+    u'/api/operatingsystems/:operatingsystem_id/os_default_templates',
+    u'/api/orchestration/:id/tasks',
+    u'/api/permissions',
+    u'/api/plugins',
+    u'/api/ptables',
+    u'/api/puppetclasses',
+    u'/api/realms',
+    u'/api/reports',
+    u'/api/roles',
+    u'/api/settings',
+    u'/api/smart_class_parameters',
+    u'/api/smart_proxies',
+    u'/api/smart_proxies/smart_proxy_id/autosign',
+    u'/api/smart_variables',
+    u'/api/smart_variables/:smart_variable_id/override_values',
+    u'/api/statistics',
+    u'/api/status',
+    u'/api/subnets',
+    u'/api/template_kinds',
+    u'/api/usergroups',
+    u'/api/users',
+    u'/foreman_tasks/api/tasks/:id',  # WTF
+    u'/katello/api/activation_keys',
+    u'/katello/api/capsules',
+    u'/katello/api/content_view_filters/:content_view_filter_id/rules',
+    u'/katello/api/content_views/:content_view_id/content_view_puppet_modules',
+    u'/katello/api/content_views/:content_view_id/filters',
+    u'/katello/api/content_view_versions',
+    u'/katello/api/environments',
+    u'/katello/api/errata',
+    u'/katello/api/gpg_keys',
+    u'/katello/api/host_collections',
+    u'/katello/api/organizations',
+    u'/katello/api/organizations/:organization_id/content_views',
+    u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/errata',  # flake8:noqa
+    u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/packages',  # flake8:noqa
+    u'/katello/api/organizations/:organization_id/products/:product_id/sync',
+    u'/katello/api/organizations/:organization_id/subscriptions',
+    u'/katello/api/organizations/:organization_id/sync_plans',
+    u'/katello/api/package_groups',
+    u'/katello/api/ping',
+    u'/katello/api/products',
+    u'/katello/api/products/:product_id/repository_sets',
+    u'/katello/api/puppet_modules',
+    u'/katello/api/repositories',
+    u'/katello/api/repositories/:repository_id/distributions',
+    u'/katello/api/repositories/:repository_id/packages',
+    u'/katello/api/systems',
+    u'/katello/api/systems/:system_id/errata',
+))
+
+
+class TestAvailableURLs(TestCase):
+    """Tests for ``api/v2``."""
+    def setUp(self):
+        """Define commonly-used variables."""
+        self.path = '{0}/api/v2'.format(helpers.get_server_url())
+
+    def test_get_status_code(self):
+        """@Test: GET ``api/v2`` and examine the response.
+
+        @Feature: API
+
+        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+
+        """
+        response = client.get(
+            self.path,
+            auth=helpers.get_server_credentials(),
+            verify=False,
+        )
+        self.assertEqual(response.status_code, httplib.OK)
+        self.assertIn('application/json', response.headers['content-type'])
+
+    @skip_if_bug_open('bugzilla', 1105773)
+    def test_get_links(self):
+        """@Test: GET ``api/v2`` and check the links returned.
+
+        @Feature: API
+
+        @Assert: The paths returned are equal to ``API_PATHS``.
+
+        """
+        # Did the server give us any paths at all?
+        response = client.get(
+            self.path,
+            auth=helpers.get_server_credentials(),
+            verify=False,
+        ).json()
+        self.assertIn('links', response.keys())
+        links = response['links']
+
+        # Did the server give us correct paths?
+        self.assertEqual(API_PATHS, frozenset(links.values()))
+
+        # Even if the server gave us exactly the right paths, its response
+        # might still be wrong. What if it the response contained duplicate
+        # paths?
+        self.assertEqual(len(API_PATHS), len(links))
 
 
 class TestSmoke(TestCase):
