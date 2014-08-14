@@ -543,6 +543,22 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
         required=True,
     )
 
+    def _factory_data(self):
+        """Extend the default implementation of
+        :meth:`robottelo.factory.EntityFactoryMixin._factory_data`.
+
+        Since a ``LifecycleEnvironment`` can be associated to another instance
+        of a ``LifecycleEnvironment`` via the ``prior`` field, the expected
+        foreignkey is not ``prior_id`` as expected, but ``prior``. Therefore,
+        we must update the entity's fields and make sure that we have a ``prior``
+        attribute before any further actions can be performed.
+
+        """
+        lc_attrs = super(LifecycleEnvironment, self)._factory_data()
+        # Add ``prior`` back into the fields
+        lc_attrs['prior'] = lc_attrs.pop('prior_id')
+        return lc_attrs
+
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/environments'
