@@ -369,11 +369,13 @@ class OperatingSys(UITestCase):
             result_object = self.operatingsys.get_os_entities(name, "ptable")
             self.assertEqual(ptable, result_object['ptable'])
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_update_os_template(self):
         """
         @Test: Update provisioning template
         @Feature: OS - Positive Update
         @Assert: OS is updated
+        @BZ: 1129612
         """
 
         os_name = generate_string("alpha", 6)

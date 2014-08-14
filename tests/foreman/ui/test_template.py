@@ -36,6 +36,7 @@ class Template(UITestCase):
                 make_org(session, org_name=Template.org_name)
                 make_loc(session, name=Template.loc_name)
 
+    @skip_if_bug_open('bugzilla', 1129612)
     @data(*generate_strings_list())
     def test_positive_create_template(self, name):
         """
@@ -43,6 +44,7 @@ class Template(UITestCase):
         @Feature: Template - Positive Create
         @Assert: New provisioning template of type 'provision'
         should be created successfully
+        @BZ: 1129612
         """
 
         temp_type = 'provision'
@@ -52,13 +54,14 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     @skip_if_bug_open('bugzilla', 1121521)
     def test_negative_create_template_1(self):
         """
         @Test: Template - Create a new template with 256 characters in name
         @Feature: Template - Negative Create
         @Assert: Template is not created
-        @BZ: 1121521
+        @BZ: 1121521 1129612
         """
 
         name = generate_string("alpha", 256)
@@ -71,11 +74,13 @@ class Template(UITestCase):
                                  (common_locators["name_haserror"]))
             self.assertIsNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_2(self):
         """
         @Test: Template - Create a new template with whitespace
         @Feature: Template - Negative Create
         @Assert: Template is not created
+        @BZ: 1129612
         """
         name = " "
         temp_type = 'provision'
@@ -87,11 +92,13 @@ class Template(UITestCase):
                                  (common_locators["name_haserror"]))
             self.assertIsNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_3(self):
         """
         @Test: Template - Create a new template with blank name
         @Feature: Template - Negative Create
         @Assert: Template is not created
+        @BZ: 1129612
         """
         name = ""
         temp_type = 'provision'
@@ -103,11 +110,13 @@ class Template(UITestCase):
                                  (common_locators["name_haserror"]))
             self.assertIsNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_4(self):
         """
         @Test: Template - Create a new template with same name
         @Feature: Template - Negative Create
         @Assert: Template is not created
+        @BZ: 1129612
         """
         name = generate_string("alpha", 16)
         temp_type = 'provision'
@@ -121,11 +130,13 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["name_haserror"]))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_5(self):
         """
         @Test: Template - Create a new template without selecting its type
         @Feature: Template - Negative Create
         @Assert: Template is not created
+        @BZ: 1129612
         """
         name = generate_string("alpha", 16)
         temp_type = ""
@@ -138,11 +149,13 @@ class Template(UITestCase):
                              "Could not create template '%s'"
                              " without type" % name)
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_6(self):
         """
         @Test: Template - Create a new template without uploading a template
         @Feature: Template - Negative Create
         @Assert: Template is not created
+        @BZ: 1129612
         """
         name = generate_string("alpha", 16)
         temp_type = 'PXELinux'
@@ -154,11 +167,13 @@ class Template(UITestCase):
             self.assertEqual(context.exception.message,
                              "Could not create blank template '%s'" % name)
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_7(self):
         """
         @Test: Create a new template with 256 characters in audit comments
         @Feature: Template - Negative Create
         @Assert: Template is not created
+        @BZ: 1129612
         """
         name = generate_string("alpha", 16)
         audit_comment = generate_string("alpha", 256)
@@ -172,12 +187,14 @@ class Template(UITestCase):
                                  (common_locators["alert.error"]))
             self.assertIsNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_positive_create_snippet_template(self):
         """
         @Test: Create new template of type snippet
         @Feature: Template - Positive Create
         @Assert: New provisioning template of type 'snippet'
         should be created successfully
+        @BZ: 1129612
         """
 
         name = generate_string("alpha", 6)
@@ -187,11 +204,13 @@ class Template(UITestCase):
                            custom_really=True, snippet=True)
             self.assertIsNotNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_remove_template(self):
         """
         @Test: Remove a template
         @Feature: Template - Positive Delete
         @Assert: Template removed successfully
+        @BZ: 1129612
         """
 
         name = generate_string("alpha", 6)
@@ -206,11 +225,13 @@ class Template(UITestCase):
                                  (common_locators["notif.success"]))
             self.assertIsNone(self.template.search(name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_update_template(self):
         """
         @Test: Update template name and template type
         @Feature: Template - Positive Update
         @Assert: The template name and type should be updated successfully
+        @BZ: 1129612
         """
 
         name = generate_string("alpha", 6)
@@ -225,6 +246,7 @@ class Template(UITestCase):
             self.template.update(name, False, new_name, None, new_temp_type)
             self.assertIsNotNone(self.template.search(new_name))
 
+    @skip_if_bug_open('bugzilla', 1129612)
     def test_update_template_os(self):
         """
         @Test: Creates new template, along with two OS's
@@ -232,6 +254,7 @@ class Template(UITestCase):
         @Feature: Template - Positive Update
         @Assert: The template should be updated with newly created OS's
         successfully
+        @BZ: 1129612
         """
         name = generate_string("alpha", 6)
         new_name = generate_string("alpha", 6)
