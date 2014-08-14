@@ -259,28 +259,38 @@ class TestSmoke(TestCase):
         login = orm.StringField(str_type=('alphanumeric',)).get_value()
         password = orm.StringField(str_type=('alphanumeric',)).get_value()
 
-        # step 1
+        # step 1: Create a new user with admin permissions
         entities.User(admin=True, login=login, password=password).create()
 
-        # step 2.1
-        entities.Organization().create(auth=(login, password))
+        # step 2.1: Create a new organization
+        org = entities.Organization().create(auth=(login, password))
 
-        # step 2.2
-        #
-        # FIXME: Creation of LifecycleEnvironment entities is broken.
-        # Error message: "Couldn't find Katello::KTEnvironment with id=Library"
-        #
-        # le_1_attrs = entities.LifecycleEnvironment(
-        #     organization=org_attrs['id']
-        # ).create(auth=(login, password))
-        # le_2_attrs = entities.LifecycleEnvironment(
-        #     organization=org_attrs['id'],
-        #     prior=le_1_attrs['name']
-        # ).create(auth=(login, password))
-        # entities.LifecycleEnvironment(
-        #     organization=org_attrs['id'],
-        #     prior=le_2_attrs['name']
-        # ).create(auth=(login, password))
+        # step 2.2: Create 2 new lifecycle environments
+        le1 = entities.LifecycleEnvironment(organization=org['id']).create()
+        le2 = entities.LifecycleEnvironment(
+            organization=org['id'], prior=le1['id']).create()
+
+        # step 2.3: Create a custom product
+        prod = entities.Product(organization=org['id']).create()
+
+        # step 2.4: Create custom YUM repository
+        repo1 = entities.Repository(
+            product=prod['id'],
+            content_type=u'yum',
+            url=u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
+        ).create()
+
+        # step 2.5: Create custom PUPPET repository
+        repo2 = entities.Repository(
+            product=prod['id'],
+            content_type=u'puppet',
+            url=u'http://davidd.fedorapeople.org/repos/random_puppet/'
+        ).create()
+
+        # step 2.6: Synchronize both repositories
+
+        # step 2.7: Create content view
+        cv = entities.ContentView(organization=org['id']).create()
 
     def _search(self, entity, query, auth=None):
         """
