@@ -19,7 +19,7 @@ class TestSmoke(TestCase):
         @Feature: Smoke Test
         @Assert: 'Default Organization' is found
         """
-        query = u'Default Organization'
+        query = u'Default_Organization'
         self._search(entities.Organization, query)
 
     @attr('smoke')
@@ -29,7 +29,7 @@ class TestSmoke(TestCase):
         @Feature: Smoke Test
         @Assert: 'Default Location' is found
         """
-        query = u'Default Location'
+        query = u'Default_Location'
         self._search(entities.Location, query)
 
     @attr('smoke')
