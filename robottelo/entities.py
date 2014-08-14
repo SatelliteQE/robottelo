@@ -547,6 +547,26 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/environments'
 
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of ``'organization'``, return a path in
+        the format ``/organizations/<id>/environments``. Otherwise, call
+        ``super``.
+
+        :raises robottelo.orm.NoSuchPathError: If no organization ID is
+            provided.
+
+        """
+        if which == 'organization':
+            if self.organization is None:
+                raise orm.NoSuchPathError(
+                    'An organization ID must be provided.'
+                )
+            return Organization(id=self.organization).path() + '/environments'
+        return super(LifecycleEnvironment, self).path()
+
 
 class Location(orm.Entity):
     """A representation of a Location entity."""
@@ -825,14 +845,13 @@ class RoleLDAPGroups(orm.Entity):
         api_path = 'katello/api/v2/roles/:role_id/ldap_groups'
 
 
-class Role(orm.Entity, factory.EntityFactoryMixin):
+class Role(orm.Entity):
     """A representation of a Role entity."""
-    # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
-    name = orm.StringField(required=True, str_type=('alphanumeric',))
+    name = orm.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = 'api/v2/roles'
+        api_path = 'katello/api/v2/roles'
 
 
 class SmartProxy(orm.Entity):
