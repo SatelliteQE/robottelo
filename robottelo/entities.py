@@ -25,7 +25,7 @@ class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     description = orm.StringField()
     environment = orm.OneToOneField('Environment')
     content_view = orm.OneToOneField('ContentView')
-    # maximum number of registered content hosts, or 'unlimited'
+    unlimited_content_hosts = orm.BooleanField()
     max_content_hosts = orm.IntegerField()
 
     class Meta(object):
@@ -549,8 +549,8 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
 
         Since a ``LifecycleEnvironment`` can be associated to another instance
         of a ``LifecycleEnvironment`` via the ``prior`` field, the expected
-        foreignkey is not ``prior_id`` as expected, but ``prior``. Therefore,
-        we must update the entity's fields and make sure that we have a ``prior``
+        foreignkey is not ``prior_id`` as expected, but ``prior``. Therefore, we
+        must update the entity's fields and make sure that we have a ``prior``
         attribute before any further actions can be performed.
 
         """

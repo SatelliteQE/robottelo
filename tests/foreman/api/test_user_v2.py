@@ -31,7 +31,7 @@ class UsersTestCase(TestCase):
         @Feature: User
         """
         path = entities.User().path()
-        attrs = entities.User().build(fields={u'login': login})
+        attrs = entities.User(login=login).build()
         response = client.post(
             path,
             attrs,
