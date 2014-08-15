@@ -182,36 +182,6 @@ class SampleFactoryTestCase(TestCase):
             SampleFactory().attributes()
         )
 
-    def test_attributes_fields(self):
-        """Call ``attributes`` and specify the ``fields`` argument.
-
-        Assert that the values provided via the ``fields`` argument override
-        the default values generated.
-
-        """
-        name = FauxFactory.generate_string(
-            'utf8',
-            FauxFactory.generate_integer(1, 100)
-        )
-        self.assertEqual(
-            {'name': name, 'cost': SAMPLE_FACTORY_COST},
-            SampleFactory().attributes(fields={'name': name}),
-        )
-
-        cost = FauxFactory.generate_integer()
-        self.assertEqual(
-            {'name': name, 'cost': cost},
-            SampleFactory().attributes(fields={'name': name, 'cost': cost}),
-        )
-
-        extra = FauxFactory.generate_boolean()
-        self.assertEqual(
-            {'name': name, 'cost': cost, 'extra': extra},
-            SampleFactory().attributes(
-                fields={'name': name, 'cost': cost, 'extra': extra}
-            ),
-        )
-
     def test_create(self):
         """Call ``create`` with no arguments. Receive a normal response.
 

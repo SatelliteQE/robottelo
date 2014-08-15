@@ -113,7 +113,7 @@ class Factory(object):
         """
         raise NotImplementedError
 
-    def attributes(self, fields=None):
+    def attributes(self):
         """Return values for populating a new entity.
 
         When this method is called, no entity is created on a Foreman server.
@@ -122,13 +122,6 @@ class Factory(object):
         :meth:`Factory._factory_path`. Within the dict of information returned,
         each dict key and value represent a field name and value, respectively.
 
-        Fields can be given specific values:
-
-        >>> from robottelo.entities import Product
-        >>> attrs = Product().attributes(fields={'name': 'foo'})
-        >>> attrs['name'] == 'foo'
-        True
-
         If a dependent field is encountered, it is simply ignored:
 
         >>> from robottelo.entities import Product
@@ -136,17 +129,11 @@ class Factory(object):
         >>> 'organization_id' in attrs.keys()
         False
 
-        :param dict fields: A dict mapping field names to exact field values.
         :return: Information for creating a new entity.
         :rtype: dict
 
         """
-        # Start with values provided by user.
-        if fields is None:
-            fields = {}
-        values = fields.copy()
-
-        # Fetch remaining values from subclass and ignore FK fields.
+        values = {}
         for name, value in self._factory_data().items():
             # `OneToOneField`s return a Factory instance.
             # `OneToManyField`s return a list of Factory instances.
@@ -160,7 +147,7 @@ class Factory(object):
         # to the caller.
         return values
 
-    def build(self, fields=None, auth=None):
+    def build(self, auth=None):
         """Create dependent entities and return attributes for the current
         entity.
 
@@ -172,12 +159,7 @@ class Factory(object):
         on, see :meth:`Factory.create`.
 
         """
-        # Use the values provided by the user.
-        if fields is None:
-            fields = {}
-        values = fields.copy()
-
-        # Populate all remaining required fields with values.
+        # Populate all required fields with values.
         # self._factory_data() returns field names and values, and there are
         # three types of values:
         #
@@ -189,6 +171,7 @@ class Factory(object):
         #   factories in that list and collect all of their IDs.
         # * Some other type of value. We must use this value verbatim.
         #
+        values = {}
         for name, value in self._factory_data().items():
             if name in values.keys():
                 continue
@@ -205,14 +188,13 @@ class Factory(object):
         # to the caller.
         return values
 
-    def create(self, fields=None, auth=None):
+    def create(self, auth=None):
         """Create a new entity, plus all of its dependent entities.
 
         Create an entity at the path returned by :meth:`Factory._factory_path`.
         If necessary, recursively create dependent entities. When done, return
         a dict of information about the newly created entity.
 
-        :param dict fields: A dict mapping field names to field values.
         :param tuple auth: A ``(username, password)`` pair to use when
             communicating with the API. If ``None``, the credentials returned
             by :func:`robottelo.common.helpers.get_server_credentials` are
@@ -226,8 +208,8 @@ class Factory(object):
         if auth is None:
             auth = get_server_credentials()
 
-        # Create dependent entities and generate values for remaining fields.
-        values = self.build(fields, auth)
+        # Create dependent entities and generate values for non-FK fields.
+        values = self.build(auth)
 
         # Create the current entity.
         path = urljoin(get_server_url(), self._factory_path())
