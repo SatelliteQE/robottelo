@@ -129,7 +129,6 @@ class Factory(object):
         >>> 'organization_id' in attrs.keys()
         False
 
-        :param dict fields: A dict mapping field names to exact field values.
         :return: Information for creating a new entity.
         :rtype: dict
 

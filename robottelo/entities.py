@@ -303,7 +303,6 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/content_views'
         # Alternative paths
-        #
         # '/katello/api/v2/organizations/:organization_id/content_views',
 
 
