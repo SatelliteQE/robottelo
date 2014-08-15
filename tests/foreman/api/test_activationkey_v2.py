@@ -49,10 +49,10 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
         """
         try:
-            attrs = entities.ActivationKey().create(fields={
-                u'unlimited_content_hosts': False,
-                u'max_content_hosts': max_content_hosts
-            })
+            attrs = entities.ActivationKey(
+                unlimited_content_hosts=False,
+                max_content_hosts=max_content_hosts,
+            ).create()
         except FactoryError as err:
             self.fail(err)
         # Assert that it defaults to limited content host...
@@ -83,7 +83,7 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
         """
         try:
-            attrs = entities.ActivationKey().create(fields={u'name': name})
+            attrs = entities.ActivationKey(name=name).create()
         except FactoryError as err:
             self.fail(err)
 
@@ -108,9 +108,7 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
         """
         with self.assertRaises(FactoryError):
-            entities.ActivationKey().create(
-                fields={u'unlimited_content_hosts': False}
-            )
+            entities.ActivationKey(unlimited_content_hosts=False).create()
 
     @data(
         StringField(str_type=('alpha',)).get_value(),
@@ -125,12 +123,10 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
         """
         with self.assertRaises(FactoryError):
-            entities.ActivationKey().create(
-                fields={
-                    u'unlimited_content_hosts': False,
-                    u'max_content_hosts': max_content_hosts
-                }
-            )
+            entities.ActivationKey(
+                unlimited_content_hosts=False,
+                max_content_hosts=max_content_hosts
+            ).create()
 
     @data(
         IntegerField(min_val=-10, max_val=-1).get_value(),
@@ -146,10 +142,10 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
         """
         with self.assertRaises(FactoryError):
-            entities.ActivationKey().create(fields={
-                u'unlimited_content_hosts': True,
-                u'max_content_hosts': max_content_hosts
-            })
+            entities.ActivationKey(
+                unlimited_content_hosts=True,
+                max_content_hosts=max_content_hosts
+            ).create()
 
     @data(
         IntegerField(min_val=1, max_val=30).get_value(),
