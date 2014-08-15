@@ -17,6 +17,23 @@ from robottelo import orm
 from urlparse import urljoin
 
 
+def _get_json_or_raise(raw_response):
+    try:
+        response = raw_response.json()
+    except ValueError as e:
+        raise FactoryError(e.message, " instead: ", response.text)
+
+    if 'error' in response or 'errors' in response:
+        message = response.get('error') or response.get('errors')
+        raise FactoryError(
+            'Error encountered while POSTing to {0}.'
+            'Error received: {1}'
+            ''.format(raw_response.url, message)
+        )
+
+    return response
+
+
 def _copy_and_update_keys(somedict, mapping):
     """Make a copy of ``somedict`` and update its keys with ``mapping``.
 
@@ -121,6 +138,7 @@ class Factory(object):
         used to manually create an entity at the path returned by
         :meth:`Factory._factory_path`. Within the dict of information returned,
         each dict key and value represent a field name and value, respectively.
+
 
         If a dependent field is encountered, it is simply ignored:
 
@@ -248,7 +266,7 @@ class Factory(object):
         response = client.post(path, values, auth=auth, verify=False)
 
         # Tell caller about created entity.
-        return self.getJsonOrRaise(response)
+        return _get_json_or_raise(response)
 
 
 class EntityFactoryMixin(Factory):
@@ -289,7 +307,7 @@ class EntityFactoryMixin(Factory):
         fields = self.get_fields()  # fields from entity definition
 
         # When this loop is complete, `values` is complete. We just need to
-        # adjust field names for Foreman.
+        # adjust field for Foreman.
         for name, field in fields.items():
             if name not in values.keys() and field_is_required(field):
                 values[name] = field.get_value()
@@ -308,3 +326,19 @@ class EntityFactoryMixin(Factory):
                 values[name + '_ids'] = values.pop(name)
 
         return values
+
+
+class EntitySearchFactoryMixin(EntityFactoryMixin):
+    """For selectively adding query capabilities to EntityFactoryMixin."""
+
+    def search(self, query={}):
+        for attr in ['organization_id', 'name']:
+            if attr in self.attributes():
+                query.setdefault(attr, self.attributes()[attr])
+        response = client.get(
+            self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data=query
+        )
+        return _get_json_or_raise(response)

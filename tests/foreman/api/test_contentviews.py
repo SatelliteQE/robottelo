@@ -5,7 +5,7 @@
 Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
-from robottelo.api.apicrud import ApiCrud, ApiException
+from robottelo.api.apicrud import ApiCrud, ApiException, Task
 from robottelo.common.helpers import generate_string
 from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
@@ -515,26 +515,26 @@ class TestContentView(APITestCase):
             }
         )['results'][0]['id']
 
-        new_lifecycle = LifecycleEnvironment().create(
-            {
-                u'organization-id': new_org['id'],
-                u'prior': library_lifecycle
-            }
-        )
+        new_lifecycle = LifecycleEnvironment(
+            organization=new_org['id'],
+            prior=library_lifecycle
+        ).create()
 
-        cv = ContentView().create(
-            {u'organization-id': new_org['id']}
-        )
-        result = ContentView(id=cv['id']).publish(
-            {u'organization-id': new_org['id']}
-        )
+        cv = ContentView(organization=new_org['id']).create()
+        result = ContentView(
+            id=cv['id'],
+            organization=new_org['id']
+        ).publish()
+        Task(result.json()).poll()
 
         version = ContentViewVersion().search(
             {u'content_view_id': cv['id']}
         )['results'][0]
-        ContentViewVersion(id=version['id']).promote({
-            u'environment_id': new_lifecycle['id'],
-        })
+        result = ContentViewVersion(
+            id=version['id'],
+            environment=new_lifecycle['id']
+        ).promote()
+        Task(result.json()).poll()
         name = generate_string('alpha', 15)
         result = System().create({
             u'name': name,
@@ -543,8 +543,8 @@ class TestContentView(APITestCase):
             },
             u"type": "system",
             u'organization_id': new_org['id'],
-            u'content-view_id': cv['id'],
-            u'lifecycle_environment_id': new_lifecycle['id']})
+            u'content_view_id': cv['id'],
+            u'environment_id': new_lifecycle['id']})
         self.assertEqual(
             name, result['name'],
             "Systems created name should be as specified")

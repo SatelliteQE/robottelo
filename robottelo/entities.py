@@ -263,10 +263,15 @@ class ContentViewPuppetModule(orm.Entity):
                     'content_view_puppet_modules')
 
 
-class ContentViewVersion(orm.Entity, factory.EntityFactoryMixin):
+class ContentViewVersion(orm.Entity, factory.EntitySearchFactoryMixin):
     """A representation of a Content View Version non-entity."""
-    def promote(self, opts):
-        path = "%s/promote/" % self.path()
+    organization = orm.OneToOneField('Organization', required=True)
+    environment = orm.OneToOneField('LifecycleEnvironment', required=True)
+
+    def promote(self, opts={}):
+        path = "{0}/promote/".format(self.path())
+        opts.setdefault(u'organization_id', self.organization)
+        opts.setdefault(u'environment_id', self.environment)
         return client.post(
             path,
             auth=get_server_credentials(),
@@ -292,8 +297,9 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
 
 
     def publish(self, opts={}):
+        opts.setdefault(u'organization_id', self.organization)
         return client.post(
-            "%s/publish" % self.path(),
+            "{0}/publish".format(self.path()),
             auth=get_server_credentials(),
             verify=False,
             data=opts
@@ -558,7 +564,7 @@ class Interface(orm.Entity):
         api_path = 'api/v2/hosts/:host_id/interfaces'
 
 
-class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
+class LifecycleEnvironment(orm.Entity, factory.EntitySearchFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
