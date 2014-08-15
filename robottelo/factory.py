@@ -129,6 +129,7 @@ class Factory(object):
         >>> 'organization_id' in attrs.keys()
         False
 
+        :param dict fields: A dict mapping field names to exact field values.
         :return: Information for creating a new entity.
         :rtype: dict
 
@@ -188,6 +189,38 @@ class Factory(object):
         # to the caller.
         return values
 
+    def getJsonOrRaise(self, raw_response):
+        if raw_response.ok:
+            try:
+                response = raw_response.json()
+            except ValueError as e:
+                raise FactoryError(e.message, " instead: ", response.text)
+
+            if 'error' in response or 'errors' in response:
+                message = response.get('error') or response.get('errors')
+                raise FactoryError(
+                    'Error encountered while POSTing to {0}.'
+                    'Error received: {1}'
+                    ''.format(raw_response.url, message)
+                )
+
+            return response
+
+        else:
+            raise FactoryError(raw_response.status_code, raw_response.text)
+
+    def search(self, query={}):
+        for attr in ['organization_id', 'name']:
+            if attr in self.attributes():
+                query.setdefault(attr, self.attributes()[attr])
+        response = client.get(
+            self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data=query
+        )
+        return self.getJsonOrRaise(response)
+
     def create(self, auth=None):
         """Create a new entity, plus all of its dependent entities.
 
@@ -213,19 +246,10 @@ class Factory(object):
 
         # Create the current entity.
         path = urljoin(get_server_url(), self._factory_path())
-        response = client.post(path, values, auth=auth, verify=False).json()
-        if 'error' in response.keys() or 'errors' in response.keys():
-            if 'error' in response.keys():
-                message = response['error']
-            else:
-                message = response['errors']
-            raise FactoryError(
-                'Error encountered while POSTing to {0}. Error received: {1}'
-                ''.format(path, message)
-            )
+        response = client.post(path, values, auth=auth, verify=False)
 
         # Tell caller about created entity.
-        return response
+        return self.getJsonOrRaise(response)
 
 
 class EntityFactoryMixin(Factory):

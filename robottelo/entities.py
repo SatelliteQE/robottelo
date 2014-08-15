@@ -265,9 +265,15 @@ class ContentViewPuppetModule(orm.Entity):
 
 class ContentViewVersion(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View Version non-entity."""
-    def api_publish(self, uuid):
-        path = "%s/publish/" % self.path(uuid)
-        return client.post(path)
+    def promote(self, opts):
+        path = "%s/promote/" % self.path()
+        return client.post(
+            path,
+            auth=get_server_credentials(),
+            verify=False,
+            data=opts
+        )
+
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -285,8 +291,13 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
     components = orm.OneToManyField('ContentView')
 
 
-    def publish(self):
-        return None
+    def publish(self, opts={}):
+        return client.post(
+            "%s/publish" % self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data=opts
+        )
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1027,7 +1038,7 @@ class SystemPackage(orm.Entity):
         api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
-class System(orm.Entity):
+class System(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a System entity."""
     name = orm.StringField(required=True)
     description = orm.StringField()
@@ -1109,7 +1120,7 @@ class User(orm.Entity, factory.EntityFactoryMixin):
     password = orm.StringField(required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', default=1, required=True)
+    auth_source = orm.OneToOneField('AuthSourceLDAP', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
