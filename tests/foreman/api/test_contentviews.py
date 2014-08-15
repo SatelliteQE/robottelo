@@ -6,11 +6,14 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, skip_if_bz_bug_open
+from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
-from robottelo.entities import Organization, LifecycleEnvironment, ContentView, System
+from robottelo.entities import (
+    Organization, LifecycleEnvironment, ContentView, ContentViewVersion, System
+    )
 from robottelo.test import APITestCase
 
 
@@ -362,7 +365,7 @@ class TestContentView(APITestCase):
 
     # Content Views: publish
     # katello content definition publish --label=MyView
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    @stubbed
     def test_cv_publish_rh(self, data):
         """
         @test: attempt to publish a content view containing RH content
@@ -370,12 +373,6 @@ class TestContentView(APITestCase):
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
         """
-
-        con_view = ApiCrud.record_create_recursive(data)
-        self.assertIntersects(data, con_view)
-        task = con_view._meta.api_class.publish(con_view)
-        task.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        self.assertEqual('success', task.result())
 
     @stubbed
     def test_cv_publish_rh_custom_spin(self):
@@ -494,7 +491,6 @@ class TestContentView(APITestCase):
         @status: Manual
         """
 
-    @stubbed
     def test_cv_subscribe_system(self):
         # Notes:
         # this should be limited to only those content views
@@ -512,48 +508,46 @@ class TestContentView(APITestCase):
         @assert: Systems can be subscribed to content view(s)
         """
         new_org = Organization().create()
-        library_lifecycle =
+        library_lifecycle = LifecycleEnvironment().search(
+            {
+                "organization_id": new_org['id'],
+                "name": 'Library'
+            }
+        )['results'][0]['id']
+
         new_lifecycle = LifecycleEnvironment().create(
+            {
+                u'organization-id': new_org['id'],
+                u'prior': library_lifecycle
+            }
+        )
+
+        cv = ContentView().create(
+            {u'organization-id': new_org['id']}
+        )
+        result = ContentView(id=cv['id']).publish(
             {u'organization-id': new_org['id']}
         )
 
-        new_cv = ContentView().create(
-            {u'organization-id': new_org['id']}
-        )
-        promoted_cv = None
-        cv_id = new_cv['id']
-        ContentView.publish({u'id': cv_id})
-        result = ContentView.version_list({u'content-view-id': cv_id})
-        version_id = result.stdout[0]['id']
-        promotion = ContentView.version_promote({
-            u'id': version_id,
-            u'lifecycle-environment-id': new_lifecycle[
-                'id'],
-            u'organization-id': new_org['id']
+        version = ContentViewVersion().search(
+            {u'content_view_id': cv['id']}
+        )['results'][0]
+        ContentViewVersion(id=version['id']).promote({
+            u'environment_id': new_lifecycle['id'],
         })
-        if promotion.stderr == []:
-            promoted_cv = new_cv
-
-        new_system = make_content_host({
-            u'name': generate_string('alpha', 15),
-            u'organization-id': new_org['id'],
-            u'content-view-id': promoted_cv['id'],
-            u'lifecycle-environment-id': new_lifecycle['id']})
-
-    @skip_if_bz_bug_open('1094758')
-    def test_custom_cv_subscribe_system(self):
-        """
-        @test: attempt to  subscribe systems to content view(s)
-        @feature: Content Views
-        @assert: Systems can be subscribed to content view(s)
-        """
-        # s = System()
-        # scd = ApiCrud.record_create_dependencies(s)
-        # task = scd.content_view._meta.api_class.publish(scd.content_view)
-        # task.poll(5, 100)
-        # scc = ApiCrud.record_create(scd)
-        # self.assertIntersects(s, scc)
-        self.fail('System record should be implemented')
+        name = generate_string('alpha', 15)
+        result = System().create({
+            u'name': name,
+            u'facts': {
+                "uname.machine": "unknown"
+            },
+            u"type": "system",
+            u'organization_id': new_org['id'],
+            u'content-view_id': cv['id'],
+            u'lifecycle_environment_id': new_lifecycle['id']})
+        self.assertEqual(
+            name, result['name'],
+            "Systems created name should be as specified")
 
     @stubbed
     def test_cv_dynflow_restart_promote(self):
