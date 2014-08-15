@@ -12,11 +12,12 @@ import httplib
 
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ContentView,
-    entities.GPGKey, entities.OperatingSystem, entities.Repository,
-    entities.Role, entities.User,
+    entities.GPGKey, entities.LifecycleEnvironment, entities.OperatingSystem,
+    entities.Repository, entities.Role, entities.User,
 )
 BZ_1122267_ENTITIES = (
-    entities.ActivationKey, entities.ContentView, entities.Repository
+    entities.ActivationKey, entities.ContentView,
+    entities.LifecycleEnvironment, entities.Repository
 )
 
 
@@ -111,8 +112,6 @@ class EntityTestCase(TestCase):
         """
         if entity in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
             self.skipTest("Bugzilla bug 1118015 is open.""")
-        if entity is entities.LifecycleEnvironment and bz_bug_is_open(1129441):
-            self.skipTest("Bugzilla bug 1129441 is open.""")
         path = entity().path()
         response = client.post(
             path,
@@ -170,6 +169,7 @@ class EntityIdTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -207,6 +207,7 @@ class EntityIdTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -242,6 +243,7 @@ class EntityIdTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -294,6 +296,7 @@ class LongMessageTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -338,6 +341,7 @@ class LongMessageTestCase(TestCase):
         entities.Domain,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
+        entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
