@@ -288,9 +288,16 @@ class TestSmoke(TestCase):
         ).create()
 
         # step 2.6: Synchronize both repositories
+        response = client.post(
+            entities.Repository(id=repo1['id']).path('sync'),
+            {u'ids': [repo1['id']]},
+            auth=get_server_credentials(),
+            verify=False,
+            params={u'organization_id': org['id']}).json()
+        # TODO: Fetch status of sync task from response task 'id'
 
         # step 2.7: Create content view
-        cv = entities.ContentView(organization=org['id']).create()
+        content_view = entities.ContentView(organization=org['id']).create()
 
     def _search(self, entity, query, auth=None):
         """
