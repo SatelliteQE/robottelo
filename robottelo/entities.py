@@ -12,8 +12,10 @@ inner class contains non-field information. This information is especially
 useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
+from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
+from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
@@ -535,13 +537,11 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     description = orm.StringField()
-    # Name of an environment that is prior to the new environment in the chain.
-    # It has to be either 'Library' or an environment at the end of a chain.
-    prior = orm.OneToOneField(
-        'LifecycleEnvironment',
-        default=None,
-        required=True,
-    )
+    # A prior environment in a tree of lifecycle environments. The root of the
+    # tree has name of 'Library' and no value in this field.
+    # FIXME: This field is not required. Remove `required` and update other
+    # methods to deal with the change.
+    prior = orm.OneToOneField('LifecycleEnvironment', required=True)
 
     def _factory_data(self):
         """Extend the default implementation of
@@ -558,6 +558,45 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
         # Add ``prior`` back into the fields
         lc_attrs['prior'] = lc_attrs.pop('prior_id')
         return lc_attrs
+
+    def build(self, auth=None):
+        """Extend the implementation of :meth:`robottelo.factory.Factory.build`.
+
+        When a new lifecycle environment is created, it must either:
+
+        * Reference some other lifecycle environment via the "prior" field.
+        * Have a name of "Library". Note that within a given organization, there
+          can only be a single lifecycle environment with a name of "Library".
+
+        This method does the following:
+
+        1. If this entity does not yet point to an organization (i.e. if
+           ``self.organization is None``), an organization is created.
+        2. If this entity does not yet point to another lifecycle entity (i.e.
+           if ``self.prior is None``), the "Library" lifecycle environment for
+           this lifecycle environment's organization is found and used.
+
+        """
+        if self.organization is None:
+            self.organization = Organization().create(auth=auth)['id']
+        if self.prior is None:
+            query_results = client.get(
+                self.path(),
+                auth=get_server_credentials(),
+                verify=False,
+                params={
+                    'name': 'Library',
+                    'organization_id': self.organization,
+                }
+            ).json()['results']
+            if len(query_results) != 1:
+                raise factory.FactoryError(
+                    'Could not find the "Library" lifecycle environment for '
+                    'organization {0}. Search returned {1} results.'
+                    ''.format(self.organization, len(query_results))
+                )
+            self.prior = query_results[0]['id']
+        return super(LifecycleEnvironment, self).build(auth)
 
     class Meta(object):
         """Non-field information about this entity."""
