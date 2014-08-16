@@ -154,7 +154,7 @@ class Domain(UITestCase):
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
-    def test_set_parameter_1(self, name):
+    def test_positive_set_domain_parameter_1(self, name):
         """
         @Test: Set parameter name and value for domain
         @Feature: Domain - Misc
@@ -173,9 +173,9 @@ class Domain(UITestCase):
             except Exception as e:
                 self.fail(e)
 
-    def test_set_parameter_2(self):
+    def test_positive_set_domain_parameter_2(self):
         """
-        @Test: Set a paramter in a domain with 255 chars in name and value.
+        @Test: Set a parameter in a domain with 255 chars in name and value.
         @Feature: Domain - Misc.
         @Assert: Domain parameter is created.
         """
@@ -193,12 +193,11 @@ class Domain(UITestCase):
             except Exception as e:
                 self.fail(e)
 
-    @skip_if_bug_open('bugzilla', 1120685)
-    def test_set_parameter_negative_1(self):
+    def test_positive_set_domain_parameter_3(self):
         """
         @Test: Set a parameter in a domain with blank value.
         @Feature: Domain - Misc.
-        @Assert: Domain parameter is not updated.
+        @Assert: Domain parameter is created with blank value.
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
@@ -213,10 +212,8 @@ class Domain(UITestCase):
                                                  param_value)
             except Exception as e:
                 self.fail(e)
-            self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators["common_param_error"]))
 
-    def test_set_parameter_negative_2(self):
+    def test_set_domain_parameter_negative_1(self):
         """
         @Test: Set a parameter in a domain with 256 chars in name and value.
         @Feature: Domain - Misc.
@@ -239,7 +236,7 @@ class Domain(UITestCase):
                 common_locators["common_param_error"]))
 
     @skip_if_bug_open('bugzilla', 1123360)
-    def test_set_parameter_negative_3(self):
+    def test_set_domain_parameter_negative_2(self):
         """
         @Test: Again set the same parameter for domain with name and value.
         @Feature: Domain - Misc.
@@ -266,7 +263,7 @@ class Domain(UITestCase):
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
-    def test_remove_parameter(self, name):
+    def test_remove_domain_parameter(self, name):
         """
         @Test: Remove a selected domain paramter
         @Feature: Domain - Misc
