@@ -91,13 +91,14 @@ class OperatingSys(Base):
             raise Exception(
                 "Could not create new operating system '%s'" % name)
 
-    def search(self, name):
+    def search(self, name, search_key=None):
         """
         Searches existing operating system from UI
         """
         Navigator(self.browser).go_to_operating_systems()
         element = self.search_entity(
-            name, locators['operatingsys.operatingsys_name'])
+            name, locators['operatingsys.operatingsys_name'],
+            search_key)
         return element
 
     def delete(self, os_name, really):

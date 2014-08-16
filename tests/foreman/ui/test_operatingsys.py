@@ -94,7 +94,8 @@ class OperatingSys(UITestCase):
                     minor_version=test_data['minor_version'],
                     description=test_data['desc'],
                     os_family=test_data['os_family'], archs=[arch])
-            self.assertIsNotNone(self.operatingsys.search(test_data['name']))
+            self.assertIsNotNone(self.operatingsys.search
+                                 (test_data['desc'], search_key="description"))
 
     @skip_if_bug_open('bugzilla', 1120181)
     def test_negative_create_os_1(self):

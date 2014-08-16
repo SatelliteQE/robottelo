@@ -132,6 +132,7 @@ class Environment(UITestCase):
             search = self.environment.search(new_name)
             self.assertIsNotNone(search)
 
+    @skip_if_bug_open('bugzilla', 1126033)
     @attr('ui', 'environment', 'implemented')
     @data({'name': generate_string('alpha', 8)},
           {'name': generate_string('numeric', 8)},

@@ -6,7 +6,7 @@ Test class for Architecture UI
 """
 from ddt import ddt
 from robottelo.common.decorators import data
-from robottelo.common.helpers import (generate_string, valid_names_list,
+from robottelo.common.helpers import (generate_string,
                                       generate_strings_list)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
@@ -59,10 +59,10 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.operatingsys.search
                                  (test_data['os_name']))
             make_arch(session, name=test_data['name'],
-                      os_names=test_data['os_name'])
+                      os_names=[test_data['os_name']])
             self.assertIsNotNone(self.architecture.search(test_data['name']))
 
-    @data(*valid_names_list())
+    @data(*generate_strings_list(len1=8))
     def test_positive_create_arch_2(self, name):
         """
         @Test: Create a new Architecture with different data
@@ -151,7 +151,7 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.operatingsys.search
                                  (test_data['os_name']))
             make_arch(session, name=test_data['name'],
-                      os_names=test_data['os_name'])
+                      os_names=[test_data['os_name']])
             self.assertIsNotNone(self.architecture.search(test_data['name']))
             self.architecture.delete(test_data['name'], True)
             self.assertIsNone(self.architecture.search(test_data['name']))
@@ -189,6 +189,6 @@ class Architecture(UITestCase):
                                  (test_data['old_name']))
             self.architecture.update(test_data['old_name'],
                                      test_data['new_name'],
-                                     new_os_names=test_data['os_name'])
+                                     new_os_names=[test_data['os_name']])
             self.assertIsNotNone(self.architecture.search
                                  (test_data['new_name']))

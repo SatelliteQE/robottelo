@@ -82,9 +82,14 @@ class Role(UITestCase):
         """
         name = generate_name(6)
         org_name = generate_name(6)
+        resource_type = 'Activation Keys'
+        permission_list = ['view_activation_keys']
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_org()
         self.org.create(org_name)
         self.navigator.go_to_roles()
         self.role.create(name)
-        self.role.update(name, add_permission=True, organization=[org_name])
+        self.role.update(name, add_permission=True,
+                         resource_type=resource_type,
+                         permission_list=permission_list,
+                         organization=[org_name])

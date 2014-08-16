@@ -110,7 +110,13 @@ class ActivationKey(Base):
             if limit:
                 self.find_element(locators["ak.edit_limit"]).click()
                 self.set_limit(limit)
-                self.find_element(locators["ak.save_limit"]).click()
+                if self.wait_until_element(locators["ak.save_limit"]
+                                           ).is_enabled():
+                    self.find_element(locators["ak.save_limit"]).click()
+                else:
+                    raise ValueError(
+                        "Please update content host "
+                        "limit with valid integer value")
             if content_view:
                 if env:
                     strategy = locators["ak.env"][0]

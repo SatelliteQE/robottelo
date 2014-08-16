@@ -147,7 +147,7 @@ class Settings(UITestCase):
         param_value = generate_string("numeric", 5)
         tab_locator = tab_locators["settings.tab_general"]
         param_name = "entries_per_page"
-        value_type = "input1"
+        value_type = "input"
         with Session(self.browser) as session:
             edit_param(session, tab_locator=tab_locator,
                        param_name=param_name,
