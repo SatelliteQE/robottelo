@@ -18,14 +18,30 @@ class TestPuppetModule(CLITestCase):
     """
 
     @skip_if_bug_open('bugzilla', 1127382)
-    def test_list_puppetmodule(self):
+    def test_bugzilla_1127382(self):
         """
-        @Test: Check if a puppet module is listed
-        @Feature: Puppet - Module
-        @Assert: Puppet module is listed
+        @Test: hammer puppet-module <info,list> --help
+        @Feature: puppet-module info/list
+        @Assert: Assert product option are present
         """
+        # puppet-module list --help:
+        result = PuppetModule.list({'help': True})
+        # get list of lines and check they all are unique
+        lines = [line['message'] for line in result.stdout]
+        self.assertEqual(len(set(lines)), len(lines),
+                         'The help should not have repeat options')
+        product_options = [line for line in lines
+                           if line.startswith('--product')]
+        self.assertGreater(len(product_options), 0,
+                           'At least one --product option should be present')
 
-        result = PuppetModule.list()
-        self.assertEqual(result.return_code, 0, "List PuppetModule - retcode")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
+        # puppet-module info --help:info, ignore exception
+        result = PuppetModule.info({'help': True})
+        # get list of lines and check they all are unique
+        lines = [line for line in result.stdout['options']]
+        self.assertEqual(len(set(lines)), len(lines),
+                         'The help should not have repeat options')
+        product_options = [line for line in lines
+                           if line.startswith('--product')]
+        self.assertGreater(len(product_options), 0,
+                           'At least one --product option should be present')
