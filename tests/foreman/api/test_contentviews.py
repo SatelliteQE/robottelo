@@ -5,11 +5,15 @@
 Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
-from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.api.apicrud import ApiCrud, ApiException, Task
+from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
+from robottelo.entities import (
+    Organization, LifecycleEnvironment, ContentView, ContentViewVersion, System
+    )
 from robottelo.test import APITestCase
 
 
@@ -361,7 +365,7 @@ class TestContentView(APITestCase):
 
     # Content Views: publish
     # katello content definition publish --label=MyView
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    @stubbed
     def test_cv_publish_rh(self, data):
         """
         @test: attempt to publish a content view containing RH content
@@ -369,12 +373,6 @@ class TestContentView(APITestCase):
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
         """
-
-        con_view = ApiCrud.record_create_recursive(data)
-        self.assertIntersects(data, con_view)
-        task = con_view._meta.api_class.publish(con_view)
-        task.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        self.assertEqual('success', task.result())
 
     @stubbed
     def test_cv_publish_rh_custom_spin(self):
@@ -493,7 +491,6 @@ class TestContentView(APITestCase):
         @status: Manual
         """
 
-    @stubbed
     def test_cv_subscribe_system(self):
         # Notes:
         # this should be limited to only those content views
@@ -509,23 +506,48 @@ class TestContentView(APITestCase):
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
-        @status: Manual
         """
+        new_org = Organization().create()
+        library_lifecycle = LifecycleEnvironment().search(
+            {
+                "organization_id": new_org['id'],
+                "name": 'Library'
+            }
+        )['results'][0]['id']
 
-    @skip_if_bug_open('bugzilla', 1094758)
-    def test_custom_cv_subscribe_system(self):
-        """
-        @test: attempt to  subscribe systems to content view(s)
-        @feature: Content Views
-        @assert: Systems can be subscribed to content view(s)
-        """
-        # s = System()
-        # scd = ApiCrud.record_create_dependencies(s)
-        # task = scd.content_view._meta.api_class.publish(scd.content_view)
-        # task.poll(5, 100)
-        # scc = ApiCrud.record_create(scd)
-        # self.assertIntersects(s, scc)
-        self.fail('System record should be implemented')
+        new_lifecycle = LifecycleEnvironment(
+            organization=new_org['id'],
+            prior=library_lifecycle
+        ).create()
+
+        cv = ContentView(organization=new_org['id']).create()
+        result = ContentView(
+            id=cv['id'],
+            organization=new_org['id']
+        ).publish()
+        Task(result.json()).poll()
+
+        version = ContentViewVersion().search(
+            {u'content_view_id': cv['id']}
+        )['results'][0]
+        result = ContentViewVersion(
+            id=version['id'],
+            environment=new_lifecycle['id']
+        ).promote()
+        Task(result.json()).poll()
+        name = generate_string('alpha', 15)
+        result = System(
+            name=name,
+            facts={
+                "uname.machine": "unknown"
+            },
+            system_type="system",
+            organization=new_org['id'],
+            content_view=cv['id'],
+            environment=new_lifecycle['id']).create()
+        self.assertEqual(
+            name, result['name'],
+            "Systems created name should be as specified")
 
     @stubbed
     def test_cv_dynflow_restart_promote(self):

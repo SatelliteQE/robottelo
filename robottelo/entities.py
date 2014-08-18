@@ -17,6 +17,8 @@ from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
+import robottelo.api.client as client
+from robottelo.common.helpers import get_server_url, get_server_credentials
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -261,6 +263,30 @@ class ContentViewPuppetModule(orm.Entity):
                     'content_view_puppet_modules')
 
 
+class ContentViewVersion(orm.Entity, factory.EntitySearchFactoryMixin):
+    """A representation of a Content View Version non-entity."""
+    organization = orm.OneToOneField('Organization', required=True)
+    environment = orm.OneToOneField('LifecycleEnvironment', required=True)
+
+    def path(self, which=None):
+        if which == 'promote':
+            return '{0}/promote'.format(self.path(which='this'))
+        return super(ContentViewVersion, self).path(which)
+
+    def promote(self, opts={}):
+        opts.setdefault(u'organization_id', self.organization)
+        opts.setdefault(u'environment_id', self.environment)
+        return client.post(
+            self.path('promote'),
+            auth=get_server_credentials(),
+            verify=False,
+            data=opts
+        )
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/content_view_versions'
+
 class ContentView(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
@@ -272,11 +298,24 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
     # List of component content view version ids for composite views
     components = orm.OneToManyField('ContentView')
 
+    def path(self, which=None):
+        if which == 'publish':
+            return '{0}/publish'.format(self.path(which='this'))
+        return super(ContentView, self).path(which)
+
+    def publish(self, opts={}):
+        opts.setdefault(u'organization_id', self.organization)
+        return client.post(
+            self.path('publish'),
+            auth=get_server_credentials(),
+            verify=False,
+            data=opts
+        )
+
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/content_views'
         # Alternative paths
-        #
         # '/katello/api/v2/organizations/:organization_id/content_views',
 
 
@@ -532,7 +571,7 @@ class Interface(orm.Entity):
         api_path = 'api/v2/hosts/:host_id/interfaces'
 
 
-class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
+class LifecycleEnvironment(orm.Entity, factory.EntitySearchFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -1008,14 +1047,14 @@ class SystemPackage(orm.Entity):
         api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
-class System(orm.Entity):
+class System(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a System entity."""
     name = orm.StringField(required=True)
     description = orm.StringField()
     # Physical location of the content host
     location = orm.StringField()
     # Any number of facts about this content host
-    fact = orm.StringField(null=True)
+    facts = orm.StringField(null=True)
     # Type of the content host, it should always be 'content host'
     system_type = orm.StringField(default='content host', required=True)
     # IDs of the guests running on this content host
@@ -1090,7 +1129,7 @@ class User(orm.Entity, factory.EntityFactoryMixin):
     password = orm.StringField(required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', default=1, required=True)
+    auth_source = orm.OneToOneField('AuthSourceLDAP', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""

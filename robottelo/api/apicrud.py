@@ -566,7 +566,7 @@ class Task(object):
         )
         self.json = response.json()
 
-    def poll(self, delay, timeout):
+    def poll(self, delay=5, timeout=100):
         """Busy wait for task to complete"""
         current = 0
         finished = False

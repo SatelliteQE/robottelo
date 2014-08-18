@@ -289,8 +289,8 @@ class ActivationKeysTestCase(TestCase):
         )
 
     def test_update_max_content_hosts(self):
-        """@Test: Create an activation key with ``max_content_hosts == 1``, then
-        update that field with a string value.
+        """@Test: Create an activation key with ``max_content_hosts == 1``,
+        then update that field with a string value.
 
         @Feature: ActivationKey
 
