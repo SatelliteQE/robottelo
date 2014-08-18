@@ -1047,7 +1047,7 @@ class System(orm.Entity, factory.EntityFactoryMixin):
     # Physical location of the content host
     location = orm.StringField()
     # Any number of facts about this content host
-    fact = orm.StringField(null=True)
+    facts = orm.StringField(null=True)
     # Type of the content host, it should always be 'content host'
     system_type = orm.StringField(default='content host', required=True)
     # IDs of the guests running on this content host

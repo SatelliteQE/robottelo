@@ -536,15 +536,15 @@ class TestContentView(APITestCase):
         ).promote()
         Task(result.json()).poll()
         name = generate_string('alpha', 15)
-        result = System().create({
-            u'name': name,
-            u'facts': {
+        result = System(
+            name=name,
+            facts={
                 "uname.machine": "unknown"
             },
-            u"type": "system",
-            u'organization_id': new_org['id'],
-            u'content_view_id': cv['id'],
-            u'environment_id': new_lifecycle['id']})
+            system_type="system",
+            organization=new_org['id'],
+            content_view=cv['id'],
+            environment=new_lifecycle['id']).create()
         self.assertEqual(
             name, result['name'],
             "Systems created name should be as specified")
