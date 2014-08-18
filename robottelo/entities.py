@@ -866,6 +866,18 @@ class Repository(orm.Entity, factory.EntityFactoryMixin):
         required=True,
     )
 
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of ``'sync'``, return a path in the
+        format ``/repositories/<id>/sync``. Otherwise, call ``super``.
+
+        """
+        if which == 'sync':
+            return super(Repository, self).path(which='this') + '/sync'
+        return super(Repository, self).path()
+
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/repositories'

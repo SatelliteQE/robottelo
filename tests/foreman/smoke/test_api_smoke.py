@@ -2,6 +2,7 @@
 from nose.plugins.attrib import attr
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
+from robottelo.common.constants import FAKE_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import helpers
@@ -259,28 +260,45 @@ class TestSmoke(TestCase):
         login = orm.StringField(str_type=('alphanumeric',)).get_value()
         password = orm.StringField(str_type=('alphanumeric',)).get_value()
 
-        # step 1
+        # step 1: Create a new user with admin permissions
         entities.User(admin=True, login=login, password=password).create()
 
-        # step 2.1
-        entities.Organization().create(auth=(login, password))
+        # step 2.1: Create a new organization
+        org = entities.Organization().create(auth=(login, password))
 
-        # step 2.2
-        #
-        # FIXME: Creation of LifecycleEnvironment entities is broken.
-        # Error message: "Couldn't find Katello::KTEnvironment with id=Library"
-        #
-        # le_1_attrs = entities.LifecycleEnvironment(
-        #     organization=org_attrs['id']
-        # ).create(auth=(login, password))
-        # le_2_attrs = entities.LifecycleEnvironment(
-        #     organization=org_attrs['id'],
-        #     prior=le_1_attrs['name']
-        # ).create(auth=(login, password))
-        # entities.LifecycleEnvironment(
-        #     organization=org_attrs['id'],
-        #     prior=le_2_attrs['name']
-        # ).create(auth=(login, password))
+        # step 2.2: Create 2 new lifecycle environments
+        le1 = entities.LifecycleEnvironment(organization=org['id']).create()
+        le2 = entities.LifecycleEnvironment(
+            organization=org['id'], prior=le1['id']).create()
+
+        # step 2.3: Create a custom product
+        prod = entities.Product(organization=org['id']).create()
+
+        # step 2.4: Create custom YUM repository
+        repo1 = entities.Repository(
+            product=prod['id'],
+            content_type=u'yum',
+            url=GOOGLE_CHROME_REPO
+        ).create()
+
+        # step 2.5: Create custom PUPPET repository
+        repo2 = entities.Repository(
+            product=prod['id'],
+            content_type=u'puppet',
+            url=FAKE_PUPPET_REPO
+        ).create()
+
+        # step 2.6: Synchronize both repositories
+        response = client.post(
+            entities.Repository(id=repo1['id']).path('sync'),
+            {u'ids': [repo1['id']]},
+            auth=get_server_credentials(),
+            verify=False,
+            params={u'organization_id': org['id']}).json()
+        # TODO: Fetch status of sync task from response task 'id'
+
+        # step 2.7: Create content view
+        content_view = entities.ContentView(organization=org['id']).create()
 
     def _search(self, entity, query, auth=None):
         """

@@ -141,3 +141,6 @@ FILTER_CONTENT_TYPE = {
 
 FILTER_TYPE = {'include': "Include",
                'exclude': "Exclude"}
+
+GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
+FAKE_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
