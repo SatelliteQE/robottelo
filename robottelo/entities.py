@@ -20,6 +20,10 @@ from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
 
+class ReadException(Exception):
+    """Indicates an error occurred while reading from a Foreman server."""
+
+
 class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Activtion Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
@@ -1086,6 +1090,55 @@ class ForemanTask(orm.Entity):
                 super(ForemanTask, self).path(which='all')
             )
         return super(ForemanTask, self).path(which='this')
+
+    def read(self, auth=None):
+        """Return information about a foreman task.
+
+        :return: Information about this foreman task.
+        :rtype: dict
+        :raises ReadException: If information about this foreman task could not
+            be fetched.
+
+        """
+        # FIXME: Need better error handling. The server responds with an empty
+        # dict if the requested task does not exist, rather than providing some
+        # sort of error. (This is probably bugzilla-worthy. *sigh*) This method
+        # is only known to guard against authentication errors.
+        #
+        # FIXME: Need better error fetching. If there's an authentication
+        # error, the server will respond with JSON:
+        #
+        #     {u'error': {u'text': u'Unable to authenticate user.'}}
+        #
+        # But what if the JSON response contains 'errors', or what if the
+        # response cannot be converted to JSON at all? A utility function can
+        # probably be created for this need. Perhaps
+        # robottelo.api.utils.status_code_error() could be of use. After all,
+        # most of that method is devoted to fetching an error message, and only
+        # the last bit composes an error message.
+        if auth is None:
+            auth = get_server_credentials()
+        response = client.get(self.path(), auth=auth, verify=False)
+        if response.status_code is not 200:
+            raise ReadException(response.text)
+        return response.json()
+
+    def get_result_or_timeout(self, max_seconds=120, auth=None):
+        """Wait for this task to finish. When it is done, return the result."""
+        # FIXME: Improve the above docstring.
+        # FIXME: Implement the following requirements:
+        #
+        # 1. Create a timer which runs in a separate thread. If that timer
+        #    reaches 0, make it raise an exception stating that this method has
+        #    timed out.
+        # 2. Implement the following pseudocode:
+        #
+        #        while(True):
+        #           task_status = self.read(auth='auth')
+        #           if task_status['pending'] == False:
+        #               <cancel timer>
+        #               return task_status['result']
+        #           sleep(N)
 
 
 class TemplateCombination(orm.Entity):
