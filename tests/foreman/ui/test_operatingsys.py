@@ -398,7 +398,7 @@ class OperatingSys(UITestCase):
             result_obj = self.operatingsys.get_os_entities(os_name, "template")
             self.assertEqual(template_name, result_obj['template'])
 
-    def test_set_parameter(self):
+    def test_positive_set_os_parameter_1(self):
         """
         @Test: Set OS parameter
         @Feature: OS - Positive Update
@@ -418,7 +418,27 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
 
-    def test_remove_parameter(self):
+    def test_positive_set_os_parameter_2(self, name):
+        """
+        @Test: Set OS parameter with blank value
+        @Feature: OS - Positive update
+        @Assert: Parameter is created with blank value
+        """
+        name = generate_string("alpha", 4)
+        major_version = generate_string('numeric', 1)
+        param_name = generate_string("alpha", 4)
+        param_value = ""
+        with Session(self.browser) as session:
+            make_os(session, name=name,
+                    major_version=major_version)
+            self.assertIsNotNone(self.operatingsys.search(name))
+            try:
+                self.operatingsys.set_os_parameter(name, param_name,
+                                                   param_value)
+            except Exception as e:
+                self.fail(e)
+
+    def test_remove_os_parameter(self):
         """
         @Test: Remove selected OS parameter
         @Feature: OS - Positive Update
@@ -439,7 +459,7 @@ class OperatingSys(UITestCase):
                 self.fail(e)
 
     @skip_if_bug_open('bugzilla', 1120663)
-    def test_negative_set_parameter_1(self):
+    def test_negative_set_os_parameter_1(self):
         """
         @Test: Set same OS parameter again as it was set earlier
         @Feature: OS - Negative Update
@@ -465,7 +485,7 @@ class OperatingSys(UITestCase):
                                  (common_locators["common_param_error"]))
 
     @skip_if_bug_open('bugzilla', 1120663)
-    def test_negative_set_parameter_2(self):
+    def test_negative_set_os_parameter_2(self):
         """
         @Test: Set OS parameter with blank name and value
         @Feature: OS - Negative Update
@@ -488,31 +508,7 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["common_param_error"]))
 
-    @skip_if_bug_open('bugzilla', 1120685)
-    def test_negative_set_parameter_3(self):
-        """
-        @Test: Set OS parameter with name and blank value
-        @Feature: OS - Negative Update
-        @Assert: Proper error should be raised, Name should contain a value
-        @BZ: 1120685
-        """
-        name = generate_string("alpha", 4)
-        major_version = generate_string('numeric', 1)
-        param_name = generate_string("alpha", 4)
-        param_value = ""
-        with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
-            try:
-                self.operatingsys.set_os_parameter(name, param_name,
-                                                   param_value)
-            except Exception as e:
-                self.fail(e)
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["common_param_error"]))
-
-    def test_negative_set_parameter_4(self):
+    def test_negative_set_os_parameter_3(self):
         """
         @Test: Set OS parameter with name and value exceeding 255 characters
         @Feature: OS - Negative Update
