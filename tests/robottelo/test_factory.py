@@ -30,6 +30,8 @@ class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
         # (protected-access) pylint:disable=W0212
         return SampleFactory()._factory_data()
 
+    url = "http://mock.response.url"
+
 
 class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
     """A mock ``requests.response`` object."""
@@ -41,6 +43,9 @@ class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
 
         """
         return {'error': {'error name': 'error message'}}
+
+    url = "http://mock.response.url"
+    status_code = "404"
 
 
 class SampleEntityFactory(orm.Entity, factory.EntityFactoryMixin):
