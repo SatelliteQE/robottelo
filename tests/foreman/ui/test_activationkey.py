@@ -725,8 +725,11 @@ class ActivationKey(UITestCase):
                         (common_locators["alert.error"]))
 
     @skip_if_bug_open('bugzilla', 1083027)
-    @data(*invalid_names_list())
-    def test_negative_update_activation_key_3(self, limit):
+    @data({u'limit': " "},
+          {u'limit': "-1"},
+          {u'limit': "text"},
+          {u'limit': "0"})
+    def test_negative_update_activation_key_3(self, test_data):
         """
         @Feature: Activation key - Negative Update
         @Test: Update invalid Usage Limit in an activation key
@@ -743,10 +746,11 @@ class ActivationKey(UITestCase):
         self.navigator.go_to_activation_keys()
         self.activationkey.create(name, ENVIRONMENT)
         self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, limit=limit)
-        invalid = self.activationkey.wait_until_element(locators
-                                                        ["ak.invalid_limit"])
-        self.assertTrue(invalid)
+        with self.assertRaises(ValueError) as context:
+            self.activationkey.update(name, limit=test_data['limit'])
+        self.assertEqual(context.exception.message,
+                         "Please update content host limit "
+                         "with valid integer value")
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)

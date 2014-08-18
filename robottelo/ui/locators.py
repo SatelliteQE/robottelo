@@ -1045,7 +1045,8 @@ locators = {
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
     "ak.selected_env": (
         By.XPATH,
-        "//input[@class='ng-pristine ng-valid']/parent::label"),
+        ("//input[@ng-model='item.selected']"
+         "/parent::label[contains(@class, 'active')]")),
     "ak.content_view": (By.ID, "content_view_id"),
     "ak.usage_limit_checkbox": (
         By.XPATH,
@@ -1463,6 +1464,8 @@ locators = {
          "//input[@ng-model='detailsTable.searchTerm']")),
     "contentviews.search_button": (
         By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
+    "contentviews.filter_name": (
+        By.XPATH, "//tr[@row-select='filter']/td[2]/a[contains(., '%s')]"),
 
     # System Groups
     "system-groups.new": (

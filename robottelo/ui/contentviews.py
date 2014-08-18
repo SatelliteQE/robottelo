@@ -5,7 +5,7 @@ Implements Content Views UI
 """
 
 from robottelo.common.helpers import escape_search
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
@@ -165,6 +165,32 @@ class ContentViews(Base):
             element = self.wait_until_element((strategy, value % element_name))
             return element
 
+    def search_filter(self, cv_name, filter_name):
+        """uses search box to locate the filters"""
+
+        element = self.search(cv_name)
+
+        if element:
+            element.click()
+            self.wait_for_ajax()
+            self.find_element(tab_locators["contentviews.tab_content"]).click()
+            self.wait_until_element(locators
+                                    ["contentviews.content_filters"]).click()
+            self.wait_for_ajax()
+            self.text_field_update(locators
+                                   ["contentviews.search_filters"],
+                                   filter_name)
+            self.wait_for_ajax()
+            self.find_element(locators["contentviews.search_button"]).click()
+            self.wait_for_ajax()
+            strategy, value = locators["contentviews.filter_name"]
+            element = self.wait_until_element((strategy,
+                                               value % filter_name))
+            return element
+        else:
+            raise UINoSuchElementError(
+                'Could not find the %s content view.' % cv_name)
+
     def update(self, name, new_name=None, new_description=None):
         """Updates an existing content view"""
 
@@ -230,6 +256,7 @@ class ContentViews(Base):
                         self.wait_until_element(locators
                                                 ["contentviews.remove_repo"]
                                                 ).click()
+                    self.wait_for_ajax()
                 else:
                     raise Exception(
                         "Couldn't find repo '%s'"
@@ -489,6 +516,12 @@ class ContentViews(Base):
             self.wait_until_element(locators
                                     ["contentviews.content_filters"]).click()
             self.wait_for_ajax()
+
+            # Workaround to remove previously used search string
+            # from search box
+            self.find_element(locators["contentviews.search_filters"]).clear()
+            self.find_element(locators["contentviews.search_button"]).click()
+
             strategy, value = locators["contentviews.select_filter_checkbox"]
             for filter_name in filter_names:
                 element = self.wait_until_element((strategy,

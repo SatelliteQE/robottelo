@@ -182,8 +182,8 @@ class TestContentViewsUI(UITestCase):
         self.content_views.add_filter(cv_name, filter_name,
                                       content_type, filter_type)
         self.content_views.remove_filter(cv_name, [filter_name])
-        self.assertIsNotNone(self.content_views.wait_until_element
-                             (common_locators["alert.success"]))
+        self.assertIsNone(self.content_views.search_filter
+                          (cv_name, filter_name))
 
     def test_create_package_filter(self):
         """
