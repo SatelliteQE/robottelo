@@ -875,6 +875,10 @@ class Repository(orm.Entity, factory.EntityFactoryMixin):
 
         """
         if which == 'sync':
+            if self.id is None:
+                raise orm.NoSuchPathError(
+                    'A repository ID must be provided.'
+                )
             return super(Repository, self).path(which='this') + '/sync'
         return super(Repository, self).path()
 

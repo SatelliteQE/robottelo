@@ -45,3 +45,31 @@ class PathTestCase(TestCase):
         # 3
         with self.assertRaises(orm.NoSuchPathError):
             entities.ActivationKey().path(which='releases')
+
+    def test_repository_path(self):
+        """Tests for :meth:`robottelo.entities.Repository.path`.
+
+        Make the following assertions:
+
+        1. The method returns the correct string when ``which`` is not
+           specified.
+        2. Assert the method returns the correct string when ``which ==
+           'sync'``.
+        3. The method raises :class:`robottelo.orm.NoSuchPathError` when
+           ``which == 'sync'`` and no entity ID is provided.
+
+        """
+        # 1
+        self.assertIn('/repositories', entities.Repository().path())
+        self.assertIn(
+            '/repositories/{0}'.format(self.id_),
+            entities.Repository(id=self.id_).path()
+        )
+        # 2
+        self.assertIn(
+            '/repositories/{0}/sync'.format(self.id_),
+            entities.Repository(id=self.id_).path(which='sync')
+        )
+        # 3
+        with self.assertRaises(orm.NoSuchPathError):
+            entities.Repository().path(which='sync')
