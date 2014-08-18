@@ -17,6 +17,7 @@ from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.user import User
+from robottelo.common.constants import FAKE_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common import conf
 from robottelo.test import CLITestCase
 # (too many public methods) pylint: disable=R0904
@@ -152,7 +153,7 @@ class TestSmoke(CLITestCase):
              u'name': self._generate_name(),
              u'content-type': u'yum',
              u'publish-via-http': u'true',
-             u'url': u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'}
+             u'url': GOOGLE_CHROME_REPO}
         )
 
         # Create a Puppet repository
@@ -163,7 +164,7 @@ class TestSmoke(CLITestCase):
              u'name': self._generate_name(),
              u'content-type': u'puppet',
              u'publish-via-http': u'true',
-             u'url': u'http://davidd.fedorapeople.org/repos/random_puppet/'}
+             u'url': FAKE_PUPPET_REPO}
         )
 
         # Synchronize YUM repository
