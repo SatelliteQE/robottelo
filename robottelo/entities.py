@@ -1055,6 +1055,39 @@ class System(orm.Entity):
         # '/katello/api/v2/host_collections/:host_collection_id/systems'
 
 
+class ForemanTask(orm.Entity):
+    """A representation of a Foreman task."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'foreman_tasks/api/tasks'
+
+    def path(self, which=None):
+        """Override the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        There is no available path for fetching all Foreman tasks. Instead, the
+        user must either:
+
+        * fetch a specific task by providing a UUID via the ``id`` instance
+          attribute, or
+        * perform a bulk search.
+
+        Thus, this method returns a slightly unusual set of paths:
+
+        * Return the path ``/foreman_tasks/api/tasks/bulk_search`` if the user
+          specifies ``which = 'bulk_search'``.
+        * Return a path in the format ``/foreman_tasks/api/tasks/<id>``
+          otherwise.
+
+        """
+        if which == 'bulk_search':
+            return '{0}/bulk_search'.format(
+                super(ForemanTask, self).path(which='all')
+            )
+        return super(ForemanTask, self).path(which='this')
+
+
 class TemplateCombination(orm.Entity):
     """A representation of a Template Combination entity."""
     config_template = orm.OneToOneField('ConfigTemplate', required=True)

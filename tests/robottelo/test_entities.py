@@ -25,8 +25,7 @@ class PathTestCase(TestCase):
 
         1. The method returns the correct string when ``which`` is not
            specified.
-        2. Assert the method returns the correct string when ``which ==
-           'releases'``.
+        2. The method returns the correct string when ``which == 'releases'``.
         3. The method raises :class:`robottelo.orm.NoSuchPathError` when
            ``which == 'releases'`` and no entity ID is provided.
 
@@ -53,8 +52,7 @@ class PathTestCase(TestCase):
 
         1. The method returns the correct string when ``which`` is not
            specified.
-        2. Assert the method returns the correct string when ``which ==
-           'sync'``.
+        2. The method returns the correct string when ``which == 'sync'``.
         3. The method raises :class:`robottelo.orm.NoSuchPathError` when
            ``which == 'sync'`` and no entity ID is provided.
 
@@ -73,3 +71,29 @@ class PathTestCase(TestCase):
         # 3
         with self.assertRaises(orm.NoSuchPathError):
             entities.Repository().path(which='sync')
+
+    def test_foreman_task_path(self):
+        """Tests for :meth:`robottelo.entities.ForemanTask.path`.
+
+        Make the following assertions:
+
+        1. The method raises :class:`robottelo.orm.NoSuchPathError` when
+           ``which`` is not specified and no ID is provided.
+        2. The method returns the correct string when ``which`` is not specified
+           and an ID is provided.
+        3. The method return the correct string when ``which = 'bulk_search'``.
+
+        """
+        # 1
+        with self.assertRaises(orm.NoSuchPathError):
+            entities.ForemanTask().path()
+        # 2
+        self.assertIn(
+            '/foreman_tasks/api/tasks/{0}'.format(self.id_),
+            entities.ForemanTask(id=self.id_).path()
+        )
+        # 3
+        for gen_path in (
+                entities.ForemanTask().path(which='bulk_search'),
+                entities.ForemanTask(id=self.id_).path(which='bulk_search')):
+            self.assertIn('/foreman_tasks/api/tasks/bulk_search', gen_path)
