@@ -268,17 +268,20 @@ class ContentViewVersion(orm.Entity, factory.EntitySearchFactoryMixin):
     organization = orm.OneToOneField('Organization', required=True)
     environment = orm.OneToOneField('LifecycleEnvironment', required=True)
 
+    def path(self, which=None):
+        if which == 'promote':
+            return '{0}/promote'.format(self.path(which='this'))
+        return super(ContentViewVersion, self).path(which)
+
     def promote(self, opts={}):
-        path = "{0}/promote/".format(self.path())
         opts.setdefault(u'organization_id', self.organization)
         opts.setdefault(u'environment_id', self.environment)
         return client.post(
-            path,
+            self.path('promote'),
             auth=get_server_credentials(),
             verify=False,
             data=opts
         )
-
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -295,11 +298,15 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
     # List of component content view version ids for composite views
     components = orm.OneToManyField('ContentView')
 
+    def path(self, which=None):
+        if which == 'publish':
+            return '{0}/publish'.format(self.path(which='this'))
+        return super(ContentView, self).path(which)
 
     def publish(self, opts={}):
         opts.setdefault(u'organization_id', self.organization)
         return client.post(
-            "{0}/publish".format(self.path()),
+            self.path('publish'),
             auth=get_server_credentials(),
             verify=False,
             data=opts

@@ -20,15 +20,16 @@ from urlparse import urljoin
 def _get_json_or_raise(raw_response):
     try:
         response = raw_response.json()
-    except ValueError as e:
-        raise FactoryError(e.message, " instead: ", response.text)
+    except ValueError as err:
+        raise FactoryError(err.message, " instead: ", response.text)
 
     if 'error' in response or 'errors' in response:
         message = response.get('error') or response.get('errors')
         raise FactoryError(
-            'Error encountered while POSTing to {0}.'
-            'Error received: {1}'
-            ''.format(raw_response.url, message)
+            'Error encountered while POSTing to {0}. '
+            'Error received: {1} '
+            'Status Code: {2} '
+            ''.format(raw_response.url, message, raw_response.status_code)
         )
 
     return response
