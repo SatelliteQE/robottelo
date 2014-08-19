@@ -1,4 +1,4 @@
-"""Unit tests for the ``activationkeys`` paths.
+"""Unit tests for the ``activation_keys`` paths.
 
 Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/activation_keys.html
@@ -19,13 +19,15 @@ import httplib
 
 @ddt
 class ActivationKeysTestCase(TestCase):
-    """Tests for the ``activationekys`` path."""
+    """Tests for the ``activation_keys`` path."""
 
     def test_positive_create_1(self):
-        """
-        @Test Create a plain vanilla activationkey
-        @Assert: Activationkey is created, defaults to unlimited content host
+        """@Test: Create a plain vanilla activation key.
+
+        @Assert: Activation key is created, defaults to unlimited content host
+
         @Feature: ActivationKey
+
         """
         try:
             attrs = entities.ActivationKey().create()
@@ -43,10 +45,12 @@ class ActivationKeysTestCase(TestCase):
         IntegerField(min_val=10000, max_val=20000).get_value(),
     )
     def test_positive_create_2(self, max_content_hosts):
-        """
-        @Test Create an activationkey with limited content hosts
-        @Assert: Activationkey is created, defaults to limited content host
+        """@Test: Create an activation key with limited content hosts.
+
+        @Assert: Activation key is created, defaults to limited content host
+
         @Feature: ActivationKey
+
         """
         try:
             attrs = entities.ActivationKey(
@@ -77,17 +81,19 @@ class ActivationKeysTestCase(TestCase):
     )
     @skip_if_bug_open('bugzilla', 1127335)
     def test_positive_create_3(self, name):
-        """
-        @Test Create an activationkey providing the initial name.
-        @Assert: Activationkey is created and contains provided name.
+        """@Test: Create an activation key providing the initial name.
+
+        @Assert: Activation key is created and contains provided name.
+
         @Feature: ActivationKey
+
         """
         try:
             attrs = entities.ActivationKey(name=name).create()
         except FactoryError as err:
             self.fail(err)
 
-        # Fetch the activationeky
+        # Fetch the activation key
         real_attrs = client.get(
             entities.ActivationKey(id=attrs['id']).path(),
             auth=get_server_credentials(),
@@ -102,10 +108,13 @@ class ActivationKeysTestCase(TestCase):
         )
 
     def test_negative_create_1(self):
-        """
-        @Test Create activationkey with limited content hosts but no limit set
-        @Assert: Activationkey is not created
+        """@Test: Create activation key with limited content hosts but no limit
+        set.
+
+        @Assert: Activation key is not created
+
         @Feature: ActivationKey
+
         """
         with self.assertRaises(FactoryError):
             entities.ActivationKey(unlimited_content_hosts=False).create()
@@ -116,11 +125,13 @@ class ActivationKeysTestCase(TestCase):
         0,
     )
     def test_negative_create_2(self, max_content_hosts):
-        """
-        @Test Create activationkey with limited content hosts but
-        with invalid limit values
-        @Assert: Activationkey is not created
+        """@Test: Create activation key with limited content hosts but with
+        invalid limit values.
+
+        @Assert: Activation key is not created
+
         @Feature: ActivationKey
+
         """
         with self.assertRaises(FactoryError):
             entities.ActivationKey(
@@ -134,12 +145,13 @@ class ActivationKeysTestCase(TestCase):
         StringField(str_type=('alpha',)).get_value(),
     )
     def test_negative_create_3(self, max_content_hosts):
-        """
-        @Test Create activationkey with unlimited content hosts and set
-        max content hosts of varied values
-        @Assert:
-        1. Activationkey is not created
+        """@Test Create activation key with unlimited content hosts and set max
+        content hosts of varied values.
+
+        @Assert: Activation key is not created
+
         @Feature: ActivationKey
+
         """
         with self.assertRaises(FactoryError):
             entities.ActivationKey(
@@ -152,10 +164,13 @@ class ActivationKeysTestCase(TestCase):
         IntegerField(min_val=10000, max_val=20000).get_value(),
     )
     def test_positive_update_1(self, max_content_hosts):
-        """
-        @Test Create activationkey then update it to limited content hosts
-        @Assert: ActivationKey is created, updated to limited content host
+        """@Test: Create activation key then update it to limited content
+        hosts.
+
+        @Assert: Activation key is created, updated to limited content host
+
         @Feature: ActivationKey
+
         """
         try:
             attrs = entities.ActivationKey().create()
@@ -163,13 +178,13 @@ class ActivationKeysTestCase(TestCase):
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
 
-        # Make a copy of the activationkey...
+        # Make a copy of the activation key...
         ak_copy = attrs.copy()
         # ...and update a few fields
         ak_copy['unlimited_content_hosts'] = False
         ak_copy['max_content_hosts'] = max_content_hosts
 
-        # Update the activationkey
+        # Update the activation key
         response = client.put(
             path,
             ak_copy,
@@ -182,7 +197,7 @@ class ActivationKeysTestCase(TestCase):
             status_code_error(path, httplib.OK, response),
         )
 
-        # Fetch the activationkey
+        # Fetch the activation key
         real_attrs = client.get(
             entities.ActivationKey(id=attrs['id']).path(),
             auth=get_server_credentials(),
@@ -226,13 +241,15 @@ class ActivationKeysTestCase(TestCase):
         0
     )
     def test_negative_update_1(self, max_content_hosts):
-        """
-        @Test Create activationkey then update its limit to invalid value
+        """@Test: Create activation key then update its limit to invalid value.
+
         @Assert:
-        1. ActivationKey is created
+        1. Activation key is created
         2. Update fails
         3. Record is not changed
+
         @Feature: ActivationKey
+
         """
         try:
             attrs = entities.ActivationKey().create()
@@ -240,13 +257,13 @@ class ActivationKeysTestCase(TestCase):
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
 
-        # Make a copy of the activationkey...
+        # Make a copy of the activation key...
         ak_copy = attrs.copy()
         # ...and update a few fields
         ak_copy['unlimited_content_hosts'] = False
         ak_copy['max_content_hosts'] = max_content_hosts
 
-        # Update the activationkey
+        # Update the activation key
         response = client.put(
             path,
             ak_copy,
@@ -259,7 +276,7 @@ class ActivationKeysTestCase(TestCase):
             status_code_error(path, httplib.UNPROCESSABLE_ENTITY, response),
         )
 
-        # Fetch the activationkey
+        # Fetch the activation key
         real_attrs = client.get(
             entities.ActivationKey(id=attrs['id']).path(),
             auth=get_server_credentials(),
