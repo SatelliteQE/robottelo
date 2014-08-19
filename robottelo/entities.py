@@ -331,13 +331,13 @@ class Errata(orm.Entity):
         api_path = 'api/v2/errata'
 
 
-class Filter(orm.Entity):
+class Filter(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Filter entity."""
     role = orm.OneToOneField('Role', required=True)
     search = orm.StringField(null=True)
-    permissions = orm.OneToManyField('Permission', null=True)
-    organizations = orm.OneToManyField('Organization', null=True)
-    locations = orm.OneToManyField('Location', null=True)
+    permission = orm.OneToManyField('Permission', null=True)
+    organization = orm.OneToManyField('Organization', null=True)
+    location = orm.OneToManyField('Location', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -754,7 +754,7 @@ class Parameter(orm.Entity):
         # '/api/v2/organizations/:organization_id/parameters'
 
 
-class Permission(orm.Entity):
+class Permission(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Permission entity."""
     description = orm.StringField(null=True)
     name = orm.StringField(required=True)
@@ -773,7 +773,7 @@ class Permission(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_names = (('permission_type', 'type'),)
-        api_path = 'katello/api/v2/roles/:role_id/permissions'
+        api_path = 'api/v2/permissions'
 
 
 class Ping(orm.Entity):
