@@ -1102,15 +1102,11 @@ class ForemanTask(orm.Entity):
         :return: Information about this foreman task.
         :rtype: dict
         :raises ReadException: If information about this foreman task could not
-            be fetched.
+            be fetched. This could happen if, for example, the task does not
+            exist or bad credentials are used.
 
         """
-        # FIXME: Need better error handling. The server responds with an empty
-        # dict if the requested task does not exist, rather than providing some
-        # sort of error. (This is probably bugzilla-worthy. *sigh*) This method
-        # is only known to guard against authentication errors.
-        #
-        # FIXME: Need better error fetching. If there's an authentication
+        # FIXME: Need better error handling. If there's an authentication
         # error, the server will respond with JSON:
         #
         #     {u'error': {u'text': u'Unable to authenticate user.'}}
@@ -1126,6 +1122,11 @@ class ForemanTask(orm.Entity):
         response = client.get(self.path(), auth=auth, verify=False)
         if response.status_code is not 200:
             raise ReadException(response.text)
+        if response.json() == {}:
+            # FIXME: See bugzilla bug #1131702
+            raise ReadException(
+                'ForemanTask {0} does not exist.'.format(self.id)
+            )
         return response.json()
 
     def poll(self, poll_rate=5, timeout=120, auth=None):
@@ -1158,10 +1159,9 @@ class ForemanTask(orm.Entity):
         timeout = time.time() + timeout
         task_status = self.read(auth=auth)
 
-        while(task_status['pending'] == True and time.time() < timeout):
+        while task_status['pending'] == True and time.time() < timeout:
             time.sleep(poll_rate)
             task_status = self.read(auth=auth)
-
 
         # Are we done? If so, return.
         if task_status['pending'] == False:
