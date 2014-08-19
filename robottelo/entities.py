@@ -16,12 +16,17 @@ from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import sleep_for_seconds
 from robottelo import factory, orm
 # (too-few-public-methods) pylint:disable=R0903
 
 
 class ReadException(Exception):
     """Indicates an error occurred while reading from a Foreman server."""
+
+
+class TaskTimeOut(Exception):
+    """If the task is not finished before we reach the timeout."""
 
 
 class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
@@ -1123,22 +1128,43 @@ class ForemanTask(orm.Entity):
             raise ReadException(response.text)
         return response.json()
 
-    def get_result_or_timeout(self, max_seconds=120, auth=None):
-        """Wait for this task to finish. When it is done, return the result."""
-        # FIXME: Improve the above docstring.
-        # FIXME: Implement the following requirements:
-        #
-        # 1. Create a timer which runs in a separate thread. If that timer
-        #    reaches 0, make it raise an exception stating that this method has
-        #    timed out.
-        # 2. Implement the following pseudocode:
-        #
-        #        while(True):
-        #           task_status = self.read(auth='auth')
-        #           if task_status['pending'] == False:
-        #               <cancel timer>
-        #               return task_status['result']
-        #           sleep(N)
+    def poll(self, delay_seconds=5, max_seconds=120, auth=None):
+        """Return the status of a task or timeout.
+
+        There are several API calls that trigger asynchronous tasks, such as
+        synchronizing a repository or publishing/promoting a content view.
+        These tasks should always return a `uuid` which then can be used to
+        poll and check on its status. This method checks the status for a
+        given `uuid` at `delay_seconds` intervals until said task is no longer
+        pending. If it takes longer than `max_seconds`
+
+        :param int delay_seconds: How often to check the status of a task in
+            seconds.
+        :param int max_seconds: Maximum number of seconds to wait until we
+            timeout.
+        :param tuple auth: A ``(username, password)`` pair to use when
+            communicating with the API. If ``None``, the credentials returned
+            by :func:`robottelo.common.helpers.get_server_credentials` are
+            used.
+        :return: Information about the asynchronous task.
+        :rtype: dict
+        :raises robottelo.entities.TaskTimeOut: If the task is not finished
+            before we reach the timeout.
+
+        """
+        if auth is None:
+            auth = get_server_credentials()
+
+        timeout = time.time() + max_seconds
+        task_status = self.read(auth=auth)
+
+        while(task_status['pending'] == False  or time.time() < timeout):
+            sleep_for_seconds(delay_seconds)
+            task_status = self.read(auth=auth)
+        else:
+            raise TaskTimeOut("Timed out polling task {0}".format(self.id))
+
+        return task_status
 
 
 class TemplateCombination(orm.Entity):
