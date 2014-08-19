@@ -25,6 +25,8 @@ class PathTestCase(TestCase):
     @data(
         (entities.ActivationKey, '/activation_keys'),
         (entities.Repository, '/repositories'),
+        (entities.ContentView, '/content_views'),
+        (entities.ContentViewVersion, '/content_view_versions')
     )
     @unpack
     def test_path_without_which(self, entity, path):
@@ -44,6 +46,8 @@ class PathTestCase(TestCase):
     @data(
         (entities.ActivationKey, '/activation_keys', 'releases'),
         (entities.Repository, '/repositories', 'sync'),
+        (entities.ContentView, '/content_views', 'publish'),
+        (entities.ContentViewVersion, '/content_view_versions', 'promote')
     )
     @unpack
     def test_path_with_which(self, entity, path, which):
@@ -70,7 +74,9 @@ class PathTestCase(TestCase):
     @data(
         (entities.ActivationKey, 'releases'),
         (entities.Repository, 'sync'),
-        (entities.ForemanTask, 'this')
+        (entities.ForemanTask, 'this'),
+        (entities.ContentView, 'publish'),
+        (entities.ContentViewVersion, 'promote')
     )
     @unpack
     def test_no_such_path(self, entity, path):
