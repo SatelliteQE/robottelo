@@ -79,7 +79,8 @@ class PathTestCase(TestCase):
 
         1. The method raises :class:`robottelo.orm.NoSuchPathError` when
            ``which`` is not specified and no ID is provided.
-        2. The method returns the correct string when ``which`` is not specified
+        2. The method returns the correct string when ``which`` is not
+        specified
            and an ID is provided.
         3. The method return the correct string when ``which = 'bulk_search'``.
 
