@@ -10,14 +10,16 @@ from unittest import TestCase
 @ddt
 class PathTestCase(TestCase):
     """Tests for methods which override :meth:`robottelo.orm.Entity.path`."""
+    longMessage = True
+
     def setUp(self):  # pylint:disable=C0103
-        """Backup and customize objects, and generate an ID."""
+        """Backup and customize ``conf.properties``, and generate an ID."""
         self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
         self.id_ = FauxFactory.generate_integer(min_value=1)
 
     def tearDown(self):  # pylint:disable=C0103
-        """Restore backed-up objects."""
+        """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
 
     @data(
@@ -26,24 +28,17 @@ class PathTestCase(TestCase):
     )
     @unpack
     def test_path_without_which(self, entity, path):
-        """Tests for :meth:`robottelo.entities.path`.
+        """Test what happens when the ``which`` argument is omitted.
 
-        Make the following assertions:
-
-        1. The method returns the correct string when ``which`` is not
-           specified.
+        Assert that ``path`` returns a valid string when the ``which`` argument
+        is omitted, regardless of whether an entity ID is provided.
 
         """
-        self.assertIn(
-            path,
-            entity().path(),
-            "Path {0} was not found for entity {1}".format(
-                path, entity
-            )
-        )
+        self.assertIn(path, entity().path(), entity)
         self.assertIn(
             '{0}/{1}'.format(path, self.id_),
             entity(id=self.id_).path(),
+            entity.__name__,
         )
 
     @data(
@@ -51,18 +46,25 @@ class PathTestCase(TestCase):
         (entities.Repository, '/repositories', 'sync'),
     )
     @unpack
-    def test_path_with_which(self, entity, path1, path2):
-        """Tests for :meth:`robottelo.entities.path`.
+    def test_path_with_which(self, entity, path, which):
+        """Test what happens when an entity ID is given and ``which=which``.
 
-        Make the following assertions:
+        Assert that when ``entity(id=<id>).path(which=which)`` is called, the
+        resultant path contains the following string:
 
-        1. The method returns the correct string when ``which == 'path2'``.
+            'path/<id>/which'
 
         """
-
+        gen_path = entity(id=self.id_).path(which=which)
         self.assertIn(
-            '{0}/{1}/{2}'.format(path1, self.id_, path2),
-            entity(id=self.id_).path(which=path2)
+            '{0}/{1}/{2}'.format(path, self.id_, which),
+            gen_path,
+            entity.__name__
+        )
+        self.assertRegexpMatches(
+            gen_path,
+            '{0}$'.format(which),
+            entity.__name__
         )
 
     @data(
@@ -72,35 +74,28 @@ class PathTestCase(TestCase):
     )
     @unpack
     def test_no_such_path(self, entity, path):
-        """Tests for :meth:`robottelo.entities.path`.
+        """Test what happens when no entity ID is provided and ``which=path``.
 
-        Make the following assertions:
-
-        1. The method raises :class:`robottelo.orm.NoSuchPathError` when
-           ``which == 'path'`` and no entity ID is provided.
+        Assert that :class:`robottelo.orm.NoSuchPathError` is raised.
 
         """
-        # 1
         with self.assertRaises(orm.NoSuchPathError):
             entity().path(which=path)
 
-    def test_foreman_task_path(self):
-        """Tests for :meth:`robottelo.entities.ForemanTask.path`.
+    def test_foremantask_path(self):
+        """Test :meth:`robottelo.entities.ForemanTask.path`.
 
-        Make the following assertions:
+        Assert that correct paths are returned when:
 
-        1. The method returns the correct string when ``which`` is not
-        specified
-           and an ID is provided.
-        2. The method return the correct string when ``which = 'bulk_search'``.
+        * an entity ID is provided and the ``which`` argument to ``path`` is
+          omitted
+        * ``which = 'bulk_search'``
 
         """
-        # 2
         self.assertIn(
             '/foreman_tasks/api/tasks/{0}'.format(self.id_),
             entities.ForemanTask(id=self.id_).path()
         )
-        # 3
         for gen_path in (
                 entities.ForemanTask().path(which='bulk_search'),
                 entities.ForemanTask(id=self.id_).path(which='bulk_search')):
