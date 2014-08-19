@@ -6,7 +6,6 @@ can be found here: http://theforeman.org/api/apidoc/v2/roles.html
 """
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities, factory, orm
 from unittest import TestCase
@@ -49,7 +48,6 @@ class RoleTestCase(TestCase):
         """
         self._test_role_name(name)
 
-    @skip_if_bug_open('bugzilla', 1129785)
     @ddt.data(
         orm.StringField(str_type=('cjk',)).get_value(),
         orm.StringField(str_type=('latin1',)).get_value(),
