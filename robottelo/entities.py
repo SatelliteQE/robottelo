@@ -16,8 +16,8 @@ from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
-from robottelo.common.helpers import sleep_for_seconds
 from robottelo import factory, orm
+import time
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -25,7 +25,7 @@ class ReadException(Exception):
     """Indicates an error occurred while reading from a Foreman server."""
 
 
-class TaskTimeOut(Exception):
+class TaskTimeout(Exception):
     """If the task is not finished before we reach the timeout."""
 
 
@@ -1128,19 +1128,19 @@ class ForemanTask(orm.Entity):
             raise ReadException(response.text)
         return response.json()
 
-    def poll(self, delay_seconds=5, max_seconds=120, auth=None):
+    def poll(self, poll_rate=5, timeout=120, auth=None):
         """Return the status of a task or timeout.
 
         There are several API calls that trigger asynchronous tasks, such as
         synchronizing a repository or publishing/promoting a content view.
         These tasks should always return a `uuid` which then can be used to
         poll and check on its status. This method checks the status for a
-        given `uuid` at `delay_seconds` intervals until said task is no longer
-        pending. If it takes longer than `max_seconds`
+        given `uuid` at `poll_rate` intervals until said task is no longer
+        pending. If it takes longer than `timeout`
 
-        :param int delay_seconds: How often to check the status of a task in
+        :param int poll_rate: How often to check the status of a task in
             seconds.
-        :param int max_seconds: Maximum number of seconds to wait until we
+        :param int timeout: Maximum number of seconds to wait until we
             timeout.
         :param tuple auth: A ``(username, password)`` pair to use when
             communicating with the API. If ``None``, the credentials returned
@@ -1155,16 +1155,19 @@ class ForemanTask(orm.Entity):
         if auth is None:
             auth = get_server_credentials()
 
-        timeout = time.time() + max_seconds
+        timeout = time.time() + timeout
         task_status = self.read(auth=auth)
 
-        while(task_status['pending'] == False  or time.time() < timeout):
-            sleep_for_seconds(delay_seconds)
+        while(task_status['pending'] == True and time.time() < timeout):
+            time.sleep(poll_rate)
             task_status = self.read(auth=auth)
-        else:
-            raise TaskTimeOut("Timed out polling task {0}".format(self.id))
 
-        return task_status
+
+        # Are we done? If so, return.
+        if task_status['pending'] == False:
+            return task_status
+        else:
+            raise TaskTimeout("Timed out polling task {0}".format(self.id))
 
 
 class TemplateCombination(orm.Entity):
