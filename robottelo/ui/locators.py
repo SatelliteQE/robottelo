@@ -598,8 +598,7 @@ locators = {
     # Organizations
     "org.new": (
         By.XPATH,
-        ("//a[@class='btn btn-success'"
-            "and contains(@href, '/organizations/new')]")),
+        ("//a[contains(@href, '/organizations/new')]")),
     "org.name": (By.ID, "organization_name"),
     "org.parent": (By.ID, "organization_parent_id"),
     "org.label": (By.ID, "organization_label"),
@@ -990,7 +989,7 @@ locators = {
     "repo.discover_button": (By.XPATH, "//button[@type='submit']"),
     "repo.discovered_url_checkbox": (
         By.XPATH, ("//table[@alch-table='discoveryTable']"
-                   "//td[normalize-space(.)='%s']"
+                   "//td[contains(., '%s')]"
                    "/../td/input[@type='checkbox']")),
     "repo.cancel_discover": (
         By.XPATH, "//button[@ng-show='discovery.pending']"),

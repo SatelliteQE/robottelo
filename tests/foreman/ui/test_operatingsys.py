@@ -419,7 +419,7 @@ class OperatingSys(UITestCase):
             except Exception as e:
                 self.fail(e)
 
-    def test_positive_set_os_parameter_2(self, name):
+    def test_positive_set_os_parameter_2(self):
         """
         @Test: Set OS parameter with blank value
         @Feature: OS - Positive update
