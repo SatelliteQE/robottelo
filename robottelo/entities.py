@@ -17,7 +17,16 @@ from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
+import time
 # (too-few-public-methods) pylint:disable=R0903
+
+
+class ReadException(Exception):
+    """Indicates an error occurred while reading from a Foreman server."""
+
+
+class TaskTimeout(Exception):
+    """If the task is not finished before we reach the timeout."""
 
 
 class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
@@ -1053,6 +1062,112 @@ class System(orm.Entity):
         # Alternative paths.
         # '/katello/api/v2/environments/:environment_id/systems'
         # '/katello/api/v2/host_collections/:host_collection_id/systems'
+
+
+class ForemanTask(orm.Entity):
+    """A representation of a Foreman task."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'foreman_tasks/api/tasks'
+
+    def path(self, which=None):
+        """Override the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        There is no available path for fetching all Foreman tasks. Instead, the
+        user must either:
+
+        * fetch a specific task by providing a UUID via the ``id`` instance
+          attribute, or
+        * perform a bulk search.
+
+        Thus, this method returns a slightly unusual set of paths:
+
+        * Return the path ``/foreman_tasks/api/tasks/bulk_search`` if the user
+          specifies ``which = 'bulk_search'``.
+        * Return a path in the format ``/foreman_tasks/api/tasks/<id>``
+          otherwise.
+
+        """
+        if which == 'bulk_search':
+            return '{0}/bulk_search'.format(
+                super(ForemanTask, self).path(which='all')
+            )
+        return super(ForemanTask, self).path(which='this')
+
+    def read(self, auth=None):
+        """Return information about a foreman task.
+
+        :return: Information about this foreman task.
+        :rtype: dict
+        :raises ReadException: If information about this foreman task could not
+            be fetched.
+
+        """
+        # FIXME: Need better error handling. The server responds with an empty
+        # dict if the requested task does not exist, rather than providing some
+        # sort of error. (This is probably bugzilla-worthy. *sigh*) This method
+        # is only known to guard against authentication errors.
+        #
+        # FIXME: Need better error fetching. If there's an authentication
+        # error, the server will respond with JSON:
+        #
+        #     {u'error': {u'text': u'Unable to authenticate user.'}}
+        #
+        # But what if the JSON response contains 'errors', or what if the
+        # response cannot be converted to JSON at all? A utility function can
+        # probably be created for this need. Perhaps
+        # robottelo.api.utils.status_code_error() could be of use. After all,
+        # most of that method is devoted to fetching an error message, and only
+        # the last bit composes an error message.
+        if auth is None:
+            auth = get_server_credentials()
+        response = client.get(self.path(), auth=auth, verify=False)
+        if response.status_code is not 200:
+            raise ReadException(response.text)
+        return response.json()
+
+    def poll(self, poll_rate=5, timeout=120, auth=None):
+        """Return the status of a task or timeout.
+
+        There are several API calls that trigger asynchronous tasks, such as
+        synchronizing a repository or publishing/promoting a content view.
+        These tasks should always return a `uuid` which then can be used to
+        poll and check on its status. This method checks the status for a
+        given `uuid` at `poll_rate` intervals until said task is no longer
+        pending. If it takes longer than `timeout`
+
+        :param int poll_rate: How often to check the status of a task in
+            seconds.
+        :param int timeout: Maximum number of seconds to wait until we
+            timeout.
+        :param tuple auth: A ``(username, password)`` pair to use when
+            communicating with the API. If ``None``, the credentials returned
+            by :func:`robottelo.common.helpers.get_server_credentials` are
+            used.
+        :return: Information about the asynchronous task.
+        :rtype: dict
+        :raises robottelo.entities.TaskTimeOut: If the task is not finished
+            before we reach the timeout.
+
+        """
+        if auth is None:
+            auth = get_server_credentials()
+
+        timeout = time.time() + timeout
+        task_status = self.read(auth=auth)
+
+        while(task_status['pending'] == True and time.time() < timeout):
+            time.sleep(poll_rate)
+            task_status = self.read(auth=auth)
+
+
+        # Are we done? If so, return.
+        if task_status['pending'] == False:
+            return task_status
+        else:
+            raise TaskTimeout("Timed out polling task {0}".format(self.id))
 
 
 class TemplateCombination(orm.Entity):
