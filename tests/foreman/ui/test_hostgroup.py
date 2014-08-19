@@ -47,6 +47,8 @@ class Hostgroup(UITestCase):
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
 
+    @skip_if_bug_open('bugzilla', 1121755)
+    @skip_if_bug_open('bugzilla', 1131416)
     @data(*generate_strings_list(len1=4))
     def test_delete_hostgroup(self, name):
         """

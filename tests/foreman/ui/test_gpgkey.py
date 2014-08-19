@@ -20,7 +20,7 @@ from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       read_data_file, valid_names_list,
-                                      invalid_names_list, valid_data_list,
+                                      invalid_names_list,
                                       generate_strings_list)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_gpgkey
@@ -51,7 +51,7 @@ class GPGKey(UITestCase):
     # Positive Create
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_names_list())
+    @data(*generate_strings_list())
     def test_positive_create_1(self, name):
         """
         @feature: GPG Keys
@@ -67,7 +67,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_names_list())
+    @data(*generate_strings_list())
     def test_positive_create_2(self, name):
         """
         @feature: GPG Keys
@@ -85,7 +85,7 @@ class GPGKey(UITestCase):
     # Negative Create
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_data_list())
+    @data(*generate_strings_list())
     def test_negative_create_1(self, name):
         """
         @feature: GPG Keys
@@ -107,7 +107,7 @@ class GPGKey(UITestCase):
                                  (common_locators["alert.error"]))
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_data_list())
+    @data(*generate_strings_list())
     def test_negative_create_2(self, name):
         """
         @feature: GPG Keys
@@ -127,7 +127,7 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
 
     @attr('ui', 'gpgkey', 'implemented')
-    @data(*valid_data_list())
+    @data(*generate_strings_list())
     def test_negative_create_3(self, name):
         """
         @feature: GPG Keys
