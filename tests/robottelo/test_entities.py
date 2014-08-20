@@ -81,7 +81,8 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'available_puppet_module_names'),
         (entities.ContentViewVersion, 'promote'),
         (entities.Repository, 'sync'),
-        (entities.ForemanTask, 'this')
+        (entities.ForemanTask, 'this'),
+        (entities.System, 'this'),
     )
     @unpack
     def test_no_such_path(self, entity, path):
@@ -111,3 +112,25 @@ class PathTestCase(TestCase):
                 entities.ForemanTask().path(which='bulk_search'),
                 entities.ForemanTask(id=self.id_).path(which='bulk_search')):
             self.assertIn('/foreman_tasks/api/tasks/bulk_search', gen_path)
+
+    def test_system_path(self):
+        """Test :meth:`robottelo.entities.System.path`.
+
+        Assert that correct paths are returned when:
+
+        * A UUID is provided and ``which`` is omitted.
+        * A UUID is provided and ``which='this'``.
+        * A UUID is omitted and ``which`` is omitted.
+        * A UUID is omitted and ``which='all'``.
+
+        """
+        for gen_path in (
+                entities.System(uuid=self.id_).path(),
+                entities.System(uuid=self.id_).path(which='this')):
+            self.assertIn('/systems/{0}'.format(self.id_), gen_path)
+            self.assertRegexpMatches(gen_path, '{0}$'.format(self.id_))
+        for gen_path in (
+                entities.System().path(),
+                entities.System().path(which='all')):
+            self.assertIn('/systems', gen_path)
+            self.assertRegexpMatches(gen_path, 'systems$')
