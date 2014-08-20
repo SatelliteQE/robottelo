@@ -53,12 +53,14 @@ class ComputeResource(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
-    @data({u'name': generate_string('alphanumeric', 255)},
-          {u'name': generate_string('alpha', 255)},
-          {u'name': generate_string('numeric', 255)},
-          {u'name': generate_string('latin1', 255)},
-          {u'name': generate_string('utf8', 255)})
-    def test_create_resource_2(self, test_data):
+    @data(
+        generate_string('alphanumeric', 255),
+        generate_string('alpha', 255),
+        generate_string('numeric', 255),
+        generate_string('latin1', 255),
+        generate_string('utf8', 255)
+    )
+    def test_create_resource_2(self, name):
         """
         @Test: Create a new libvirt Compute Resource with 255 char name
         @Feature: Compute Resource - Create
@@ -69,13 +71,19 @@ class ComputeResource(UITestCase):
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=test_data['name'],
+            make_resource(session, name=name,
                           provider_type=provider_type, url=url)
-            search = self.compute_resource.search(test_data['name'])
+            search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
     @attr('ui', 'resource', 'implemented')
-    @data(*generate_strings_list(len1=255))
+    @data(
+        generate_string('alphanumeric', 255),
+        generate_string('alpha', 255),
+        generate_string('numeric', 255),
+        generate_string('latin1', 255),
+        generate_string('utf8', 255)
+    )
     def test_create_resource_3(self, description):
         """
         @Test: Create a new libvirt Compute Resource with 255 char description.

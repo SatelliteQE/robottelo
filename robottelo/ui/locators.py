@@ -977,7 +977,7 @@ locators = {
     "repo.remove": (
         By.XPATH,
         ("//script[contains(@alch-modal,'removeRepository(repository)')]"
-         "/../button[contains(@ng-hide, 'delete_products')]")),
+         "/../button[contains(@ng-show, 'repository')]")),
     "repo.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'repository')]")),

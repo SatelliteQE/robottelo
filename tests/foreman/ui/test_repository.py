@@ -189,6 +189,7 @@ class Repos(UITestCase):
             self.repository.create(repo_name, product=prd_name, url=repo_url)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.search(repo_name).click()
+            self.repository.wait_for_ajax()
             url_text = self.repository.wait_until_element(locator).text
             self.assertEqual(url_text, repo_url)
             self.navigator.go_to_products()

@@ -118,14 +118,14 @@ class Syncplan(UITestCase):
         error = self.products.wait_until_element(locator)
         self.assertTrue(error)
 
-    @skip_if_bug_open('bugzilla', 1096407)
+    @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_3(self):
         """
         @Feature: Content Sync Plan - Positive Create
         @Test: Create Sync plan with specified start time
         @Assert: Sync Plan is created with the specified time.
-        @BZ: 1096407
+        @BZ: 1131661
         """
 
         locator = locators["sp.fetch_startdate"]
@@ -151,12 +151,14 @@ class Syncplan(UITestCase):
             rpartition(':')[0]
         self.assertEqual(starttime_text, fetch_starttime)
 
+    @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_4(self):
         """
         @Feature: Content Sync Plan - Positive Create
         @Test: Create Sync plan with specified start date
         @Assert: Sync Plan is created with the specified date
+        @BZ: 1131661
         """
 
         locator = locators["sp.fetch_startdate"]
