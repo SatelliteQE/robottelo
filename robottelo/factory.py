@@ -163,23 +163,31 @@ class Factory(object):
         # self._factory_data() returns field names and values, and there are
         # three types of values:
         #
-        # * A Factory subclass. This is typically returned by
-        #   OneToOneField.get_value(). We must call create() on this factory
-        #   and get the created object's ID.
-        # * A list of factory subclasses. This is typically returned by
-        #   OneToManyField.get_value(). We must call create() on all of the
-        #   factories in that list and collect all of their IDs.
+        # * A Factory subclass. In this case, we must call create() on the
+        #   factory and get the created object's ID. (A factory subclass is
+        #   often returned by OneToOneField.get_value().)
+        # * A list of Factory subclasses and/or object IDs. For each item, we
+        #   must call item.create() and get the created object's ID (in the
+        #   case of a Factory subclass) or just use the given object ID as-is.
+        #   (A list of factories and/or IDs is often returned by
+        #   OneToManyField.get_value().)
         # * Some other type of value. We must use this value verbatim.
         #
         values = {}
         for name, value in self._factory_data().items():
             if name in values.keys():
                 continue
-            if isinstance(value, Factory):
+            elif isinstance(value, Factory):
                 values[name] = value.create(auth=auth)['id']
             elif isinstance(value, list):
                 values[name] = [
-                    factory.create(auth=auth)['id'] for factory in value
+                    (
+                        factory_or_id.create(auth=auth)['id']
+                        if isinstance(factory_or_id, Factory)
+                        else factory_or_id
+                    )
+                    for factory_or_id
+                    in value
                 ]
             else:
                 values[name] = value

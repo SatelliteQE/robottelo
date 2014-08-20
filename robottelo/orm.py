@@ -5,7 +5,6 @@ import booby
 import booby.fields
 import booby.inspection
 import booby.validators
-import collections
 import importlib
 import inspect
 import random
@@ -155,92 +154,29 @@ class MACAddressField(StringField):
         return _get_value(self, FauxFactory.generate_mac)
 
 
-class OneToOneField(booby.fields.Embedded):
-    """Field that represents a one to one related entity"""
+class OneToOneField(Field):
+    """Field that represents a reference to another entity."""
+    def __init__(self, entity, *validators, **kwargs):
+        self.entity = entity
+        super(OneToOneField, self).__init__(*validators, **kwargs)
+
     def get_value(self):
-        """
-        Return an instance of the :class:`robottelo.orm.Entity` this field
-        points to.
-        """
-        return _get_class(self.model)()
+        """Return an instance of the class that this field references."""
+        return _get_class(self.entity)()
 
 
 class OneToManyField(Field):
-    """Field that points to zero or more other entities.
-
-    When used in an entity definition, you declare what type of entity this
-    field can point to. When that entity is instantiated, the
-    ``OneToManyField`` acts as a list that points to other entity instances.
-    Roughly speaking, this field acts like a list of foreign keys to a certain
-    type of entity.
-
-    There are several ways to assign values to a ``OneToManyField``. You can
-    assign a single entity, a list of entities, a dict of entity fields, or a
-    list of dicts. For example::
-
-        >>> class PetEntity(Entity):
-        ...     name = StringField()
-        ...
-        >>> class OwnerEntity(Entity):
-        ...     pets = OneToManyField(PetEntity)
-        ...
-        >>> owner = OwnerEntity()
-        >>> owner.pets = PetEntity(name='fido')
-        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
-        True
-        >>> owner.pets = [PetEntity(name='buster')]
-        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
-        True
-        >>> owner.pets = {'name': 'Liberty'}
-        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
-        True
-        >>> owner.pets = [{'name': 'Willow'}]
-        >>> len(owner.pets) == 1 and isinstance(owner.pets[0], PetEntity)
-        True
-
-    The example above shows that the value assigned to a ``OneToManyField`` is
-    converted to a list of entity instances.
-
-    """
-    def __init__(self, entity, *args, **kwargs):
-        """Record the ``entity`` argument and call ``super``."""
-        super(OneToManyField, self).__init__(
-            booby.validators.List(booby.validators.Model(entity)),
-            *args,
-            **kwargs
-        )
+    """Field that represents a reference to zero or more other entities."""
+    def __init__(self, entity, *validators, **kwargs):
         self.entity = entity
-
-    def __set__(self, instance, value):
-        """Manipulate ``value`` before calling ``super``.
-
-        Several types of values are accepted, and the manipulation performed
-        varies depending upon the type of ``value``:
-
-        * If ``value`` is a single entity instance it is placed into a list.
-        * If ``value`` is a dict, it is converted to an instance of type
-          ``self.entity`` and placed into a list.
-        * If the value is a list and it contains any dicts, those dicts are
-          converted to instances of type ``self.entity``.
-
-        """
-        if isinstance(value, self.entity):
-            # entity -> [entity]
-            value = [value]
-        elif isinstance(value, collections.MutableMapping):
-            # {dict} -> [entity]
-            value = [self.entity(**value)]
-        elif isinstance(value, collections.MutableSequence):
-            # [entity, {dict}] -> [entity, entity]
-            for index, val in enumerate(value):
-                if isinstance(val, collections.MutableMapping):
-                    value[index] = self.entity(**val)
-        super(OneToManyField, self).__set__(instance, value)
+        super(OneToManyField, self).__init__(*validators, **kwargs)
 
     def get_value(self):
-        """
-        Return a list of :class:`robottelo.orm.Entity` instances of type
-        ``self.entity``.
+        """Return a set of instances of the class this field references.
+
+        :return: An iterable of class instances.
+        :rtype: list
+
         """
         return [_get_class(self.entity)()]
 
@@ -256,9 +192,8 @@ def _get_class(class_or_name, module='robottelo.entities'):
     """Return a class object.
 
     If ``class_or_name`` is a class, it is returned untouched. Otherwise,
-    ``class_or_name`` is assumed to be a string. In this case,
-    :mod:`robottelo.entities` is searched for a class by that name and
-    returned.
+    ``class_or_name`` is assumed to be a string. In this case, ``module`` is
+    searched for a class by that name and returned.
 
     :param class_or_name: Either a class or the name of a class.
     :param str module: A dotted module name.
@@ -297,7 +232,7 @@ class Entity(booby.Model):
     # available at the current level of lexical scoping after this point.
     id = IntegerField()  # pylint:disable=C0103
 
-    class Meta(object):
+    class Meta(object):  # (too-few-public-methods) pylint:disable=R0903
         """Non-field information about this entity.
 
         This class is a convenient place to store any non-field information
@@ -305,6 +240,7 @@ class Entity(booby.Model):
         ``api_names`` variables. See :meth:`robottelo.orm.Entity.path` and
         :meth:`robottelo.factory.EntityFactoryMixin._factory_data` for
         details on the two variables, respectively.
+
         """
 
     def path(self, which=None):
