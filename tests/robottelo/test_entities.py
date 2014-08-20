@@ -24,6 +24,8 @@ class PathTestCase(TestCase):
 
     @data(
         (entities.ActivationKey, '/activation_keys'),
+        (entities.ContentView, '/content_views'),
+        (entities.ContentViewVersion, '/content_view_versions'),
         (entities.Repository, '/repositories'),
     )
     @unpack
@@ -43,6 +45,11 @@ class PathTestCase(TestCase):
 
     @data(
         (entities.ActivationKey, '/activation_keys', 'releases'),
+        (entities.ContentView, '/content_views', 'content_view_versions'),
+        (entities.ContentView, '/content_views', 'publish'),
+        (entities.ContentView, '/content_views',
+         'available_puppet_module_names'),
+        (entities.ContentViewVersion, '/content_view_versions', 'promote'),
         (entities.Repository, '/repositories', 'sync'),
     )
     @unpack
@@ -69,6 +76,10 @@ class PathTestCase(TestCase):
 
     @data(
         (entities.ActivationKey, 'releases'),
+        (entities.ContentView, 'content_view_versions'),
+        (entities.ContentView, 'publish'),
+        (entities.ContentView, 'available_puppet_module_names'),
+        (entities.ContentViewVersion, 'promote'),
         (entities.Repository, 'sync'),
         (entities.ForemanTask, 'this')
     )

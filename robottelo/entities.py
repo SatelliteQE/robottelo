@@ -209,6 +209,38 @@ class ContentUpload(orm.Entity):
                     'content_uploads')
 
 
+class ContentViewVersion(orm.Entity):
+    """A representation of a Content View Version non-entity."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/content_view_versions'
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of ``'promote'``, return a path in the
+        format ``/content_view_versions/<id>/promote``. Otherwise, call ``super``.
+
+        """
+        if which == 'promote':
+            return super(ContentViewVersion, self).path(
+                which='this') + '/promote'
+        return super(ContentViewVersion, self).path(which)
+
+    def promote(self, environment_id):
+        """Helper for promoting an existing published content view.
+
+        """
+        return client.post(
+            self.path('promote'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'environment_id': environment_id}
+        )
+
+
 class ContentViewFilterRule(orm.Entity):
     """A representation of a Content View Filter Rule entity."""
     content_view_filter = orm.OneToOneField('ContentViewFilter', required=True)
@@ -287,6 +319,46 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
         # Alternative paths
         #
         # '/katello/api/v2/organizations/:organization_id/content_views',
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        The returned path will depend on the value of ``which`` being passed.
+
+        If ``which == 'content_view_versions'``, then return a path in the
+        format ``/content_views/<id>/content_view_versions``.
+
+        If ``which == 'publish'``, then return a path in the
+        format ``/content_views/<id>/publish``.
+
+        If ``which == 'available_puppet_module_names'``, then return a path in
+        the format ``/content_views/<id>/available_puppet_module_names``.
+
+        Otherwise, call ``super``.
+
+        """
+        if which == 'content_view_versions':
+            return super(ContentView, self).path(
+                which='this') + '/content_view_versions'
+        if which == 'publish':
+            return super(ContentView, self).path(
+                which='this') + '/publish'
+        if which == 'available_puppet_module_names':
+            return super(ContentView, self).path(
+                which='this') + '/available_puppet_module_names'
+        return super(ContentView, self).path()
+
+    def publish(self):
+        """Helper for publishing an existing content view.
+
+        """
+        return client.post(
+            self.path('publish'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'id': self.id}
+        )
 
 
 class CustomInfo(orm.Entity):
