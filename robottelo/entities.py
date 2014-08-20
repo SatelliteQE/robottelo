@@ -221,7 +221,8 @@ class ContentViewVersion(orm.Entity):
         :meth:`robottelo.orm.Entity.path`.
 
         If a user specifies a ``which`` of ``'promote'``, return a path in the
-        format ``/content_view_versions/<id>/promote``. Otherwise, call ``super``.
+        format ``/content_view_versions/<id>/promote``. Otherwise, call
+        ``super``.
 
         """
         if which == 'promote':
@@ -1207,40 +1208,60 @@ class SystemPackage(orm.Entity):
         api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
-class System(orm.Entity):
+class System(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a System entity."""
-    name = orm.StringField(required=True)
-    description = orm.StringField()
-    # Physical location of the content host
-    location = orm.StringField()
-    # Any number of facts about this content host
-    fact = orm.StringField(null=True)
-    # Type of the content host, it should always be 'content host'
-    system_type = orm.StringField(default='content host', required=True)
-    # IDs of the guests running on this content host
-    # FIXME figure out related resource
-    # guest = orm.OneToManyField()
-    # List of products installed on the content host
-    installed_products = orm.ListField(null=True)
-    # Release version of the content host
-    release_ver = orm.StringField()
-    # A service level for auto-healing process, e.g. SELF-SUPPORT
-    service_level = orm.StringField(null=True)
-    # Last check-in time of this content host
-    last_checkin = orm.DateTimeField()
-    organization = orm.OneToOneField('Organization', required=True)
-    environment = orm.OneToOneField('Environment')
     content_view = orm.OneToOneField('ContentView')
+    description = orm.StringField()
+    environment = orm.OneToOneField('Environment')
+    facts = orm.DictField(
+        default={u'uname.machine': u'unknown'},
+        null=True,
+        required=True,
+    )
+    # guest = orm.OneToManyField()  # FIXME What does this field point to?
     host_collection = orm.OneToOneField('HostCollection')
+    installed_products = orm.ListField(null=True)
+    last_checkin = orm.DateTimeField()
+    location = orm.StringField()
+    name = orm.StringField(required=True)
+    organization = orm.OneToOneField('Organization', required=True)
+    release_ver = orm.StringField()
+    service_level = orm.StringField(null=True)
+    uuid = orm.StringField()
+
+    # The type() builtin is still available within instance methods, class
+    # methods, static methods, inner classes, and so on. However, type() is
+    # *not* available at the current level of lexical scoping after this point.
+    type = orm.StringField(default='system', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('system_type', 'type'),)
         api_path = 'katello/api/v2/systems'
         # Alternative paths.
         # '/katello/api/v2/environments/:environment_id/systems'
         # '/katello/api/v2/host_collections/:host_collection_id/systems'
 
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        Most entities are uniquely identified by an ID. ``System`` is a bit
+        different: it has both an ID and a UUID, and the UUID is used to
+        uniquely identify a ``System``.
+
+        Return a path in the format ``katello/api/v2/systems/<uuid>`` if a UUID
+        is available and:
+
+        * ``which is None``, or
+        * ``which == 'this'``.
+
+        """
+        if self.uuid is not None and (which is None or which == 'this'):
+            return '{0}/{1}'.format(
+                super(System, self).path(which='all'),
+                self.uuid
+            )
+        return super(System, self).path(which=which)
 
 class TemplateCombination(orm.Entity):
     """A representation of a Template Combination entity."""
