@@ -8,7 +8,7 @@ from ddt import ddt
 from robottelo.common.decorators import data
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.common.helpers import (generate_string, read_data_file,
-                                      valid_names_list, generate_strings_list)
+                                      generate_strings_list)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
                                   make_partitiontable)
@@ -36,7 +36,7 @@ class PartitionTable(UITestCase):
                 make_org(session, org_name=PartitionTable.org_name)
                 make_loc(session, name=PartitionTable.loc_name)
 
-    @data(*valid_names_list())
+    @data(*generate_strings_list())
     def test_positive_create_partition_table(self, name):
         """
         @Test: Create a new partition table
@@ -121,7 +121,7 @@ class PartitionTable(UITestCase):
                                  (common_locators["haserror"]))
             self.assertIsNone(self.partitiontable.search(name))
 
-    @data(*valid_names_list())
+    @data(*generate_strings_list())
     def test_remove_partition_table(self, name):
         """
         @Test: Delete a partition table

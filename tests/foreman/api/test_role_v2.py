@@ -6,7 +6,6 @@ can be found here: http://theforeman.org/api/apidoc/v2/roles.html
 """
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities, factory, orm
 from unittest import TestCase
@@ -49,7 +48,6 @@ class RoleTestCase(TestCase):
         """
         self._test_role_name(name)
 
-    @skip_if_bug_open('bugzilla', 1129785)
     @ddt.data(
         orm.StringField(str_type=('cjk',)).get_value(),
         orm.StringField(str_type=('latin1',)).get_value(),
@@ -163,14 +161,18 @@ class RoleTestCase(TestCase):
             role_attrs['name'],
         )
 
+
     @ddt.data(
         orm.StringField(str_type=('alphanumeric',)).get_value()
     )
     def test_positive_create_filter(self, role_name):
-        """
-        @Test: Create a role and delete it
-        @Feature: Role
-        @Assert: Role deletion should succeed
+        """@Test: Create a Filter of selected resource_type permissions
+
+        @Feature: Role and Permissions
+
+        @Assert: Filter should be created of selected resource_type
+        permissions
+
         """
 
         try:
@@ -187,21 +189,21 @@ class RoleTestCase(TestCase):
             verify=False,
         ).json()
         self.assertEqual(response['name'], role_name)
-        
-        # Get permission_ids from selected resource type
+        # Get permissions that have a resource_type of ConfigTemplate.
         permissions = client.get(
             entities.Permission().path(),
             auth=get_server_credentials(),
-            verify=False, params={'resource_type': 'ConfigTemplate'}
-        ).json()
-        status_code = httplib.OK
-        self.assertEqual(
-            response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
-        )
-        get_permission_id = permissions['results'][0]
-        filter_attr = entities.Filter(
+            verify=False,
+            data={'resource_type': 'ConfigTemplate'},
+        ).json()['results']
+
+        # Create a filter of all ConfigTemplate permissions under a selected role.
+        filter_attrs = entities.Filter(
             role=role_attrs['id'],
-            permission=[get_permission_id['id']]
+            permission=[permission['id'] for permission in permissions]
         ).create()
+        client.get(
+            entities.Filter(id=filter_attrs['id']).path(),
+            auth=get_server_credentials(),
+            verify=False,
+        ).json()

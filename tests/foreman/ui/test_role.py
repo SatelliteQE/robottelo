@@ -65,7 +65,7 @@ class Role(UITestCase):
         """
         name = generate_name(6)
         resource_type = 'Architecture'
-        permission_list = ['access_dashboard', 'access_settings']
+        permission_list = ['view_architectures', 'create_architectures']
         self.login.login(self.katello_user, self.katello_passwd)  # login
         self.navigator.go_to_roles()
         self.role.create(name)

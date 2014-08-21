@@ -17,6 +17,7 @@ Subcommands:
     image                         View and manage compute resource's images
 """
 from ddt import ddt
+from robottelo import orm
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
 from robottelo.common.decorators import data
@@ -46,7 +47,7 @@ class TestComputeResource(CLITestCase):
         @Test: Create Compute Resource
         @Assert: Compute reource is created
         """
-        name = generate_string("alpha", 10)
+        name = orm.StringField(str_type=('alpha',)).get_value()
         result = ComputeResource.create({
             'name': name,
             'provider': 'Libvirt',
@@ -145,3 +146,153 @@ class TestComputeResource(CLITestCase):
         self.assertFalse(
             stdout,
             "ComputeResource list - does not exist name")
+
+    # Positive create
+
+    @data(
+        {u'name': orm.StringField(str_type=('numeric',)).get_value(),
+         u'description': orm.StringField(str_type=('numeric',)).get_value()},
+        {u'name': generate_string('alphanumeric', 255),
+         u'description': orm.StringField(
+             str_type=('alphanumeric',)).get_value()},
+        {u'name': orm.StringField(str_type=('alphanumeric',)).get_value(),
+         u'description': generate_string('alphanumeric', 255)},
+        {u'name': orm.StringField(str_type=('utf8',)).get_value(),
+         u'description': orm.StringField(str_type=('utf8',)).get_value()},
+        {u'name': '<html>%s</html>' %
+                  orm.StringField(str_type=('alpha',)).get_value(),
+         u'description': '<html>%s</html>' %
+                         orm.StringField(str_type=('alpha',)).get_value()},
+        {u'name': "%s[]@#$%%^&*(),./?\"{}><|''" %
+                  orm.StringField(str_type=('utf8',)).get_value(),
+         u'description': "%s[]@#$%%^&*(),./?\"{}><|''" %
+                         orm.StringField(str_type=('alpha',)).get_value()},
+    )
+    def test_create_positive_libvirt(self, options):
+        """
+        @Feature: Compute Resource positive create
+        @Test: Test Compute Resource create
+        @Assert: Compute Resource created
+        """
+        result = ComputeResource.create({
+            u'name': options['name'],
+            u'url': orm.URLField().get_value(),
+            u'provider': FOREMAN_PROVIDERS['libvirt'],
+            u'description': options['description']
+        })
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+    # Negative create
+
+    @data(
+        {u'name': generate_string('alphanumeric', 256)},
+        {u'description': generate_string('alphanumeric', 256)},
+        {u'name': 'white %s spaces' %
+                  orm.StringField(str_type=('alphanumeric',)).get_value()},
+        {u'name': ''},
+        {u'url': 'invalid url'},
+        {u'url': ''},
+    )
+    def test_create_negative_1(self, options):
+        """
+        @Test: Compute Resource negative create with invalid values
+        @Feature: Compute Resource create
+        @Assert: Compute resource not created
+        """
+        result = ComputeResource.create({
+            u'name': options.get(
+                'name', orm.StringField(str_type=('alphanumeric',)).get_value()
+            ),
+            u'url': options.get('url', orm.URLField().get_value()),
+            u'provider': FOREMAN_PROVIDERS['libvirt'],
+            u'description': options.get('description', '')
+        })
+
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+    def test_create_negative_2(self):
+        """
+        @Test: Compute Resource negative create with the same name
+        @Feature: Compute Resource create
+        @Assert: Compute resource not created
+        """
+        comp_res = make_compute_resource()
+
+        result = ComputeResource.create({
+            u'name': comp_res['name'],
+            u'provider': FOREMAN_PROVIDERS['libvirt'],
+            u'url': orm.URLField().get_value()
+        })
+        self.assertNotEquals(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+    # Update Positive
+
+    @data(
+        {u'new-name': generate_string('utf8', 255)},
+        {u'new-name': orm.StringField(str_type=('alphanumeric',)).get_value()},
+        {u'description': generate_string('utf8', 255)},
+        {u'description': orm.StringField(
+            str_type=('alphanumeric',)).get_value()},
+        {u'url': orm.URLField().get_value()},
+    )
+    def test_update_positive(self, options):
+        """
+        @Test: Compute Resource positive update
+        @Feature: Compute Resource update
+        @Assert: Compute Resource successfully updated
+        """
+        comp_res = make_compute_resource()
+
+        # update Compute Resource
+        result = ComputeResource.update(
+            dict({'name': comp_res['name']}, **options))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        comp_res['name'] = options.get('new-name', comp_res['name'])
+        comp_res.update(options)
+        # check updated values
+        result = ComputeResource.info({'id': comp_res['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['description'],
+                         comp_res['description'])
+        self.assertEqual(result.stdout['name'], comp_res['name'])
+        self.assertEqual(result.stdout['provider'].lower(),
+                         comp_res['provider'].lower())
+        self.assertEqual(result.stdout['url'], comp_res['url'])
+
+    # Update Negative
+
+    @data(
+        {u'new-name': generate_string('utf8', 256)},
+        {u'new-name': 'white spaces %s' %
+                      orm.StringField(str_type=('alphanumeric',)).get_value()},
+        {u'new-name': ''},
+        {u'description': generate_string('utf8', 256)},
+        {u'url': 'invalid url'},
+        {u'url': ''},
+    )
+    def test_update_negative(self, options):
+        """
+        @Test: Compute Resource negative update
+        @Feature: Compute Resource update
+        @Assert: Compute Resource not updated
+        """
+        comp_res = make_compute_resource()
+
+        result = ComputeResource.update(
+            dict({'name': comp_res['name']}, **options))
+
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+
+        result = ComputeResource.info({'id': comp_res['id']})
+        self.assertEqual(result.return_code, 0)
+        # check attributes have not changed
+        self.assertEqual(result.stdout['name'], comp_res['name'])
+        for key in options.keys():
+            self.assertEqual(comp_res[key], result.stdout[key])

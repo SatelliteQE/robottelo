@@ -17,7 +17,16 @@ from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
+import time
 # (too-few-public-methods) pylint:disable=R0903
+
+
+class ReadException(Exception):
+    """Indicates an error occurred while reading from a Foreman server."""
+
+
+class TaskTimeout(Exception):
+    """If the task is not finished before we reach the timeout."""
 
 
 class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
@@ -200,6 +209,38 @@ class ContentUpload(orm.Entity):
                     'content_uploads')
 
 
+class ContentViewVersion(orm.Entity):
+    """A representation of a Content View Version non-entity."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/content_view_versions'
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of ``'promote'``, return a path in the
+        format ``/content_view_versions/<id>/promote``. Otherwise, call ``super``.
+
+        """
+        if which == 'promote':
+            return super(ContentViewVersion, self).path(
+                which='this') + '/promote'
+        return super(ContentViewVersion, self).path(which)
+
+    def promote(self, environment_id):
+        """Helper for promoting an existing published content view.
+
+        """
+        return client.post(
+            self.path('promote'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'environment_id': environment_id}
+        )
+
+
 class ContentViewFilterRule(orm.Entity):
     """A representation of a Content View Filter Rule entity."""
     content_view_filter = orm.OneToOneField('ContentViewFilter', required=True)
@@ -279,6 +320,46 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
         #
         # '/katello/api/v2/organizations/:organization_id/content_views',
 
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        The returned path will depend on the value of ``which`` being passed.
+
+        If ``which == 'content_view_versions'``, then return a path in the
+        format ``/content_views/<id>/content_view_versions``.
+
+        If ``which == 'publish'``, then return a path in the
+        format ``/content_views/<id>/publish``.
+
+        If ``which == 'available_puppet_module_names'``, then return a path in
+        the format ``/content_views/<id>/available_puppet_module_names``.
+
+        Otherwise, call ``super``.
+
+        """
+        if which == 'content_view_versions':
+            return super(ContentView, self).path(
+                which='this') + '/content_view_versions'
+        if which == 'publish':
+            return super(ContentView, self).path(
+                which='this') + '/publish'
+        if which == 'available_puppet_module_names':
+            return super(ContentView, self).path(
+                which='this') + '/available_puppet_module_names'
+        return super(ContentView, self).path()
+
+    def publish(self):
+        """Helper for publishing an existing content view.
+
+        """
+        return client.post(
+            self.path('publish'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'id': self.id}
+        )
+
 
 class CustomInfo(orm.Entity):
     """A representation of a Custom Info entity."""
@@ -342,6 +423,112 @@ class Filter(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/filters'
+
+
+class ForemanTask(orm.Entity):
+    """A representation of a Foreman task."""
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'foreman_tasks/api/tasks'
+
+    def path(self, which=None):
+        """Override the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        There is no available path for fetching all Foreman tasks. Instead, the
+        user must either:
+
+        * fetch a specific task by providing a UUID via the ``id`` instance
+          attribute, or
+        * perform a bulk search.
+
+        Thus, this method returns a slightly unusual set of paths:
+
+        * Return the path ``/foreman_tasks/api/tasks/bulk_search`` if the user
+          specifies ``which = 'bulk_search'``.
+        * Return a path in the format ``/foreman_tasks/api/tasks/<id>``
+          otherwise.
+
+        """
+        if which == 'bulk_search':
+            return '{0}/bulk_search'.format(
+                super(ForemanTask, self).path(which='all')
+            )
+        return super(ForemanTask, self).path(which='this')
+
+    def read(self, auth=None):
+        """Return information about a foreman task.
+
+        :return: Information about this foreman task.
+        :rtype: dict
+        :raises ReadException: If information about this foreman task could not
+            be fetched. This could happen if, for example, the task does not
+            exist or bad credentials are used.
+
+        """
+        # FIXME: Need better error handling. If there's an authentication
+        # error, the server will respond with JSON:
+        #
+        #     {u'error': {u'text': u'Unable to authenticate user.'}}
+        #
+        # But what if the JSON response contains 'errors', or what if the
+        # response cannot be converted to JSON at all? A utility function can
+        # probably be created for this need. Perhaps
+        # robottelo.api.utils.status_code_error() could be of use. After all,
+        # most of that method is devoted to fetching an error message, and only
+        # the last bit composes an error message.
+        if auth is None:
+            auth = get_server_credentials()
+        response = client.get(self.path(), auth=auth, verify=False)
+        if response.status_code is not 200:
+            raise ReadException(response.text)
+        if response.json() == {}:
+            # FIXME: See bugzilla bug #1131702
+            raise ReadException(
+                'ForemanTask {0} does not exist.'.format(self.id)
+            )
+        return response.json()
+
+    def poll(self, poll_rate=5, timeout=120, auth=None):
+        """Return the status of a task or timeout.
+
+        There are several API calls that trigger asynchronous tasks, such as
+        synchronizing a repository or publishing/promoting a content view.
+        These tasks should always return a `uuid` which then can be used to
+        poll and check on its status. This method checks the status for a
+        given `uuid` at `poll_rate` intervals until said task is no longer
+        pending. If it takes longer than `timeout`
+
+        :param int poll_rate: How often to check the status of a task in
+            seconds.
+        :param int timeout: Maximum number of seconds to wait until we
+            timeout.
+        :param tuple auth: A ``(username, password)`` pair to use when
+            communicating with the API. If ``None``, the credentials returned
+            by :func:`robottelo.common.helpers.get_server_credentials` are
+            used.
+        :return: Information about the asynchronous task.
+        :rtype: dict
+        :raises robottelo.entities.TaskTimeOut: If the task is not finished
+            before we reach the timeout.
+
+        """
+        if auth is None:
+            auth = get_server_credentials()
+
+        timeout = time.time() + timeout
+        task_status = self.read(auth=auth)
+
+        while task_status['pending'] == True and time.time() < timeout:
+            time.sleep(poll_rate)
+            task_status = self.read(auth=auth)
+
+        # Are we done? If so, return.
+        if task_status['pending'] == False:
+            return task_status
+        else:
+            raise TaskTimeout("Timed out polling task {0}".format(self.id))
 
 
 def _gpgkey_content():

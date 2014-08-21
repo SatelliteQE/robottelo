@@ -259,7 +259,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
-    @data({'param_value': generate_string("numeric", 1)},
+    @data({'param_value': generate_string("numeric", 2)},
           {'param_value': generate_string("numeric", 5)})
     def test_positive_update_general_param_10(self, test_data):
         """

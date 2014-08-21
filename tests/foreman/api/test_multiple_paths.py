@@ -16,7 +16,7 @@ BZ_1118015_ENTITIES = (
     entities.Repository, entities.Role, entities.User,
 )
 BZ_1122267_ENTITIES = (
-    entities.ActivationKey, entities.ContentView,
+    entities.ActivationKey, entities.ContentView, entities.GPGKey,
     entities.LifecycleEnvironment, entities.Repository
 )
 

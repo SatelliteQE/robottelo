@@ -92,30 +92,16 @@ class EntityTestCase(unittest.TestCase):
 
 class OneToManyFieldTestCase(unittest.TestCase):
     """Tests for the OneToManyField"""
+    def test_get_value(self):
+        """Test :meth:`robottelo.orm.OneToManyField.get_value`.
 
-    def test_value_is_single_model_instance(self):
-        """Test a single entity value"""
-        entity = SampleEntity(name='aname')
-        other = ManyRelatedEntity(entities=entity)
+        Assert that ``get_value()`` returns a list of entity instances.
 
-        self.assertIsInstance(other.entities, list)
-        self.assertEqual(other.entities[0].name, 'aname')
-
-    def test_value_is_dictionary(self):
-        """Test a single dictionary value"""
-        entity = {'name': 'aname'}
-        other = ManyRelatedEntity(entities=entity)
-
-        self.assertIsInstance(other.entities, list)
-        self.assertEqual(other.entities[0].name, 'aname')
-
-    def test_value_is_list_of_dictionary(self):
-        """Test a list of dictionaries value"""
-        entity = [{'name': 'aname'}]
-        other = ManyRelatedEntity(entities=entity)
-
-        self.assertIsInstance(other.entities, list)
-        self.assertEqual(other.entities[0].name, 'aname')
+        """
+        values = orm.OneToManyField(SampleEntity).get_value()
+        self.assertIsInstance(values, list)
+        for value in values:
+            self.assertIsInstance(value, SampleEntity)
 
 
 class BooleanFieldTestCase(unittest.TestCase):
@@ -247,14 +233,14 @@ class MACAddressFieldTestCase(unittest.TestCase):
 class OneToOneFieldTestCase(unittest.TestCase):
     """Tests for :class:`robottelo.orm.OneToOneField`."""
     def test_get_value(self):
-        """Test method ``get_value``.
+        """Test :meth:`robottelo.orm.OneToOneField.get_value`.
 
-        Assert a :class:`robottelo.orm.Entity` instance is returned.
+        Assert that ``get_value()`` returns an entity instance.
 
         """
         self.assertIsInstance(
             orm.OneToOneField(SampleEntity).get_value(),
-            orm.Entity
+            SampleEntity
         )
 
 

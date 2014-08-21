@@ -58,6 +58,7 @@ class Org(UITestCase):
 
     # Positive Create
 
+    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, org_name):
@@ -65,6 +66,7 @@ class Org(UITestCase):
         @test: Create organization with valid name only.
         @feature: Organizations
         @assert: organization is created, label is auto-generated
+        @BZ: 1131469
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -150,6 +152,7 @@ class Org(UITestCase):
         org_name = org_label = test_data['data']
         with Session(self.browser) as session:
             make_org(session, org_name=org_name, label=org_label)
+            self.org.search(org_name).click()
             name = self.org.wait_until_element(
                 name_loc).get_attribute("value")
             label = self.org.wait_until_element(
@@ -157,6 +160,7 @@ class Org(UITestCase):
             self.assertEqual(name, label)
 
     @skip_if_bug_open('bugzilla', 1079482)
+    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data({'name': generate_string('alpha', 10),
            'desc': generate_string('alpha', 10)},
@@ -176,6 +180,7 @@ class Org(UITestCase):
         @feature: Organizations
         @assert: organization is created, label is auto-generated
         @BZ: 1079482
+        @BZ: 1131469
         """
 
         desc = test_data['desc']
@@ -232,6 +237,7 @@ class Org(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
+    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, org_name):
@@ -240,6 +246,7 @@ class Org(UITestCase):
         with same values.
         @feature: Organizations Negative Test.
         @assert: organization is not created
+        @BZ: 1131469
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -270,6 +277,7 @@ class Org(UITestCase):
 
     # Positive Update
 
+    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
@@ -277,6 +285,7 @@ class Org(UITestCase):
         @test: Create organization with valid values then update its name.
         @feature: Organizations Positive Update test.
         @assert: organization name is updated
+        @BZ: 1131469
         """
 
         org_name = generate_string("alpha", 8)
@@ -288,6 +297,7 @@ class Org(UITestCase):
 
     # Negative Update
 
+    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, org_name):
@@ -296,6 +306,7 @@ class Org(UITestCase):
         its name.
         @feature: Organizations Negative Update test.
         @assert: organization name is not updated
+        @BZ: 1131469
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -308,6 +319,7 @@ class Org(UITestCase):
 
     # Miscellaneous
 
+    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_search_key_1(self, org_name):
@@ -315,6 +327,7 @@ class Org(UITestCase):
         @test: Create organization and search/find it.
         @feature: Organizations search.
         @assert: organization can be found
+        @BZ: 1131469
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -652,6 +665,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @skip_if_bug_open('bugzilla', 1129612)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
@@ -659,6 +673,7 @@ class Org(UITestCase):
         @test: Remove config template.
         @feature: Organizations dissociate config templates.
         @assert: configtemplate is added then removed.
+        @BZ: 1129612
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -786,6 +801,7 @@ class Org(UITestCase):
                                                       value % medium))
             self.assertIsNotNone(element)
 
+    @skip_if_bug_open('bugzilla', 1129612)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
@@ -794,6 +810,7 @@ class Org(UITestCase):
         configtemplate name.
         @feature: Organizations associate config template.
         @assert: configtemplate is added
+        @BZ: 1129612
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
