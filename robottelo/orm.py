@@ -128,6 +128,13 @@ class DateTimeField(Field):
     """Field that represents a datetime"""
 
 
+class DictField(Field):
+    """Field that represents a set of key-value pairs."""
+    def get_value(self):
+        """Return a value suitable for a :class:`DictField`."""
+        return _get_value(self, {})
+
+
 class IPAddressField(StringField):
     """Field that represents an IP adrress"""
     def get_value(self):

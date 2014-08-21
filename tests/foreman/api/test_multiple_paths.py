@@ -13,7 +13,7 @@ import httplib
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ContentView,
     entities.GPGKey, entities.LifecycleEnvironment, entities.OperatingSystem,
-    entities.Repository, entities.Role, entities.User,
+    entities.Repository, entities.Role, entities.System, entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
@@ -37,6 +37,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         # entities.Repository,  # need organization_id
         entities.Role,
+        # entities.System,  # need organization_id
         entities.User,
     )
     def test_get_status_code(self, entity):
@@ -72,6 +73,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.System,
         entities.User,
     )
     def test_get_unauthorized(self, entity):
@@ -102,6 +104,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.System,
         entities.User,
     )
     def test_post_status_code(self, entity):
@@ -140,6 +143,7 @@ class EntityTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        entities.System,
         entities.User,
     )
     @skip_if_bug_open('bugzilla', 1122257)
@@ -175,6 +179,7 @@ class EntityIdTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.System,  # See test_activationkey_v2.py
         entities.User,
     )
     def test_get_status_code(self, entity):
@@ -213,6 +218,7 @@ class EntityIdTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.System,  # See test_activationkey_v2.py
         entities.User,
     )
     def test_put_status_code(self, entity):
@@ -249,6 +255,7 @@ class EntityIdTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.System,  # See test_activationkey_v2.py
         entities.User,
     )
     def test_delete(self, entity):
@@ -302,6 +309,7 @@ class LongMessageTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.System,  # See test_activationkey_v2.py
         # entities.User,  # password not in returned attrs
     )
     def test_put_and_get(self, entity):
@@ -347,6 +355,7 @@ class LongMessageTestCase(TestCase):
         entities.Organization,
         entities.Repository,
         entities.Role,
+        # entities.System,  # See test_activationkey_v2.py
         # entities.User,  # password not in returned attrs
     )
     def test_post_and_get(self, entity):
