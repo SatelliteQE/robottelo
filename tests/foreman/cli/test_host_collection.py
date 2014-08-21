@@ -7,7 +7,14 @@ Test class for Host Collection CLI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.cli.factory import make_org, make_host_collection
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.cli.factory import (CLIFactoryError,
+                                   make_org,
+                                   make_host_collection,
+                                   make_content_view,
+                                   make_lifecycle_environment,
+                                   make_content_host)
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
@@ -21,6 +28,11 @@ class TestHostCollection(CLITestCase):
     """
 
     org = None
+    NEW_CV = None
+    PROMOTED_CV = None
+    NEW_LIFECYCLE = None
+    LIBRARY = None
+    DEFAULT_CV = None
 
     def setUp(self):
         """
@@ -31,6 +43,39 @@ class TestHostCollection(CLITestCase):
 
         if TestHostCollection.org is None:
             TestHostCollection.org = make_org()
+        if TestHostCollection.NEW_LIFECYCLE is None:
+            TestHostCollection.NEW_LIFECYCLE = make_lifecycle_environment(
+                {u'organization-id': TestHostCollection.org['id']}
+            )
+        if TestHostCollection.LIBRARY is None:
+            library_result = LifecycleEnvironment.info(
+                {u'organization-id': TestHostCollection.org['id'],
+                 u'name': u'Library'}
+            )
+            TestHostCollection.LIBRARY = library_result.stdout
+        if TestHostCollection.DEFAULT_CV is None:
+            cv_result = ContentView.info(
+                {u'organization-id': TestHostCollection.org['id'],
+                 u'name': u'Default Organization View'}
+            )
+            TestHostCollection.DEFAULT_CV = cv_result.stdout
+        if TestHostCollection.NEW_CV is None:
+            TestHostCollection.NEW_CV = make_content_view(
+                {u'organization-id': TestHostCollection.org['id']}
+            )
+            TestHostCollection.PROMOTED_CV = None
+            cv_id = TestHostCollection.NEW_CV['id']
+            ContentView.publish({u'id': cv_id})
+            result = ContentView.version_list({u'content-view-id': cv_id})
+            version_id = result.stdout[0]['id']
+            promotion = ContentView.version_promote({
+                u'id': version_id,
+                u'lifecycle-environment-id': TestHostCollection.NEW_LIFECYCLE[
+                    'id'],
+                u'organization-id': TestHostCollection.org['id']
+            })
+            if promotion.stderr == []:
+                TestHostCollection.PROMOTED_CV = TestHostCollection.NEW_CV
 
     def _new_host_collection(self, options=None):
         """
@@ -392,3 +437,72 @@ class TestHostCollection(CLITestCase):
             0,
             "Expected an error here"
         )
+
+    def test_add_content_host(self):
+        """
+        @Test: Check if content host can be added to host collection
+        @Feature: Host Collection
+        @Assert: Host collection is created and content-host is added
+        """
+
+        host_col_name = generate_string('alpha', 15)
+        content_host_name = generate_string('alpha', 15)
+
+        try:
+            new_host_col = self._new_host_collection({'name': host_col_name})
+            new_system = make_content_host({u'name': content_host_name,
+                                            u'organization-id': self.org['id'],
+                                            u'content-view-id':
+                                            self.DEFAULT_CV['id'],
+                                            u'lifecycle-environment-id':
+                                            self.LIBRARY['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = HostCollection.add_content_host(
+            {'id': new_host_col['id'],
+                'organization-id': self.org['id'],
+                'content-host-ids': new_system['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Content Host not added to host collection")
+        self.assertEqual(len(result.stderr), 0,
+                         "No error was expected")
+
+    def test_remove_content_host(self):
+        """
+        @Test: Check if content host can be removed from host collection
+        @Feature: Host Collection
+        @Assert: Host collection is created and content-host is removed
+        """
+
+        host_col_name = generate_string('alpha', 15)
+        content_host_name = generate_string('alpha', 15)
+
+        try:
+            new_host_col = self._new_host_collection({'name': host_col_name})
+            new_system = make_content_host({u'name': content_host_name,
+                                            u'organization-id': self.org['id'],
+                                            u'content-view-id':
+                                            self.DEFAULT_CV['id'],
+                                            u'lifecycle-environment-id':
+                                            self.LIBRARY['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = HostCollection.add_content_host(
+            {'id': new_host_col['id'],
+             'organization-id': self.org['id'],
+             'content-host-ids': new_system['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Content Host not added to host collection")
+        self.assertEqual(len(result.stderr), 0,
+                         "No error was expected")
+
+        result = HostCollection.remove_content_host(
+            {'id': new_host_col['id'],
+             'organization-id': self.org['id'],
+             'content-host-ids': new_system['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Content Host not removed host collection")
+        self.assertEqual(len(result.stderr), 0,
+                         "No error was expected")

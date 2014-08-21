@@ -29,3 +29,19 @@ class HostCollection(Base):
     """
 
     command_base = "host-collection"
+
+    @classmethod
+    def add_content_host(cls, options=None):
+        """
+        Associate a content-host
+        """
+        cls.command_sub = "add-content-host"
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_content_host(cls, options=None):
+        """
+        Remove a content-host
+        """
+        cls.command_sub = "remove-content-host"
+        return cls.execute(cls._construct_command(options))
