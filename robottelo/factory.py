@@ -12,7 +12,9 @@ of factory implementations, see :mod:`robottelo.entities`.
 
 """
 from robottelo.api import client
-from robottelo.common.helpers import get_server_url, get_server_credentials
+from robottelo.common.helpers import (
+    get_server_url, get_server_credentials
+)
 from robottelo import orm
 from urlparse import urljoin
 
@@ -84,6 +86,24 @@ class Factory(object):
     :meth:`Factory._factory_path`.
 
     """
+    @classmethod
+    def _get_json_or_raise(cls, raw_response):
+        try:
+            response = raw_response.json()
+        except ValueError as err:
+            raise FactoryError(err.message, " instead: ", raw_response.text)
+
+        if 'error' in response or 'errors' in response:
+            message = response.get('error') or response.get('errors')
+            raise FactoryError(
+                'Error encountered while POSTing to {0}. '
+                'Error received: {1} '
+                'Status Code: {2} '
+                ''.format(raw_response.url, message, raw_response.status_code)
+            )
+
+        return response
+
     def _factory_data(self):
         """Provide names and values for a Foreman entity's fields.
 
@@ -221,16 +241,8 @@ class Factory(object):
 
         # Create the current entity.
         path = urljoin(get_server_url(), self._factory_path())
-        response = client.post(path, values, auth=auth, verify=False).json()
-        if 'error' in response.keys() or 'errors' in response.keys():
-            if 'error' in response.keys():
-                message = response['error']
-            else:
-                message = response['errors']
-            raise FactoryError(
-                'Error encountered while POSTing to {0}. Error received: {1}'
-                ''.format(path, message)
-            )
+        response = Factory._get_json_or_raise(
+            client.post(path, values, auth=auth, verify=False))
 
         # Tell caller about created entity.
         return response
@@ -293,3 +305,19 @@ class EntityFactoryMixin(Factory):
                 values[name + '_ids'] = values.pop(name)
 
         return values
+
+
+class EntitySearchFactoryMixin(EntityFactoryMixin):
+    """For selectively adding query capabilities to EntityFactoryMixin."""
+
+    def search(self, query={}):
+        for attr in ['organization_id', 'name']:
+            if attr in self.attributes():
+                query.setdefault(attr, self.attributes()[attr])
+        response = client.get(
+            self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data=query
+        )
+        return EntitySearchFactoryMixin._get_json_or_raise(response)

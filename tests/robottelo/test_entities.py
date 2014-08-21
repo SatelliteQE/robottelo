@@ -27,6 +27,8 @@ class PathTestCase(TestCase):
         (entities.ContentView, '/content_views'),
         (entities.ContentViewVersion, '/content_view_versions'),
         (entities.Repository, '/repositories'),
+        (entities.ContentView, '/content_views'),
+        (entities.ContentViewVersion, '/content_view_versions')
     )
     @unpack
     def test_path_without_which(self, entity, path):
@@ -51,6 +53,8 @@ class PathTestCase(TestCase):
          'available_puppet_module_names'),
         (entities.ContentViewVersion, '/content_view_versions', 'promote'),
         (entities.Repository, '/repositories', 'sync'),
+        (entities.ContentView, '/content_views', 'publish'),
+        (entities.ContentViewVersion, '/content_view_versions', 'promote')
     )
     @unpack
     def test_path_with_which(self, entity, path, which):
@@ -81,7 +85,9 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'available_puppet_module_names'),
         (entities.ContentViewVersion, 'promote'),
         (entities.Repository, 'sync'),
-        (entities.ForemanTask, 'this')
+        (entities.ForemanTask, 'this'),
+        (entities.ContentView, 'publish'),
+        (entities.ContentViewVersion, 'promote')
     )
     @unpack
     def test_no_such_path(self, entity, path):

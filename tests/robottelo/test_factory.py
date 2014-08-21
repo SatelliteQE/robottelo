@@ -6,6 +6,7 @@ from robottelo.api import client
 from robottelo.common import conf
 from robottelo import factory, orm
 from unittest import TestCase
+import httplib
 
 
 SAMPLE_FACTORY_NAME = 'christmahanakwanzika present'
@@ -33,6 +34,10 @@ class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
 
 class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
     """A mock ``requests.response`` object."""
+
+    url = "http://mock.example.com"
+    status_code = httplib.NOT_FOUND
+
     def json(self):  # (no-self-use) pylint:disable=R0201
         """Return a simple error message.
 
