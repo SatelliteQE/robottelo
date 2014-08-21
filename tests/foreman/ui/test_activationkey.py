@@ -13,12 +13,12 @@ else:
 
 from ddt import ddt
 from nose.plugins.attrib import attr
+from robottelo import entities, orm
 from robottelo.common.constants import ENVIRONMENT, NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, invalid_names_list,
                                       valid_names_list)
-from robottelo.ui.factory import make_org
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.test import UITestCase
 
@@ -43,8 +43,8 @@ class ActivationKey(UITestCase):
         # Make sure to use the Class' org_name instance
         if ActivationKey.org_name is None:
             ActivationKey.org_name = generate_string("alpha", 10)
-            with Session(self.browser) as session:
-                make_org(session, org_name=ActivationKey.org_name)
+            org = entities.Organization(name=ActivationKey.org_name).create()
+            ActivationKey.org_id = org['id']
 
     def create_cv(self, name, env_name):
         """
@@ -181,19 +181,45 @@ class ActivationKey(UITestCase):
         self.assertIsNotNone(self.activationkey.search_key(name))
 
     @skip_if_bug_open('bugzilla', 1078676)
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_positive_create_activation_key_5(self):
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_create_activation_key_5(self, hc_name):
         """
+        @Test: Create Activation key for all variations of Host Collections
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key for all variations of System Groups
         @Steps:
-        1. Create Activation key for all valid System Groups in [1]
+        1. Create Activation key for all valid Host Collections in [1]
         using valid Name, Description, Environment, Content View, Usage limit
         @Assert: Activation key is created
-        @Status: Manual
-        @BZ: 1078676
         """
-        pass
+        name = orm.StringField(str_type=('alpha',)).get_value()
+
+        # create Host Collection using API
+        host_col = entities.HostCollection(
+            organization=self.org_id,
+            name=hc_name
+        ).create()
+
+        with Session(self.browser):
+            self.navigator.go_to_select_org(self.org_name)
+            self.navigator.go_to_activation_keys()
+            self.activationkey.create(name, 'Library')
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            # add Host Collection
+            self.activationkey.add_host_collection(name, host_col['name'])
+            self.activationkey.wait_until_element(
+                common_locators['alert.success'])
+            result = self.activationkey.find_element(
+                common_locators['alert.success'])
+            self.assertIsNotNone(result)
+
+            # check added host collection is listed
+            self.activationkey.wait_until_element(
+                tab_locators['ak.host_collections.list']).click()
+            strategy, value = tab_locators["ak.host_collections.add.select"]
+            host_collection = self.activationkey.wait_until_element((
+                strategy, value % host_col['name']))
+            self.assertIsNotNone(host_collection)
 
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')

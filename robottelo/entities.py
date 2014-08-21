@@ -588,7 +588,7 @@ class HostCollectionPackage(orm.Entity):
                     'host_collections/:host_collection_id/packages')
 
 
-class HostCollection(orm.Entity):
+class HostCollection(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Host Collection entity."""
     organization = orm.OneToOneField('Organization', required=True)
     # List of system uuids to replace the content hosts in host collection
