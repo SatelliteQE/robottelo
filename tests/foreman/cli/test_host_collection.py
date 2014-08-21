@@ -462,13 +462,12 @@ class TestHostCollection(CLITestCase):
 
         no_of_content_host = result.stdout['total-content-hosts']
 
-        result = HostCollection.add_content_host(
-            {
-                'id': new_host_col['id'],
-                'organization-id': self.org['id'],
-                'content-host-ids': new_system['id']
-            }
-        )
+        result = HostCollection.add_content_host({
+
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id'],
+            u'content-host-ids': new_system['id']
+        })
         self.assertEqual(result.return_code, 0,
                          "Content Host not added to host collection")
         self.assertEqual(len(result.stderr), 0,
@@ -506,13 +505,11 @@ class TestHostCollection(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = HostCollection.add_content_host(
-            {
-                'id': new_host_col['id'],
-                'organization-id': self.org['id'],
-                'content-host-ids': new_system['id']
-            }
-        )
+        result = HostCollection.add_content_host({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id'],
+            u'content-host-ids': new_system['id']
+        })
         self.assertEqual(result.return_code, 0,
                          "Content Host not added to host collection")
         self.assertEqual(len(result.stderr), 0,
@@ -525,13 +522,11 @@ class TestHostCollection(CLITestCase):
 
         no_of_content_host = result.stdout['total-content-hosts']
 
-        result = HostCollection.remove_content_host(
-            {
-                'id': new_host_col['id'],
-                'organization-id': self.org['id'],
-                'content-host-ids': new_system['id']
-            }
-        )
+        result = HostCollection.remove_content_host({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id'],
+            u'content-host-ids': new_system['id']
+        })
         self.assertEqual(result.return_code, 0,
                          "Content Host not removed host collection")
         self.assertEqual(len(result.stderr), 0,
