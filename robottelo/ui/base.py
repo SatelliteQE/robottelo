@@ -178,7 +178,7 @@ class Base(object):
         else:
             raise Exception("Could not search the entity '%s'" % name)
 
-    def wait_until_element(self, locator, delay=7):
+    def wait_until_element(self, locator, delay=20):
         """
         Wrapper around Selenium's WebDriver that allows you to pause your test
         until an element in the web page is present.

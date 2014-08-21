@@ -5,7 +5,7 @@
 Test class for Architecture UI
 """
 from ddt import ddt
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string,
                                       generate_strings_list)
 from robottelo.test import UITestCase
@@ -126,6 +126,7 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.architecture.wait_until_element
                                  (common_locators["name_haserror"]))
 
+    @skip_if_bug_open('bugzilla', 1131815)
     @data({u'name': generate_string('alpha', 10),
            u'os_name': generate_string('alpha', 10),
            u'major_version': generate_string('numeric', 1)},
@@ -143,6 +144,7 @@ class Architecture(UITestCase):
         @Test: Delete an existing Architecture
         @Feature: Architecture - Delete
         @Assert: Architecture is deleted
+        @BZ: 1131815
         """
 
         with Session(self.browser) as session:

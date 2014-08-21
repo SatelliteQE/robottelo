@@ -50,7 +50,13 @@ class Medium(UITestCase):
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
 
-    @data(*generate_strings_list(len1=255))
+    @data(
+        generate_string('alphanumeric', 255),
+        generate_string('alpha', 255),
+        generate_string('numeric', 255),
+        generate_string('latin1', 255),
+        generate_string('utf8', 255)
+    )
     def test_positive_create_medium_2(self, name):
         """
         @Test: Create a new media with 255 characters in name
@@ -61,7 +67,8 @@ class Medium(UITestCase):
         path = URL % generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name,
+                       path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
 
     def test_negative_create_medium_1(self):
