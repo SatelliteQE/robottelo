@@ -9,12 +9,9 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.cli.factory import (CLIFactoryError,
-                                   make_org,
-                                   make_host_collection,
-                                   make_content_view,
-                                   make_lifecycle_environment,
-                                   make_content_host)
+from robottelo.cli.factory import (
+    CLIFactoryError, make_org, make_host_collection, make_content_view,
+    make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_string
@@ -28,11 +25,11 @@ class TestHostCollection(CLITestCase):
     """
 
     org = None
-    NEW_CV = None
-    PROMOTED_CV = None
-    NEW_LIFECYCLE = None
-    LIBRARY = None
-    DEFAULT_CV = None
+    new_cv = None
+    promoted_cv = None
+    new_lifecycle = None
+    library = None
+    default_cv = None
 
     def setUp(self):
         """
@@ -43,39 +40,39 @@ class TestHostCollection(CLITestCase):
 
         if TestHostCollection.org is None:
             TestHostCollection.org = make_org()
-        if TestHostCollection.NEW_LIFECYCLE is None:
-            TestHostCollection.NEW_LIFECYCLE = make_lifecycle_environment(
+        if TestHostCollection.new_lifecycle is None:
+            TestHostCollection.new_lifecycle = make_lifecycle_environment(
                 {u'organization-id': TestHostCollection.org['id']}
             )
-        if TestHostCollection.LIBRARY is None:
+        if TestHostCollection.library is None:
             library_result = LifecycleEnvironment.info(
                 {u'organization-id': TestHostCollection.org['id'],
                  u'name': u'Library'}
             )
-            TestHostCollection.LIBRARY = library_result.stdout
-        if TestHostCollection.DEFAULT_CV is None:
+            TestHostCollection.library = library_result.stdout
+        if TestHostCollection.default_cv is None:
             cv_result = ContentView.info(
                 {u'organization-id': TestHostCollection.org['id'],
                  u'name': u'Default Organization View'}
             )
-            TestHostCollection.DEFAULT_CV = cv_result.stdout
-        if TestHostCollection.NEW_CV is None:
-            TestHostCollection.NEW_CV = make_content_view(
+            TestHostCollection.default_cv = cv_result.stdout
+        if TestHostCollection.new_cv is None:
+            TestHostCollection.new_cv = make_content_view(
                 {u'organization-id': TestHostCollection.org['id']}
             )
-            TestHostCollection.PROMOTED_CV = None
-            cv_id = TestHostCollection.NEW_CV['id']
+            TestHostCollection.promoted_cv = None
+            cv_id = TestHostCollection.new_cv['id']
             ContentView.publish({u'id': cv_id})
             result = ContentView.version_list({u'content-view-id': cv_id})
             version_id = result.stdout[0]['id']
             promotion = ContentView.version_promote({
                 u'id': version_id,
-                u'lifecycle-environment-id': TestHostCollection.NEW_LIFECYCLE[
+                u'lifecycle-environment-id': TestHostCollection.new_lifecycle[
                     'id'],
                 u'organization-id': TestHostCollection.org['id']
             })
             if promotion.stderr == []:
-                TestHostCollection.PROMOTED_CV = TestHostCollection.NEW_CV
+                TestHostCollection.promoted_cv = TestHostCollection.new_cv
 
     def _new_host_collection(self, options=None):
         """
@@ -450,23 +447,44 @@ class TestHostCollection(CLITestCase):
 
         try:
             new_host_col = self._new_host_collection({'name': host_col_name})
-            new_system = make_content_host({u'name': content_host_name,
-                                            u'organization-id': self.org['id'],
-                                            u'content-view-id':
-                                            self.DEFAULT_CV['id'],
-                                            u'lifecycle-environment-id':
-                                            self.LIBRARY['id']})
+            new_system = make_content_host({
+                u'name': content_host_name,
+                u'organization-id': self.org['id'],
+                u'content-view-id': self.default_cv['id'],
+                u'lifecycle-environment-id': self.library['id']})
         except CLIFactoryError as err:
             self.fail(err)
 
+        result = HostCollection.info({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id']
+        })
+
+        no_of_content_host = result.stdout['total-content-hosts']
+
         result = HostCollection.add_content_host(
-            {'id': new_host_col['id'],
+            {
+                'id': new_host_col['id'],
                 'organization-id': self.org['id'],
-                'content-host-ids': new_system['id']})
+                'content-host-ids': new_system['id']
+            }
+        )
         self.assertEqual(result.return_code, 0,
                          "Content Host not added to host collection")
         self.assertEqual(len(result.stderr), 0,
                          "No error was expected")
+
+        result = HostCollection.info({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id']
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for host collection')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertGreater(result.stdout['total-content-hosts'],
+                           no_of_content_host,
+                           "There should not be an exception here")
 
     def test_remove_content_host(self):
         """
@@ -480,29 +498,53 @@ class TestHostCollection(CLITestCase):
 
         try:
             new_host_col = self._new_host_collection({'name': host_col_name})
-            new_system = make_content_host({u'name': content_host_name,
-                                            u'organization-id': self.org['id'],
-                                            u'content-view-id':
-                                            self.DEFAULT_CV['id'],
-                                            u'lifecycle-environment-id':
-                                            self.LIBRARY['id']})
+            new_system = make_content_host({
+                u'name': content_host_name,
+                u'organization-id': self.org['id'],
+                u'content-view-id': self.default_cv['id'],
+                u'lifecycle-environment-id': self.library['id']})
         except CLIFactoryError as err:
             self.fail(err)
 
         result = HostCollection.add_content_host(
-            {'id': new_host_col['id'],
-             'organization-id': self.org['id'],
-             'content-host-ids': new_system['id']})
+            {
+                'id': new_host_col['id'],
+                'organization-id': self.org['id'],
+                'content-host-ids': new_system['id']
+            }
+        )
         self.assertEqual(result.return_code, 0,
                          "Content Host not added to host collection")
         self.assertEqual(len(result.stderr), 0,
                          "No error was expected")
 
+        result = HostCollection.info({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id']
+        })
+
+        no_of_content_host = result.stdout['total-content-hosts']
+
         result = HostCollection.remove_content_host(
-            {'id': new_host_col['id'],
-             'organization-id': self.org['id'],
-             'content-host-ids': new_system['id']})
+            {
+                'id': new_host_col['id'],
+                'organization-id': self.org['id'],
+                'content-host-ids': new_system['id']
+            }
+        )
         self.assertEqual(result.return_code, 0,
                          "Content Host not removed host collection")
         self.assertEqual(len(result.stderr), 0,
                          "No error was expected")
+
+        result = HostCollection.info({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id']
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for host collection')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertGreater(no_of_content_host,
+                           result.stdout['total-content-hosts'],
+                           "There should not be an exception here")
