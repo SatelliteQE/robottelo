@@ -15,6 +15,10 @@ locale=en_US
 remote=0
 smoke=0
 
+# Virtual display controls if PyVirtualDisplay should be used to run UI tests
+# when setting it to 1 then make sure to install required dependencies
+virtual_display=0
+
 [foreman]
 admin.username=admin
 admin.password=changeme
