@@ -17,6 +17,7 @@ http://theforeman.org/api/apidoc/v2/systems.html
 """
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System
 from unittest import TestCase
@@ -68,6 +69,7 @@ class EntityIdTestCaseClone(TestCase):
         )
         self.assertIn('application/json', response.headers['content-type'])
 
+    @skip_if_bug_open('bugzilla', 1133071)
     def test_delete(self):
         """@Test Create a system, fetch it, DELETE it, and fetch it again.
 
@@ -105,6 +107,7 @@ class LongMessageTestCaseClone(TestCase):
     """Issue a variety of HTTP requests to a variety of URLs."""
     longMessage = True
 
+    @skip_if_bug_open('bugzilla', 1133097)
     def test_put_and_get(self):
         """@Test: Issue a PUT request and GET the updated system.
 
@@ -135,6 +138,7 @@ class LongMessageTestCaseClone(TestCase):
                 value, real_attrs[key], '{0} {1}'.format(key, path)
             )
 
+    @skip_if_bug_open('bugzilla', 1133097)
     def test_post_and_get(self):
         """@Test Issue a POST request and GET the created system.
 
