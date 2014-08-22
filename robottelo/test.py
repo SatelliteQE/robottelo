@@ -10,6 +10,7 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
+
 from robottelo.cli.metatest import MetaCLITest
 from robottelo.common.helpers import get_server_url
 from robottelo.common import conf
@@ -115,6 +116,14 @@ class UITestCase(TestCase):
         cls.verbosity = int(conf.properties['nosetests.verbosity'])
         cls.remote = int(conf.properties['main.remote'])
 
+        if int(conf.properties.get('main.virtual_display', '0')):
+            # Importing here because PyVirtualDisplay is optional
+            from pyvirtualdisplay import Display
+            cls.display = Display(size=(1024, 768))
+            cls.display.start()
+        else:
+            cls.display = None
+
     def setUp(self):
         """
         We do want a new browser instance for every test.
@@ -182,6 +191,11 @@ class UITestCase(TestCase):
 
         self.browser.quit()
         self.browser = None
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.display is not None:
+            cls.display.stop()
 
 
 def assert_instance_intersects(first, other):

@@ -12,3 +12,7 @@ sphinx
 
 # ???
 nose_xunitmp
+
+# For running UI tests in a headless mode
+# PyVirtualDisplay requires xvfb
+PyVirtualDisplay
