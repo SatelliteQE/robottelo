@@ -29,7 +29,7 @@ class HostsTestCase(TestCase):
         response = client.get(
             entities.Host().path(),
             auth=get_server_credentials(),
-            params={'search': query},
+            data={u'search': query},
             verify=False,
         )
         self.assertEqual(response.status_code, httplib.OK)
@@ -46,7 +46,7 @@ class HostsTestCase(TestCase):
         response = client.get(
             entities.Host().path(),
             auth=get_server_credentials(),
-            params={'per_page': per_page},
+            data={u'per_page': per_page},
             verify=False,
         )
         self.assertEqual(response.status_code, httplib.OK)
