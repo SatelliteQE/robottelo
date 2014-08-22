@@ -772,9 +772,9 @@ class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
                 self.path(),
                 auth=get_server_credentials(),
                 verify=False,
-                params={
-                    'name': 'Library',
-                    'organization_id': self.organization,
+                data={
+                    u'name': 'Library',
+                    u'organization_id': self.organization,
                 }
             ).json()['results']
             if len(query_results) != 1:

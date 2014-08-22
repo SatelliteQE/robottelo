@@ -27,7 +27,7 @@ class LifecycleEnvironmentTestCase(TestCase):
         response = client.get(
             entities.LifecycleEnvironment().path(),
             auth=get_server_credentials(),
-            params={'organization_id': org_attrs['id']},
+            data={u'organization_id': org_attrs['id']},
             verify=False,
         )
         self.assertEqual(response.status_code, httplib.OK)

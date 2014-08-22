@@ -291,11 +291,15 @@ class TestSmoke(TestCase):
         # step 2.6: Synchronize both repositories
         response = client.post(
             entities.Repository(id=repo1['id']).path('sync'),
-            {u'ids': [repo1['id']]},
+            {
+                u'ids': [repo1['id']],
+                u'organization_id': org['id']
+            },
             auth=get_server_credentials(),
             verify=False,
-            params={u'organization_id': org['id']}).json()
+        ).json()
         # TODO: Fetch status of sync task from response task 'id'
+        # Can use ForemanTask entity to monitor tasks.
 
         # step 2.7: Create content view
         content_view = entities.ContentView(organization=org['id']).create()
@@ -323,7 +327,7 @@ class TestSmoke(TestCase):
         response = client.get(
             path,
             auth=auth,
-            params={'search': query},
+            data={u'search': query},
             verify=False,
         )
         self.assertEqual(
