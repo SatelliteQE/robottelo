@@ -463,9 +463,9 @@ class ForemanTask(orm.Entity):
 
         :return: Information about this foreman task.
         :rtype: dict
-        :raises ReadException: If information about this foreman task could not
-            be fetched. This could happen if, for example, the task does not
-            exist or bad credentials are used.
+        :raises robottelo.entities.ReadException: If information about this
+            foreman task could not be fetched. This could happen if, for
+            example, the task does not exist or bad credentials are used.
 
         """
         # FIXME: Need better error handling. If there's an authentication
@@ -511,7 +511,7 @@ class ForemanTask(orm.Entity):
             used.
         :return: Information about the asynchronous task.
         :rtype: dict
-        :raises robottelo.entities.TaskTimeOut: If the task is not finished
+        :raises robottelo.entities.TaskTimeout: If the task is not finished
             before we reach the timeout.
 
         """

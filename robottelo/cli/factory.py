@@ -919,10 +919,12 @@ def make_org(options=None):
 
 def make_os(options=None):
     """
-    Usage:
+    Usage::
+
         hammer os create [OPTIONS]
 
-    Options:
+    Options::
+
         --architecture-ids ARCH_IDS   set associated architectures
                                     Comma separated list of values.
         --config-template-ids CONFIG_TPL_IDS set associated templates
