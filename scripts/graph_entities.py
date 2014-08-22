@@ -35,13 +35,9 @@ for entity_name, entity in entities_.items():
     for field_name, field in entity.get_fields().items():
         if (isinstance(field, orm.OneToOneField)
                 or isinstance(field, orm.OneToManyField)):
-            if isinstance(field, orm.OneToOneField):
-                dependency = field.model  # *sigh* This is not so great.
-            else:
-                dependency = field.entity
             print('{0} -> {1} [label="{2}"{3}]'.format(
                 entity_name,
-                dependency,
+                field.entity,
                 field_name,
                 ' color=red' if field.options.get('required', False) else ''
             ))
