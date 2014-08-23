@@ -124,9 +124,15 @@ def _configure_third_party_logging():
     :rtype: None
 
     """
-    logging.getLogger("paramiko").setLevel(logging.WARNING)
-    logging.getLogger('selenium.webdriver.remote.remote_connection').setLevel(
-        logging.WARNING)
+    loggers = (
+        'easyprocess',
+        'paramiko',
+        'pyvirtualdisplay',
+        'selenium.webdriver.remote.remote_connection',
+    )
+
+    for logger in loggers:
+        logging.getLogger(logger).setLevel(logging.WARNING)
 
 
 conf = Configs()
