@@ -49,6 +49,8 @@ class PathTestCase(TestCase):
         (entities.ContentView, '/content_views', 'publish'),
         (entities.ContentView, '/content_views',
          'available_puppet_module_names'),
+        (entities.ContentView, '/content_views',
+         'content_view_puppet_modules'),
         (entities.ContentViewVersion, '/content_view_versions', 'promote'),
         (entities.Repository, '/repositories', 'sync'),
     )
@@ -79,6 +81,7 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'content_view_versions'),
         (entities.ContentView, 'publish'),
         (entities.ContentView, 'available_puppet_module_names'),
+        (entities.ContentView, 'content_view_puppet_modules'),
         (entities.ContentViewVersion, 'promote'),
         (entities.Repository, 'sync'),
         (entities.ForemanTask, 'this'),

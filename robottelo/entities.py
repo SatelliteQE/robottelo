@@ -327,6 +327,9 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
 
         The returned path will depend on the value of ``which`` being passed.
 
+        If ``which = 'content_view_puppet_modules'``, then return a path
+        in the format ``/content_views/<id>/content_view_puppet_modules``.
+
         If ``which == 'content_view_versions'``, then return a path in the
         format ``/content_views/<id>/content_view_versions``.
 
@@ -339,6 +342,9 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
         Otherwise, call ``super``.
 
         """
+        if which == 'content_view_puppet_modules':
+            return super(ContentView, self).path(
+                which='this') + '/content_view_puppet_modules'
         if which == 'content_view_versions':
             return super(ContentView, self).path(
                 which='this') + '/content_view_versions'
