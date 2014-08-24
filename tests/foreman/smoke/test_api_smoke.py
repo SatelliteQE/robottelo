@@ -9,6 +9,7 @@ from robottelo.common import helpers
 from robottelo import entities, orm
 from unittest import TestCase
 import httplib
+import random
 # (too many public methods) pylint: disable=R0904
 
 API_PATHS = frozenset((
@@ -289,20 +290,150 @@ class TestSmoke(TestCase):
         ).create()
 
         # step 2.6: Synchronize both repositories
-        response = client.post(
-            entities.Repository(id=repo1['id']).path('sync'),
-            {
-                u'ids': [repo1['id']],
-                u'organization_id': org['id']
-            },
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        # TODO: Fetch status of sync task from response task 'id'
-        # Can use ForemanTask entity to monitor tasks.
+        for repo in [repo1, repo2]:
+            response = client.post(
+                entities.Repository(id=repo['id']).path('sync'),
+                {
+                    u'ids': [repo['id']],
+                    u'organization_id': org['id']
+                },
+                auth=get_server_credentials(),
+                verify=False,
+            ).json()
+            self.assertGreater(
+                len(response['id']),
+                1,
+                u"Was not able to fetch a task ID.")
+            task_status = entities.ForemanTask(id=response['id']).poll()
+            self.assertEqual(
+                task_status['result'],
+                u'success',
+                u"Sync for repository {0} failed.".format(repo['name']))
 
         # step 2.7: Create content view
         content_view = entities.ContentView(organization=org['id']).create()
+
+        # step 2.8: Associate YUM repository to new content view
+        response = client.put(
+            entities.ContentView(id=content_view['id']).path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'repository_ids': [repo1['id']]})
+
+        # Fetch all available puppet modules
+        puppet_mods = client.get(
+            entities.ContentView(id=content_view['id']).path(
+                'available_puppet_module_names'),
+            auth=get_server_credentials(),
+            verify=False).json()
+        self.assertGreater(
+            puppet_mods['results'],
+            0,
+            u"No puppet modules were found")
+
+        # Select a random puppet module from the results
+        puppet_mod = random.choice(puppet_mods['results'])
+        # ... and associate it to the content view
+        path = entities.ContentView(id=content_view['id']).path(
+            'content_view_puppet_modules')
+        response = client.post(
+            path,
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'name': puppet_mod['module_name']})
+        self.assertEqual(
+            response.status_code,
+            httplib.OK,
+            status_code_error(path, httplib.OK, response)
+        )
+        self.assertEqual(
+            response.json()['name'],
+            puppet_mod['module_name'],
+        )
+
+        # step 2.9: Publish content view
+        task = entities.ContentView(id=content_view['id']).publish().json()
+        task_status = entities.ForemanTask(id=task['id']).poll()
+        self.assertEqual(
+            task_status['result'],
+            u'success',
+            u"Publishing {0} failed.".format(content_view['name']))
+
+        # step 2.10: Promote content view to both lifecycles
+        content_view = client.get(
+            entities.ContentView(id=content_view['id']).path(),
+            auth=get_server_credentials(),
+            verify=False).json()
+        self.assertEqual(
+            len(content_view['versions']),
+            1,
+            u'There should only be 1 version published.')
+        self.assertEqual(
+            len(content_view['versions'][0]['environment_ids']),
+            1,
+            u"Content view should be present on 1 lifecycle only")
+        task = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']).promote(le1['id']).json()
+        task_status = entities.ForemanTask(id=task['id']).poll()
+        self.assertEqual(
+            task_status['result'],
+            u'success',
+            u"Promoting {0} to {1} failed.".format(
+                content_view['name'], le1['name']))
+        # Check that content view exists in 2 lifecycles
+        content_view = client.get(
+            entities.ContentView(id=content_view['id']).path(),
+            auth=get_server_credentials(),
+            verify=False).json()
+        self.assertEqual(
+            len(content_view['versions']),
+            1,
+            u'There should only be 1 version published.')
+        self.assertEqual(
+            len(content_view['versions'][0]['environment_ids']),
+            2,
+            u"Content view should be present on 2 lifecycles only")
+        task = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']).promote(le2['id']).json()
+        task_status = entities.ForemanTask(id=task['id']).poll()
+        self.assertEqual(
+            task_status['result'],
+            u'success',
+            u"Promoting {0} to {1} failed.".format(
+                content_view['name'], le2['name']))
+        # Check that content view exists in 2 lifecycles
+        content_view = client.get(
+            entities.ContentView(id=content_view['id']).path(),
+            auth=get_server_credentials(),
+            verify=False).json()
+        self.assertEqual(
+            len(content_view['versions']),
+            1,
+            u'There should only be 1 version published.')
+        self.assertEqual(
+            len(content_view['versions'][0]['environment_ids']),
+            3,
+            u"Content view should be present on 3 lifecycle only")
+
+        # BONUS: Create a content host and associate it with promoted
+        # content view and last lifecycle where it exists
+        content_host = entities.System(
+            content_view=content_view['id'],
+            environment=le2['id']
+        ).create()
+        # Check that content view matches what we passed
+        self.assertEqual(
+            content_host['content_view_id'],
+            content_view['id'],
+            u"Content views do not match."
+        )
+        # Check that lifecycle environment matches
+        self.assertEqual(
+            content_host['environment']['id'],
+            le2['id'],
+            u"Environments do not match."
+        )
+
 
     def _search(self, entity, query, auth=None):
         """
