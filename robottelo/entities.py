@@ -233,13 +233,20 @@ class ContentViewVersion(orm.Entity):
     def promote(self, environment_id):
         """Helper for promoting an existing published content view.
 
+        :returns: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` If the server responds with
+            an HTTP 4XX or 5XX message.
+
         """
-        return client.post(
+        response = client.post(
             self.path('promote'),
             auth=get_server_credentials(),
             verify=False,
             data={u'environment_id': environment_id}
         )
+        response.raise_for_status()
+        return response.json()
 
 
 class ContentViewFilterRule(orm.Entity):
@@ -359,13 +366,20 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
     def publish(self):
         """Helper for publishing an existing content view.
 
+        :returns: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` If the server responds with
+            an HTTP 4XX or 5XX message.
+
         """
-        return client.post(
+        response = client.post(
             self.path('publish'),
             auth=get_server_credentials(),
             verify=False,
             data={u'id': self.id}
         )
+        response.raise_for_status()
+        return response.json()
 
 
 class CustomInfo(orm.Entity):

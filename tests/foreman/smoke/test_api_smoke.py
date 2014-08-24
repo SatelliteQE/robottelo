@@ -351,7 +351,7 @@ class TestSmoke(TestCase):
         )
 
         # step 2.9: Publish content view
-        task = entities.ContentView(id=content_view['id']).publish().json()
+        task = entities.ContentView(id=content_view['id']).publish()
         task_status = entities.ForemanTask(id=task['id']).poll()
         self.assertEqual(
             task_status['result'],
@@ -372,7 +372,7 @@ class TestSmoke(TestCase):
             1,
             u"Content view should be present on 1 lifecycle only")
         task = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']).promote(le1['id']).json()
+            id=content_view['versions'][0]['id']).promote(le1['id'])
         task_status = entities.ForemanTask(id=task['id']).poll()
         self.assertEqual(
             task_status['result'],
@@ -393,7 +393,7 @@ class TestSmoke(TestCase):
             2,
             u"Content view should be present on 2 lifecycles only")
         task = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']).promote(le2['id']).json()
+            id=content_view['versions'][0]['id']).promote(le2['id'])
         task_status = entities.ForemanTask(id=task['id']).poll()
         self.assertEqual(
             task_status['result'],
