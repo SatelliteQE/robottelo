@@ -236,7 +236,7 @@ class TestContentHost(CLITestCase):
         new_system = make_content_host({
             u'name': generate_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
-            u'content-view-id': self.DEFAULT_CV['id'],
+            u'content-view-id': self.PROMOTED_CV['id'],
             u'lifecycle-environment-id': self.NEW_LIFECYCLE['id']})
         # Assert that content views matches data passed
         self.assertEqual(
