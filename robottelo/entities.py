@@ -13,7 +13,7 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
 from robottelo.api import client
-from robottelo.api.utils import client, entity_search, parse_json
+from robottelo.api.utils import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
@@ -231,18 +231,36 @@ class ContentViewVersion(orm.Entity):
                 which='this') + '/promote'
         return super(ContentViewVersion, self).path(which)
 
+    def list_versions_of_view(self, conten_view_id):
+        """Helper for listing published versions of a content view.
+        :raises ``HTTPError`` if didn't receive Success
+        :raises ``ValueError`` if couldn't parse response
+        :return json dictionary describing ``ForemanTask``
+        """
+        response = client.post(
+            self.path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'content_view_id': environment_id}
+        )
+        response.raise_for_status()
+        return response.json()
+
+
     def promote(self, environment_id):
         """Helper for promoting an existing published content view.
-
+        :raises ``HTTPError`` if didn't receive Success
+        :raises ``ValueError`` if couldn't parse response
+        :return json dictionary describing ``ForemanTask``
         """
-        return parse_json(
-                client.post(
-                    self.path('promote'),
-                    auth=get_server_credentials(),
-                    verify=False,
-                    data={u'environment_id': environment_id}
-            )
+        response = client.post(
+            self.path('promote'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'environment_id': environment_id}
         )
+        response.raise_for_status()
+        return response.json()
 
 
 class ContentViewFilterRule(orm.Entity):
@@ -361,17 +379,18 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
 
     def publish(self):
         """Helper for publishing an existing content view.
-
+        :raises ``HTTPError`` if didn't receive Success
+        :raises ``ValueError`` if couldn't parse response
+        :return json dictionary describing ``ForemanTask``
         """
-        return parse_json(
-            client.post(
-                self.path('publish'),
-                auth=get_server_credentials(),
-                verify=False,
-                data={u'id': self.id}
-            )
+        response = client.post(
+            self.path('publish'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'id': self.id}
         )
-
+        response.raise_for_status()
+        return response.json()
 
 class CustomInfo(orm.Entity):
     """A representation of a Custom Info entity."""

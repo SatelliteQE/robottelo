@@ -6,7 +6,6 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.api.utils import entity_search
 from robottelo.common.helpers import generate_string
 from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
@@ -528,9 +527,8 @@ class TestContentView(APITestCase):
             result['result'], u'success',
             "Content view needs to be published.")
 
-        version = entity_search(
-            ContentViewVersion,
-            {u'content_view_id': cv['id']}
+        version = ContentViewVersion().list_versions_of_view(
+            cv['id']
         )['results'][0]
         result = ContentViewVersion(
             id=version['id'],
