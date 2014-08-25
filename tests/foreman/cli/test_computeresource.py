@@ -294,5 +294,6 @@ class TestComputeResource(CLITestCase):
         self.assertEqual(result.return_code, 0)
         # check attributes have not changed
         self.assertEqual(result.stdout['name'], comp_res['name'])
+        options.pop('new-name', None)
         for key in options.keys():
             self.assertEqual(comp_res[key], result.stdout[key])

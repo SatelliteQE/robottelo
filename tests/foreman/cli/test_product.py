@@ -681,13 +681,13 @@ class TestProduct(CLITestCase):
         self.assertEqual(
             s_result.stderr, [],
             "Running set_sync_plan should cause no errors.")
-        splan_id = s_result.stdout['id']
-        i_result = Product.info({'id': new_product['id']})
+        i_result = Product.info({'id': new_product['id'],
+                                 'organization-id': self.org['id']})
         self.assertEqual(
             i_result.stderr, [],
             "Running product info should cause no errors.")
         self.assertEqual(
-            i_result.stdout['sync-plan-id'], splan_id,
+            i_result.stdout['sync-plan-id'], s['id'],
             "Info should have consistent sync ids.")
         r_result = Product.remove_sync_plan(
             {
@@ -698,7 +698,8 @@ class TestProduct(CLITestCase):
         self.assertEqual(
             r_result.stderr, [],
             "Running product remove_sync_plan should cause no errors.")
-        i_result = Product.info({'id': new_product['id']})
+        i_result = Product.info({'id': new_product['id'],
+                                 'organization-id': self.org['id']})
         self.assertEqual(
             i_result.stderr, [],
             "Running product info should cause no errors.")
