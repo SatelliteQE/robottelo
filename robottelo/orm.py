@@ -1,10 +1,12 @@
 """Module that define the model layer used to define entities"""
 from fauxfactory import FauxFactory
+from robottelo.api import client
 from robottelo.common import helpers
 import booby
 import booby.fields
 import booby.inspection
 import booby.validators
+import httplib
 import importlib
 import inspect
 import random
@@ -340,3 +342,39 @@ class Entity(booby.Model):
             if value is None:
                 fields.pop(key)
         return fields
+
+
+class EntityDeleteMixin(object):
+    """A mixin that adds the ability to delete an entity."""
+    # (too-few-public-methods) pylint:disable=R0903
+    # It's OK that this class has only one public method. It's a targeted
+    # mixin.
+    def delete(self, auth=None):
+        """Delete the current entity.
+
+        Send an HTTP DELETE request to ``self.path(which='this')``.
+
+        :param tuple auth: A ``tuple`` containing the credentials to be used
+            for authentication when accessing the API. If ``None``, the
+            credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :return: Nothing. If the server's response contains an HTTP 202 status
+            code (accepted), return the ID of the ``ForemanTask``.
+        :rtype: None
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON could not be decoded.
+
+        """
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        response = client.delete(
+            self.path(which='this'),
+            auth=auth,
+            verify=False,
+        )
+        response.raise_for_status()
+        if response.status_code is httplib.ACCEPTED:
+            # So client can create a ForemanTask object.
+            return response.json()['id']
+        return None

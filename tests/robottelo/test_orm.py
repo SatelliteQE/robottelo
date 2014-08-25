@@ -1,15 +1,16 @@
-"""Tests for robottelo.orm module"""
+"""Tests for :mod:`robottelo.orm`."""
 # (Too many public methods) pylint: disable=R0904
 #
 # Python 3.3 and later includes module `ipaddress` in the standard library. If
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import FauxFactory
-from robottelo.common import conf
-from robottelo.common import helpers
+from robottelo.api import client
+from robottelo.common import conf, helpers
 from robottelo import entities, orm
 from sys import version_info
 import ddt
+import mock
 import socket
 import unittest
 
@@ -27,6 +28,17 @@ class SampleEntity(orm.Entity):
 class ManyRelatedEntity(orm.Entity):
     """An entity with a OneToManyField"""
     entities = orm.OneToManyField(SampleEntity)
+
+
+class EntityWithDelete(orm.Entity, orm.EntityDeleteMixin):
+    """An entity which inherits from :class:`orm.EntityDeleteMixin`."""
+
+    class Meta(object):
+        """Non-field attributes for this entity."""
+        api_path = 'foo'
+
+
+#------------------------------------------------------------------------------
 
 
 class EntityTestCase(unittest.TestCase):
@@ -372,3 +384,65 @@ class GetValueTestCase(unittest.TestCase):
         """
         field = orm.StringField(choices=('a', 'b', 'c'), default='d')
         self.assertEqual(orm._get_value(field, None), 'd')
+
+
+class EntityDeleteMixinTestCase(unittest.TestCase):
+    """Tests for :class:`robottelo.orm.EntityDeleteMixin`."""
+    def setUp(self):  # pylint:disable=C0103
+        """Back up and customize ``conf.properties`` and ``client.delete``.
+
+        Also generate a number suitable for use when instantiating entities.
+
+        """
+        self.conf_properties = conf.properties.copy()
+        conf.properties['main.server.hostname'] = 'example.com'
+        conf.properties['foreman.admin.username'] = 'Alice'
+        conf.properties['foreman.admin.password'] = 'hackme'
+        self.client_delete = client.delete
+        # SomeEntity(id=self.entity_id)
+        self.entity_id = FauxFactory.generate_integer(min_value=1)
+
+    def tearDown(self):  # pylint:disable=C0103
+        """Restore ``conf.properties``."""
+        conf.properties = self.conf_properties
+        client.delete = self.client_delete
+
+    def test_delete_200(self):
+        """Call :meth:`robottelo.orm.EntityWithDelete.delete`.
+
+        Assert that ``EntityDeleteMixin.delete`` returns ``None`` if it
+        receives an HTTP 200 response.
+
+        """
+        # Create a mock server response object.
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status.return_value = None
+
+        # Make `client.delete` return the above object.
+        client.delete = mock.Mock(return_value=mock_response)
+
+        # See if EntityDeleteMixin.delete behaves correctly.
+        response = EntityWithDelete(id=self.entity_id).delete()
+        self.assertIsNone(response)
+
+    def test_delete_202(self):
+        """Call :meth:`robottelo.orm.EntityWithDelete.delete`.
+
+        Assert that ``EntityDeleteMixin.delete`` returns a task ID if it
+        receives an HTTP 202 response.
+
+        """
+        # Create a mock server response object.
+        foreman_task_id = FauxFactory.generate_integer()
+        mock_response = mock.Mock()
+        mock_response.status_code = 202
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {u'id': foreman_task_id}
+
+        # Make `client.delete` return the above object.
+        client.delete = mock.Mock(return_value=mock_response)
+
+        # See if EntityDeleteMixin.delete behaves correctly.
+        response = EntityWithDelete(id=self.entity_id).delete()
+        self.assertEqual(response, foreman_task_id)
