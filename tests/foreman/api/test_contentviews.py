@@ -6,10 +6,16 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.api.utils import entity_search
+from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
+from robottelo.entities import (
+    Organization, LifecycleEnvironment,
+    ContentView, ContentViewVersion, System, ForemanTask
+)
 from robottelo.test import APITestCase
 
 
@@ -361,20 +367,15 @@ class TestContentView(APITestCase):
 
     # Content Views: publish
     # katello content definition publish --label=MyView
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    @stubbed
     def test_cv_publish_rh(self, data):
         """
         @test: attempt to publish a content view containing RH content
         @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
+        @status: Manual
         """
-
-        con_view = ApiCrud.record_create_recursive(data)
-        self.assertIntersects(data, con_view)
-        task = con_view._meta.api_class.publish(con_view)
-        task.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        self.assertEqual('success', task.result())
 
     @stubbed
     def test_cv_publish_rh_custom_spin(self):
@@ -386,6 +387,7 @@ class TestContentView(APITestCase):
         @assert: Content view can be published
         @status: Manual
         """
+
     @stubbed
     def test_cv_publish_custom_content(self):
         """
@@ -493,7 +495,6 @@ class TestContentView(APITestCase):
         @status: Manual
         """
 
-    @stubbed
     def test_cv_subscribe_system(self):
         # Notes:
         # this should be limited to only those content views
@@ -509,15 +510,61 @@ class TestContentView(APITestCase):
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
-        @status: Manual
         """
+        new_org = Organization().create()
 
-    @skip_if_bug_open('bugzilla', 1094758)
+        new_lifecycle = LifecycleEnvironment(
+            organization=new_org['id'],
+        ).create()
+
+        cv = ContentView(organization=new_org['id']).create()
+        result = ContentView(
+            id=cv['id'],
+            organization=new_org['id']
+        ).publish()
+        task = ForemanTask(id=result['id'])
+        result = task.poll()
+        self.assertEqual(
+            result['result'], u'success',
+            "Content view needs to be published.")
+
+        version = entity_search(
+            ContentViewVersion,
+            {u'content_view_id': cv['id']}
+        )['results'][0]
+        result = ContentViewVersion(
+            id=version['id'],
+        ).promote(new_lifecycle['id'])
+        task = ForemanTask(id=result['id'])
+        result = task.poll()
+        self.assertEqual(
+            result['result'], u'success',
+            "Content view needs to be promoted.")
+        name = generate_string('alpha', 15)
+        result = System(
+            name=name,
+            facts={
+                "uname.machine": "unknown"
+            },
+            type="system",
+            organization=new_org['id'],
+            content_view=cv['id'],
+            environment=new_lifecycle['id']
+        ).create()
+        self.assertEqual(
+            name, result['name'],
+            "Systems created name should be as specified")
+        self.assertEqual(
+            cv['id'], result['content_view']['id'],
+            "System created should contain specified content view")
+
+    @stubbed
     def test_custom_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
+        @status: Manual
         """
         # s = System()
         # scd = ApiCrud.record_create_dependencies(s)
@@ -525,7 +572,6 @@ class TestContentView(APITestCase):
         # task.poll(5, 100)
         # scc = ApiCrud.record_create(scd)
         # self.assertIntersects(s, scc)
-        self.fail('System record should be implemented')
 
     @stubbed
     def test_cv_dynflow_restart_promote(self):

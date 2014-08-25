@@ -13,6 +13,7 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
 from robottelo.api import client
+from robottelo.api.utils import client, entity_search, parse_json
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
@@ -234,11 +235,13 @@ class ContentViewVersion(orm.Entity):
         """Helper for promoting an existing published content view.
 
         """
-        return client.post(
-            self.path('promote'),
-            auth=get_server_credentials(),
-            verify=False,
-            data={u'environment_id': environment_id}
+        return parse_json(
+                client.post(
+                    self.path('promote'),
+                    auth=get_server_credentials(),
+                    verify=False,
+                    data={u'environment_id': environment_id}
+            )
         )
 
 
@@ -360,11 +363,13 @@ class ContentView(orm.Entity, factory.EntityFactoryMixin):
         """Helper for publishing an existing content view.
 
         """
-        return client.post(
-            self.path('publish'),
-            auth=get_server_credentials(),
-            verify=False,
-            data={u'id': self.id}
+        return parse_json(
+            client.post(
+                self.path('publish'),
+                auth=get_server_credentials(),
+                verify=False,
+                data={u'id': self.id}
+            )
         )
 
 
