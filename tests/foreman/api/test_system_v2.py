@@ -20,6 +20,7 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System
+from robottelo import factory
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
@@ -69,15 +70,18 @@ class EntityIdTestCaseClone(TestCase):
         )
         self.assertIn('application/json', response.headers['content-type'])
 
-    @skip_if_bug_open('bugzilla', 1133071)
-    def test_delete(self):
-        """@Test Create a system, fetch it, DELETE it, and fetch it again.
+    def test_delete_status_code(self):
+        """@Test Issue an HTTP DELETE request and check the returned status
+        code.
 
-        @Assert DELETE succeeds. HTTP 200, 202 or 204 is returned before
-        deleting the system, and 404 is returned after deleting the system.
+        @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
+        content-type.
 
         """
-        attrs = System().create()
+        try:
+            attrs = System().create()
+        except factory.FactoryError as err:
+            self.fail(err)
         path = System(uuid=attrs['uuid']).path()
         response = client.delete(
             path,
@@ -90,17 +94,7 @@ class EntityIdTestCaseClone(TestCase):
             status_code,
             status_code_error(path, status_code, response),
         )
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertIn('application/json', response.headers['content-type'])
 
 
 class LongMessageTestCaseClone(TestCase):
@@ -169,3 +163,30 @@ class LongMessageTestCaseClone(TestCase):
             self.assertEqual(
                 value, real_attrs[key], '{0} {1}'.format(key, path)
             )
+
+    @skip_if_bug_open('bugzilla', 1133071)
+    def test_delete_and_get(self):
+        """@Test: Issue an HTTP DELETE request and GET the deleted system.
+
+        @Assert: An HTTP 404 is returned when fetching the missing system.
+
+        """
+        try:
+            attrs = System().create()
+        except factory.FactoryError as err:
+            self.fail(err)
+        System(uuid=attrs['uuid']).delete()
+
+        # Get the now non-existent system
+        path = System(uuid=attrs['uuid']).path()
+        response = client.get(
+            path,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        status_code = httplib.NOT_FOUND
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            status_code_error(path, status_code, response),
+        )

@@ -4,7 +4,7 @@ from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
+from robottelo import entities, factory
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
@@ -258,14 +258,18 @@ class EntityIdTestCase(TestCase):
         # entities.System,  # See test_activationkey_v2.py
         entities.User,
     )
-    def test_delete(self, entity):
-        """@Test Create an entity, fetch it, DELETE it, and fetch it again.
+    def test_delete_status_code(self, entity):
+        """@Test Issue an HTTP DELETE request and check the returned status
+        code.
 
-        @Assert DELETE succeeds. HTTP 200, 202 or 204 is returned before
-        deleting entity, and 404 is returned after deleting entity.
+        @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
+        content-type.
 
         """
-        attrs = entity().create()
+        try:
+            attrs = entity().create()
+        except factory.FactoryError as err:
+            self.fail(err)
         path = entity(id=attrs['id']).path()
         response = client.delete(
             path,
@@ -278,17 +282,7 @@ class EntityIdTestCase(TestCase):
             status_code,
             status_code_error(path, status_code, response),
         )
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertIn('application/json', response.headers['content-type'])
 
 
 @ddt
@@ -390,3 +384,45 @@ class LongMessageTestCase(TestCase):
             self.assertEqual(
                 value, real_attrs[key], '{0} {1}'.format(key, path)
             )
+
+    @data(
+        entities.ActivationKey,
+        entities.Architecture,
+        entities.ContentView,
+        entities.Domain,
+        entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
+        entities.LifecycleEnvironment,
+        entities.Model,
+        entities.OperatingSystem,
+        entities.Organization,
+        entities.Repository,
+        entities.Role,
+        # entities.System,  # See test_activationkey_v2.py
+        entities.User,
+    )
+    def test_delete_and_get(self, entity):
+        """@Test: Issue an HTTP DELETE request and GET the deleted entity.
+
+        @Assert: An HTTP 404 is returned when fetching the missing entity.
+
+        """
+        try:
+            attrs = entity().create()
+        except factory.FactoryError as err:
+            self.fail(err)
+        entity(id=attrs['id']).delete()
+
+        # Get the now non-existent entity.
+        path = entity(id=attrs['id']).path()
+        response = client.get(
+            path,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        status_code = httplib.NOT_FOUND
+        self.assertEqual(
+            status_code,
+            response.status_code,
+            status_code_error(path, status_code, response),
+        )
