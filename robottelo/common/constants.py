@@ -98,6 +98,8 @@ RESOURCE_DEFAULT = "baremetal"
 
 OS_TEMPLATE_DATA_FILE = "os_template.txt"
 
+DOMAIN = "lab.dom.%s.com"
+
 PARTITION_SCRIPT_DATA_FILE = "partition_script.txt"
 
 SNIPPET_DATA_FILE = "snippet.txt"
@@ -128,6 +130,7 @@ REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
            'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)"}
 
 DEFAULT_ORG = "Default_Organization"
+DEFAULT_LOC = "Default_Location"
 
 LANGUAGES = ["de", "en", "en_GB",
              "es", "fr", "gl",

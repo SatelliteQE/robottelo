@@ -6,7 +6,7 @@ Implements User UI
 """
 
 from robottelo.common.constants import FILTER
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
@@ -148,3 +148,25 @@ class User(Base):
         else:
             raise Exception("Unable to find the username '%s' for update."
                             % username)
+
+    def admin_role_to_user(self, username, search_key="login"):
+        """Checks if selected user has Administrator privileges
+        otherwise assign it to user"""
+        element = self.search(username, search_key)
+
+        if element is None:
+            raise UINoSuchElementError("Unable to find the username '%s'."
+                                       % username)
+        element.click()
+        self.wait_for_ajax()
+        self.wait_until_element(tab_locators
+                                ["users.tab_roles"]).click()
+        admin_role_locator = locators["users.admin_role"]
+        is_admin_role_selected = self.find_element(admin_role_locator
+                                                   ).is_selected()
+        if not is_admin_role_selected:
+            self.find_element(admin_role_locator).click()
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
+            is_admin_role_selected = True
+        return is_admin_role_selected
