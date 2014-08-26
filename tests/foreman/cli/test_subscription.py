@@ -9,7 +9,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.factory import make_org
 from robottelo.common.manifests import (
     clone, download_signing_key,
-    download_manifest, install_cert_on_server)
+    download_manifest_template, install_cert_on_server)
 from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -31,7 +31,7 @@ class TestSubscription(CLITestCase):
 
         if TestSubscription.signing_key is None:
             TestSubscription.signing_key = download_signing_key()
-            TestSubscription.fake_manifest = download_manifest()
+            TestSubscription.fake_manifest = download_manifest_template()
             install_cert_on_server()
 
         self.org = make_org()

@@ -46,7 +46,10 @@ def install_cert_on_server():
     """
     ssh.command('wget -P /etc/candlepin/certs/upstream/ {0}'.format(
         conf.properties['main.manifest.cert_url']))
+    # Problem with difference between sat 6 and 7
+    # Ned to account for different names of tomcat
     ssh.command('service tomcat restart')
+    ssh.command('service tomcat6 restart')
 
 
 def sign(key_file, file_to_sign):
