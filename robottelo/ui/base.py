@@ -110,24 +110,26 @@ class Base(object):
         for entity in entity_list:
             strategy, value = common_locators["filter"]
             txt_field = self.find_element((strategy, value % filter_key))
-            if txt_field is None:
-                raise UINoSuchElementError(
-                    "The filter text field is not found.")
-            txt_field.clear()
-            txt_field.send_keys(entity)
-            strategy, value = loc
-            strategy1, value1 = common_locators["entity_checkbox"]
-            checkbox_element = self.wait_until_element((strategy1,
-                                                        value1 % entity))
-            select_element = self.wait_until_element((strategy,
-                                                      value % entity))
-            if checkbox_element:
-                checkbox_element.click()
-            elif select_element:
-                select_element.click()
+            if txt_field:
+                txt_field.clear()
+                txt_field.send_keys(entity)
+                strategy, value = loc
+                select_element = self.wait_until_element((strategy,
+                                                          value % entity))
+                if select_element:
+                    select_element.click()
+                else:
+                    raise UINoSuchElementError(
+                        "Couldn't find element from selection list")
             else:
-                raise UINoSuchElementError(
-                    "Neither checkbox nor select element was found.")
+                strategy1, value1 = common_locators["entity_checkbox"]
+                checkbox_element = self.wait_until_element((strategy1,
+                                                            value1 % entity))
+                if checkbox_element:
+                    checkbox_element.click()
+                else:
+                    raise UINoSuchElementError(
+                        "Couldn't find element from checkbox list.")
 
     def configure_entity(self, entity_list, filter_key, tab_locator=None,
                          new_entity_list=None, entity_select=True):
