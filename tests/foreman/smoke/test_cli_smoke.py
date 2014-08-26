@@ -12,7 +12,6 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
@@ -102,7 +101,6 @@ class TestSmoke(CLITestCase):
             * Create a new libvirt compute resource
             * Create a new subnet
             * Create a new domain
-            * Create a new capsule
             * Create a new hostgroup and associate previous entities to it
 
         @Feature: Smoke Test
@@ -389,36 +387,6 @@ class TestSmoke(CLITestCase):
             1,
             u'Could not find the puppet environment: {0}'.format(env_name))
 
-        # Create new Capsule...
-        new_capsule = self._create(
-            new_user,
-            Proxy,
-            {
-                u'name': self._generate_name(),
-                u'url': u'https://{0}:9090/'.format(
-                    conf.properties['main.server.hostname'])
-            }
-        )
-        # ...and add it to the organization
-        result = Org.with_user(
-            new_user['login'],
-            new_user['password']
-        ).add_smart_proxy(
-            {
-                u'id': new_org['id'],
-                u'smart-proxy-id': new_capsule['id']
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to add capsule '{0}' to org '{1}': {2}".format(
-                new_capsule['name'], new_org['name'], result.stderr))
-
         # Create a hostgroup...
         new_hg = self._create(
             new_user,
@@ -428,8 +396,6 @@ class TestSmoke(CLITestCase):
                 u'domain-id': new_domain['id'],
                 u'subnet-id': new_subnet['id'],
                 u'environment-id': puppet_env[0]['id'],
-                u'puppet-ca-proxy-id': new_capsule['id'],
-                u'puppet-proxy-id': new_capsule['id'],
             }
         )
         # ...and add it to the organization

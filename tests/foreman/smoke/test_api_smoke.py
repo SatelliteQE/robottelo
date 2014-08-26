@@ -240,8 +240,7 @@ class TestSmoke(TestCase):
             11. Create a new libvirt compute resource
             12. Create a new subnet
             13. Create a new domain
-            14. Create a new capsule
-            15. Create a new hostgroup and associate previous entities to it
+            14. Create a new hostgroup and associate previous entities to it
 
         @Feature: Smoke Test
 
