@@ -45,6 +45,7 @@ class Login(Base):
                 "could not find login.gravatar to sign out")
         nav = Navigator(self.browser)
         nav.go_to_sign_out()
+        self.wait_for_ajax()
 
     def is_logged(self):
         """

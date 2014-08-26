@@ -289,6 +289,7 @@ class Syncplan(UITestCase):
                              new_sync_interval=test_data['interval'])
         self.navigator.go_to_sync_plans()
         self.syncplan.search(test_data['name']).click()
+        self.syncplan.wait_for_ajax()
         interval_text = self.syncplan.wait_until_element(locator).text
         self.assertEqual(interval_text, test_data['interval'])
 

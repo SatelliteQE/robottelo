@@ -631,6 +631,7 @@ class ContentViews(Base):
                                                value % package_group))
             if element:
                 element.click()
+                self.wait_for_ajax()
             else:
                 raise Exception(
                     "Couldn't find pkg group with name '%s'" % package_group)

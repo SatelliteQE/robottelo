@@ -761,6 +761,10 @@ locators = {
         By.XPATH, "//input[@id='config_template_template']"),
     "provision.template_delete": (
         By.XPATH, "//a[contains(@data-confirm, '%s')]"),
+    "provision.template_dropdown": (
+        By.XPATH,
+        ("//td/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # provision.type
     "provision.template_type": (
@@ -1045,8 +1049,7 @@ locators = {
                    "/div/span[contains(@class,'editable-value')]")),
     "repo.fetch_gpgkey": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
-                   "/div[@class='alch-edit']/div/"
-                   "span[contains(@class,'editable-value')]")),
+                   "/div[@class='alch-edit']/div/span")),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),

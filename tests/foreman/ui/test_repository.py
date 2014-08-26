@@ -229,6 +229,7 @@ class Repos(UITestCase):
                                    gpg_key=gpgkey_name1)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.search(repo_name).click()
+            self.repository.wait_for_ajax()
             gpgkey_text1 = self.repository.wait_until_element(locator).text
             self.assertEqual(gpgkey_text1, gpgkey_name1)
             self.navigator.go_to_products()
