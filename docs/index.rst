@@ -160,22 +160,19 @@ module::
     $ nosetests -c robottelo.properties -m test_positive_create_1 \
         tests.foreman.cli.test_org
 
-Running UI tests in a headless server
+Running UI Tests On a Headless Server
 -------------------------------------
 
-If you want to run UI test suite in a headless server, like a continuous
-integration server you will need to set ``virtual_display=1`` on properties
-file and also install ``PyVirtualDisplay`` package (this package will be
-already installed if you have installed the ``requirements-optional``).
-``PyVirtualDisplay`` uses Xvfb to create a virtual display, so you will need to
-install Xvfb, you can install on a yum based distro by running::
+It is possible to run UI tests on a headless server. To do this:
 
-    # yum install xorg-x11-server-Xvfb
+* Install Xvfb. It is provided by the ``xorg-x11-server-Xvfb`` package on
+  Fedora and Red Hat.
+* Install the ``PyVirtualDisplay`` Python package. (It is listed in
+  ``requirements-optional.txt``.)
+* Set ``virtual_display=1`` in the configuration file ``robottelo.properties``.
 
-With the initial configuration in place, now every time that an UI test runs it
-will not pop any browser window if run in a desktop or will be able to run in a
-headless server. Also this setup allows you to just run ``make
-test-foreman-ui`` in order to run the entire UI test suite.
+This done, UI tests no longer launch a visible web browser. Instead, UI tests
+launch a web browser within a virtual display.
 
 API Reference
 =============
