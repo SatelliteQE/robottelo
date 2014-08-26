@@ -2,12 +2,14 @@
 Test class for Subscriptions
 """
 
+import tempfile
+
 from ddt import ddt
 from robottelo.cli.subscription import Subscription
-from robottelo.cli.factory import (
-    make_org, make_lifecycle_environment)
-from robottelo.common.decorators import stubbed
-from robottelo.common.manifests import manifest
+from robottelo.cli.factory import make_org
+from robottelo.common.manifests import (
+    clone, download_signing_key,
+    download_manifest, install_cert_on_server)
 from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -17,10 +19,8 @@ class TestSubscription(CLITestCase):
     """
     Manifest CLI tests
     """
-
-    org = None
-    env1 = None
-    env2 = None
+    signing_key = None
+    fake_manifest = None
 
     def setUp(self):
         """
@@ -29,17 +29,19 @@ class TestSubscription(CLITestCase):
 
         super(TestSubscription, self).setUp()
 
-        if TestSubscription.org is None:
-            TestSubscription.org = make_org()
-        if TestSubscription.env1 is None:
-            TestSubscription.env1 = make_lifecycle_environment(
-                {u'organization-id': TestSubscription.org['id']})
-        if TestSubscription.env2 is None:
-            TestSubscription.env2 = make_lifecycle_environment(
-                {u'organization-id': TestSubscription.org['id'],
-                 u'prior': TestSubscription.env1['label']})
+        if TestSubscription.signing_key is None:
+            TestSubscription.signing_key = download_signing_key()
+            TestSubscription.fake_manifest = download_manifest()
+            install_cert_on_server()
 
-    @stubbed('Need to implement a new manifest api')
+        self.org = make_org()
+        manifest_file = tempfile.mktemp()
+        clone(
+            TestSubscription.signing_key,
+            TestSubscription.fake_manifest,
+            manifest_file)
+        self.manifest = manifest_file
+
     def test_manifest_upload(self):
         """
         @test: upload manifest (positive)
@@ -47,29 +49,24 @@ class TestSubscription(CLITestCase):
         @assert: Manifest are uploaded properly
         """
 
-        mdetails = manifest.fetch_manifest()
-        try:
-            upload_file(mdetails['path'], remote_file=mdetails['path'])
-            result = Subscription.upload(
-                {'file': mdetails['path'],
-                 'organization-id': self.org['id']})
-            self.assertEqual(result.return_code, 0,
-                             "Failed to upload manifest")
-            self.assertEqual(
-                len(result.stderr), 0,
-                "There should not be an exception while uploading manifest.")
+        upload_file(self.manifest, remote_file=self.manifest)
+        result = Subscription.upload(
+            {'file': self.manifest,
+             'organization-id': self.org['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Failed to upload manifest")
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while uploading manifest.")
 
-            result = Subscription.list({'organization-id': self.org['id']},
-                                       per_page=False)
-            self.assertEqual(result.return_code, 0,
-                             "Failed to list manifests in this org.")
-            self.assertEqual(
-                len(result.stdout), 8,
-                "There should not be an exception while listing the manifest.")
-        finally:
-            manifest.delete_distributor(ds_uuid=mdetails['uuid'])
+        result = Subscription.list({'organization-id': self.org['id']},
+                                   per_page=False)
+        self.assertEqual(result.return_code, 0,
+                         "Failed to list manifests in this org.")
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while listing the manifest.")
 
-    @stubbed('Need to implement a new manifest api')
     def test_manifest_delete(self):
         """
         @test: Delete uploaded manifest (positive)
@@ -77,40 +74,36 @@ class TestSubscription(CLITestCase):
         @assert: Manifest are deleted properly
         """
 
-        mdetails = manifest.fetch_manifest()
-        try:
-            upload_file(mdetails['path'], remote_file=mdetails['path'])
-            result = Subscription.upload(
-                {'file': mdetails['path'],
-                 'organization-id': self.org['id']})
-            self.assertEqual(result.return_code, 0,
-                             "Failed to upload manifest")
-            self.assertEqual(
-                len(result.stderr), 0,
-                "There should not be an exception while uploading manifest.")
+        upload_file(self.manifest, remote_file=self.manifest)
+        result = Subscription.upload(
+            {'file': self.manifest,
+             'organization-id': self.org['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Failed to upload manifest")
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while uploading manifest.")
 
-            result = Subscription.list({'organization-id': self.org['id']},
-                                       per_page=False)
-            self.assertEqual(result.return_code, 0,
-                             "Failed to list manifests in this org.")
-            self.assertEqual(
-                len(result.stdout), 8,
-                "There should not be an exception while listing the manifest.")
+        result = Subscription.list({'organization-id': self.org['id']},
+                                   per_page=False)
+        self.assertEqual(result.return_code, 0,
+                         "Failed to list manifests in this org.")
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while listing the manifest.")
 
-            result = Subscription.delete_manifest(
-                {'organization-id': self.org['id']})
-            self.assertEqual(result.return_code, 0,
-                             "Failed to delete manifest")
-            self.assertEqual(
-                len(result.stderr), 0,
-                "There should not be an exception while deleting manifest.")
+        result = Subscription.delete_manifest(
+            {'organization-id': self.org['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Failed to delete manifest")
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while deleting manifest.")
 
-            result = Subscription.list({'organization-id': self.org['id']},
-                                       per_page=False)
-            self.assertEqual(result.return_code, 0,
-                             "Failed to list manifests in this org.")
-            self.assertEqual(
-                len(result.stdout), 0,
-                "There should not be any subscriptions in this org.")
-        finally:
-            manifest.delete_distributor(ds_uuid=mdetails['uuid'])
+        result = Subscription.list({'organization-id': self.org['id']},
+                                   per_page=False)
+        self.assertEqual(result.return_code, 0,
+                         "Failed to list manifests in this org.")
+        self.assertEqual(
+            len(result.stdout), 0,
+            "There should not be any subscriptions in this org.")
