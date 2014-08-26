@@ -17,16 +17,11 @@ from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
-import time
 # (too-few-public-methods) pylint:disable=R0903
 
 
 class ReadException(Exception):
     """Indicates an error occurred while reading from a Foreman server."""
-
-
-class TaskTimeout(Exception):
-    """If the task is not finished before we reach the timeout."""
 
 
 class ActivationKey(
@@ -504,41 +499,28 @@ class ForemanTask(orm.Entity):
         """Return the status of a task or timeout.
 
         There are several API calls that trigger asynchronous tasks, such as
-        synchronizing a repository or publishing/promoting a content view.
-        These tasks should always return a `uuid` which then can be used to
-        poll and check on its status. This method checks the status for a
-        given `uuid` at `poll_rate` intervals until said task is no longer
-        pending. If it takes longer than `timeout`
+        synchronizing a repository, or publishing or promoting a content view.
+        It is possible to check on the status of a task if you know its UUID.
+        This method polls a task once every ``poll_rate`` seconds and, upon
+        task completion, returns information about that task.
 
-        :param int poll_rate: How often to check the status of a task in
-            seconds.
-        :param int timeout: Maximum number of seconds to wait until we
-            timeout.
-        :param tuple auth: A ``(username, password)`` pair to use when
-            communicating with the API. If ``None``, the credentials returned
-            by :func:`robottelo.common.helpers.get_server_credentials` are
-            used.
+        :param int poll_rate: Delay between the end of one task check-up and
+            the start of the next check-up.
+        :param int timeout: Maximum number of seconds to wait until timing out.
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
         :return: Information about the asynchronous task.
         :rtype: dict
-        :raises robottelo.entities.TaskTimeout: If the task is not finished
-            before we reach the timeout.
+        :raises robottelo.orm.TaskTimeout: If the task is not finished before
+            the timeout is exceeded.
+        :raises: ``requests.exceptions.HTTPError`` If the API returns a message
+            with an HTTP 4XX or 5XX status code.
 
         """
-        if auth is None:
-            auth = get_server_credentials()
-
-        timeout = time.time() + timeout
-        task_status = self.read(auth=auth)
-
-        while task_status['pending'] == True and time.time() < timeout:
-            time.sleep(poll_rate)
-            task_status = self.read(auth=auth)
-
-        # Are we done? If so, return.
-        if task_status['pending'] == False:
-            return task_status
-        else:
-            raise TaskTimeout("Timed out polling task {0}".format(self.id))
+        # (protected-access) pylint:disable=W0212
+        # See docstring for orm._poll_task for an explanation.
+        return orm._poll_task(self.id, poll_rate, timeout, auth)
 
 
 def _gpgkey_content():

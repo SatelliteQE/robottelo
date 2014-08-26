@@ -444,5 +444,7 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         client.delete = mock.Mock(return_value=mock_response)
 
         # See if EntityDeleteMixin.delete behaves correctly.
-        response = EntityWithDelete(id=self.entity_id).delete()
+        response = EntityWithDelete(id=self.entity_id).delete(
+            synchronous=False
+        )
         self.assertEqual(response, foreman_task_id)
