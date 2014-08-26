@@ -1,9 +1,13 @@
 # -*- encoding: utf-8 -*-
 
-from robottelo.common.helpers import update_dictionary
+from robottelo.common.helpers import (update_dictionary, generate_string,
+                                      generate_email_address)
+from robottelo.common.constants import REPO_TYPE
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
+from robottelo.ui.contentenv import ContentEnvironment
+from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
@@ -16,6 +20,7 @@ from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
+from robottelo.ui.repository import Repos
 from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -126,6 +131,21 @@ def make_loc(session, force_context=False, **kwargs):
     Location(session.browser).create(**create_args)
 
 
+def make_lifecycle_environment(session, org=None, loc=None,
+                               force_context=False, **kwargs):
+    """Creates Life-cycle Environment"""
+
+    create_args = {
+        'name': None,
+        'description': None,
+        'prior': None,
+    }
+    page = session.nav.go_to_life_cycle_environments
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    ContentEnvironment(session.browser).create(**create_args)
+
+
 def make_product(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a product
@@ -143,6 +163,42 @@ def make_product(session, org=None, loc=None, force_context=False, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Products(session.browser).create(**create_args)
+
+
+def make_repository(session, org=None, loc=None,
+                    force_context=False, **kwargs):
+    """
+    Creates a repository
+    """
+    create_args = {
+        'name': None,
+        'product': None,
+        'gpg_key': None,
+        'http': False,
+        'url': None,
+        'repo_type': REPO_TYPE['yum'],
+    }
+    page = session.nav.go_to_products
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    Repos(session.browser).create(**create_args)
+
+
+def make_contentview(session, org=None, loc=None,
+                     force_context=False, **kwargs):
+    """
+    Creates a content-view
+    """
+    create_args = {
+        'name': None,
+        'label': None,
+        'description': None,
+        'is_composite': False,
+    }
+    page = session.nav.go_to_content_views
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    ContentViews(session.browser).create(**create_args)
 
 
 def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
@@ -200,15 +256,17 @@ def make_user(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a user
     """
+    password = generate_string("alpha", 6)
+
     create_args = {
         'username': None,
-        'email': None,
-        'password1': None,
-        'password2': None,
+        'email': generate_email_address(),
+        'password1': password,
+        'password2': password,
         'authorized_by': "INTERNAL",
         'locale': None,
-        'first_name': None,
-        'last_name': None,
+        'first_name': generate_string("alpha", 6),
+        'last_name': generate_string("alpha", 6),
         'roles': None,
         'locations': None,
         'organizations': None,
