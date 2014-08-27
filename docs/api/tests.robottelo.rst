@@ -46,6 +46,13 @@ Submodules:
     :members:
     :undoc-members:
 
+:mod:`tests.robottelo.test_orm`
+-------------------------------
+
+.. automodule:: tests.robottelo.test_orm
+    :members:
+    :undoc-members:
+
 :mod:`tests.robottelo.test_ssh`
 -------------------------------
 
