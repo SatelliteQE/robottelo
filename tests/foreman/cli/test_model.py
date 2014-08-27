@@ -4,7 +4,7 @@
 """
 Test class for Model CLI
 """
-
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
 from robottelo.common.helpers import generate_string
@@ -38,15 +38,21 @@ class TestModel(MetaCLITestCase):
         self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
 
     def test_update_model(self):
-        """
+        """@Test: Check if Model can be updated
+
         @Feature: Model - Positive Update
-        @Test: Check if Model can be updated
+
         @Assert: Model is updated
+
         """
-        result = self.factory({'vendor-class': generate_string("alpha", 10)})
-        # Check that Model was created with proper values
-        model = Model().info({'name': result['name']})
-        self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
+
+        name = generate_string("alpha", 10)
+        try:
+            result = self.factory({'name': name})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(name, result['name'])
 
         new_name = generate_string("alpha", 10)
         model = Model().update({'name': result['name'], 'new-name': new_name})
