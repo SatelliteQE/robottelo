@@ -26,7 +26,7 @@ from xmlrpclib import Fault
 
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
-BUGZILLA_OPEN_BUG_STATUSES = ('NEW', 'ASSIGNED')
+BUGZILLA_OPEN_BUG_STATUSES = ('NEW', 'ASSIGNED', 'POST', 'MODIFIED')
 REDMINE_URL = 'http://projects.theforeman.org'
 
 # A dict mapping bug IDs to python-bugzilla bug objects.
