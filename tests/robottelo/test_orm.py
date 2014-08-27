@@ -22,6 +22,7 @@ class SampleEntity(orm.Entity):
 
     class Meta(object):
         """Non-field attributes for this entity."""
+        # (too-few-public-methods) pylint:disable=R0903
         api_path = 'foo'
 
 
@@ -31,10 +32,13 @@ class ManyRelatedEntity(orm.Entity):
 
 
 class EntityWithDelete(orm.Entity, orm.EntityDeleteMixin):
-    """An entity which inherits from :class:`orm.EntityDeleteMixin`."""
+    """
+    An entity which inherits from :class:`robottelo.orm.EntityDeleteMixin`.
+    """
 
     class Meta(object):
         """Non-field attributes for this entity."""
+        # (too-few-public-methods) pylint:disable=R0903
         api_path = 'foo'
 
 
@@ -309,7 +313,7 @@ class StringFieldTestCase(unittest.TestCase):
 
 
 class GetClassTestCase(unittest.TestCase):
-    """Tests for :func:`robottelo.orm._get_class`."""
+    """Tests for ``robottelo.orm._get_class``."""
     # (protected-access) pylint:disable=W0212
     def test_class(self):
         """Pass a class into the function.
@@ -344,7 +348,7 @@ class GetClassTestCase(unittest.TestCase):
 
 @ddt.ddt
 class GetValueTestCase(unittest.TestCase):
-    """Tests for :func:`robottelo.orm._get_value`."""
+    """Tests for ``robottelo.orm._get_value``."""
     # (protected-access) pylint:disable=W0212
     def test_field_choices(self):
         """Pass in a field that has a set of choices.
@@ -408,7 +412,7 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         client.delete = self.client_delete
 
     def test_delete_200(self):
-        """Call :meth:`robottelo.orm.EntityWithDelete.delete`.
+        """Test :meth:`robottelo.orm.EntityDeleteMixin.delete`.
 
         Assert that ``EntityDeleteMixin.delete`` returns ``None`` if it
         receives an HTTP 200 response.
@@ -427,7 +431,7 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         self.assertIsNone(response)
 
     def test_delete_202(self):
-        """Call :meth:`robottelo.orm.EntityWithDelete.delete`.
+        """Test :meth:`robottelo.orm.EntityDeleteMixin.delete`.
 
         Assert that ``EntityDeleteMixin.delete`` returns a task ID if it
         receives an HTTP 202 response.
