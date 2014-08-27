@@ -36,3 +36,29 @@ class TestModel(MetaCLITestCase):
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
         self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
+
+    def test_update_model(self):
+        """
+        @Feature: Model - Positive Update
+        @Test: Check if Model can be updated
+        @Assert: Model is updated
+        """
+        result = self.factory({'vendor-class': generate_string("alpha", 10)})
+        # Check that Model was created with proper values
+        model = Model().info({'name': result['name']})
+        self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
+
+        new_name = generate_string("alpha", 10)
+        model = Model().update({'name': result['name'], 'new-name': new_name})
+        self.assertEqual(model.return_code, 0)
+        self.assertEqual(
+            len(model.stderr), 0, "There should not be an error here")
+
+        model = Model.info({'name': new_name})
+        self.assertEqual(model.return_code, 0)
+        self.assertEqual(len(model.stderr), 0)
+        self.assertEqual(
+            model.stdout['name'],
+            new_name,
+            "Model name was not updated"
+        )
