@@ -1573,6 +1573,8 @@ locators = {
     "config_groups.select_name": (
         By.XPATH, "//a[contains(.,'%s') and contains(@href, 'edit')]"),
     "config_groups.dropdown": (
-        By.XPATH, "//a[@data-toggle='dropdown']"),
+        By.XPATH,
+        ("//td/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
     "config_groups.delete": (
-        By.XPATH, "//a[contains(@data-id, '%s') and @class='delete']")}
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]")}

@@ -45,7 +45,13 @@ class PuppetClasses(UITestCase):
             self.assertIsNotNone(search)
 
     @attr('ui', 'puppet-classes', 'implemented')
-    @data(*generate_strings_list(len1=255))
+    @data(
+        generate_string('alphanumeric', 255),
+        generate_string('alpha', 255),
+        generate_string('numeric', 255),
+        generate_string('latin1', 255),
+        generate_string('utf8', 255)
+    )
     def test_create_positive_2(self, name):
         """
         @Test: Create new puppet-class with 255 chars

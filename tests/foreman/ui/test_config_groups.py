@@ -45,7 +45,13 @@ class ConfigGroups(UITestCase):
             self.assertIsNotNone(search)
 
     @attr('ui', 'config-groups', 'implemented')
-    @data(*generate_strings_list(len1=255))
+    @data(
+        generate_string('alphanumeric', 255),
+        generate_string('alpha', 255),
+        generate_string('numeric', 255),
+        generate_string('latin1', 255),
+        generate_string('utf8', 255)
+    )
     def test_create_positive_2(self, name):
         """
         @Test: Create new config-groups with 255 chars
@@ -63,10 +69,13 @@ class ConfigGroups(UITestCase):
         """
         @Test: Create new config-groups with 256 chars
         @Feature: Config-Groups - Negative Create
-        @Assert: Config-Groups is not created with 256 chars
+        @Assert: Config-Groups is not created
         """
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
+            error = session.nav.wait_until_element(
+                common_locators["name_haserror"])
+            self.assertIsNotNone(error)
             search = self.configgroups.search(name)
             self.assertIsNone(search)
 
@@ -74,7 +83,7 @@ class ConfigGroups(UITestCase):
         """
         @Test: Create new config-groups with blank name
         @Feature: Config-Groups - Negative Create
-        @Assert: Config-Groups is not created with 256 chars
+        @Assert: Config-Groups is not created
         """
         name = ""
         with Session(self.browser) as session:
@@ -87,7 +96,7 @@ class ConfigGroups(UITestCase):
         """
         @Test: Create new config-groups with blank name
         @Feature: Config-Groups - Negative Create
-        @Assert: Config-Groups is not created with 256 chars
+        @Assert: Config-Groups is not created
         """
         name = "    "
         with Session(self.browser) as session:
@@ -131,6 +140,7 @@ class ConfigGroups(UITestCase):
         @Feature: Config-Groups - Positive delete
         @Assert: Config-Groups is deleted
         """
+
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
             search = self.configgroups.search(name)
