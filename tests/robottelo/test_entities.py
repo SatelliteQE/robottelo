@@ -1,6 +1,8 @@
 """Tests for :mod:`robottelo.entities`."""
+import mock
 from ddt import data, ddt, unpack
 from fauxfactory import FauxFactory
+from robottelo.api import client
 from robottelo.common import conf
 from robottelo import entities, orm
 from unittest import TestCase
@@ -27,6 +29,7 @@ class PathTestCase(TestCase):
         (entities.ContentView, '/content_views'),
         (entities.ContentViewVersion, '/content_view_versions'),
         (entities.Repository, '/repositories'),
+        (entities.Organization, '/organizations'),
     )
     @unpack
     def test_path_without_which(self, entity, path):
@@ -52,6 +55,11 @@ class PathTestCase(TestCase):
         (entities.ContentView, '/content_views',
          'content_view_puppet_modules'),
         (entities.ContentViewVersion, '/content_view_versions', 'promote'),
+        (entities.Organization, '/organizations', 'subscriptions/upload'),
+        (entities.Organization, '/organizations',
+         'subscriptions/delete_manifest'),
+        (entities.Organization, '/organizations',
+         'subscriptions/refresh_manifest'),
         (entities.Repository, '/repositories', 'sync'),
     )
     @unpack
@@ -83,6 +91,10 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'available_puppet_module_names'),
         (entities.ContentView, 'content_view_puppet_modules'),
         (entities.ContentViewVersion, 'promote'),
+        (entities.Organization, 'this'),
+        (entities.Organization, 'subscriptions/upload'),
+        (entities.Organization, 'subscriptions/delete_manifest'),
+        (entities.Organization, 'subscriptions/refresh_manifest'),
         (entities.Repository, 'sync'),
         (entities.ForemanTask, 'this'),
         (entities.System, 'this'),
@@ -137,3 +149,67 @@ class PathTestCase(TestCase):
                 entities.System().path(which='all')):
             self.assertIn('/systems', gen_path)
             self.assertRegexpMatches(gen_path, 'systems$')
+
+
+class OrganizationTestCase(TestCase):
+    """Tests for :class:`robottelo.entities.Organization`."""
+    def setUp(self):  # pylint:disable=C0103
+        """Back up and customize ``conf.properties`` and ``client.post``.
+
+        Also generate a number suitable for use when instantiating entities.
+
+        """
+        self.conf_properties = conf.properties.copy()
+        conf.properties['main.server.hostname'] = 'example.com'
+        conf.properties['foreman.admin.username'] = 'Alice'
+        conf.properties['foreman.admin.password'] = 'hackme'
+        self.client_post = client.post
+        # SomeEntity(id=self.entity_id)
+        self.entity_id = FauxFactory.generate_integer(min_value=1)
+
+    def tearDown(self):  # pylint:disable=C0103
+        """Restore ``conf.properties``."""
+        conf.properties = self.conf_properties
+        client.post = self.client_post
+
+    def test_delete_manifest_200(self):
+        """Call :meth:`robottelo.entities.Organization.delete_manifest`.
+
+        Assert that ``Organization.delete_manifest`` returns ``None`` if it
+        receives an HTTP 200 response.
+
+        """
+        # Create a mock server response object.
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status.return_value = None
+
+        # Make `client.post` return the above object.
+        client.post = mock.Mock(return_value=mock_response)
+
+        # See if EntityDeleteMixin.delete_manifest behaves correctly.
+        response = entities.Organization(id=self.entity_id).delete_manifest()
+        self.assertIsNone(response)
+
+    def test_delete_manifest_202(self):
+        """Call :meth:`robottelo.entities.Organization.delete_manifest`.
+
+        Assert that ``Organization.delete_manifest`` returns a task ID if it
+        receives an HTTP 202 response.
+
+        """
+        # Create a mock server response object.
+        foreman_task_id = FauxFactory.generate_integer()
+        mock_response = mock.Mock()
+        mock_response.status_code = 202
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {u'id': foreman_task_id}
+
+        # Make `client.post` return the above object.
+        client.post = mock.Mock(return_value=mock_response)
+
+        # See if EntityDeleteMixin.delete_manifest behaves correctly.
+        response = entities.Organization(id=self.entity_id).delete_manifest(
+            synchronous=False
+        )
+        self.assertEqual(response, foreman_task_id)
