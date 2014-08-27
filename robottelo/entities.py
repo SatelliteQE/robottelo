@@ -17,7 +17,6 @@ from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
 from robottelo.common.helpers import get_server_credentials
 from robottelo import factory, orm
-import time
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -25,11 +24,8 @@ class ReadException(Exception):
     """Indicates an error occurred while reading from a Foreman server."""
 
 
-class TaskTimeout(Exception):
-    """If the task is not finished before we reach the timeout."""
-
-
-class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
+class ActivationKey(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Activtion Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -56,7 +52,8 @@ class ActivationKey(orm.Entity, factory.EntityFactoryMixin):
         return super(ActivationKey, self).path()
 
 
-class Architecture(orm.Entity, factory.EntityFactoryMixin):
+class Architecture(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
@@ -310,7 +307,8 @@ class ContentViewPuppetModule(orm.Entity):
                     'content_view_puppet_modules')
 
 
-class ContentView(orm.Entity, factory.EntityFactoryMixin):
+class ContentView(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -398,7 +396,7 @@ class CustomInfo(orm.Entity):
                     ':informable_id')
 
 
-class Domain(orm.Entity, factory.EntityFactoryMixin):
+class Domain(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Domain entity."""
     # The full DNS Domain name
     name = orm.StringField(required=True)
@@ -433,7 +431,7 @@ class Errata(orm.Entity):
         api_path = 'api/v2/errata'
 
 
-class Filter(orm.Entity, factory.EntityFactoryMixin):
+class Filter(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Filter entity."""
     role = orm.OneToOneField('Role', required=True)
     search = orm.StringField(null=True)
@@ -515,41 +513,28 @@ class ForemanTask(orm.Entity):
         """Return the status of a task or timeout.
 
         There are several API calls that trigger asynchronous tasks, such as
-        synchronizing a repository or publishing/promoting a content view.
-        These tasks should always return a `uuid` which then can be used to
-        poll and check on its status. This method checks the status for a
-        given `uuid` at `poll_rate` intervals until said task is no longer
-        pending. If it takes longer than `timeout`
+        synchronizing a repository, or publishing or promoting a content view.
+        It is possible to check on the status of a task if you know its UUID.
+        This method polls a task once every ``poll_rate`` seconds and, upon
+        task completion, returns information about that task.
 
-        :param int poll_rate: How often to check the status of a task in
-            seconds.
-        :param int timeout: Maximum number of seconds to wait until we
-            timeout.
-        :param tuple auth: A ``(username, password)`` pair to use when
-            communicating with the API. If ``None``, the credentials returned
-            by :func:`robottelo.common.helpers.get_server_credentials` are
-            used.
+        :param int poll_rate: Delay between the end of one task check-up and
+            the start of the next check-up.
+        :param int timeout: Maximum number of seconds to wait until timing out.
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
         :return: Information about the asynchronous task.
         :rtype: dict
-        :raises robottelo.entities.TaskTimeout: If the task is not finished
-            before we reach the timeout.
+        :raises robottelo.orm.TaskTimeout: If the task is not finished before
+            the timeout is exceeded.
+        :raises: ``requests.exceptions.HTTPError`` If the API returns a message
+            with an HTTP 4XX or 5XX status code.
 
         """
-        if auth is None:
-            auth = get_server_credentials()
-
-        timeout = time.time() + timeout
-        task_status = self.read(auth=auth)
-
-        while task_status['pending'] == True and time.time() < timeout:
-            time.sleep(poll_rate)
-            task_status = self.read(auth=auth)
-
-        # Are we done? If so, return.
-        if task_status['pending'] == False:
-            return task_status
-        else:
-            raise TaskTimeout("Timed out polling task {0}".format(self.id))
+        # (protected-access) pylint:disable=W0212
+        # See docstring for orm._poll_task for an explanation.
+        return orm._poll_task(self.id, poll_rate, timeout, auth)
 
 
 def _gpgkey_content():
@@ -563,7 +548,7 @@ def _gpgkey_content():
         return handle.read()
 
 
-class GPGKey(orm.Entity, factory.EntityFactoryMixin):
+class GPGKey(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a GPG Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     # identifier of the gpg key
@@ -740,7 +725,8 @@ class Interface(orm.Entity):
         api_path = 'api/v2/hosts/:host_id/interfaces'
 
 
-class LifecycleEnvironment(orm.Entity, factory.EntityFactoryMixin):
+class LifecycleEnvironment(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -846,7 +832,7 @@ class Media(orm.Entity):
         api_path = 'api/v2/media'
 
 
-class Model(orm.Entity, factory.EntityFactoryMixin):
+class Model(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Model entity."""
     name = orm.StringField(required=True)
     info = orm.StringField(null=True)
@@ -858,7 +844,8 @@ class Model(orm.Entity, factory.EntityFactoryMixin):
         api_path = 'api/v2/models'
 
 
-class OperatingSystem(orm.Entity, factory.EntityFactoryMixin):
+class OperatingSystem(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
@@ -898,7 +885,8 @@ class OrganizationDefaultInfo(orm.Entity):
                     'default_info/:informable_type')
 
 
-class Organization(orm.Entity, factory.EntityFactoryMixin):
+class Organization(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1055,7 +1043,8 @@ class Report(orm.Entity):
         api_path = 'api/v2/reports'
 
 
-class Repository(orm.Entity, factory.EntityFactoryMixin):
+class Repository(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1100,7 +1089,7 @@ class RoleLDAPGroups(orm.Entity):
         api_path = 'katello/api/v2/roles/:role_id/ldap_groups'
 
 
-class Role(orm.Entity, factory.EntityFactoryMixin):
+class Role(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(required=True, str_type=('alphanumeric',))
@@ -1228,7 +1217,7 @@ class SystemPackage(orm.Entity):
         api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
-class System(orm.Entity, factory.EntityFactoryMixin):
+class System(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a System entity."""
     content_view = orm.OneToOneField('ContentView')
     description = orm.StringField()
@@ -1309,7 +1298,7 @@ class UserGroup(orm.Entity):
         api_path = 'api/v2/usergroups'
 
 
-class User(orm.Entity, factory.EntityFactoryMixin):
+class User(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a User entity.
 
     The LDAP authentication source with an ID of 1 is internal. It is nearly

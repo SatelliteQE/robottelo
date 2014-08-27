@@ -93,12 +93,7 @@ class RoleTestCase(TestCase):
         self.assertEqual(response['name'], name)
 
         # Delete the role, GET it, and assert that an HTTP 404 is returned.
-        response = client.delete(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        # 404 should be returned for deleted role
+        entities.Role(id=role_attrs['id']).delete()
         response = client.get(
             path,
             auth=get_server_credentials(),
@@ -255,13 +250,9 @@ class RoleTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         ).json()
+
         # Delete the Filter, GET it, and assert that an HTTP 404 is returned.
-        response = client.delete(
-            filter_path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        # 404 should be returned for deleted filter
+        entities.Filter(id=filter_attrs['id']).delete()
         response = client.get(
             filter_path,
             auth=get_server_credentials(),
@@ -318,14 +309,10 @@ class RoleTestCase(TestCase):
             auth=get_server_credentials(),
             verify=False,
         ).json()
-        # Delete the role, GET it, and assert that
-        # HTTP 404 is returned for deleted role and filter.
-        response = client.delete(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        # 404 should be returned for deleted role
+
+        # Delete the role, GET it, and assert that HTTP 404 is returned for
+        # deleted role and filter.
+        entities.Role(id=role_attrs['id']).delete()
         response = client.get(
             path,
             auth=get_server_credentials(),

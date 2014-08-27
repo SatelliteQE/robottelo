@@ -1,14 +1,65 @@
 """Module that define the model layer used to define entities"""
 from fauxfactory import FauxFactory
+from robottelo.api import client
 from robottelo.common import helpers
 import booby
 import booby.fields
 import booby.inspection
 import booby.validators
+import httplib
 import importlib
 import inspect
 import random
+import threading
+import time
 import urlparse
+
+
+class TaskTimeout(Exception):
+    """Indicates that a task did not finish before the timout limit."""
+
+
+def _poll_task(task_id, poll_rate=5, timeout=120, auth=None):
+    """Implement :meth:`robottelo.entities.ForemanTask.poll`.
+
+    :meth:`robottelo.entities.ForemanTask.poll` calls this function, as does
+    :class:`robottelo.orm.EntityDeleteMixin`. Other mixins which have yet to be
+    implemented, such as ``EntityCreateMixin``, may also call this function.
+
+    This function has been placed in this module to keep the import tree sane.
+    This function could also be placed in ``robottelo.api.utils``. However,
+    doing so precludes :mod:`robottelo.api.utils` from importing
+    :mod:`robottelo.entities`, which may be desirable in the future.
+
+    This function is private because only entity mixins should use this.
+    ``ForemanTask`` is, for obvious reasons, an exception.
+
+    """
+    if auth is None:
+        auth = helpers.get_server_credentials()
+
+    # Implement the timeout.
+    def raise_task_timeout():
+        """Raise :class:`robottelo.orm.TaskTimeout`."""
+        raise TaskTimeout("Timed out polling task {0}".format(task_id))
+    timer = threading.Timer(timeout, raise_task_timeout)
+    timer.start()
+
+    # Poll until the task finishes. The timeout prevents an infinite loop.
+    try:
+        path = '{0}/foreman_tasks/api/tasks/{1}'.format(
+            helpers.get_server_url(),
+            task_id
+        )
+        while True:
+            response = client.get(path, auth=auth, verify=False)
+            response.raise_for_status()
+            task_info = response.json()
+            if task_info['pending'] is False:
+                return task_info
+            time.sleep(poll_rate)
+    finally:
+        timer.cancel()
 
 
 def _get_value(field, default):
@@ -340,3 +391,45 @@ class Entity(booby.Model):
             if value is None:
                 fields.pop(key)
         return fields
+
+
+class EntityDeleteMixin(object):
+    """A mixin that adds the ability to delete an entity."""
+    # (too-few-public-methods) pylint:disable=R0903
+    # It's OK that this class has only one public method. It's a targeted
+    # mixin.
+    def delete(self, auth=None, synchronous=True):
+        """Delete the current entity.
+
+        Send an HTTP DELETE request to ``self.path(which='this')``.
+
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+            202 response was received. ``None`` otherwise.
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON could not be decoded.
+
+        """
+        # Delete this entity and check the status code of the response.
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        response = client.delete(
+            self.path(which='this'),
+            auth=auth,
+            verify=False,
+        )
+        response.raise_for_status()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                _poll_task(task_id)
+            return task_id
+        return None
