@@ -48,23 +48,23 @@ class TestModel(MetaCLITestCase):
 
         name = generate_string("alpha", 10)
         try:
-            result = self.factory({'name': name})
+            model = self.factory({'name': name})
         except CLIFactoryError as err:
             self.fail(err)
 
-        self.assertEqual(name, result['name'])
+        self.assertEqual(name, model['name'])
 
         new_name = generate_string("alpha", 10)
-        model = Model().update({'name': result['name'], 'new-name': new_name})
-        self.assertEqual(model.return_code, 0)
+        result = Model().update({'name': model['name'], 'new-name': new_name})
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            len(model.stderr), 0, "There should not be an error here")
+            len(result.stderr), 0, "There should not be an error here")
 
-        model = Model.info({'name': new_name})
-        self.assertEqual(model.return_code, 0)
-        self.assertEqual(len(model.stderr), 0)
+        result = Model.info({'name': new_name})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
-            model.stdout['name'],
+            result.stdout['name'],
             new_name,
             "Model name was not updated"
         )
