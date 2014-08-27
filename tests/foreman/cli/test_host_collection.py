@@ -543,3 +543,59 @@ class TestHostCollection(CLITestCase):
         self.assertGreater(no_of_content_host,
                            result.stdout['total-content-hosts'],
                            "There should not be an exception here")
+
+    def test_content_hosts(self):
+        """@Test: Check if content hosts added to host collection is listed
+
+        @Feature: Host Collection
+
+        @Assert: Content-host added to host-collection is listed
+
+        """
+
+        host_col_name = generate_string('alpha', 15)
+        content_host_name = generate_string('alpha', 15)
+
+        try:
+            new_host_col = self._new_host_collection({'name': host_col_name})
+            new_system = make_content_host({
+                u'name': content_host_name,
+                u'organization-id': self.org['id'],
+                u'content-view-id': self.default_cv['id'],
+                u'lifecycle-environment-id': self.library['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        no_of_content_host = new_host_col['total-content-hosts']
+        result = HostCollection.add_content_host({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id'],
+            u'content-host-ids': new_system['id']
+        })
+        self.assertEqual(result.return_code, 0,
+                         "Content Host not added to host collection")
+        self.assertEqual(len(result.stderr), 0,
+                         "No error was expected")
+
+        result = HostCollection.info({
+            u'id': new_host_col['id'],
+            u'organization-id': self.org['id']
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get info for host collection')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertGreater(result.stdout['total-content-hosts'],
+                           no_of_content_host,
+                           "There should not be an exception here")
+
+        result = HostCollection.content_host({
+            u'name': host_col_name,
+            u'organization-id': self.org['id']
+        })
+        self.assertEqual(
+            result.return_code, 0, 'Failed to get list of content-host')
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertEqual(
+            new_system['id'], result.stdout[0]['id'],
+            'There should not be an error here')
