@@ -39,7 +39,18 @@ class EntityWithDelete(orm.Entity, orm.EntityDeleteMixin):
     class Meta(object):
         """Non-field attributes for this entity."""
         # (too-few-public-methods) pylint:disable=R0903
-        api_path = 'foo'
+        api_path = ''
+
+
+class EntityWithRead(orm.Entity, orm.EntityReadMixin):
+    """An entity which inherits from :class:`robottelo.orm.EntityReadMixin`."""
+    one_to_one = orm.OneToOneField(SampleEntity)
+    one_to_many = orm.OneToManyField(SampleEntity)
+
+    class Meta(object):
+        """Non-field attributes for this entity."""
+        # (too-few-public-methods) pylint:disable=R0903
+        api_path = ''
 
 
 #------------------------------------------------------------------------------
@@ -391,25 +402,28 @@ class GetValueTestCase(unittest.TestCase):
 
 
 class EntityDeleteMixinTestCase(unittest.TestCase):
-    """Tests for :class:`robottelo.orm.EntityDeleteMixin`."""
+    """Tests for entity mixin classes."""
     def setUp(self):  # pylint:disable=C0103
-        """Back up and customize ``conf.properties`` and ``client.delete``.
+        """Back up several objects so they can be safely modified.
 
-        Also generate a number suitable for use when instantiating entities.
+        Also generate a number suitable for use as an entity ID.
 
         """
+        self.client_delete = client.delete
+        self.client_get = client.get
         self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
         conf.properties['foreman.admin.username'] = 'Alice'
         conf.properties['foreman.admin.password'] = 'hackme'
-        self.client_delete = client.delete
-        # SomeEntity(id=self.entity_id)
+
+        # e.g. SomeEntity(id=self.entity_id)
         self.entity_id = FauxFactory.generate_integer(min_value=1)
 
     def tearDown(self):  # pylint:disable=C0103
-        """Restore ``conf.properties``."""
-        conf.properties = self.conf_properties
+        """Restore backed-up objects."""
         client.delete = self.client_delete
+        client.get = self.client_get
+        conf.properties = self.conf_properties
 
     def test_delete_200(self):
         """Test :meth:`robottelo.orm.EntityDeleteMixin.delete`.
@@ -452,3 +466,32 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
             synchronous=False
         )
         self.assertEqual(response, foreman_task_id)
+
+    def test_read(self):
+        """Test :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        Assert that ``EntityReadMixin.read`` returns an object with correctly
+        populated attributes.
+
+        """
+        # Create a mock server response object.
+        mock_response = mock.Mock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            u'id': self.entity_id,
+            u'one_to_one_id': 123,
+            u'one_to_many_ids': [234, 345],
+        }
+
+        # Make `client.get` return the above object.
+        client.get = mock.Mock(return_value=mock_response)
+
+        # See if EntityReadMixin.read behaves correctly.
+        entity = EntityWithRead(id=self.entity_id).read()
+        self.assertEqual(entity.id, self.entity_id)
+        self.assertIsInstance(entity.one_to_one, SampleEntity)
+        self.assertEqual(entity.one_to_one.id, 123)
+        self.assertEqual(len(entity.one_to_many), 2)
+        for entity_ in entity.one_to_many:
+            self.assertIsInstance(entity_, SampleEntity)
+            self.assertIn(entity_.id, [234, 345])

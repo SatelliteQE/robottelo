@@ -397,7 +397,7 @@ class EntityDeleteMixin(object):
     """A mixin that adds the ability to delete an entity."""
     # (too-few-public-methods) pylint:disable=R0903
     # It's OK that this class has only one public method. It's a targeted
-    # mixin.
+    # mixin, not a standalone class.
     def delete(self, auth=None, synchronous=True):
         """Delete the current entity.
 
@@ -413,7 +413,10 @@ class EntityDeleteMixin(object):
             202 response was received. ``None`` otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
-        :raises: ``ValueError`` If the response JSON could not be decoded.
+        :raises: ``ValueError`` If an HTTP 202 response is received and the
+            response JSON could not be decoded.
+        :raises robottelo.orm.TaskTimeout: If an HTTP 202 response is received,
+            ``synchronous is True`` and the task times out.
 
         """
         # Delete this entity and check the status code of the response.
@@ -433,3 +436,79 @@ class EntityDeleteMixin(object):
                 _poll_task(task_id)
             return task_id
         return None
+
+
+class EntityReadMixin(object):
+    """A mixin that provides the ability to read an entity."""
+    # (too-few-public-methods) pylint:disable=R0903
+    # It's OK that this class has only one public method. It's a targeted
+    # mixin, not a standalone class.
+    def read(self, auth=None):
+        """Read the current entity.
+
+        Send an HTTP GET request to ``self.path(which='this')``. Instantiate an
+        object of type ``type(self)`` and initialize that object with the
+        fetched information.
+
+        All of an entity's one-to-one and one-to-many relationships are
+        populated with objects of the correct type. For example, if
+        ``SomeEntity.other_entity`` is a one-to-one relationship, both of these
+        commands should succeed:
+
+            SomeEntity(id=N).read().other_entity.id
+            SomeEntity(id=N).read().other_entity.read().other_attr
+
+        Note that in the example above, ``other_entity`` is **only** populated
+        with an ID by default. Accessing any other attribute returns ``None``.
+
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :return: An instance of type ``type(self)``. In other words, an
+            instance of ``SomeEntity`` is returned if
+            ``SomeEntity(id=N).read()`` is called.
+        :rtype: robottelo.orm.Entity
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+
+        """
+        # Read this entity and check the status code of the response.
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        response = client.get(
+            self.path(which='this'),
+            auth=auth,
+            verify=False,
+        )
+        response.raise_for_status()
+
+        # We must populate `entity`'s attributes from `entity_attrs`.
+        entity = type(self)()
+        entity_attrs = response.json()
+        # Unfortunately, we cannot populate `entity` by blindly iterating
+        # through `entity_attrs.items()`, as the server often serves up weirdly
+        # structured or incomplete data. (For example, see bugzilla bug
+        # #1122267.) A more reliable approach is to use our own entity
+        # definitions.
+        for field_name, field_type in entity.get_fields().items():
+            if isinstance(field_type, OneToOneField):
+                entity_id = entity_attrs[field_name + '_id']
+                setattr(
+                    entity,
+                    field_name,
+                    field_type.entity(id=entity_id),
+                )
+            elif isinstance(field_type, OneToManyField):
+                entity_ids = entity_attrs[field_name + '_ids']
+                setattr(
+                    entity,
+                    field_name,
+                    [
+                        field_type.entity(id=entity_id)
+                        for entity_id
+                        in entity_ids
+                    ]
+                )
+            else:
+                setattr(entity, field_name, entity_attrs[field_name])
+        return entity
