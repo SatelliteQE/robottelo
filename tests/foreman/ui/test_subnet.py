@@ -56,7 +56,13 @@ class Subnet(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
-    @data(*generate_strings_list(len1=255))
+    @data(
+        generate_string('alphanumeric', 255),
+        generate_string('alpha', 255),
+        generate_string('numeric', 255),
+        generate_string('latin1', 255),
+        generate_string('utf8', 255)
+    )
     def test_create_subnet_2(self, name):
         """
         @Test: Create new subnet - given subnet name, subnet network,
