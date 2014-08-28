@@ -2,8 +2,6 @@
 Test class for Subscriptions
 """
 
-import tempfile
-
 from ddt import ddt
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.factory import make_org
@@ -35,12 +33,9 @@ class TestSubscription(CLITestCase):
             install_cert_on_server()
 
         self.org = make_org()
-        manifest_file = tempfile.mktemp()
-        clone(
+        self.manifest = clone(
             TestSubscription.signing_key,
-            TestSubscription.fake_manifest,
-            manifest_file)
-        self.manifest = manifest_file
+            TestSubscription.fake_manifest)
 
     def test_manifest_upload(self):
         """
@@ -50,17 +45,19 @@ class TestSubscription(CLITestCase):
         """
 
         upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload(
-            {'file': self.manifest,
-             'organization-id': self.org['id']})
+        result = Subscription.upload({
+            'file': self.manifest,
+            'organization-id': self.org['id'],
+        })
         self.assertEqual(result.return_code, 0,
                          "Failed to upload manifest")
         self.assertEqual(
             len(result.stderr), 0,
             "There should not be an exception while uploading manifest.")
 
-        result = Subscription.list({'organization-id': self.org['id']},
-                                   per_page=False)
+        result = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False)
         self.assertEqual(result.return_code, 0,
                          "Failed to list manifests in this org.")
         self.assertEqual(
@@ -75,33 +72,37 @@ class TestSubscription(CLITestCase):
         """
 
         upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload(
-            {'file': self.manifest,
-             'organization-id': self.org['id']})
+        result = Subscription.upload({
+            'file': self.manifest,
+            'organization-id': self.org['id'],
+        })
         self.assertEqual(result.return_code, 0,
                          "Failed to upload manifest")
         self.assertEqual(
             len(result.stderr), 0,
             "There should not be an exception while uploading manifest.")
 
-        result = Subscription.list({'organization-id': self.org['id']},
-                                   per_page=False)
+        result = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False)
         self.assertEqual(result.return_code, 0,
                          "Failed to list manifests in this org.")
         self.assertEqual(
             len(result.stderr), 0,
             "There should not be an exception while listing the manifest.")
 
-        result = Subscription.delete_manifest(
-            {'organization-id': self.org['id']})
+        result = Subscription.delete_manifest({
+            'organization-id': self.org['id'],
+        })
         self.assertEqual(result.return_code, 0,
                          "Failed to delete manifest")
         self.assertEqual(
             len(result.stderr), 0,
             "There should not be an exception while deleting manifest.")
 
-        result = Subscription.list({'organization-id': self.org['id']},
-                                   per_page=False)
+        result = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False)
         self.assertEqual(result.return_code, 0,
                          "Failed to list manifests in this org.")
         self.assertEqual(
