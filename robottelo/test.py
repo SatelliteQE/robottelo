@@ -117,10 +117,27 @@ class UITestCase(TestCase):
         cls.remote = int(conf.properties['main.remote'])
 
         if int(conf.properties.get('main.virtual_display', '0')):
-            # Importing here because PyVirtualDisplay is optional
+            # Import from optional requirements
             from pyvirtualdisplay import Display
+            from easyprocess import EasyProcess, EasyProcessError
             cls.display = Display(size=(1024, 768))
             cls.display.start()
+
+            window_manager_cmd = conf.properties.get(
+                'main.window_manager_command', '')
+            print window_manager_cmd
+
+            try:
+                cls.window_manager = EasyProcess(window_manager_cmd)
+                cls.window_manager.start()
+            except EasyProcessError as err:
+                cls.window_manager = None
+                cls.logger.warning(
+                    'Window manager could not be started. '
+                    'Command: "%s". Error: %s',
+                    window_manager_cmd,
+                    err
+                )
         else:
             cls.display = None
 
@@ -195,6 +212,9 @@ class UITestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         if cls.display is not None:
+            if (cls.window_manager is not None and
+                    cls.window_manager.is_started):
+                cls.window_manager.stop()
             cls.display.stop()
 
 
