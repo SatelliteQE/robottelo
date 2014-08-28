@@ -1109,7 +1109,7 @@ class Ping(orm.Entity):
         api_path = 'katello/api/v2/ping'
 
 
-class Product(orm.Entity, factory.EntityFactoryMixin):
+class Product(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     """A representation of a Product entity."""
     organization = orm.OneToOneField('Organization', required=True)
     description = orm.StringField()
