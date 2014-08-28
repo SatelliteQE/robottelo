@@ -12,6 +12,7 @@ inner class contains non-field information. This information is especially
 useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
+import httplib
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file
@@ -895,6 +896,134 @@ class Organization(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/organizations'
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        If a user specifies a ``which`` of:
+
+        * ``'subscriptions/upload'``, return a path in the format
+          ``/organizations/:id/subscriptions/upload``.
+        * ``'subscriptions/delete_manifest'``, return a path in the format
+          ``/organizations/:id/subscriptions/delete_manifest``.
+        * ``'subscriptions/refresh_manifest'``, return a path in the format
+          ``/organizations/:id/subscriptions/refresh_manifest``
+
+        Otherwise, call ``super``.
+
+        """
+        if which in ('subscriptions/upload', 'subscriptions/delete_manifest',
+                     'subscriptions/refresh_manifest'):
+            return '{0}/{1}'.format(
+                super(Organization, self).path(which='this'),
+                which
+            )
+        return super(Organization, self).path(which=which)
+
+    def upload_manifest(self, path, repository_url=None,
+                        synchronous=True):
+        """Helper method that uploads a subscription manifest file
+
+        :param str path: Local path of the manifest file
+        :param str repository_url: Optional repository URL
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+            202 response was received. ``None`` otherwise.
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON could not be decoded.
+        :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
+            received, ``synchronous is True`` and polling times out.
+
+        """
+        data = None
+        if repository_url is not None:
+            data = {u'repository_url': repository_url}
+
+        with open(path, 'rb') as manifest:
+            # FIXME used _call_requests_post because client.post makes
+            # requests.post fail. Also add tests for this helper function.
+            response = client._call_requests_post(
+                self.path('subscriptions/upload'),
+                auth=get_server_credentials(),
+                verify=False,
+                data=data,
+                files={'content': manifest}
+            )
+        response.raise_for_status()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
+
+    def delete_manifest(self, synchronous=True):
+        """Helper method that deletes an organization's manifest
+
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+            202 response was received. ``None`` otherwise.
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON could not be decoded.
+        :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
+            received, ``synchronous is True`` and polling times out.
+
+        """
+        response = client.post(
+            self.path('subscriptions/delete_manifest'),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
+
+    def refresh_manifest(self, synchronous=True):
+        """Helper method that refreshes an organization's manifest
+
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+            202 response was received. ``None`` otherwise.
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON could not be decoded.
+        :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
+            received, ``synchronous is True`` and polling times out.
+
+        """
+        # FIXME used _call_requests_put because client.put makes
+        # requests.put fail. Also add tests for this helper function.
+        response = client._call_requests_put(
+            self.path('subscriptions/refresh_manifest'),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
 
 
 class OSDefaultTemplate(orm.Entity):
