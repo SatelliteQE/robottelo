@@ -286,8 +286,14 @@ class EntityIdTestCase(TestCase):
 
 
 @ddt
-class LongMessageTestCase(TestCase):
-    """Issue a variety of HTTP requests to a variety of URLs."""
+class DoubleCheckTestCase(TestCase):
+    """Perform in-depth tests on URLs.
+
+    Do not just assume that an HTTP response with a good status code indicates
+    that an action succeeded. Instead, issue a follow-up request after each
+    action to ensure that the intended action was accomplished.
+
+    """
     longMessage = True
 
     @data(
@@ -426,3 +432,39 @@ class LongMessageTestCase(TestCase):
             response.status_code,
             status_code_error(path, status_code, response),
         )
+
+
+@ddt
+class EntityReadTestCase(TestCase):
+    """
+    Check that classes inheriting from :class:`robottelo.orm.EntityReadMixin`
+    function correctly.
+    """
+    # Most entities are commented-out because they do not inherit from
+    # EntityReadMixin, due to issues with data returned from the API.
+    @data(
+        # entities.ActivationKey,
+        # entities.Architecture,
+        # entities.ContentView,
+        # entities.Domain,
+        # entities.GPGKey,
+        # entities.Host,  # Host().create() does not work
+        # entities.LifecycleEnvironment,
+        entities.Model,
+        entities.OperatingSystem,
+        entities.Organization,
+        # entities.Repository,
+        entities.Role,
+        # entities.System,
+        # entities.User,
+    )
+    def test_entity_read(self, entity):
+        """@Test: Create an entity and get it using
+        :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        @Assert: The just-read entity is an instance of the correct class.
+
+        """
+        attrs = entity().create()
+        read_entity = entity(id=attrs['id']).read()
+        self.assertIsInstance(read_entity, entity)
