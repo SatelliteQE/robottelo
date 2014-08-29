@@ -833,7 +833,9 @@ class Media(orm.Entity):
         api_path = 'api/v2/media'
 
 
-class Model(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class Model(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
+        orm.EntityReadMixin):
     """A representation of a Model entity."""
     name = orm.StringField(required=True)
     info = orm.StringField(null=True)
@@ -846,7 +848,8 @@ class Model(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
 
 
 class OperatingSystem(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
+        orm.EntityReadMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
@@ -887,7 +890,8 @@ class OrganizationDefaultInfo(orm.Entity):
 
 
 class Organization(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
+        orm.EntityReadMixin):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1218,7 +1222,9 @@ class RoleLDAPGroups(orm.Entity):
         api_path = 'katello/api/v2/roles/:role_id/ldap_groups'
 
 
-class Role(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class Role(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
+        orm.EntityReadMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(required=True, str_type=('alphanumeric',))
