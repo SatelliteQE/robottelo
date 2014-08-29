@@ -125,7 +125,6 @@ class UITestCase(TestCase):
 
             window_manager_cmd = conf.properties.get(
                 'main.window_manager_command', '')
-            print window_manager_cmd
 
             try:
                 cls.window_manager = EasyProcess(window_manager_cmd)
