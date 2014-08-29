@@ -19,8 +19,8 @@ smoke=0
 # when setting it to 1 then make sure to install required dependencies
 virtual_display=0
 
-# If virtual_display=1 and window_manager_command is not blank, the window
-# manager command will be run before opening any browser window
+# If virtual_display=1 and window_manager_command is set, the window manager
+# command will be run before opening any browser window
 window_manager_command=
 
 [foreman]

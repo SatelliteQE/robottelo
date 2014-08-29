@@ -170,9 +170,12 @@ It is possible to run UI tests on a headless server. To do this:
 * Install the ``PyVirtualDisplay`` Python package. (It is listed in
   ``requirements-optional.txt``.)
 * Set ``virtual_display=1`` in the configuration file ``robottelo.properties``.
-* [Optional] If you want to run a window manager set ``window_manager_command``
-  in the configuration file. The window manager command will be run before
-  opening any browser window to allow it be maximized.
+* Optionally, set the ``window_manager_command`` option in the configuration
+  file. This option should be set to the name of a window manager executable.
+  For example, ``fluxbox`` or ``openbox`` are suitable values if you have
+  Fluxbox or Openbox installed, respectively. Setting this option causes a
+  window manager to be launched before the web browser, thus allowing the web
+  browser to be maximized.
 
 This done, UI tests no longer launch a visible web browser. Instead, UI tests
 launch a web browser within a virtual display.
