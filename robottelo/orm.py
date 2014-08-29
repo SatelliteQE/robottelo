@@ -414,7 +414,7 @@ class EntityDeleteMixin(object):
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If an HTTP 202 response is received and the
-            response JSON could not be decoded.
+            response JSON can not be decoded.
         :raises robottelo.orm.TaskTimeout: If an HTTP 202 response is received,
             ``synchronous is True`` and the task times out.
 
@@ -443,12 +443,39 @@ class EntityReadMixin(object):
     # (too-few-public-methods) pylint:disable=R0903
     # It's OK that this class has only one public method. It's a targeted
     # mixin, not a standalone class.
-    def read(self, auth=None):
-        """Read the current entity.
+    def read_json(self, auth=None):
+        """Get information about the current entity.
 
-        Send an HTTP GET request to ``self.path(which='this')``. Instantiate an
-        object of type ``type(self)`` and initialize that object with the
-        fetched information.
+        Send an HTTP GET request to ``self.path(which='this')``. Return the
+        decoded JSON response.
+
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :return: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON can not be decoded.
+
+        """
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        response = client.get(
+            self.path(which='this'),
+            auth=auth,
+            verify=False,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def read(self, auth=None, attrs=None):
+        """Instantiate and initialize an object of type ``type(self)``.
+
+        Instantiate an object of type ``type(self)``. Populate the object's
+        attributes using either ``attrs`` or
+        :meth:`robottelo.orm.EntityReadMixin.read_json`. The ``attrs`` argument
+        takes precedence.
 
         All of an entity's one-to-one and one-to-many relationships are
         populated with objects of the correct type. For example, if
@@ -458,12 +485,13 @@ class EntityReadMixin(object):
             SomeEntity(id=N).read().other_entity.id
             SomeEntity(id=N).read().other_entity.read().other_attr
 
-        Note that in the example above, ``other_entity`` is **only** populated
-        with an ID by default. Accessing any other attribute returns ``None``.
+        In the example above, ``other_entity.id`` is the **only** attribute
+        with a meaningful value. Calling ``other_entity.read`` populates the
+        remaining entity attributes.
 
-        :param tuple auth: A ``(username, password)`` tuple used when accessing
-            the API. If ``None``, the credentials provided by
-            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :param tuple auth: Same as for
+            :meth:`robottelo.orm.EntityReadMixin.read_json`.
+        :param dict attrs: Data used to populate the new entity's attributes.
         :return: An instance of type ``type(self)``. In other words, an
             instance of ``SomeEntity`` is returned if
             ``SomeEntity(id=N).read()`` is called.
@@ -472,34 +500,28 @@ class EntityReadMixin(object):
             4XX or 5XX status code.
 
         """
-        # Read this entity and check the status code of the response.
-        if auth is None:
-            auth = helpers.get_server_credentials()
-        response = client.get(
-            self.path(which='this'),
-            auth=auth,
-            verify=False,
-        )
-        response.raise_for_status()
-
-        # We must populate `entity`'s attributes from `entity_attrs`.
+        if attrs is None:
+            attrs = self.read_json(auth=auth)
         entity = type(self)()
-        entity_attrs = response.json()
-        # Unfortunately, we cannot populate `entity` by blindly iterating
-        # through `entity_attrs.items()`, as the server often serves up weirdly
-        # structured or incomplete data. (For example, see bugzilla bug
-        # #1122267.) A more reliable approach is to use our own entity
-        # definitions.
+
+        # We must populate `entity`'s attributes from `attrs`.
+        #
+        # * OneToOneField names end with "_id"
+        # * OneToManyField names end with "_ids"
+        # * Other field names do not have any special name suffix.
+        #
+        # Well, that's the ideal. Unfortunately, the server often serves up
+        # weirdly structured or incomplete data. (See BZ #1122267)
         for field_name, field_type in entity.get_fields().items():
             if isinstance(field_type, OneToOneField):
-                entity_id = entity_attrs[field_name + '_id']
+                entity_id = attrs[field_name + '_id']
                 setattr(
                     entity,
                     field_name,
                     field_type.entity(id=entity_id),
                 )
             elif isinstance(field_type, OneToManyField):
-                entity_ids = entity_attrs[field_name + '_ids']
+                entity_ids = attrs[field_name + '_ids']
                 setattr(
                     entity,
                     field_name,
@@ -510,5 +532,5 @@ class EntityReadMixin(object):
                     ]
                 )
             else:
-                setattr(entity, field_name, entity_attrs[field_name])
+                setattr(entity, field_name, attrs[field_name])
         return entity

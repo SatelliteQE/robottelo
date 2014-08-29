@@ -468,7 +468,11 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         self.assertEqual(response, foreman_task_id)
 
     def test_read(self):
-        """Test :meth:`robottelo.orm.EntityReadMixin.read`.
+        """Test :meth:`robottelo.orm.EntityReadMixin.read`  and
+        :meth:`robottelo.orm.EntityReadMixin.read_json`.
+
+        Assert that ``EntityReadMixin.read_json`` returns the server's
+        response, with all JSON decoded.
 
         Assert that ``EntityReadMixin.read`` returns an object with correctly
         populated attributes.
@@ -485,6 +489,12 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
 
         # Make `client.get` return the above object.
         client.get = mock.Mock(return_value=mock_response)
+
+        # See if EntityReadMixin.read_json behaves correctly.
+        self.assertEqual(
+            EntityWithRead(id=self.entity_id).read_json(),
+            mock_response.json.return_value,
+        )
 
         # See if EntityReadMixin.read behaves correctly.
         entity = EntityWithRead(id=self.entity_id).read()
