@@ -469,7 +469,7 @@ class EntityReadMixin(object):
         response.raise_for_status()
         return response.json()
 
-    def read(self, auth=None, attrs=None):
+    def read(self, auth=None, entity=None, attrs=None):
         """Instantiate and initialize an object of type ``type(self)``.
 
         Instantiate an object of type ``type(self)``. Populate the object's
@@ -491,6 +491,8 @@ class EntityReadMixin(object):
 
         :param tuple auth: Same as for
             :meth:`robottelo.orm.EntityReadMixin.read_json`.
+        :param robottelo.orm.Entity entity: The entity to be populated and
+            returned.
         :param dict attrs: Data used to populate the new entity's attributes.
         :return: An instance of type ``type(self)``. In other words, an
             instance of ``SomeEntity`` is returned if
@@ -500,9 +502,10 @@ class EntityReadMixin(object):
             4XX or 5XX status code.
 
         """
+        if entity is None:
+            entity = type(self)()
         if attrs is None:
             attrs = self.read_json(auth=auth)
-        entity = type(self)()
 
         # We must populate `entity`'s attributes from `attrs`.
         #

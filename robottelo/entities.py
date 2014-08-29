@@ -870,6 +870,36 @@ class OperatingSystem(
         api_path = 'api/v2/operatingsystems'
 
 
+class OperatingSystemParameter(
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityReadMixin):
+    """A representation of a parameter for an operating system."""
+    name = orm.StringField(required=True)
+    value = orm.StringField(required=True)
+
+    def __init__(self, os_id, **kwargs):
+        """Record ``os_id`` and set ``self.Meta.api_path``."""
+        self.os_id = os_id
+        self.Meta.api_path = '{0}/parameters'.format(
+            OperatingSystem(id=os_id).path()
+        )
+        super(OperatingSystemParameter, self).__init__(**kwargs)
+
+    def read(self, auth=None, entity=None, attrs=None):
+        """Override the default implementation of
+        `robottelo.orm.EntityReadMixin.read`.
+
+        """
+        # Passing `entity=self` also succeeds. However, the attributes of the
+        # object passed in will be clobbered. Passing in a new object allows
+        # this one to avoid changing state. The default implementation of
+        # `read` follows the same principle.
+        return super(OperatingSystemParameter, self).read(
+            auth=auth,
+            entity=OperatingSystemParameter(self.os_id),
+            attrs=attrs
+        )
+
+
 class OrganizationDefaultInfo(orm.Entity):
     """A representation of a Organization Default Info entity."""
     # name of the resource
@@ -1058,29 +1088,6 @@ class OverrideValue(orm.Entity):
             '/api/v2/smart_class_parameters/:smart_class_parameter_id/'
             'override_values',
         )
-
-
-class Parameter(orm.Entity):
-    """A representation of a Parameter entity."""
-    host = orm.OneToOneField('Host')
-    hostgroup = orm.OneToOneField('HostGroup')
-    domain = orm.OneToOneField('Domain')
-    operatingsystem = orm.OneToOneField('OperatingSystem')
-    location = orm.OneToOneField('Location')
-    organization = orm.OneToOneField('Organization')
-    name = orm.StringField(required=True)
-    value = orm.StringField(required=True)
-
-    class Meta(object):
-        """Non-field information about this entity."""
-        api_path = 'api/v2/hosts/:host_id/parameters'
-        # Alternative paths.
-        #
-        # '/api/v2/hostgroups/:hostgroup_id/parameters'
-        # '/api/v2/domains/:domain_id/parameters'
-        # '/api/v2/operatingsystems/:operatingsystem_id/parameters'
-        # '/api/v2/locations/:location_id/parameters'
-        # '/api/v2/organizations/:organization_id/parameters'
 
 
 class Permission(orm.Entity, factory.EntityFactoryMixin):
