@@ -25,7 +25,7 @@ class HostTestCase(CLITestCase):
         puppet_proxy = result.stdout[0]
 
         host_name = orm.StringField(
-            str_type=('alpha',), max_len=10).get_value()
+            str_type=('alpha',), len=(1, 10)).get_value()
 
         try:
             # Creating dependent objects

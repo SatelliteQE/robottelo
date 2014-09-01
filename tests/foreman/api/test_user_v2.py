@@ -19,10 +19,10 @@ import httplib
 class UsersTestCase(TestCase):
     """Tests for the ``users`` path."""
     @data(
-        StringField(max_len=60, str_type=('alpha',)).get_value(),
-        StringField(max_len=60, str_type=('alphanumeric',)).get_value(),
-        StringField(max_len=60, str_type=('cjk',)).get_value(),
-        StringField(max_len=60, str_type=('latin1',)).get_value(),
+        StringField(len=(1, 60), str_type=('alpha',)).get_value(),
+        StringField(len=(1, 60), str_type=('alphanumeric',)).get_value(),
+        StringField(len=(1, 60), str_type=('cjk',)).get_value(),
+        StringField(len=(1, 60), str_type=('latin1',)).get_value(),
     )
     def test_positive_create_1(self, login):
         """
