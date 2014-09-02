@@ -452,6 +452,7 @@ class EntityReadTestCase(TestCase):
         # entities.LifecycleEnvironment,
         entities.Model,
         entities.OperatingSystem,
+        # entities.OperatingSystemParameter,  # see test_osparameter_read
         entities.Organization,
         # entities.Repository,
         entities.Role,
@@ -468,3 +469,20 @@ class EntityReadTestCase(TestCase):
         attrs = entity().create()
         read_entity = entity(id=attrs['id']).read()
         self.assertIsInstance(read_entity, entity)
+
+    def test_osparameter_read(self):
+        """@Test: Create an OperatingSystemParameter and get it using
+        :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        @Assert: The just-read entity is an instance of the correct class.
+
+        """
+        os_attrs = entities.OperatingSystem().create()
+        osp_attrs = entities.OperatingSystemParameter(os_attrs['id']).create()
+        self.assertIsInstance(
+            entities.OperatingSystemParameter(
+                os_attrs['id'],
+                id=osp_attrs['id'],
+            ).read(),
+            entities.OperatingSystemParameter
+        )
