@@ -49,7 +49,7 @@ class RoleTestCase(TestCase):
         """
         self._test_role_name(name)
 
-    @skip_if_bug_open('bugzilla', 1129785)
+    @skip_if_bug_open('bugzilla', 1112657)
     @ddt.data(
         orm.StringField(str_type=('cjk',)).get_value(),
         orm.StringField(str_type=('latin1',)).get_value(),
