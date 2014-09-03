@@ -45,3 +45,23 @@ class HostCollection(Base):
         """
         cls.command_sub = "remove-content-host"
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def content_hosts(cls, options=None):
+        """
+        List content-hosts added to the host collection
+
+        Usage::
+
+            hammer host-collection content-hosts [OPTIONS]
+
+        Options::
+
+            --id ID                       Id of the host collection
+            --name NAME                   Host collection name to search by
+            --organization ORGANIZATION_NAME Organization name to search by
+            --organization-id ORGANIZATION_ID
+            --organization-label Organization label to search by
+        """
+        cls.command_sub = "content-hosts"
+        return cls.execute(cls._construct_command(options), expect_csv=True)
