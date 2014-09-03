@@ -28,6 +28,7 @@ class EntityTestCase(TestCase):
     @data(
         # entities.ActivationKey,  # need organization_id or environment_id
         entities.Architecture,
+        entities.ComputeProfile,
         # entities.ContentView,  # need organization_id
         entities.Domain,
         entities.Environment,
@@ -65,6 +66,7 @@ class EntityTestCase(TestCase):
     @data(
         # entities.ActivationKey,  # need organization id or environment id
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -97,6 +99,7 @@ class EntityTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -137,6 +140,7 @@ class EntityTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -174,6 +178,7 @@ class EntityIdTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -214,6 +219,7 @@ class EntityIdTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -252,6 +258,7 @@ class EntityIdTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -307,6 +314,7 @@ class DoubleCheckTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -354,6 +362,7 @@ class DoubleCheckTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -404,6 +413,7 @@ class DoubleCheckTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.ComputeProfile,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -456,6 +466,7 @@ class EntityReadTestCase(TestCase):
     @data(
         # entities.ActivationKey,
         # entities.Architecture,
+        entities.ComputeProfile,
         # entities.ContentView,
         # entities.Domain,
         entities.Environment,
