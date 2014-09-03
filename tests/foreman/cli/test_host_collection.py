@@ -588,7 +588,7 @@ class TestHostCollection(CLITestCase):
                            no_of_content_host,
                            "There should not be an exception here")
 
-        result = HostCollection.content_host({
+        result = HostCollection.content_hosts({
             u'name': host_col_name,
             u'organization-id': self.org['id']
         })
