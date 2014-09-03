@@ -477,7 +477,7 @@ class EntityReadTestCase(TestCase):
         entities.OperatingSystem,
         # entities.OperatingSystemParameter,  # see test_osparameter_read
         entities.Organization,
-        # entities.Repository,
+        entities.Repository,
         entities.Role,
         # entities.System,
         # entities.User,
