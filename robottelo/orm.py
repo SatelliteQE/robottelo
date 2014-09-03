@@ -520,22 +520,19 @@ class EntityReadMixin(object):
         # weirdly structured or incomplete data. (See BZ #1122267)
         for field_name, field_type in entity.get_fields().items():
             if isinstance(field_type, OneToOneField):
+                # `OneToOneField.entity` may be either a class or a string. For
+                # examples of this, look at a couple class definitions in
+                # module `robottelo.entities`. `_get_class` returns a class.
+                other_cls = _get_class(field_type.entity)
                 entity_id = attrs[field_name + '_id']
-                setattr(
-                    entity,
-                    field_name,
-                    field_type.entity(id=entity_id),
-                )
+                setattr(entity, field_name, other_cls(id=entity_id))
             elif isinstance(field_type, OneToManyField):
+                other_cls = _get_class(field_type.entity)  # see above
                 entity_ids = attrs[field_name + '_ids']
                 setattr(
                     entity,
                     field_name,
-                    [
-                        field_type.entity(id=entity_id)
-                        for entity_id
-                        in entity_ids
-                    ]
+                    [other_cls(id=entity_id) for entity_id in entity_ids]
                 )
             else:
                 setattr(entity, field_name, attrs[field_name])

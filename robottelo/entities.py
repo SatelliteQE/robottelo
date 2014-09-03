@@ -1191,7 +1191,8 @@ class Report(orm.Entity):
 
 
 class Repository(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
+        orm.EntityReadMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1221,6 +1222,16 @@ class Repository(
         if which == 'sync':
             return super(Repository, self).path(which='this') + '/sync'
         return super(Repository, self).path()
+
+    def read(self, auth=None, entity=None, attrs=None):
+        """Override the default implementation of
+        `robottelo.orm.EntityReadMixin.read`.
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth)
+        attrs['product_id'] = attrs.pop('product')['id']
+        return super(Repository, self).read(auth, entity, attrs)
 
     class Meta(object):
         """Non-field information about this entity."""
