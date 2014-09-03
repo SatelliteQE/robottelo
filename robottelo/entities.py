@@ -66,8 +66,8 @@ class Architecture(
 
 class AuthSourceLDAP(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a AuthSourceLDAP entity."""
-    name = orm.StringField(required=True, max_len=60)
-    host = orm.StringField(required=True, max_len=60)
+    name = orm.StringField(required=True, len=(1, 60))
+    host = orm.StringField(required=True, len=(1, 60))
     # defaults to 389
     port = orm.IntegerField(null=True)
     account = orm.StringField(null=True)
@@ -864,7 +864,7 @@ class OperatingSystem(
     """
     # validator: Must match regular expression /\A(\S+)\Z/.
     name = orm.StringField(required=True)
-    major = orm.StringField(required=True, str_type=('numeric',), max_len=5)
+    major = orm.StringField(required=True, str_type=('numeric',), len=(1, 5))
     minor = orm.StringField(null=True)
     description = orm.StringField(null=True)
     family = orm.StringField(null=True)
@@ -1458,8 +1458,8 @@ class User(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
         required=True,
         # Passing UTF8 characters to ``login`` yields 500s.
         str_type=('alpha', 'alphanumeric', 'cjk', 'latin1'))
-    firstname = orm.StringField(null=True, max_len=60)
-    lastname = orm.StringField(null=True, max_len=60)
+    firstname = orm.StringField(null=True, len=(1, 60))
+    lastname = orm.StringField(null=True, len=(1, 60))
     mail = orm.EmailField(required=True)
     # Is an admin account?
     admin = orm.BooleanField(null=True)

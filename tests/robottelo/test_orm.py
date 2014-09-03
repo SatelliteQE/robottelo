@@ -286,16 +286,18 @@ class StringFieldTestCase(unittest.TestCase):
             self.assertIsInstance(string, str)
         self.assertGreater(len(string), 0)
 
-    def test_max_len(self):
-        """Set a ``max_len`` and call ``get_value``.
+    def test_len(self):
+        """Set a ``len`` and call ``get_value``.
 
-        Assert the string generated is between 1 and ``max_len`` chars long,
-        inclusive.
+        Assert the length of generated string specified by ``len``.
 
         """
-        string = orm.StringField(max_len=20).get_value()
+        string = orm.StringField(len=(1,20)).get_value()
         self.assertGreater(len(string), 0)
         self.assertLessEqual(len(string), 20)
+
+        string = orm.StringField(len=5).get_value()
+        self.assertEqual(len(string), 5)
 
     def test_str_type(self):
         """Set a ``str_type`` can call ``get_value``.

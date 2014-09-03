@@ -235,7 +235,7 @@ class ActivationKeysTestCase(TestCase):
         )
 
     @data(
-        StringField(max_len=30, str_type=('alpha',)).get_value(),
+        StringField(len=(1, 30), str_type=('alpha',)).get_value(),
         IntegerField(min_val=-200, max_val=-1).get_value(),
         -1,
         0

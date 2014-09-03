@@ -131,28 +131,31 @@ class IntegerField(booby.fields.Integer):
 
 class StringField(booby.fields.String):
     """Field that represents a string."""
-    def __init__(self, max_len=30, str_type=('utf8',), *args, **kwargs):
+    def __init__(self, len=(1, 30), str_type=('utf8',), *args, **kwargs):
         """Constructor for a ``StringField``.
 
-        The default ``max_len`` of string fields is short for two reasons:
+        The default ``len`` of string fields is short for two reasons:
 
         1. Foreman's database backend limits many fields to 255 bytes in
-           length. As a result, ``max_len`` should be no longer than 85
+           length. As a result, ``len`` should be no longer than 85
            characters long, as 85 unicode characters may be up to 255 bytes
            long.
         2. Humans have to read through the error messages produced by
            Robottelo. Long error messages are hard to read through, and that
-           hurts productivity. Thus, a ``max_len`` even shorter than 85 chars
+           hurts productivity. Thus, a ``len`` even shorter than 85 chars
            is desirable.
 
-        :param int max_len: The maximum length of the string generated when
-            :meth:`get_value` is called.
+        :param len: Either a ``(min_len, max_len)`` tuple or an ``exact_len``
+            integer.
         :param sequence str_type: The types of characters to generate when
             :meth:`get-value` is called. Any argument which can be passed to
             ``FauxFactory.generate_string`` can be provided in the sequence.
 
         """
-        self.max_len = max_len
+        if isinstance(len, tuple):
+            self.min_len, self.max_len = len
+        else:
+            self.min_len = self.max_len = len
         self.str_type = str_type
         super(StringField, self).__init__(*args, **kwargs)
 
@@ -162,7 +165,7 @@ class StringField(booby.fields.String):
             self,
             lambda: FauxFactory.generate_string(
                 FauxFactory.generate_choice(self.str_type),
-                FauxFactory.generate_integer(1, self.max_len)
+                FauxFactory.generate_integer(self.min_len, self.max_len)
             )
         )
 
