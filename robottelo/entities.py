@@ -135,7 +135,9 @@ class ComputeAttribute(orm.Entity):
         # '/api/v2/compute_profiles/:compute_profile_id/compute_attributes',
 
 
-class ComputeProfile(orm.Entity):
+class ComputeProfile(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Compute Profile entity."""
     name = orm.StringField(required=True)
 
