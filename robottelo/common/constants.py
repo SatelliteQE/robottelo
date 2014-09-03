@@ -147,3 +147,5 @@ FILTER_TYPE = {'include': "Include",
 
 GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
 FAKE_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
+FAKE_1_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
+FAKE_2_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
