@@ -12,8 +12,9 @@ import httplib
 
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ContentView,
-    entities.GPGKey, entities.LifecycleEnvironment, entities.OperatingSystem,
-    entities.Repository, entities.Role, entities.System, entities.User,
+    entities.Environment, entities.GPGKey, entities.LifecycleEnvironment,
+    entities.OperatingSystem, entities.Repository, entities.Role,
+    entities.System, entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
@@ -29,6 +30,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         # entities.ContentView,  # need organization_id
         entities.Domain,
+        entities.Environment,
         # entities.GPGKey,  # need organization_id
         entities.Host,
         # entities.LifecycleEnvironment,  # need organization_id
@@ -65,6 +67,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         entities.Host,
         entities.LifecycleEnvironment,
@@ -96,6 +99,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -135,6 +139,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         entities.Host,
         entities.LifecycleEnvironment,
@@ -171,6 +176,7 @@ class EntityIdTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -210,6 +216,7 @@ class EntityIdTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -247,6 +254,7 @@ class EntityIdTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -301,6 +309,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -347,6 +356,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -396,6 +406,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Architecture,
         entities.ContentView,
         entities.Domain,
+        entities.Environment,
         entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         entities.LifecycleEnvironment,
@@ -447,6 +458,7 @@ class EntityReadTestCase(TestCase):
         # entities.Architecture,
         # entities.ContentView,
         # entities.Domain,
+        entities.Environment,
         # entities.GPGKey,
         # entities.Host,  # Host().create() does not work
         # entities.LifecycleEnvironment,

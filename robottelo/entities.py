@@ -414,9 +414,14 @@ class Domain(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
         api_path = 'api/v2/domains'
 
 
-class Environment(orm.Entity):
+class Environment(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Environment entity."""
-    name = orm.StringField(required=True)
+    name = orm.StringField(
+        required=True,
+        str_type=('alpha', 'numeric', 'alphanumeric'),
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
