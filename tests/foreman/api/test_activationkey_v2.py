@@ -1,7 +1,7 @@
 """Unit tests for the ``activation_keys`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/activation_keys.html
+A full API reference for activation keys can be found here:
+http://theforeman.org/api/apidoc/v2/activation_keys.html
 
 """
 from ddt import data, ddt
@@ -362,3 +362,73 @@ class ActivationKeysTestCase(TestCase):
         ).json()
         self.assertIn('results', response.keys())
         self.assertEqual(type(response['results']), list)
+
+    def test_set_host_collection(self):
+        """@Test: Associate an activation key with several host collections.
+
+        @Assert:
+        1. By default, an activation key is associated with no host
+           collections.
+        2. After associating an activation key with some set of host
+           collections and reading that activation key, the correct host
+           collections are listed.
+
+        @Feature: ActivationKey
+
+        """
+        # Let's create an organization and re-use it in several places. Doing
+        # so will speed up this test.
+        org = entities.Organization().create()
+
+        # By default, an activation key should have no host collections.
+        act_key = entities.ActivationKey(organization=org['id']).create()
+        self.assertEqual(act_key['host_collections'], [])
+
+        # Associate our activation key with one host collection.
+        host_coll_1 = entities.HostCollection(organization=org['id']).create()
+        client.put(
+            entities.ActivationKey(id=act_key['id']).path(),
+            verify=False,
+            auth=get_server_credentials(),
+            data={u'host_collection_ids': [host_coll_1['id']]},
+        )
+
+        # Verify that the association succeeded.
+        act_key = entities.ActivationKey(id=act_key['id']).read_json()
+        self.assertEqual(len(act_key['host_collections']), 1)
+        self.assertEqual(
+            act_key['host_collections'][0]['id'],
+            host_coll_1['id'],
+        )
+
+        # Associate our activation key with two host collections.
+        host_coll_2 = entities.HostCollection(organization=org['id']).create()
+        client.put(
+            entities.ActivationKey(id=act_key['id']).path(),
+            verify=False,
+            auth=get_server_credentials(),
+            data={
+                u'host_collection_ids': [host_coll_1['id'], host_coll_2['id']]
+            },
+        )
+
+        # Verify that the association succeeded.
+        act_key = entities.ActivationKey(id=act_key['id']).read_json()
+        self.assertEqual(len(act_key['host_collections']), 2)
+        for host_coll in act_key['host_collections']:
+            self.assertIn(
+                host_coll['id'],
+                (host_coll_1['id'], host_coll_2['id'])
+            )
+
+        # Finally, associate our activation key with zero host collections.
+        client.put(
+            entities.ActivationKey(id=act_key['id']).path(),
+            verify=False,
+            auth=get_server_credentials(),
+            data={u'host_collection_ids': []},
+        )
+
+        # Verify that the association succeeded.
+        act_key = entities.ActivationKey(id=act_key['id']).read_json()
+        self.assertEqual(act_key['host_collections'], [])
