@@ -43,7 +43,8 @@ class GPGKey(UITestCase):
 
         # Make sure to use the Class' org_name instance
         if GPGKey.org_name is None:
-            org_name = orm.StringField(str_type=('alphanumeric',)).get_value()
+            org_name = orm.StringField(str_type=('alphanumeric',),
+                                       len=(5, 80)).get_value()
             org_attrs = entities.Organization(name=org_name).create()
             GPGKey.org_name = org_attrs['name']
             GPGKey.org_id = org_attrs['id']
