@@ -26,7 +26,8 @@ class ReadException(Exception):
 
 
 class ActivationKey(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Activtion Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
