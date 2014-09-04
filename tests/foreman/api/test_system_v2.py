@@ -94,7 +94,12 @@ class EntityIdTestCaseClone(TestCase):
             status_code,
             status_code_error(path, status_code, response),
         )
-        self.assertIn('application/json', response.headers['content-type'])
+
+        # According to RFC 2616, HTTP 204 responses "MUST NOT include a
+        # message-body". If a message does not have a body, there is no need to
+        # set the content-type of the message.
+        if status_code is not httplib.NO_CONTENT:
+            self.assertIn('application/json', response.headers['content-type'])
 
 
 class LongMessageTestCaseClone(TestCase):
