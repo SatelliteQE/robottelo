@@ -690,7 +690,7 @@ class TestOrg(CLITestCase):
         """
 
         try:
-            org_result = make_org()
+            org = make_org()
             compute_res = make_compute_resource({
                 'provider': FOREMAN_PROVIDERS['libvirt'],
                 'url': "qemu+tcp://%s:16509/system" %
@@ -698,13 +698,13 @@ class TestOrg(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
         return_value = Org.add_compute_resource({
-            'name': org_result['name'],
+            'name': org['name'],
             'compute-resource': compute_res['name']})
         self.assertEqual(return_value.return_code, 0,
                          "Add ComputeResource - retcode")
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
-        result = Org.info({'name': org_result['name']})
+        result = Org.info({'id': org['id']})
         self.assertEqual(result.stdout['compute-resources'][0],
                          compute_res['name'])
 
