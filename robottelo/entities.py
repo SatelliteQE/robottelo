@@ -36,6 +36,7 @@ class ActivationKey(
     content_view = orm.OneToOneField('ContentView')
     unlimited_content_hosts = orm.BooleanField()
     max_content_hosts = orm.IntegerField()
+    host_collection = orm.OneToManyField('HostCollection')
 
     class Meta(object):
         """Non-field information about this entity."""
