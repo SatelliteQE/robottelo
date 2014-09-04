@@ -359,10 +359,7 @@ class TestSmoke(TestCase):
             u"Publishing {0} failed.".format(content_view['name']))
 
         # step 2.10: Promote content view to both lifecycles
-        content_view = client.get(
-            entities.ContentView(id=content_view['id']).path(),
-            auth=get_server_credentials(),
-            verify=False).json()
+        content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(
             len(content_view['versions']),
             1,
@@ -380,10 +377,7 @@ class TestSmoke(TestCase):
             u"Promoting {0} to {1} failed.".format(
                 content_view['name'], le1['name']))
         # Check that content view exists in 2 lifecycles
-        content_view = client.get(
-            entities.ContentView(id=content_view['id']).path(),
-            auth=get_server_credentials(),
-            verify=False).json()
+        content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(
             len(content_view['versions']),
             1,
@@ -401,10 +395,7 @@ class TestSmoke(TestCase):
             u"Promoting {0} to {1} failed.".format(
                 content_view['name'], le2['name']))
         # Check that content view exists in 2 lifecycles
-        content_view = client.get(
-            entities.ContentView(id=content_view['id']).path(),
-            auth=get_server_credentials(),
-            verify=False).json()
+        content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(
             len(content_view['versions']),
             1,
@@ -460,11 +451,7 @@ class TestSmoke(TestCase):
             data={u'search': query},
             verify=False,
         )
-        self.assertEqual(
-            response.status_code,
-            httplib.OK,
-            status_code_error(path, httplib.OK, response)
-        )
+        response.raise_for_status()
         self.assertEqual(
             response.json()['search'],
             query,

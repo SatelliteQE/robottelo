@@ -312,16 +312,17 @@ class ContentViewPuppetModule(orm.Entity):
 
 
 class ContentView(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
     label = orm.StringField()
     composite = orm.BooleanField()
     description = orm.StringField()
-    repositories = orm.OneToManyField('Repository')
+    repository = orm.OneToManyField('Repository')
     # List of component content view version ids for composite views
-    components = orm.OneToManyField('ContentView')
+    component = orm.OneToManyField('ContentView')
 
     class Meta(object):
         """Non-field information about this entity."""
