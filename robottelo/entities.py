@@ -604,17 +604,15 @@ class HostCollectionPackage(orm.Entity):
                     'host_collections/:host_collection_id/packages')
 
 
-class HostCollection(orm.Entity, factory.EntityFactoryMixin):
+class HostCollection(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Host Collection entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    # List of system uuids to replace the content hosts in host collection
-    system_uuids = orm.ListField()
-    name = orm.StringField(required=True)
-    # List of system uuids to be in the host collection
-    system = orm.OneToManyField('System')
     description = orm.StringField()
-    # Maximum number of content hosts in the host collection
     max_content_hosts = orm.IntegerField()
+    name = orm.StringField(required=True)
+    organization = orm.OneToOneField('Organization', required=True)
+    system = orm.OneToManyField('System')
 
     class Meta(object):
         """Non-field information about this entity."""
