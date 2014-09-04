@@ -15,6 +15,12 @@ locale=en_US
 remote=0
 smoke=0
 
+# For testing with fake manifests, zipfile containing valid manifest is required,
+# as well as key/cert pair. All of these settings are urls.
+manifest.fake_url=http://example.org/valid-redhat-manifest.zip
+manifest.key_url=http://example.org/fake_manifest.key
+manifest.cert_url=http://example.org/fake_manifest.crt
+
 # Virtual display controls if PyVirtualDisplay should be used to run UI tests
 # when setting it to 1 then make sure to install required dependencies
 virtual_display=0
