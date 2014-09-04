@@ -7,10 +7,13 @@
 Test class for Organization CLI
 """
 
+from robottelo.common import conf
 from ddt import ddt
+from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
-    make_medium, make_org, make_proxy, make_subnet, make_template, make_user)
+    make_medium, make_org, make_proxy, make_subnet, make_template, make_user,
+    make_compute_resource, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.common.decorators import data, skip_if_bug_open, stubbed
@@ -678,15 +681,32 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    @stubbed
     def test_add_computeresource(self):
-        """
-        @Test: Check if a Compute Resource can be added to an Org
+        """@Test: Check if a Compute Resource can be added to an Org
+
         @Feature: Org - Compute Resource
+
         @Assert: Compute Resource is added to the org
-        @status: manual
         """
-        pass
+
+        try:
+            org_result = make_org()
+            compute_res = make_compute_resource({
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'url': "qemu+tcp://%s:16509/system" %
+                conf.properties['main.server.hostname']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        return_value = Org.add_compute_resource({
+            'name': org_result['name'],
+            'compute-resource': compute_res['name']})
+        self.assertEqual(return_value.return_code, 0,
+                         "Add ComputeResource - retcode")
+        self.assertEqual(
+            len(return_value.stderr), 0, "There should not be an error here")
+        result = Org.info({'name': org_result['name']})
+        self.assertEqual(result.stdout['compute-resources'][0],
+                         compute_res['name'])
 
     @stubbed
     def test_remove_computeresource(self):
