@@ -6,7 +6,7 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
@@ -512,20 +512,15 @@ class TestContentView(APITestCase):
         @status: Manual
         """
 
-    @skip_if_bug_open('bugzilla', 1094758)
+    @stubbed
     def test_custom_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
         """
-        # s = System()
-        # scd = ApiCrud.record_create_dependencies(s)
-        # task = scd.content_view._meta.api_class.publish(scd.content_view)
-        # task.poll(5, 100)
-        # scc = ApiCrud.record_create(scd)
-        # self.assertIntersects(s, scc)
-        self.fail('System record should be implemented')
+        # This test is implemented in tests/foreman/smoke/test_api_smoke.py.
+        # See the end of method TestSmoke.test_smoke.
 
     @stubbed
     def test_cv_dynflow_restart_promote(self):
