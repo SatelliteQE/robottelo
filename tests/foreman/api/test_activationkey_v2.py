@@ -93,13 +93,8 @@ class ActivationKeysTestCase(TestCase):
         except FactoryError as err:
             self.fail(err)
 
-        # Fetch the activation key
-        real_attrs = client.get(
-            entities.ActivationKey(id=attrs['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        # Assert that initial values match
+        # Fetch the activation key. Assert that initial values match.
+        real_attrs = entities.ActivationKey(id=attrs['id']).read_json()
         self.assertEqual(
             real_attrs['name'],
             name,
@@ -197,13 +192,8 @@ class ActivationKeysTestCase(TestCase):
             status_code_error(path, httplib.OK, response),
         )
 
-        # Fetch the activation key
-        real_attrs = client.get(
-            entities.ActivationKey(id=attrs['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        # Assert that values have changed
+        # Fetch the activation key. Assert that values have changed.
+        real_attrs = entities.ActivationKey(id=attrs['id']).read_json()
         self.assertNotEqual(
             real_attrs['unlimited_content_hosts'],
             attrs['unlimited_content_hosts'],
@@ -257,13 +247,12 @@ class ActivationKeysTestCase(TestCase):
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
 
-        # Make a copy of the activation key...
+        # Make a copy of the activation key and update a few fields.
         ak_copy = attrs.copy()
-        # ...and update a few fields
         ak_copy['unlimited_content_hosts'] = False
         ak_copy['max_content_hosts'] = max_content_hosts
 
-        # Update the activation key
+        # Update the activation key with semantically incorrect values.
         response = client.put(
             path,
             ak_copy,
@@ -276,13 +265,8 @@ class ActivationKeysTestCase(TestCase):
             status_code_error(path, httplib.UNPROCESSABLE_ENTITY, response),
         )
 
-        # Fetch the activation key
-        real_attrs = client.get(
-            entities.ActivationKey(id=attrs['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        # Assert that values have not changed
+        # Fetch the activation key. Assert that values have not changed.
+        real_attrs = entities.ActivationKey(id=attrs['id']).read_json()
         self.assertEqual(
             real_attrs['unlimited_content_hosts'],
             attrs['unlimited_content_hosts'],
@@ -296,7 +280,6 @@ class ActivationKeysTestCase(TestCase):
                 real_attrs['unlimited_content_hosts']
             )
         )
-
         self.assertEqual(
             real_attrs['max_content_hosts'],
             attrs['max_content_hosts'],
@@ -331,11 +314,7 @@ class ActivationKeysTestCase(TestCase):
         )
 
         # Status code is OK. Was `max_content_hosts` changed, or is it still 1?
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
+        response = entities.ActivationKey(id=attrs['id']).read_json()
         self.assertEqual(response['max_content_hosts'], 1)
 
     def test_get_releases_status_code(self):
