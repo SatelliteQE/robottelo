@@ -547,6 +547,12 @@ class Settings(UITestCase):
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
+            # This is to revert the signo_sso to default value 'false'
+            if saved_element == 'true':
+                edit_param(session, tab_locator=tab_locator,
+                           param_name=param_name,
+                           value_type=value_type,
+                           param_value='false')
 
     @data({u'param_value': "http://" + generate_string("alpha", 10) +
            ".dom.com"},
