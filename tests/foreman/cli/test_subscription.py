@@ -4,6 +4,8 @@ Test class for Subscriptions
 
 from ddt import ddt
 from robottelo.cli.subscription import Subscription
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.factory import make_org
 from robottelo.common.manifests import (
     clone, download_signing_key,
@@ -38,10 +40,12 @@ class TestSubscription(CLITestCase):
             TestSubscription.fake_manifest)
 
     def test_manifest_upload(self):
-        """
-        @test: upload manifest (positive)
-        @feature: Subscriptions/Manifest Upload
-        @assert: Manifest are uploaded properly
+        """@Test: upload manifest (positive)
+
+        @Feature: Subscriptions/Manifest Upload
+
+        @Assert: Manifest are uploaded properly
+
         """
 
         upload_file(self.manifest, remote_file=self.manifest)
@@ -65,10 +69,11 @@ class TestSubscription(CLITestCase):
             "There should not be an exception while listing the manifest.")
 
     def test_manifest_delete(self):
-        """
-        @test: Delete uploaded manifest (positive)
-        @feature: Subscriptions/Manifest Delete
-        @assert: Manifest are deleted properly
+        """@Test: Delete uploaded manifest (positive)
+
+        @Feature: Subscriptions/Manifest Delete
+
+        @Assert: Manifest are deleted properly
         """
 
         upload_file(self.manifest, remote_file=self.manifest)
@@ -108,3 +113,56 @@ class TestSubscription(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0,
             "There should not be any subscriptions in this org.")
+
+    def test_enable_manifest_repository_set(self):
+        """@Test: enable repository set (positive)
+
+        @Feature: Subscriptions/Repository Sets
+
+        @Assert: you are able to enable and synchronize
+        repository contained in a manifest
+        """
+
+        upload_file(self.manifest, remote_file=self.manifest)
+        result = Subscription.upload({
+            'file': self.manifest,
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "Failed to upload manifest")
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while uploading manifest.")
+
+        result = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False)
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while listing the manifest.")
+
+        result = RepositorySet.enable({
+            'name': (
+                'Red Hat Enterprise Virtualization Agents '
+                'for RHEL 6 Workstation (RPMs)'
+            ),
+            'organization-id': self.org['id'],
+            'product': 'Red Hat Enterprise Linux Workstation',
+            'releasever': '6Workstation',
+            'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0, "Repo was not enabled")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = Repository.synchronize({
+            'name': (
+                'Red Hat Enterprise Virtualization Agents '
+                'for RHEL 6 Workstation '
+                'RPMs x86_64 6Workstation'
+            ),
+            'organization-id': self.org['id'],
+            'product': 'Red Hat Enterprise Linux Workstation',
+        })
+
+        self.assertEqual(result.return_code, 0, "Repo was not synchronized")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
