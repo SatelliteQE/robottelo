@@ -1218,17 +1218,18 @@ class Repository(
 
         If a user specifies a ``which`` of ``'sync'``, return a path in the
         format ``/repositories/<id>/sync``.
-        
+
         If a user specifies a ``which`` of ``'upload_content'``, return a path
         in the format ``/repositories/<id>/upload_content``.
-        
+
         Otherwise, call ``super``.
 
         """
-        if which == 'sync':
-            return super(Repository, self).path(which='this') + '/sync'
-        if which == 'upload_content':
-            return super(Repository, self).path(which='this') + '/upload_content'
+        if which in ('sync', 'upload_content'):
+            return '{0}/{1}'.format(
+                super(Repository, self).path(which='this'),
+                which
+            )
         return super(Repository, self).path()
 
     def read(self, auth=None, entity=None, attrs=None):
