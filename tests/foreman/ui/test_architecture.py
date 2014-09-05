@@ -158,6 +158,7 @@ class Architecture(UITestCase):
             self.architecture.delete(test_data['name'], True)
             self.assertIsNone(self.architecture.search(test_data['name']))
 
+    @skip_if_bug_open('bugzilla', 1123388)
     @data({u'old_name': generate_string('alpha', 10),
            u'new_name': generate_string('alpha', 10),
            u'os_name': generate_string('alpha', 10),

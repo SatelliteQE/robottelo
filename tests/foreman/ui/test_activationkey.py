@@ -17,7 +17,7 @@ from robottelo import entities, orm
 from robottelo.common.constants import ENVIRONMENT, NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, invalid_names_list,
-                                      valid_names_list)
+                                      valid_data_list)
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.test import UITestCase
@@ -82,7 +82,7 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
         """
         @Feature: Activation key - Positive Create
@@ -102,7 +102,7 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_create_activation_key_2(self, description):
         """
         @Feature: Activation key - Positive Create
@@ -123,7 +123,7 @@ class ActivationKey(UITestCase):
         self.assertIsNotNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_create_activation_key_3(self, env):
         """
         @Feature: Activation key - Positive Create
@@ -152,7 +152,7 @@ class ActivationKey(UITestCase):
         self.assertIsNotNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_create_activation_key_4(self, cv_name):
         """
         @Feature: Activation key - Positive Create
@@ -182,7 +182,7 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_create_activation_key_5(self, hc_name):
         """
         @Test: Create Activation key for all variations of Host Collections
@@ -345,7 +345,7 @@ class ActivationKey(UITestCase):
         self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_delete_activation_key_1(self, name):
         """
         @Feature: Activation key - Positive Delete
@@ -368,7 +368,7 @@ class ActivationKey(UITestCase):
         self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_delete_activation_key_2(self, description):
         """
         @Feature: Activation key - Positive Delete
@@ -392,7 +392,7 @@ class ActivationKey(UITestCase):
         self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_delete_activation_key_3(self, env):
         """
         @Feature: Activation key - Positive Delete
@@ -424,7 +424,7 @@ class ActivationKey(UITestCase):
         self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_delete_activation_key_4(self, cv_name):
         """
         @Feature: Activation key - Positive Delete
@@ -528,7 +528,7 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_update_activation_key_1(self, new_name):
         """
         @Feature: Activation key - Positive Update
@@ -551,7 +551,7 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_update_activation_key_2(self, new_description):
         """
         @Feature: Activation key - Positive Update
@@ -576,7 +576,7 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1089637)
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_update_activation_key_3(self, env_name):
         """
         @Feature: Activation key - Positive Update
@@ -612,7 +612,7 @@ class ActivationKey(UITestCase):
         self.assertEqual(env_name, selected_env)
 
     @attr('ui', 'ak', 'implemented')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_update_activation_key_4(self, cv2_name):
         """
         @Feature: Activation key - Positive Update

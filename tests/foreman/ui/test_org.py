@@ -375,7 +375,7 @@ class Org(UITestCase):
           {'name': generate_string('alphanumeric', 8)},
           {'name': generate_string('utf8', 8)},
           {'name': generate_string('latin1', 8)})
-    def test_remove_user_3(self, testdata):
+    def test_remove_user_1(self, testdata):
         """
         @test: Create admin users then add user and remove it
         by using the organization name.
@@ -390,7 +390,8 @@ class Org(UITestCase):
         email = generate_email_address()
         search_key = "login"
         with Session(self.browser) as session:
-            make_user(session, username=user_name, email=email,
+            make_user(session, username=user_name, first_name=user_name,
+                      last_name=user_name, email=email,
                       password1=password, password2=password)
             self.assertIsNotNone(self.user.search(user_name, search_key))
             make_org(session, org_name=org_name, users=[user_name], edit=True)
@@ -513,19 +514,19 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)},
-          {'name': generate_string('utf8', 8)},
-          {'name': generate_string('latin1', 8)})
-    def test_add_user_2(self, testdata):
+    @data(generate_string('alpha', 8),
+          generate_string('numeric', 8),
+          generate_string('alphanumeric', 8),
+          generate_string('utf8', 8),
+          generate_string('latin1', 8))
+    def test_add_user_2(self, name):
         """
         @test: Create different types of users then add user
         by using the organization name.
         @feature: Organizations associate user.
         @assert: User is added to organization.
         """
-        user = testdata['name']
+
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)
@@ -534,15 +535,17 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
-            make_user(session, username=user, email=email,
+            make_user(session, username=name, first_name=name,
+                      last_name=name, email=email,
                       password1=password, password2=password)
-            self.assertIsNotNone(self.user.search(user, search_key))
-            self.org.update(org_name, new_users=[user])
+            self.assertIsNotNone(self.user.search(name, search_key))
+            self.org.wait_for_ajax()
+            self.org.update(org_name, new_users=[name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_users"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % user))
+                                                      value % name))
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
