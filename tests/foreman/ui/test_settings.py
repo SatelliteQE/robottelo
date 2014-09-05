@@ -154,7 +154,11 @@ class Settings(UITestCase):
                        value_type=value_type, param_value=param_value)
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
-            self.assertEqual(param_value, saved_element)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so stripping leading zeros from variable 'param_value'
+            # for assertion
+            self.assertEqual(param_value.lstrip("0"), saved_element)
 
     @skip_if_bug_open('bugzilla', 1125181)
     @data({u'param_value': generate_string("latin1", 10) +
@@ -279,7 +283,14 @@ class Settings(UITestCase):
                        param_value=test_data['param_value'])
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
-            self.assertEqual(test_data['param_value'], saved_element)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so stripping leading zeros from variable 'param_value'
+            # for assertion
+            self.assertEqual(
+                test_data['param_value'].lstrip("0"),
+                saved_element
+            )
 
     @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
@@ -329,7 +340,14 @@ class Settings(UITestCase):
                        param_value=test_data['param_value'])
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
-            self.assertEqual(test_data['param_value'], saved_element)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so stripping leading zeros from variable 'param_value'
+            # for assertion
+            self.assertEqual(
+                test_data['param_value'].lstrip("0"),
+                saved_element
+            )
 
     @data({u'param_value': "http://" + generate_string("alpha", 10) +
            ".dom.com"},
@@ -818,4 +836,11 @@ class Settings(UITestCase):
                        param_value=test_data['param_value'])
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
-            self.assertEqual(test_data['param_value'], saved_element)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so stripping leading zeros from variable 'param_value'
+            # for assertion
+            self.assertEqual(
+                test_data['param_value'].lstrip("0"),
+                saved_element
+            )
