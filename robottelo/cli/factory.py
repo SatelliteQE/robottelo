@@ -30,6 +30,7 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
 from robottelo.cli.repository import Repository
+from robottelo.cli.role import Role
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
@@ -456,6 +457,24 @@ def make_repository(options=None):
 
     args = update_dictionary(args, options)
     args.update(create_object(Repository, args))
+
+    return args
+
+
+def make_role(options=None):
+    """Usage::
+
+        hammer role create [OPTIONS]
+
+    Options::
+
+        --name NAME
+    """
+
+    # Assigning default values for attributes
+    args = {u'name': generate_name(6)}
+    args = update_dictionary(args, options)
+    args.update(create_object(Role, args))
 
     return args
 
