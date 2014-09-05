@@ -27,10 +27,20 @@ import contextlib
 import logging
 
 
+def SSHTunnelError(Exception):
+    """Raised when ssh tunnel creation fails."""
+
+
 @contextlib.contextmanager
 def default_url_on_new_port(oldport, newport):
-    """
-    Creates context where the default smart-proxy is forwarded on a new port
+    """Creates context where the default smart-proxy is forwarded on a new port.
+
+    :param int oldport: Port to be forwarded.
+    :param int newport: New port to be used to forward `oldport`.
+
+    :return: A string containing the new capsule URL with port.
+    :rtype: str
+
     """
     logger = logging.getLogger("robottelo")
     domain = conf.properties['main.server.hostname']
@@ -38,15 +48,21 @@ def default_url_on_new_port(oldport, newport):
     key = conf.properties['main.server.ssh.key_private']
     ssh.upload_file(key, "/tmp/dsa_%s" % newport)
     ssh.command("chmod 700 /tmp/dsa_%s" % newport)
+
     with ssh._get_connection() as connection:
-        command = "ssh -i %s -L %s:%s:%s %s@%s" % (
-            "/tmp/dsa_%s" % newport, newport, domain, oldport, user, domain
-        )
+        command = u"ssh -i {0} -L {1}:{2}:{3} {4}@{5}".format(
+            "/tmp/dsa_{0}".format(newport),
+            newport, domain, oldport, user, domain)
         logger.debug("Creating tunell %s", command)
-        _, _, stderr = connection.exec_command(command, 1000)
+        # Run command and timeout in 30 seconds.
+        _, _, stderr = connection.exec_command(command, 30)
+
+        stderr = stderr.read()
         if len(stderr) > 0:
-            logger.debug("Tunell failed %s", stderr)
-        yield "https://%s:%s" % (domain, newport)
+            logger.debug("Tunell failed: %s", stderr)
+            # Something failed, so raise an exception.
+            raise SSHTunnelError(stderr)
+        yield "https://{0}:{1}".format(domain, newport)
 
 
 class Proxy(Base):
