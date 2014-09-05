@@ -45,6 +45,7 @@ class EntityTestCase(TestCase):
         # entities.Repository,  # need organization_id
         entities.Role,
         # entities.System,  # need organization_id
+        entities.TemplateKind,
         entities.User,
     )
     def test_get_status_code(self, entity):
@@ -86,6 +87,7 @@ class EntityTestCase(TestCase):
         entities.Repository,
         entities.Role,
         entities.System,
+        entities.TemplateKind,
         entities.User,
     )
     def test_get_unauthorized(self, entity):
@@ -122,6 +124,7 @@ class EntityTestCase(TestCase):
         entities.Repository,
         entities.Role,
         entities.System,
+        # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
     def test_post_status_code(self, entity):
@@ -166,6 +169,7 @@ class EntityTestCase(TestCase):
         entities.Repository,
         entities.Role,
         entities.System,
+        entities.TemplateKind,
         entities.User,
     )
     @skip_if_bug_open('bugzilla', 1122257)
@@ -207,6 +211,7 @@ class EntityIdTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
+        # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
     def test_get_status_code(self, entity):
@@ -251,6 +256,7 @@ class EntityIdTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
+        # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
     def test_put_status_code(self, entity):
@@ -293,6 +299,7 @@ class EntityIdTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
+        # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
     def test_delete_status_code(self, entity):
@@ -359,6 +366,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
+        # entities.TemplateKind,  # see comments in class definition
         # entities.User,  # password not in returned attrs
     )
     def test_put_and_get(self, entity):
@@ -410,6 +418,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
+        # entities.TemplateKind,  # see comments in class definition
         # entities.User,  # password not in returned attrs
     )
     def test_post_and_get(self, entity):
@@ -464,6 +473,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
+        # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
     def test_delete_and_get(self, entity):
@@ -523,6 +533,7 @@ class EntityReadTestCase(TestCase):
         entities.Repository,
         entities.Role,
         # entities.System,
+        # entities.TemplateKind,  # see comments in class definition
         # entities.User,
     )
     def test_entity_read(self, entity):
