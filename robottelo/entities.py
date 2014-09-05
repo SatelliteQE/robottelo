@@ -12,12 +12,12 @@ inner class contains non-field information. This information is especially
 useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
-import httplib
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.helpers import get_data_file
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo import factory, orm
+import httplib
+import random
 # (too-few-public-methods) pylint:disable=R0903
 
 
@@ -183,22 +183,45 @@ class ConfigGroup(orm.Entity):
         api_path = 'api/v2/config_groups'
 
 
-class ConfigTemplate(orm.Entity):
+class ConfigTemplate(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Config Template entity."""
-    name = orm.StringField(required=True)
-    template = orm.StringField(required=True)
-    snippet = orm.BooleanField(null=True)
     audit_comment = orm.StringField(null=True)
-    # not relevant for snippet
+    locked = orm.BooleanField(null=True)
+    name = orm.StringField(required=True)
+    operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
+    snippet = orm.BooleanField(null=True, required=True)
+    # "Array of template combinations (hostgroup_id, environment_id)"
+    template_combinations = orm.ListField(null=True)  # flake8:noqa pylint:disable=C0103
     template_kind = orm.OneToOneField('TemplateKind', null=True)
-    # Array of template combinations (hostgroup_id, environment_id)
-    template_combinations_attributes = orm.ListField(null=True)  # flake8:noqa pylint:disable=C0103
-    # Array of operating systems ID to associate the template with
-    operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
+    template = orm.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/config_templates'
+
+    def _factory_data(self):
+        """Customize the data provided to :class:`robottelo.factory.Factory`.
+
+        Populate ``template_kind`` if:
+
+        * this template is not a snippet, and
+        * ``template_kind`` has no value.
+
+        """
+        values = super(ConfigTemplate, self)._factory_data()
+        if 'snippet' in values.keys() and values['snippet'] is False:
+            # A server is pre-populated with exactly eight template kinds. We
+            # cannot just create a new template kind on the fly, which would be
+            # preferred.
+            values.setdefault(
+                'template_kind_id',
+                random.choice(
+                    range(1, TemplateKind.Meta.NUM_CREATED_BY_DEFAULT + 1)
+                )
+            )
+        return values
 
 
 class ContentUpload(orm.Entity):
@@ -1456,8 +1479,12 @@ class TemplateCombination(orm.Entity):
 
 
 class TemplateKind(orm.Entity):
-    """A representatio of a Template Kind entity."""
+    """A representation of a Template Kind entity."""
     # FIXME figure out fields
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        NUM_CREATED_BY_DEFAULT = 8
 
 
 class UserGroup(orm.Entity):
