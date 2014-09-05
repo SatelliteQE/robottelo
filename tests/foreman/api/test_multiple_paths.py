@@ -13,12 +13,12 @@ import httplib
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ContentView,
     entities.Environment, entities.GPGKey, entities.HostCollection,
-    entities.LifecycleEnvironment, entities.OperatingSystem,
+    entities.LifecycleEnvironment, entities.OperatingSystem, entities.Product,
     entities.Repository, entities.Role, entities.System, entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
-    entities.LifecycleEnvironment, entities.Repository
+    entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
 
 
@@ -39,6 +39,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        # entities.Product,  # need organization_id
         # entities.Repository,  # need organization_id
         entities.Role,
         # entities.System,  # need organization_id
@@ -78,6 +79,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         entities.System,
@@ -112,6 +114,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         entities.System,
@@ -154,6 +157,7 @@ class EntityTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         entities.System,
@@ -193,6 +197,7 @@ class EntityIdTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
@@ -235,6 +240,7 @@ class EntityIdTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
@@ -275,6 +281,7 @@ class EntityIdTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
@@ -337,6 +344,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
@@ -386,6 +394,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
@@ -438,6 +447,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
+        entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,  # See test_activationkey_v2.py
@@ -493,6 +503,7 @@ class EntityReadTestCase(TestCase):
         entities.OperatingSystem,
         # entities.OperatingSystemParameter,  # see test_osparameter_read
         entities.Organization,
+        # entities.Product,
         entities.Repository,
         entities.Role,
         # entities.System,
