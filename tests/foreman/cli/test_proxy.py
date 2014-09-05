@@ -17,6 +17,10 @@ import random
 @ddt
 class TestProxy(CLITestCase):
 
+    def setUp(self):
+        """Skipping tests until we can create ssh tunnels"""
+        self.skipTest('Skipping tests until we can create ssh tunnels')
+
     @skip_if_bug_open('redmine', 3875)
     def test_redmine_3875(self):
         """
@@ -28,8 +32,8 @@ class TestProxy(CLITestCase):
         # Create a random proxy
         with self.assertRaises(Exception):
             make_proxy(
-                {'url': 'http://%s:%s' % (generate_string('alpha', 6),
-                                          generate_string('numeric', 4))})
+                {u'url': u'http://%s:%s' % (generate_string('alpha', 6),
+                                            generate_string('numeric', 4))})
 
     @data(
         {u'name': generate_string('alpha', 15)},
@@ -45,7 +49,7 @@ class TestProxy(CLITestCase):
         @Assert: Proxy is created
         """
         try:
-            proxy = make_proxy({'name': data['name']})
+            proxy = make_proxy({u'name': data['name']})
         except CLIFactoryError as err:
             self.fail(err)
 
@@ -67,7 +71,7 @@ class TestProxy(CLITestCase):
         @Assert: Proxy is deleted
         """
         try:
-            proxy = make_proxy({'name': data['name']})
+            proxy = make_proxy({u'name': data['name']})
         except CLIFactoryError as err:
             self.fail(err)
 
@@ -75,7 +79,7 @@ class TestProxy(CLITestCase):
             proxy['name'],
             data['name'], "Input and output name should be consistent")
 
-        result = Proxy.info({'id': proxy['id']})
+        result = Proxy.info({u'id': proxy['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -86,7 +90,7 @@ class TestProxy(CLITestCase):
             0,
             "No error excepted"
         )
-        result = Proxy.delete({'id': proxy['id']})
+        result = Proxy.delete({u'id': proxy['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -98,7 +102,7 @@ class TestProxy(CLITestCase):
             "No error excepted"
         )
 
-        result = Proxy.info({'id': proxy['id']})
+        result = Proxy.info({u'id': proxy['id']})
         self.assertNotEqual(
             result.return_code,
             0,
@@ -129,7 +133,7 @@ class TestProxy(CLITestCase):
         @Assert: Proxy has the name updated
         """
         try:
-            proxy = make_proxy({'name': data['name']})
+            proxy = make_proxy({u'name': data['name']})
         except CLIFactoryError as err:
             self.fail(err)
 
@@ -139,15 +143,15 @@ class TestProxy(CLITestCase):
 
         with default_url_on_new_port(9090, random.randint(9091, 49090)) as url:
             result = Proxy.update({
-                'id': proxy['id'],
-                'name': data['update'],
-                'url': url})
+                u'id': proxy['id'],
+                u'name': data['update'],
+                u'url': url})
         self.assertEqual(
             result.return_code,
             0,
             "Proxy should be updated"
         )
-        result = Proxy.info({'id': proxy['id']})
+        result = Proxy.info({u'id': proxy['id']})
         self.assertEqual(
             result.return_code,
             0,

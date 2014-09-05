@@ -28,7 +28,7 @@ from robottelo.cli.model import Model
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import Proxy, default_url_on_new_port
+from robottelo.cli.proxy import Proxy, SSHTunnelError, default_url_on_new_port
 from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.subnet import Subnet
@@ -404,9 +404,13 @@ def make_proxy(options=None):
         args.update(create_object(Proxy, args))
     else:
         newport = random.randint(9191, 49090)
-        with default_url_on_new_port(9090, newport) as url:
-            args['url'] = url
-            args.update(create_object(Proxy, args))
+        try:
+            with default_url_on_new_port(9090, newport) as url:
+                args['url'] = url
+                args.update(create_object(Proxy, args))
+        except SSHTunnelError as err:
+            raise CLIFactoryError(
+                "Failed to create ssh tunnel: {0}".format(err))
 
     return args
 
