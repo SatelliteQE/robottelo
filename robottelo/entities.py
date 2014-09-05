@@ -1217,11 +1217,18 @@ class Repository(
         :meth:`robottelo.orm.Entity.path`.
 
         If a user specifies a ``which`` of ``'sync'``, return a path in the
-        format ``/repositories/<id>/sync``. Otherwise, call ``super``.
+        format ``/repositories/<id>/sync``.
+        
+        If a user specifies a ``which`` of ``'upload_content'``, return a path
+        in the format ``/repositories/<id>/upload_content``.
+        
+        Otherwise, call ``super``.
 
         """
         if which == 'sync':
             return super(Repository, self).path(which='this') + '/sync'
+        if which == 'upload_content':
+            return super(Repository, self).path(which='this') + '/upload_content'
         return super(Repository, self).path()
 
     def read(self, auth=None, entity=None, attrs=None):
