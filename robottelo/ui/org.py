@@ -140,6 +140,7 @@ class Org(Base):
         self.wait_for_ajax()
         if org_object:
             org_object.click()
+            self.wait_for_ajax()
             if new_name:
                 if self.wait_until_element(locators["org.name"]):
                     self.field_update("org.name", new_name)

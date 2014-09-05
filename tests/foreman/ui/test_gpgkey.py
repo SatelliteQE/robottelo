@@ -162,8 +162,26 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.search(name))
 
     @attr('ui', 'gpgkey', 'implemented')
+    def test_negative_create_5(self):
+        """
+        @feature: GPG Keys
+        @test: Create gpg key with blank name and valid gpg key via
+        file import
+        @assert: gpg key is not created
+        """
+        name = " "
+        key_path = get_data_file(VALID_GPG_KEY_FILE)
+        with Session(self.browser) as session:
+            make_gpgkey(session, org=GPGKey.org_name,
+                        name=name, upload_key=True,
+                        key_path=key_path)
+            self.assertTrue(self.gpgkey.wait_until_element
+                            (common_locators["haserror"]))
+            self.assertIsNone(self.gpgkey.search(name))
+
+    @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
-    def test_negative_create_5(self, name):
+    def test_negative_create_6(self, name):
         """
         @feature: GPG Keys
         @test: Create gpg key with invalid name and valid gpg key text via

@@ -253,7 +253,8 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_user(session, username=user, email=email,
+            make_user(session, username=user, first_name=user,
+                      last_name=user, email=email,
                       password1=password, password2=password)
             self.assertIsNotNone(self.user.search(user, search_key))
             self.location.update(loc_name, new_users=[user])
@@ -569,7 +570,8 @@ class Location(UITestCase):
         email = generate_email_address()
         search_key = "login"
         with Session(self.browser) as session:
-            make_user(session, username=user_name, email=email,
+            make_user(session, username=user_name, first_name=user_name,
+                      last_name=user_name, email=email,
                       password1=password, password2=password)
             self.assertIsNotNone(self.user.search(user_name, search_key))
             make_loc(session, name=loc_name, users=[user_name], edit=True)

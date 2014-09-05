@@ -2,7 +2,7 @@
 Implements Config Groups UI
 """
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 
@@ -19,8 +19,13 @@ class ConfigGroups(Base):
         self.wait_until_element(locators["config_groups.new"]).click()
         if self.wait_until_element(locators["config_groups.name"]):
             self.find_element(locators["config_groups.name"]).send_keys(name)
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+            timeout = 60 if len(name) > 50 else 30
+            self.wait_for_ajax(timeout)
+            self.find_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
+        else:
+            raise UINoSuchElementError(
+                "Could not text box to add config_group name")
 
     def update(self, old_name, new_name=None):
         """

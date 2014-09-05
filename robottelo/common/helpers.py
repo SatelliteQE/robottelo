@@ -128,7 +128,7 @@ def valid_data_list():
     return [
         generate_string("alpha", 8),
         generate_string("numeric", 8),
-        generate_string("alphanumeric", 300),
+        generate_string("alphanumeric", 8),
         generate_string("utf8", 8),
         generate_string("latin1", 8),
         generate_string("html", 8)
@@ -140,7 +140,6 @@ def invalid_names_list():
     List of invalid names for input testing.
     """
     return [
-        u" ",
         generate_string("alpha", 300),
         generate_string("numeric", 300),
         generate_string("alphanumeric", 300),
