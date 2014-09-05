@@ -9,8 +9,10 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.constants import (VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE,
                                         FAKE_PUPPET_REPO, FAKE_1_YUM_REPO,
-                                        FAKE_2_YUM_REPO)
-from robottelo.common.helpers import get_server_credentials, read_data_file
+                                        FAKE_2_YUM_REPO, RPM_TO_UPLOAD)
+from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.helpers import (get_server_credentials, read_data_file,
+                                      get_data_file)
 from robottelo import entities, orm
 from unittest import TestCase
 import copy
@@ -333,4 +335,46 @@ class RepositoriesTestCase(TestCase):
         self.assertEqual(
             updated_attrs['unprotected'],
             True,
+        )
+
+    @skip_if_bug_open('bugzilla', 1138826)
+    def test_positive_update_5(self):
+        """@Test: Create a repository and upload rpm contents
+
+        @Feature: Repositories
+
+        @Assert: Repository is updated with contents
+
+        """
+
+        repository_attrs = entities.Repository(
+            url=FAKE_1_YUM_REPO,
+        ).create()
+
+        # Upload an RPM file
+        path = entities.Repository(
+            id=repository_attrs['id']).path(which='upload_content')
+        response = client.post(
+            path,
+            data={u'id': repository_attrs['id'],
+                  u'content': get_data_file(RPM_TO_UPLOAD)},
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        status_code = httplib.OK
+        self.assertEqual(
+            response.status_code,
+            status_code,
+            status_code_error(path, status_code, response),
+        )
+
+        # Fetch the updated repository
+        updated_attrs = entities.Repository(
+            id=repository_attrs['id']
+        ).read_json()
+
+        # Assert that content count is updated
+        self.assertEqual(
+            updated_attrs['content_counts'],
+            "1",
         )
