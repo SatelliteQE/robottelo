@@ -61,6 +61,7 @@ class PathTestCase(TestCase):
         (entities.Organization, '/organizations',
          'subscriptions/refresh_manifest'),
         (entities.Repository, '/repositories', 'sync'),
+        (entities.Repository, '/repositories', 'upload_content'),
     )
     @unpack
     def test_path_with_which(self, entity, path, which):
@@ -96,6 +97,7 @@ class PathTestCase(TestCase):
         (entities.Organization, 'subscriptions/delete_manifest'),
         (entities.Organization, 'subscriptions/refresh_manifest'),
         (entities.Repository, 'sync'),
+        (entities.Repository, 'upload_content'),
         (entities.ForemanTask, 'this'),
         (entities.System, 'this'),
     )
