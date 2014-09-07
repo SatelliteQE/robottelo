@@ -1481,9 +1481,11 @@ class TemplateCombination(orm.Entity):
 class TemplateKind(orm.Entity):
     """A representation of a Template Kind entity."""
     # FIXME figure out fields
+    # The API does not support the "api/v2/template_kinds/:id" path at all.
 
     class Meta(object):
         """Non-field information about this entity."""
+        api_path = 'api/v2/template_kinds'
         NUM_CREATED_BY_DEFAULT = 8
 
 
