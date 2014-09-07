@@ -11,10 +11,11 @@ import httplib
 
 
 BZ_1118015_ENTITIES = (
-    entities.ActivationKey, entities.Architecture, entities.ContentView,
-    entities.Environment, entities.GPGKey, entities.HostCollection,
-    entities.LifecycleEnvironment, entities.OperatingSystem, entities.Product,
-    entities.Repository, entities.Role, entities.System, entities.User,
+    entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,
+    entities.ContentView, entities.Environment, entities.GPGKey,
+    entities.HostCollection, entities.LifecycleEnvironment,
+    entities.OperatingSystem, entities.Repository, entities.Role,
+    entities.System, entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
@@ -29,6 +30,7 @@ class EntityTestCase(TestCase):
         # entities.ActivationKey,  # need organization_id or environment_id
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         # entities.ContentView,  # need organization_id
         entities.Domain,
         entities.Environment,
@@ -69,6 +71,7 @@ class EntityTestCase(TestCase):
         # entities.ActivationKey,  # need organization id or environment id
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -104,6 +107,7 @@ class EntityTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -127,7 +131,7 @@ class EntityTestCase(TestCase):
 
         """
         if entity in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
-            self.skipTest("Bugzilla bug 1118015 is open.""")
+            self.skipTest('Bugzilla bug 1118015 is open.')
         path = entity().path()
         response = client.post(
             path,
@@ -147,6 +151,7 @@ class EntityTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -187,6 +192,7 @@ class EntityIdTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -230,6 +236,7 @@ class EntityIdTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -271,6 +278,7 @@ class EntityIdTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -295,6 +303,8 @@ class EntityIdTestCase(TestCase):
         content-type.
 
         """
+        if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
+            self.skipTest('Cannot delete config templates.')
         try:
             attrs = entity().create()
         except factory.FactoryError as err:
@@ -334,6 +344,7 @@ class DoubleCheckTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -384,6 +395,7 @@ class DoubleCheckTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -437,6 +449,7 @@ class DoubleCheckTestCase(TestCase):
         entities.ActivationKey,
         entities.Architecture,
         entities.ComputeProfile,
+        entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
         entities.Environment,
@@ -459,6 +472,8 @@ class DoubleCheckTestCase(TestCase):
         @Assert: An HTTP 404 is returned when fetching the missing entity.
 
         """
+        if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
+            self.skipTest('Cannot delete config templates.')
         try:
             attrs = entity().create()
         except factory.FactoryError as err:
@@ -492,6 +507,7 @@ class EntityReadTestCase(TestCase):
         # entities.ActivationKey,
         # entities.Architecture,
         entities.ComputeProfile,
+        # entities.ConfigTemplate,
         # entities.ContentView,
         # entities.Domain,
         entities.Environment,
