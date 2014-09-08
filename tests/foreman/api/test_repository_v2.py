@@ -10,7 +10,6 @@ from robottelo.common.constants import (VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE,
                                         FAKE_PUPPET_REPO, FAKE_1_YUM_REPO,
                                         FAKE_2_YUM_REPO, RPM_TO_UPLOAD)
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import (get_server_credentials, read_data_file,
                                       get_data_file)
 from robottelo import entities, orm
@@ -18,6 +17,7 @@ from unittest import TestCase
 import copy
 import ddt
 import httplib
+# (too many public methods) pylint: disable=R0904
 
 
 @ddt.ddt
@@ -337,7 +337,6 @@ class RepositoriesTestCase(TestCase):
             True,
         )
 
-    @skip_if_bug_open('bugzilla', 1138826)
     def test_positive_update_5(self):
         """@Test: Create a repository and upload rpm contents
 
@@ -346,35 +345,17 @@ class RepositoriesTestCase(TestCase):
         @Assert: Repository is updated with contents
 
         """
-
-        repository_attrs = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-        ).create()
-
-        # Upload an RPM file
-        path = entities.Repository(
-            id=repository_attrs['id']).path(which='upload_content')
-        response = client.post(
-            path,
-            data={u'id': repository_attrs['id'],
-                  u'content': get_data_file(RPM_TO_UPLOAD)},
+        # Create a repository and upload an RPM file.
+        attrs = entities.Repository(url=FAKE_1_YUM_REPO).create()
+        response = client._call_requests_post(  # FIXME: use `client.post`
+            entities.Repository(id=attrs['id']).path(which='upload_content'),
+            {},
             auth=get_server_credentials(),
+            files={u'content': open(get_data_file(RPM_TO_UPLOAD), 'rb')},
             verify=False,
         )
-        status_code = httplib.OK
-        self.assertEqual(
-            response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
-        )
+        response.raise_for_status()
 
-        # Fetch the updated repository
-        updated_attrs = entities.Repository(
-            id=repository_attrs['id']
-        ).read_json()
-
-        # Assert that content count is updated
-        self.assertEqual(
-            updated_attrs['content_counts'],
-            "1",
-        )
+        # Fetch info about the updated repo and verify the file was uploaded.
+        attrs = entities.Repository(id=attrs['id']).read_json()
+        self.assertEqual(attrs[u'content_counts'][u'rpm'], 1)
