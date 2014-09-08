@@ -54,10 +54,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, name):
-        """
+        """@test: Create gpg key with valid name and valid gpg key
+        via file import
+
         @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file import
+
         @assert: gpg key is created
+
         """
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -70,11 +73,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
+        """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string
+
+        @feature: GPG Keys
+
         @assert: gpg key is created
+
         """
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -88,11 +93,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_1(self, name):
-        """
+        """@test: Create gpg key with valid name and valid gpg key via
+        file import then try to create new one with same name
+
         @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file import
-        then try to create new one with same name
+
         @assert: gpg key is not created
+
         """
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -110,11 +117,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_2(self, name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
+        """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
+
+        @feature: GPG Keys
+
         @assert: gpg key is not created
+
         """
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -130,10 +139,12 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, name):
-        """
+        """@test: Create gpg key with valid name and no gpg key
+
         @feature: GPG Keys
-        @test: Create gpg key with valid name and no gpg key
+
         @assert: gpg key is not created
+
         """
 
         with Session(self.browser) as session:
@@ -145,11 +156,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_4(self, name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with invalid name and valid gpg key via
+        """@test: Create gpg key with invalid name and valid gpg key via
         file import
+
+        @feature: GPG Keys
+
         @assert: gpg key is not created
+
         """
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -163,11 +176,13 @@ class GPGKey(UITestCase):
 
     @attr('ui', 'gpgkey', 'implemented')
     def test_negative_create_5(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with blank name and valid gpg key via
+        """@test: Create gpg key with blank name and valid gpg key via
         file import
+
+        @feature: GPG Keys
+
         @assert: gpg key is not created
+
         """
         name = " "
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -182,11 +197,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_6(self, name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with invalid name and valid gpg key text via
+        """@test: Create gpg key with invalid name and valid gpg key text via
         cut and paste/string
+
+        @feature: GPG Keys
+
         @assert: gpg key is not created
+
         """
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -202,11 +219,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*valid_names_list())
     def test_positive_delete_1(self, name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
+        """@test: Create gpg key with valid name and valid gpg key via file
         import then delete it
+
+        @feature: GPG Keys
+
         @assert: gpg key is deleted
+
         """
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -221,11 +240,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*valid_names_list())
     def test_positive_delete_2(self, name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
+        """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
+
+        @feature: GPG Keys
+
         @assert: gpg key is deleted
+
         """
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -240,11 +261,13 @@ class GPGKey(UITestCase):
 
     @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_1(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
+        """@test: Create gpg key with valid name and valid gpg key via file
         import then update its name
+
+        @feature: GPG Keys
+
         @assert: gpg key is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -261,11 +284,13 @@ class GPGKey(UITestCase):
 
     @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_2(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
+        """@test: Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
+
+        @feature: GPG Keys
+
         @assert: gpg key is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -282,11 +307,13 @@ class GPGKey(UITestCase):
 
     @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_3(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
+        """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its name
+
+        @feature: GPG Keys
+
         @assert: gpg key is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -302,11 +329,13 @@ class GPGKey(UITestCase):
 
     @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_4(self):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
+        """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
+
+        @feature: GPG Keys
+
         @assert: gpg key is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -325,11 +354,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_update_1(self, new_name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key via file
+        """@test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
+
+        @feature: GPG Keys
+
         @assert: gpg key is not updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -347,11 +378,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_update_2(self, new_name):
-        """
-        @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key text via
+        """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then fail to update its name
+
+        @feature: GPG Keys
+
         @assert: gpg key is not updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -370,12 +403,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_1(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with empty (no repos)
-        custom product
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with empty (no repos) custom product
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -401,13 +435,14 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_2(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has
-        one repository
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with custom product that has one repository
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as
         with the repository
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -443,13 +478,14 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_3(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has
-        more than one repository
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with custom product that has more than one repository
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with
         the repositories
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -493,14 +529,16 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_4(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product using
-        Repo discovery method
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with custom product using Repo discovery method
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with
         the repositories
+
         @BZ: 1085035
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -524,13 +562,14 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_5(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repository from custom
-        product that has one repository
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repository from custom product that has one repository
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with the repository but not with
         the product
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -566,13 +605,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_6(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repository from custom
-        product that has more than one repository
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repository from custom product that has more than
+        one repository
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with one of the repositories but
         not with the product
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -624,14 +665,17 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_key_associate_7(self):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repos from custom product
-        using Repo discovery method
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repos from custom product using Repo discovery method
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product and all the repositories
+
         @status: manual
+
         @BZ: 1085924
+
         """
 
         pass
@@ -639,12 +683,13 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_8(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with empty (no repos)
-        custom product then update the key
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it with empty (no repos) custom product then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product before/after update
+
         """
         name = generate_string("alpha", 8)
         new_name = generate_string("alpha", 8)
@@ -676,13 +721,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_9(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has
-        one repository then update the key
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with custom product that has one repository
+        then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with
         reposiotry before/after update
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -726,13 +773,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_10(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has
-        more than one repository then update the key
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with custom product that has more than one
+        repository then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with
         reposiories before/after update
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -784,14 +833,17 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_11(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product using
-        Repo discovery method then update the key
+        """@test: Create gpg key with valid name and valid gpg key
+        then associate it with custom product using Repo discovery
+        method then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with
         repository before/after update
+
         @BZ: 1085035
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -824,13 +876,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_12(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repository from custom
-        product that has one repository then update the key
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repository from custom product that has one repository
+        then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with repository
         before/after update but not with product.
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -875,13 +929,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_13(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repository from custom
-        product that has more than one repository then update the key
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repository from custom product that has more than
+        one repository then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with single repository
         before/after update but not with product
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -941,15 +997,19 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_key_associate_14(self):
-        """
-        @test: Create gpg key with valid name and valid gpg key
+        """@test: Create gpg key with valid name and valid gpg key
         then associate it to repos from custom product
         using Repo discovery method then update the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product and all repositories
         before/after update
+
         @status: manual
+
         @BZ: 1085924
+
         """
 
         pass
@@ -957,13 +1017,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_15(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
+        """@test: Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom
         product then delete it
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product during creation but
         removed from product after deletion
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -994,13 +1056,14 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_16(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has
-        one repository then delete it
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it with custom product that has one repository then delete it
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with the
         repository during creation but removed from product after deletion
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -1041,13 +1104,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_17(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
+        """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has
         more than one repository then delete it
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with product as well as with
         repositories during creation but removed from product after deletion
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -1096,15 +1161,17 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_18(self, name):
-        """
+        """@test: Create gpg key with valid name and valid gpg then associate
+        it with custom product using Repo discovery method then delete it
+
         @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg
-        then associate it with custom product using
-        Repo discovery method then delete it
+
         @assert: gpg key is associated with product as well as with
         the repositories during creation but removed from product
         after deletion
+
         @BZ: 1085035
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -1135,13 +1202,15 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_19(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repository from custom
-        product that has one repository then delete the key
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repository from custom product that has one repository
+        then delete the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with single repository
         during creation but removed from repository after deletion
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -1182,14 +1251,16 @@ class GPGKey(UITestCase):
     @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_20(self, name):
-        """
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repository from custom product that has
-        more than one repository then delete the key
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it to repository from custom product that has more than
+        one repository then delete the key
+
         @feature: GPG Keys
+
         @assert: gpg key is associated with single repository but not
         with product during creation but removed from
         repository after deletion
+
         """
 
         product_name = generate_string("alpha", 8)
@@ -1248,16 +1319,20 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_key_associate_21(self):
-        """
+        """  @test: Create gpg key with valid name and valid gpg key then
+        associate it to repos from custom product using Repo discovery method
+        then delete the key
+
         @feature: GPG Keys
-        @test: Create gpg key with valid name and valid gpg key
-        then associate it to repos from custom product
-        using Repo discovery method then delete the key
+
         @assert: gpg key is associated with product and all repositories
         during creation but removed from product and all repositories
         after deletion
+
         @status: manual
+
         @BZ: 1085924
+
         """
 
         pass
@@ -1275,12 +1350,15 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_consume_content_1(self):
-        """
-        @feature: GPG Keys
-        @test: Hosts can install packages using gpg key associated with
+        """@test: Hosts can install packages using gpg key associated with
         single custom repository
+
+        @feature: GPG Keys
+
         @assert: host can install package from custom repository
+
         @status: manual
+
         """
 
         pass
@@ -1296,12 +1374,15 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_consume_content_2(self):
-        """
-        @feature: GPG Keys
-        @test: Hosts can install packages using gpg key associated with
+        """@test: Hosts can install packages using gpg key associated with
         multiple custom repositories
+
+        @feature: GPG Keys
+
         @assert: host can install package from custom repositories
+
         @status: manual
+
         """
 
         pass
@@ -1317,12 +1398,15 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_consume_content_3(self):
-        """
+        """@test: Hosts can install packages using different gpg keys
+        associated with multiple custom repositories
+
         @feature: GPG Keys
-        @test: Hosts can install packages using different gpg keys associated
-        with multiple custom repositories
+
         @assert: host can install package from custom repositories
+
         @status: manual
+
         """
 
         pass
@@ -1340,11 +1424,14 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_list_key_1(self):
-        """
+        """@test: Create gpg key and list it
+
         @feature: GPG Keys
-        @test: Create gpg key and list it
+
         @assert: gpg key is displayed/listed
+
         @status: manual
+
         """
 
         pass
@@ -1360,11 +1447,14 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_search_key_1(self):
-        """
+        """@test: Create gpg key and search/find it
+
         @feature: GPG Keys
-        @test: Create gpg key and search/find it
+
         @assert: gpg key can be found
+
         @status: manual
+
         """
 
         pass
@@ -1380,11 +1470,14 @@ class GPGKey(UITestCase):
         gpg key file is valid always
 """)
     def test_info_key_1(self):
-        """
+        """@test: Create single gpg key and get its info
+
         @feature: GPG Keys
-        @test: Create single gpg key and get its info
+
         @assert: specific information for gpg key matches the creation values
+
         @status: manual
+
         """
 
         pass
