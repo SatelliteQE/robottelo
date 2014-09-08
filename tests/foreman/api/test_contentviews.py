@@ -361,7 +361,7 @@ class TestContentView(APITestCase):
 
     # Content Views: publish
     # katello content definition publish --label=MyView
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
+    @stubbed
     def test_cv_publish_rh(self, data):
         """
         @test: attempt to publish a content view containing RH content
@@ -369,12 +369,7 @@ class TestContentView(APITestCase):
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
         """
-
-        con_view = ApiCrud.record_create_recursive(data)
-        self.assertIntersects(data, con_view)
-        task = con_view._meta.api_class.publish(con_view)
-        task.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        self.assertEqual('success', task.result())
+        # See method test_subscribe_system_to_cv in module test_contentview_v2
 
     @stubbed
     def test_cv_publish_rh_custom_spin(self):
