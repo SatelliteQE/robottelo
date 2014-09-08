@@ -23,6 +23,7 @@ from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
+from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.location import Location
@@ -176,6 +177,7 @@ class UITestCase(TestCase):
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)
         self.gpgkey = GPGKey(self.browser)
+        self.hardwaremodel = HardwareModel(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
         self.location = Location(self.browser)
