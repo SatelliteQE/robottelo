@@ -14,8 +14,8 @@ BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,
     entities.ContentView, entities.Environment, entities.GPGKey,
     entities.HostCollection, entities.LifecycleEnvironment,
-    entities.OperatingSystem, entities.Repository, entities.Role,
-    entities.System, entities.User,
+    entities.OperatingSystem, entities.Product, entities.Repository,
+    entities.Role, entities.System, entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
