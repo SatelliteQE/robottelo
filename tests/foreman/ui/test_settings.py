@@ -154,6 +154,10 @@ class Settings(UITestCase):
                        value_type=value_type, param_value=param_value)
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so using 'lstrip' to strip leading zeros from variable
+            # 'param_value' too
             self.assertEqual(param_value.lstrip("0"), saved_element)
 
     @skip_if_bug_open('bugzilla', 1125181)
@@ -279,6 +283,10 @@ class Settings(UITestCase):
                        param_value=test_data['param_value'])
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so using lstrip to strip leading zeros from variable
+            # 'param_value' too
             self.assertEqual(
                 test_data['param_value'].lstrip("0"),
                 saved_element
@@ -332,6 +340,10 @@ class Settings(UITestCase):
                        param_value=test_data['param_value'])
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so using lstrip to strip leading zeros from variable
+            # 'param_value' too
             self.assertEqual(
                 test_data['param_value'].lstrip("0"),
                 saved_element
@@ -824,6 +836,10 @@ class Settings(UITestCase):
                        param_value=test_data['param_value'])
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
+            # UI automatically strips leading zeros on save,
+            # e.g. If param_value = '01400' then UI saves it as '1400'
+            # so using lstrip to strip leading zeros from variable
+            # 'param_value' too
             self.assertEqual(
                 test_data['param_value'].lstrip("0"),
                 saved_element
