@@ -1286,7 +1286,11 @@ class Role(
         orm.EntityReadMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
-    name = orm.StringField(required=True, str_type=('alphanumeric',))
+    name = orm.StringField(
+        required=True,
+        str_type=('alphanumeric',),
+        len=(2, 30),  # min length is 2 and max length is arbitrary
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
