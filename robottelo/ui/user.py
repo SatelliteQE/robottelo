@@ -43,7 +43,7 @@ class User(Base):
                                   new_entity_list=new_organizations,
                                   entity_select=select)
 
-    def create(self, username, email=None, password1=None,
+    def create(self, username=None, email=None, password1=None,
                password2=None, authorized_by="INTERNAL",
                locale=None, first_name=None, last_name=None,
                roles=None, locations=None, organizations=None,
