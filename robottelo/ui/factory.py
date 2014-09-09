@@ -11,6 +11,7 @@ from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
+from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
@@ -458,3 +459,19 @@ def edit_param(session, org=None, loc=None, **kwargs):
     core_factory(update_args, kwargs, session, page,
                  org=org, loc=loc)
     Settings(session.browser).update(**update_args)
+
+
+def make_hw_model(session, org=None, loc=None, **kwargs):
+    """
+    Creates new Hardware Models from webUI
+    """
+    create_args = {
+        'name': None,
+        'hw_model': None,
+        'vendor_class': None,
+        'info': None
+    }
+    page = session.nav.go_to_hardware_models
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    HardwareModel(session.browser).create(**create_args)

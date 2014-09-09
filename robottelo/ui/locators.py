@@ -1577,4 +1577,21 @@ locators = {
         ("//td/a[normalize-space(.)='%s']"
          "/following::td/div/a[@data-toggle='dropdown']")),
     "config_groups.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]")}
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+
+    # Hardware Models
+    "hwmodels.new": (
+        By.XPATH, "//a[@data-id='aid_models_new']"),
+    "hwmodels.name": (
+        By.XPATH, "//input[@id='model_name']"),
+    "hwmodels.model": (
+        By.XPATH, "//input[@id='model_hardware_model']"),
+    "hwmodels.vclass": (
+        By.XPATH, "//input[@id='model_vendor_class']"),
+    "hwmodels.info": (
+        By.XPATH, "//textarea[@id='model_info']"),
+    "hwmodels.select_name": (
+        By.XPATH, "//a[contains(@href,'models') and contains(.,'%s')]"),
+    "hwmodels.delete": (
+        By.XPATH, ("//a[contains(@data-confirm,'%s')"
+                   " and @class='delete']"))}
