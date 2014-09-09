@@ -73,3 +73,10 @@ Submodules:
 .. automodule:: tests.robottelo.test_robottelo_api_inspect
     :members:
     :undoc-members:
+
+:mod:`tests.robottelo.test_vm`
+-----------------------------------
+
+.. automodule:: tests.robottelo.test_vm
+    :members:
+    :undoc-members:
