@@ -6,7 +6,6 @@ can be found here: http://theforeman.org/api/apidoc/v2/organizations.html
 """
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -16,7 +15,6 @@ import httplib
 
 class OrganizationsTestCase(TestCase):
     """Tests for the ``organizations`` path."""
-    @skip_if_bug_open('bugzilla', 1116043)
     def test_create(self):
         """@Test Create an organization using a 'text/plain' content-type.
 

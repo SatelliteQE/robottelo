@@ -29,10 +29,10 @@ import httplib
 class EntityIdTestCaseClone(TestCase):
     """Issue HTTP requests to various ``systems/:uuid`` paths."""
     def test_get_status_code(self):
-        """@Test: Create a system and GET it.
-
+        """
+        @Test: Create a system and GET it.
+        @Feature: Systems
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         attrs = System().create()
         path = System(uuid=attrs['uuid']).path()
@@ -50,10 +50,10 @@ class EntityIdTestCaseClone(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_put_status_code(self):
-        """@Test Issue a PUT request and check the returned status code.
-
+        """
+        @Test: Issue a PUT request and check the returned status code.
+        @Feature: Systems
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         path = System(uuid=System().create()['uuid']).path()
         response = client.put(
@@ -71,9 +71,10 @@ class EntityIdTestCaseClone(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_delete_status_code(self):
-        """@Test Issue an HTTP DELETE request and check the returned status
+        """
+        @Test: Issue an HTTP DELETE request and check the returned status
         code.
-
+        @Feature: Systems
         @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
         content-type.
 
@@ -108,10 +109,10 @@ class LongMessageTestCaseClone(TestCase):
 
     @skip_if_bug_open('bugzilla', 1133097)
     def test_put_and_get(self):
-        """@Test: Issue a PUT request and GET the updated system.
-
+        """
+        @Test: Issue a PUT request and GET the updated system.
+        @Feature: Systems
         @Assert: The updated system has the correct attributes.
-
         """
         path = System(uuid=System().create()['uuid']).path()
 
@@ -139,8 +140,9 @@ class LongMessageTestCaseClone(TestCase):
 
     @skip_if_bug_open('bugzilla', 1133097)
     def test_post_and_get(self):
-        """@Test Issue a POST request and GET the created system.
-
+        """
+        @Test: Issue a POST request and GET the created system.
+        @Feature: Systems
         @Assert: The created system has the correct attributes.
 
         """
@@ -171,10 +173,10 @@ class LongMessageTestCaseClone(TestCase):
 
     @skip_if_bug_open('bugzilla', 1133071)
     def test_delete_and_get(self):
-        """@Test: Issue an HTTP DELETE request and GET the deleted system.
-
+        """
+        @Test: Issue an HTTP DELETE request and GET the deleted system.
+        @Feature: Systems
         @Assert: An HTTP 404 is returned when fetching the missing system.
-
         """
         try:
             attrs = System().create()

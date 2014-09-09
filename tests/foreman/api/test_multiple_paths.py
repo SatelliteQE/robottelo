@@ -48,11 +48,10 @@ class EntityTestCase(TestCase):
         entities.TemplateKind,
         entities.User,
     )
-    def test_get_status_code(self, entity):
-        """@Test GET an entity-dependent path.
-
+    def test_get_api_status_code(self, entity):
+        """
+        @Test GET an entity-dependent path.
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         path = entity().path()
         response = client.get(
@@ -91,10 +90,9 @@ class EntityTestCase(TestCase):
         entities.User,
     )
     def test_get_unauthorized(self, entity):
-        """@Test: GET an entity-dependent path without credentials.
-
+        """
+        @Test: GET an entity-dependent path without credentials.
         @Assert: HTTP 401 is returned
-
         """
         path = entity().path()
         response = client.get(path, verify=False)
@@ -128,13 +126,12 @@ class EntityTestCase(TestCase):
         entities.User,
     )
     def test_post_status_code(self, entity):
-        """@Test: Issue a POST request and check the returned status code.
-
+        """
+        @Test: Issue a POST request and check the returned status code.
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
-
         """
         if entity in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
-            self.skipTest('Bugzilla bug 1118015 is open.')
+            self.skipTest('Bugzilla bug #1118015 is open.')
         path = entity().path()
         response = client.post(
             path,
@@ -174,10 +171,9 @@ class EntityTestCase(TestCase):
     )
     @skip_if_bug_open('bugzilla', 1122257)
     def test_post_unauthorized(self, entity):
-        """@Test: POST to an entity-dependent path without credentials.
-
+        """
+        @Test: POST to an entity-dependent path without credentials.
         @Assert: HTTP 401 is returned
-
         """
         path = entity().path()
         response = client.post(path, verify=False)
@@ -214,14 +210,13 @@ class EntityIdTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_get_status_code(self, entity):
-        """@Test: Create an entity and GET it.
-
+    def test_create_and_get_status_code(self, entity):
+        """
+        @Test: Create an entity and GET it.
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         if entity is entities.ActivationKey and bz_bug_is_open(1127335):
-            self.skipTest("Bugzilla bug 1127335 is open.""")
+            self.skipTest('Bugzilla bug #1127335 is open.')
         attrs = entity().create()
         path = entity(id=attrs['id']).path()
         response = client.get(
@@ -260,10 +255,9 @@ class EntityIdTestCase(TestCase):
         entities.User,
     )
     def test_put_status_code(self, entity):
-        """@Test Issue a PUT request and check the returned status code.
-
+        """
+        @Test: Issue a PUT request and check the returned status code.
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         path = entity(id=entity().create()['id']).path()
         response = client.put(
@@ -303,15 +297,14 @@ class EntityIdTestCase(TestCase):
         entities.User,
     )
     def test_delete_status_code(self, entity):
-        """@Test Issue an HTTP DELETE request and check the returned status
+        """
+        @Test: Issue an HTTP DELETE request and check the returned status
         code.
-
         @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
         content-type.
-
         """
         if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
-            self.skipTest('Cannot delete config templates.')
+            self.skipTest('Bugzilla bug #1096333 is open.')
         try:
             attrs = entity().create()
         except factory.FactoryError as err:
@@ -370,10 +363,9 @@ class DoubleCheckTestCase(TestCase):
         # entities.User,  # password not in returned attrs
     )
     def test_put_and_get(self, entity):
-        """@Test: Issue a PUT request and GET the updated entity.
-
+        """
+        @Test: Issue a PUT request and GET the updated entity.
         @Assert: The updated entity has the correct attributes.
-
         """
         path = entity(id=entity().create()['id']).path()
 
@@ -422,13 +414,12 @@ class DoubleCheckTestCase(TestCase):
         # entities.User,  # password not in returned attrs
     )
     def test_post_and_get(self, entity):
-        """@Test Issue a POST request and GET the created entity.
-
+        """
+        @Test Issue a POST request and GET the created entity.
         @Assert: The created entity has the correct attributes.
-
         """
         if entity in BZ_1122267_ENTITIES and bz_bug_is_open(1122267):
-            self.skipTest("Bugzilla bug 1122267 is open.""")
+            self.skipTest('Bugzilla bug #1122267 is open.')
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
         response = client.post(
@@ -477,13 +468,12 @@ class DoubleCheckTestCase(TestCase):
         entities.User,
     )
     def test_delete_and_get(self, entity):
-        """@Test: Issue an HTTP DELETE request and GET the deleted entity.
-
+        """
+        @Test: Issue an HTTP DELETE request and GET the deleted entity.
         @Assert: An HTTP 404 is returned when fetching the missing entity.
-
         """
         if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
-            self.skipTest('Cannot delete config templates.')
+            self.skipTest('Bugzilla bug #1096333 is open.')
         try:
             attrs = entity().create()
         except factory.FactoryError as err:
@@ -537,22 +527,22 @@ class EntityReadTestCase(TestCase):
         # entities.User,
     )
     def test_entity_read(self, entity):
-        """@Test: Create an entity and get it using
+        """
+        @Test: Create an entity and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
-
+        @Feature: Test Multiple Paths
         @Assert: The just-read entity is an instance of the correct class.
-
         """
         attrs = entity().create()
         read_entity = entity(id=attrs['id']).read()
         self.assertIsInstance(read_entity, entity)
 
     def test_osparameter_read(self):
-        """@Test: Create an OperatingSystemParameter and get it using
+        """
+        @Test: Create an OperatingSystemParameter and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
-
+        @Feature: Test Multiple Paths
         @Assert: The just-read entity is an instance of the correct class.
-
         """
         os_attrs = entities.OperatingSystem().create()
         osp_attrs = entities.OperatingSystemParameter(os_attrs['id']).create()
