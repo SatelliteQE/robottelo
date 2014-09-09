@@ -6,7 +6,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import skipRemote, stubbed
 from robottelo.common.helpers import generate_string
-from robottelo.common.manifests import manifest
+# from robottelo.common.manifests import manifest  # FIXME: does not exist
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
@@ -41,7 +41,8 @@ class Subscription(UITestCase):
         """
 
         alert_loc = common_locators['alert.success']
-        mdetails = manifest.fetch_manifest()
+        # FIXME: remove directives after manifest implemented
+        mdetails = manifest.fetch_manifest()  # flake8:noqa pylint:disable=E0602
         path = mdetails['path']
         try:
             # upload_file function should take care of uploading to sauce labs.
@@ -53,7 +54,8 @@ class Subscription(UITestCase):
                 success_ele = self.subscriptions.wait_until_element(alert_loc)
                 self.assertTrue(success_ele)
         finally:
-            manifest.delete_distributor(ds_uuid=mdetails['uuid'])
+            # FIXME: remove directives after manifest implemented
+            manifest.delete_distributor(ds_uuid=mdetails['uuid']) # flake8:noqa pylint:disable=E0602
 
     @stubbed('Need to implement a new manifest api')
     @skipRemote
@@ -66,7 +68,8 @@ class Subscription(UITestCase):
         """
 
         alert_loc = common_locators['alert.success']
-        mdetails = manifest.fetch_manifest()
+        # FIXME: remove directives after manifest implemented
+        mdetails = manifest.fetch_manifest()  # flake8:noqa pylint:disable=E0602
         path = mdetails['path']
         try:
             # upload_file function should take care of uploading to sauce labs.
@@ -79,4 +82,5 @@ class Subscription(UITestCase):
                 success_ele = self.subscriptions.wait_until_element(alert_loc)
                 self.assertTrue(success_ele)
         finally:
-            manifest.delete_distributor(ds_uuid=mdetails['uuid'])
+            # FIXME: remove directives after manifest implemented
+            manifest.delete_distributor(ds_uuid=mdetails['uuid']) # flake8:noqa pylint:disable=E0602

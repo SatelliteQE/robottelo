@@ -368,10 +368,10 @@ class ActivationKeysTestCase(TestCase):
 
         @Assert:
         1. By default, an activation key is associated with no host
-           collections.
+        collections.
         2. After associating an activation key with some set of host
-           collections and reading that activation key, the correct host
-           collections are listed.
+        collections and reading that activation key, the correct host
+        collections are listed.
 
         @Feature: ActivationKey
 
