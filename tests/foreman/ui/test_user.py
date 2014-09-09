@@ -15,7 +15,7 @@ else:
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_email_address, generate_string
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
@@ -165,20 +165,22 @@ class User(UITestCase):
                                                      ["notif.success"]))
         self.assertIsNone(self.user.search(name, search_key))
 
+    @skip_if_bug_open('bugzilla', 1139616)
     @attr('ui', 'user', 'implemented')
     def test_update_password(self):
         """
         @Feature: User - Update
         @Test: Update password for a user
         @Assert: User password is updated
+        @BZ: 1139616
         """
 
         name = generate_string("alpha", 6)
         new_password = generate_string("alpha", 8)
         search_key = "login"
         self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name)
-        self.user.update(search_key, name, None, None, new_password)
+        self.create_user(name=name)
+        self.user.update(search_key, name, password=new_password)
         self.login.logout()
         self.login.login(name, new_password)
         self.assertTrue(self.login.is_logged())
@@ -761,6 +763,7 @@ class User(UITestCase):
         error = self.user.wait_until_element(common_locators["haserror"])
         self.assertTrue(error)
 
+    @skip_if_bug_open('bugzilla', 1139616)
     @attr('ui', 'user', 'implemented')
     @data(*gen_valid_usernames())
     def test_positive_update_user_1(self, new_username):
@@ -772,6 +775,7 @@ class User(UITestCase):
         2. Update User name for all variations in [1]
         @Assert: User is updated
         @Status: Manual
+        @BZ: 1139616
         """
         name = generate_string("alpha", 6)
         password = generate_string("alpha", 8)
