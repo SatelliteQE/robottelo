@@ -11,10 +11,15 @@ from ddt import ddt
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
-    make_lifecycle_environment, make_user)
+    make_lifecycle_environment, make_user, CLIFactoryError)
+from robottelo.common.manifests import (
+    clone, download_signing_key,
+    download_manifest_template, install_cert_on_server)
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
+from robottelo.entities import Organization
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.cli.repository import Repository
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import generate_string
@@ -70,6 +75,58 @@ class TestContentView(CLITestCase):
     product = None
     env1 = None
     env2 = None
+    rhel_content_org = None
+    rhel_repo_name = None
+    rhel_repo = None
+    rhel_product_name = 'Red Hat Enterprise Linux Workstation'
+
+    def create_rhel_content(self):
+        if TestContentView.rhel_content_org is not None:
+            return
+
+        TestContentView.rhel_content_org = make_org()
+        signing_key = download_signing_key()
+        fake_manifest = download_manifest_template()
+        install_cert_on_server()
+        manifest = clone(signing_key, fake_manifest)
+        finished_task = Organization(
+            id=TestContentView.rhel_content_org['id']
+        ).upload_manifest(manifest)
+        if finished_task is None:
+            TestContentView.rhel_content_org = None
+            self.fail("Couldn't upload manifest")
+
+        result = RepositorySet.enable({
+            'name': (
+                'Red Hat Enterprise Virtualization Agents '
+                'for RHEL 6 Workstation (RPMs)'
+            ),
+            'organization-id': TestContentView.rhel_content_org['id'],
+            'product': 'Red Hat Enterprise Linux Workstation',
+            'releasever': '6Workstation',
+            'basearch': 'x86_64',
+        })
+        TestContentView.rhel_repo_name = (
+            'Red Hat Enterprise Virtualization Agents '
+            'for RHEL 6 Workstation '
+            'RPMs x86_64 6Workstation'
+        )
+
+        result = Repository.info({
+            u'name': TestContentView.rhel_repo_name,
+            u'product': TestContentView.rhel_product_name,
+            u'organization-id': self.rhel_content_org['id']
+        })
+        TestContentView.rhel_repo = result.stdout
+
+        result = Repository.synchronize({
+            'name': TestContentView.rhel_repo_name,
+            'organization-id': TestContentView.rhel_content_org['id'],
+            'product': TestContentView.rhel_product_name,
+        })
+        if result.return_code != 0:
+            TestContentView.rhel_content_org = None
+            self.fail("Couldn't synchronize repo")
 
     def setUp(self):
         """
@@ -323,15 +380,48 @@ class TestContentView(CLITestCase):
     # katello content definition add_repo --label=MyView
     #   --repo=repo1 --org=ACME
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh(self):
         """
         @test: associate Red Hat content in a view
         @feature: Content Views
         @setup: Sync RH content
         @assert: RH Content can be seen in a view
-        @status: Manual
         """
+        self.create_rhel_content()
+        # Create CV
+        try:
+            new_cv = make_content_view({
+                u'organization-id': self.rhel_content_org['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Associate repo to CV
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
+            u'organization-id': TestContentView.rhel_content_org['id'],
+        })
+
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not associated to selected CV")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "ContentView was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'],
+            TestContentView.rhel_repo_name,
+            "Repo was not associated to CV"
+        )
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh_custom_spin(self):
@@ -729,15 +819,59 @@ class TestContentView(CLITestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh(self):
         """
         @test: attempt to promote a content view containing RH content
         @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be promoted
-        @status: Manual
         """
+        self.create_rhel_content()
+        # Create CV
+        try:
+            new_cv = make_content_view({
+                u'organization-id': self.rhel_content_org['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Associate repo to CV
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': self.rhel_repo['id']
+        })
+        self.assertEqual(result.return_code, 0,
+                         "Repo was not associated to selected CV")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Publishing a new version of CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        env1 = make_lifecycle_environment({
+            u'organization-id': TestContentView.rhel_content_org['id']
+        })
+
+        # Promote the Published version of CV to the next env
+        result = ContentView.version_promote(
+            {u'id': result.stdout['versions'][0]['id'],
+             u'lifecycle-environment-id': env1['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Promoting a version of CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "ContentView was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.stdout['environments'][0]['id'],
+                         env1['id'],
+                         "Promotion of version not successful to the env")
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
@@ -996,15 +1130,45 @@ class TestContentView(CLITestCase):
     # Content Views: publish
     # katello content definition publish --label=MyView
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh(self):
         """
         @test: attempt to publish a content view containing RH content
         @feature: Content Views
         @setup: Multiple environments for an org; RH content synced
         @assert: Content view can be published
-        @status: Manual
         """
+        self.create_rhel_content()
+        # Create CV
+        try:
+            new_cv = make_content_view({
+                u'organization-id': self.rhel_content_org['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Associate repo to CV
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': TestContentView.rhel_repo['id']
+        })
+        self.assertEqual(result.return_code, 0,
+                         "Repo was not associated to selected CV")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0,
+                         "Publishing a new version of CV was not successful")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, "Content-View was not found")
+        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'],
+            TestContentView.rhel_repo['name'], "Repo was not associated to CV")
+        self.assertEqual(result.stdout['versions'][0]['version'], u'1',
+                         "Publishing new version of CV was not successful")
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
