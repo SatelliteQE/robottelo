@@ -1,9 +1,10 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Test class for Host/System Unification
+"""Test class for Host/System Unification
+
 Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
+
 """
 import unittest
 
@@ -57,9 +58,7 @@ def negative_create_data():
 
 @ddt
 class TestContentView(CLITestCase):
-    """
-    Content View CLI tests
-    """
+    """Content View CLI tests"""
 
     # Notes:
     # * For most tests in CLI, you should be able to observe whether
@@ -129,9 +128,7 @@ class TestContentView(CLITestCase):
             self.fail("Couldn't synchronize repo")
 
     def setUp(self):
-        """
-        Tests for content-view via Hammer CLI
-        """
+        """Tests for content-view via Hammer CLI"""
 
         super(TestContentView, self).setUp()
 
@@ -152,10 +149,12 @@ class TestContentView(CLITestCase):
     def test_cv_create_cli(self, test_data):
         # variations (subject to change):
         # ascii string, alphanumeric, latin-1, utf8, etc.
-        """
-        @test: create content views (positive)
+        """@test: create content views (positive)
+
         @feature: Content Views
+
         @assert: content views are created
+
         """
         org_obj = make_org()
 
@@ -175,11 +174,13 @@ class TestContentView(CLITestCase):
     def test_cv_create_cli_negative(self, test_data):
         # variations (subject to change):
         # zero length, symbols, html, etc.
-        """
-        @test: create content views (negative)
+        """@test: create content views (negative)
+
         @feature: Content Views
+
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
+
         """
 
         org_obj = make_org()
@@ -197,11 +198,13 @@ class TestContentView(CLITestCase):
 
     def test_cv_create_cli_badorg_negative(self):
         # Use an invalid org name
-        """
-        @test: create content views (negative)
+        """@test: create content views (negative)
+
         @feature: Content Views
+
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
+
         """
 
         org_name = generate_string("alpha", 10)
@@ -213,11 +216,13 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "There should be an exception here.")
 
     def test_cv_edit(self):
-        """
-        @test: edit content views - name, description, etc.
+        """@test: edit content views - name, description, etc.
+
         @feature: Content Views
+
         @assert: edited content view save is successful and info is
         updated
+
         """
 
         org_obj = make_org()
@@ -251,22 +256,26 @@ class TestContentView(CLITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-        """
-        @test: edit content views for a custom rh spin.  For example,
+        """@test: edit content views for a custom rh spin.  For example,
+
         @feature: Content Views
         modify a filter
+
         @assert: edited content view save is successful and info is
         updated
+
         @status: Manual
+
         """
 
     def test_cv_delete(self):
-        """
-        @test: delete content views
+        """@test: delete content views
+
         @feature: Content Views
+
         @assert: edited content view can be deleted and no longer
-        appears in any content view UI
-        updated
+        appears in any content view UI updated
+
         """
 
         org_obj = make_org()
@@ -300,11 +309,14 @@ class TestContentView(CLITestCase):
         # It shouldn't work - and that is tested in a different case.
         # Individual modules from a puppet repo, however, are a valid
         # variation.
-        """
-        @test: create a composite content views
+        """@test: create a composite content views
+
         @feature: Content Views
+
         @setup: sync multiple content source/types (RH, custom, etc.)
+
         @assert: Composite content views are created
+
         """
 
         # Create REPO
@@ -381,11 +393,14 @@ class TestContentView(CLITestCase):
     #   --repo=repo1 --org=ACME
 
     def test_associate_view_rh(self):
-        """
-        @test: associate Red Hat content in a view
+        """@test: associate Red Hat content in a view
+
         @feature: Content Views
+
         @setup: Sync RH content
+
         @assert: RH Content can be seen in a view
+
         """
         self.create_rhel_content()
         # Create CV
@@ -430,22 +445,30 @@ class TestContentView(CLITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-        """
-        @test: associate Red Hat content in a view
+        """@test: associate Red Hat content in a view
+
         @feature: Content Views
+
         @setup: Sync RH content
+
         @steps: 1. Assure filter(s) applied to associated content
+
         @assert: Filtered RH content only is available/can be seen in a view
+
         @status: Manual
+
         """
 
     @skip_if_bug_open('bugzilla', 1127408)
     def test_associate_view_custom_content(self):
-        """
-        @test: associate Red Hat content in a view
+        """@test: associate Red Hat content in a view
+
         @feature: Content Views
+
         @setup: Sync custom content
+
         @assert: Custom content can be seen in a view
+
         """
 
         # Create REPO
@@ -510,12 +533,14 @@ class TestContentView(CLITestCase):
     @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
-        """
-        @test: attempt to associate puppet repos within a custom
+        """@test: attempt to associate puppet repos within a custom
         content view
+
         @feature: Content Views
+
         @assert: User cannot create a composite content view
         that contains direct puppet repos.
+
         """
 
         # Create REPO
@@ -560,11 +585,13 @@ class TestContentView(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_components_composite_negative(self):
-        """
-        @test: attempt to associate components in a non-composite
+        """@test: attempt to associate components in a non-composite
         content view
+
         @feature: Content Views
+
         @assert: User cannot add components to the view
+
         """
 
         # Create REPO
@@ -640,11 +667,13 @@ class TestContentView(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_composite_dupe_repos_negative(self):
-        """
-        @test: attempt to associate the same repo multiple times within a
+        """@test: attempt to associate the same repo multiple times within a
         content view
+
         @feature: Content Views
+
         @assert: User cannot add repos multiple times to the view
+
         """
 
         # Create REPO
@@ -731,11 +760,13 @@ class TestContentView(CLITestCase):
     @skip_if_bug_open('bugzilla', 1089905)
     @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_composite_dupe_modules_negative(self):
-        """
-        @test: attempt to associate duplicate puppet module(s) within a
+        """@test: attempt to associate duplicate puppet module(s) within a
         content view
+
         @feature: Content Views
+
         @assert: User cannot add modules multiple times to the view
+
         """
 
         # Create REPO
@@ -820,11 +851,14 @@ class TestContentView(CLITestCase):
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
     def test_cv_promote_rh(self):
-        """
-        @test: attempt to promote a content view containing RH content
+        """@test: attempt to promote a content view containing RH content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be promoted
+
         """
         self.create_rhel_content()
         # Create CV
@@ -875,22 +909,29 @@ class TestContentView(CLITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
-        """
-        @test: attempt to promote a content view containing a custom RH
+        """@test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be promoted
+
         @status: Manual
+
         """
 
     @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_promote_custom_content(self):
-        """
-        @test: attempt to promote a content view containing custom content
+        """@test: attempt to promote a content view containing custom content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; custom content synced
+
         @assert: Content view can be promoted
+
         """
 
         # Create REPO
@@ -950,12 +991,16 @@ class TestContentView(CLITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """
-        @test: attempt to promote a content view containing custom content
+        """@test: attempt to promote a content view containing custom content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; custom content synced
+
         @steps: create a composite view containing multiple content types
+
         @assert: Content view can be promoted
+
         """
 
         # Create REPO
@@ -1043,10 +1088,12 @@ class TestContentView(CLITestCase):
                          "Promotion of version not successful to the env")
 
     def test_cv_promote_defaultcv_negative(self):
-        """
-        @test: attempt to promote the default content views
+        """@test: attempt to promote the default content views
+
         @feature: Content Views
+
         @assert: Default content views cannot be promoted
+
         """
 
         cv_list = []
@@ -1074,11 +1121,14 @@ class TestContentView(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1091494)
     def test_cv_promote_badenvironment_negative(self):
-        """
-        @test: attempt to promote a content view using an invalid environment
+        """@test: attempt to promote a content view using an invalid environment
+
         @feature: Content Views
+
         @assert: Content views cannot be promoted; handled gracefully
+
         @BZ: 1091494
+
         """
 
         # Create REPO
@@ -1131,11 +1181,14 @@ class TestContentView(CLITestCase):
     # katello content definition publish --label=MyView
 
     def test_cv_publish_rh(self):
-        """
-        @test: attempt to publish a content view containing RH content
+        """@test: attempt to publish a content view containing RH content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be published
+
         """
         self.create_rhel_content()
         # Create CV
@@ -1172,22 +1225,29 @@ class TestContentView(CLITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
-        """
-        @test: attempt to publish  a content view containing a custom RH
+        """@test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_publish_custom_content(self):
-        """
-        @test: attempt to publish a content view containing custom content
+        """@test: attempt to publish a content view containing custom content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; custom content synced
+
         @assert: Content view can be published
+
         """
 
         # Create REPO
@@ -1236,11 +1296,14 @@ class TestContentView(CLITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """
-        @test: attempt to publish  a content view containing custom content
+        """@test: attempt to publish  a content view containing custom content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; custom content synced
+
         @assert: Content view can be published
+
         """
 
         # Create REPO
@@ -1329,16 +1392,20 @@ class TestContentView(CLITestCase):
         # If Dev has version x, then when I promote version y into
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
-        """
-        @test: when publishing new version to environment, version
+        """@test: when publishing new version to environment, version
         gets updated
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
+
         @steps:
         1. publish a view to an environment noting the CV version
         2. edit and republish a new version of a CV
+
         @assert: Content view version is updated intarget environment.
+
         """
 
         # Create REPO
@@ -1455,16 +1522,19 @@ class TestContentView(CLITestCase):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
-        """
-        @test: when publishing new version to environment, version
+        """@test: when publishing new version to environment, version
         gets updated
         @feature: Content Views
+
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
+
         @steps:
         1. publish a view to an environment
         2. edit and republish a new version of a CV
+
         @assert: Content view version is updated in source environment.
+
         """
 
         # Create REPO
@@ -1581,33 +1651,41 @@ class TestContentView(CLITestCase):
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
-        """
-        @test: attempt to create new content view based on existing
+        """@test: attempt to create new content view based on existing
         view within environment
         @feature: Content Views
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
-        """
-        @test: attempt to create new content view based on existing
+        """@test: attempt to create new content view based on existing
         view, inside a different environment
+
         @feature: Content Views
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
-        """
-        @test: attempt to refresh errata in a new view, based on
+        """@test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
+
         @feature: Content Views
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -1622,35 +1700,46 @@ class TestContentView(CLITestCase):
         # * custom content
         # * composite
         # * CVs with puppet modules
-        """
-        @test: attempt to  subscribe systems to content view(s)
+        """@test: attempt to  subscribe systems to content view(s)
+
         @feature: Content Views
+
         @assert: Systems can be subscribed to content view(s)
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_dynflow_restart_promote(self):
-        """
-        @test: attempt to restart a promotion
+        """@test: attempt to restart a promotion
+
         @feature: Content Views
+
         @steps:
         1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
         2. Via Dynflow, restart promotion
+
         @assert: Promotion is restarted.
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_dynflow_restart_publish(self):
-        """
-        @test: attempt to restart a publish
+        """@test: attempt to restart a publish
+
         @feature: Content Views
+
         @steps:
         1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
         2. Via Dynflow, restart publish
+
         @assert: Publish is restarted.
+
         @status: Manual
+
         """
 
     # ROLES TESTING
@@ -1666,13 +1755,17 @@ class TestContentView(CLITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user without the Content View admin role
+
         @assert: User with admin role for content view can't perform all
         Variations above
+
         @status: Manual
+
         """
 
         no_rights_user = make_user()
@@ -1724,13 +1817,17 @@ class TestContentView(CLITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user with the Content View read-only role
+
         @assert: User with read-only role for content view can perform all
         Variations above
+
         @status: Manual
+
         """
 
     @stubbed
@@ -1744,11 +1841,15 @@ class TestContentView(CLITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user withOUT the Content View read-only role
+
         @assert: User withOUT read-only role for content view can perform all
         Variations above
+
         @status: Manual
+
         """

@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Test class for Host Collection CLI
-"""
+"""Test class for Host Collection CLI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -20,9 +18,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestHostCollection(CLITestCase):
-    """
-    Host Collection CLI tests.
-    """
+    """Host Collection CLI tests."""
 
     org = None
     new_cv = None
@@ -32,9 +28,7 @@ class TestHostCollection(CLITestCase):
     default_cv = None
 
     def setUp(self):
-        """
-        Tests for Host Collections via Hammer CLI
-        """
+        """Tests for Host Collections via Hammer CLI"""
 
         super(TestHostCollection, self).setUp()
 
@@ -75,9 +69,7 @@ class TestHostCollection(CLITestCase):
                 TestHostCollection.promoted_cv = TestHostCollection.new_cv
 
     def _new_host_collection(self, options=None):
-        """
-        Make a host collection and asserts its success
-        """
+        """Make a host collection and asserts its success"""
 
         if options is None:
             options = {}
@@ -114,10 +106,12 @@ class TestHostCollection(CLITestCase):
     )
     @attr('cli', 'hostcollection')
     def test_positive_create_1(self, test_data):
-        """
-        @Test: Check if host collection can be created with random names
+        """@Test: Check if host collection can be created with random names
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and has random name
+
         """
 
         new_host_col = self._new_host_collection({'name': test_data['name']})
@@ -138,10 +132,12 @@ class TestHostCollection(CLITestCase):
     )
     @attr('cli', 'hostcollection')
     def test_positive_create_2(self, test_data):
-        """
-        @Test: Check if host collection can be created with random description
+        """@Test: Check if host collection can be created with random description
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and has random description
+
         """
 
         new_host_col = self._new_host_collection(
@@ -156,10 +152,12 @@ class TestHostCollection(CLITestCase):
     @data('1', '3', '5', '10', '20')
     @attr('cli', 'hostcollection')
     def test_positive_create_3(self, test_data):
-        """
-        @Test: Check if host collection can be created with random limits
+        """@Test: Check if host collection can be created with random limits
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and has random limits
+
         """
 
         new_host_col = self._new_host_collection(
@@ -182,10 +180,12 @@ class TestHostCollection(CLITestCase):
     )
     @attr('cli', 'hostcollection')
     def test_negative_create_1(self, test_data):
-        """
-        @Test: Check if host collection can be created with random names
+        """@Test: Check if host collection can be created with random names
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and has random name
+
         """
 
         with self.assertRaises(Exception):
@@ -202,11 +202,14 @@ class TestHostCollection(CLITestCase):
     )
     @attr('cli', 'hostcollection')
     def test_positive_update_1(self, test_data):
-        """
-        @Test: Check if host collection name can be updated
+        """@Test: Check if host collection name can be updated
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and name is updated
+
         @BZ: 1084240
+
         """
 
         new_host_col = self._new_host_collection()
@@ -272,11 +275,14 @@ class TestHostCollection(CLITestCase):
     )
     @attr('cli', 'hostcollection')
     def test_positive_update_2(self, test_data):
-        """
-        @Test: Check if host collection description can be updated
+        """@Test: Check if host collection description can be updated
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and description is updated
+
         @BZ: 1084240
+
         """
 
         new_host_col = self._new_host_collection()
@@ -335,11 +341,14 @@ class TestHostCollection(CLITestCase):
     @data('3', '6', '9', '12', '15', '17', '19')
     @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):
-        """
-        @Test: Check if host collection limits be updated
+        """@Test: Check if host collection limits be updated
+
         @Feature: Host Collection
+
         @Assert: Host collection limits is updated
+
         @BZ: 1084240
+
         """
 
         new_host_col = self._new_host_collection()
@@ -393,10 +402,12 @@ class TestHostCollection(CLITestCase):
     )
     @attr('cli', 'hostcollection')
     def test_positive_delete_1(self, test_data):
-        """
-        @Test: Check if host collection can be created and deleted
+        """@Test: Check if host collection can be created and deleted
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and then deleted
+
         """
 
         new_host_col = self._new_host_collection({'name': test_data['name']})
@@ -436,10 +447,12 @@ class TestHostCollection(CLITestCase):
         )
 
     def test_add_content_host(self):
-        """
-        @Test: Check if content host can be added to host collection
+        """@Test: Check if content host can be added to host collection
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and content-host is added
+
         """
 
         host_col_name = generate_string('alpha', 15)
@@ -486,10 +499,12 @@ class TestHostCollection(CLITestCase):
                            "There should not be an exception here")
 
     def test_remove_content_host(self):
-        """
-        @Test: Check if content host can be removed from host collection
+        """@Test: Check if content host can be removed from host collection
+
         @Feature: Host Collection
+
         @Assert: Host collection is created and content-host is removed
+
         """
 
         host_col_name = generate_string('alpha', 15)

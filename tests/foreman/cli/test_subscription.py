@@ -1,6 +1,4 @@
-"""
-Test class for Subscriptions
-"""
+"""Test class for Subscriptions"""
 
 from ddt import ddt
 from robottelo.cli.subscription import Subscription
@@ -16,16 +14,12 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestSubscription(CLITestCase):
-    """
-    Manifest CLI tests
-    """
+    """Manifest CLI tests"""
     signing_key = None
     fake_manifest = None
 
     def setUp(self):
-        """
-        Tests for content-view via Hammer CLI
-        """
+        """Tests for content-view via Hammer CLI"""
 
         super(TestSubscription, self).setUp()
 
@@ -121,6 +115,7 @@ class TestSubscription(CLITestCase):
 
         @Assert: you are able to enable and synchronize
         repository contained in a manifest
+
         """
 
         upload_file(self.manifest, remote_file=self.manifest)

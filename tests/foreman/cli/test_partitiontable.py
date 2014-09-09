@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Partition table CLI
-"""
+"""Test class for Partition table CLI"""
 from robottelo.test import CLITestCase
 from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import CLIFactoryError, make_partition_table
@@ -26,10 +23,12 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         """Remove the file"""
 
     def test_create_ptable(self):
-        """
-        @Feature: Partition Table - Create
-        @Test: Check if Partition Table can be created
+        """@Test: Check if Partition Table can be created
+
         @Assert: Partition Table is created
+
+        @Feature: Partition Table - Create
+
         """
 
         try:
@@ -42,10 +41,12 @@ class TestPartitionTableUpdateCreate(CLITestCase):
                          "There should not be an exception here")
 
     def test_update_ptable(self):
-        """
+        """@Test: Check if Partition Table can be updated
+
         @Feature: Partition Table - Update
-        @Test: Check if Partition Table can be updated
+
         @Assert: Partition Table is updated
+
         """
 
         try:
@@ -72,10 +73,12 @@ class TestPartitionTableDelete(CLITestCase):
     """Test case for Dump/Delete CLI tests."""
 
     def test_dump_ptable_1(self):
-        """
+        """@Test: Check if Partition Table can be created with specific content
+
         @Feature: Partition Table - Create
-        @Test: Check if Partition Table can be created with specific content
+
         @Assert: Partition Table is created
+
         """
 
         content = "Fake ptable"
@@ -91,10 +94,12 @@ class TestPartitionTableDelete(CLITestCase):
         self.assertTrue(content in ptable_content.stdout[0])
 
     def test_delete_ptable_1(self):
-        """
+        """@Test: Check if Partition Table can be deleted
+
         @Feature: Partition Table - Delete
-        @Test: Check if Partition Table can be deleted
+
         @Assert: Partition Table is deleted
+
         """
 
         content = "Fake ptable"
@@ -113,10 +118,12 @@ class TestPartitionTableDelete(CLITestCase):
             PartitionTable().exists(tuple_search=('name', name)).stdout)
 
     def test_addoperatingsystem_ptable(self):
-        """
+        """@Test: Check if Partition Table can be associated with operating system
+
         @Feature: Partition Table - Add operating system
-        @Test: Check if Partition Table can be associated with operating system
+
         @Assert: Operating system added
+
         """
 
         content = "Fake ptable"

@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
+"""Test class for Model CLI"""
 
-"""
-Test class for Model CLI
-"""
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
@@ -17,20 +15,24 @@ class TestModel(MetaCLITestCase):
     factory_obj = Model
 
     def test_create_model_1(self):
-        """
+        """@Test: Check if Model can be created
+
         @Feature: Model - Positive Create
-        @Test: Check if Model can be created
+
         @Assert: Model is created
+
         """
         result = self.factory()
         model = Model().info({'name': result['name']})
         self.assertEqual(result['name'], model.stdout['name'])
 
     def test_create_model_2(self):
-        """
+        """@Test: Check if Model can be created with specific vendor class
+
         @Feature: Model - Positive Create
-        @Test: Check if Model can be created with specific vendor class
+
         @Assert: Model is created with specific vendor class
+
         """
         result = self.factory({'vendor-class': generate_string("alpha", 10)})
         # Check that Model was created with proper values

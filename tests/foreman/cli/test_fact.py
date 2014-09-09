@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Fact  CLI
-"""
+"""Test class for Fact  CLI"""
 
 import sys
 
@@ -22,9 +19,7 @@ else:
 
 @ddt
 class TestFact(CLITestCase):
-    """
-    Fact related tests.
-    """
+    """Fact related tests."""
 
     @unittest.skip("Need to create facts before we can check them.")
     @data(
@@ -32,10 +27,12 @@ class TestFact(CLITestCase):
     )
     @attr('cli', 'fact')
     def test_list_success(self, fact):
-        """
+        """@Test: Test Fact List
+
         @Feature: Fact - List Positive
-        @Test: Test Fact List
+
         @Assert: Fact List is displayed
+
         """
 
         args = {
@@ -55,10 +52,12 @@ class TestFact(CLITestCase):
     )
     @attr('cli', 'fact')
     def test_list_fail(self, fact):
-        """
+        """@Test: Test Fact List failure
+
         @Feature: Fact - List Negative
-        @Test: Test Fact List failure
+
         @Assert: Fact List is not displayed
+
         """
 
         args = {

@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for SSO (CLI)
-"""
+"""Test class for SSO (CLI)"""
 
 import sys
 
@@ -30,33 +27,45 @@ class TestSSOCLI(CLITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_kerberos_cli(self):
-        """
+        """@test: kerberos user can login to CLI
+
         @feature: SSO
-        @test: kerberos user can login to CLI
+
         @setup: kerberos configured against foreman.
+
         @assert: Log in to hammer cli successfully
+
         @status: Manual
+
         """
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_ipa_cli(self):
-        """
+        """@test: IPA user can login to CLI
+
         @feature: SSO
-        @test: IPA user can login to CLI
+
         @setup: IPA configured against foreman.
+
         @assert: Log in to hammer cli successfully
+
         @status: Manual
+
         """
         pass
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_sso_openldap_cli(self):
-        """
+        """@test: OpenLDAP user can login to CLI
+
         @feature: SSO
-        @test: OpenLDAP user can login to CLI
+
         @setup: OpenLDAP configured against foreman.
+
         @assert: Log in to hammer cli successfully
+
         @status: Manual
+
         """
         pass

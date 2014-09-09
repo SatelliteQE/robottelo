@@ -3,9 +3,7 @@
 
 # pylint: disable=R0904
 
-"""
-Test class for Content-Host CLI
-"""
+"""Test class for Content-Host CLI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -22,10 +20,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestContentHost(CLITestCase):
-
-    """
-    content-host CLI tests.
-    """
+    """content-host CLI tests."""
 
     NEW_ORG = None
     NEW_CV = None
@@ -36,9 +31,7 @@ class TestContentHost(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1127629)  # skip entire class
     def setUp(self):
-        """
-        Tests for Content Host via Hammer CLI
-        """
+        """Tests for Content Host via Hammer CLI"""
 
         super(TestContentHost, self).setUp()
 
@@ -88,10 +81,12 @@ class TestContentHost(CLITestCase):
     )
     @attr('cli', 'content-host')
     def test_positive_create_1(self, test_data):
-        """
-        @Test: Check if content host can be created with random names
+        """@Test: Check if content host can be created with random names
+
         @Feature: Content Hosts
+
         @Assert: Content host is created and has random name
+
         """
 
         new_system = make_content_host({
@@ -116,10 +111,12 @@ class TestContentHost(CLITestCase):
     )
     @attr('cli', 'content-host')
     def test_positive_create_2(self, test_data):
-        """
-        @Test: Check if content host can be created with random description
+        """@Test: Check if content host can be created with random description
+
         @Feature: Content Hosts
+
         @Assert: Content host is created and has random description
+
         """
 
         new_system = make_content_host({
@@ -136,10 +133,12 @@ class TestContentHost(CLITestCase):
 
     @attr('cli', 'content-host')
     def test_positive_create_3(self):
-        """
-        @Test: Check if content host can be created with organization name
+        """@Test: Check if content host can be created with organization name
+
         @Feature: Content Hosts
+
         @Assert: Content host is created using organization name
+
         """
 
         new_system = make_content_host({
@@ -160,10 +159,12 @@ class TestContentHost(CLITestCase):
 
     @attr('cli', 'content-host')
     def test_positive_create_4(self):
-        """
-        @Test: Check if content host can be created with organization label
+        """@Test: Check if content host can be created with organization label
+
         @Feature: Content Hosts
+
         @Assert: Content host is created using organization label
+
         """
 
         new_system = make_content_host({
@@ -184,10 +185,12 @@ class TestContentHost(CLITestCase):
 
     @attr('cli', 'content-host')
     def test_positive_create_5(self):
-        """
-        @Test: Check if content host can be created with content view name
+        """@Test: Check if content host can be created with content view name
+
         @Feature: Content Hosts
+
         @Assert: Content host is created using content view name
+
         """
 
         new_system = make_content_host({
@@ -205,10 +208,12 @@ class TestContentHost(CLITestCase):
     @skip_if_bug_open('bugzilla', 1107319)
     @attr('cli', 'content-host')
     def test_positive_create_6(self):
-        """
-        @Test: Check if content host can be created with lifecycle name
+        """@Test: Check if content host can be created with lifecycle name
+
         @Feature: Content Hosts
+
         @Assert: Content host is created using lifecycle name
+
         """
 
         new_system = make_content_host({
@@ -226,11 +231,14 @@ class TestContentHost(CLITestCase):
     @skip_if_bug_open('bugzilla', 1114046)
     @attr('cli', 'content-host')
     def test_positive_create_7(self):
-        """
-        @Test: Check if content host can be created with new lifecycle
+        """@Test: Check if content host can be created with new lifecycle
+
         @Feature: Content Hosts
+
         @Assert: Content host is created using new lifecycle
+
         @BZ: 1114046
+
         """
 
         new_system = make_content_host({
@@ -247,10 +255,12 @@ class TestContentHost(CLITestCase):
 
     @attr('cli', 'content-host')
     def test_positive_create_8(self):
-        """
-        @Test: Check if content host can be created with new content view
+        """@Test: Check if content host can be created with new content view
+
         @Feature: Content Hosts
+
         @Assert: Content host is created using new published, promoted cv
+
         """
 
         if TestContentHost.PROMOTED_CV is None:
@@ -278,10 +288,12 @@ class TestContentHost(CLITestCase):
     )
     @attr('cli', 'content-host')
     def test_negative_create_1(self, test_data):
-        """
-        @Test: Check if content host can be created with random long names
+        """@Test: Check if content host can be created with random long names
+
         @Feature: Content Hosts
+
         @Assert: Content host is not created
+
         """
 
         with self.assertRaises(Exception):
@@ -293,10 +305,12 @@ class TestContentHost(CLITestCase):
 
     @attr('cli', 'content-host')
     def test_negative_create_2(self):
-        """
-        @Test: Check if content host can be created with new content view
+        """@Test: Check if content host can be created with new content view
+
         @Feature: Content Hosts
+
         @Assert: Content host is not created using new unpublished cv
+
         """
 
         con_view = make_content_view(
@@ -320,10 +334,12 @@ class TestContentHost(CLITestCase):
     )
     @attr('cli', 'content-host')
     def test_positive_update_1(self, test_data):
-        """
-        @Test: Check if content host name can be updated
+        """@Test: Check if content host name can be updated
+
         @Feature: Content Hosts
+
         @Assert: Content host is created and name is updated
+
         """
         new_system = None
         try:
@@ -387,11 +403,14 @@ class TestContentHost(CLITestCase):
     )
     @attr('cli', 'content-host')
     def test_positive_update_2(self, test_data):
-        """
-        @Test: Check if content host description can be updated
+        """@Test: Check if content host description can be updated
+
         @Feature: Content Hosts
+
         @Assert: Content host is created and description is updated
+
         @BZ: 1082157
+
         """
 
         new_system = make_content_host({
@@ -452,10 +471,12 @@ class TestContentHost(CLITestCase):
     )
     @attr('cli', 'content-host')
     def test_positive_delete_1(self, test_data):
-        """
-        @Test: Check if content host can be created and deleted
+        """@Test: Check if content host can be created and deleted
+
         @Feature: Content Hosts
+
         @Assert: Content host is created and then deleted
+
         """
 
         new_system = make_content_host({

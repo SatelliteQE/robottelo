@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Host CLI
-"""
+"""Test class for Host CLI"""
 
 from ddt import ddt
 from robottelo.cli.factory import make_lifecycle_environment, make_org
@@ -15,16 +12,12 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestLifeCycleEnvironment(CLITestCase):
-    """
-    Test class for Lifecycle Environment CLI
-    """
+    """Test class for Lifecycle Environment CLI"""
 
     org = None
 
     def setUp(self):
-        """
-        Tests for Lifecycle Environment via Hammer CLI
-        """
+        """Tests for Lifecycle Environment via Hammer CLI"""
 
         super(TestLifeCycleEnvironment, self).setUp()
 
@@ -35,10 +28,12 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1077386)
     def test_bugzilla_1077386(self):
-        """
-        @Test: List subcommand returns standard output
+        """@Test: List subcommand returns standard output
+
         @Feature: Lifecycle Environment
+
         @Assert: There should not be an error returned
+
         """
 
         # List avaialble lifecycle environments using default Table
@@ -63,11 +58,14 @@ class TestLifeCycleEnvironment(CLITestCase):
     @skip_if_bug_open('bugzilla', 1077333)
     @skip_if_bug_open('bugzilla', 1099655)
     def test_bugzilla_1077333(self):
-        """
-        @Test: Search lifecycle environment via its name containing UTF-8 chars
+        """@Test: Search lifecycle environment via its name containing UTF-8 chars
+
         @Feature: Lifecycle Environment
+
         @Assert: Can get info for lifecycle by its name
+
         @BZ: 1077333, 1099655
+
         """
 
         payload = {
@@ -113,11 +111,14 @@ class TestLifeCycleEnvironment(CLITestCase):
         {'name': generate_string("html", 15)},
     )
     def test_positive_create_1(self, test_data):
-        """
-        @Test: Create lifecycle environment with valid name, prior to Library
+        """@Test: Create lifecycle environment with valid name, prior to Library
+
         @Feature: Lifecycle Environment
+
         @Assert: Lifecycle environment is created with Library as prior
+
         @BZ: 1099655
+
         """
 
         payload = {
@@ -161,12 +162,15 @@ class TestLifeCycleEnvironment(CLITestCase):
         {'name': generate_string("html", 15)},
     )
     def test_positive_create_2(self, test_data):
-        """
-        @Test: Create lifecycle environment with valid name and description,
+        """@Test: Create lifecycle environment with valid name and description,
         prior to Library
+
         @Feature: Lifecycle Environment
+
         @Assert: Lifecycle environment is created with Library as prior
+
         @BZ: 1099655
+
         """
 
         payload = {
@@ -216,11 +220,14 @@ class TestLifeCycleEnvironment(CLITestCase):
         {'name': generate_string("html", 15)},
     )
     def test_positive_delete_1(self, test_data):
-        """
-        @Test: Create lifecycle environment with valid name, prior to Library
+        """@Test: Create lifecycle environment with valid name, prior to Library
+
         @Feature: Lifecycle Environment
+
         @Assert: Lifecycle environment is deleted
+
         @BZ: 1099655
+
         """
 
         payload = {
@@ -289,11 +296,14 @@ class TestLifeCycleEnvironment(CLITestCase):
         {'name': generate_string("html", 15)},
     )
     def test_positive_update_1(self, test_data):
-        """
-        @Test: Create lifecycle environment then update its name
+        """@Test: Create lifecycle environment then update its name
+
         @Feature: Lifecycle Environment
+
         @Assert: Lifecycle environment name is updated
+
         @BZ: 1095937, 1099655
+
         """
 
         payload = {
@@ -355,11 +365,14 @@ class TestLifeCycleEnvironment(CLITestCase):
         {'description': generate_string("html", 15)},
     )
     def test_positive_update_2(self, test_data):
-        """
-        @Test: Create lifecycle environment then update its description
+        """@Test: Create lifecycle environment then update its description
+
         @Feature: Lifecycle Environment
+
         @Assert: Lifecycle environment description is updated
+
         @BZ: 1095937, 1099655
+
         """
 
         payload = {

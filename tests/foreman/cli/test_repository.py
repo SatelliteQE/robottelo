@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Repository CLI
-"""
+"""Test class for Repository CLI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -17,17 +14,13 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestRepository(CLITestCase):
-    """
-    Repository CLI tests.
-    """
+    """Repository CLI tests."""
 
     org = None
     product = None
 
     def setUp(self):
-        """
-        Tests for Repositiry via Hammer CLI
-        """
+        """Tests for Repositiry via Hammer CLI"""
 
         super(TestRepository, self).setUp()
 
@@ -38,9 +31,7 @@ class TestRepository(CLITestCase):
                 {u'organization-id': TestRepository.org['id']})
 
     def _make_repository(self, options=None):
-        """
-        Makes a new repository and asserts its success
-        """
+        """Makes a new repository and asserts its success"""
 
         if options is None:
             options = {}
@@ -78,10 +69,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_create_1(self, test_data):
-        """
-        @Test: Check if repository can be created with random names
+        """@Test: Check if repository can be created with random names
+
         @Feature: Repository
+
         @Assert: Repository is created and has random name
+
         """
 
         new_repo = self._make_repository({u'name': test_data['name']})
@@ -103,10 +96,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_create_2(self, test_data):
-        """
-        @Test: Check if repository can be created with random names and labels
+        """@Test: Check if repository can be created with random names and labels
+
         @Feature: Repository
+
         @Assert: Repository is created and has random name and labels
+
         """
 
         # Generate a random, 'safe' label
@@ -141,10 +136,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_create_3(self, test_data):
-        """
-        @Test: Create YUM repository
+        """@Test: Create YUM repository
+
         @Feature: Repository
+
         @Assert: YUM repository is created
+
         """
 
         new_repo = self._make_repository(
@@ -177,10 +174,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_create_4(self, test_data):
-        """
-        @Test: Create Puppet repository
+        """@Test: Create Puppet repository
+
         @Feature: Repository
+
         @Assert: Puppet repository is created
+
         """
 
         new_repo = self._make_repository(
@@ -210,11 +209,14 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_create_5(self, test_data):
-        """
-        @Test: Check if repository can be created with gpg key ID
+        """@Test: Check if repository can be created with gpg key ID
+
         @Feature: Repository
+
         @Assert: Repository is created and has gpg key
+
         @BZ: 1083236
+
         """
 
         # Make a new gpg key
@@ -255,11 +257,14 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_create_6(self, test_data):
-        """
-        @Test: Check if repository can be created with gpg key name
+        """@Test: Check if repository can be created with gpg key name
+
         @Feature: Repository
+
         @Assert: Repository is created and has gpg key
+
         @BZ: 1103944
+
         """
 
         # Make a new gpg key
@@ -293,11 +298,14 @@ class TestRepository(CLITestCase):
     @data(u'true', u'yes', u'1')
     @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
-        """
-        @Test: Create repository published via http
+        """@Test: Create repository published via http
+
         @Feature: Repository
+
         @Assert: Repository is created and is published via http
+
         @BZ: 1083256
+
         """
 
         new_repo = self._make_repository(
@@ -322,10 +330,12 @@ class TestRepository(CLITestCase):
     @data(u'false', u'no', u'0')
     @attr('cli', 'repository')
     def test_positive_create_8(self, test_data):
-        """
-        @Test: Create repository not published via http
+        """@Test: Create repository not published via http
+
         @Feature: Repository
+
         @Assert: Repository is created and is not published via http
+
         """
 
         new_repo = self._make_repository(
@@ -356,10 +366,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_negative_create_1(self, test_data):
-        """
-        @Test: Repository name cannot be 300-characters long
+        """@Test: Repository name cannot be 300-characters long
+
         @Feature: Repository
+
         @Assert: Repository cannot be created
+
         """
 
         with self.assertRaises(Exception):
@@ -376,10 +388,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_synchronize_1(self, test_data):
-        """
-        @Test: Check if repository can be created and synced
+        """@Test: Check if repository can be created and synced
+
         @Feature: Repository
+
         @Assert: Repository is created and synced
+
         """
 
         new_repo = self._make_repository(
@@ -417,10 +431,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_update_1(self, test_data):
-        """
-        @Test: Update the original url for a repository
+        """@Test: Update the original url for a repository
+
         @Feature: Repository
+
         @Assert: Repository url is updated
+
         """
 
         new_repo = self._make_repository()
@@ -459,24 +475,32 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1083236)
     @attr('cli', 'repository')
     def test_positive_update_2(self, test_data):
-        """
-        @Test: Update the original gpg key
+        """@Test: Update the original gpg key
+
         @Feature: Repository
+
         @Assert: Repository gpg key is updated
+
         @BZ: 1083236
+
         @Status: manual
+
         """
 
     @stubbed
     @skip_if_bug_open('bugzilla', 1083256)
     @attr('cli', 'repository')
     def test_positive_update_3(self, test_data):
-        """
-        @Test: Update the original publishing method
+        """@Test: Update the original publishing method
+
         @Feature: Repository
+
         @Assert: Repository publishing method is updated
+
         @BZ: 1083256
+
         @Status: manual
+
         """
 
     @skip_if_bug_open('bugzilla', 1129617)
@@ -490,10 +514,12 @@ class TestRepository(CLITestCase):
     )
     @attr('cli', 'repository')
     def test_positive_delete_1(self, test_data):
-        """
-        @Test: Check if repository can be created and deleted
+        """@Test: Check if repository can be created and deleted
+
         @Feature: Repository
+
         @Assert: Repository is created and then deleted
+
         """
 
         new_repo = self._make_repository({u'name': test_data['name']})

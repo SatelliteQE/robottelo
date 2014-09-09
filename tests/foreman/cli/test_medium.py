@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Medium  CLI
-"""
+"""Test class for Medium  CLI"""
 
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
@@ -39,10 +36,12 @@ class TestMedium(CLITestCase):
           {'name': generate_string("numeric", 10)},
           {'name': generate_string("html", 10)})
     def test_positive_create_1(self, test_data):
-        """
+        """@Test: Check if Medium can be created
+
         @Feature: Medium - Positive Create
-        @Test: Check if Medium can be created
+
         @Assert: Medium is created
+
         """
 
         new_obj = make_medium(test_data)
@@ -65,10 +64,12 @@ class TestMedium(CLITestCase):
           {'name': generate_string("numeric", 10)},
           {'name': generate_string("html", 10)})
     def test_positive_delete_1(self, test_data):
-        """
+        """@Test: Check if Medium can be deleted
+
         @Feature: Medium - Positive Delete
-        @Test: Check if Medium can be deleted
+
         @Assert: Medium is deleted
+
         """
 
         new_obj = make_medium(test_data)
@@ -95,10 +96,12 @@ class TestMedium(CLITestCase):
             len(result.stdout), 0, "Output should be blank.")
 
     def test_addoperatingsystem_medium(self):
-        """
-        @Test: Check if Medium can be associated with operating system
+        """@Test: Check if Medium can be associated with operating system
+
         @Feature: Medium - Add operating system
+
         @Assert: Operating system added
+
         """
 
         name = generate_name(6)
@@ -122,10 +125,12 @@ class TestMedium(CLITestCase):
                          "There should not be an exception here")
 
     def test_removeoperatingsystem_medium(self):
-        """
-        @Test: Check if operating system can be removed from media
+        """@Test: Check if operating system can be removed from media
+
         @Feature: Medium - Remove operating system
+
         @Assert: Operating system removed
+
         """
 
         name = generate_name(6)
@@ -163,10 +168,12 @@ class TestMedium(CLITestCase):
                          "Operating system is not removed from the media")
 
     def test_medium_update(self):
-        """
-        @Test: Check if medium can be updated
+        """@Test: Check if medium can be updated
+
         @Feature: Medium - Update medium
+
         @Assert: Medium updated
+
         """
 
         name = generate_name(6)

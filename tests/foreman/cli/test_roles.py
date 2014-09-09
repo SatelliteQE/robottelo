@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Roles CLI
-"""
+"""Test class for Roles CLI"""
 from ddt import ddt
 from robottelo.cli.factory import CLIFactoryError, make_role
 from robottelo.common.constants import NOT_IMPLEMENTED
@@ -44,11 +41,14 @@ class TestRole(CLITestCase):
     @skip_if_bug_open('bugzilla', 1046208)
     @skip_if_bug_open('bugzilla', 1138559)
     def test_create_role_permission_1(self):
-        """
-           @test: Create new roles Use different set of permission
+        """@test: Create new roles Use different set of permission
+
            @feature: Roles
+
            @assert: Assert creation of roles with set of permission
+
            @status: manual
+
         """
 
         self.fail(NOT_IMPLEMENTED)
