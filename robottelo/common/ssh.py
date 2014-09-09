@@ -16,6 +16,8 @@ except ImportError:
     print "Please install paramiko."
     sys.exit(-1)
 
+logger = logging.getLogger(__name__)
+
 
 class SSHCommandResult(object):
     """
@@ -45,15 +47,12 @@ def _call_paramiko_sshclient():
 
 
 @contextmanager
-def _get_connection(timeout=10):
+def _get_connection(
+        hostname=None, username=None, key_filename=None, timeout=10):
     """Yield an ssh connection object.
 
-    Create an SSH connection using the following parameters from the ``main``
-    section of the configuration file:
-
-    * ``server.hostname``
-    * ``server.ssh.username``
-    * ``server.ssh.key_private``
+    The connection will be configured with the specified arguments or will
+    fall-back to server configuration in the configuration file.
 
     Yield this SSH connection. The connection is automatically closed when the
     caller is done using it using ``contextlib``, so clients should use the
@@ -62,6 +61,16 @@ def _get_connection(timeout=10):
         with _get_connection() as connection:
             ...
 
+    :param str hostname: The hosname of the server to stablish connection. If
+        it is ``None`` ``server.hostname`` from configuration's ``main``
+        section will be used.
+    :param str username: The username to use when connecting. If it is ``None``
+        ``server.hostname`` from configuration's ``main`` section will be used.
+    :param str key_filename: The path of the ssh private key to use when
+        connecting to the server. If it is ``None`` ``server.hostname`` from
+        configuration's ``main`` section will be used.
+    :param int timeout: Time to wait for stablish the connection.
+
     :return: An SSH connection.
     :rtype: paramiko.SSHClient
 
@@ -69,24 +78,30 @@ def _get_connection(timeout=10):
     # Hide base logger from paramiko
     logging.getLogger('paramiko').setLevel(logging.ERROR)
 
+    if hostname is None:
+        hostname = conf.properties['main.server.hostname']
+    if username is None:
+        username = conf.properties['main.server.ssh.username']
+    if key_filename is None:
+        key_filename = conf.properties['main.server.ssh.key_private']
+
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
-        hostname=conf.properties['main.server.hostname'],
-        username=conf.properties['main.server.ssh.username'],
-        key_filename=conf.properties['main.server.ssh.key_private'],
+        hostname=hostname,
+        username=username,
+        key_filename=key_filename,
         timeout=timeout
     )
 
-    robo_logger = logging.getLogger('robottelo')
     client_id = hex(id(client))
     try:
-        robo_logger.info('Instantiated Paramiko client {0}'.format(client_id))
+        logger.info('Instantiated Paramiko client {0}'.format(client_id))
         yield client
     finally:
-        robo_logger.info('Destroying Paramiko client {0}'.format(client_id))
+        logger.info('Destroying Paramiko client {0}'.format(client_id))
         client.close()
-        robo_logger.info('Destroyed Paramiko client {0}'.format(client_id))
+        logger.info('Destroyed Paramiko client {0}'.format(client_id))
 
 
 def upload_file(local_file, remote_file=None):
@@ -136,12 +151,11 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
     # Remove escape code for colors displayed in the output
     regex = re.compile(r'\x1b\[\d\d?m')
 
-    logger = logging.getLogger('robottelo')
-    logger.debug(">>> %s", cmd)
-
     hostname = hostname or conf.properties['main.server.hostname']
 
-    with _get_connection() as connection:
+    logger.debug(">>> [%s] %s", hostname, cmd)
+
+    with _get_connection(hostname=hostname) as connection:
         _, stdout, stderr = connection.exec_command(cmd, timeout)
         errorcode = stdout.channel.recv_exit_status()
         stdout = stdout.read()

@@ -29,6 +29,15 @@ virtual_display=0
 # command will be run before opening any browser window
 window_manager_command=
 
+[clients]
+# Provisioning server hostname where the clients will be created
+provisioning_server=
+# Path on the provisioning server where the virtual images will be stored. If
+# not specified in the configuration, the default libvirt path will be used
+# "/var/lib/libvirt/images/". Make sure that the path exists on the
+# provisioning server.
+image_dir=/opt/robottelo/images
+
 [foreman]
 admin.username=admin
 admin.password=changeme

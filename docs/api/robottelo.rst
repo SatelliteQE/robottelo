@@ -49,3 +49,10 @@ Submodules:
 .. automodule:: robottelo.test
     :members:
     :undoc-members:
+
+:mod:`robottelo.vm`
+---------------------
+
+.. automodule:: robottelo.vm
+    :members:
+    :undoc-members:
