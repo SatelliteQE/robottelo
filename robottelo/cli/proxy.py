@@ -50,18 +50,24 @@ def default_url_on_new_port(oldport, newport):
     ssh.command('chmod 700 /tmp/dsa_{0}'.format(newport))
 
     with ssh._get_connection() as connection:
-        command = u'ssh -i {0} -L {1}:{2}:{3} {4}@{5}'.format(
+        command = u'ssh -i {0} -L {1}:{2}:{3} {4}@{5} -f -N'.format(
             '/tmp/dsa_{0}'.format(newport),
             newport, domain, oldport, user, domain)
         logger.debug('Creating tunnel %s', command)
         # Run command and timeout in 30 seconds.
-        _, _, stderr = connection.exec_command(command, 30)
+        _, stdout, stderr = connection.exec_command(command, 30)
 
-        stderr = stderr.read()
-        if len(stderr) > 0:
-            logger.debug('Tunnel failed: %s', stderr)
-            # Something failed, so raise an exception.
-            raise SSHTunnelError(stderr)
+        status = stdout.channel.recv_exit_status()
+
+        if status != 0:
+            stderr = stderr.read()
+            if len(stderr) > 0:
+                logger.debug('Tunnel failed: %s', stderr)
+                # Something failed, so raise an exception.
+                raise SSHTunnelError(stderr)
+        else:
+            logger.debug('Tunnel created and running in background')
+
         yield 'https://{0}:{1}'.format(domain, newport)
 
 
