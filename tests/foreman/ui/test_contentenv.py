@@ -8,7 +8,7 @@ Test class for Life cycle environments UI
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_string
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
+from robottelo.ui.factory import make_org, make_lifecycle_environment
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -30,73 +30,84 @@ class ContentEnvironment(UITestCase):
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_create_content_environment_1(self):
-        """
+        """@Test: Create content environment with minimal input parameters
+
         @Feature: Content Environment - Positive Create
-        @Test: Create Content Environment with minimal input parameters
+
         @Assert: Environment is created
+
         """
+
         name = generate_string("alpha", 6)
         description = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(name, description)
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_lifecycle_environment(session, org=self.org_name,
+                                       name=name, description=description)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_create_content_environment_2(self):
-        """
+        """@Test: Create Content Environment in a chain
+
         @Feature: Content Environment - Positive Create
-        @Test: Create Content Environment in a chain
+
         @Assert: Environment is created
+
         """
-        env_name1 = generate_string("alpha", 6)
-        env_name2 = generate_string("alpha", 6)
+
+        env_1_name = generate_string("alpha", 6)
+        env_2_name = generate_string("alpha", 6)
         description = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name1, description)
-        self.contentenv.create(env_name2, description, prior=env_name1)
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_lifecycle_environment(session, org=self.org_name,
+                                       name=env_1_name,
+                                       description=description)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.contentenv.create(env_2_name, description, prior=env_1_name)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_delete_content_environment_1(self):
-        """
+        """@Test: Create Content Environment and delete it
+
         @Feature: Content Environment - Positive Delete
-        @Test: Create Content Environment and delete it
+
         @Assert: Environment is deleted
+
         """
+
         name = generate_string("alpha", 6)
         description = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(name, description)
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        self.contentenv.delete(name, "true")
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_lifecycle_environment(session, org=self.org_name,
+                                       name=name, description=description)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.contentenv.delete(name, "true")
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @attr('ui', 'contentenv', 'implemented')
     def test_positive_update_content_environment_1(self):
-        """
+        """@Test: Create Content Environment and update it
+
         @Feature: Content Environment - Positive Update
-        @Test: Create Content Environment and update it
+
         @Assert: Environment is updated
+
         """
+
         name = generate_string("alpha", 6)
         new_name = generate_string("alpha", 6)
         description = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(name)
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        self.contentenv.update(name, new_name, description)
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_lifecycle_environment(session, org=self.org_name,
+                                       name=name)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.contentenv.update(name, new_name, description)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))

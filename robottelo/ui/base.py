@@ -299,6 +299,7 @@ class Base(object):
         self.find_element(locators[edit_loc]).click()
         self.field_update(edit_text_loc, entity_value)
         self.find_element(locators[save_loc]).click()
+        self.wait_for_ajax()
 
     def auto_complete_search(self, go_to_page, entity_locator, partial_name,
                              name, search_key):
