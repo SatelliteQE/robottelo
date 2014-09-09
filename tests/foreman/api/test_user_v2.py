@@ -25,10 +25,12 @@ class UsersTestCase(TestCase):
         StringField(len=(1, 60), str_type=('latin1',)).get_value(),
     )
     def test_positive_create_1(self, login):
-        """
-        @Test Create a user providing the initial login name.
+        """@Test Create a user providing the initial login name.
+
         @Assert: User is created and contains provided login name.
+
         @Feature: User
+
         """
         path = entities.User().path()
         attrs = entities.User(login=login).build()
