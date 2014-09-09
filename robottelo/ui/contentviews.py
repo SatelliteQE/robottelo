@@ -95,11 +95,11 @@ class ContentViews(Base):
                 raise Exception(
                     'Could not delete the %s content view.' % name)
 
-    def move_affected_components(self, env="Library",
-                                 cv='Default Organization View'):
-        """
-        Moves the affected components (e.g. activation-key or content-hosts)
-        to other env or CV
+    def move_affected_components(self, env, cv):
+        """Move affected components to another environment or content view.
+
+        Activation keys and content hosts are examples of affected components.
+
         """
         strategy, value = locators['contentviews.change_env']
         env_element = self.wait_until_element((strategy, value % env))
@@ -115,11 +115,11 @@ class ContentViews(Base):
         self.wait_until_element(locators['contentviews.next_button']).click()
         self.wait_for_ajax()
 
-    def delete_version(self, name, is_affected_comps=False,
-                       env=None, cv=None, really=True):
-        """
-        Deletes published content view's version and handles the associated
+    def delete_version(self, name, env, cv, is_affected_comps=False,
+                       really=True):
+        """Deletes published content view's version and handles the associated
         entities before deleting the selected CV.
+
         """
         element = self.search(name)
 

@@ -11,10 +11,13 @@ else:
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
-from robottelo.common.constants import ENVIRONMENT, NOT_IMPLEMENTED
+from robottelo.api import client
+from robottelo.common.constants import (ENVIRONMENT, FAKE_1_YUM_REPO,
+                                        DEFAULT_CV, NOT_IMPLEMENTED)
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, invalid_names_list,
-                                      valid_data_list)
+                                      valid_data_list, get_server_credentials)
+from robottelo.ui.factory import make_activationkey
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.test import UITestCase
@@ -35,52 +38,83 @@ class ActivationKey(UITestCase):
     """
 
     org_name = None
+    org_id = None
 
     def setUp(self):
         super(ActivationKey, self).setUp()
         # Make sure to use the Class' org_name instance
         if ActivationKey.org_name is None:
-            ActivationKey.org_name = generate_string("alpha", 10)
-            org = entities.Organization(name=ActivationKey.org_name).create()
-            ActivationKey.org_id = org['id']
+            org_name = orm.StringField(str_type=('alphanumeric',),
+                                       len=(5, 80)).get_value()
+            org_attrs = entities.Organization(name=org_name).create()
+            ActivationKey.org_name = org_attrs['name']
+            ActivationKey.org_id = org_attrs['id']
 
     def create_cv(self, name, env_name):
         """Create product/repo and sync it and promote to given env"""
 
         repo_name = generate_string("alpha", 8)
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        publish_version = "Version 1"
-        publish_comment = generate_string("alpha", 8)
-        self.navigator.go_to_products()
-        self.products.create(prd_name)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
-        self.navigator.go_to_content_views()
-        self.content_views.create(name)
-        # Navigating to dashboard is a workaround to
-        # refresh the repos under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
-        self.content_views.add_remove_repos(name, [repo_name])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
-        self.content_views.publish(name, publish_comment)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
-        self.content_views.promote(name, publish_version, env_name)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
 
-    @skip_if_bug_open('bugzilla', 1078676)
+        # Creates new product and repository via API's
+        product_attrs = entities.Product(
+            organization=self.org_id
+        ).create()
+        repo_attrs = entities.Repository(
+            name=repo_name,
+            url=FAKE_1_YUM_REPO,
+            product=product_attrs['id'],
+        ).create()
+
+        # Sync repository
+        response = entities.Repository(id=repo_attrs['id']).sync()
+        task_status = entities.ForemanTask(id=response['id']).poll()
+        self.assertEqual(
+            task_status['result'],
+            u'success',
+            u"Sync for repository {0} failed.".format(repo_attrs['name']))
+
+        # Create Life-Cycle content environment
+        env_attrs = entities.LifecycleEnvironment(
+            name=env_name,
+            organization=self.org_id
+        ).create()
+
+        # Create content view(CV)
+        content_view = entities.ContentView(
+            name=name,
+            organization=self.org_id
+        ).create()
+        # Associate YUM repo to created CV
+        response = client.put(
+            entities.ContentView(id=content_view['id']).path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'repository_ids': [repo_attrs['id']]})
+
+        # Publish content view
+        task = entities.ContentView(id=content_view['id']).publish()
+        task_status = entities.ForemanTask(id=task['id']).poll()
+        self.assertEqual(
+            task_status['result'],
+            u'success',
+            u"Publishing {0} failed.".format(content_view['name']))
+        # Promote the Version 1 to selected environment
+        content_view = entities.ContentView(id=content_view['id']).read_json()
+        task = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']).promote(env_attrs['id'])
+        task_status = entities.ForemanTask(id=task['id']).poll()
+        self.assertEqual(
+            task_status['result'],
+            u'success',
+            u"Promoting {0} to {1} failed.".format(
+                content_view['name'], env_attrs['name']))
+        return product_attrs['name']
+
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
-        """@Test: Create Activation key for all variations of Activation key name
+        """@Test: Create Activation key for all variations of Activation
+        key name
 
         @Feature: Activation key - Positive Create
 
@@ -93,14 +127,12 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_string("alpha", 16))
-        self.assertIsNotNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=generate_string("alpha", 16))
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_2(self, description):
@@ -117,18 +149,16 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT,
-                                  description=description)
-        self.assertIsNotNone(self.activationkey.search_key(name))
+        name = generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=description)
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
-    def test_positive_create_activation_key_3(self, env):
+    def test_positive_create_activation_key_3(self, env_name):
         """@Test: Create Activation key for all variations of Environments
 
         @Feature: Activation key - Positive Create
@@ -145,19 +175,14 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 8)
         cv_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        self.create_cv(cv_name, env)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
+        # Helper function to create and promote CV to next environment
+        self.create_cv(cv_name, env_name)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env_name,
+                               description=generate_string("alpha", 16),
+                               content_view=cv_name)
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
@@ -178,21 +203,15 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env_name,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env_name,
+                               description=generate_string("alpha", 16),
+                               content_view=cv_name)
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_5(self, hc_name):
@@ -207,6 +226,7 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is created
 
         """
+
         name = orm.StringField(str_type=('alpha',)).get_value()
 
         # create Host Collection using API
@@ -215,15 +235,12 @@ class ActivationKey(UITestCase):
             name=hc_name
         ).create()
 
-        with Session(self.browser):
-            self.navigator.go_to_select_org(self.org_name)
-            self.navigator.go_to_activation_keys()
-            self.activationkey.create(name, 'Library')
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
             self.assertIsNotNone(self.activationkey.search_key(name))
             # add Host Collection
             self.activationkey.add_host_collection(name, host_col['name'])
-            self.activationkey.wait_until_element(
-                common_locators['alert.success'])
             result = self.activationkey.find_element(
                 common_locators['alert.success'])
             self.assertIsNotNone(result)
@@ -236,7 +253,6 @@ class ActivationKey(UITestCase):
                 strategy, value % host_col['name']))
             self.assertIsNotNone(host_collection)
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """@Test: Create Activation key with default Usage limit (Unlimited)
@@ -252,15 +268,14 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        name = generate_string("alpha", 10)
-        description = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, description=description)
-        self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1078676)
+        name = generate_string("alpha", 10)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=generate_string("alpha", 16))
+            self.assertIsNotNone(self.activationkey.search_key(name))
+
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """@Test: Create Activation key with finite Usage limit
@@ -276,16 +291,17 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
+
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
         limit = "6"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, limit, description)
-        self.assertIsNotNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               limit=limit,
+                               description=description)
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """@Test: Create Activation key with minimal input parameters
@@ -301,14 +317,13 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT)
-        self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1083471)
+        name = generate_string("alpha", 10)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+
     @data(*invalid_names_list())
     def test_negative_create_activation_key_1(self, name):
         """@Test: Create Activation key with invalid Name
@@ -323,16 +338,14 @@ class ActivationKey(UITestCase):
 
         """
 
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT)
-        invalid = self.products.wait_until_element(common_locators
-                                                   ["common_invalid"])
-        self.assertTrue(invalid)
-        self.assertIsNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            invalid = self.products.wait_until_element(common_locators
+                                                       ["common_invalid"])
+            self.assertIsNotNone(invalid)
+            self.assertIsNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1083438)
     def test_negative_create_activation_key_2(self):
         """@Test: Create Activation key with invalid Description
 
@@ -348,15 +361,15 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 1001)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, description=description)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["common_haserror"]))
-        self.assertIsNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=description)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["common_haserror"]))
+            self.assertIsNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1083027)
+    @skip_if_bug_open('bugzilla', 1139576)
     @data(*invalid_names_list())
     def test_negative_create_activation_key_3(self, limit):
         """@Test: Create Activation key with invalid Usage Limit
@@ -369,16 +382,20 @@ class ActivationKey(UITestCase):
 
         @Assert: Activation key is not created. Appropriate error shown.
 
+        @BZ: 1139576
+
         """
+
         name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, limit)
-        invalid = self.activationkey.wait_until_element(locators
-                                                        ["ak.invalid_limit"])
-        self.assertTrue(invalid)
-        self.assertIsNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               limit=limit)
+            invalid = self.activationkey.wait_until_element(
+                locators["ak.invalid_limit"]
+            )
+            self.assertIsNotNone(invalid)
+            self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
@@ -397,14 +414,13 @@ class ActivationKey(UITestCase):
 
         """
 
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_string("alpha", 16))
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.delete(name, True)
-        self.assertIsNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=generate_string("alpha", 16))
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.delete(name, True)
+            self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
@@ -424,18 +440,17 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT,
-                                  description=description)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.delete(name, True)
-        self.assertIsNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=description)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.delete(name, True)
+            self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
-    def test_positive_delete_activation_key_3(self, env):
+    def test_positive_delete_activation_key_3(self, env_name):
         """@Test: Create Activation key and delete it for all variations of
         Environment
 
@@ -452,21 +467,15 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 8)
         cv_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env,
+        # Helper function to create and promote CV to next environment
+        self.create_cv(cv_name, env_name)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env_name,
                                description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        self.create_cv(cv_name, env)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.delete(name, True)
-        self.assertIsNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.delete(name, True)
+            self.assertIsNone(self.activationkey.search_key(name))
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
@@ -487,23 +496,17 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 6)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env_name,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.delete(name, True)
-        self.assertIsNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env_name,
+                               description=generate_string("alpha", 16),
+                               content_view=cv_name)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.delete(name, True)
+            self.assertIsNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1063273)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_5(self):
         """@Test: Delete an Activation key which has registered systems
@@ -537,25 +540,21 @@ class ActivationKey(UITestCase):
         @BZ: 1117753
 
         """
+
         name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 6)
         cv_name = generate_string("alpha", 6)
-
+        # Helper function to create and promote CV to next environment
+        self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
-            session.nav.go_to_life_cycle_environments()
-            self.contentenv.create(env_name,
-                                   description=generate_string("alpha", 16))
-            self.assertTrue(self.contentenv.wait_until_element
-                            (common_locators["alert.success"]))
-            self.create_cv(cv_name, env_name)
-            session.nav.go_to_activation_keys()
-            self.activationkey.create(name, env_name,
-                                      description=generate_string("alpha", 16),
-                                      content_view=cv_name)
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env_name,
+                               description=generate_string("alpha", 16),
+                               content_view=cv_name)
             self.assertIsNotNone(self.activationkey.search_key(name))
             session.nav.go_to_content_views()
-            self.content_views.delete_version(cv_name, is_affected_comps=True)
+            self.content_views.delete_version(cv_name, is_affected_comps=True,
+                                              env=ENVIRONMENT, cv=DEFAULT_CV)
             self.content_views.delete(name, True)
             self.assertIsNone(self.content_views.search(name))
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -577,16 +576,14 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_string("alpha", 16))
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.delete(name, really=False)
-        self.assertIsNotNone(self.activationkey.search_key(name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=generate_string("alpha", 16))
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.delete(name, really=False)
+            self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_1(self, new_name):
@@ -605,15 +602,13 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, new_name)
-        self.assertIsNotNone(self.activationkey.search_key(new_name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, new_name)
+            self.assertIsNotNone(self.activationkey.search_key(new_name))
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_2(self, new_description):
@@ -633,16 +628,15 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, description=description)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, description=new_description)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=description)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, description=new_description)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
 
-    @skip_if_bug_open('bugzilla', 1089637)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_3(self, env_name):
@@ -662,26 +656,21 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 8)
         cv_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
+        # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT,
-                                  description=generate_string("alpha", 16))
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        env_locator = locators["ak.selected_env"]
-        selected_env = self.activationkey.get_attribute(name, env_locator)
-        self.assertEqual(ENVIRONMENT, selected_env)
-        self.activationkey.update(name, content_view=cv_name, env=env_name)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.success"]))
-        selected_env = self.activationkey.get_attribute(name, env_locator)
-        self.assertEqual(env_name, selected_env)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=generate_string("alpha", 16))
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            env_locator = locators["ak.selected_env"]
+            selected_env = self.activationkey.get_attribute(name, env_locator)
+            self.assertEqual(ENVIRONMENT, selected_env)
+            self.activationkey.update(name, content_view=cv_name, env=env_name)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
+            selected_env = self.activationkey.get_attribute(name, env_locator)
+            self.assertEqual(env_name, selected_env)
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
@@ -702,33 +691,29 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 8)
-        env_name = generate_string("alpha", 8)
+        env1_name = generate_string("alpha", 8)
+        env2_name = generate_string("alpha", 8)
         cv1_name = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        self.create_cv(cv1_name, env_name)
-        self.create_cv(cv2_name, env_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env_name,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv1_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        cv_locator = locators["ak.selected_cv"]
-        selected_cv = self.activationkey.get_attribute(name, cv_locator)
-        self.assertEqual(cv1_name, selected_cv)
-        self.activationkey.update(name, content_view=cv2_name)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.success"]))
-        selected_cv = self.activationkey.get_attribute(name, cv_locator)
-        self.assertEqual(cv2_name, selected_cv)
-        # TODO: Need to check for RH Product too
+        # Helper function to create and promote CV to next environment
+        self.create_cv(cv1_name, env1_name)
+        self.create_cv(cv2_name, env2_name)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env1_name,
+                               description=generate_string("alpha", 16),
+                               content_view=cv1_name)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            cv_locator = locators["ak.selected_cv"]
+            selected_cv = self.activationkey.get_attribute(name, cv_locator)
+            self.assertEqual(cv1_name, selected_cv)
+            self.activationkey.update(name, content_view=cv2_name,
+                                      env=env2_name)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
+            selected_cv = self.activationkey.get_attribute(name, cv_locator)
+            self.assertEqual(cv2_name, selected_cv)
+            # TODO: Need to check for RH Product too
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """@Test: Update Usage limit from Unlimited to a finite number
@@ -747,14 +732,13 @@ class ActivationKey(UITestCase):
 
         name = generate_string("alpha", 10)
         limit = "8"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, limit=limit)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, limit=limit)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @skip_if_bug_open('bugzilla', 1127090)
     @attr('ui', 'ak', 'implemented')
@@ -776,16 +760,15 @@ class ActivationKey(UITestCase):
         name = generate_string("alpha", 10)
         limit = "6"
         new_limit = "Unlimited"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, limit=limit)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, limit=new_limit)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.success"]))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               limit=limit)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, limit=new_limit)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
 
-    @skip_if_bug_open('bugzilla', 1083875)
     @data(*invalid_names_list())
     def test_negative_update_activation_key_1(self, new_name):
         """@Test: Update invalid name in an activation key
@@ -803,18 +786,16 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, new_name)
-        invalid = self.products.wait_until_element(common_locators
-                                                   ["alert.error"])
-        self.assertTrue(invalid)
-        self.assertIsNone(self.activationkey.search_key(new_name))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, new_name)
+            invalid = self.products.wait_until_element(common_locators
+                                                       ["alert.error"])
+            self.assertIsNotNone(invalid)
+            self.assertIsNone(self.activationkey.search_key(new_name))
 
-    @skip_if_bug_open('bugzilla', 1110486)
     def test_negative_update_activation_key_2(self):
         """@Test: Update invalid Description in an activation key
 
@@ -833,16 +814,15 @@ class ActivationKey(UITestCase):
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
         new_description = generate_string("alpha", 1001)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT, description=description)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.update(name, description=new_description)
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.error"]))
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT,
+                               description=description)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, description=new_description)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.error"]))
 
-    @skip_if_bug_open('bugzilla', 1083027)
     @data({u'limit': " "},
           {u'limit': "-1"},
           {u'limit': "text"},
@@ -863,18 +843,16 @@ class ActivationKey(UITestCase):
         """
 
         name = generate_string("alpha", 10)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(ActivationKey.org_name)
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, ENVIRONMENT)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        with self.assertRaises(ValueError) as context:
-            self.activationkey.update(name, limit=test_data['limit'])
-        self.assertEqual(context.exception.message,
-                         "Please update content host limit "
-                         "with valid integer value")
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            with self.assertRaises(ValueError) as context:
+                self.activationkey.update(name, limit=test_data['limit'])
+            self.assertEqual(context.exception.message,
+                             "Please update content host limit "
+                             "with valid integer value")
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_usage_limit(self):
         """@Test: Test that Usage limit actually limits usage
@@ -896,7 +874,6 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
         """@Test: Test that hosts can be associated to Activation Keys
@@ -917,7 +894,6 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_1(self):
         """@Test: Test that RH product can be associated to Activation Keys
@@ -955,54 +931,24 @@ class ActivationKey(UITestCase):
         name = generate_string("alpha", 8)
         cv_name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 8)
-        publish_comment = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_life_cycle_environments()
-        self.contentenv.create(env_name,
-                               description=generate_string("alpha", 16))
-        self.assertTrue(self.contentenv.wait_until_element
-                        (common_locators["alert.success"]))
-        repo_name = generate_string("alpha", 8)
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        publish_version = "Version 1"
-        self.navigator.go_to_products()
-        self.products.create(prd_name)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
-        self.navigator.go_to_content_views()
-        self.content_views.create(cv_name)
-        # Navigating to dashboard is a workaround to
-        # refresh repos under selected CV
-        self.navigator.go_to_dashboard()
-        self.navigator.go_to_content_views()
-        self.content_views.add_remove_repos(cv_name, [repo_name])
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
-        self.content_views.publish(cv_name, publish_comment)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
-        self.content_views.promote(cv_name, publish_version, env_name)
-        self.assertTrue(self.content_views.wait_until_element
-                        (common_locators["alert.success"]))
-        self.navigator.go_to_activation_keys()
-        self.activationkey.create(name, env_name,
-                                  description=generate_string("alpha", 16),
-                                  content_view=cv_name)
-        self.assertIsNotNone(self.activationkey.search_key(name))
-        self.activationkey.associate_product(name, [prd_name])
-        self.assertTrue(self.activationkey.wait_until_element
-                        (common_locators["alert.success"]))
+        # Helper function to create and promote CV to next environment
+        # and it returns product name to associate it with key
+        product_name = self.create_cv(cv_name, env_name)
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=env_name,
+                               description=generate_string("alpha", 16),
+                               content_view=cv_name)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.associate_product(name, [product_name])
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
-        """@Test: Test that RH/Custom product can be associated to Activation keys
+        """@Test: Test that RH/Custom product can be associated to Activation
+        keys
 
         @Feature: Activation key - Product
 
