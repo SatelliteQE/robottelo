@@ -21,10 +21,6 @@ import random
 # (too-few-public-methods) pylint:disable=R0903
 
 
-class ReadException(Exception):
-    """Indicates an error occurred while reading from a Foreman server."""
-
-
 class ActivationKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         factory.EntityFactoryMixin):
@@ -478,7 +474,7 @@ class Filter(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
         api_path = 'api/v2/filters'
 
 
-class ForemanTask(orm.Entity):
+class ForemanTask(orm.Entity, orm.EntityReadMixin):
     """A representation of a Foreman task."""
 
     class Meta(object):
@@ -509,39 +505,6 @@ class ForemanTask(orm.Entity):
                 super(ForemanTask, self).path(which='all')
             )
         return super(ForemanTask, self).path(which='this')
-
-    def read(self, auth=None):
-        """Return information about a foreman task.
-
-        :return: Information about this foreman task.
-        :rtype: dict
-        :raises robottelo.entities.ReadException: If information about this
-            foreman task could not be fetched. This could happen if, for
-            example, the task does not exist or bad credentials are used.
-
-        """
-        # FIXME: Need better error handling. If there's an authentication
-        # error, the server will respond with JSON:
-        #
-        #     {u'error': {u'text': u'Unable to authenticate user.'}}
-        #
-        # But what if the JSON response contains 'errors', or what if the
-        # response cannot be converted to JSON at all? A utility function can
-        # probably be created for this need. Perhaps
-        # robottelo.api.utils.status_code_error() could be of use. After all,
-        # most of that method is devoted to fetching an error message, and only
-        # the last bit composes an error message.
-        if auth is None:
-            auth = get_server_credentials()
-        response = client.get(self.path(), auth=auth, verify=False)
-        if response.status_code is not 200:
-            raise ReadException(response.text)
-        if response.json() == {}:
-            # FIXME: See bugzilla bug #1131702
-            raise ReadException(
-                'ForemanTask {0} does not exist.'.format(self.id)
-            )
-        return response.json()
 
     def poll(self, poll_rate=5, timeout=120, auth=None):
         """Return the status of a task or timeout.
