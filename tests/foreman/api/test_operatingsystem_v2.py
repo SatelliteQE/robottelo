@@ -12,10 +12,10 @@ from unittest import TestCase
 class OSParameterTestCase(TestCase):
     """Tests for the ``api/v2/operatingsystems/:id/parameters`` paths."""
     def test_bz_1114640(self):
-        """@Test: Create a parameter for operating system 1.
-
+        """
+        @Test: Create a parameter for operating system 1.
+        @Feature: Operating Systems
         @Assert: A parameter is created and can be read afterwards.
-
         """
         # Check whether OS 1 exists. Do not catch
         # requests.exceptions.HTTPError, as doing so destroys useful stack
