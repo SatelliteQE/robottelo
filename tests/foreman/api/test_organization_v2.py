@@ -21,6 +21,7 @@ class OrganizationsTestCase(TestCase):
         """@Test Create an organization using a 'text/plain' content-type.
 
         @Assert: HTTP 415 is returned.
+
         @Feature: Organization
 
         """

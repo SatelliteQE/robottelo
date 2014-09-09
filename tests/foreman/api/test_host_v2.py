@@ -19,6 +19,7 @@ class HostsTestCase(TestCase):
         """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
         @Feature: Host
+
         @Assert: HTTP 200 is returned, along with ``search`` term.
 
         """
@@ -39,6 +40,7 @@ class HostsTestCase(TestCase):
         """@Test: GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
         @Feature: Host
+
         @Assert: HTTP 200 is returned, along with per ``per_page`` value.
 
         """
