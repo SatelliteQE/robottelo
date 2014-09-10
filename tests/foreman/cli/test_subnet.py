@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Subnet CLI
-"""
+"""Test class for Subnet CLI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -16,9 +13,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestSubnet(CLITestCase):
-    """
-    Subnet CLI tests.
-    """
+    """Subnet CLI tests."""
 
     @data(
         {'name': generate_string('alpha', 15)},
@@ -30,10 +25,12 @@ class TestSubnet(CLITestCase):
     )
     @attr('cli', 'subnet')
     def test_positive_create_1(self, test_name):
-        """
-        @Test: Check if Subnet can be created with random names
+        """@Test: Check if Subnet can be created with random names
+
         @Feature: Subnet - Create
+
         @Assert: Subnet is created and has random name
+
         """
 
         new_subnet = make_subnet({'name': test_name['name']})
@@ -51,10 +48,12 @@ class TestSubnet(CLITestCase):
 
     @attr('cli', 'subnet')
     def test_list(self):
-        """
-        @Test: Check if Subnet can be listed
+        """@Test: Check if Subnet can be listed
+
         @Feature: Subnet - List
+
         @Assert: Subnet is listed
+
         """
 
         # Fetch current total
@@ -81,10 +80,12 @@ class TestSubnet(CLITestCase):
     )
     @attr('cli', 'subnet')
     def test_positive_update_1(self, test_name):
-        """
-        @Test: Check if Subnet name can be updated
+        """@Test: Check if Subnet name can be updated
+
         @Feature: Subnet - Update
+
         @Assert: Subnet name is updated
+
         """
 
         new_subnet = make_subnet()
@@ -132,10 +133,12 @@ class TestSubnet(CLITestCase):
     )
     @attr('cli', 'subnet')
     def test_positive_delete_1(self, test_name):
-        """
-        @Test: Check if Subnet can be deleted
+        """@Test: Check if Subnet can be deleted
+
         @Feature: Subnet - Delete
+
         @Assert: Subnet is deleted
+
         """
 
         new_subnet = make_subnet({'name': test_name['name']})

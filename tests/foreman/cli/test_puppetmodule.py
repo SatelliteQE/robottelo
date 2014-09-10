@@ -2,10 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 # pylint: disable=R0904
-
-"""
-Test class for PuppetModule CLI
-"""
+"""Test class for PuppetModule CLI"""
 
 from robottelo.test import CLITestCase
 from robottelo.cli.puppetmodule import PuppetModule
@@ -13,16 +10,16 @@ from robottelo.common.decorators import skip_if_bug_open
 
 
 class TestPuppetModule(CLITestCase):
-    """
-    Tests for PuppetModule via Hammer CLI
-    """
+    """Tests for PuppetModule via Hammer CLI"""
 
     @skip_if_bug_open('bugzilla', 1127382)
     def test_bugzilla_1127382(self):
-        """
-        @Test: hammer puppet-module <info,list> --help
+        """@Test: hammer puppet-module <info,list> --help
+
         @Feature: puppet-module info/list
+
         @Assert: Assert product option are present
+
         """
         # puppet-module list --help:
         result = PuppetModule.list({'help': True})

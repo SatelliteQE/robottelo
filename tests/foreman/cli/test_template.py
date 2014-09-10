@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Template CLI
-"""
+"""Test class for Template CLI"""
 
 from robottelo.cli.factory import CLIFactoryError, make_template, make_os
 from robottelo.cli.template import Template
@@ -13,15 +10,15 @@ from robottelo.test import CLITestCase
 
 
 class TestTemplate(CLITestCase):
-    """
-    Test class for Config Template CLI.
-    """
+    """Test class for Config Template CLI."""
 
     def test_create_template_1(self):
-        """
-        @Test: Check if Template can be created
+        """@Test: Check if Template can be created
+
         @Feature: Template - Create
+
         @Assert: Template is created
+
         """
 
         content = generate_string("alpha", 10)
@@ -43,10 +40,12 @@ class TestTemplate(CLITestCase):
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
     def test_update_template_1(self):
-        """
-        @Test: Check if Template can be updated
+        """@Test: Check if Template can be updated
+
         @Feature: Template - Update
+
         @Assert: Template is updated
+
         """
 
         content = generate_string("alpha", 10)
@@ -75,10 +74,12 @@ class TestTemplate(CLITestCase):
         self.assertEqual(updated_name, result.stdout['name'])
 
     def test_add_operating_system_1(self):
-        """
-        @Test: Check if Template can be assigned operating system
+        """@Test: Check if Template can be assigned operating system
+
         @Feature: Template - Add Operating System
+
         @Assert: Template has an operating system
+
         """
 
         content = generate_string("alpha", 10)
@@ -113,10 +114,12 @@ class TestTemplate(CLITestCase):
         self.assertIn(os_string, result.stdout['operating-systems'])
 
     def test_remove_operating_system_1(self):
-        """
-        @Test: Check if OS can be removed Template
+        """@Test: Check if OS can be removed Template
+
         @Feature: Template - Remove Operating System
+
         @Assert: Template no longer has an operating system
+
         """
 
         content = generate_string("alpha", 10)
@@ -168,10 +171,12 @@ class TestTemplate(CLITestCase):
         self.assertNotIn(os_string, result.stdout['operating-systems'])
 
     def test_dump_template_1(self):
-        """
-        @Test: Check if Template can be created with specific content
+        """@Test: Check if Template can be created with specific content
+
         @Feature: Template - Create
+
         @Assert: Template is created with specific content
+
         """
 
         content = generate_string("alpha", 10)
@@ -194,11 +199,14 @@ class TestTemplate(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1096333)
     def test_delete_template_1(self):
-        """
-        @Test: Check if Template can be deleted
+        """@Test: Check if Template can be deleted
+
         @Feature: Template - Delete
+
         @Assert: Template is deleted
+
         @BZ: 1096333
+
         """
 
         content = generate_string("alpha", 10)

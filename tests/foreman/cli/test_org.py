@@ -2,10 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 # pylint: disable=R0904
-
-"""
-Test class for Organization CLI
-"""
+"""Test class for Organization CLI"""
 
 from robottelo.common import conf
 from ddt import ddt
@@ -112,19 +109,19 @@ def positive_name_desc_label_data():
 
 @ddt
 class TestOrg(CLITestCase):
-    """
-    Tests for Organizations via Hammer CLI
-    """
+    """Tests for Organizations via Hammer CLI"""
 
     # Tests for issues
 
     # This test also covers the redmine bug 4443
     @data(*positive_create_data_1())
     def test_redmine_4486(self, test_data):
-        """
-        @test: Can search for an organization by name
+        """@test: Can search for an organization by name
+
         @feature: Organizations
+
         @assert: organization is created and can be searched by name
+
         """
 
         new_obj = make_org(test_data)
@@ -139,10 +136,12 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('redmine', 4295)
     def test_remove_domain(self):
-        """
-        @Test: Check if a Domain can be removed from an Org
+        """@Test: Check if a Domain can be removed from an Org
+
         @Feature: Org - Domain
+
         @Assert: Domain is removed from the org
+
         """
         org_result = make_org()
         domain_result = make_domain()
@@ -158,11 +157,14 @@ class TestOrg(CLITestCase):
     @skip_if_bug_open('bugzilla', 1079587)
     @data(*positive_create_data_1())
     def test_bugzilla_1079587(self, test_data):
-        """
-        @test: Search for an organization by label
+        """@test: Search for an organization by label
+
         @feature: Organizations
+
         @assert: organization is created and can be searched by label
+
         @bz: 1079587
+
         """
 
         new_obj = make_org(test_data)
@@ -176,10 +178,12 @@ class TestOrg(CLITestCase):
                          result.stdout['name'])
 
     def test_bugzilla_1076568_1(self):
-        """
-        @test: Delete organization by name
+        """@test: Delete organization by name
+
         @feature: Organizations
+
         @assert: Organization is deleted
+
         """
 
         new_obj = make_org()
@@ -213,10 +217,12 @@ class TestOrg(CLITestCase):
             len(result.stdout), 0, "Output should be blank.")
 
     def test_bugzilla_1076568_2(self):
-        """
-        @test: Delete organization by ID
+        """@test: Delete organization by ID
+
         @feature: Organizations
+
         @assert: Organization is deleted
+
         """
 
         new_obj = make_org()
@@ -250,10 +256,12 @@ class TestOrg(CLITestCase):
             len(result.stdout), 0, "Output should be blank.")
 
     def test_bugzilla_1076568_3(self):
-        """
-        @test: Delete organization by label
+        """@test: Delete organization by label
+
         @feature: Organizations
+
         @assert: Organization is deleted
+
         """
 
         new_obj = make_org()
@@ -288,11 +296,14 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1076541)
     def test_bugzilla_1076541(self):
-        """
-        @test: Cannot update organization name via CLI
+        """@test: Cannot update organization name via CLI
+
         @feature: Organizations
+
         @assert: Organization name is updated
-        @bz : 1076541
+
+        @bz: 1076541
+
         """
 
         new_obj = make_org()
@@ -323,12 +334,15 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1075163)
     def test_bugzilla_1075163(self):
-        """
-        @Test: Add --label as a valid argument to organization info command
+        """@Test: Add --label as a valid argument to organization info command
+
         @Feature: Org - Positive Create
+
         @Assert: Organization is created and info can be obtained by its label
         graciously
+
         @bz: 1075163
+
         """
 
         new_obj = make_org()
@@ -341,12 +355,15 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1075156)
     def test_bugzilla_1075156(self):
-        """
-        @Test: Cannot use CLI info for organizations by name
+        """@Test: Cannot use CLI info for organizations by name
+
         @Feature: Org - Positive Create
+
         @Assert: Organization is created and info can be obtained by its name
         graciously
+
         @bz: 1075156
+
         """
 
         new_obj = make_org()
@@ -358,10 +375,12 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
     def test_bugzilla_1061658(self):
-        """
-        @Test: Organization delete fails with 500 Server / Candlepin 404 error
+        """@Test: Organization delete fails with 500 Server / Candlepin 404 error
+
         @Feature: Org
+
         @Assert: Organization is created and deleted
+
         """
         new_obj = make_org()
         return_value = Org.delete({'id': new_obj['id']})
@@ -379,10 +398,12 @@ class TestOrg(CLITestCase):
                            "There should be an exception here")
 
     def test_bugzilla_1062295_1(self):
-        """
-        @Test: Foreman Cli : Add_Config template fails
+        """@Test: Foreman Cli : Add_Config template fails
+
         @Feature: Org
+
         @Assert: Config Template is added to the org
+
         """
         org_result = make_org()
         template_result = make_template()
@@ -395,10 +416,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_bugzilla_1062295_2(self):
-        """
-        @Test: Foreman Cli : Add_Config template fails
+        """@Test: Foreman Cli : Add_Config template fails
+
         @Feature: Org
+
         @Assert: ConfigTemplate is removed from the org
+
         """
         org_result = make_org()
         template_result = make_template()
@@ -414,11 +437,13 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_bugzilla_1023125(self):
-        """
-        @Test: hammer-cli: trying to create duplicate org throws unhandled ISE
+        """@Test: hammer-cli: trying to create duplicate org throws unhandled ISE
+
         @Feature: Org - Positive Create
+
         @Assert: Organization is created once and second attempt is handled
         graciously
+
         """
 
         new_obj = make_org()
@@ -436,10 +461,12 @@ class TestOrg(CLITestCase):
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     def test_bugzilla_1078866(self):
-        """
-        @Test: hammer organization <info,list> --help types information doubled
+        """@Test: hammer organization <info,list> --help types information doubled
+
         @Feature: org info/list
+
         @Assert: no duplicated lines in usage message
+
         """
         # org list --help:
         result = Org.list({'help': True})
@@ -458,10 +485,12 @@ class TestOrg(CLITestCase):
 
     @data(*positive_create_data_1())
     def test_positive_create_1(self, test_data):
-        """
-        @test: Create organization with valid name only
+        """@test: Create organization with valid name only
+
         @feature: Organizations
+
         @assert: organization is created, label is auto-generated
+
         """
 
         new_obj = make_org(test_data)
@@ -477,10 +506,12 @@ class TestOrg(CLITestCase):
 
     @data(*positive_create_data_2())
     def test_positive_create_2(self, test_data):
-        """
-        @test: Create organization with valid matching name and label only
+        """@test: Create organization with valid matching name and label only
+
         @feature: Organizations
+
         @assert: organization is created, label matches name
+
         """
 
         test_data['label'] = test_data['name']
@@ -499,10 +530,12 @@ class TestOrg(CLITestCase):
 
     @data(*positive_name_label_data())
     def test_positive_create_3(self, test_data):
-        """
-        @test: Create organization with valid unmatching name and label only
+        """@test: Create organization with valid unmatching name and label only
+
         @feature: Organizations
+
         @assert: organization is created, label does not match name
+
         """
 
         new_obj = make_org(test_data)
@@ -522,10 +555,12 @@ class TestOrg(CLITestCase):
 
     @data(*positive_name_desc_data())
     def test_positive_create_4(self, test_data):
-        """
-        @test: Create organization with valid name and description only
+        """@test: Create organization with valid name and description only
+
         @feature: Organizations
+
         @assert: organization is created, label is auto-generated
+
         """
 
         test_data['label'] = ""
@@ -546,10 +581,12 @@ class TestOrg(CLITestCase):
 
     @data(*positive_name_desc_data())
     def test_positive_create_5(self, test_data):
-        """
-        @test: Create organization with valid name, label and description
+        """@test: Create organization with valid name, label and description
+
         @feature: Organizations
+
         @assert: organization is created
+
         """
 
         test_data['label'] = generate_string('alpha', 10)
@@ -566,10 +603,12 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
     def test_list_org(self):
-        """
-        @Test: Check if Org can be listed
+        """@Test: Check if Org can be listed
+
         @Feature: Org - List
+
         @Assert: Org is listed
+
         """
         return_value = Org.list()
         self.assertEqual(
@@ -583,10 +622,12 @@ class TestOrg(CLITestCase):
         )
 
     def test_add_subnet(self):
-        """
-        @Test: Check if a subnet can be added to an Org
+        """@Test: Check if a subnet can be added to an Org
+
         @Feature: Org - Subnet
+
         @Assert: Subnet is added to the org
+
         """
         org_result = make_org()
         subnet_result = make_subnet()
@@ -598,10 +639,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_remove_subnet(self):
-        """
-        @Test: Check if a subnet can be removed from an Org
+        """@Test: Check if a subnet can be removed from an Org
+
         @Feature: Org - Subnet
+
         @Assert: Subnet is removed from the org
+
         """
         org_result = make_org()
         subnet_result = make_subnet()
@@ -615,10 +658,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_add_user(self):
-        """
-        @Test: Check if a User can be added to an Org
+        """@Test: Check if a User can be added to an Org
+
         @Feature: Org - User
+
         @Assert: User is added to the org
+
         """
         org_result = make_org()
         user_result = make_user()
@@ -630,10 +675,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_remove_user(self):
-        """
-        @Test: Check if a User can be removed from an Org
+        """@Test: Check if a User can be removed from an Org
+
         @Feature: Org - User
+
         @Assert: User is removed from the org
+
         """
         org_result = make_org()
         user_result = make_user()
@@ -647,10 +694,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_add_hostgroup(self):
-        """
-        @Test: Check if a hostgroup can be added to an Org
+        """@Test: Check if a hostgroup can be added to an Org
+
         @Feature: Org - Hostrgroup
+
         @Assert: Hostgroup is added to the org
+
         """
         org_result = make_org()
         hostgroup_result = make_hostgroup()
@@ -663,10 +712,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_remove_hostgroup(self):
-        """
-        @Test: Check if a hostgroup can be removed from an Org
+        """@Test: Check if a hostgroup can be removed from an Org
+
         @Feature: Org - Subnet
+
         @Assert: Hostgroup is removed from the org
+
         """
         org_result = make_org()
         hostgroup_result = make_hostgroup()
@@ -687,6 +738,7 @@ class TestOrg(CLITestCase):
         @Feature: Org - Compute Resource
 
         @Assert: Compute Resource is added to the org
+
         """
 
         try:
@@ -710,19 +762,24 @@ class TestOrg(CLITestCase):
 
     @stubbed
     def test_remove_computeresource(self):
-        """
-        @Test: Check if a ComputeResource can be removed from an Org
+        """@Test: Check if a ComputeResource can be removed from an Org
+
         @Feature: Org - ComputeResource
+
         @Assert: ComputeResource is removed from the org
+
         @status: manual
+
         """
         pass
 
     def test_add_medium(self):
-        """
-        @Test: Check if a Medium can be added to an Org
+        """@Test: Check if a Medium can be added to an Org
+
         @Feature: Org - Medium
+
         @Assert: Medium is added to the org
+
         """
         org_result = make_org()
         medium_result = make_medium()
@@ -735,10 +792,12 @@ class TestOrg(CLITestCase):
             len(return_value.stderr), 0, "There should not be an error here")
 
     def test_remove_medium(self):
-        """
-        @Test: Check if a Medium can be removed from an Org
+        """@Test: Check if a Medium can be removed from an Org
+
         @Feature: Org - Medium
+
         @Assert: Medium is removed from the org
+
         """
         org_result = make_org()
         medium_result = make_medium()
@@ -756,33 +815,43 @@ class TestOrg(CLITestCase):
     @stubbed
     @data("MAKE IT DATA DRIVEN")
     def test_add_configtemplate(self):
-        """
-        @Test: Check if a Config Template can be added to an Org
+        """@Test: Check if a Config Template can be added to an Org
+
         @Feature: Org - Config Template
+
         @Assert: Config Template is added to the org
+
         @status: manual
+
         @bz: 1062295
+
         """
         pass
 
     @stubbed
     @data("MAKE IT DATA DRIVEN")
     def test_remove_configtemplate(self):
-        """
-        @Test: Check if a ConfigTemplate can be removed from an Org
+        """@Test: Check if a ConfigTemplate can be removed from an Org
+
         @Feature: Org - ConfigTemplate
+
         @Assert: ConfigTemplate is removed from the org
+
         @status: manual
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1099655)
     def test_add_environment(self):
-        """
-        @Test: Check if an environment can be added to an Org
+        """@Test: Check if an environment can be added to an Org
+
         @Feature: Org - Environment
+
         @Assert: Environment is added to the org
+
         @BZ: 1099655
+
         """
 
         new_obj = make_org()
@@ -804,11 +873,14 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1099655)
     def test_remove_environment(self):
-        """
-        @Test: Check if an Environment can be removed from an Org
+        """@Test: Check if an Environment can be removed from an Org
+
         @Feature: Org - Environment
+
         @Assert: Environment is removed from the org
+
         @BZ: 1099655
+
         """
 
         new_obj = make_org()
@@ -850,10 +922,12 @@ class TestOrg(CLITestCase):
 
     @stubbed("Needs to be re-worked!")
     def test_add_smartproxy(self):
-        """
-        @Test: Check if a Smartproxy can be added to an Org
+        """@Test: Check if a Smartproxy can be added to an Org
+
         @Feature: Org - Smartproxy
+
         @Assert: Smartproxy is added to the org
+
         """
         org_result = make_org()
         proxy_result = make_proxy()
@@ -867,10 +941,12 @@ class TestOrg(CLITestCase):
 
     @stubbed("Needs to be re-worked!")
     def test_remove_smartproxy(self):
-        """
-        @Test: Check if a Smartproxy can be removed from an Org
+        """@Test: Check if a Smartproxy can be removed from an Org
+
         @Feature: Org - Smartproxy
+
         @Assert: Smartproxy is removed from the org
+
         """
         org_result = make_org()
         proxy_result = make_proxy()
@@ -900,11 +976,13 @@ class TestOrg(CLITestCase):
           {'label': generate_string('alpha', 10),
            'name': generate_string('html', 300)})
     def test_negative_create_0(self, test_data):
-        """
-        @test: Create organization with valid label and description, name is
+        """@test: Create organization with valid label and description, name is
         too long
+
         @feature: Organizations
+
         @assert: organization is not created
+
         """
         result = Org.create({'label': test_data['label'], 'description':
                              test_data['label'], 'name': test_data['name']})
@@ -915,11 +993,13 @@ class TestOrg(CLITestCase):
           generate_string('numeric', 10),
           generate_string('alphanumeric', 10))
     def test_negative_create_1(self, test_data):
-        """
-        @test: Create organization with valid label and description, name is
+        """@test: Create organization with valid label and description, name is
         blank
+
         @feature: Organizations
+
         @assert: organization is not created
+
         """
         result = Org.create({'label': test_data, 'description': test_data,
                             'name': ''})
@@ -930,11 +1010,13 @@ class TestOrg(CLITestCase):
           generate_string('numeric', 10),
           generate_string('alphanumeric', 10))
     def test_negative_create_2(self, test_data):
-        """
-        @test: Create organization with valid label and description, name is
+        """@test: Create organization with valid label and description, name is
         whitespace
+
         @feature: Organizations
+
         @assert: organization is not created
+
         """
         result = Org.create({'label': test_data, 'description': test_data,
                              'name': ' \t'})
@@ -946,11 +1028,13 @@ class TestOrg(CLITestCase):
           generate_string('numeric', 10),
           generate_string('alphanumeric', 10))
     def test_negative_create_3(self, test_data):
-        """
-        @test: Create organization with valid values, then create a new one
+        """@test: Create organization with valid values, then create a new one
         with same values.
+
         @feature: Organizations
+
         @assert: organization is not created
+
         """
         result = Org.create({'label': test_data, 'description': test_data,
                              'name': test_data})
@@ -966,11 +1050,13 @@ class TestOrg(CLITestCase):
 
     @data(*positive_name_desc_label_data())
     def test_positive_delete_1(self, test_data):
-        """
-        @test: Create organization with valid values then delete it
+        """@test: Create organization with valid values then delete it
         by ID
+
         @feature: Organizations
+
         @assert: organization is deleted
+
         """
 
         new_obj = make_org(test_data)
@@ -998,11 +1084,13 @@ class TestOrg(CLITestCase):
 
     @data(*positive_name_desc_label_data())
     def test_positive_delete_2(self, test_data):
-        """
-        @test: Create organization with valid values then delete it
+        """@test: Create organization with valid values then delete it
         by label
+
         @feature: Organizations
+
         @assert: organization is deleted
+
         """
 
         new_obj = make_org(test_data)
@@ -1030,11 +1118,13 @@ class TestOrg(CLITestCase):
 
     @data(*positive_name_desc_label_data())
     def test_positive_delete_3(self, test_data):
-        """
-        @test: Create organization with valid values then delete it
+        """@test: Create organization with valid values then delete it
         by name
+
         @feature: Organizations
+
         @assert: organization is deleted
+
         """
 
         new_obj = make_org(test_data)
@@ -1072,11 +1162,14 @@ class TestOrg(CLITestCase):
           {'name': generate_string("numeric", 10)},
           {'name': generate_string("html", 10)})
     def test_positive_update_1(self, test_data):
-        """
-        @test: Create organization with valid values then update its name
+        """@test: Create organization with valid values then update its name
+
         @feature: Organizations
+
         @assert: organization name is updated
-        @bz:1076541
+
+        @bz: 1076541
+
         """
 
         new_obj = make_org()
@@ -1111,12 +1204,15 @@ class TestOrg(CLITestCase):
           {'description': generate_string("numeric", 10)},
           {'description': generate_string("html", 10)})
     def test_positive_update_3(self, test_data):
-        """
-        @test: Create organization with valid values then update its
+        """@test: Create organization with valid values then update its
         description
+
         @feature: Organizations
+
         @assert: organization description is updated
+
         @bz: 1114136
+
         """
 
         new_obj = make_org()
@@ -1158,11 +1254,14 @@ class TestOrg(CLITestCase):
           {'description': generate_string("html", 10),
            'name': generate_string("html", 10)})
     def test_positive_update_4(self, test_data):
-        """
-        @test: Create organization with valid values then update all values
+        """@test: Create organization with valid values then update all values
+
         @feature: Organizations
+
         @assert: organization name and description are updated
+
         @bz: 1076541, 1114136
+
         """
 
         new_obj = make_org()
@@ -1207,12 +1306,15 @@ class TestOrg(CLITestCase):
           {'name': generate_string('latin1', 300)},
           {'name': generate_string('html', 300)})
     def test_negative_update_1(self, test_data):
-        """
-        @test: Create organization then fail to update
+        """@test: Create organization then fail to update
         its name
+
         @feature: Organizations
+
         @assert: organization name is not updated
-        @bz:1076541
+
+        @bz: 1076541
+
         """
 
         new_obj = make_org()
@@ -1237,12 +1339,15 @@ class TestOrg(CLITestCase):
           {'description': generate_string('latin1', 3000)},
           {'description': generate_string('html', 3000)})
     def test_negative_update_3(self, test_data):
-        """
-        @test: Create organization then fail to update description
+        """@test: Create organization then fail to update description
         its description
+
         @feature: Organizations
+
         @assert: organization description is not updated
+
         @bz: 1114136
+
         """
 
         new_obj = make_org()
@@ -1271,11 +1376,14 @@ class TestOrg(CLITestCase):
         name, label and description are is html
     """)
     def test_list_key_1(self, test_data):
-        """
-        @test: Create organization and list it
+        """@test: Create organization and list it
+
         @feature: Organizations
+
         @assert: organization is displayed/listed
+
         @status: manual
+
         """
 
         pass
@@ -1290,11 +1398,14 @@ class TestOrg(CLITestCase):
         name, label and description are is html
     """)
     def test_search_key_1(self, test_data):
-        """
-        @test: Create organization and search/find it
+        """@test: Create organization and search/find it
+
         @feature: Organizations
+
         @assert: organization can be found
+
         @status: manual
+
         """
 
         pass
@@ -1309,12 +1420,15 @@ class TestOrg(CLITestCase):
         name, label and description are is html
     """)
     def test_info_key_1(self, test_data):
-        """
-        @test: Create single organization and get its info
+        """@test: Create single organization and get its info
+
         @feature: Organizations
+
         @assert: specific information for organization matches the
         creation values
+
         @status: manual
+
         """
 
         pass
@@ -1331,12 +1445,15 @@ class TestOrg(CLITestCase):
         domain name is html
     """)
     def test_remove_domain_1(self, test_data):
-        """
-        @test: Add a domain to an organization and remove it by organization
+        """@test: Add a domain to an organization and remove it by organization
         name and domain name
+
         @feature: Organizations
+
         @assert: the domain is removed from the organization
+
         @status: manual
+
         """
 
         pass
@@ -1351,12 +1468,15 @@ class TestOrg(CLITestCase):
         domain name is html
     """)
     def test_remove_domain_2(self, test_data):
-        """
-        @test: Add a domain to an organization and remove it by organization
+        """@test: Add a domain to an organization and remove it by organization
         ID and domain name
+
         @feature: Organizations
+
         @assert: the domain is removed from the organization
+
         @status: manual
+
         """
 
         pass
@@ -1371,12 +1491,15 @@ class TestOrg(CLITestCase):
         domain name is html
     """)
     def test_remove_domain_3(self, test_data):
-        """
-        @test: Add a domain to an organization and remove it by organization
+        """@test: Add a domain to an organization and remove it by organization
         name and domain ID
+
         @feature: Organizations
+
         @assert: the domain is removed from the organization
+
         @status: manual
+
         """
 
         pass
@@ -1391,12 +1514,15 @@ class TestOrg(CLITestCase):
         domain name is html
     """)
     def test_remove_domain_4(self, test_data):
-        """
-        @test: Add a domain to an organization and remove it by organization
+        """@test: Add a domain to an organization and remove it by organization
         ID and domain ID
+
         @feature: Organizations
+
         @assert: the domain is removed from the organization
+
         @status: manual
+
         """
 
         pass
@@ -1411,12 +1537,15 @@ class TestOrg(CLITestCase):
         user name is html
     """)
     def test_remove_user_1(self, test_data):
-        """
-        @test: Create different types of users then add/remove user
+        """@test: Create different types of users then add/remove user
         by using the organization ID
+
         @feature: Organizations
+
         @assert: User is added and then removed from organization
+
         @status: manual
+
         """
 
         pass
@@ -1431,12 +1560,15 @@ class TestOrg(CLITestCase):
         user name is html
     """)
     def test_remove_user_2(self, test_data):
-        """
-        @test: Create different types of users then add/remove user
+        """@test: Create different types of users then add/remove user
         by using the organization name
+
         @feature: Organizations
+
         @assert: The user is added then removed from the organization
+
         @status: manual
+
         """
 
         pass
@@ -1451,12 +1583,15 @@ class TestOrg(CLITestCase):
         user name is html and admin
     """)
     def test_remove_user_3(self, test_data):
-        """
-        @test: Create admin users then add user and remove it
+        """@test: Create admin users then add user and remove it
         by using the organization name
+
         @feature: Organizations
+
         @assert: The user is added then removed from the organization
+
         @status: manual
+
         """
 
         pass
@@ -1471,12 +1606,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_remove_hostgroup_1(self, test_data):
-        """
-        @test: Add a hostgroup and remove it by using the organization
+        """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup name
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization then removed
+
         @status: manual
+
         """
 
         pass
@@ -1491,12 +1629,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_remove_hostgroup_2(self, test_data):
-        """
-        @test: Add a hostgroup and remove it by using the organization
+        """@test: Add a hostgroup and remove it by using the organization
         ID and hostgroup name
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization then removed
+
         @status: manual
+
         """
 
         pass
@@ -1511,12 +1652,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_remove_hostgroup_3(self, test_data):
-        """
-        @test: Add a hostgroup and remove it by using the organization
+        """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup ID
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization then removed
+
         @status: manual
+
         """
 
         pass
@@ -1531,12 +1675,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_remove_hostgroup_4(self, test_data):
-        """
-        @test: Add a hostgroup and remove it by using the organization
+        """@test: Add a hostgroup and remove it by using the organization
         ID and hostgroup ID
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization then removed
+
         @status: manual
+
         """
 
         pass
@@ -1551,11 +1698,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_add_smartproxy_1(self, test_data):
-        """
-        @test: Add a smart proxy by using organization name and smartproxy name
+        """@test: Add a smart proxy by using organization name and smartproxy name
+
         @feature: Organizations
+
         @assert: smartproxy is added
+
         @status: manual
+
         """
 
         pass
@@ -1570,11 +1720,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_add_smartproxy_2(self, test_data):
-        """
-        @test: Add a smart proxy by using organization ID and smartproxy name
+        """@test: Add a smart proxy by using organization ID and smartproxy name
+
         @feature: Organizations
+
         @assert: smartproxy is added
+
         @status: manual
+
         """
 
         pass
@@ -1589,11 +1742,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_add_smartproxy_3(self, test_data):
-        """
-        @test: Add a smart proxy by using organization name and smartproxy ID
+        """@test: Add a smart proxy by using organization name and smartproxy ID
+
         @feature: Organizations
+
         @assert: smartproxy is added
+
         @status: manual
+
         """
 
         pass
@@ -1608,11 +1764,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_add_smartproxy_4(self, test_data):
-        """
-        @test: Add a smart proxy by using organization ID and smartproxy ID
+        """@test: Add a smart proxy by using organization ID and smartproxy ID
+
         @feature: Organizations
+
         @assert: smartproxy is added
+
         @status: manual
+
         """
 
         pass
@@ -1627,11 +1786,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_add_subnet_1(self, test_data):
-        """
-        @test: Add a subnet by using organization name and subnet name
+        """@test: Add a subnet by using organization name and subnet name
+
         @feature: Organizations
+
         @assert: subnet is added
+
         @status: manual
+
         """
 
         pass
@@ -1646,11 +1808,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_add_subnet_2(self, test_data):
-        """
-        @test: Add a subnet by using organization ID and subnet name
+        """@test: Add a subnet by using organization ID and subnet name
+
         @feature: Organizations
+
         @assert: subnet is added
+
         @status: manual
+
         """
 
         pass
@@ -1665,11 +1830,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_add_subnet_3(self, test_data):
-        """
-        @test: Add a subnet by using organization name and subnet ID
+        """@test: Add a subnet by using organization name and subnet ID
+
         @feature: Organizations
+
         @assert: subnet is added
+
         @status: manual
+
         """
 
         pass
@@ -1684,11 +1852,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_add_subnet_4(self, test_data):
-        """
-        @test: Add a subnet by using organization ID and subnet ID
+        """@test: Add a subnet by using organization ID and subnet ID
+
         @feature: Organizations
+
         @assert: subnet is added
+
         @status: manual
+
         """
 
         pass
@@ -1703,11 +1874,14 @@ class TestOrg(CLITestCase):
         domain name is html
     """)
     def test_add_domain_1(self, test_data):
-        """
-        @test: Add a domain to an organization
+        """@test: Add a domain to an organization
+
         @feature: Organizations
+
         @assert: Domain is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1722,12 +1896,15 @@ class TestOrg(CLITestCase):
         user name is html
     """)
     def test_add_user_1(self, test_data):
-        """
-        @test: Create different types of users then add user
+        """@test: Create different types of users then add user
         by using the organization ID
+
         @feature: Organizations
+
         @assert: User is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1742,12 +1919,15 @@ class TestOrg(CLITestCase):
         user name is html
     """)
     def test_add_user_2(self, test_data):
-        """
-        @test: Create different types of users then add user
+        """@test: Create different types of users then add user
         by using the organization name
+
         @feature: Organizations
+
         @assert: User is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1762,11 +1942,14 @@ class TestOrg(CLITestCase):
         user name is html and an admin
     """)
     def test_add_user_3(self, test_data):
-        """
-        @test: Create admin users then add user by using the organization name
+        """@test: Create admin users then add user by using the organization name
+
         @feature: Organizations
+
         @assert: User is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1781,12 +1964,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_add_hostgroup_1(self, test_data):
-        """
-        @test: Add a hostgroup by using the organization
+        """@test: Add a hostgroup by using the organization
         name and hostgroup name
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1801,12 +1987,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_add_hostgroup_2(self, test_data):
-        """
-        @test: Add a hostgroup by using the organization
+        """@test: Add a hostgroup by using the organization
         ID and hostgroup name
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1821,12 +2010,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_add_hostgroup_3(self, test_data):
-        """
-        @test: Add a hostgroup by using the organization
+        """@test: Add a hostgroup by using the organization
         name and hostgroup ID
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1841,12 +2033,15 @@ class TestOrg(CLITestCase):
         hostgroup name is html
     """)
     def test_add_hostgroup_4(self, test_data):
-        """
-        @test: Add a hostgroup by using the organization
+        """@test: Add a hostgroup by using the organization
         ID and hostgroup ID
+
         @feature: Organizations
+
         @assert: hostgroup is added to organization
+
         @status: manual
+
         """
 
         pass
@@ -1861,12 +2056,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_remove_computeresource_1(self, test_data):
-        """
-        @test: Remove computeresource by using the organization
+        """@test: Remove computeresource by using the organization
         name and computeresource name
+
         @feature: Organizations
+
         @assert: computeresource is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1881,12 +2079,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_remove_computeresource_2(self, test_data):
-        """
-        @test: Remove computeresource by using the organization
+        """@test: Remove computeresource by using the organization
         ID and computeresource name
+
         @feature: Organizations
+
         @assert: computeresource is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1901,12 +2102,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_remove_computeresource_3(self, test_data):
-        """
-        @test: Remove computeresource by using the organization
+        """@test: Remove computeresource by using the organization
         name and computeresource ID
+
         @feature: Organizations
+
         @assert: computeresource is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1921,12 +2125,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_remove_computeresource_4(self, test_data):
-        """
-        @test: Remove computeresource by using the organization
+        """@test: Remove computeresource by using the organization
         ID and computeresource ID
+
         @feature: Organizations
+
         @assert: computeresource is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1941,11 +2148,14 @@ class TestOrg(CLITestCase):
         medium name is html
         """)
     def test_remove_medium_1(self, test_data):
-        """
-        @test: Remove medium by using organization name and medium name
+        """@test: Remove medium by using organization name and medium name
+
         @feature: Organizations
+
         @assert: medium is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1960,11 +2170,14 @@ class TestOrg(CLITestCase):
         medium name is html
         """)
     def test_remove_medium_2(self, test_data):
-        """
-        @test: Remove medium by using organization ID and medium name
+        """@test: Remove medium by using organization ID and medium name
+
         @feature: Organizations
+
         @assert: medium is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1979,11 +2192,14 @@ class TestOrg(CLITestCase):
         medium name is html
         """)
     def test_remove_medium_3(self, test_data):
-        """
-        @test: Remove medium by using organization name and medium ID
+        """@test: Remove medium by using organization name and medium ID
+
         @feature: Organizations
+
         @assert: medium is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -1998,11 +2214,14 @@ class TestOrg(CLITestCase):
         medium name is html
         """)
     def test_remove_medium_4(self, test_data):
-        """
-        @test: Remove medium by using organization ID and medium ID
+        """@test: Remove medium by using organization ID and medium ID
+
         @feature: Organizations
+
         @assert: medium is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2017,11 +2236,14 @@ class TestOrg(CLITestCase):
         configtemplate name  is html
     """)
     def test_remove_configtemplate_1(self, test_data):
-        """
-        @test: Remove config template
+        """@test: Remove config template
+
         @feature: Organizations
+
         @assert: configtemplate is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2036,12 +2258,15 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_remove_environment_1(self, test_data):
-        """
-        @test: Remove environment by using organization name and
+        """@test: Remove environment by using organization name and
         evironment name
+
         @feature: Organizations
+
         @assert: environment is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2056,12 +2281,15 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_remove_environment_2(self, test_data):
-        """
-        @test: Remove environment by using organization ID and
+        """@test: Remove environment by using organization ID and
         evironment name
+
         @feature: Organizations
+
         @assert: environment is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2076,12 +2304,15 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_remove_environment_3(self, test_data):
-        """
-        @test: Remove environment by using organization name and
+        """@test: Remove environment by using organization name and
         evironment ID
+
         @feature: Organizations
+
         @assert: environment is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2096,12 +2327,15 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_remove_environment_4(self, test_data):
-        """
-        @test: Remove environment by using organization ID and
+        """@test: Remove environment by using organization ID and
         evironment ID
+
         @feature: Organizations
+
         @assert: environment is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2116,11 +2350,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_remove_smartproxy_1(self, test_data):
-        """
-        @test: Remove smartproxy by using organization name and smartproxy name
+        """@test: Remove smartproxy by using organization name and smartproxy name
+
         @feature: Organizations
+
         @assert: smartproxy is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2135,11 +2372,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_remove_smartproxy_2(self, test_data):
-        """
-        @test: Remove smartproxy by using organization ID and smartproxy name
+        """@test: Remove smartproxy by using organization ID and smartproxy name
+
         @feature: Organizations
+
         @assert: smartproxy is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2154,11 +2394,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_remove_smartproxy_3(self, test_data):
-        """
-        @test: Remove smartproxy by using organization name and smartproxy ID
+        """@test: Remove smartproxy by using organization name and smartproxy ID
+
         @feature: Organizations
+
         @assert: smartproxy is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2173,11 +2416,14 @@ class TestOrg(CLITestCase):
         smartproxy name is html
     """)
     def test_remove_smartproxy_4(self, test_data):
-        """
-        @test: Remove smartproxy by using organization ID and smartproxy ID
+        """@test: Remove smartproxy by using organization ID and smartproxy ID
+
         @feature: Organizations
+
         @assert: smartproxy is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2192,12 +2438,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_add_computeresource_1(self, test_data):
-        """
-        @test: Add compute resource using the organization
+        """@test: Add compute resource using the organization
         name and computeresource name
+
         @feature: Organizations
+
         @assert: computeresource is added
+
         @status: manual
+
         """
 
         pass
@@ -2212,12 +2461,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_add_computeresource_2(self, test_data):
-        """
-        @test: Add compute resource using the organization
+        """@test: Add compute resource using the organization
         ID and computeresource name
+
         @feature: Organizations
+
         @assert: computeresource is added
+
         @status: manual
+
         """
 
         pass
@@ -2232,12 +2484,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_add_computeresource_3(self, test_data):
-        """
-        @test: Add compute resource using the organization
+        """@test: Add compute resource using the organization
         name and computeresource ID
+
         @feature: Organizations
+
         @assert: computeresource is added
+
         @status: manual
+
         """
 
         pass
@@ -2252,12 +2507,15 @@ class TestOrg(CLITestCase):
         computeresource is html
     """)
     def test_add_computeresource_4(self, test_data):
-        """
-        @test: Add compute resource using the organization
+        """@test: Add compute resource using the organization
         ID and computeresource ID
+
         @feature: Organizations
+
         @assert: computeresource is added
+
         @status: manual
+
         """
 
         pass
@@ -2272,11 +2530,14 @@ class TestOrg(CLITestCase):
         medium name is html
     """)
     def test_add_medium_1(self, test_data):
-        """
-        @test: Add medium by using the organization name and medium name
+        """@test: Add medium by using the organization name and medium name
+
         @feature: Organizations
+
         @assert: medium is added
+
         @status: manual
+
         """
 
         pass
@@ -2291,11 +2552,14 @@ class TestOrg(CLITestCase):
         medium name is html
     """)
     def test_add_medium_2(self, test_data):
-        """
-        @test: Add medium by using the organization ID and medium name
+        """@test: Add medium by using the organization ID and medium name
+
         @feature: Organizations
+
         @assert: medium is added
+
         @status: manual
+
         """
 
         pass
@@ -2310,11 +2574,14 @@ class TestOrg(CLITestCase):
         medium name is html
     """)
     def test_add_medium_3(self, test_data):
-        """
-        @test: Add medium by using the organization name and medium ID
+        """@test: Add medium by using the organization name and medium ID
+
         @feature: Organizations
+
         @assert: medium is added
+
         @status: manual
+
         """
 
         pass
@@ -2329,11 +2596,14 @@ class TestOrg(CLITestCase):
         medium name is html
     """)
     def test_add_medium_4(self, test_data):
-        """
-        @test: Add medium by using the organization ID and medium ID
+        """@test: Add medium by using the organization ID and medium ID
+
         @feature: Organizations
+
         @assert: medium is added
+
         @status: manual
+
         """
 
         pass
@@ -2348,12 +2618,15 @@ class TestOrg(CLITestCase):
         configtemplate name  is html
     """)
     def test_add_configtemplate_1(self, test_data):
-        """
-        @test: Add config template by using organization name and
+        """@test: Add config template by using organization name and
         configtemplate name
+
         @feature: Organizations
+
         @assert: configtemplate is added
+
         @status: manual
+
         """
 
         pass
@@ -2368,12 +2641,15 @@ class TestOrg(CLITestCase):
         configtemplate name  is html
     """)
     def test_add_configtemplate_2(self, test_data):
-        """
-        @test: Add config template by using organization ID and
+        """@test: Add config template by using organization ID and
         configtemplate name
+
         @feature: Organizations
+
         @assert: configtemplate is added
+
         @status: manual
+
         """
 
         pass
@@ -2388,12 +2664,15 @@ class TestOrg(CLITestCase):
         configtemplate name  is html
     """)
     def test_add_configtemplate_3(self, test_data):
-        """
-        @test: Add config template by using organization name and
+        """@test: Add config template by using organization name and
         configtemplate ID
+
         @feature: Organizations
+
         @assert: configtemplate is added
+
         @status: manual
+
         """
 
         pass
@@ -2408,12 +2687,15 @@ class TestOrg(CLITestCase):
         configtemplate name  is html
     """)
     def test_add_configtemplate_4(self, test_data):
-        """
-        @test: Add config template by using organization ID and
+        """@test: Add config template by using organization ID and
         configtemplate ID
+
         @feature: Organizations
+
         @assert: configtemplate is added
+
         @status: manual
+
         """
 
         pass
@@ -2428,11 +2710,14 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_add_environment_1(self, test_data):
-        """
-        @test: Add environment by using organization name and evironment name
+        """@test: Add environment by using organization name and evironment name
+
         @feature: Organizations
+
         @assert: environment is added
+
         @status: manual
+
         """
 
         pass
@@ -2447,11 +2732,14 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_add_environment_2(self, test_data):
-        """
-        @test: Add environment by using organization ID and evironment name
+        """@test: Add environment by using organization ID and evironment name
+
         @feature: Organizations
+
         @assert: environment is added
+
         @status: manual
+
         """
 
         pass
@@ -2466,11 +2754,14 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_add_environment_3(self, test_data):
-        """
-        @test: Add environment by using organization name and evironment ID
+        """@test: Add environment by using organization name and evironment ID
+
         @feature: Organizations
+
         @assert: environment is added
+
         @status: manual
+
         """
 
         pass
@@ -2485,11 +2776,14 @@ class TestOrg(CLITestCase):
         environment name  is html
     """)
     def test_add_environment_4(self, test_data):
-        """
-        @test: Add environment by using organization ID and evironment ID
+        """@test: Add environment by using organization ID and evironment ID
+
         @feature: Organizations
+
         @assert: environment is added
+
         @status: manual
+
         """
 
         pass
@@ -2504,11 +2798,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_remove_subnet_1(self, test_data):
-        """
-        @test: Remove subnet by using organization name and subnet name
+        """@test: Remove subnet by using organization name and subnet name
+
         @feature: Organizations
+
         @assert: subnet is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2523,11 +2820,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_remove_subnet_2(self, test_data):
-        """
-        @test: Remove subnet by using organization ID and subnet name
+        """@test: Remove subnet by using organization ID and subnet name
+
         @feature: Organizations
+
         @assert: subnet is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2542,11 +2842,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_remove_subnet_3(self, test_data):
-        """
-        @test: Remove subnet by using organization name and subnet ID
+        """@test: Remove subnet by using organization name and subnet ID
+
         @feature: Organizations
+
         @assert: subnet is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -2561,11 +2864,14 @@ class TestOrg(CLITestCase):
         subnet name  is html
     """)
     def test_remove_subnet_4(self, test_data):
-        """
-        @test: Remove subnet by using organization ID and subnet ID
+        """@test: Remove subnet by using organization ID and subnet ID
+
         @feature: Organizations
+
         @assert: subnet is added then removed
+
         @status: manual
+
         """
 
         pass

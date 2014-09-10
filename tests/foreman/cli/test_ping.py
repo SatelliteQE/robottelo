@@ -9,14 +9,18 @@ class PingTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1094826)
     def test_hammer_ping(self):
-        """
-        @test: hammer ping return code
+        """@test: hammer ping return code
+
         @feature: hammer ping
+
         @steps:
         1. Execute hammer ping
         2. Check its return code, should be 0 if all services are ok else != 0
+
         @assert: hammer ping returns a right return code
+
         @bz: 1094826
+
         """
         result = ssh.command('hammer ping')
         self.assertEqual(len(result.stderr), 0)

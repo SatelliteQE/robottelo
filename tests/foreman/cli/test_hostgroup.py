@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Test class for Hostgroup CLI
-"""
+"""Test class for Hostgroup CLI"""
 
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.factory import make_hostgroup

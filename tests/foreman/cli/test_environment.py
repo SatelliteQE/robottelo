@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Test class for Environment  CLI
-"""
+"""Test class for Environment  CLI"""
 
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
@@ -52,10 +50,12 @@ class TestEnvironment(MetaCLITestCase):
     )
 
     def test_info(self):
-        """
+        """@Test: Test Environment Info
+
         @Feature: Environment - Info
-        @Test: Test Environment Info
+
         @Assert: Environment Info is displayed
+
         """
         name = generate_string("alpha", 10)
         Environment().create({'name': name})
@@ -68,10 +68,12 @@ class TestEnvironment(MetaCLITestCase):
                           "Environment info - stdout contains 'Name'")
 
     def test_list(self):
-        """
+        """@Test: Test Environment List
+
         @Feature: Environment - List
-        @Test: Test Environment List
+
         @Assert: Environment List is displayed
+
         """
         name = generate_string("alpha", 10)
         Environment().create({'name': name})
@@ -80,10 +82,12 @@ class TestEnvironment(MetaCLITestCase):
                         "Environment list - stdout contains 'Name'")
 
     def test_delete(self):
-        """
-        @Test: Delete the environment
+        """@Test: Delete the environment
+
         @Feature: Environment - Delete
+
         @Assert: Environment Delete is displayed
+
         """
 
         name = generate_string("alphanumeric", 10)

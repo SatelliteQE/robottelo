@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Product CLI
-"""
+"""Test class for Product CLI"""
 
 from datetime import datetime, timedelta
 from ddt import ddt
@@ -17,16 +14,12 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestSyncPlan(CLITestCase):
-    """
-    Sync Plan CLI tests.
-    """
+    """Sync Plan CLI tests."""
 
     org = None
 
     def setUp(self):
-        """
-        Tests for Sync Plans via Hammer CLI
-        """
+        """Tests for Sync Plans via Hammer CLI"""
 
         super(TestSyncPlan, self).setUp()
 
@@ -34,9 +27,7 @@ class TestSyncPlan(CLITestCase):
             TestSyncPlan.org = make_org()
 
     def _make_sync_plan(self, options=None):
-        """
-        Make a sync plan and asserts its success
-        """
+        """Make a sync plan and asserts its success"""
 
         if options is None:
             options = {}
@@ -73,10 +64,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_create_1(self, test_data):
-        """
-        @Test: Check if syncplan can be created with random names
+        """@Test: Check if syncplan can be created with random names
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and has random name
+
         """
 
         new_sync_plan = self._make_sync_plan({u'name': test_data['name']})
@@ -97,10 +90,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_create_2(self, test_data):
-        """
-        @Test: Check if syncplan can be created with random description
+        """@Test: Check if syncplan can be created with random description
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and has random description
+
         """
 
         new_sync_plan = self._make_sync_plan(
@@ -134,10 +129,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_create_3(self, test_data):
-        """
-        @Test: Check if syncplan can be created with varied intervals
+        """@Test: Check if syncplan can be created with varied intervals
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and has selected interval
+
         """
 
         new_sync_plan = self._make_sync_plan(
@@ -165,10 +162,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_negative_create_1(self, test_data):
-        """
-        @Test: Check if syncplan can be created with random names
+        """@Test: Check if syncplan can be created with random names
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and has random name
+
         """
 
         with self.assertRaises(Exception):
@@ -184,10 +183,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_update_1(self, test_data):
-        """
-        @Test: Check if syncplan description can be updated
+        """@Test: Check if syncplan description can be updated
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and description is updated
+
         """
 
         new_sync_plan = self._make_sync_plan()
@@ -281,10 +282,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_update_2(self, test_data):
-        """
-        @Test: Check if syncplan interval be updated
+        """@Test: Check if syncplan interval be updated
+
         @Feature: Sync Plan
+
         @Assert: Sync plan interval is updated
+
         """
 
         new_sync_plan = self._make_sync_plan(
@@ -352,10 +355,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_update_3(self, test_data):
-        """
-        @Test: Check if syncplan sync date can be updated
+        """@Test: Check if syncplan sync date can be updated
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and sync plan is updated
+
         """
 
         # Set the sync date to today/right now
@@ -425,10 +430,12 @@ class TestSyncPlan(CLITestCase):
     )
     @attr('cli', 'syncplan')
     def test_positive_delete_1(self, test_data):
-        """
-        @Test: Check if syncplan can be created and deleted
+        """@Test: Check if syncplan can be created and deleted
+
         @Feature: Sync Plan
+
         @Assert: Sync plan is created and then deleted
+
         """
 
         new_sync_plan = self._make_sync_plan({u'name': test_data['name']})

@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Product CLI
-"""
+"""Test class for Product CLI"""
 
 from ddt import ddt
 from robottelo.cli.factory import (
@@ -17,16 +14,12 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestProduct(CLITestCase):
-    """
-    Product CLI tests.
-    """
+    """Product CLI tests."""
 
     org = None
 
     def setUp(self):
-        """
-        Tests for Lifecycle Environment via Hammer CLI
-        """
+        """Tests for Lifecycle Environment via Hammer CLI"""
 
         super(TestProduct, self).setUp()
 
@@ -44,11 +37,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_create_1(self, test_name):
-        """
-        @Test: Check if product can be created with random names
+        """@Test: Check if product can be created with random names
+
         @Feature: Product
+
         @Assert: Product is created and has random name
+
         @BZ: 1096320
+
         """
 
         new_product = make_product(
@@ -90,11 +86,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_create_2(self, test_name):
-        """
-        @Test: Check if product can be created with random labels
+        """@Test: Check if product can be created with random labels
+
         @Feature: Product
+
         @Assert: Product is created and has random label
+
         @BZ: 1096320
+
         """
 
         new_product = make_product(
@@ -137,11 +136,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_create_3(self, test_name):
-        """
-        @Test: Check if product can be created with random description
+        """@Test: Check if product can be created with random description
+
         @Feature: Product
+
         @Assert: Product is created and has random description
+
         @BZ: 1096320
+
         """
 
         new_product = make_product(
@@ -180,11 +182,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_create_4(self, test_name):
-        """
-        @Test: Check if product can be created with gpg key
+        """@Test: Check if product can be created with gpg key
+
         @Feature: Product
+
         @Assert: Product is created and has gpg key
+
         @BZ: 1096320
+
         """
 
         new_gpg_key = make_gpg_key(
@@ -225,11 +230,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_create_5(self, test_name):
-        """
-        @Test: Check if product can be created with sync plan
+        """@Test: Check if product can be created with sync plan
+
         @Feature: Product
+
         @Assert: Product is created and has random sync plan
+
         @BZ: 1096320
+
         """
 
         new_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
@@ -267,10 +275,12 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_negative_create_1(self, test_name):
-        """
-        @Test: Check that only valid names can be used
+        """@Test: Check that only valid names can be used
+
         @Feature: Product
+
         @Assert: Product is not created
+
         """
 
         with self.assertRaises(CLIFactoryError):
@@ -291,10 +301,12 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_negative_create_2(self, test_name):
-        """
-        @Test: Check that only valid labels can be used
+        """@Test: Check that only valid labels can be used
+
         @Feature: Product
+
         @Assert: Product is not created
+
         """
 
         with self.assertRaises(CLIFactoryError):
@@ -317,11 +329,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_update_1(self, test_data):
-        """
-        @Test: Update the description of a product
+        """@Test: Update the description of a product
+
         @Feature: Product
+
         @Assert: Product description is updated
+
         @BZ: 1096320
+
         """
 
         new_product = make_product(
@@ -377,11 +392,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_update_2(self, test_name):
-        """
-        @Test: Update product's gpg keys
+        """@Test: Update product's gpg keys
+
         @Feature: Product
+
         @Assert: Product gpg key is updated
+
         @BZ: 1096320
+
         """
 
         first_gpg_key = make_gpg_key(
@@ -471,11 +489,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_update_3(self, test_name):
-        """
-        @Test: Update product's sync plan
+        """@Test: Update product's sync plan
+
         @Feature: Product
+
         @Assert: Product sync plan is updated
+
         @BZ: 1096320
+
         """
 
         first_sync_plan = make_sync_plan(
@@ -566,11 +587,14 @@ class TestProduct(CLITestCase):
     )
     @attr('cli', 'product')
     def test_positive_delete_1(self, test_name):
-        """
-        @Test: Check if product can be deleted
+        """@Test: Check if product can be deleted
+
         @Feature: Product
+
         @Assert: Product is deleted
+
         @BZ: 1096320
+
         """
 
         new_product = make_product(
@@ -616,10 +640,12 @@ class TestProduct(CLITestCase):
 
     @attr('cli', 'product')
     def test_add_syncplan_1(self):
-        """
-        @Test: Check if product can be assigned a syncplan
+        """@Test: Check if product can be assigned a syncplan
+
         @Feature: Product
+
         @Assert: Product has syncplan
+
         """
         try:
             new_product = make_product(
@@ -656,11 +682,14 @@ class TestProduct(CLITestCase):
     @skip_if_bug_open('bugzilla', 1121136)
     @attr('cli', 'product')
     def test_remove_syncplan_1(self):
-        """
-        @Test: Check if product can be assigned a syncplan
+        """@Test: Check if product can be assigned a syncplan
+
         @Feature: Product
+
         @Assert: Product has syncplan
+
         @BZ: 1121136
+
         """
         try:
             new_product = make_product(

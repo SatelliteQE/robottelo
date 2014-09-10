@@ -1,20 +1,23 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-"""
-Usage:
+"""Usage::
+
     hammer compute_resource [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
+Parameters::
+
     SUBCOMMAND                    subcommand
     [ARG] ...                     subcommand arguments
 
-Subcommands:
+Subcommands::
+
     create                        Create a compute resource.
     info                          Show an compute resource.
     list                          List all compute resources.
     update                        Update a compute resource.
     delete                        Delete a compute resource.
     image                         View and manage compute resource's images
+
 """
 from ddt import ddt
 from robottelo import orm
@@ -29,9 +32,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestComputeResource(CLITestCase):
-    """
-    ComputeResource CLI tests.
-    """
+    """ComputeResource CLI tests."""
 
     @classmethod
     def setUpClass(cls):
@@ -42,10 +43,12 @@ class TestComputeResource(CLITestCase):
             conf.properties['main.server.hostname']})['name']
 
     def test_create(self):
-        """
+        """@Test: Create Compute Resource
+
         @Feature: Compute Resource - Positive Create
-        @Test: Create Compute Resource
+
         @Assert: Compute reource is created
+
         """
         name = orm.StringField(str_type=('alpha',)).get_value()
         result = ComputeResource.create({
@@ -58,10 +61,12 @@ class TestComputeResource(CLITestCase):
                           "ComputeResource create - exit code")
 
     def test_info(self):
-        """
+        """@Test: Test Compute Resource Info
+
         @Feature: Compute Resource - Info
-        @Test: Test Compute Resource Info
+
         @Assert: Compute resource Info is displayed
+
         """
         result_create = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -76,10 +81,12 @@ class TestComputeResource(CLITestCase):
                           "ComputeResource info - check name")
 
     def test_list(self):
-        """
+        """@Test: Test Compute Resource List
+
         @Feature: Compute Resource - List
-        @Test: Test Compute Resource List
+
         @Assert: Compute resource List is displayed
+
         """
         result_create = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -111,10 +118,12 @@ class TestComputeResource(CLITestCase):
         }
     )
     def test_update(self, option_dict):
-        """
+        """@Test: Test Compute Resource Update
+
         @Feature: Compute Resource - Update
-        @Test: Test Compute Resource Update
+
         @Assert: Compute resource List is updated
+
         """
         options = {}
         options['name'] = self.compute_res_updates
@@ -125,10 +134,12 @@ class TestComputeResource(CLITestCase):
                           "ComputeResource update - exit code")
 
     def test_delete(self):
-        """
+        """@Test: Test Compute Resource delete
+
         @Feature: Compute Resource - Delete
-        @Test: Test Compute Resource delete
+
         @Assert: Compute resource deleted
+
         """
         result_create = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -169,10 +180,12 @@ class TestComputeResource(CLITestCase):
                          orm.StringField(str_type=('alpha',)).get_value()},
     )
     def test_create_positive_libvirt(self, options):
-        """
+        """@Test: Test Compute Resource create
+
         @Feature: Compute Resource positive create
-        @Test: Test Compute Resource create
+
         @Assert: Compute Resource created
+
         """
         result = ComputeResource.create({
             u'name': options['name'],
@@ -196,10 +209,12 @@ class TestComputeResource(CLITestCase):
         {u'url': ''},
     )
     def test_create_negative_1(self, options):
-        """
-        @Test: Compute Resource negative create with invalid values
+        """@Test: Compute Resource negative create with invalid values
+
         @Feature: Compute Resource create
+
         @Assert: Compute resource not created
+
         """
         result = ComputeResource.create({
             u'name': options.get(
@@ -214,10 +229,12 @@ class TestComputeResource(CLITestCase):
         self.assertNotEqual(len(result.stderr), 0)
 
     def test_create_negative_2(self):
-        """
-        @Test: Compute Resource negative create with the same name
+        """@Test: Compute Resource negative create with the same name
+
         @Feature: Compute Resource create
+
         @Assert: Compute resource not created
+
         """
         comp_res = make_compute_resource()
 
@@ -240,10 +257,12 @@ class TestComputeResource(CLITestCase):
         {u'url': orm.URLField().get_value()},
     )
     def test_update_positive(self, options):
-        """
-        @Test: Compute Resource positive update
+        """@Test: Compute Resource positive update
+
         @Feature: Compute Resource update
+
         @Assert: Compute Resource successfully updated
+
         """
         comp_res = make_compute_resource()
 
@@ -277,10 +296,12 @@ class TestComputeResource(CLITestCase):
         {u'url': ''},
     )
     def test_update_negative(self, options):
-        """
-        @Test: Compute Resource negative update
+        """@Test: Compute Resource negative update
+
         @Feature: Compute Resource update
+
         @Assert: Compute Resource not updated
+
         """
         comp_res = make_compute_resource()
 

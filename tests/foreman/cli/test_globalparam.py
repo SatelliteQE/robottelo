@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-"""
-Test class for Global parameters CLI
-"""
+"""Test class for Global parameters CLI"""
 
 from robottelo.cli.globalparam import GlobalParameter
 from robottelo.common.helpers import generate_string
@@ -10,13 +8,15 @@ from robottelo.test import CLITestCase
 
 
 class TestGlobalParameter(CLITestCase):
-    """ GlobalParameter related CLI tests. """
+    """GlobalParameter related CLI tests."""
 
     def test_set(self):
-        """
+        """@Test: Check if Global Param can be set
+
         @Feature: Global Param - Set
-        @Test: Check if Global Param can be set
+
         @Assert: Global Param is set
+
         """
         name = "opt-%s" % generate_string("alpha", 10)
         val_part1 = generate_string("alpha", 10)
@@ -30,10 +30,12 @@ class TestGlobalParameter(CLITestCase):
                           result.return_code)
 
     def test_list(self):
-        """
+        """@Test: Test Global Param List
+
         @Feature: Global Param - List
-        @Test: Test Global Param List
+
         @Assert: Global Param List is displayed
+
         """
         name = "opt-%s" % generate_string("alpha", 10)
         val_part1 = generate_string("alpha", 10)
@@ -55,10 +57,12 @@ class TestGlobalParameter(CLITestCase):
                           "GlobalParameter list - value matches")
 
     def test_delete(self):
-        """
+        """@Test: Check if Global Param can be deleted
+
         @Feature: Global Param - Delete
-        @Test: Check if Global Param can be deleted
+
         @Assert: Global Param is deleted
+
         """
         name = "opt-%s" % generate_string("alpha", 10)
         val_part1 = generate_string("alpha", 10)

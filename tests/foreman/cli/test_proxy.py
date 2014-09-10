@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-proxy class for Smart proxy CLI
-"""
+"""proxy class for Smart proxy CLI"""
 
 from ddt import ddt
 from robottelo.cli.factory import CLIFactoryError, make_proxy
@@ -23,10 +20,12 @@ class TestProxy(CLITestCase):
 
     @skip_if_bug_open('redmine', 3875)
     def test_redmine_3875(self):
-        """
-        @Test: Proxy creation with random URL
+        """@Test: Proxy creation with random URL
+
         @Feature: Smart Proxy
+
         @Assert: Proxy is not created
+
         """
 
         # Create a random proxy
@@ -43,10 +42,12 @@ class TestProxy(CLITestCase):
         {u'name': generate_string('utf8', 15)},
     )
     def test_proxy_create(self, data):
-        """
-        @Test: Proxy creation with the home proxy
+        """@Test: Proxy creation with the home proxy
+
         @Feature: Smart Proxy
+
         @Assert: Proxy is created
+
         """
         try:
             proxy = make_proxy({u'name': data['name']})
@@ -65,10 +66,12 @@ class TestProxy(CLITestCase):
         {u'name': generate_string('utf8', 15)},
     )
     def test_proxy_delete(self, data):
-        """
-        @Test: Proxy deletion with the home proxy
+        """@Test: Proxy deletion with the home proxy
+
         @Feature: Smart Proxy
+
         @Assert: Proxy is deleted
+
         """
         try:
             proxy = make_proxy({u'name': data['name']})
@@ -127,10 +130,12 @@ class TestProxy(CLITestCase):
          u'update': generate_string('alpha', 15)},
     )
     def test_proxy_update(self, data):
-        """
-        @Test: Proxy name update with the home proxy
+        """@Test: Proxy name update with the home proxy
+
         @Feature: Smart Proxy
+
         @Assert: Proxy has the name updated
+
         """
         try:
             proxy = make_proxy({u'name': data['name']})

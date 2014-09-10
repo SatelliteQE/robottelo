@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Operating System CLI
-"""
+"""Test class for Operating System CLI"""
 from ddt import ddt
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.operatingsys import OperatingSys
@@ -87,18 +84,19 @@ NEGATIVE_DELETE_DATA = (
 
 @ddt
 class TestOperatingSystem(CLITestCase):
-    """
-    Test class for Operating System CLI.
-    """
+    """Test class for Operating System CLI."""
 
     # Issues
     @skip_if_bug_open('redmine', 4547)
     def test_redmine_4547(self):
-        """
-        @test: Search for newly created OS by name
+        """@test: Search for newly created OS by name
+
         @feature: Operating System - List
+
         @assert: Operating System is created and listed
+
         @bz: redmine#4547
+
         """
         result = OperatingSys.list()
         self.assertEqual(result.return_code, 0)
@@ -115,11 +113,14 @@ class TestOperatingSystem(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1051557)
     def test_bugzilla_1051557(self):
-        """
-        @test: Update an Operating System's major version.
+        """@test: Update an Operating System's major version.
+
         @feature: Operating System - Update
+
         @assert: Operating System major version is updated
+
         @bz: 1021557
+
         """
 
         try:
@@ -148,10 +149,12 @@ class TestOperatingSystem(CLITestCase):
                          'OS major version was not updated')
 
     def test_list_1(self):
-        """
-        @test: Displays list for operating system
+        """@test: Displays list for operating system
+
         @feature: Operating System - List
+
         @assert: Operating System is created and listed
+
         """
         result = OperatingSys.list()
         self.assertEqual(result.return_code, 0)
@@ -169,10 +172,12 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     def test_info_1(self):
-        """
-        @test: Displays info for operating system
+        """@test: Displays info for operating system
+
         @feature: Operating System - Info
+
         @assert: Operating System is created and have the correct data
+
         """
 
         result = make_os()
@@ -187,10 +192,12 @@ class TestOperatingSystem(CLITestCase):
 
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):
-        """
-        @test: Create Operating System for all variations of name
+        """@test: Create Operating System for all variations of name
+
         @feature: Operating System - Positive Create
+
         @assert: Operating System is created and can be found
+
         """
 
         # Create a new object using factory method
@@ -206,10 +213,12 @@ class TestOperatingSystem(CLITestCase):
 
     @data(*NEGATIVE_CREATE_DATA)
     def test_negative_create_1(self, test_data):
-        """
-        @test: Create Operating System using invalid names
+        """@test: Create Operating System using invalid names
+
         @feature: Operating System - Negative Create
+
         @assert: Operating System is not created
+
         """
 
         with self.assertRaises(Exception):
@@ -217,10 +226,12 @@ class TestOperatingSystem(CLITestCase):
 
     @data(*POSITIVE_UPDATE_DATA)
     def test_positive_update_1(self, test_data):
-        """
-        @test: Positive update of system name
+        """@test: Positive update of system name
+
         @feature: Operating System - Positive Update
+
         @assert: Operating System is updated and can be found
+
         """
 
         # "Unpacks" values from tuple
@@ -254,10 +265,12 @@ class TestOperatingSystem(CLITestCase):
 
     @data(*NEGATIVE_UPDATE_DATA)
     def test_negative_update_1(self, test_data):
-        """
-        @test: Negative update of system name
+        """@test: Negative update of system name
+
         @feature: Operating System - Negative Update
+
         @assert: Operating System is not updated
+
         """
 
         # "Unpacks" values from tuple
@@ -295,10 +308,12 @@ class TestOperatingSystem(CLITestCase):
 
     @data(*POSITIVE_DELETE_DATA)
     def test_positive_delete_1(self, test_data):
-        """
-        @test: Successfully deletes Operating System
+        """@test: Successfully deletes Operating System
+
         @feature: Operating System - Positive Delete
+
         @assert: Operating System is deleted
+
         """
 
         # Create a new object passing @test_data to factory method
@@ -324,10 +339,12 @@ class TestOperatingSystem(CLITestCase):
 
     @data(*NEGATIVE_DELETE_DATA)
     def test_negative_delete_1(self, test_data):
-        """
-        @test: Not delete Operating System for invalid data
+        """@test: Not delete Operating System for invalid data
+
         @feature: Operating System - Negative Delete
+
         @assert: Operating System is not deleted
+
         """
 
         # Create a new object using default values
@@ -351,10 +368,12 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
     def test_add_architecture(self):
-        """
-        @test: Add Architecture to os
+        """@test: Add Architecture to os
+
         @feature: Operating System - Add architecture
+
         @assert: Operating System is updated with architecture
+
         """
 
         a_ob = make_architecture()
@@ -377,10 +396,12 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(a_ob['name'], result.stdout['architectures'][0])
 
     def test_add_configtemplate(self):
-        """
-        @test: Add configtemplate to os
+        """@test: Add configtemplate to os
+
         @feature: Operating System - Add comfigtemplate
+
         @assert: Operating System is updated with config template
+
         """
 
         conf_obj = make_template()
@@ -405,10 +426,12 @@ class TestOperatingSystem(CLITestCase):
         self.assertTrue(template_name.startswith(conf_obj['name']))
 
     def test_add_ptable(self):
-        """
-        @test: Add ptable to os
+        """@test: Add ptable to os
+
         @feature: Operating System - Add ptable
+
         @assert: Operating System is updated with ptable
+
         """
 
         ptable_obj = make_partition_table()
