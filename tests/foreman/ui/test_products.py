@@ -1,6 +1,4 @@
-"""
-Test class for Products UI
-"""
+"""Test class for Products UI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -14,9 +12,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Products(UITestCase):
-    """
-    Implements Product tests in UI
-    """
+    """Implements Product tests in UI"""
 
     org_name = None
     loc_name = None
@@ -34,10 +30,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, prd_name):
-        """
-        @Test: Create Content Product minimal input parameters
+        """@Test: Create Content Product minimal input parameters
+
         @Feature: Content Product - Positive Create
+
         @Assert: Product is created
+
         """
 
         description = "test 123"
@@ -49,10 +47,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, prd_name):
-        """
-        @Test: Create Content Product with same name but in another org
+        """@Test: Create Content Product with same name but in another org
+
         @Feature: Content Product - Positive Create
+
         @Assert: Product is created
+
         """
 
         description = "test 123"
@@ -68,10 +68,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_1(self, prd_name):
-        """
-        @Test: Create Content Product with too long input parameters
+        """@Test: Create Content Product with too long input parameters
+
         @Feature: Content Product - Negative Create too long
+
         @Assert: Product is not created
+
         """
 
         locator = common_locators["common_haserror"]
@@ -83,10 +85,12 @@ class Products(UITestCase):
             self.assertIsNotNone(error)
 
     def test_negative_create_2(self):
-        """
-        @Test: Create Content Product without input parameter
+        """@Test: Create Content Product without input parameter
+
         @Feature: Content Product - Negative Create zero length
+
         @Assert: Product is not created
+
         """
 
         locator = common_locators["common_invalid"]
@@ -99,10 +103,12 @@ class Products(UITestCase):
             self.assertIsNotNone(invalid)
 
     def test_negative_create_3(self):
-        """
-        @Test: Create Content Product with whitespace input parameter
+        """@Test: Create Content Product with whitespace input parameter
+
         @Feature: Content Product - Negative Create with whitespace
+
         @Assert: Product is not created
+
         """
 
         locator = common_locators["common_invalid"]
@@ -117,10 +123,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_4(self, prd_name):
-        """
-        @Test: Create Content Product with same name input parameter
+        """@Test: Create Content Product with same name input parameter
+
         @Feature: Content Product - Negative Create with same name
+
         @Assert: Product is not created
+
         """
 
         locator = common_locators["common_haserror"]
@@ -136,10 +144,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, prd_name):
-        """
-        @Test: Update Content Product with minimal input parameters
+        """@Test: Update Content Product with minimal input parameters
+
         @Feature: Content Product - Positive Update
+
         @Assert: Product is updated
+
         """
 
         new_prd_name = generate_string("alpha", 8)
@@ -154,10 +164,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, prd_name):
-        """
-        @Test: Update Content Product with too long input parameters
+        """@Test: Update Content Product with too long input parameters
+
         @Feature: Content Product - Negative Update
+
         @Assert: Product is not updated
+
         """
 
         locator = common_locators["alert.error"]
@@ -174,10 +186,12 @@ class Products(UITestCase):
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_remove_prd(self, prd_name):
-        """
-        @Test: Delete Content Product
+        """@Test: Delete Content Product
+
         @Feature: Content Product - Positive Delete
+
         @Assert: Product is deleted
+
         """
 
         description = "test 123"

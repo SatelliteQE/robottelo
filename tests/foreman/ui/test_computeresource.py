@@ -17,9 +17,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class ComputeResource(UITestCase):
-    """
-    Implements Compute Resource tests in UI
-    """
+    """Implements Compute Resource tests in UI"""
     org_name = None
     loc_name = None
 
@@ -37,10 +35,12 @@ class ComputeResource(UITestCase):
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_resource_1(self, name):
-        """
-        @Test: Create a new libvirt Compute Resource
+        """@Test: Create a new libvirt Compute Resource
+
         @Feature: Compute Resource - Create
+
         @Assert: A libvirt Compute Resource is created
+
         """
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
@@ -61,11 +61,14 @@ class ComputeResource(UITestCase):
         generate_string('utf8', 255)
     )
     def test_create_resource_2(self, name):
-        """
-        @Test: Create a new libvirt Compute Resource with 255 char name
+        """@Test: Create a new libvirt Compute Resource with 255 char name
+
         @Feature: Compute Resource - Create
+
         @Assert: A libvirt Compute Resource is created
+
         @BZ: 1120271
+
         """
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
@@ -85,10 +88,12 @@ class ComputeResource(UITestCase):
         generate_string('utf8', 255)
     )
     def test_create_resource_3(self, description):
-        """
-        @Test: Create a new libvirt Compute Resource with 255 char description.
+        """@Test: Create a new libvirt Compute Resource with 255 char description.
+
         @Feature: Compute Resource - Create with long description.
+
         @Assert: A libvirt Compute Resource is not created with 255 char
+
         description.
         """
         name = generate_string("alpha", 8)
@@ -106,11 +111,14 @@ class ComputeResource(UITestCase):
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_1(self, name):
-        """
-        @Test: Create a new libvirt Compute Resource with 256 char name
+        """@Test: Create a new libvirt Compute Resource with 256 char name
+
         @Feature: Compute Resource - Create
+
         @Assert: A libvirt Compute Resource is not created
+
         @BZ: 1120271
+
         """
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
@@ -125,12 +133,15 @@ class ComputeResource(UITestCase):
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_2(self, description):
-        """
-        @Test: Create a new libvirt Compute Resource with 256 char description.
+        """@Test: Create a new libvirt Compute Resource with 256 char description.
+
         @Feature: Compute Resource - Create with long description.
+
         @Assert: A libvirt Compute Resource is not created with 256 char
         description.
+
         @BZ: 1120271
+
         """
         name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -145,10 +156,12 @@ class ComputeResource(UITestCase):
             self.assertIsNotNone(error)
 
     def test_create_resource_negative_3(self):
-        """
-        @Test: Create a new libvirt Compute Resource with whitespace
+        """@Test: Create a new libvirt Compute Resource with whitespace
+
         @Feature: Compute Resource - Create
+
         @Assert: A libvirt Compute Resource is not created
+
         """
         name = "   "
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -162,10 +175,12 @@ class ComputeResource(UITestCase):
             self.assertIsNotNone(error)
 
     def test_create_resource_negative_4(self):
-        """
-        @Test: Create a new libvirt Compute Resource with name blank
+        """@Test: Create a new libvirt Compute Resource with name blank
+
         @Feature: Compute Resource - Create
+
         @Assert: A libvirt Compute Resource is not created
+
         """
         name = ""
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -193,11 +208,14 @@ class ComputeResource(UITestCase):
           {'name': generate_string('html', 10),
            'newname': generate_string('html', 10)})
     def test_update_resource(self, testdata):
-        """
-        @Test: Update a libvirt Compute Resource's Organization
+        """@Test: Update a libvirt Compute Resource's Organization
+
         @Feature: Compute Resource - Update
+
         @Assert: The libvirt Compute Resource is updated
+
         @BZ: 1123352
+
         """
         name = testdata['name']
         newname = testdata['newname']
@@ -220,10 +238,12 @@ class ComputeResource(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_remove_resource(self, name):
-        """
-        @Test: Delete a Compute Resource
+        """@Test: Delete a Compute Resource
+
         @Feature: Compute Resource - Delete
+
         @Assert: The Compute Resource is deleted
+
         """
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']

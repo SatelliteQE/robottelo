@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Domain UI
-"""
+"""Test class for Domain UI"""
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, skip_if_bug_open
@@ -19,9 +16,7 @@ DOMAIN = "lab.dom.%s.com"
 
 @ddt
 class Domain(UITestCase):
-    """
-    Implements Domain tests in UI
-    """
+    """Implements Domain tests in UI"""
     org_name = None
     loc_name = None
 
@@ -38,10 +33,12 @@ class Domain(UITestCase):
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_create_domain_1(self, name):
-        """
-        @Test: Create a new domain
+        """@Test: Create a new domain
+
         @Feature: Domain - Positive Create domain
+
         @Assert: Domain is created
+
         """
         domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
@@ -53,10 +50,12 @@ class Domain(UITestCase):
     # The length of chars is in accordance with DOMAIN global variable.
     @data(*generate_strings_list(len1=243))
     def test_create_domain_2(self, name):
-        """
-        @Test: Create a new domain
+        """@Test: Create a new domain
+
         @Feature: Domain - Positive Create domain with 255 chars
+
         @Assert: Domain is created
+
         """
         domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
@@ -67,10 +66,12 @@ class Domain(UITestCase):
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_remove_domain(self, name):
-        """
-        @Test: Delete a domain
+        """@Test: Delete a domain
+
         @Feature: Domain - Delete
+
         @Assert: Domain is deleted
+
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
@@ -97,10 +98,12 @@ class Domain(UITestCase):
           {'name': generate_string('html', 10),
            'newname': generate_string('html', 10)})
     def test_update_domain(self, testdata):
-        """
-        @Test: Update a domain with name and description\
+        """@Test: Update a domain with name and description\
+
         @Feature: Domain - Update
+
         @Assert: Domain is updated
+
         """
         domain_name = description = DOMAIN % testdata['name']
         new_name = new_description = DOMAIN % testdata['newname']
@@ -115,10 +118,12 @@ class Domain(UITestCase):
     # The length of chars is in accordance with DOMAIN global variable.
     @data(*generate_strings_list(len1=244))
     def test_negative_create_domain_1(self, name):
-        """
-        @Test: Negative create a domain with name and description\
+        """@Test: Negative create a domain with name and description\
+
         @Feature: Domain - Negative Create
+
         @Assert: Domain is not created
+
         """
         domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
@@ -127,10 +132,12 @@ class Domain(UITestCase):
             self.assertIsNone(element)
 
     def test_negative_create_domain_2(self):
-        """
-        @Test: Negative create a domain with blank name
+        """@Test: Negative create a domain with blank name
+
         @Feature: Domain - Negative Create
+
         @Assert: Domain is not created
+
         """
         domain_name = description = ""
         with Session(self.browser) as session:
@@ -140,10 +147,12 @@ class Domain(UITestCase):
             self.assertIsNotNone(error)
 
     def test_negative_create_domain_3(self):
-        """
-        @Test: Negative create a domain with whitespace name
+        """@Test: Negative create a domain with whitespace name
+
         @Feature: Domain - Negative Create
+
         @Assert: Domain is not created
+
         """
         domain_name = description = "   "
         with Session(self.browser) as session:
@@ -155,10 +164,12 @@ class Domain(UITestCase):
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_positive_set_domain_parameter_1(self, name):
-        """
-        @Test: Set parameter name and value for domain
+        """@Test: Set parameter name and value for domain
+
         @Feature: Domain - Misc
+
         @Assert: Domain is updated
+
         """
         domain_name = description = DOMAIN % name
         param_name = generate_string("alpha", 4)
@@ -174,10 +185,12 @@ class Domain(UITestCase):
                 self.fail(e)
 
     def test_positive_set_domain_parameter_2(self):
-        """
-        @Test: Set a parameter in a domain with 255 chars in name and value.
+        """@Test: Set a parameter in a domain with 255 chars in name and value.
+
         @Feature: Domain - Misc.
+
         @Assert: Domain parameter is created.
+
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
@@ -194,10 +207,12 @@ class Domain(UITestCase):
                 self.fail(e)
 
     def test_positive_set_domain_parameter_3(self):
-        """
-        @Test: Set a parameter in a domain with blank value.
+        """@Test: Set a parameter in a domain with blank value.
+
         @Feature: Domain - Misc.
+
         @Assert: Domain parameter is created with blank value.
+
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
@@ -214,10 +229,12 @@ class Domain(UITestCase):
                 self.fail(e)
 
     def test_set_domain_parameter_negative_1(self):
-        """
-        @Test: Set a parameter in a domain with 256 chars in name and value.
+        """@Test: Set a parameter in a domain with 256 chars in name and value.
+
         @Feature: Domain - Misc.
+
         @Assert: Domain parameter is not updated.
+
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
@@ -237,11 +254,14 @@ class Domain(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1123360)
     def test_set_domain_parameter_negative_2(self):
-        """
-        @Test: Again set the same parameter for domain with name and value.
+        """@Test: Again set the same parameter for domain with name and value.
+
         @Feature: Domain - Misc.
+
         @Assert: Domain parameter is not updated.
+
         @BZ: 1123360
+
         """
         name = generate_string("alpha", 4)
         domain_name = description = DOMAIN % name
@@ -264,10 +284,12 @@ class Domain(UITestCase):
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_remove_domain_parameter(self, name):
-        """
-        @Test: Remove a selected domain paramter
+        """@Test: Remove a selected domain paramter
+
         @Feature: Domain - Misc
+
         @Assert: Domain parameter is removed
+
         """
         domain_name = description = DOMAIN % name
         param_name = generate_string("alpha", 3)

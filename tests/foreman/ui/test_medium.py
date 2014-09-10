@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Medium UI
-"""
+"""Test class for Medium UI"""
 
 from ddt import ddt
 from robottelo.common.decorators import data
@@ -19,9 +16,7 @@ URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 @ddt
 class Medium(UITestCase):
-    """
-    Implements all Installation Media tests
-    """
+    """Implements all Installation Media tests"""
 
     org_name = None
     loc_name = None
@@ -38,10 +33,12 @@ class Medium(UITestCase):
 
     @data(*generate_strings_list(len1=4))
     def test_positive_create_medium_1(self, name):
-        """
-        @Test: Create a new media
+        """@Test: Create a new media
+
         @Feature:  Media - Positive Create
+
         @Assert: Media is created
+
         """
 
         path = URL % generate_string("alpha", 6)
@@ -58,10 +55,12 @@ class Medium(UITestCase):
         generate_string('utf8', 255)
     )
     def test_positive_create_medium_2(self, name):
-        """
-        @Test: Create a new media with 255 characters in name
+        """@Test: Create a new media with 255 characters in name
+
         @Feature:  Media - Positive Create
+
         @Assert: Media is created
+
         """
 
         path = URL % generate_string("alpha", 6)
@@ -72,10 +71,12 @@ class Medium(UITestCase):
             self.assertIsNotNone(self.medium.search(name))
 
     def test_negative_create_medium_1(self):
-        """
-        @Test: Create a new install media with 256 characters in name
+        """@Test: Create a new install media with 256 characters in name
+
         @Feature:  Media - Negative Create
+
         @Assert: Media is not created
+
         """
 
         name = generate_string("alpha", 256)
@@ -88,10 +89,12 @@ class Medium(UITestCase):
             self.assertIsNone(self.medium.search(name))
 
     def test_negative_create_medium_2(self):
-        """
-        @Test: Create a new install media with whitespace in name
+        """@Test: Create a new install media with whitespace in name
+
         @Feature:  Media - Negative Create
+
         @Assert: Media is not created
+
         """
 
         name = " "
@@ -103,10 +106,12 @@ class Medium(UITestCase):
                                  (common_locators["name_haserror"]))
 
     def test_negative_create_medium_3(self):
-        """
-        @Test: Create a new install media with blank name
+        """@Test: Create a new install media with blank name
+
         @Feature:  Media - Negative Create
+
         @Assert: Media is not created
+
         """
 
         name = ""
@@ -118,10 +123,12 @@ class Medium(UITestCase):
                                  (common_locators["name_haserror"]))
 
     def test_negative_create_medium_4(self):
-        """
-        @Test: Create a new install media with same name
+        """@Test: Create a new install media with same name
+
         @Feature:  Media - Negative Create
+
         @Assert: Media is not created
+
         """
 
         name = generate_string("alpha", 6)
@@ -135,10 +142,12 @@ class Medium(UITestCase):
                                  (common_locators["name_haserror"]))
 
     def test_negative_create_medium_5(self):
-        """
-        @Test: Create a new install media without media URL
+        """@Test: Create a new install media without media URL
+
         @Feature:  Media - Negative Create
+
         @Assert: Media is not created
+
         """
 
         name = generate_string("alpha", 6)
@@ -151,10 +160,12 @@ class Medium(UITestCase):
             self.assertIsNone(self.medium.search(name))
 
     def test_negative_create_medium_6(self):
-        """
-        @Test: Create an install media with an existing URL
+        """@Test: Create an install media with an existing URL
+
         @Feature:  Media - Negative Create
+
         @Assert: Media is not created
+
         """
 
         name = generate_string("alpha", 6)
@@ -170,10 +181,12 @@ class Medium(UITestCase):
             self.assertIsNone(self.medium.search(new_name))
 
     def test_remove_medium(self):
-        """
-        @Test: Delete a media
+        """@Test: Delete a media
+
         @Feature: Media - Delete
+
         @Assert: Media is deleted
+
         """
         name = generate_string("alpha", 6)
         path = URL % generate_string("alpha", 6)
@@ -187,10 +200,12 @@ class Medium(UITestCase):
             self.assertIsNone(self.medium.search(name))
 
     def test_update_medium(self):
-        """
-        @Test: Updates Install media with name, path, OS family
+        """@Test: Updates Install media with name, path, OS family
+
         @Feature: Media - Update
+
         @Assert: Media is updated
+
         """
         name = generate_string("alpha", 6)
         newname = generate_string("alpha", 4)

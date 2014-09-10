@@ -1,10 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-
-"""
-Test class for Host Group UI
-"""
+"""Test class for Host Group UI"""
 
 from ddt import ddt
 from ddt import data as ddt_data
@@ -18,9 +14,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Hostgroup(UITestCase):
-    """
-    Implements HostGroup tests from UI
-    """
+    """Implements HostGroup tests from UI"""
 
     org_name = None
     loc_name = None
@@ -37,10 +31,12 @@ class Hostgroup(UITestCase):
 
     @data(*generate_strings_list(len1=4))
     def test_create_hostgroup(self, name):
-        """
-        @Test: Create new hostgroup
+        """@Test: Create new hostgroup
+
         @Feature: Hostgroup - Positive Create
+
         @Assert: Hostgroup is created
+
         """
 
         with Session(self.browser) as session:
@@ -51,10 +47,12 @@ class Hostgroup(UITestCase):
     @skip_if_bug_open('bugzilla', 1131416)
     @data(*generate_strings_list(len1=4))
     def test_delete_hostgroup(self, name):
-        """
-        @Test: Delete a hostgroup
+        """@Test: Delete a hostgroup
+
         @Feature: Hostgroup - Positive Delete
+
         @Assert: Hostgroup is deleted
+
         """
 
         with Session(self.browser) as session:
@@ -77,10 +75,12 @@ class Hostgroup(UITestCase):
           {u'name': generate_string('alphanumeric', 255),
            u'new_name': generate_string('alphanumeric', 255)})
     def test_update_hostgroup(self, test_data):
-        """
-        @Test: Update hostgroup with a new name
+        """@Test: Update hostgroup with a new name
+
         @Feature: Hostgroup - Positive Update
+
         @Assert: Hostgroup is updated
+
         """
 
         with Session(self.browser) as session:
@@ -92,10 +92,12 @@ class Hostgroup(UITestCase):
 
     @data(*generate_strings_list(len1=256))
     def test_negative_create_hostgroup_1(self, name):
-        """
-        @Test: Create new hostgroup with 256 chars in name
+        """@Test: Create new hostgroup with 256 chars in name
+
         @Feature: Hostgroup - Negative Create
+
         @Assert: Hostgroup is not created
+
         """
 
         with Session(self.browser) as session:
@@ -106,10 +108,12 @@ class Hostgroup(UITestCase):
 
     @data(*generate_strings_list(len1=6))
     def test_negative_create_hostgroup_2(self, name):
-        """
-        @Test: Create new hostgroup with same name
+        """@Test: Create new hostgroup with same name
+
         @Feature: Hostgroup - Negative Create
+
         @Assert: Hostgroup is not created
+
         """
 
         with Session(self.browser) as session:
@@ -122,10 +126,12 @@ class Hostgroup(UITestCase):
     @ddt_data({u'name': ""},
               {u'name': "  "})
     def test_negative_create_hostgroup_3(self, test_data):
-        """
-        @Test: Create new hostgroup with whitespaces in name
+        """@Test: Create new hostgroup with whitespaces in name
+
         @Feature: Hostgroup - Negative Create
+
         @Assert: Hostgroup is not created
+
         """
 
         with Session(self.browser) as session:

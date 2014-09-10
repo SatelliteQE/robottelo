@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Test class for Partition Table UI
-"""
+"""Test class for Partition Table UI"""
 from ddt import ddt
 from robottelo.common.decorators import data
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
@@ -18,9 +16,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class PartitionTable(UITestCase):
-    """
-    Implements the partition table tests from UI
-    """
+    """Implements the partition table tests from UI"""
 
     org_name = None
     loc_name = None
@@ -38,10 +34,12 @@ class PartitionTable(UITestCase):
 
     @data(*generate_strings_list())
     def test_positive_create_partition_table(self, name):
-        """
-        @Test: Create a new partition table
+        """@Test: Create a new partition table
+
         @Feature: Partition table - Positive Create
+
         @Assert: Partition table is created
+
         """
 
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -53,10 +51,12 @@ class PartitionTable(UITestCase):
 
     @data(*generate_strings_list(len1=256))
     def test_negative_create_partition_table_1(self, name):
-        """
-        @Test: Create a new partition table with 256 characters in name
+        """@Test: Create a new partition table with 256 characters in name
+
         @Feature: Partition table - Negative Create
+
         @Assert: Partition table is not created
+
         """
 
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -71,10 +71,12 @@ class PartitionTable(UITestCase):
     @data({u'name': ""},
           {u'name': "  "})
     def test_negative_create_partition_table_2(self, test_data):
-        """
-        @Test: Create partition table with blank and whitespace in name
+        """@Test: Create partition table with blank and whitespace in name
+
         @Feature: Partition table - Negative Create
+
         @Assert: Partition table is not created
+
         """
 
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -87,10 +89,12 @@ class PartitionTable(UITestCase):
 
     @data(*generate_strings_list(len1=6))
     def test_negative_create_partition_table_3(self, name):
-        """
-        @Test: Create a new partition table with same name
+        """@Test: Create a new partition table with same name
+
         @Feature: Partition table - Negative Create
+
         @Assert: Partition table is not created
+
         """
 
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -106,10 +110,12 @@ class PartitionTable(UITestCase):
 
     @data(*generate_strings_list(len1=6))
     def test_negative_create_partition_table_4(self, name):
-        """
-        @Test: Create a new partition table with empty layout
+        """@Test: Create a new partition table with empty layout
+
         @Feature: Partition table - Negative Create
+
         @Assert: Partition table is not created
+
         """
 
         layout = ""
@@ -123,10 +129,12 @@ class PartitionTable(UITestCase):
 
     @data(*generate_strings_list())
     def test_remove_partition_table(self, name):
-        """
-        @Test: Delete a partition table
+        """@Test: Delete a partition table
+
         @Feature: Partition table - Positive Delete
+
         @Assert: Partition table is deleted
+
         """
 
         layout = "test layout"
@@ -149,10 +157,12 @@ class PartitionTable(UITestCase):
           {u'name': generate_string('alphanumeric', 255),
            u'new_name': generate_string('alphanumeric', 255)})
     def test_update_partition_table(self, test_data):
-        """
-        @Test: Update partition table with its name, layout and OS family
+        """@Test: Update partition table with its name, layout and OS family
+
         @Feature: Partition table - Positive Update
+
         @Assert: Partition table is updated
+
         """
 
         layout = "test layout"

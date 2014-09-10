@@ -1,6 +1,4 @@
-"""
-Test class for Repository UI
-"""
+"""Test class for Repository UI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -18,9 +16,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Repos(UITestCase):
-    """
-    Implements Repos tests in UI
-    """
+    """Implements Repos tests in UI"""
 
     org_name = None
     loc_name = None
@@ -38,10 +34,12 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_1(self, repo_name):
-        """
+        """@Test: Create Content Repos with minimal input parameters
+
         @Feature: Content Repos - Positive Create
-        @Test: Create Content Repos with minimal input parameters
+
         @Assert: Repos is created
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -57,10 +55,12 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_2(self, repo_name):
-        """
-        @Test: Create Content Repos in two different orgs with same name
-        @Feature: Content Repos - Positive Create
+        """@Test: Create Content Repos in two different orgs with same name
+
         @Assert: Repos is created
+
+        @Feature: Content Repos - Positive Create
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -82,10 +82,12 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
 
     def test_negative_create_1(self):
-        """
+        """@Test: Create Content Repos without input parameter
+
         @Feature: Content Repos - Negative Create zero length
-        @Test: Create Content Repos without input parameter
+
         @Assert: Repos is not created
+
         """
 
         locator = common_locators["common_invalid"]
@@ -102,10 +104,12 @@ class Repos(UITestCase):
             self.assertTrue(invalid)
 
     def test_negative_create_2(self):
-        """
+        """@Test: Create Content Repos with whitespace input parameter
+
         @Feature: Content Repos - Negative Create with whitespace
-        @Test: Create Content Repos with whitespace input parameter
+
         @Assert: Repos is not created
+
         """
 
         locator = common_locators["common_invalid"]
@@ -125,11 +129,14 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, repo_name):
-        """
+        """@Test: Create Content Repos with same name input parameter
+
         @Feature: Content Repos - Negative Create with same name
-        @Test: Create Content Repos with same name input parameter
+
         @Assert: Repos is not created
+
         @BZ: 1081059
+
         """
 
         locator = common_locators["common_invalid"]
@@ -150,10 +157,12 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_4(self, repo_name):
-        """
+        """@Test: Create Content Repos with long name input parameter
+
         @Feature: Content Repos - Negative Create with same name
-        @Test: Create Content Repos with long name input parameter
+
         @Assert: Repos is not created
+
         """
 
         locator = common_locators["common_haserror"]
@@ -171,10 +180,12 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, repo_name):
-        """
+        """@Test: Update Content Repo with repository url
+
         @Feature: Content Repo - Positive Update
-        @Test: Update Content Repo with repository url
+
         @Assert: Repo is updated with new url
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -201,10 +212,12 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_2(self, repo_name):
-        """
+        """@Test: Update Content Repo with gpg key
+
         @Feature: Content Repo - Positive Update
-        @Test: Update Content Repo with gpg key
+
         @Assert: Repo is updated with new gpg key
+
         """
 
         key_path1 = get_data_file(VALID_GPG_KEY_FILE)
@@ -241,10 +254,12 @@ class Repos(UITestCase):
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_remove_repo(self, repo_name):
-        """
+        """@Test: Create Content Repos with minimal input parameters
+
         @Feature: Content Repos - Positive Delete
-        @Test: Create Content Repos with minimal input parameters
+
         @Assert: Repos is Deleted
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -260,11 +275,13 @@ class Repos(UITestCase):
             self.assertIsNone(self.repository.search(repo_name))
 
     def test_discover_repo_1(self):
-        """
-        @Feature: Content Repos - Discover repo via http URL
-        @Test: Create Content Repos via repo discovery under existing
+        """@Test: Create Content Repos via repo discovery under existing
         product
+
+        @Feature: Content Repos - Discover repo via http URL
+
         @Assert: Repos is discovered and created
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -277,11 +294,13 @@ class Repos(UITestCase):
                                           product=prd_name)
 
     def test_discover_repo_2(self):
-        """
-        @Feature: Content Repos - Discover repo via http URL
-        @Test: Create Content Repos via repo discovery under new
+        """@Test: Create Content Repos via repo discovery under new
         product
+
+        @Feature: Content Repos - Discover repo via http URL
+
         @Assert: Repos is discovered and created
+
         """
 
         prd_name = generate_string("alpha", 8)

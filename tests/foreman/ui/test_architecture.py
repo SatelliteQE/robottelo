@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Architecture UI
-"""
+"""Test class for Architecture UI"""
 from ddt import ddt
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string,
@@ -17,9 +14,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Architecture(UITestCase):
-    """
-    Implements Architecture tests from UI
-    """
+    """Implements Architecture tests from UI"""
 
     org_name = None
     loc_name = None
@@ -47,10 +42,12 @@ class Architecture(UITestCase):
            u'os_name': generate_string('alphanumeric', 255),
            u'major_version': generate_string('numeric', 5)})
     def test_positive_create_arch_1(self, test_data):
-        """
-        @Test: Create a new Architecture with OS
+        """@Test: Create a new Architecture with OS
+
         @Feature: Architecture - Positive Create
+
         @Assert: Architecture is created
+
         """
 
         with Session(self.browser) as session:
@@ -64,10 +61,12 @@ class Architecture(UITestCase):
 
     @data(*generate_strings_list(len1=8))
     def test_positive_create_arch_2(self, name):
-        """
-        @Test: Create a new Architecture with different data
+        """@Test: Create a new Architecture with different data
+
         @Feature: Architecture - Positive Create
+
         @Assert: Architecture is created
+
         """
         with Session(self.browser) as session:
             make_arch(session, name=name)
@@ -75,10 +74,12 @@ class Architecture(UITestCase):
 
     @data(*generate_strings_list(len1=256))
     def test_negative_create_arch_1(self, name):
-        """
-        @Test: Create a new Architecture with 256 characters in name
+        """@Test: Create a new Architecture with 256 characters in name
+
         @Feature: Architecture - Negative Create
+
         @Assert: Architecture is not created
+
         """
 
         with Session(self.browser) as session:
@@ -88,10 +89,12 @@ class Architecture(UITestCase):
             self.assertIsNone(self.architecture.search(name))
 
     def test_negative_create_arch_2(self):
-        """
-        @Test: Create a new Architecture with whitespace in name
+        """@Test: Create a new Architecture with whitespace in name
+
         @Feature: Architecture - Negative Create
+
         @Assert: Architecture is not created
+
         """
         name = " "
         with Session(self.browser) as session:
@@ -100,10 +103,12 @@ class Architecture(UITestCase):
                                  (common_locators["name_haserror"]))
 
     def test_negative_create_arch_3(self):
-        """
-        @Test: Create a new Architecture with blank name
+        """@Test: Create a new Architecture with blank name
+
         @Feature: Architecture - Negative Create
+
         @Assert: Architecture is not created
+
         """
         name = ""
         with Session(self.browser) as session:
@@ -113,10 +118,12 @@ class Architecture(UITestCase):
 
     @data(*generate_strings_list(len1=6))
     def test_negative_create_arch_4(self, name):
-        """
-        @Test: Create a new Architecture with same name
+        """@Test: Create a new Architecture with same name
+
         @Feature: Architecture - Negative Create
+
         @Assert: Architecture is not created
+
         """
 
         with Session(self.browser) as session:
@@ -140,11 +147,14 @@ class Architecture(UITestCase):
            u'os_name': generate_string('alphanumeric', 255),
            u'major_version': generate_string('numeric', 5)})
     def test_remove_arch(self, test_data):
-        """
-        @Test: Delete an existing Architecture
+        """@Test: Delete an existing Architecture
+
         @Feature: Architecture - Delete
+
         @Assert: Architecture is deleted
+
         @BZ: 1131815
+
         """
 
         with Session(self.browser) as session:
@@ -176,10 +186,12 @@ class Architecture(UITestCase):
            u'os_name': generate_string('alphanumeric', 255),
            u'major_version': generate_string('numeric', 5)})
     def test_update_arch(self, test_data):
-        """
-        @Test: Update Architecture with new name and OS
+        """@Test: Update Architecture with new name and OS
+
         @Feature: Architecture - Update
+
         @Assert: Architecture is updated
+
         """
 
         with Session(self.browser) as session:

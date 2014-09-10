@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
+"""Test class for Host/System Unification
 
-"""
-Test class for Host/System Unification
 Feature details: https://fedorahosted.org/katello/wiki/ContentViews
+
 """
 
 import sys
@@ -31,7 +31,7 @@ from robottelo.test import UITestCase
 
 @ddt
 class TestContentViewsUI(UITestCase):
-    """ Implement tests for content view via UI"""
+    """Implement tests for content view via UI"""
 
     org_name = None
     org_id = None
@@ -49,9 +49,7 @@ class TestContentViewsUI(UITestCase):
 
     def setup_to_create_cv(self, session, cv_name, repo_name=None,
                            repo_url=None, repo_type=None):
-        """
-        Create product/repo and sync it and create CV
-        """
+        """Create product/repo and sync it and create CV"""
         cv_name = cv_name or generate_string("alpha", 8)
         repo_name = repo_name or generate_string("alpha", 8)
         repo_url = repo_url or FAKE_1_YUM_REPO
@@ -401,13 +399,16 @@ class TestContentViewsUI(UITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-        """
-        @test: edit content views for a custom rh spin.  For example,
+        """@test: edit content views for a custom rh spin.  For example,
+
         @feature: Content Views
         modify a filter
+
         @assert: edited content view save is successful and info is
         updated
+
         @status: Manual
+
         """
 
     def test_cv_delete(self):
@@ -473,12 +474,16 @@ class TestContentViewsUI(UITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh(self):
-        """
-        @test: associate Red Hat content in a view
+        """@test: associate Red Hat content in a view
+
         @feature: Content Views
+
         @setup: Sync RH content
+
         @assert: RH Content can be seen in a view
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -488,13 +493,18 @@ class TestContentViewsUI(UITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-        """
-        @test: associate Red Hat content in a view
+        """@test: associate Red Hat content in a view
+
         @feature: Content Views
+
         @setup: Sync RH content
+
         @steps: 1. Assure filter(s) applied to associated content
+
         @assert: Filtered RH content only is available/can be seen in a view
+
         @status: Manual
+
         """
 
     def test_associate_view_custom_content(self):
@@ -592,33 +602,44 @@ class TestContentViewsUI(UITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_associate_composite_dupe_modules_negative(self):
-        """
-        @test: attempt to associate duplicate puppet module(s) within a
+        """@test: attempt to associate duplicate puppet module(s) within a
         content view
+
         @feature: Content Views
+
         @assert: User cannot add modules multiple times to the view
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh(self):
-        """
-        @test: attempt to promote a content view containing RH content
+        """@test: attempt to promote a content view containing RH content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be promoted
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
-        """
-        @test: attempt to promote a content view containing a custom RH
+        """@test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be promoted
+
         @status: Manual
+
         """
 
     def test_cv_promote_custom_content(self):
@@ -658,43 +679,59 @@ class TestContentViewsUI(UITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """
-        @test: attempt to promote a content view containing custom content
+        """@test: attempt to promote a content view containing custom content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; custom content synced
+
         @steps: create a composite view containing multiple content types
+
         @assert: Content view can be promoted
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_default_negative(self):
-        """
-        @test: attempt to promote a the default content views
+        """@test: attempt to promote a the default content views
+
         @feature: Content Views
+
         @assert: Default content views cannot be promoted
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh(self):
-        """
-        @test: attempt to publish a content view containing RH content
+        """@test: attempt to publish a content view containing RH content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
-        """
-        @test: attempt to publish  a content view containing a custom RH
+        """@test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; RH content synced
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     def test_cv_publish_custom_content(self):
@@ -730,12 +767,16 @@ class TestContentViewsUI(UITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """
-        @test: attempt to publish  a content view containing custom content
+        """@test: attempt to publish  a content view containing custom content
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; custom content synced
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -744,17 +785,22 @@ class TestContentViewsUI(UITestCase):
         # If Dev has version x, then when I promote version y into
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
-        """
-        @test: when publishing new version to environment, version
+        """@test: when publishing new version to environment, version
         gets updated
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
+
         @steps:
         1. publish a view to an environment noting the CV version
         2. edit and republish a new version of a CV
+
         @assert: Content view version is updated intarget environment.
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -762,49 +808,63 @@ class TestContentViewsUI(UITestCase):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
-        """
-        @test: when publishing new version to environment, version
+        """@test: when publishing new version to environment, version
         gets updated
+
         @feature: Content Views
+
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
+
         @steps:
         1. publish a view to an environment
         2. edit and republish a new version of a CV
+
         @assert: Content view version is updated in source environment.
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
-        """
-        @test: attempt to create new content view based on existing
+        """@test: attempt to create new content view based on existing
         view within environment
+
         @feature: Content Views
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
-        """
-        @test: attempt to create new content view based on existing
+        """@test: attempt to create new content view based on existing
         view, inside a different environment
+
         @feature: Content Views
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
-        """
-        @test: attempt to refresh errata in a new view, based on
+        """@test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
+
         @feature: Content Views
+
         @assert: Content view can be published
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -819,35 +879,46 @@ class TestContentViewsUI(UITestCase):
         # * custom content
         # * composite
         # * CVs with puppet modules
-        """
-        @test: attempt to  subscribe systems to content view(s)
+        """@test: attempt to  subscribe systems to content view(s)
+
         @feature: Content Views
+
         @assert: Systems can be subscribed to content view(s)
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_dynflow_restart_promote(self):
-        """
-        @test: attempt to restart a promotion
+        """@test: attempt to restart a promotion
+
         @feature: Content Views
+
         @steps:
         1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
         2. Via Dynflow, restart promotion
+
         @assert: Promotion is restarted.
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_dynflow_restart_publish(self):
-        """
-        @test: attempt to restart a publish
+        """@test: attempt to restart a publish
+
         @feature: Content Views
+
         @steps:
         1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
         2. Via Dynflow, restart publish
+
         @assert: Publish is restarted.
+
         @status: Manual
+
         """
 
     # ROLES TESTING
@@ -863,13 +934,17 @@ class TestContentViewsUI(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user with the Content View admin role
+
         @assert: User with admin role for content view can perform all
         Variations above
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -883,13 +958,17 @@ class TestContentViewsUI(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user with the Content View read-only role
+
         @assert: User with read-only role for content view can perform all
         Variations above
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -902,13 +981,17 @@ class TestContentViewsUI(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user with the Content View admin role
+
         @assert: User withOUT admin role for content view canNOT perform any
         Variations above
+
         @status: Manual
+
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -922,11 +1005,15 @@ class TestContentViewsUI(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """
-        @test: attempt to view content views
+        """@test: attempt to view content views
+
         @feature: Content Views
+
         @setup: create a user withOUT the Content View read-only role
+
         @assert: User withOUT read-only role for content view can perform all
         Variations above
+
         @status: Manual
+
         """

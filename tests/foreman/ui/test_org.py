@@ -2,10 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 # pylint: disable=R0904
-
-"""
-Test class for Organization UI
-"""
+"""Test class for Organization UI"""
 
 import sys
 from ddt import ddt
@@ -33,17 +30,17 @@ URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 @ddt
 class Org(UITestCase):
-    """
-    Implements Organization tests in UI
-    """
+    """Implements Organization tests in UI"""
 
     # Tests for issues
 
     def test_auto_search(self):
-        """
-        @test: Can auto-complete search for an organization by partial name
+        """@test: Can auto-complete search for an organization by partial name
+
         @feature: Organizations
+
         @assert: Created organization can be auto search by its partial name
+
         """
 
         org_name = generate_string("alpha", 8)
@@ -62,11 +59,14 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, org_name):
-        """
-        @test: Create organization with valid name only.
+        """@test: Create organization with valid name only.
+
         @feature: Organizations
+
         @assert: organization is created, label is auto-generated
+
         @BZ: 1131469
+
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -93,10 +93,12 @@ class Org(UITestCase):
            'name': generate_string('html', 20),
            'desc': generate_string('html', 10)})
     def test_positive_create_2(self, test_data):
-        """
-        @test: Create organization with valid name, label, parent_org, desc.
+        """@test: Create organization with valid name, label, parent_org, desc.
+
         @feature: Organizations
+
         @assert: organization is created.
+
         """
         parent = generate_string("alpha", 8)
         desc = test_data['desc']
@@ -117,10 +119,12 @@ class Org(UITestCase):
            'label': generate_string('alphanumeric', 10)})
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_3(self, test_data):
-        """
+        """@test: Create organization with valid unmatching name and label only
+
         @feature: Organizations
-        @test: Create organization with valid unmatching name and label only
+
         @assert: organization is created, label does not match name
+
         """
 
         name_loc = locators["org.name"]
@@ -142,10 +146,12 @@ class Org(UITestCase):
           {'data': generate_string('alphanumeric', 10)})
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_4(self, test_data):
-        """
-        @test: Create organization with valid matching name and label only.
+        """@test: Create organization with valid matching name and label only.
+
         @feature: Organizations
+
         @assert: organization is created, label matches name
+
         """
         name_loc = locators["org.name"]
         label_loc = locators["org.label"]
@@ -175,12 +181,16 @@ class Org(UITestCase):
           {'name': generate_string('html', 20),
            'desc': generate_string('html', 10)})
     def test_positive_create_5(self, test_data):
-        """
-        @test: Create organization with valid name and description only.
+        """@test: Create organization with valid name and description only.
+
         @feature: Organizations
+
         @assert: organization is created, label is auto-generated
+
         @BZ: 1079482
+
         @BZ: 1131469
+
         """
 
         desc = test_data['desc']
@@ -197,11 +207,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_0(self, org_name):
-        """
-        @test: Create organization with valid label and description, name is
+        """@test: Create organization with valid label and description, name is
         too long.
+
         @feature: Organizations Negative Tests
+
         @assert: organization is not created
+
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -210,11 +222,13 @@ class Org(UITestCase):
             self.assertIsNotNone(error)
 
     def test_negative_create_1(self):
-        """
-        @test: Create organization with valid label and description, name is
+        """@test: Create organization with valid label and description, name is
         blank.
+
         @feature: Organizations - Negative Tests
+
         @assert: organization is not created
+
         """
         org_name = ""
         with Session(self.browser) as session:
@@ -224,11 +238,13 @@ class Org(UITestCase):
             self.assertIsNotNone(error)
 
     def test_negative_create_2(self):
-        """
-        @test: Create organization with valid label and description, name is
+        """@test: Create organization with valid label and description, name is
         whitespace.
+
         @feature: Organizations Negative Test.
+
         @assert: organization is not created
+
         """
         org_name = "    "
         with Session(self.browser) as session:
@@ -241,12 +257,15 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, org_name):
-        """
-        @test: Create organization with valid values, then create a new one
+        """@test: Create organization with valid values, then create a new one
         with same values.
+
         @feature: Organizations Negative Test.
+
         @assert: organization is not created
+
         @BZ: 1131469
+
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -262,10 +281,12 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, org_name):
-        """
-        @test: Create organization with valid values then delete it.
+        """@test: Create organization with valid values then delete it.
+
         @feature: Organizations Positive Delete test.
+
         @assert: organization is deleted
+
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -281,11 +302,14 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
-        """
-        @test: Create organization with valid values then update its name.
+        """@test: Create organization with valid values then update its name.
+
         @feature: Organizations Positive Update test.
+
         @assert: organization name is updated
+
         @BZ: 1131469
+
         """
 
         org_name = generate_string("alpha", 8)
@@ -301,12 +325,15 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, org_name):
-        """
-        @test: Create organization with valid values then fail to update
+        """@test: Create organization with valid values then fail to update
         its name.
+
         @feature: Organizations Negative Update test.
+
         @assert: organization name is not updated
+
         @BZ: 1131469
+
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -323,11 +350,14 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_search_key_1(self, org_name):
-        """
-        @test: Create organization and search/find it.
+        """@test: Create organization and search/find it.
+
         @feature: Organizations search.
+
         @assert: organization can be found
+
         @BZ: 1131469
+
         """
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -338,11 +368,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain):
-        """
-        @test: Add a domain to an organization and remove it by organization
+        """@test: Add a domain to an organization and remove it by organization
         name and domain name.
+
         @feature: Organizations Disassociate domain.
+
         @assert: the domain is removed from the organization
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -376,11 +408,13 @@ class Org(UITestCase):
           {'name': generate_string('utf8', 8)},
           {'name': generate_string('latin1', 8)})
     def test_remove_user_1(self, testdata):
-        """
-        @test: Create admin users then add user and remove it
+        """@test: Create admin users then add user and remove it
         by using the organization name.
+
         @feature: Organizations dis-associate user.
+
         @assert: The user is added then removed from the organization
+
         """
         user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
@@ -414,11 +448,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp):
-        """
-        @test: Add a hostgroup and remove it by using the organization
+        """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup name.
+
         @feature: Organizations remove hostgroup.
+
         @assert: hostgroup is added to organization then removed.
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -455,11 +491,14 @@ class Org(UITestCase):
         smartproxy name is html
     """)
     def test_add_smartproxy_1(self, test_data):
-        """
+        """@test: Add a smart proxy by using organization name and smartproxy name
+
         @feature: Organizations
-        @test: Add a smart proxy by using organization name and smartproxy name
+
         @assert: smartproxy is added
+
         @status: manual
+
         """
 
         pass
@@ -467,10 +506,12 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
-        """
+        """@test: Add a subnet by using organization name and subnet name.
+
         @feature: Organizations associate subnet.
-        @test: Add a subnet by using organization name and subnet name.
+
         @assert: subnet is added.
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -493,10 +534,12 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain):
-        """
-        @test: Add a domain to an organization.
+        """@test: Add a domain to an organization.
+
         @feature: Organizations associate domain.
+
         @assert: Domain is added to organization.
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -520,11 +563,13 @@ class Org(UITestCase):
           generate_string('utf8', 8),
           generate_string('latin1', 8))
     def test_add_user_2(self, name):
-        """
-        @test: Create different types of users then add user
+        """@test: Create different types of users then add user
         by using the organization name.
+
         @feature: Organizations associate user.
+
         @assert: User is added to organization.
+
         """
 
         strategy, value = common_locators["entity_deselect"]
@@ -551,11 +596,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp):
-        """
-        @test: Add a hostgroup by using the organization
+        """@test: Add a hostgroup by using the organization
         name and hostgroup name.
+
         @feature: Organizations associate host-group.
+
         @assert: hostgroup is added to organization
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -575,11 +622,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_location_1(self, location):
-        """
-        @test: Add a location by using the organization
+        """@test: Add a location by using the organization
         name and location name.
+
         @feature: Organizations associate location.
+
         @assert: location is added to organization.
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -599,11 +648,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
-        """
-        @test: Remove computeresource by using the organization
+        """@test: Remove computeresource by using the organization
         name and computeresource name.
+
         @feature: Organizations dis-associate compute-resource.
+
         @assert: computeresource is added then removed.
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -636,10 +687,12 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium):
-        """
+        """@test: Remove medium by using organization name and medium name.
+
         @feature: Organizations disassociate installation media.
-        @test: Remove medium by using organization name and medium name.
+
         @assert: medium is added then removed.
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -672,11 +725,14 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
-        """
-        @test: Remove config template.
+        """@test: Remove config template.
+
         @feature: Organizations dissociate config templates.
+
         @assert: configtemplate is added then removed.
+
         @BZ: 1129612
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -710,10 +766,12 @@ class Org(UITestCase):
           {'name': generate_string('numeric', 8)},
           {'name': generate_string('alphanumeric', 8)})
     def test_add_environment_1(self, testdata):
-        """
-        @test: Add environment by using organization name and evironment name.
+        """@test: Add environment by using organization name and evironment name.
+
         @feature: Organizations associate environment.
+
         @assert: environment is added.
+
         """
         env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
@@ -742,11 +800,15 @@ class Org(UITestCase):
         smartproxy name is html
     """)
     def test_remove_smartproxy_1(self, test_data):
-        """
+        """@test: Remove smartproxy by using organization name and smartproxy
+        name
+
         @feature: Organizations
-        @test: Remove smartproxy by using organization name and smartproxy name
+
         @assert: smartproxy is added then removed
+
         @status: manual
+
         """
 
         pass
@@ -754,11 +816,13 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
-        """
-        @test: Add compute resource using the organization
+        """@test: Add compute resource using the organization
         name and computeresource name.
+
         @feature: Organizations associate compute resource.
+
         @assert: computeresource is added.
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -781,10 +845,12 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium):
-        """
-        @test: Add medium by using the organization name and medium name.
+        """@test: Add medium by using the organization name and medium name.
+
         @feature: Organizations associate medium.
+
         @assert: medium is added.
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -808,12 +874,15 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
-        """
-        @test: Add config template by using organization name and
+        """@test: Add config template by using organization name and
         configtemplate name.
+
         @feature: Organizations associate config template.
+
         @assert: configtemplate is added
+
         @BZ: 1129612
+
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
@@ -839,10 +908,12 @@ class Org(UITestCase):
           {'name': generate_string('numeric', 8)},
           {'name': generate_string('alphanumeric', 8)})
     def test_remove_environment_1(self, testdata):
-        """
-        @test: Remove environment by using organization name & evironment name.
+        """@test: Remove environment by using organization name & evironment name.
+
         @feature: Organizations dis-associate environment.
+
         @assert: environment is removed from Organization.
+
         """
         env = testdata['name']
         strategy, value = common_locators["entity_select"]
@@ -873,10 +944,12 @@ class Org(UITestCase):
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
-        """
-        @test: Remove subnet by using organization name and subnet name.
+        """@test: Remove subnet by using organization name and subnet name.
+
         @feature: Organizations dis-associate subnet.
+
         @assert: subnet is added then removed.
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]

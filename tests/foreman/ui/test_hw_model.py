@@ -1,6 +1,4 @@
-"""
-Test class for Config Groups UI
-"""
+"""Test class for Config Groups UI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -14,9 +12,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class HardwareModelTestCase(UITestCase):
-    """
-    Implements Hardware Model tests in UI.
-    """
+    """Implements Hardware Model tests in UI."""
     org_name = None
     loc_name = None
 
@@ -35,8 +31,11 @@ class HardwareModelTestCase(UITestCase):
     @data(*generate_strings_list(len1=8))
     def test_create_positive_1(self, name):
         """@test: Create new Hardware-Model
+
         @feature: Hardware-Model - Positive Create
+
         @assert: Hardware-Model is created
+
         """
         with Session(self.browser) as session:
             make_hw_model(session, name=name)
@@ -53,8 +52,11 @@ class HardwareModelTestCase(UITestCase):
     )
     def test_create_positive_2(self, name):
         """@test: Create new Hardware-Model with 255 chars
+
         @feature: Hardware-Model - Positive Create
+
         @assert: Hardware-Model is created with 255 chars
+
         """
         with Session(self.browser) as session:
             make_hw_model(session, name=name)
@@ -65,8 +67,11 @@ class HardwareModelTestCase(UITestCase):
     @data(*generate_strings_list(len1=256))
     def test_create_negative_1(self, name):
         """@test: Create new Hardware-Model with 256 chars
+
         @feature: Hardware-Model - Negative Create
+
         @assert: Hardware-Model is not created
+
         """
         with Session(self.browser) as session:
             make_hw_model(session, name=name)
@@ -76,8 +81,11 @@ class HardwareModelTestCase(UITestCase):
 
     def test_create_negative_2(self):
         """@test: Create new Hardware-Model with blank name
+
         @feature: Hardware-Model - Negative Create
+
         @assert: Hardware-Model is not created
+
         """
         name = ""
         with Session(self.browser) as session:
@@ -88,8 +96,11 @@ class HardwareModelTestCase(UITestCase):
 
     def test_create_negative_3(self):
         """@test: Create new Hardware-Model with whitespace name
+
         @feature: Hardware-Model - Negative Create
+
         @assert: Hardware-Model is not created
+
         """
         name = "    "
         with Session(self.browser) as session:
@@ -111,8 +122,11 @@ class HardwareModelTestCase(UITestCase):
            'new_name': generate_string('latin1', 10)})
     def test_update_positive_1(self, testdata):
         """@test: Updates the Hardware-Model
+
         @feature: Hardware-Model - Positive Update
+
         @assert: Hardware-Model is updated.
+
         """
         name = testdata['name']
         new_name = testdata['new_name']
@@ -128,8 +142,11 @@ class HardwareModelTestCase(UITestCase):
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):
         """@test: Deletes the Hardware-Model
+
         @feature: Hardware-Model - Positive delete
+
         @assert: Hardware-Model is deleted
+
         """
 
         with Session(self.browser) as session:
