@@ -16,7 +16,8 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
 from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
-                                        VALID_GPG_KEY_BETA_FILE)
+                                        VALID_GPG_KEY_BETA_FILE,
+                                        FAKE_1_YUM_REPO, FAKE_2_YUM_REPO)
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import (generate_string, get_data_file,
                                       read_data_file, valid_names_list,
@@ -26,9 +27,6 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import make_gpgkey
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-
-REPO_URL = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
-REPO2_URL = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
 
 
 @ddt
@@ -462,7 +460,7 @@ class GPGKey(UITestCase):
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -506,13 +504,13 @@ class GPGKey(UITestCase):
         # Creates new repository_1 without GPGKey
         entities.Repository(
             name=repository_1_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id']
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
-            url=REPO2_URL,
+            url=FAKE_2_YUM_REPO,
             product=product_attrs['id']
         ).create()
         with Session(self.browser) as session:
@@ -588,7 +586,7 @@ class GPGKey(UITestCase):
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
         ).create()
@@ -633,14 +631,14 @@ class GPGKey(UITestCase):
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_1_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
         ).create()
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_2_name,
-            url=REPO2_URL,
+            url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -750,7 +748,7 @@ class GPGKey(UITestCase):
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -803,13 +801,13 @@ class GPGKey(UITestCase):
         # Creates new repository_1 without GPGKey
         entities.Repository(
             name=repository_1_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
-            url=REPO2_URL,
+            url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -904,7 +902,7 @@ class GPGKey(UITestCase):
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
         ).create()
@@ -958,14 +956,14 @@ class GPGKey(UITestCase):
         # Creates new repository_1 with GPGKey
         entities.Repository(
             name=repository_1_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
-            url=REPO2_URL,
+            url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -1083,7 +1081,7 @@ class GPGKey(UITestCase):
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -1133,13 +1131,13 @@ class GPGKey(UITestCase):
         # Creates new repository_1 without GPGKey
         entities.Repository(
             name=repository_1_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
-            url=REPO2_URL,
+            url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
@@ -1229,7 +1227,7 @@ class GPGKey(UITestCase):
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
         ).create()
@@ -1281,13 +1279,13 @@ class GPGKey(UITestCase):
         # Creates new repository_1 with GPGKey association
         entities.Repository(
             name=repository_1_name,
-            url=REPO_URL,
+            url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
         ).create()
         entities.Repository(
             name=repository_2_name,
-            url=REPO2_URL,
+            url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
             # notice that we're not making this repo point to the GPG key
         ).create()
