@@ -1,6 +1,4 @@
-"""
-Test class for Subscriptions/Manifests UI
-"""
+"""Test class for Subscriptions/Manifests UI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -16,9 +14,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Subscription(UITestCase):
-    """
-    Implements subscriptions/manifests tests in UI
-    """
+    """Implements subscriptions/manifests tests in UI"""
 
     org_name = None
 
@@ -34,10 +30,12 @@ class Subscription(UITestCase):
     @skipRemote
     @attr('ui', 'subs', 'implemented')
     def test_positive_upload_1(self):
-        """
+        """@Test: Upload a manifest with minimal input parameters
+
         @Feature: Manifest/Subscription - Positive Create
-        @Test: Upload a manifest with minimal input parameters
+
         @Assert: Manifest is uploaded
+
         """
 
         alert_loc = common_locators['alert.success']
@@ -61,10 +59,12 @@ class Subscription(UITestCase):
     @skipRemote
     @attr('ui', 'subs', 'implemented')
     def test_positive_delete_1(self):
-        """
+        """@Test: Upload a manifest and delete the manifest.
+
         @Feature: Manifest/Subscription - Positive Delete
-        @Test: Upload a manifest and delete the manifest.
+
         @Assert: Manifest is Deleted successfully
+
         """
 
         alert_loc = common_locators['alert.success']

@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Setting Parameter values
-"""
+"""Test class for Setting Parameter values"""
 
 from ddt import ddt
 from robottelo.common.decorators import data, skip_if_bug_open
@@ -17,9 +14,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Settings(UITestCase):
-    """
-    Implements Boundary tests for Settings menu
-    """
+    """Implements Boundary tests for Settings menu"""
 
     org_name = None
     loc_name = None
@@ -37,11 +32,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_general_param_1(self, test_data):
-        """
-        @Test: Updates param "authorize_login_delegation"
+        """@Test: Updates param "authorize_login_delegation"
         under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -68,11 +65,14 @@ class Settings(UITestCase):
           {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
           {u'param_value': generate_string("alphanumeric", 50) + "@somem.com"})
     def test_positive_update_general_param_2(self, test_data):
-        """
-        @Test: Updates param "administrator" under General tab
+        """@Test: Updates param "administrator" under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         @BZ: 1125181
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -90,11 +90,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_general_param_3(self, test_data):
-        """
-        @Test: Updates param "authorize_login_delegation_api"
+        """@Test: Updates param "authorize_login_delegation_api"
         under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -115,12 +117,15 @@ class Settings(UITestCase):
           {u'param_value': "text"},
           {u'param_value': "0"})
     def test_negative_update_general_param_4(self, test_data):
-        """
-        @Test: Updates param "entries_per_page"
+        """@Test: Updates param "entries_per_page"
         under General tab with invalid values
+
         @Feature: Settings - Negative Update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -138,11 +143,13 @@ class Settings(UITestCase):
             self.assertNotEqual(test_data['param_value'], saved_element)
 
     def test_positive_update_general_param_5(self):
-        """
-        @Test: Updates param "entries_per_page"
+        """@Test: Updates param "entries_per_page"
         under General tab
+
         @Feature: Settings - Positive Update Parameters
+
         @Assert: Parameter is updated
+
         """
         param_value = generate_string("numeric", 5)
         tab_locator = tab_locators["settings.tab_general"]
@@ -172,11 +179,14 @@ class Settings(UITestCase):
           {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
           {u'param_value': generate_string("alphanumeric", 50) + "@somem.com"})
     def test_positive_update_general_param_6(self, test_data):
-        """
-        @Test: Updates param "email_reply_address" under General tab
+        """@Test: Updates param "email_reply_address" under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         @BZ: 1125181
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -194,11 +204,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_general_param_7(self, test_data):
-        """
-        @Test: Updates param "fix_db_cache"
+        """@Test: Updates param "fix_db_cache"
         under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -216,11 +228,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_general_param_8(self, test_data):
-        """
-        @Test: Updates param "use_gravatar"
+        """@Test: Updates param "use_gravatar"
         under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -241,12 +255,15 @@ class Settings(UITestCase):
           {u'param_value': "text"},
           {u'param_value': "0"})
     def test_negative_update_general_param_9(self, test_data):
-        """
-        @Test: Updates param "max_trend"
+        """@Test: Updates param "max_trend"
         under General tab with invalid values
+
         @Feature: Settings - Negative Update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -266,11 +283,13 @@ class Settings(UITestCase):
     @data({'param_value': generate_string("numeric", 2)},
           {'param_value': generate_string("numeric", 5)})
     def test_positive_update_general_param_10(self, test_data):
-        """
-        @Test: Updates param "max_trend"
+        """@Test: Updates param "max_trend"
         under General tab
+
         @Feature: Settings - Positive Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -298,12 +317,15 @@ class Settings(UITestCase):
           {u'param_value': "text"},
           {u'param_value': "0"})
     def test_negative_update_general_param_11(self, test_data):
-        """
-        @Test: Updates param "idle_timeout"
+        """@Test: Updates param "idle_timeout"
         under General tab with invalid values
+
         @Feature: Settings - Negative Update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -323,11 +345,13 @@ class Settings(UITestCase):
     @data({'param_value': generate_string("numeric", 1)},
           {'param_value': generate_string("numeric", 5)})
     def test_positive_update_general_param_12(self, test_data):
-        """
-        @Test: Updates param "idle_timeout"
+        """@Test: Updates param "idle_timeout"
         under General tab
+
         @Feature: Settings - Positive Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -356,10 +380,12 @@ class Settings(UITestCase):
           {u'param_value': "http://" + generate_string("numeric", 10) +
            ".dom.com"})
     def test_positive_update_general_param_13(self, test_data):
-        """
-        @Test: Updates param "foreman_url" under General tab
+        """@Test: Updates param "foreman_url" under General tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -385,11 +411,14 @@ class Settings(UITestCase):
            ".dom.com"},
           {u'param_value': " "})
     def test_negative_update_general_param_14(self, test_data):
-        """
-        @Test: Updates param "foreman_url" under General tab
+        """@Test: Updates param "foreman_url" under General tab
+
         @Feature: Settings - Negative update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_general"]
@@ -409,11 +438,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_foremantasks_param_15(self, test_data):
-        """
-        @Test: Updates param "dynflow_enable_console"
+        """@Test: Updates param "dynflow_enable_console"
         under ForemanTasks tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_foremantasks"]
@@ -434,12 +465,14 @@ class Settings(UITestCase):
           {u'param_value': generate_string("alphanumeric", 10)},
           {u'param_value': generate_string("numeric", 10)})
     def test_positive_update_auth_param_16(self, test_data):
-        """
-        @Test: Updates param
+        """@Test: Updates param
         "authorize_login_delegation_auth_source_user_autocreate"
         under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -461,10 +494,12 @@ class Settings(UITestCase):
           {u'param_value': "http://" + generate_string("numeric", 10) +
            ".dom.com"})
     def test_positive_update_auth_param_17(self, test_data):
-        """
-        @Test: Updates param "login_delegation_logout_url" under Auth tab
+        """@Test: Updates param "login_delegation_logout_url" under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -484,11 +519,13 @@ class Settings(UITestCase):
           {u'param_name': "oauth_consumer_secret"},
           {u'param_name': "oauth_map_users"})
     def test_positive_update_auth_param_18(self, test_data):
-        """
-        @Test: Read-only param "oauth_active"
+        """@Test: Read-only param "oauth_active"
         under Auth tab shouldn't be updated
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is not editable
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -503,11 +540,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_19(self, test_data):
-        """
-        @Test: Updates param "require_ssl_puppetmasters"
+        """@Test: Updates param "require_ssl_puppetmasters"
         under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -525,11 +564,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_20(self, test_data):
-        """
-        @Test: Updates param "restrict_registered_puppetmasters"
+        """@Test: Updates param "restrict_registered_puppetmasters"
         under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -547,11 +588,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_21(self, test_data):
-        """
-        @Test: Updates param "signo_sso"
+        """@Test: Updates param "signo_sso"
         under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -579,10 +622,12 @@ class Settings(UITestCase):
           {u'param_value': "http://" + generate_string("numeric", 10) +
            ".dom.com"})
     def test_positive_update_auth_param_22(self, test_data):
-        """
-        @Test: Updates param "signo_url" under Auth tab
+        """@Test: Updates param "signo_url" under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -607,11 +652,14 @@ class Settings(UITestCase):
           {u'param_value': "http://" + generate_string("html", 10) +
            ".dom.com"})
     def test_negative_update_auth_param_23(self, test_data):
-        """
-        @Test: Updates param "signo_url" under Auth tab
+        """@Test: Updates param "signo_url" under Auth tab
+
         @Feature: Settings - Negative update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -632,12 +680,14 @@ class Settings(UITestCase):
           {u'param_value': "[ " + generate_string("alphanumeric", 10) + " ]"},
           {u'param_value': "[ " + generate_string("numeric", 10) + " ]"})
     def test_positive_update_auth_param_24(self, test_data):
-        """
-        @Test: Updates param
+        """@Test: Updates param
         "trusted_puppetmaster_hosts"
         under Auth tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -658,11 +708,14 @@ class Settings(UITestCase):
           {u'param_value': "text"},
           {u'param_value': "0"})
     def test_negative_update_auth_param_25(self, test_data):
-        """
-        @Test: Updates param "trusted_puppetmaster_hosts" under Auth tab
+        """@Test: Updates param "trusted_puppetmaster_hosts" under Auth tab
+
         @Feature: Settings - Negative update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
@@ -682,11 +735,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_26(self, test_data):
-        """
-        @Test: Updates param "ignore_puppet_facts_for_provisioning"
+        """@Test: Updates param "ignore_puppet_facts_for_provisioning"
         under Provisioning tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
@@ -704,11 +759,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_27(self, test_data):
-        """
-        @Test: Updates param "ignore_puppet_facts_for_provisioning"
+        """@Test: Updates param "ignore_puppet_facts_for_provisioning"
         under Provisioning tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
@@ -726,11 +783,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_28(self, test_data):
-        """
-        @Test: Updates param "manage_puppetca"
+        """@Test: Updates param "manage_puppetca"
         under Provisioning tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
@@ -748,11 +807,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_29(self, test_data):
-        """
-        @Test: Updates param "query_local_nameservers"
+        """@Test: Updates param "query_local_nameservers"
         under Provisioning tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
@@ -770,11 +831,13 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_30(self, test_data):
-        """
-        @Test: Updates param "safemode_render"
+        """@Test: Updates param "safemode_render"
         under Provisioning tab
+
         @Feature: Settings - Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
@@ -794,12 +857,15 @@ class Settings(UITestCase):
           {u'param_value': "-1"},
           {u'param_value': "text"})
     def test_negative_update_provisioning_param_31(self, test_data):
-        """
-        @Test: Updates param "token_duration"
+        """@Test: Updates param "token_duration"
         under Provisioning tab with invalid values
+
         @Feature: Settings - Negative Update Parameters
+
         @Assert: Parameter is not updated
+
         @BZ: 1125156
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]
@@ -819,11 +885,13 @@ class Settings(UITestCase):
     @data({'param_value': generate_string("numeric", 1)},
           {'param_value': "0"})
     def test_positive_update_provisioning_param_32(self, test_data):
-        """
-        @Test: Updates param "token_duration"
+        """@Test: Updates param "token_duration"
         under Provisioning tab
+
         @Feature: Settings - Positive Update Parameters
+
         @Assert: Parameter is updated
+
         """
 
         tab_locator = tab_locators["settings.tab_provisioning"]

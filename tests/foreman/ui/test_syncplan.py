@@ -1,6 +1,4 @@
-"""
-Test class for Sync Plan UI
-"""
+"""Test class for Sync Plan UI"""
 
 from datetime import datetime, timedelta
 
@@ -17,9 +15,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Syncplan(UITestCase):
-    """
-    Implements Sync Plan tests in UI
-    """
+    """Implements Sync Plan tests in UI"""
 
     org_name = None
 
@@ -32,9 +28,7 @@ class Syncplan(UITestCase):
                 make_org(session, org_name=Syncplan.org_name)
 
     def configure_syncplan(self):
-        """
-        Configures sync plan in UI
-        """
+        """Configures sync plan in UI"""
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(self.org_name)
         self.navigator.go_to_sync_plans()
@@ -86,10 +80,12 @@ class Syncplan(UITestCase):
            u'desc': generate_string('html', 10),
            u'interval': SYNC_INTERVAL['week']})
     def test_positive_create_1(self, test_data):
-        """
+        """@Test: Create Sync Plan with minimal input parameters
+
         @Feature: Content Sync Plan - Positive Create
-        @Test: Create Sync Plan with minimal input parameters
+
         @Assert: Sync Plan is created
+
         """
 
         self.configure_syncplan()
@@ -101,11 +97,14 @@ class Syncplan(UITestCase):
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, name):
-        """
+        """@Test: Create Sync Plan with same input parameters
+
         @Feature: Content Sync Plan - Positive Create
-        @Test: Create Sync Plan with same input parameters
+
         @Assert: Sync Plan is not created
+
         @BZ: 1087425
+
         """
 
         description = "with same name"
@@ -121,11 +120,14 @@ class Syncplan(UITestCase):
     @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_3(self):
-        """
+        """@Test: Create Sync plan with specified start time
+
         @Feature: Content Sync Plan - Positive Create
-        @Test: Create Sync plan with specified start time
+
         @Assert: Sync Plan is created with the specified time.
+
         @BZ: 1131661
+
         """
 
         locator = locators["sp.fetch_startdate"]
@@ -154,11 +156,14 @@ class Syncplan(UITestCase):
     @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_4(self):
-        """
+        """@Test: Create Sync plan with specified start date
+
         @Feature: Content Sync Plan - Positive Create
-        @Test: Create Sync plan with specified start date
+
         @Assert: Sync Plan is created with the specified date
+
         @BZ: 1131661
+
         """
 
         locator = locators["sp.fetch_startdate"]
@@ -180,10 +185,12 @@ class Syncplan(UITestCase):
         self.assertEqual(startdate_text, fetch_startdate)
 
     def test_negative_create_1(self):
-        """
+        """@Test: Create Sync Plan with whitespace as name input parameters
+
         @Feature: Content Sync Plan - Negative Create
-        @Test: Create Sync Plan with whitespace as name input parameters
+
         @Assert: Sync Plan is not created with whitespace input
+
         """
 
         name = "   "
@@ -194,10 +201,12 @@ class Syncplan(UITestCase):
         self.assertTrue(invalid)
 
     def test_negative_create_2(self):
-        """
+        """@Test: Create Sync Plan with blank as name input parameters
+
         @Feature: Content Sync Plan - Negative Create
-        @Test: Create Sync Plan with blank as name input parameters
+
         @Assert: Sync Plan is not created with blank input
+
         """
 
         name = ""
@@ -211,11 +220,14 @@ class Syncplan(UITestCase):
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_3(self, name):
-        """
+        """@Test: Create Sync Plan with long chars for name as input parameters
+
         @Feature: Content Sync Plan - Negative Create
-        @Test: Create Sync Plan with long chars for name as input parameters
+
         @Assert: Sync Plan is not created with more than 255 chars
+
         @BZ: 1087425
+
         """
 
         locator = common_locators["common_haserror"]
@@ -228,10 +240,12 @@ class Syncplan(UITestCase):
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, plan_name):
-        """
+        """@Test: Update Sync plan's name
+
         @Feature: Content Sync Plan - Positive Update name
-        @Test: Update Sync plan's name
+
         @Assert: Sync Plan's name is updated
+
         """
 
         new_plan_name = generate_string("alpha", 8)
@@ -274,10 +288,12 @@ class Syncplan(UITestCase):
           {u'name': generate_string('html', 20),
            u'interval': SYNC_INTERVAL['week']})
     def test_positive_update_2(self, test_data):
-        """
+        """@Test: Update Sync plan's interval
+
         @Feature: Content Sync Plan - Positive Update interval
-        @Test: Update Sync plan's interval
+
         @Assert: Sync Plan's interval is updated
+
         """
 
         description = "delete sync plan"
@@ -296,10 +312,12 @@ class Syncplan(UITestCase):
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_3(self, plan_name):
-        """
+        """@Test: Update Sync plan and associate products
+
         @Feature: Content Sync Plan - Positive Update add products
-        @Test: Update Sync plan and associate products
+
         @Assert: Sync Plan has the associated product
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -326,10 +344,12 @@ class Syncplan(UITestCase):
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_4(self, plan_name):
-        """
+        """@Test: Update Sync plan and disassociate products
+
         @Feature: Content Sync Plan - Positive Update remove products
-        @Test: Update Sync plan and disassociate products
+
         @Assert: Sync Plan does not have the associated product
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -369,10 +389,12 @@ class Syncplan(UITestCase):
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, plan_name):
-        """
+        """@Test: Delete a Sync plan
+
         @Feature: Content Sync Plan - Positive Delete
-        @Test: Delete a Sync plan
+
         @Assert: Sync Plan is deleted
+
         """
 
         description = "delete sync plan"

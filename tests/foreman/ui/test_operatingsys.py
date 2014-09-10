@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Operating System UI
-"""
+"""Test class for Operating System UI"""
 
 from ddt import ddt
 from robottelo.common.constants import (INSTALL_MEDIUM_URL,
@@ -22,9 +19,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class OperatingSys(UITestCase):
-    """
-    Implements Operating system tests from UI
-    """
+    """Implements Operating system tests from UI"""
 
     org_name = None
     loc_name = None
@@ -40,10 +35,12 @@ class OperatingSys(UITestCase):
                 make_loc(session, name=OperatingSys.loc_name)
 
     def test_create_os(self):
-        """
-        @Test: Create a new OS
+        """@Test: Create a new OS
+
         @Feature: OS - Positive Create
+
         @Assert: OS is created
+
         """
 
         name = generate_string("alpha", 6)
@@ -80,11 +77,14 @@ class OperatingSys(UITestCase):
            u'desc': generate_string('alphanumeric', 255),
            u'os_family': "SUSE"})
     def test_positive_create_os(self, test_data):
-        """
-        @Test: Create a new OS with different data values
+        """@Test: Create a new OS with different data values
+
         @Feature: OS - Positive Create
+
         @Assert: OS is created
+
         @BZ: 1120568
+
         """
 
         arch = "i386"
@@ -99,11 +99,14 @@ class OperatingSys(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1120181)
     def test_negative_create_os_1(self):
-        """
-        @Test: OS - Create a new OS with 256 characters in name
+        """@Test: OS - Create a new OS with 256 characters in name
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         @BZ: 1120181
+
         """
 
         name = generate_string("alpha", 256)
@@ -121,10 +124,12 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_2(self):
-        """
-        @Test: OS - Create a new OS with blank name
+        """@Test: OS - Create a new OS with blank name
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         """
         name = ""
         major_version = generate_string('numeric', 1)
@@ -140,11 +145,13 @@ class OperatingSys(UITestCase):
                                  (common_locators["name_haserror"]))
 
     def test_negative_create_os_3(self):
-        """
-        @Test: OS - Create a new OS with description containing
+        """@Test: OS - Create a new OS with description containing
         256 characters
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         """
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
@@ -163,11 +170,13 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_4(self):
-        """
-        @Test: OS - Create a new OS with long major version (More than 5
+        """@Test: OS - Create a new OS with long major version (More than 5
         characters in major version)
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         """
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 6)
@@ -184,11 +193,13 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_5(self):
-        """
-        @Test: OS - Create a new OS with long minor version (More than 16
+        """@Test: OS - Create a new OS with long minor version (More than 16
         characters in minor version)
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         """
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
@@ -205,10 +216,12 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_negative_create_os_6(self):
-        """
-        @Test: OS - Create a new OS without major version
+        """@Test: OS - Create a new OS without major version
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         """
         name = generate_string("alpha", 6)
         major_version = " "
@@ -226,11 +239,14 @@ class OperatingSys(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1120199)
     def test_negative_create_os_7(self):
-        """
-        @Test: OS - Create a new OS with -ve value of major version
+        """@Test: OS - Create a new OS with -ve value of major version
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         @BZ: 1120199
+
         """
         name = generate_string("alpha", 6)
         major_version = "-6"
@@ -248,11 +264,14 @@ class OperatingSys(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1120985)
     def test_negative_create_os_8(self):
-        """
-        @Test: OS - Create a new OS with same name and version
+        """@Test: OS - Create a new OS with same name and version
+
         @Feature: Create a new OS - Negative
+
         @Assert: OS is not created
+
         @BZ: 1120985
+
         """
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
@@ -274,10 +293,12 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_remove_os(self):
-        """
-        @Test: Delete an existing OS
+        """@Test: Delete an existing OS
+
         @Feature: OS - Positive Delete
+
         @Assert: OS is deleted
+
         """
 
         name = generate_string("alpha", 6)
@@ -296,11 +317,13 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     def test_update_os_1(self):
-        """
-        @Test: Update OS name, major_version, minor_version, os_family
+        """@Test: Update OS name, major_version, minor_version, os_family
         and arch
+
         @Feature: OS - Positive Update
+
         @Assert: OS is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -327,10 +350,12 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.search(new_name))
 
     def test_update_os_medium(self):
-        """
-        @Test: Update OS medium
+        """@Test: Update OS medium
+
         @Feature: OS - Positive Update
+
         @Assert: OS is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -348,10 +373,12 @@ class OperatingSys(UITestCase):
             self.assertEqual(medium, result_object['medium'])
 
     def test_update_os_partition_table(self):
-        """
-        @Test: Update OS partition table
+        """@Test: Update OS partition table
+
         @Feature: OS - Positive Update
+
         @Assert: OS is updated
+
         """
 
         name = generate_string("alpha", 6)
@@ -372,11 +399,14 @@ class OperatingSys(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_update_os_template(self):
-        """
-        @Test: Update provisioning template
+        """@Test: Update provisioning template
+
         @Feature: OS - Positive Update
+
         @Assert: OS is updated
+
         @BZ: 1129612
+
         """
 
         os_name = generate_string("alpha", 6)
@@ -400,10 +430,12 @@ class OperatingSys(UITestCase):
             self.assertEqual(template_name, result_obj['template'])
 
     def test_positive_set_os_parameter_1(self):
-        """
-        @Test: Set OS parameter
+        """@Test: Set OS parameter
+
         @Feature: OS - Positive Update
+
         @Assert: OS is updated
+
         """
         name = generate_string("alpha", 4)
         major_version = generate_string('numeric', 1)
@@ -420,10 +452,12 @@ class OperatingSys(UITestCase):
                 self.fail(e)
 
     def test_positive_set_os_parameter_2(self):
-        """
-        @Test: Set OS parameter with blank value
+        """@Test: Set OS parameter with blank value
+
         @Feature: OS - Positive update
+
         @Assert: Parameter is created with blank value
+
         """
         name = generate_string("alpha", 4)
         major_version = generate_string('numeric', 1)
@@ -440,10 +474,12 @@ class OperatingSys(UITestCase):
                 self.fail(e)
 
     def test_remove_os_parameter(self):
-        """
-        @Test: Remove selected OS parameter
+        """@Test: Remove selected OS parameter
+
         @Feature: OS - Positive Update
+
         @Assert: OS is updated
+
         """
         name = generate_string("alpha", 6)
         major_version = generate_string('numeric', 1)
@@ -461,11 +497,14 @@ class OperatingSys(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_os_parameter_1(self):
-        """
-        @Test: Set same OS parameter again as it was set earlier
+        """@Test: Set same OS parameter again as it was set earlier
+
         @Feature: OS - Negative Update
+
         @Assert: Proper error should be raised, Name already taken
+
         @BZ: 1120663
+
         """
         name = generate_string("alpha", 4)
         major_version = generate_string('numeric', 1)
@@ -487,11 +526,14 @@ class OperatingSys(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_os_parameter_2(self):
-        """
-        @Test: Set OS parameter with blank name and value
+        """@Test: Set OS parameter with blank name and value
+
         @Feature: OS - Negative Update
+
         @Assert: Proper error should be raised, Name can't contain whitespaces
+
         @BZ: 1120663
+
         """
         name = generate_string("alpha", 4)
         major_version = generate_string('numeric', 1)
@@ -510,10 +552,12 @@ class OperatingSys(UITestCase):
                                  (common_locators["common_param_error"]))
 
     def test_negative_set_os_parameter_3(self):
-        """
-        @Test: Set OS parameter with name and value exceeding 255 characters
+        """@Test: Set OS parameter with name and value exceeding 255 characters
+
         @Feature: OS - Negative Update
+
         @Assert: Proper error should be raised, Name should contain a value
+
         """
         name = generate_string("alpha", 4)
         major_version = generate_string('numeric', 1)

@@ -2,10 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 # pylint: disable=R0904
-
-"""
-Test class for Locations UI
-"""
+"""Test class for Locations UI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -28,17 +25,17 @@ URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 @ddt
 class Location(UITestCase):
-    """
-    Implements Location tests in UI
-    """
+    """Implements Location tests in UI"""
 
     # Auto Search
 
     def test_auto_search(self):
-        """
-        @test: Can auto-complete search for location by partial name
+        """@test: Can auto-complete search for location by partial name
+
         @feature: Locations
+
         @assert: Created location can be auto search by its partial name
+
         """
         loc_name = generate_string("alpha", 8)
         part_string = loc_name[:3]
@@ -55,10 +52,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, loc_name):
-        """
-        @test: Create Location with valid name only
+        """@test: Create Location with valid name only
+
         @feature: Locations
+
         @assert: Location is created, label is auto-generated
+
         """
 
         with Session(self.browser) as session:
@@ -69,11 +68,14 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list(len1=247))
     def test_negative_create_1(self, loc_name):
-        """
-        @test: Create location with name as too long
+        """@test: Create location with name as too long
+
         @feature: Locations
+
         @assert: location is not created
+
         @BZ: 1123818
+
         """
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -82,10 +84,12 @@ class Location(UITestCase):
             self.assertIsNotNone(error)
 
     def test_negative_create_2(self):
-        """
-        @test: Create location with name as blank
+        """@test: Create location with name as blank
+
         @feature: Locations
+
         @assert: location is not created
+
         """
 
         loc_name = ""
@@ -96,10 +100,12 @@ class Location(UITestCase):
             self.assertIsNotNone(error)
 
     def test_negative_create_3(self):
-        """
-        @test: Create location with name as whitespace
+        """@test: Create location with name as whitespace
+
         @feature: Locations
+
         @assert: location is not created
+
         """
 
         loc_name = "    "
@@ -112,11 +118,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_4(self, loc_name):
-        """
-        @test: Create location with valid values, then create a new one
+        """@test: Create location with valid values, then create a new one
         with same values.
+
         @feature: Locations
+
         @assert: location is not created
+
         """
 
         with Session(self.browser) as session:
@@ -132,10 +140,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
-        """
-        @test: Create Location with valid values then update its name
+        """@test: Create Location with valid values then update its name
+
         @feature: Locations
+
         @assert: Location name is updated
+
         """
 
         loc_name = generate_string("alpha", 8)
@@ -151,12 +161,15 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, loc_name):
-        """
-        @test: Create Location with valid values then fail to update
+        """@test: Create Location with valid values then fail to update
         its name
+
         @feature: Locations
+
         @assert: Location name is not updated
+
         @BZ: 1123818
+
         """
 
         with Session(self.browser) as session:
@@ -173,10 +186,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_search_key_1(self, loc_name):
-        """
-        @test: Create location and search/find it
+        """@test: Create location and search/find it
+
         @feature: Locations
+
         @assert: location can be found
+
         """
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -185,10 +200,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
-        """
-        @test: Add a subnet by using location name and subnet name
+        """@test: Add a subnet by using location name and subnet name
+
         @feature: Locations
+
         @assert: subnet is added
+
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -211,10 +228,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain):
-        """
-        @test: Add a domain to a Location
+        """@test: Add a domain to a Location
+
         @feature: Locations
+
         @assert: Domain is added to Location
+
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -238,11 +257,13 @@ class Location(UITestCase):
           {'name': generate_string('utf8', 8)},
           {'name': generate_string('latin1', 8)})
     def test_add_user_1(self, testdata):
-        """
-        @test: Create user then add user
+        """@test: Create user then add user
         by using the location name
+
         @feature: Locations
+
         @assert: User is added to location
+
         """
         user = testdata['name']
         strategy, value = common_locators["entity_deselect"]
@@ -266,10 +287,12 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     def test_allvalues_hostgroup(self):
-        """
-        @test: check whether host group has the 'All values' checked.
+        """@test: check whether host group has the 'All values' checked.
+
         @feature: Locations
+
         @assert: host group 'All values' checkbox is checked.
+
         """
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
@@ -284,11 +307,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp):
-        """
-        @test: Add a hostgroup by using the location
+        """@test: Add a hostgroup by using the location
         name and hostgroup name
+
         @feature: Locations
+
         @assert: hostgroup is added to location
+
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
@@ -307,11 +332,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_org_1(self, org):
-        """
-        @test: Add a organization by using the location
+        """@test: Add a organization by using the location
         name
+
         @feature: Locations
+
         @assert: organization is added to location
+
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -333,10 +360,12 @@ class Location(UITestCase):
           {'name': generate_string('numeric', 8)},
           {'name': generate_string('alphanumeric', 8)})
     def test_add_environment_1(self, testdata):
-        """
-        @test: Add environment by using location name and evironment name
+        """@test: Add environment by using location name and evironment name
+
         @feature: Locations
+
         @assert: environment is added
+
         """
         env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
@@ -357,11 +386,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
-        """
-        @test: Add compute resource using the location
+        """@test: Add compute resource using the location
         name and computeresource name
+
         @feature: Locations
+
         @assert: computeresource is added
+
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -384,10 +415,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium):
-        """
-        @test: Add medium by using the location name and medium name
+        """@test: Add medium by using the location name and medium name
+
         @feature: Locations
+
         @assert: medium is added
+
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = generate_string("alpha", 8)
@@ -407,10 +440,12 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     def test_allvalues_configtemplate(self):
-        """
-        @test: check whether config template has the 'All values' checked.
+        """@test: check whether config template has the 'All values' checked.
+
         @feature: Locations
+
         @assert: configtemplate 'All values' checkbox is checked.
+
         """
         loc_name = generate_string("alpha", 8)
         with Session(self.browser) as session:
@@ -425,11 +460,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
-        """
-        @test: Add config template by using location name and
+        """@test: Add config template by using location name and
         configtemplate name.
+
         @feature: Locations
+
         @assert: configtemplate is added.
+
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
@@ -453,10 +490,12 @@ class Location(UITestCase):
           {'name': generate_string('numeric', 8)},
           {'name': generate_string('alphanumeric', 8)})
     def test_remove_environment_1(self, testdata):
-        """
-        @test: Remove environment by using location name & evironment name
+        """@test: Remove environment by using location name & evironment name
+
         @feature: Locations
+
         @assert: environment is removed from Location
+
         """
         env = testdata['name']
         strategy, value = common_locators["entity_select"]
@@ -485,10 +524,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
-        """
-        @test: Remove subnet by using location name and subnet name
+        """@test: Remove subnet by using location name and subnet name
+
         @feature: Locations
+
         @assert: subnet is added then removed
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -519,11 +560,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain):
-        """
-        @test: Add a domain to an location and remove it by location
+        """@test: Add a domain to an location and remove it by location
         name and domain name
+
         @feature: Locations
+
         @assert: the domain is removed from the location
+
         """
 
         strategy, value = common_locators["entity_select"]
@@ -556,11 +599,13 @@ class Location(UITestCase):
           {'name': generate_string('utf8', 8)},
           {'name': generate_string('latin1', 8)})
     def test_remove_user_1(self, testdata):
-        """
-        @test: Create admin users then add user and remove it
+        """@test: Create admin users then add user and remove it
         by using the location name
+
         @feature: Locations
+
         @assert: The user is added then removed from the location
+
         """
         user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
@@ -594,11 +639,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp):
-        """
-        @test: Add a hostgroup and remove it by using the location
+        """@test: Add a hostgroup and remove it by using the location
         name and hostgroup name
+
         @feature: Locations
+
         @assert: hostgroup is added to location then removed
+
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)
@@ -625,11 +672,13 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
-        """
-        @test: Remove computeresource by using the location
+        """@test: Remove computeresource by using the location
         name and computeresource name
+
         @feature: Locations
+
         @assert: computeresource is added then removed
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -661,10 +710,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium):
-        """
-        @test: Remove medium by using location name and medium name
+        """@test: Remove medium by using location name and medium name
+
         @feature: Locations
+
         @assert: medium is added then removed
+
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
@@ -694,10 +745,12 @@ class Location(UITestCase):
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
-        """
-        @test: Remove config template
+        """@test: Remove config template
+
         @feature: Locations
+
         @assert: configtemplate is added then removed
+
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = generate_string("alpha", 8)

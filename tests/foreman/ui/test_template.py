@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Test class for Template UI
-"""
+"""Test class for Template UI"""
 from ddt import ddt
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
@@ -19,9 +17,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class Template(UITestCase):
-    """
-    Implements Provisioning Template tests from UI
-    """
+    """Implements Provisioning Template tests from UI"""
 
     org_name = None
     loc_name = None
@@ -39,12 +35,15 @@ class Template(UITestCase):
     @skip_if_bug_open('bugzilla', 1129612)
     @data(*generate_strings_list())
     def test_positive_create_template(self, name):
-        """
-        @Test: Create new template
+        """@Test: Create new template
+
         @Feature: Template - Positive Create
+
         @Assert: New provisioning template of type 'provision'
         should be created successfully
+
         @BZ: 1129612
+
         """
 
         temp_type = 'provision'
@@ -57,11 +56,14 @@ class Template(UITestCase):
     @skip_if_bug_open('bugzilla', 1129612)
     @skip_if_bug_open('bugzilla', 1121521)
     def test_negative_create_template_1(self):
-        """
-        @Test: Template - Create a new template with 256 characters in name
+        """@Test: Template - Create a new template with 256 characters in name
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1121521 1129612
+
         """
 
         name = generate_string("alpha", 256)
@@ -76,11 +78,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_2(self):
-        """
-        @Test: Template - Create a new template with whitespace
+        """@Test: Template - Create a new template with whitespace
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1129612
+
         """
         name = " "
         temp_type = 'provision'
@@ -94,11 +99,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_3(self):
-        """
-        @Test: Template - Create a new template with blank name
+        """@Test: Template - Create a new template with blank name
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1129612
+
         """
         name = ""
         temp_type = 'provision'
@@ -112,11 +120,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_4(self):
-        """
-        @Test: Template - Create a new template with same name
+        """@Test: Template - Create a new template with same name
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1129612
+
         """
         name = generate_string("alpha", 16)
         temp_type = 'provision'
@@ -132,11 +143,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_5(self):
-        """
-        @Test: Template - Create a new template without selecting its type
+        """@Test: Template - Create a new template without selecting its type
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1129612
+
         """
         name = generate_string("alpha", 16)
         temp_type = ""
@@ -151,11 +165,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_6(self):
-        """
-        @Test: Template - Create a new template without uploading a template
+        """@Test: Template - Create a new template without uploading a template
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1129612
+
         """
         name = generate_string("alpha", 16)
         temp_type = 'PXELinux'
@@ -169,11 +186,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_7(self):
-        """
-        @Test: Create a new template with 256 characters in audit comments
+        """@Test: Create a new template with 256 characters in audit comments
+
         @Feature: Template - Negative Create
+
         @Assert: Template is not created
+
         @BZ: 1129612
+
         """
         name = generate_string("alpha", 16)
         audit_comment = generate_string("alpha", 256)
@@ -189,12 +209,15 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_positive_create_snippet_template(self):
-        """
-        @Test: Create new template of type snippet
+        """@Test: Create new template of type snippet
+
         @Feature: Template - Positive Create
+
         @Assert: New provisioning template of type 'snippet'
         should be created successfully
+
         @BZ: 1129612
+
         """
 
         name = generate_string("alpha", 6)
@@ -207,12 +230,14 @@ class Template(UITestCase):
     @skip_if_bug_open('bugzilla', 1129612)
     @skip_if_bug_open('bugzilla', 1138543)
     def test_remove_template(self):
-        """
-        @Test: Remove a template
+        """@Test: Remove a template
+
         @Feature: Template - Positive Delete
+
         @Assert: Template removed successfully
-        @BZ: 1129612
-        @BZ: 1138543
+
+        @BZ: 1129612, 1138543
+
         """
 
         name = generate_string("alpha", 6)
@@ -229,11 +254,14 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_update_template(self):
-        """
-        @Test: Update template name and template type
+        """@Test: Update template name and template type
+
         @Feature: Template - Positive Update
+
         @Assert: The template name and type should be updated successfully
+
         @BZ: 1129612
+
         """
 
         name = generate_string("alpha", 6)
@@ -250,13 +278,16 @@ class Template(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1129612)
     def test_update_template_os(self):
-        """
-        @Test: Creates new template, along with two OS's
+        """@Test: Creates new template, along with two OS's
         and associate list of OS's with created template
+
         @Feature: Template - Positive Update
+
         @Assert: The template should be updated with newly created OS's
         successfully
+
         @BZ: 1129612
+
         """
         name = generate_string("alpha", 6)
         new_name = generate_string("alpha", 6)

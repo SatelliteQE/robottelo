@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Activation key UI
-"""
+"""Test class for Activation key UI"""
 import sys
 
 if sys.hexversion >= 0x2070000:
@@ -25,15 +22,16 @@ from robottelo.test import UITestCase
 
 @ddt
 class ActivationKey(UITestCase):
-    """
-    Implements Activation key tests in UI
+    """Implements Activation key tests in UI
 
     [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
     Latin1, Multibyte, Max length,  Min length, Max_db_size, html, css,
     javascript, url, shell commands, sql, spaces in name, leading and trailing
     spaces in name
+
     [2] Negative Name Variations -  Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
+
     """
 
     org_name = None
@@ -47,9 +45,7 @@ class ActivationKey(UITestCase):
             ActivationKey.org_id = org['id']
 
     def create_cv(self, name, env_name):
-        """
-        Create product/repo and sync it and promote to given env
-        """
+        """Create product/repo and sync it and promote to given env"""
 
         repo_name = generate_string("alpha", 8)
         prd_name = generate_string("alpha", 8)
@@ -84,14 +80,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
-        """
+        """@Test: Create Activation key for all variations of Activation key name
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key for all variations of Activation key name
+
         @Steps:
         1. Create Activation key for all valid Activation Key name variation
         in [1] using valid Description, Environment, Content View, Usage limit
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_select_org(ActivationKey.org_name)
@@ -104,14 +104,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_2(self, description):
-        """
+        """@Test: Create Activation key for all variations of Description
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key for all variations of Description
+
         @Steps:
         1. Create Activation key for all valid Description variation in [1]
         using valid Name, Environment, Content View and Usage limit
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -125,14 +129,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_3(self, env):
-        """
+        """@Test: Create Activation key for all variations of Environments
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key for all variations of Environments
+
         @Steps:
         1. Create Activation key for all valid Environments in [1]
         using valid Name, Description, Content View and Usage limit
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 8)
@@ -154,14 +162,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_4(self, cv_name):
-        """
+        """@Test: Create Activation key for all variations of Content Views
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key for all variations of Content Views
+
         @Steps:
         1. Create Activation key for all valid Content views in [1]
         using valid Name, Description, Environment and Usage limit
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 8)
@@ -184,13 +196,16 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_5(self, hc_name):
-        """
-        @Test: Create Activation key for all variations of Host Collections
+        """@Test: Create Activation key for all variations of Host Collections
+
         @Feature: Activation key - Positive Create
+
         @Steps:
         1. Create Activation key for all valid Host Collections in [1]
         using valid Name, Description, Environment, Content View, Usage limit
+
         @Assert: Activation key is created
+
         """
         name = orm.StringField(str_type=('alpha',)).get_value()
 
@@ -224,14 +239,18 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
-        """
+        """@Test: Create Activation key with default Usage limit (Unlimited)
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key with default Usage limit (Unlimited)
+
         @Steps:
         1. Create Activation key with default Usage Limit (Unlimited)
         using valid Name, Description, Environment and Content View
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
@@ -244,14 +263,18 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
-        """
+        """@Test: Create Activation key with finite Usage limit
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key with finite Usage limit
+
         @Steps:
         1. Create Activation key with finite Usage Limit (Not Unlimited)
         using valid Name, Description, Environment and Content View
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
         name = generate_string("alpha", 10)
         description = generate_string("alpha", 10)
@@ -265,14 +288,18 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
-        """
+        """@Test: Create Activation key with minimal input parameters
+
         @Feature: Activation key - Positive Create
-        @Test: Create Activation key with minimal input parameters
+
         @Steps:
         1. Create Activation key by entering Activation Key Name alone
         leaving Description, Content View and Usage Limit as default values
+
         @Assert: Activation key is created
+
         @BZ: 1078676
+
         """
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -284,13 +311,16 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1083471)
     @data(*invalid_names_list())
     def test_negative_create_activation_key_1(self, name):
-        """
+        """@Test: Create Activation key with invalid Name
+
         @Feature: Activation key - Negative Create
-        @Test: Create Activation key with invalid Name
+
         @Steps:
         1. Create Activation key for all invalid Activation Key Names in [2]
         using valid Description, Environment, Content View, Usage limit
+
         @Assert: Activation key is not created. Appropriate error shown.
+
         """
 
         self.login.login(self.katello_user, self.katello_passwd)
@@ -304,13 +334,16 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1083438)
     def test_negative_create_activation_key_2(self):
-        """
+        """@Test: Create Activation key with invalid Description
+
         @Feature: Activation key - Negative Create
-        @Test: Create Activation key with invalid Description
+
         @Steps:
         1. Create Activation key for all invalid Description in [2]
         using valid Name, Environment, Content View, Usage limit
+
         @Assert: Activation key is not created. Appropriate error shown.
+
         """
 
         name = generate_string("alpha", 10)
@@ -326,13 +359,16 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1083027)
     @data(*invalid_names_list())
     def test_negative_create_activation_key_3(self, limit):
-        """
+        """@Test: Create Activation key with invalid Usage Limit
+
         @Feature: Activation key - Negative Create
-        @Test: Create Activation key with invalid Usage Limit
+
         @Steps:
         1. Create Activation key for all invalid Usage Limit in [2]
         using valid Name, Description, Environment, Content View
+
         @Assert: Activation key is not created. Appropriate error shown.
+
         """
         name = generate_string("alpha", 10)
         self.login.login(self.katello_user, self.katello_passwd)
@@ -347,15 +383,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_1(self, name):
-        """
-        @Feature: Activation key - Positive Delete
-        @Test: Create Activation key and delete it for all variations of
+        """@Test: Create Activation key and delete it for all variations of
         Activation key name
+
+        @Feature: Activation key - Positive Delete
+
         @Steps:
         1. Create Activation key for all valid Activation Key names in [1]
         using valid Description, Environment, Content View, Usage limit
         2. Delete the Activation key
+
         @Assert: Activation key is deleted
+
         """
 
         self.login.login(self.katello_user, self.katello_passwd)
@@ -370,15 +409,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_2(self, description):
-        """
-        @Feature: Activation key - Positive Delete
-        @Test: Create Activation key and delete it for all variations of
+        """@Test: Create Activation key and delete it for all variations of
         Description
+
+        @Feature: Activation key - Positive Delete
+
         @Steps:
         1. Create Activation key for all valid Description in [1]
         using valid Name, Environment, Content View, Usage limit
         2. Delete the Activation key
+
         @Assert: Activation key is deleted
+
         """
 
         name = generate_string("alpha", 10)
@@ -394,15 +436,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_3(self, env):
-        """
-        @Feature: Activation key - Positive Delete
-        @Test: Create Activation key and delete it for all variations of
+        """@Test: Create Activation key and delete it for all variations of
         Environment
+
+        @Feature: Activation key - Positive Delete
+
         @Steps:
         1. Create Activation key for all valid Environments in [1]
         using valid Name, Description, Content View, Usage limit
         2. Delete the Activation key
+
         @Assert: Activation key is deleted
+
         """
 
         name = generate_string("alpha", 8)
@@ -426,15 +471,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_4(self, cv_name):
-        """
-        @Feature: Activation key - Positive Delete
-        @Test: Create Activation key and delete it for all variations of
+        """@Test: Create Activation key and delete it for all variations of
         Content Views
+
+        @Feature: Activation key - Positive Delete
+
         @Steps:
         1. Create Activation key for all valid Content Views in [1]
         using valid Name, Description, Environment, Usage limit
         2. Delete the Activation key
+
         @Assert: Activation key is deleted
+
         """
 
         name = generate_string("alpha", 8)
@@ -458,28 +506,36 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1063273)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_5(self):
-        """
+        """@Test: Delete an Activation key which has registered systems
+
         @Feature: Activation key - Positive Delete
-        @Test: Delete an Activation key which has registered systems
+
         @Steps:
         1. Create an Activation key
         2. Register systems to it
         3. Delete the Activation key
+
         @Assert: Activation key is deleted
+
         @Status: Manual
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1117753)
     def test_positive_delete_activation_key_6(self):
-        """
+        """@Test: Delete a Content View associated to an Activation Key
+
         @Feature: Activation key - Positive Delete
-        @Test: Delete a Content View associated to an Activation Key
+
         @Steps:
         1. Create an Activation key with a Content View
         2. Delete the Content View
+
         @Assert: Activation key should not be deleted
+
         @BZ: 1117753
+
         """
         name = generate_string("alpha", 8)
         env_name = generate_string("alpha", 6)
@@ -505,15 +561,19 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_negative_delete_activation_key_1(self):
-        """
+        """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
+
         @Feature: Activation key - Positive Delete
-        @Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
+
         @Steps:
         1. Create an Activation key
         2. Attempt to remove an Activation Key
         3. Click Cancel in the confirmation dialog box
+
         @Assert: Activation key is not deleted
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -530,14 +590,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_1(self, new_name):
-        """
+        """@Test: Update Activation Key Name in an Activation key
+
         @Feature: Activation key - Positive Update
-        @Test: Update Activation Key Name in an Activation key
+
         @Steps:
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
+
         @Assert: Activation key is updated
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -553,14 +617,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_2(self, new_description):
-        """
+        """@Test: Update Description in an Activation key
+
         @Feature: Activation key - Positive Update
-        @Test: Update Description in an Activation key
+
         @Steps:
         1. Create Activation key
         2. Update Description for all variations in [1]
+
         @Assert: Activation key is updated
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -578,14 +646,18 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_3(self, env_name):
-        """
+        """@Test: Update Environment in an Activation key
+
         @Feature: Activation key - Positive Update
-        @Test: Update Environment in an Activation key
+
         @Steps:
         1. Create Activation key
         2. Update Environment for all variations in [1]
+
         @Assert: Activation key is updated
+
         @BZ: 1089637
+
         """
 
         name = generate_string("alpha", 8)
@@ -614,15 +686,19 @@ class ActivationKey(UITestCase):
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_4(self, cv2_name):
-        """
+        """@Test: Update Content View in an Activation key
+
         @Feature: Activation key - Positive Update
-        @Test: Update Content View in an Activation key
+
         @Steps:
         1. Create Activation key
         2. Update Content View for all variations in [1] and include both
         RH and custom products
+
         @Assert: Activation key is updated
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 8)
@@ -655,14 +731,18 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
-        """
+        """@Test: Update Usage limit from Unlimited to a finite number
+
         @Feature: Activation key - Positive Update
-        @Test: Update Usage limit from Unlimited to a finite number
+
         @Steps:
         1. Create Activation key
         2. Update Usage limit from Unlimited to a definite number
+
         @Assert: Activation key is updated
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -679,14 +759,18 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1127090)
     @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
-        """
+        """@Test: Update Usage limit from definite number to Unlimited
+
         @Feature: Activation key - Positive Update
-        @Test: Update Usage limit from definite number to Unlimited
+
         @Steps:
         1. Create Activation key
         2. Update Usage limit from definite number to Unlimited
+
         @Assert: Activation key is updated
+
         @BZ: 1127090
+
         """
 
         name = generate_string("alpha", 10)
@@ -704,14 +788,18 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1083875)
     @data(*invalid_names_list())
     def test_negative_update_activation_key_1(self, new_name):
-        """
+        """@Test: Update invalid name in an activation key
+
         @Feature: Activation key - Negative Update
-        @Test: Update invalid name in an activation key
+
         @Steps:
         1. Create Activation key
         2. Update Activation key name for all variations in [2]
+
         @Assert: Activation key is not updated.  Appropriate error shown.
+
         @BZ: 1083875
+
         """
 
         name = generate_string("alpha", 10)
@@ -728,14 +816,18 @@ class ActivationKey(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1110486)
     def test_negative_update_activation_key_2(self):
-        """
+        """@Test: Update invalid Description in an activation key
+
         @Feature: Activation key - Negative Update
-        @Test: Update invalid Description in an activation key
+
         @Steps:
         1. Create Activation key
         2. Update Description for all variations in [2]
+
         @Assert: Activation key is not updated.  Appropriate error shown.
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -756,14 +848,18 @@ class ActivationKey(UITestCase):
           {u'limit': "text"},
           {u'limit': "0"})
     def test_negative_update_activation_key_3(self, test_data):
-        """
+        """@Test: Update invalid Usage Limit in an activation key
+
         @Feature: Activation key - Negative Update
-        @Test: Update invalid Usage Limit in an activation key
+
         @Steps:
         1. Create Activation key
         2. Update Usage Limit for all variations in [2]
+
         @Assert: Activation key is not updated.  Appropriate error shown.
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 10)
@@ -781,60 +877,79 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_usage_limit(self):
-        """
+        """@Test: Test that Usage limit actually limits usage
+
         @Feature: Activation key - Usage limit
-        @Test: Test that Usage limit actually limits usage
+
         @Steps:
         1. Create Activation key
         2. Update Usage Limit to a finite number
         3. Register Systems to match the Usage Limit
         4. Attempt to register an other system after reaching the Usage Limit
+
         @Assert: System Registration fails. Appropriate error shown
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
-        """
+        """@Test: Test that hosts can be associated to Activation Keys
+
         @Feature: Activation key - Host
-        @Test: Test that hosts can be associated to Activation Keys
+
         @Steps:
         1. Create Activation key
         2. Create different hosts
         3. Associate the hosts to Activation key
+
         @Assert: Hosts are successfully associated to Activation key
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_1(self):
-        """
+        """@Test: Test that RH product can be associated to Activation Keys
+
         @Feature: Activation key - Product
-        @Test: Test that RH product can be associated to Activation Keys
+
         @Steps:
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
+
         @Assert: RH products are successfully associated to Activation key
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass
 
     def test_associate_product_2(self):
-        """
+        """@Test: Test that custom product can be associated to Activation Keys
+
         @Feature: Activation key - Product
-        @Test: Test that custom product can be associated to Activation Keys
+
         @Steps:
         1. Create Activation key
         2. Associate custom product(s) to Activation Key
+
         @Assert: Custom products are successfully associated to Activation key
+
         @BZ: 1078676
+
         """
 
         name = generate_string("alpha", 8)
@@ -887,61 +1002,81 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
-        """
+        """@Test: Test that RH/Custom product can be associated to Activation keys
+
         @Feature: Activation key - Product
-        @Test: Test that RH/Custom product can be associated to Activation keys
+
         @Steps:
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
+
         @Assert: RH/Custom product is successfully associated to Activation key
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_delete_manifest(self):
-        """
+        """@Test: Check if deleting a manifest removes it from Activation key
+
         @Feature: Activation key - Manifest
-        @Test: Check if deleting a manifest removes it from Activation key
+
         @Steps:
         1. Create Activation key
         2. Associate a manifest to the Activation Key
         3. Delete the manifest
+
         @Assert: Deleting a manifest removes it from the Activation key
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_multiple_activation_keys_to_system(self):
-        """
+        """@Test: Check if multiple Activation keys can be attached to a system
+
         @Feature: Activation key - System
-        @Test: Check if multiple Activation keys can be attached to a system
+
         @Steps:
         1. Create multiple Activation keys
         2. Attach all the created Activation keys to a System
+
         @Assert: Multiple Activation keys are attached to a system
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):
-        """
+        """@Test: Create Activation key and provision systems with it
+
         @Feature: Activation key - End to End
-        @Test: Create Activation key and provision systems with it
+
         @Steps:
         1. Create Activation key
         2. Provision systems with Activation key
+
         @Assert: Systems are successfully provisioned with Activation key
+
         @Status: Manual
+
         @BZ: 1078676
+
         """
         pass

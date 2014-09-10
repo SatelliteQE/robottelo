@@ -1,6 +1,4 @@
-"""
-Test class for Custom Sync UI
-"""
+"""Test class for Custom Sync UI"""
 
 import sys
 
@@ -30,9 +28,7 @@ RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
 
 @ddt
 class Sync(UITestCase):
-    """
-    Implements Custom Sync tests in UI
-    """
+    """Implements Custom Sync tests in UI"""
 
     org_name = None
 
@@ -47,10 +43,12 @@ class Sync(UITestCase):
     @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())
     def test_sync_repos(self, repo_name):
-        """
+        """@Test: Create Content Custom Sync with minimal input parameters
+
         @Feature: Content Custom Sync - Positive Create
-        @Test: Create Content Custom Sync with minimal input parameters
+
         @Assert: Whether Sync is successful
+
         """
         prd_name = generate_string("alpha", 6)
         repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
@@ -68,10 +66,12 @@ class Sync(UITestCase):
 
     @unittest.skip("Test needs to create manifests using stageportal stuff")
     def test_sync_rhrepos(self):
-        """
+        """@Test: Create Content RedHat Sync with two repos.
+
         @Feature: Content RedHat Sync - Positive Create
-        @Test: Create Content RedHat Sync with two repos.
+
         @Assert: Whether Syncing RedHat Repos is successful
+
         """
 
         repos = self.sync.create_repos_tree(RHCT)

@@ -1,6 +1,4 @@
-"""
-Test class for Config Groups UI
-"""
+"""Test class for Config Groups UI"""
 
 from ddt import ddt
 from nose.plugins.attrib import attr
@@ -14,9 +12,7 @@ from robottelo.ui.session import Session
 
 @ddt
 class ConfigGroups(UITestCase):
-    """
-    Implements Config Groups tests in UI.
-    """
+    """Implements Config Groups tests in UI."""
     org_name = None
     loc_name = None
 
@@ -34,10 +30,12 @@ class ConfigGroups(UITestCase):
     @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_positive_1(self, name):
-        """
-        @Test: Create new Config-Group
+        """@Test: Create new Config-Group
+
         @Feature: Config-Groups - Positive Create
+
         @Assert: Config-Groups is created
+
         """
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
@@ -53,10 +51,12 @@ class ConfigGroups(UITestCase):
         generate_string('utf8', 255)
     )
     def test_create_positive_2(self, name):
-        """
-        @Test: Create new config-groups with 255 chars
+        """@Test: Create new config-groups with 255 chars
+
         @Feature: Config-Groups - Positive Create
+
         @Assert: Config-Groups is created with 255 chars
+
         """
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
@@ -66,10 +66,12 @@ class ConfigGroups(UITestCase):
     @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_negative_1(self, name):
-        """
-        @Test: Create new config-groups with 256 chars
+        """@Test: Create new config-groups with 256 chars
+
         @Feature: Config-Groups - Negative Create
+
         @Assert: Config-Groups is not created
+
         """
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
@@ -80,10 +82,12 @@ class ConfigGroups(UITestCase):
             self.assertIsNone(search)
 
     def test_create_negative_2(self):
-        """
-        @Test: Create new config-groups with blank name
+        """@Test: Create new config-groups with blank name
+
         @Feature: Config-Groups - Negative Create
+
         @Assert: Config-Groups is not created
+
         """
         name = ""
         with Session(self.browser) as session:
@@ -93,10 +97,12 @@ class ConfigGroups(UITestCase):
             self.assertIsNotNone(error)
 
     def test_create_negative_3(self):
-        """
-        @Test: Create new config-groups with blank name
+        """@Test: Create new config-groups with blank name
+
         @Feature: Config-Groups - Negative Create
+
         @Assert: Config-Groups is not created
+
         """
         name = "    "
         with Session(self.browser) as session:
@@ -117,10 +123,12 @@ class ConfigGroups(UITestCase):
           {'name': generate_string('latin1', 20),
            'new_name': generate_string('latin1', 10)})
     def test_update_positive_1(self, testdata):
-        """
-        @Test: Create new config-group
+        """@Test: Create new config-group
+
         @Feature: Config-Groups - Positive Update
+
         @Assert: Config-Groups is updated.
+
         """
         name = testdata['name']
         new_name = testdata['new_name']
@@ -135,10 +143,12 @@ class ConfigGroups(UITestCase):
     @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):
-        """
-        @Test: Create new config-groups
+        """@Test: Create new config-groups
+
         @Feature: Config-Groups - Positive delete
+
         @Assert: Config-Groups is deleted
+
         """
 
         with Session(self.browser) as session:

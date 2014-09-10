@@ -16,10 +16,12 @@ class Host(UITestCase):
 
     @unittest.skip("Test needs to create other required stuff")
     def test_create_host(self):
-        """
+        """@Test: Create a new Host
+
         @Feature: Host - Positive create
-        @Test: Create a new Host
+
         @Assert: Host is created
+
         """
 
         name = generate_string("alpha", 8)
@@ -39,11 +41,14 @@ class Host(UITestCase):
 
     @unittest.skip("Test needs to create other required stuff")
     def test_create_delete(self):
-        """
+        """@Test: Delete a Host
+
         @Feature: Host - Positive Delete
-        @Test: Delete a Host
+
         @Assert: Host is deleted
+
         @status: manual
+
         """
 
         name = generate_string("alpha", 8)

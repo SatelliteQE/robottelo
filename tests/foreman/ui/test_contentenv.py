@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
-"""
-Test class for Life cycle environments UI
-"""
+"""Test class for Life cycle environments UI"""
 
 from nose.plugins.attrib import attr
 from robottelo.common.helpers import generate_string
@@ -14,9 +11,7 @@ from robottelo.ui.session import Session
 
 
 class ContentEnvironment(UITestCase):
-    """
-    Implements Life cycle content environment tests in UI
-    """
+    """Implements Life cycle content environment tests in UI"""
 
     org_name = None
 
