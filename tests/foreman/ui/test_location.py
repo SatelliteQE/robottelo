@@ -742,6 +742,7 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @skip_if_bug_open('bugzilla', 1096333)
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
@@ -750,6 +751,8 @@ class Location(UITestCase):
         @feature: Locations
 
         @assert: configtemplate is added then removed
+
+        @BZ: 1096333
 
         """
         strategy, value = common_locators["all_values_selection"]

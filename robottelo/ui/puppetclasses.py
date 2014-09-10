@@ -19,8 +19,6 @@ class PuppetClasses(Base):
         self.wait_until_element(locators["puppetclass.new"]).click()
         if self.wait_until_element(locators["puppetclass.name"]):
             self.find_element(locators["puppetclass.name"]).send_keys(name)
-            timeout = 60 if len(name) > 50 else 30
-            self.wait_for_ajax(timeout)
         if environment:
             self.find_element(
                 locators['puppetclass.environments']).send_keys(environment)
@@ -48,6 +46,7 @@ class PuppetClasses(Base):
         Searches existing puppet-classes from UI
         """
         Navigator(self.browser).go_to_puppet_classes()
+        self.wait_for_ajax()
         element = self.search_entity(name,
                                      locators["puppetclass.select_name"])
         return element

@@ -19,8 +19,6 @@ class ConfigGroups(Base):
         self.wait_until_element(locators["config_groups.new"]).click()
         if self.wait_until_element(locators["config_groups.name"]):
             self.find_element(locators["config_groups.name"]).send_keys(name)
-            timeout = 60 if len(name) > 50 else 30
-            self.wait_for_ajax(timeout)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
@@ -45,6 +43,7 @@ class ConfigGroups(Base):
         Searches existing config-groups from UI
         """
         Navigator(self.browser).go_to_config_groups()
+        self.wait_for_ajax()
         element = self.search_entity(name,
                                      locators["config_groups.select_name"])
         return element
