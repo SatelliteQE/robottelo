@@ -52,7 +52,8 @@ class ActivationKey(
 
 
 class Architecture(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
@@ -421,7 +422,9 @@ class CustomInfo(orm.Entity):
                     ':informable_id')
 
 
-class Domain(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class Domain(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Domain entity."""
     # The full DNS Domain name
     name = orm.StringField(required=True)
@@ -545,7 +548,9 @@ def _gpgkey_content():
         return handle.read()
 
 
-class GPGKey(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class GPGKey(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a GPG Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     # identifier of the gpg key
@@ -641,7 +646,7 @@ class HostGroup(orm.Entity):
         api_path = 'api/v2/hostgroups'
 
 
-class Host(orm.Entity, factory.EntityFactoryMixin):
+class Host(orm.Entity, orm.EntityReadMixin, factory.EntityFactoryMixin):
     """A representation of a Host entity."""
     name = orm.StringField(required=True)
     environment = orm.OneToOneField('Environment', null=True)
@@ -721,7 +726,8 @@ class Interface(orm.Entity):
 
 
 class LifecycleEnvironment(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -828,8 +834,8 @@ class Media(orm.Entity):
 
 
 class Model(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Model entity."""
     name = orm.StringField(required=True)
     info = orm.StringField(null=True)
@@ -842,8 +848,8 @@ class Model(
 
 
 class OperatingSystem(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
@@ -865,7 +871,8 @@ class OperatingSystem(
 
 
 class OperatingSystemParameter(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a parameter for an operating system."""
     name = orm.StringField(required=True)
     value = orm.StringField(required=True)
@@ -914,8 +921,8 @@ class OrganizationDefaultInfo(orm.Entity):
 
 
 class Organization(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1180,8 +1187,8 @@ class Report(orm.Entity):
 
 
 class Repository(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1245,8 +1252,8 @@ class RoleLDAPGroups(orm.Entity):
 
 
 class Role(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(
@@ -1378,7 +1385,9 @@ class SystemPackage(orm.Entity):
         api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
-class System(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class System(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a System entity."""
     content_view = orm.OneToOneField('ContentView')
     description = orm.StringField()
@@ -1465,7 +1474,9 @@ class UserGroup(orm.Entity):
         api_path = 'api/v2/usergroups'
 
 
-class User(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class User(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a User entity.
 
     The LDAP authentication source with an ID of 1 is internal. It is nearly
