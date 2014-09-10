@@ -4,11 +4,12 @@
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.cli.factory import make_subnet
+from robottelo import orm
+from robottelo.cli.factory import make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
-from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import bz_bug_is_open, data
 from robottelo.test import CLITestCase
+import re
 
 
 @ddt
@@ -16,12 +17,11 @@ class TestSubnet(CLITestCase):
     """Subnet CLI tests."""
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        orm.StringField(str_type=('alpha',)).get_value(),
+        orm.StringField(str_type=('alphanumeric',)).get_value(),
+        orm.StringField(str_type=('numeric',)).get_value(),
+        orm.StringField(str_type=('latin1',)).get_value(),
+        orm.StringField(str_type=('utf8',)).get_value(),
     )
     @attr('cli', 'subnet')
     def test_positive_create_1(self, test_name):
@@ -32,8 +32,10 @@ class TestSubnet(CLITestCase):
         @Assert: Subnet is created and has random name
 
         """
-
-        new_subnet = make_subnet({'name': test_name['name']})
+        try:
+            new_subnet = make_subnet({'name': test_name})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Fetch it
         result = Subnet.info({'id': new_subnet['id']})
@@ -45,6 +47,87 @@ class TestSubnet(CLITestCase):
             len(result.stderr), 0, "No error was expected")
         self.assertEqual(
             result.stdout['name'], new_subnet['name'], "Names don't match")
+
+    @data(
+        [orm.IntegerField(min_val=1, max_val=255).get_value(),
+         orm.IntegerField(min_val=1, max_val=255).get_value()],
+        [orm.IntegerField(min_val=1, max_val=255).get_value()] * 2,
+        [1, 255],
+    )
+    def test_positive_create_2(self, pool):
+        """@Test: Create subnet with valid address pool
+
+        @Feature: Subnet positive create
+
+        @Assert: Subnet is created and address pool is set
+
+        """
+        pool.sort()
+        mask = '255.255.255.0'
+        network = orm.IPAddressField().get_value()
+        # generate pool range from network address
+        from_ip = re.sub('\d+$', str(pool[0]), network)
+        to_ip = re.sub('\d+$', str(pool[1]), network)
+        try:
+            subnet = make_subnet({
+                u'mask': mask,
+                u'network': network,
+                u'from': from_ip,
+                u'to': to_ip,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(subnet['from'], from_ip)
+        self.assertEqual(subnet['to'], to_ip)
+
+    @data(
+        {u'name': ''},
+        {u'network': '256.0.0.0'},
+        {u'network': ''},
+        {u'mask': '256.0.0.0'},
+        {u'mask': ''},
+        {u'mask': '255.0.255.0', u'bz-bug': 1136088}
+    )
+    def test_negative_create_1(self, options):
+        """@Test: Create subnet with invalid or missing required attributes
+
+        @Feature: Subnet create
+
+        @Assert: Subnet is not created
+
+        """
+        bug_id = options.pop('bz-bug', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
+        with self.assertRaises(CLIFactoryError):
+            make_subnet(options)
+
+    @data(
+        {u'from': orm.IntegerField(min_val=1, max_val=255).get_value()},
+        {u'to': orm.IntegerField(min_val=1, max_val=255).get_value()},
+        {u'from': orm.IntegerField(min_val=128, max_val=255).get_value(),
+         u'to': orm.IntegerField(min_val=1, max_val=127).get_value()},
+        {u'from': 256, u'to': 257},
+    )
+    def test_negative_create_2(self, pool):
+        """@Test: Create subnet with invalid address pool range
+
+        @Feature: Create subnet negative
+
+        @Assert: Subnet is not created
+
+        """
+        mask = '255.255.255.0'
+        network = orm.IPAddressField().get_value()
+
+        opts = {u'mask': mask, u'network': network}
+        # generate pool range from network address
+        for key, val in pool.iteritems():
+            opts[key] = re.sub('\d+$', str(val), network)
+
+        with self.assertRaises(CLIFactoryError):
+            make_subnet(opts)
 
     @attr('cli', 'subnet')
     def test_list(self):
@@ -61,7 +144,10 @@ class TestSubnet(CLITestCase):
         total_subnet = len(result.stdout)
 
         # Make a new subnet
-        make_subnet()
+        try:
+            make_subnet()
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Fetch total again
         result = Subnet.list()
@@ -71,12 +157,11 @@ class TestSubnet(CLITestCase):
             "Total subnets should have increased")
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        orm.StringField(str_type=('alpha',)).get_value(),
+        orm.StringField(str_type=('alphanumeric',)).get_value(),
+        orm.StringField(str_type=('numeric',)).get_value(),
+        orm.StringField(str_type=('latin1',)).get_value(),
+        orm.StringField(str_type=('utf8',)).get_value(),
     )
     @attr('cli', 'subnet')
     def test_positive_update_1(self, test_name):
@@ -88,7 +173,10 @@ class TestSubnet(CLITestCase):
 
         """
 
-        new_subnet = make_subnet()
+        try:
+            new_subnet = make_subnet()
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Fetch it
         result = Subnet.info({'id': new_subnet['id']})
@@ -101,7 +189,7 @@ class TestSubnet(CLITestCase):
 
         # Update the name
         result = Subnet.update(
-            {'id': new_subnet['id'], 'new-name': test_name['name']})
+            {'id': new_subnet['id'], 'new-name': test_name})
         self.assertEqual(
             result.return_code,
             0,
@@ -118,18 +206,152 @@ class TestSubnet(CLITestCase):
         self.assertEqual(
             len(result.stderr), 0, "No error was expected")
         self.assertEqual(
-            result.stdout['name'], test_name['name'], "Names should match")
+            result.stdout['name'], test_name, "Names should match")
         self.assertNotEqual(
             result.stdout['name'], new_subnet['name'], "Names should not match"
         )
 
+    def test_positive_update_2(self):
+        """@Test: Check if Subnet network and mask can be updated
+
+        @Feature: Subnet - Update
+
+        @Assert: Subnet network and mask are updated
+
+        """
+
+        network = orm.IPAddressField().get_value()
+        mask = '255.255.255.0'
+        try:
+            subnet = make_subnet({
+                u'network': network,
+                u'mask': mask,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        new_network = orm.IPAddressField().get_value()
+        new_mask = '255.255.192.0'
+        result = Subnet.update({
+            u'id': subnet['id'],
+            u'network': new_network,
+            u'mask': new_mask,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        # check - subnet is updated
+        result = Subnet.info({u'id': subnet['id']})
+        self.assertEqual(result.stdout['network'], new_network)
+        self.assertEqual(result.stdout['mask'], new_mask)
+
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        [orm.IntegerField(min_val=1, max_val=255).get_value(),
+         orm.IntegerField(min_val=1, max_val=255).get_value()],
+        [orm.IntegerField(min_val=1, max_val=255).get_value()]*2,
+        [1, 255],
+    )
+    def test_positive_update_3(self, pool):
+        """@Test: Check if Subnet address pool can be updated
+
+        @Feature: Subnet - Update
+
+        @Assert: Subnet address pool is updated
+
+        """
+        pool.sort()
+        try:
+            subnet = make_subnet({u'mask': '255.255.255.0'})
+        except CLIFactoryError as err:
+            self.fail(err)
+        # generate pool range from network address
+        ip_from = re.sub('\d+$', str(pool[0]), subnet['network'])
+        ip_to = re.sub('\d+$', str(pool[1]), subnet['network'])
+        result = Subnet.update({
+            u'id': subnet['id'],
+            u'from': ip_from,
+            u'to': ip_to,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        # check - subnet is updated
+        result = Subnet.info({u'id': subnet['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['from'], ip_from)
+        self.assertEqual(result.stdout['to'], ip_to)
+
+    @data(
+        {u'name': ''},
+        {u'network': '256.0.0.0'},
+        {u'network': ''},
+        {u'mask': '256.0.0.0'},
+        {u'mask': ''},
+        {u'mask': '255.0.255.0', u'bz-bug': 1136088}
+    )
+    def test_negative_update_1(self, options):
+        """@Test: Update subnet with invalid or missing required attributes
+
+        @Feature: Subnet - Update
+
+        @Assert: Subnet is not updated
+
+        """
+
+        bug_id = options.pop('bz-bug', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
+        try:
+            subnet = make_subnet()
+        except CLIFactoryError as err:
+            self.fail(err)
+        options['id'] = subnet['id']
+        result = Subnet.update(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+        # check - subnet is not updated
+        result = Subnet.info({u'id': subnet['id']})
+        for key in options.keys():
+            self.assertEqual(subnet[key], result.stdout[key])
+
+    @data(
+        {u'from': orm.IntegerField(min_val=1, max_val=255).get_value()},
+        {u'to': orm.IntegerField(min_val=1, max_val=255).get_value()},
+        {u'from': orm.IntegerField(min_val=128, max_val=255).get_value(),
+         u'to': orm.IntegerField(min_val=1, max_val=127).get_value()},
+        {u'from': 256, u'to': 257},
+    )
+    def test_negative_update_2(self, options):
+        """@Test: Update subnet with invalid address pool
+
+        @Feature: Subnet - Update
+
+        @Assert: Subnet is not updated
+
+        """
+        try:
+            subnet = make_subnet()
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        opts = {u'id': subnet['id']}
+        # generate pool range from network address
+        for key, val in options.iteritems():
+            opts[key] = re.sub('\d+$', str(val), subnet['network'])
+        result = Subnet.update(opts)
+        self.assertNotEqual(result.return_code, 0)
+
+        # check - subnet is not updated
+        result = Subnet.info({u'id': subnet['id']})
+        for key in options.keys():
+            self.assertEqual(result.stdout[key], subnet[key])
+
+    @data(
+        orm.StringField(str_type=('alpha',)).get_value(),
+        orm.StringField(str_type=('alphanumeric',)).get_value(),
+        orm.StringField(str_type=('numeric',)).get_value(),
+        orm.StringField(str_type=('latin1',)).get_value(),
+        orm.StringField(str_type=('utf8',)).get_value(),
     )
     @attr('cli', 'subnet')
     def test_positive_delete_1(self, test_name):
@@ -141,7 +363,10 @@ class TestSubnet(CLITestCase):
 
         """
 
-        new_subnet = make_subnet({'name': test_name['name']})
+        try:
+            new_subnet = make_subnet({'name': test_name})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Fetch it
         result = Subnet.info({'id': new_subnet['id']})
