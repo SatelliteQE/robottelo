@@ -227,8 +227,7 @@ class Template(UITestCase):
                            custom_really=True, snippet=True)
             self.assertIsNotNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
-    @skip_if_bug_open('bugzilla', 1138543)
+    @skip_if_bug_open('bugzilla', 1096333)
     def test_remove_template(self):
         """@Test: Remove a template
 
@@ -236,7 +235,7 @@ class Template(UITestCase):
 
         @Assert: Template removed successfully
 
-        @BZ: 1129612, 1138543
+        @BZ: 1096333
 
         """
 
