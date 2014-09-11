@@ -299,3 +299,40 @@ epub_copyright = u'2012, Og Maciel <omaciel@redhat.com>'
 
 # Allow duplicate toc entries.
 #epub_tocdup = True
+
+# -- Monkey patch ddt.data -----------------------------------------------------
+
+# Monkey patch ddt.data and robottelo's ddt.data wrapper, preventing the
+# decorators from generating new test methods. Without this monkey patch, Sphinx
+# might document the following methods:
+
+# * test_something_1_some_value
+# * test_something_2_another_value
+# * test_something_3_yet_another_value
+
+# But with this monkey patch, Sphinx will document only one test method:
+
+# * test_something
+
+# As a result, the API documentation is much more concise.
+
+import ddt, robottelo.common.decorators
+
+def monkey_data(*values):
+    """Monkey patch function for ddt.data
+
+    This function bypasses ddt.data functionality and allow Sphinx generates
+    cleaner docs
+
+    """
+    return lambda func: func
+
+# Cache the robottelo wrapper docstring
+robottelo_data_docstring = robottelo.common.decorators.data.__doc__
+
+# Do the monkey patch on ddt.data and robottelo wrapper
+ddt.data = robottelo.common.decorators.data = monkey_data
+
+# Copy back the docstring to allow Sphinx generate the documentation for the
+# robottelo wrapper
+robottelo.common.decorators.data.__doc__ = robottelo_data_docstring
