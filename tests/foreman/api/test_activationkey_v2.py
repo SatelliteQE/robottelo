@@ -102,6 +102,31 @@ class ActivationKeysTestCase(TestCase):
                 real_attrs['name'], name)
         )
 
+    @data(
+        StringField(str_type=('alphanumeric',)).get_value(),
+        StringField(str_type=('cjk',)).get_value(),
+        StringField(str_type=('latin1',)).get_value(),
+        StringField(str_type=('utf8',)).get_value(),
+    )
+    def test_positive_create_4(self, description):
+        """@Test: Create an activation key and provide a description.
+
+        @Assert: Created entity contains the provided description.
+
+        @Feature: ActivationKey
+
+        """
+        try:
+            entity_id = entities.ActivationKey(
+                description=description
+            ).create()['id']
+        except FactoryError as err:
+            self.fail(err)
+
+        # Fetch the activation key. Assert that initial values match.
+        attrs = entities.ActivationKey(id=entity_id).read_json()
+        self.assertEqual(attrs['description'], description)
+
     def test_negative_create_1(self):
         """@Test: Create activation key with limited content hosts but no limit
         set.
@@ -167,62 +192,33 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
 
         """
+        # Create an activation key.
         try:
-            attrs = entities.ActivationKey().create()
+            activation_key = entities.ActivationKey(
+                id=entities.ActivationKey().create()['id']
+            )
         except FactoryError as err:
             self.fail(err)
-        path = entities.ActivationKey(id=attrs['id']).path()
 
-        # Make a copy of the activation key...
-        ak_copy = attrs.copy()
-        # ...and update a few fields
-        ak_copy['unlimited_content_hosts'] = False
-        ak_copy['max_content_hosts'] = max_content_hosts
-
-        # Update the activation key
+        # Update the activation key.
+        description = entities.ActivationKey.description.get_value()
         response = client.put(
-            path,
-            ak_copy,
+            activation_key.path(),
+            {
+                'description': description,
+                'max_content_hosts': max_content_hosts,
+                'unlimited_content_hosts': False,
+            },
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(
-            response.status_code,
-            httplib.OK,
-            status_code_error(path, httplib.OK, response),
-        )
+        response.raise_for_status()
 
-        # Fetch the activation key. Assert that values have changed.
-        real_attrs = entities.ActivationKey(id=attrs['id']).read_json()
-        self.assertNotEqual(
-            real_attrs['unlimited_content_hosts'],
-            attrs['unlimited_content_hosts'],
-            u"Unlimited content hosts values: {0} == {1}".format(
-                real_attrs['unlimited_content_hosts'],
-                attrs['unlimited_content_hosts'])
-        )
-        self.assertFalse(
-            real_attrs['unlimited_content_hosts'],
-            u"Unlimited content hosts is {0}".format(
-                real_attrs['unlimited_content_hosts']
-            )
-        )
-
-        self.assertNotEqual(
-            real_attrs['max_content_hosts'],
-            attrs['max_content_hosts'],
-            u"Max content hosts values: {0} == {1}".format(
-                real_attrs['max_content_hosts'],
-                attrs['max_content_hosts'])
-        )
-        self.assertEqual(
-            real_attrs['max_content_hosts'],
-            max_content_hosts,
-            u"Max content hosts values don't match: {0} != {1}".format(
-                real_attrs['max_content_hosts'],
-                attrs['max_content_hosts']
-            )
-        )
+        # Fetch the activation key. Assert that values have been updated.
+        real_attrs = activation_key.read_json()
+        self.assertEqual(real_attrs['description'], description)
+        self.assertEqual(real_attrs['max_content_hosts'], max_content_hosts)
+        self.assertFalse(real_attrs['unlimited_content_hosts'])
 
     @data(
         StringField(len=(1, 30), str_type=('alpha',)).get_value(),
