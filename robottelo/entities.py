@@ -161,30 +161,73 @@ class ComputeProfile(
         api_path = 'api/v2/compute_profiles'
 
 
-class ComputeResource(orm.Entity):
+class ComputeResource(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Compute Resource entity."""
-    name = orm.StringField(null=True)
-    # Providers include Libvirt, Ovirt, EC2, Vmware, Openstack,Rackspace, GCE
-    provider = orm.StringField(null=True)
-    # URL for Libvirt, RHEV, and Openstack
-    url = orm.StringField(required=True)
     description = orm.StringField(null=True)
-    # Username for RHEV, EC2, Vmware, Openstack. Access Key for EC2
-    user = orm.StringField(null=True)
-    # Password for RHEV, EC2, Vmware, Openstack. Secret key for EC2
+    # `name` cannot contain whitespace. Thus, the chosen string types.
+    name = orm.StringField(null=True, str_type=('alphanumeric', 'cjk'))
     password = orm.StringField(null=True)
-    # for RHEV, Vmware Datacenter
-    uuid = orm.StringField(null=True)
-    # for EC2 only
+    provider = orm.StringField(
+        null=True,
+        required=True,
+        choices=('EC2', 'GCE', 'Libvirt', 'Openstack', 'Ovirt', 'Rackspace',
+                 'Vmware')
+    )
     region = orm.StringField(null=True)
-    # for Openstack only
-    tenant = orm.StringField(null=True)
-    # for Vmware
     server = orm.StringField(null=True)
+    tenant = orm.StringField(null=True)
+    url = orm.URLField(required=True)
+    user = orm.StringField(null=True)
+    uuid = orm.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/compute_resources'
+
+    def _factory_data(self):
+        """Customize the data provided to :class:`robottelo.factory.Factory`.
+
+        Depending upon the value of ``self.provider``, various other fields are
+        filled in with values too.
+
+        """
+        values = super(ComputeResource, self)._factory_data()
+        cls = type(self)
+        provider = values['provider']
+        if provider == 'EC2' or provider == 'Ovirt' or provider == 'Openstack':
+            values['name'] = cls.name.get_value()
+            values['password'] = cls.password.get_value()
+            values['user'] = cls.user.get_value()
+        elif provider == 'GCE':
+            values['name'] = cls.name.get_value()
+            # values['email'] = cls.email.get_value()
+            # values['key_path'] = cls.key_path.get_value()
+            # values['project'] = cls.project.get_value()
+            #
+            # FIXME: These three pieces of data are required. However, the API
+            # docs don't even mention their existence!
+            #
+            # 1. Figure out valid values for these three fields.
+            # 2. Uncomment the above.
+            # 3. File an issue on bugzilla asking for the docs to be expanded.
+        elif provider == 'Libvirt':
+            values['name'] = cls.name.get_value()
+        elif provider == 'Rackspace':
+            # FIXME: Foreman always returns this error:
+            #
+            #     undefined method `upcase' for nil:NilClass
+            #
+            # 1. File a bugzilla issue asking for a fix.
+            # 2. Figure out what data is necessary and add it here.
+            pass
+        elif provider == 'Vmware':
+            values['name'] = cls.name.get_value()
+            values['password'] = cls.password.get_value()
+            values['user'] = cls.user.get_value()
+            values['uuid'] = cls.uuid.get_value()
+        return values
 
 
 class ConfigGroup(orm.Entity):

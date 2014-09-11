@@ -1,5 +1,6 @@
 """Data-driven unit tests for multiple paths."""
 from ddt import data, ddt
+from functools import partial
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
@@ -15,9 +16,9 @@ logger = logging.getLogger(__name__)  # pylint:disable=C0103
 
 
 BZ_1118015_ENTITIES = (
-    entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,
-    entities.ContentView, entities.Environment, entities.GPGKey,
-    entities.HostCollection, entities.LifecycleEnvironment,
+    entities.ActivationKey, entities.Architecture, entities.ComputeResource,
+    entities.ConfigTemplate, entities.ContentView, entities.Environment,
+    entities.GPGKey, entities.HostCollection, entities.LifecycleEnvironment,
     entities.OperatingSystem, entities.Product, entities.Repository,
     entities.Role, entities.System, entities.User,
 )
@@ -35,6 +36,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        entities.ComputeResource,
         entities.ConfigTemplate,
         # entities.ContentView,  # need organization_id
         entities.Domain,
@@ -78,6 +80,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        entities.ComputeResource,
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -116,6 +119,13 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='EC2'),
+        partial(entities.ComputeResource, provider='GCE'),
+        partial(entities.ComputeResource, provider='Libvirt'),
+        partial(entities.ComputeResource, provider='Openstack'),
+        partial(entities.ComputeResource, provider='Ovirt'),
+        partial(entities.ComputeResource, provider='Rackspace'),
+        partial(entities.ComputeResource, provider='Vmware'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -140,7 +150,10 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
         """
-        if entity in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
+        # Some arguments are "normal" classes and others are objects produced
+        # by functools.partial. Also, `partial(SomeClass).func == SomeClass`.
+        if ((entity.func if isinstance(entity, partial) else entity) in
+                BZ_1118015_ENTITIES and bz_bug_is_open(1118015)):
             self.skipTest('Bugzilla bug 1118015 is open.')
         path = entity().path()
         response = client.post(
@@ -162,6 +175,7 @@ class EntityTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        entities.ComputeResource,
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -205,6 +219,7 @@ class EntityIdTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -231,7 +246,10 @@ class EntityIdTestCase(TestCase):
         """
         if entity is entities.ActivationKey and bz_bug_is_open(1127335):
             self.skipTest("Bugzilla bug 1127335 is open.""")
-        attrs = entity().create()
+        try:
+            attrs = entity().create()
+        except factory.FactoryError as err:
+            self.fail(err)
         path = entity(id=attrs['id']).path()
         response = client.get(
             path,
@@ -251,6 +269,7 @@ class EntityIdTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -295,6 +314,7 @@ class EntityIdTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -363,6 +383,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -415,6 +436,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -467,6 +489,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -524,11 +547,18 @@ class EntityReadTestCase(TestCase):
     """
     # Most entities are commented-out because they do not inherit from
     # EntityReadMixin, due to issues with data returned from the API.
+    #
+    # ComputeResource entities cannot be reliably read because, depending upon
+    # the provider, different sets of attributes are returned. For example, the
+    # "uuid" attribute is only returned for certain providers. Perhaps multiple
+    # types of compute resources should be created? For example:
+    # LibvirtComputeResource.
     @data(
         # entities.ActivationKey,
         # entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
+        # partial(entities.ComputeResource, provider='Libvirt'),
         # entities.ConfigTemplate,
         # entities.ContentView,
         # entities.Domain,
