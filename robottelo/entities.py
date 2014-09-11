@@ -1237,6 +1237,19 @@ class Repository(
         attrs['product_id'] = attrs.pop('product')['id']
         return super(Repository, self).read(auth, entity, attrs)
 
+    def sync(self):
+        """Helper for syncing an existing repository."""
+
+        response = client.post(
+            self.path('sync'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'id': self.id} # Fixme: "Sync" path already includes an ID,
+                                  # This is a redundant ID, need to remove
+        )
+        response.raise_for_status()
+        return response.json()
+
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/repositories'

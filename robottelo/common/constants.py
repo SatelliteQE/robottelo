@@ -133,6 +133,7 @@ REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
 
 DEFAULT_ORG = "Default_Organization"
 DEFAULT_LOC = "Default_Location"
+DEFAULT_CV = "Default Organization View"
 
 LANGUAGES = ["en", "en_GB",
              "fr", "gl",

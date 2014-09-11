@@ -3,6 +3,7 @@
 from robottelo.common.helpers import (update_dictionary, generate_string,
                                       generate_email_address)
 from robottelo.common.constants import REPO_TYPE
+from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
@@ -145,6 +146,23 @@ def make_lifecycle_environment(session, org=None, loc=None,
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     ContentEnvironment(session.browser).create(**create_args)
+
+
+def make_activationkey(session, org=None, loc=None,
+                       force_context=False, **kwargs):
+    """Creates Activation Key"""
+
+    create_args = {
+        'name': None,
+        'env': None,
+        'limit': None,
+        'description': None,
+        'content_view': None,
+    }
+    page = session.nav.go_to_activation_keys
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    ActivationKey(session.browser).create(**create_args)
 
 
 def make_product(session, org=None, loc=None, force_context=False, **kwargs):
