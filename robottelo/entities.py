@@ -63,27 +63,43 @@ class Architecture(
         api_path = 'api/v2/architectures'
 
 
-class AuthSourceLDAP(orm.Entity, factory.EntityFactoryMixin):
+class AuthSourceLDAP(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a AuthSourceLDAP entity."""
-    name = orm.StringField(required=True, len=(1, 60))
-    host = orm.StringField(required=True, len=(1, 60))
-    # defaults to 389
-    port = orm.IntegerField(null=True)
     account = orm.StringField(null=True)
+    attr_photo = orm.StringField(null=True)
     base_dn = orm.StringField(null=True)
+    host = orm.StringField(required=True, len=(1, 60))
+    name = orm.StringField(required=True, len=(1, 60))
+    onthefly_register = orm.BooleanField(null=True)
+    port = orm.IntegerField(null=True)  # default: 389
+    tls = orm.BooleanField(null=True)
+
     # required if onthefly_register is true
     account_password = orm.StringField(null=True)
-    # required if onthefly_register is true
-    attr_login = orm.StringField(null=True)
-    # required if onthefly_register is true
     attr_firstname = orm.StringField(null=True)
-    # required if onthefly_register is true
     attr_lastname = orm.StringField(null=True)
-    # required if onthefly_register is true
+    attr_login = orm.StringField(null=True)
     attr_mail = orm.EmailField(null=True)
-    attr_photo = orm.StringField(null=True)
-    onthefly_register = orm.BooleanField(null=True)
-    tls = orm.BooleanField(null=True)
+
+    def _factory_data(self):
+        """Customize the data provided to :class:`robottelo.factory.Factory`.
+
+        If ``onthefly_register is True``, several other fields must also be
+        filled in.
+
+        """
+        values = super(AuthSourceLDAP, self)._factory_data()
+        cls = type(self)
+        if ('onthefly_register' in values.keys() and
+                values['ontheflyregister'] is True):
+            values['account_password'] = cls.account_password.get_value()
+            values['attr_firstname'] = cls.attr_firstname.get_value()
+            values['attr_lastname'] = cls.attr_lastname.get_value()
+            values['attr_login'] = cls.attr_login.get_value()
+            values['attr_mail'] = cls.attr_mail.get_value()
+        return values
 
     class Meta(object):
         """Non-field information about this entity."""

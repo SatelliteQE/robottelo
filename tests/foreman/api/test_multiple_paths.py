@@ -33,6 +33,7 @@ class EntityTestCase(TestCase):
     @data(
         # entities.ActivationKey,  # need organization_id or environment_id
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         # entities.ContentView,  # need organization_id
@@ -75,6 +76,7 @@ class EntityTestCase(TestCase):
     @data(
         # entities.ActivationKey,  # need organization id or environment id
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -112,6 +114,7 @@ class EntityTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -157,6 +160,7 @@ class EntityTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -199,6 +203,7 @@ class EntityIdTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -244,6 +249,7 @@ class EntityIdTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -287,6 +293,7 @@ class EntityIdTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -354,6 +361,7 @@ class DoubleCheckTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -379,6 +387,10 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The updated entity has the correct attributes.
 
         """
+        if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
+            self.skipTest("Bugzilla bug 1140313 is open.""")
+
+        # Create an entity.
         entity_n = entity(id=entity().create()['id'])
         logger.info('test_put_and_get path: {0}'.format(entity_n.path()))
 
@@ -401,6 +413,7 @@ class DoubleCheckTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -428,6 +441,8 @@ class DoubleCheckTestCase(TestCase):
         """
         if entity in BZ_1122267_ENTITIES and bz_bug_is_open(1122267):
             self.skipTest("Bugzilla bug 1122267 is open.""")
+        if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
+            self.skipTest("Bugzilla bug 1140313 is open.""")
 
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
@@ -450,6 +465,7 @@ class DoubleCheckTestCase(TestCase):
     @data(
         entities.ActivationKey,
         entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         entities.ConfigTemplate,
         entities.ContentView,
@@ -511,6 +527,7 @@ class EntityReadTestCase(TestCase):
     @data(
         # entities.ActivationKey,
         # entities.Architecture,
+        entities.AuthSourceLDAP,
         entities.ComputeProfile,
         # entities.ConfigTemplate,
         # entities.ContentView,
@@ -538,6 +555,8 @@ class EntityReadTestCase(TestCase):
         @Assert: The just-read entity is an instance of the correct class.
 
         """
+        if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
+            self.skipTest("Bugzilla bug 1140313 is open.""")
         attrs = entity().create()
         read_entity = entity(id=attrs['id']).read()
         self.assertIsInstance(read_entity, entity)
