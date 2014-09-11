@@ -94,15 +94,11 @@ class TestGPGKey(CLITestCase):
     def test_redmine_4271(self):
         """@Test: cvs output for gpg subcommand doesn\'t work
 
-
         @Feature: GPG Keys
-
 
         @Assert: cvs output for gpg info works
 
-
         @BZ: Redmine#4271
-
 
         """
 
@@ -133,15 +129,11 @@ class TestGPGKey(CLITestCase):
     def test_redmine_4272(self):
         """@Test: gpg info should display key content
 
-
         @Feature: GPG Keys
-
 
         @Assert: gpg info should display key content
 
-
         @BZ: Redmine#4272
-
 
         """
 
@@ -175,15 +167,11 @@ class TestGPGKey(CLITestCase):
     def test_bugzilla_1108227(self):
         """@Test: Hammer fails to get a gpg info by name
 
-
         @Feature: GPG Keys
-
 
         @Assert: can get gpg key info by name
 
-
         @BZ: 1108227
-
 
         """
 
@@ -214,15 +202,12 @@ class TestGPGKey(CLITestCase):
 
     @data(*positive_create_data())
     def test_positive_create_1(self, data):
-        """@test: Create gpg key with valid name and valid gpg key via file import
-
-        using the default created organization
+        """@test: Create gpg key with valid name and valid gpg key via file
+        import using the default created organization
 
         @feature: GPG Keys
 
-
         @assert: gpg key is created
-
 
         """
 
@@ -254,15 +239,12 @@ class TestGPGKey(CLITestCase):
 
     @data(*positive_create_data())
     def test_positive_create_2(self, data):
-        """@test: Create gpg key with valid name and valid gpg key via file import
-
-        using the a new organization
+        """@test: Create gpg key with valid name and valid gpg key via file
+        import using the a new organization
 
         @feature: GPG Keys
 
-
         @assert: gpg key is created
-
 
         """
 
@@ -291,15 +273,12 @@ class TestGPGKey(CLITestCase):
 
     @data(*positive_create_data())
     def test_negative_create_1(self, data):
-        """@test: Create gpg key with valid name and valid gpg key via file import
-
-        then try to create new one with same name
+        """@test: Create gpg key with valid name and valid gpg key via file
+        import then try to create new one with same name
 
         @feature: GPG Keys
 
-
         @assert: gpg key is not created
-
 
         """
 
@@ -340,12 +319,9 @@ class TestGPGKey(CLITestCase):
     def test_negative_create_2(self, data):
         """@test: Create gpg key with valid name and no gpg key
 
-
         @feature: GPG Keys
 
-
         @assert: gpg key is not created
-
 
         """
 
@@ -363,14 +339,11 @@ class TestGPGKey(CLITestCase):
     @data(*negative_create_data())
     def test_negative_create_3(self, data):
         """@test: Create gpg key with invalid name and valid gpg key via
-
         file import
 
         @feature: GPG Keys
 
-
         @assert: gpg key is not created
-
 
         """
 
@@ -403,17 +376,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_positive_delete_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is deleted
 
-
         @status: manual
-
 
         """
 
@@ -431,17 +400,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_positive_delete_2(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is deleted
 
-
         @status: manual
-
 
         """
 
@@ -463,17 +428,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_negative_delete_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then fail to delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is not deleted
 
-
         @status: manual
-
 
         """
 
@@ -493,17 +454,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_negative_delete_2(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then fail to delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is not deleted
 
-
         @status: manual
-
 
         """
 
@@ -523,17 +480,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_positive_update_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then update its name
 
         @feature: GPG Keys
 
-
         @assert: gpg key is updated
 
-
         @status: manual
-
 
         """
 
@@ -551,17 +504,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_positive_update_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then update its gpg key file
 
         @feature: GPG Keys
 
-
         @assert: gpg key is updated
 
-
         @status: manual
-
 
         """
 
@@ -579,17 +528,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_positive_update_3(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then update its name
 
         @feature: GPG Keys
 
-
         @assert: gpg key is updated
 
-
         @status: manual
-
 
         """
 
@@ -607,17 +552,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_positive_update_4(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then update its gpg key text
 
         @feature: GPG Keys
 
-
         @assert: gpg key is updated
 
-
         @status: manual
-
 
         """
 
@@ -638,17 +579,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_negative_update_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then fail to update its name
 
         @feature: GPG Keys
 
-
         @assert: gpg key is not updated
 
-
         @status: manual
-
 
         """
 
@@ -667,17 +604,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_negative_update_2(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then fail to update its name
 
         @feature: GPG Keys
 
-
         @assert: gpg key is not updated
 
-
         @status: manual
-
 
         """
 
@@ -697,17 +630,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with empty (no repos) custom product
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product
 
-
         @status: manual
-
 
         """
 
@@ -725,17 +654,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product that has one repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repository
 
-
         @status: manual
-
 
         """
 
@@ -753,18 +678,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_3(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product that has more than one
         repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
 
-
         @status: manual
-
 
         """
 
@@ -782,18 +703,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_4(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product using Repo discovery
         method
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
 
-
         @status: manual
-
 
         """
 
@@ -811,18 +728,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_5(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repository from custom product that has
         one repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and the repository
 
-
         @status: manual
-
 
         """
 
@@ -839,20 +752,17 @@ class TestGPGKey(CLITestCase):
     """
     @stubbed
     def test_key_associate_6(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
+        """@test: Create gpg key via file import and associate with custom repo
 
-        import then associate it to repository from custom product that has
-        more than one repository
-        gpg key is associated with product and one of the repositories
+        GPGKey should contain valid name and valid key and should be associated
+        to one repository from custom product. Make sure custom product should
+        have more than one repository.
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with the repository
 
-
         @status: manual
-
 
         """
 
@@ -870,18 +780,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_7(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repos from custom product using Repo
         discovery method
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and all the repositories
 
-
         @status: manual
-
 
         """
 
@@ -899,18 +805,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_8(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with empty (no repos) custom product then
         update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update
 
-
         @status: manual
-
 
         """
 
@@ -928,19 +830,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_9(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product that has one repository
         then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update but
-
         not the repository
 
         @status: manual
-
 
         """
 
@@ -958,19 +856,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_10(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product that has more than one
         repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update but
-
         not the repositories
 
         @status: manual
-
 
         """
 
@@ -988,19 +882,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_11(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product using Repo discovery
         method then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update but
-
         not the repositories
 
         @status: manual
-
 
         """
 
@@ -1018,19 +908,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_12(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repository from custom product that has
         one repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and repository
-
         before/after update
 
         @status: manual
-
 
         """
 
@@ -1048,19 +934,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_13(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repository from custom product that has
         more than one repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and single repository
-
         before/after update
 
         @status: manual
-
 
         """
 
@@ -1078,19 +960,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_14(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repos from custom product using Repo
         discovery method then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and all repositories
-
         before/after update
 
         @status: manual
-
 
         """
 
@@ -1108,19 +986,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_15(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with empty (no repos) custom product
         then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product during creation but removed
-
         from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1138,19 +1012,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_16(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product that has one repository
         then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repository
-
         during creation but removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1168,19 +1038,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_17(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product that has more than one
         repository then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
-
         during creation but removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1198,19 +1064,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_18(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it with custom product using Repo discovery
         method then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
-
         during creation but removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1228,19 +1090,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_19(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repository from custom product that has
         one repository then delete the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and single repository
-
         during creation but removed from product and repository after deletion
 
         @status: manual
-
 
         """
 
@@ -1258,19 +1116,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_20(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repository from custom product that has
         more than one repository then delete the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and single repository
-
         during creation but removed from product and repository after deletion
 
         @status: manual
-
 
         """
 
@@ -1288,20 +1142,16 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_21(self):
         """@test: Create gpg key with valid name and valid gpg key via file
-
         import then associate it to repos from custom product using Repo
         discovery method then delete the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and all repositories
-
         during creation but removed from product and all repositories after
         deletion
 
         @status: manual
-
 
         """
 
@@ -1319,18 +1169,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_22(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with empty (no repos)
         custom product
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product
 
-
         @status: manual
-
 
         """
 
@@ -1348,18 +1194,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_23(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product that has
         one repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repository
 
-
         @status: manual
-
 
         """
 
@@ -1377,18 +1219,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_24(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product that has
         more than one repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
 
-
         @status: manual
-
 
         """
 
@@ -1406,18 +1244,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_25(self):
         """@test: Create gpg key with valid name and valid gpg key via text via
-
         cut and paste/string then associate it with custom product using
         Repo discovery method
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
 
-
         @status: manual
-
 
         """
 
@@ -1435,18 +1269,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_26(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repository from custom
         product that has one repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and the repository
 
-
         @status: manual
-
 
         """
 
@@ -1464,18 +1294,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_27(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repository from custom
         product that has more than one repository
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and one of the repositories
 
-
         @status: manual
-
 
         """
 
@@ -1493,18 +1319,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_28(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repos from custom product
         using Repo discovery method
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and all the repositories
 
-
         @status: manual
-
 
         """
 
@@ -1522,18 +1344,14 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_29(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with empty (no repos)
         custom product then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update
 
-
         @status: manual
-
 
         """
 
@@ -1551,19 +1369,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_30(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product that has
         one repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update
-
         but not the repository
 
         @status: manual
-
 
         """
 
@@ -1581,19 +1395,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_31(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product that has
         more than one repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update
-
         but not the repositories
 
         @status: manual
-
 
         """
 
@@ -1611,19 +1421,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_32(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product using
         Repo discovery method then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product before/after update
-
         but not the repositories
 
         @status: manual
-
 
         """
 
@@ -1641,19 +1447,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_33(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repository from custom
         product that has one repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and repository
-
         before/after update
 
         @status: manual
-
 
         """
 
@@ -1671,19 +1473,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_34(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repository from custom
         product that has more than one repository then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and single repository
-
         before/after update
 
         @status: manual
-
 
         """
 
@@ -1701,19 +1499,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_35(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repos from custom product
         using Repo discovery method then update the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and all repositories
-
         before/after update
 
         @status: manual
-
 
         """
 
@@ -1731,19 +1525,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_36(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with empty (no repos) custom
         product then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product during creation but
-
         removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1761,19 +1551,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_37(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product that has
         one repository then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repository
-
         during creation but removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1791,19 +1577,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_38(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product that has
         more than one repository then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
-
         during creation but removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1821,19 +1603,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_39(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it with custom product using
         Repo discovery method then delete it
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product but not the repositories
-
         during creation but removed from product after deletion
 
         @status: manual
-
 
         """
 
@@ -1851,19 +1629,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_40(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repository from custom
         product that has one repository then delete the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and single repository
-
         during creation but removed from product and repository after deletion
 
         @status: manual
-
 
         """
 
@@ -1881,19 +1655,15 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_41(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repository from custom
         product that has more than one repository then delete the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and single repository
-
         during creation but removed from product and repository after deletion
 
         @status: manual
-
 
         """
 
@@ -1911,20 +1681,16 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_key_associate_42(self):
         """@test: Create gpg key with valid name and valid gpg key text via
-
         cut and paste/string then associate it to repos from custom product
         using Repo discovery method then delete the key
 
         @feature: GPG Keys
 
-
         @assert: gpg key is associated with product and all repositories
-
         during creation but removed from product and all repositories
         after deletion
 
         @status: manual
-
 
         """
 
@@ -1944,17 +1710,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_consume_content_1(self):
         """@test: Hosts can install packages using gpg key associated with
-
         single custom repository
 
         @feature: GPG Keys
 
-
         @assert: host can install package from custom repository
 
-
         @status: manual
-
 
         """
 
@@ -1972,17 +1734,13 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_consume_content_2(self):
         """@test: Hosts can install packages using gpg key associated with
-
         multiple custom repositories
 
         @feature: GPG Keys
 
-
         @assert: host can install package from custom repositories
 
-
         @status: manual
-
 
         """
 
@@ -2000,8 +1758,8 @@ class TestGPGKey(CLITestCase):
     @stubbed
     def test_consume_content_3(self):
         """@test: Hosts can install packages using different gpg keys associated
-
         with multiple custom repositories
+
         @feature: GPG Keys
 
         @assert: host can install package from custom repositories
@@ -2028,7 +1786,6 @@ class TestGPGKey(CLITestCase):
         """@test: Create gpg key and list it
 
         @feature: GPG Keys
-
 
         @assert: gpg key is displayed/listed
 
