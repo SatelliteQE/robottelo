@@ -93,8 +93,8 @@ class ComputeResource(UITestCase):
         @Feature: Compute Resource - Create with long description.
 
         @Assert: A libvirt Compute Resource is not created with 255 char
-
         description.
+
         """
         name = generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
