@@ -16,13 +16,14 @@ from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from robottelo.common import conf
-from robottelo.common import ssh
 
 
 def get_tempfile():
-    """
+    """Creates a temporary file.
+
     Generates temporary file with mkstemp,
     closes the handle, and returns the path to temporary file.
+
     """
     fd, tempname = tempfile.mkstemp()
     os.fdopen(fd).close()
@@ -30,9 +31,11 @@ def get_tempfile():
 
 
 def retrieve(url):
-    """
+    """Downloads contents of a URL.
+
     Downloads content of the url and saves it to temporary file.
     Then returns the path to the temporary file.
+
     """
     response = requests.get(url)
     fd, tempname = tempfile.mkstemp()
@@ -42,39 +45,34 @@ def retrieve(url):
 
 
 def download_signing_key():
-    """
+    """ Private key to Sign a modified manifest.
+
     Downloads the configured key file to a temporary file and returns the path.
+
     """
     return retrieve(conf.properties['main.manifest.key_url'])
 
 
 def download_manifest_template():
-    """
+    """ Manifest template used for cloning.
+
     Downloads the configured manifest file to serve as a template and
     returns the path.
+
     """
     return retrieve(conf.properties['main.manifest.fake_url'])
 
 
-def install_cert_on_server():
-    """
-    Downloads specified cert-file to the servers candlepin cert repository.
-    Then it restarts tomcat.
-    """
-    ssh.command('wget -P /etc/candlepin/certs/upstream/ {0}'.format(
-        conf.properties['main.manifest.cert_url']))
-    # Problem with difference between sat 6 and 7
-    # Need to account for different names of tomcat
-    ssh.command('service tomcat restart')
-    ssh.command('service tomcat6 restart')
-
-
 def sign(key_file, file_to_sign):
-    """
+    """Performs the signing of the modified manifest file.
+
     Reads the rsa key file and then proceeds to create signed sha256
     hash of the data in the file according to PKCS1 1.5 standard.
 
-    Returns binary signature data.
+    :param str key_file: The private key used to sign.
+    :param str file_to_sign: The file name to sign.
+    :return:  Returns binary signature data.
+
     """
     with open(key_file) as handle:
         signature = PKCS1_v1_5.new(RSA.importKey(handle.read()))
@@ -84,7 +82,8 @@ def sign(key_file, file_to_sign):
 
 
 def edit_in_zip(zip_file, file_edit_functions):
-    """
+    """Performs the actual editing.
+
     Reads every file in the zip, and for every path in file_edit_functions
     dictionary it applies the relevant function on the contents of the file
     and saves it with new content.
@@ -95,6 +94,10 @@ def edit_in_zip(zip_file, file_edit_functions):
 
     edit_in_zip("/tmp/test.zip",
         {'small.txt': lambda x: "1", 'large.txt': lambda x: "1000"})
+
+    :param str zip_file: The zip file to edit.
+    :param dict file_edit_functions: Files & Functions are the key value pairs.
+    :return: None
 
     """
     tempdir = tempfile.mkdtemp()
@@ -128,34 +131,47 @@ def edit_in_zip(zip_file, file_edit_functions):
 
 
 def edit_consumer(data):
-    """
-    Takes the string-data of the consumer file and updates with new uuid
+    """Takes the string-data of the consumer file and updates with new UUID.
+
+    :param str data: Takes in the consumer file name.
+    :return: returns the json with new UUID.
+    :rtype: string
+
     """
     content_dict = json.loads(data)
     content_dict['uuid'] = unicode(uuid.uuid1())
     return json.dumps(content_dict)
 
 
-def clone(key_path, old_path):
-    """
+def clone(key_path=None, old_path=None):
+    """Clones a RedHat-manifest file.
+
     Taking a manifest on oldpath, changes the uuid in consumer.json and resigns
     it with an RSA key. When accompanying certificate is installed on the
     candlepin server, it allows us to quickly create uploadable
     copies of the original manifest.
+
+    :param str key_path: This is the private-key to sign the redhat-manifest.
+    :param str old_path: This is the path of the original redhat-manifest.
+    :return: Return the path to the cloned redhat-manifest file.
+    :rtype: string
+
     """
+    tempdir = tempfile.mkdtemp()
+    consumer_zip_file = os.path.join(tempdir, "consumer_export.zip")
+    if key_path is None:
+        key_path = download_signing_key()
+    if old_path is None:
+        old_path = download_manifest_template()
     new_path = get_tempfile()
     shutil.copy(old_path, new_path)
-    tempdir = tempfile.mkdtemp()
     with zipfile.ZipFile(new_path) as oldzip:
         oldzip.extractall(tempdir)
-    edit_in_zip(
-        tempdir+"/consumer_export.zip",
-        {"consumer.json": edit_consumer}
-    )
-    signature = sign(key_path, tempdir+"/consumer_export.zip")
-    with open(tempdir+"/signature", "wb") as sign_file:
+    edit_in_zip(consumer_zip_file, {"consumer.json": edit_consumer})
+    signature = sign(key_path, consumer_zip_file)
+    with open(os.path.join(tempdir, "signature"), "wb") as sign_file:
         sign_file.write(signature)
     with zipfile.ZipFile(new_path, "w") as oldzip:
-        oldzip.write(tempdir+"/consumer_export.zip", "/consumer_export.zip")
-        oldzip.write(tempdir+"/signature", "/signature")
+        oldzip.write(consumer_zip_file, "/consumer_export.zip")
+        oldzip.write(os.path.join(tempdir, "signature"), "/signature")
     return new_path
