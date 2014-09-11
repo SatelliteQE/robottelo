@@ -9,10 +9,11 @@ else:
 
 from ddt import ddt
 from nose.plugins.attrib import attr
+from robottelo import entities, orm
+from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
 from robottelo.ui.session import Session
 
 
@@ -31,18 +32,21 @@ class Sync(UITestCase):
     """Implements Custom Sync tests in UI"""
 
     org_name = None
+    org_id = None
 
     def setUp(self):
         super(Sync, self).setUp()
         # Make sure to use the Class' org_name instance
         if Sync.org_name is None:
-            Sync.org_name = generate_string("alpha", 10)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Sync.org_name)
+            org_name = orm.StringField(str_type=('alphanumeric',),
+                                       len=(5, 80)).get_value()
+            org_attrs = entities.Organization(name=org_name).create()
+            Sync.org_name = org_attrs['name']
+            Sync.org_id = org_attrs['id']
 
     @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())
-    def test_sync_repos(self, repo_name):
+    def test_sync_repos(self, repository_name):
         """@Test: Create Content Custom Sync with minimal input parameters
 
         @Feature: Content Custom Sync - Positive Create
@@ -50,19 +54,23 @@ class Sync(UITestCase):
         @Assert: Whether Sync is successful
 
         """
-        prd_name = generate_string("alpha", 6)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.repository.create(repo_name, product=prd_name, url=repo_url)
-        self.assertIsNotNone(self.repository.search(repo_name))
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
+
+        # Creates new product
+        product_attrs = entities.Product(
+            organization=self.org_id
+        ).create()
+        # Creates new repository
+        entities.Repository(
+            name=repository_name,
+            url=FAKE_1_YUM_REPO,
+            product=product_attrs['id']
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(Sync.org_name)
+            session.nav.go_to_sync_status()
+            sync = self.sync.sync_custom_repos(product_attrs['name'],
+                                               [repository_name])
+            self.assertIsNotNone(sync)
 
     @unittest.skip("Test needs to create manifests using stageportal stuff")
     def test_sync_rhrepos(self):
