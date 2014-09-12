@@ -12,8 +12,11 @@ class Subscriptions(Base):
     """
 
     def upload(self, path, repo_url=None):
-        """
-        Uploads Manifest/subscriptions via UI
+        """Uploads Manifest/subscriptions via UI.
+
+        :param str path: The manifest path to upload.
+        :param str repo_url: The RedHat URL to sync content from.
+
         """
 
         self.wait_until_element(locators["subs.manage_manifest"]).click()
@@ -26,12 +29,11 @@ class Subscriptions(Base):
         browse_element = self.wait_until_element(locators["subs.file_path"])
         browse_element.send_keys(path)
         self.wait_until_element(locators["subs.upload"]).click()
-        self.wait_until_element(locators["subs.manifest_exists"], 10)
+        # Waits till the below locator is visible or until 60 seconds.
+        self.wait_until_element(locators["subs.manifest_exists"], 60)
 
     def delete(self):
-        """
-        Uploads Manifest/subscriptions via UI
-        """
+        """Uploads Manifest/subscriptions via UI."""
 
         self.wait_until_element(locators["subs.manage_manifest"]).click()
         self.wait_for_ajax()
@@ -39,9 +41,7 @@ class Subscriptions(Base):
         self.wait_for_ajax()
 
     def refresh(self):
-        """
-        Refreshes Manifest/subscriptions via UI
-        """
+        """Refreshes Manifest/subscriptions via UI."""
 
         self.wait_until_element(locators["subs.manage_manifest"]).click()
         self.wait_for_ajax()
