@@ -812,35 +812,99 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    @stubbed
-    @data("MAKE IT DATA DRIVEN")
-    def test_add_configtemplate(self):
+    @data(
+        generate_string('alpha', 15),
+        generate_string('alphanumeric', 15),
+        generate_string('numeric', 15),
+        generate_string('latin1', 15),
+        generate_string('utf8', 15),
+    )
+    def test_add_configtemplate(self, data):
         """@Test: Check if a Config Template can be added to an Org
 
         @Feature: Org - Config Template
 
         @Assert: Config Template is added to the org
 
-        @status: manual
-
-        @bz: 1062295
-
         """
-        pass
+        try:
+            org = make_org()
+            template = make_template({
+                'name': data,
+                'content': generate_string('alpha', 10),
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = Org.add_config_template({
+            'name': org['name'],
+            'config-template': template['name']
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}".
+                         format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+        result = Org.info({'id': org['id']})
+        self.assertIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            result.stdout['templates']
+        )
 
-    @stubbed
-    @data("MAKE IT DATA DRIVEN")
-    def test_remove_configtemplate(self):
+    @data(
+        generate_string('alpha', 15),
+        generate_string('alphanumeric', 15),
+        generate_string('numeric', 15),
+        generate_string('latin1', 15),
+        generate_string('utf8', 15),
+    )
+    def test_remove_configtemplate(self, data):
         """@Test: Check if a ConfigTemplate can be removed from an Org
 
         @Feature: Org - ConfigTemplate
 
         @Assert: ConfigTemplate is removed from the org
 
-        @status: manual
-
         """
-        pass
+        try:
+            org = make_org()
+            tmplt = make_template({
+                'name': data,
+                'content': generate_string('alpha', 10)
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Add config-template
+        result = Org.add_config_template({
+            'name': org['name'],
+            'config-template': tmplt['name']
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}".
+                         format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+        result = Org.info({'id': org['id']})
+        self.assertIn(
+            u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
+            result.stdout['templates']
+        )
+
+        # Remove config-template
+        result = Org.remove_config_template({
+            'name': org['name'],
+            'config-template': tmplt['name']
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}".
+                         format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0, "There should not be an error here")
+        result = Org.info({'id': org['id']})
+        self.assertNotIn(
+            u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
+            result.stdout['templates']
+        )
 
     @skip_if_bug_open('bugzilla', 1099655)
     def test_add_environment(self):
