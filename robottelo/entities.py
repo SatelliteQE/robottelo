@@ -553,6 +553,7 @@ class GPGKey(
         factory.EntityFactoryMixin):
     """A representation of a GPG Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
+    location = orm.OneToOneField('Location', null=True)
     # identifier of the gpg key
     # validator: string from 2 to 128 characters containting only alphanumeric
     # characters, space, '_', '-' with no leading or trailing space.
@@ -798,7 +799,7 @@ class LifecycleEnvironment(
         api_path = 'katello/api/v2/environments'
 
 
-class Location(orm.Entity):
+class Location(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Location entity."""
     name = orm.StringField(required=True)
 
@@ -1126,6 +1127,7 @@ class Product(
         factory.EntityFactoryMixin):
     """A representation of a Product entity."""
     organization = orm.OneToOneField('Organization', required=True)
+    location = orm.OneToOneField('Location', null=True)
     description = orm.StringField()
     gpg_key = orm.OneToOneField('GPGKey')
     sync_plan = orm.OneToOneField('SyncPlan', null=True)

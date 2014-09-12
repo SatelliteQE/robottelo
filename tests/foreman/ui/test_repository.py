@@ -2,14 +2,17 @@
 
 from ddt import ddt
 from nose.plugins.attrib import attr
+from robottelo import entities, orm
 from robottelo.common.constants import (VALID_GPG_KEY_BETA_FILE,
-                                        VALID_GPG_KEY_FILE)
-from robottelo.common.decorators import data, skip_if_bug_open
+                                        VALID_GPG_KEY_FILE,
+                                        FAKE_1_YUM_REPO,
+                                        FAKE_2_YUM_REPO,
+                                        REPO_DISCOVERY_URL)
+from robottelo.common.decorators import data
 from robottelo.common.helpers import (generate_string,
-                                      generate_strings_list, get_data_file)
+                                      generate_strings_list, read_data_file)
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc, make_product,
-                                  make_gpgkey)
+from robottelo.ui.factory import make_repository
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -19,22 +22,29 @@ class Repos(UITestCase):
     """Implements Repos tests in UI"""
 
     org_name = None
+    org_id = None
     loc_name = None
+    loc_id = None
 
     def setUp(self):
         super(Repos, self).setUp()
         # Make sure to use the Class' org_name instance
         if Repos.org_name is None and Repos.loc_name is None:
-            Repos.org_name = generate_string("alpha", 8)
-            Repos.loc_name = generate_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Repos.org_name)
-                make_loc(session, name=Repos.loc_name)
+            org_name = orm.StringField(str_type=('alphanumeric',),
+                                       len=(5, 80)).get_value()
+            loc_name = orm.StringField(str_type=('alphanumeric',),
+                                       len=(5, 80)).get_value()
+            org_attrs = entities.Organization(name=org_name).create()
+            loc_attrs = entities.Location(name=loc_name).create()
+            Repos.org_name = org_attrs['name']
+            Repos.org_id = org_attrs['id']
+            Repos.loc_name = loc_attrs['name']
+            Repos.loc_id = loc_attrs['id']
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_1(self, repo_name):
-        """@Test: Create Content Repos with minimal input parameters
+        """@Test: Create repository with minimal input parameters
 
         @Feature: Content Repos - Positive Create
 
@@ -42,20 +52,21 @@ class Repos(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id,
+        ).create()['name']
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_2(self, repo_name):
-        """@Test: Create Content Repos in two different orgs with same name
+        """@Test: Create repository in two different orgs with same name
 
         @Assert: Repos is created
 
@@ -63,26 +74,35 @@ class Repos(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
-        org2_name = generate_string("alpha", 8)
+        org_2_name = orm.StringField(str_type=('alphanumeric',),
+                                     len=(5, 80)).get_value()
+        # Creates new product_1
+        product_1_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id,
+        ).create()['name']
+
+        # Create new product_2 under new organization_2
+        org_2_id = entities.Organization(name=org_2_name).create()['id']
+        product_2_name = entities.Product(
+            organization=org_2_id,
+            location=self.loc_id,
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_1_name,
+                            url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
-            make_org(session, org_name=org2_name)
-            make_product(session, org=org2_name, loc=self.loc_name,
-                         force_context=True, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            session.nav.go_to_select_org(org_2_name)
+            make_repository(session, org=org_2_name, loc=self.loc_name,
+                            name=repo_name, product=product_2_name,
+                            url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
 
-    def test_negative_create_1(self):
-        """@Test: Create Content Repos without input parameter
+    @data("", "   ")
+    def test_negative_create_1(self, repo_name):
+        """@Test: Create repository with blank and whitespace in name
 
         @Feature: Content Repos - Negative Create zero length
 
@@ -90,97 +110,78 @@ class Repos(UITestCase):
 
         """
 
-        locator = common_locators["common_invalid"]
-        repo_name = ""
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
-            invalid = self.products.wait_until_element(locator)
-            self.assertTrue(invalid)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
+            invalid = self.products.wait_until_element(
+                common_locators["common_invalid"])
+            self.assertIsNotNone(invalid)
 
-    def test_negative_create_2(self):
-        """@Test: Create Content Repos with whitespace input parameter
-
-        @Feature: Content Repos - Negative Create with whitespace
-
-        @Assert: Repos is not created
-
-        """
-
-        locator = common_locators["common_invalid"]
-        repo_name = "   "
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
-        with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
-            invalid = self.products.wait_until_element(locator)
-            self.assertTrue(invalid)
-
-    @skip_if_bug_open('bugzilla', 1081059)
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
-    def test_negative_create_3(self, repo_name):
-        """@Test: Create Content Repos with same name input parameter
+    def test_negative_create_2(self, repo_name):
+        """@Test: Create repository with same name
 
         @Feature: Content Repos - Negative Create with same name
 
         @Assert: Repos is not created
 
-        @BZ: 1081059
-
         """
 
-        locator = common_locators["common_invalid"]
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_products()
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
-            invalid = self.products.wait_until_element(locator)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
+            invalid = self.products.wait_until_element(
+                common_locators["common_invalid"])
             self.assertTrue(invalid)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list(len1=256))
-    def test_negative_create_4(self, repo_name):
-        """@Test: Create Content Repos with long name input parameter
+    def test_negative_create_3(self, repo_name):
+        """@Test: Create content repository with 256 characters in name
 
-        @Feature: Content Repos - Negative Create with same name
+        @Feature: Content Repos - Negative Create
 
         @Assert: Repos is not created
 
         """
 
-        locator = common_locators["common_haserror"]
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
-            error = self.repository.wait_until_element(locator)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
+            error = self.repository.wait_until_element(
+                common_locators["common_haserror"])
             self.assertTrue(error)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, repo_name):
-        """@Test: Update Content Repo with repository url
+        """@Test: Update content repository with new URL
 
         @Feature: Content Repo - Positive Update
 
@@ -188,31 +189,32 @@ class Repos(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
         locator = locators["repo.fetch_url"]
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        new_repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
-        description = "test 123"
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.search(repo_name).click()
             self.repository.wait_for_ajax()
             url_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(url_text, repo_url)
+            self.assertEqual(url_text, FAKE_1_YUM_REPO)
             self.navigator.go_to_products()
-            self.products.search(prd_name).click()
-            self.repository.update(repo_name, new_url=new_repo_url)
+            self.products.search(product_name).click()
+            self.repository.update(repo_name, new_url=FAKE_2_YUM_REPO)
             url_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(url_text, new_repo_url)
+            self.assertEqual(url_text, FAKE_2_YUM_REPO)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_2(self, repo_name):
-        """@Test: Update Content Repo with gpg key
+        """@Test: Update content repository with new gpg-key
 
         @Feature: Content Repo - Positive Update
 
@@ -220,41 +222,46 @@ class Repos(UITestCase):
 
         """
 
-        key_path1 = get_data_file(VALID_GPG_KEY_FILE)
-        key_path2 = get_data_file(VALID_GPG_KEY_BETA_FILE)
-        prd_name = generate_string("alpha", 8)
-        gpgkey_name1 = generate_string("alpha", 8)
-        gpgkey_name2 = generate_string("alpha", 8)
+        key_1_content = read_data_file(VALID_GPG_KEY_FILE)
+        key_2_content = read_data_file(VALID_GPG_KEY_BETA_FILE)
         locator = locators["repo.fetch_gpgkey"]
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
+        # Create two new GPGKey's
+        gpgkey_1_name = entities.GPGKey(
+            content=key_1_content,
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+        gpgkey_2_name = entities.GPGKey(
+            content=key_2_content,
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_gpgkey(session, self.org_name, self.loc_name,
-                        name=gpgkey_name1, upload_key=True, key_path=key_path1)
-            self.assertIsNotNone(self.gpgkey.search(gpgkey_name1))
-            self.gpgkey.create(gpgkey_name2, upload_key=True,
-                               key_path=key_path2)
-            self.assertIsNotNone(self.gpgkey.search(gpgkey_name2))
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url,
-                                   gpg_key=gpgkey_name1)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO, gpg_key=gpgkey_1_name)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.search(repo_name).click()
             self.repository.wait_for_ajax()
-            gpgkey_text1 = self.repository.wait_until_element(locator).text
-            self.assertEqual(gpgkey_text1, gpgkey_name1)
+            gpgkey_1_text = self.repository.wait_until_element(locator).text
+            self.assertEqual(gpgkey_1_text, gpgkey_1_name)
             self.navigator.go_to_products()
-            self.products.search(prd_name).click()
-            self.repository.update(repo_name, new_gpg_key=gpgkey_name2)
-            gpgkey_text2 = self.repository.wait_until_element(locator).text
-            self.assertEqual(gpgkey_text2, gpgkey_name2)
+            self.products.search(product_name).click()
+            self.repository.update(repo_name, new_gpg_key=gpgkey_2_name)
+            gpgkey_2_text = self.repository.wait_until_element(locator).text
+            self.assertEqual(gpgkey_2_text, gpgkey_2_name)
 
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_remove_repo(self, repo_name):
-        """@Test: Create Content Repos with minimal input parameters
+        """@Test: Create content repository and remove it
 
         @Feature: Content Repos - Positive Delete
 
@@ -262,21 +269,22 @@ class Repos(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        repo_url = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
-        description = "test 123"
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name,
-                         description=description)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.create(repo_name, product=prd_name, url=repo_url)
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.delete(repo_name)
             self.assertIsNone(self.repository.search(repo_name))
 
     def test_discover_repo_1(self):
-        """@Test: Create Content Repos via repo discovery under existing
-        product
+        """@Test: Create repository via repo-discovery under existing product
 
         @Feature: Content Repos - Discover repo via http URL
 
@@ -284,18 +292,22 @@ class Repos(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        url = "http://omaciel.fedorapeople.org/"
-        discovered_urls = ["fakerepo01/"]
+        discovered_urls = "fakerepo01/"
+
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
         with Session(self.browser) as session:
-            make_product(session, self.org_name, self.loc_name, name=prd_name)
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.repository.discover_repo(url, discovered_urls,
-                                          product=prd_name)
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_products()
+            self.repository.discover_repo(url_to_discover=REPO_DISCOVERY_URL,
+                                          discovered_urls=[discovered_urls],
+                                          product=product_name)
 
     def test_discover_repo_2(self):
-        """@Test: Create Content Repos via repo discovery under new
-        product
+        """@Test: Create repository via repo discovery under new product
 
         @Feature: Content Repos - Discover repo via http URL
 
@@ -303,13 +315,14 @@ class Repos(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        url = "http://omaciel.fedorapeople.org/"
-        discovered_urls = ["fakerepo01/"]
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_select_loc(self.loc_name)
-        self.navigator.go_to_products()
-        self.repository.discover_repo(url, discovered_urls,
-                                      product=prd_name, new_product=True)
-        self.assertIsNotNone(self.products.search(prd_name))
+        product_name = generate_string("alpha", 8)
+        discovered_urls = "fakerepo01/"
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_select_loc(self.loc_name)
+            session.nav.go_to_products()
+            self.repository.discover_repo(url_to_discover=REPO_DISCOVERY_URL,
+                                          discovered_urls=[discovered_urls],
+                                          product=product_name,
+                                          new_product=True)
+            self.assertIsNotNone(self.products.search(product_name))
