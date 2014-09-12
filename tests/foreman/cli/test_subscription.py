@@ -5,9 +5,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.factory import make_org
-from robottelo.common.manifests import (
-    clone, download_signing_key,
-    download_manifest_template, install_cert_on_server)
+from robottelo.common.manifests import clone
 from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -22,16 +20,8 @@ class TestSubscription(CLITestCase):
         """Tests for content-view via Hammer CLI"""
 
         super(TestSubscription, self).setUp()
-
-        if TestSubscription.signing_key is None:
-            TestSubscription.signing_key = download_signing_key()
-            TestSubscription.fake_manifest = download_manifest_template()
-            install_cert_on_server()
-
         self.org = make_org()
-        self.manifest = clone(
-            TestSubscription.signing_key,
-            TestSubscription.fake_manifest)
+        self.manifest = clone()
 
     def test_manifest_upload(self):
         """@Test: upload manifest (positive)

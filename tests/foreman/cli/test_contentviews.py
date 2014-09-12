@@ -13,9 +13,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
     make_lifecycle_environment, make_user, CLIFactoryError)
-from robottelo.common.manifests import (
-    clone, download_signing_key,
-    download_manifest_template, install_cert_on_server)
+from robottelo.common.manifests import clone
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.entities import Organization
@@ -84,10 +82,7 @@ class TestContentView(CLITestCase):
             return
 
         TestContentView.rhel_content_org = make_org()
-        signing_key = download_signing_key()
-        fake_manifest = download_manifest_template()
-        install_cert_on_server()
-        manifest = clone(signing_key, fake_manifest)
+        manifest = clone()
         finished_task = Organization(
             id=TestContentView.rhel_content_org['id']
         ).upload_manifest(manifest)
