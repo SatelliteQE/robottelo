@@ -1,18 +1,14 @@
 """Test class for Custom Sync UI"""
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.manifests import clone
+from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
+from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
@@ -62,9 +58,9 @@ class Sync(UITestCase):
         self.assertIsNotNone(self.repository.search(repo_name))
         self.navigator.go_to_sync_status()
         sync = self.sync.sync_custom_repos(prd_name, [repo_name])
-        self.assertIsNotNone(sync)
+        # syn.sync_rh_repos returns boolean values and not objects
+        self.assertTrue(sync)
 
-    @unittest.skip("Test needs to create manifests using stageportal stuff")
     def test_sync_rhrepos(self):
         """@Test: Create Content RedHat Sync with two repos.
 
@@ -75,10 +71,19 @@ class Sync(UITestCase):
         """
 
         repos = self.sync.create_repos_tree(RHCT)
-        self.login.login(self.katello_user, self.katello_passwd)
-        # TODO: Create manifests and import using stageportal stuff.
-        self.navigator.go_to_red_hat_repositories()
-        self.sync.enable_rh_repos(repos)
-        self.navigator.go_to_sync_status()
-        sync = self.sync.sync_rh_repos(repos)
-        self.assertIsNotNone(sync)
+        alert_loc = common_locators['alert.success']
+        path = clone()
+        # upload_file function should take care of uploading to sauce labs.
+        upload_file(path, remote_file=path)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_red_hat_subscriptions()
+            self.subscriptions.upload(path)
+            success_ele = session.nav.wait_until_element(alert_loc)
+            self.assertTrue(success_ele)
+            session.nav.go_to_red_hat_repositories()
+            self.sync.enable_rh_repos(repos)
+            session.nav.go_to_sync_status()
+            sync = self.sync.sync_rh_repos(repos)
+            # syn.sync_rh_repos returns boolean values and not objects
+            self.assertTrue(sync)
