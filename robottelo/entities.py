@@ -985,7 +985,7 @@ class Organization(
         factory.EntityFactoryMixin):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
-    label = orm.StringField()
+    label = orm.StringField(str_type=('alpha',))
     description = orm.StringField()
 
     class Meta(object):
