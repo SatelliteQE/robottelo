@@ -48,18 +48,14 @@ class PathTestCase(TestCase):
 
     @data(
         (entities.ActivationKey, '/activation_keys', 'releases'),
+        (entities.ContentView, '/content_views', 'available_puppet_module_names'),  # flake8:noqa pylint:disable=C0301
+        (entities.ContentView, '/content_views', 'content_view_puppet_modules'),  # flake8:noqa pylint:disable=C0301
         (entities.ContentView, '/content_views', 'content_view_versions'),
         (entities.ContentView, '/content_views', 'publish'),
-        (entities.ContentView, '/content_views',
-         'available_puppet_module_names'),
-        (entities.ContentView, '/content_views',
-         'content_view_puppet_modules'),
         (entities.ContentViewVersion, '/content_view_versions', 'promote'),
+        (entities.Organization, '/organizations', 'subscriptions/delete_manifest'),  # flake8:noqa pylint:disable=C0301
+        (entities.Organization, '/organizations', 'subscriptions/refresh_manifest'),  # flake8:noqa pylint:disable=C0301
         (entities.Organization, '/organizations', 'subscriptions/upload'),
-        (entities.Organization, '/organizations',
-         'subscriptions/delete_manifest'),
-        (entities.Organization, '/organizations',
-         'subscriptions/refresh_manifest'),
         (entities.Repository, '/repositories', 'sync'),
         (entities.Repository, '/repositories', 'upload_content'),
     )
@@ -87,18 +83,18 @@ class PathTestCase(TestCase):
 
     @data(
         (entities.ActivationKey, 'releases'),
-        (entities.ContentView, 'content_view_versions'),
-        (entities.ContentView, 'publish'),
         (entities.ContentView, 'available_puppet_module_names'),
         (entities.ContentView, 'content_view_puppet_modules'),
+        (entities.ContentView, 'content_view_versions'),
+        (entities.ContentView, 'publish'),
         (entities.ContentViewVersion, 'promote'),
-        (entities.Organization, 'this'),
-        (entities.Organization, 'subscriptions/upload'),
+        (entities.ForemanTask, 'this'),
         (entities.Organization, 'subscriptions/delete_manifest'),
         (entities.Organization, 'subscriptions/refresh_manifest'),
+        (entities.Organization, 'subscriptions/upload'),
+        (entities.Organization, 'this'),
         (entities.Repository, 'sync'),
         (entities.Repository, 'upload_content'),
-        (entities.ForemanTask, 'this'),
         (entities.System, 'this'),
     )
     @unpack
