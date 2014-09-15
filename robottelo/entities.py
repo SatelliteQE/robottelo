@@ -417,33 +417,27 @@ class ContentView(
 
         The returned path will depend on the value of ``which`` being passed.
 
-        If ``which = 'content_view_puppet_modules'``, then return a path
+        If ``which is 'content_view_puppet_modules'``, return a path
         in the format ``/content_views/<id>/content_view_puppet_modules``.
 
-        If ``which == 'content_view_versions'``, then return a path in the
+        If ``which is 'content_view_versions'``, return a path in the
         format ``/content_views/<id>/content_view_versions``.
 
-        If ``which == 'publish'``, then return a path in the
+        If ``which is 'publish'``, return a path in the
         format ``/content_views/<id>/publish``.
 
-        If ``which == 'available_puppet_module_names'``, then return a path in
+        If ``which is 'available_puppet_module_names'``, return a path in
         the format ``/content_views/<id>/available_puppet_module_names``.
 
         Otherwise, call ``super``.
 
         """
-        if which == 'content_view_puppet_modules':
-            return super(ContentView, self).path(
-                which='this') + '/content_view_puppet_modules'
-        if which == 'content_view_versions':
-            return super(ContentView, self).path(
-                which='this') + '/content_view_versions'
-        if which == 'publish':
-            return super(ContentView, self).path(
-                which='this') + '/publish'
-        if which == 'available_puppet_module_names':
-            return super(ContentView, self).path(
-                which='this') + '/available_puppet_module_names'
+        if which in ('content_view_puppet_modules', 'content_view_versions',
+                'publish', 'available_puppet_module_names'):
+            return '{0}/{1}'.format(
+                super(ContentView, self).path(which='this'),
+                which
+            )
         return super(ContentView, self).path()
 
     def publish(self):
