@@ -101,7 +101,7 @@ class BooleanField(booby.fields.Boolean):
 
 
 class EmailField(booby.fields.Email):
-    """Field that represents a boolean"""
+    """Field that represents an email"""
     def get_value(self):
         """Return a value suitable for a :class:`EmailField`."""
         return _get_value(self, FauxFactory.generate_email)
