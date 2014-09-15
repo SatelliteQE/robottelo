@@ -387,12 +387,6 @@ class ContentViews(Base):
                     raise Exception(
                         "Couldn't find the selected version '%s'\
                          of puppet module '%s'" % (filter_term, module_name))
-                self.text_field_update(common_locators
-                                       ["cv_filter"], module_name)
-                strategy, value = locators["contentviews.get_module_name"]
-                element = self.wait_until_element((strategy,
-                                                   value % module_name))
-                return element
             else:
                 raise Exception(
                     "Couldn't find the given puppet module '%s'" % module_name)
@@ -428,6 +422,7 @@ class ContentViews(Base):
             else:
                 self.find_element(tab_locators
                                   ["contentviews.tab_cv_remove"]).click()
+            self.wait_for_ajax()
             strategy, value = locators["contentviews.select_cv"]
             for cv_name in cv_names:
                 element = self.wait_until_element((strategy,
@@ -443,6 +438,7 @@ class ContentViews(Base):
                         self.wait_until_element(locators
                                                 ["contentviews.remove_cv"]
                                                 ).click()
+                    self.wait_for_ajax()
                 else:
                     raise Exception(
                         "Couldn't find content-view '%s'"
@@ -671,3 +667,30 @@ class ContentViews(Base):
             self.find_element(locators
                               ["contentviews.remove_errata"]).click()
         self.wait_for_ajax()
+
+    def fetch_puppet_module(self, cv_name, module_name):
+        """Get added puppet module name from selected content-view"""
+
+        element = self.search(cv_name)
+
+        if element is None:
+            raise UINoSuchElementError(
+                'Could not find the %s content view.' % cv_name)
+        else:
+            element.click()
+            self.wait_for_ajax()
+            if self.wait_until_element(tab_locators
+                                       ["contentviews.tab_puppet_modules"]):
+                self.find_element(tab_locators
+                                  ["contentviews.tab_puppet_modules"]
+                                  ).click()
+                self.wait_for_ajax()
+                self.text_field_update(common_locators
+                                       ["cv_filter"], module_name)
+                strategy, value = locators["contentviews.get_module_name"]
+                element = self.wait_until_element((strategy,
+                                                   value % module_name))
+                return element
+            else:
+                raise UINoSuchElementError(
+                    "Couldn't find puppet-modules tab")
