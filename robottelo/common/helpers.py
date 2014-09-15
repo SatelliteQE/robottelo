@@ -146,7 +146,7 @@ def invalid_names_list():
         generate_string("utf8", 300),
         generate_string("latin1", 300),
         generate_string("html", 300),
-        generate_name(256)
+        generate_string("alpha", 256)
     ]
 
 
