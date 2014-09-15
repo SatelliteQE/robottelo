@@ -1400,7 +1400,7 @@ locators = {
         By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]"),
     "contentviews.select_cv": (
         By.XPATH,
-        ("//tr[@row-select='contentView']"
+        ("//div[@alch-table='detailsTable']//tr[@row-select='contentView']"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),

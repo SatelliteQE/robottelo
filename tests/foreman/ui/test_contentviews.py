@@ -197,11 +197,19 @@ class TestContentViewsUI(UITestCase):
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, name, repo_url=repo_url,
                                     repo_type=REPO_TYPE['puppet'])
-            module = self.content_views.add_puppet_module(
+            self.content_views.add_puppet_module(
                 name,
                 puppet_module,
                 filter_term=module_ver
             )
+        # Workaround to fetch added puppet module name:
+        # UI doesn't refresh and populate the added module name
+        # until we logout and navigate again to puppet-module tab
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            module = self.content_views.fetch_puppet_module(name,
+                                                            puppet_module)
             self.assertIsNotNone(module)
 
     def test_remove_filter(self):
@@ -459,14 +467,28 @@ class TestContentViewsUI(UITestCase):
             self.setup_to_create_cv(session, cv_name,
                                     repo_url=FAKE_PUPPET_REPO,
                                     repo_type=REPO_TYPE['puppet'])
-            module = self.content_views.add_puppet_module(
+            self.content_views.add_puppet_module(
                 cv_name,
                 puppet_module,
                 filter_term=module_ver
             )
+        # Workaround to fetch added puppet module name:
+        # UI doesn't refresh and populate the added module name
+        # until we logout and navigate again to puppet-module tab
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
+            module = self.content_views.fetch_puppet_module(cv_name,
+                                                            puppet_module)
             self.assertIsNotNone(module)
             self.content_views.publish(cv_name)
             self.content_views.create(composite_name, is_composite=True)
+        # UI doesn't populate the created content-view name to add it into
+        # existing composite-view until we logout and navigate again to
+        # puppet-module tab
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_content_views()
             self.content_views.add_remove_cv(composite_name, [cv_name])
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
