@@ -4,13 +4,18 @@ A full API reference for content views can be found here:
 http://theforeman.org/api/apidoc/v2/content_views.html
 
 """
+from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
+from robottelo.common import decorators
+from robottelo.factory import FactoryError
+from robottelo import entities, orm
 from unittest import TestCase
+import ddt
 # (too many public methods) pylint: disable=R0904
 
 
+@ddt.ddt
 class ContentViewTestCase(TestCase):
     """Tests for content views."""
     def test_subscribe_system_to_cv(self):
@@ -77,3 +82,85 @@ class ContentViewTestCase(TestCase):
         #     system['organization_id'],  # And this is unavailable.
         #     organization['id']
         # )
+
+    def test_positive_create_1(self):
+        """@Test: Create a composite content view.
+
+        @Assert: Creation succeeds.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(composite=True).create()['id']
+        )
+        self.assertTrue(content_view.read_json()['composite'])
+
+    @decorators.data('', ' ')
+    def test_negative_create(self, name):
+        """@Test: Create a content view and provide invalid attributes.
+
+        @Assert: No content view is created.
+
+        @Feature: ContentView
+
+        """
+        with self.assertRaises(FactoryError):
+            entities.ContentView(name=name).create()
+
+
+@ddt.ddt
+class ContentViewUpdateTestCase(TestCase):
+    """Tests for updating content views."""
+    @classmethod
+    def setUpClass(cls):
+        """Create a content view."""
+        cls.content_view = entities.ContentView(
+            id=entities.ContentView().create()['id']
+        )
+
+    @decorators.data(
+        {'name': entities.ContentView.name.get_value()},
+        {'description': entities.ContentView.description.get_value()},
+    )
+    def test_positive_update(self, attrs):
+        """@Test: Update a content view and provide valid attributes.
+
+        @Assert: The update succeeds.
+
+        @Feature: ContentView
+
+        """
+        client.put(
+            self.content_view.path(),
+            attrs,
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+
+        # Read the content view and validate its attributes.
+        new_attrs = self.content_view.read_json()
+        for name, value in attrs.items():
+            self.assertIn(name, new_attrs.keys())
+            self.assertEqual(new_attrs[name], value)
+
+    @decorators.data(
+        {'label': entities.ContentView.label.get_value()},  # Immutable.
+        {'name': orm.StringField(len=256).get_value()},
+    )
+    def test_negative_update(self, attrs):
+        """@Test: Update a content view and provide an invalid attribute.
+
+        @Assert: The content view's attributes are not updated.
+
+        @Feature: ContentView
+
+        """
+        response = client.put(
+            self.content_view.path(),
+            attrs,
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        with self.assertRaises(HTTPError):
+            response.raise_for_status()
