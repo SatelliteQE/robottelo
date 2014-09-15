@@ -42,17 +42,26 @@ def _content_type_is_json(kwargs):
     :rtype: bool
 
     """
-    return kwargs['headers']['content-type'].lower() == 'application/json'
+    if 'headers' in kwargs and 'content-type' in kwargs['headers']:
+        return kwargs['headers']['content-type'].lower() == 'application/json'
+    else:
+        return False
 
 
 def _set_content_type(kwargs):
     """If the 'content-type' header is unset, set it to 'applcation/json'.
+
+    The 'content-type' will not be set if doing a file upload as requests will
+    automatically set it.
 
     :param dict kwargs: The keyword args supplied to :func:`request` or one of
         the convenience functions like it.
     :return: Nothing. ``kwargs`` is modified in-place.
 
     """
+    if 'files' in kwargs:
+        return  # requests will automatically set content-type
+
     headers = kwargs.pop('headers', {})
     headers.setdefault('content-type', 'application/json')
     kwargs['headers'] = headers
@@ -195,8 +204,8 @@ def _call_requests_delete(url, **kwargs):
 def request(method, url, **kwargs):
     """A wrapper for ``requests.request``."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
-        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
+    if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
+        kwargs['data'] = json.dumps(kwargs['data'])
     _log_request(method, url, kwargs)
     response = _call_requests_request(method, url, **kwargs)
     _log_response(response)
@@ -206,8 +215,8 @@ def request(method, url, **kwargs):
 def head(url, **kwargs):
     """A wrapper for ``requests.head``."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
-        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
+    if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
+        kwargs['data'] = json.dumps(kwargs['data'])
     _log_request('HEAD', url, kwargs)
     response = _call_requests_head(url, **kwargs)
     _log_response(response)
@@ -217,8 +226,8 @@ def head(url, **kwargs):
 def get(url, **kwargs):
     """A wrapper for ``requests.get``."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
-        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
+    if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
+        kwargs['data'] = json.dumps(kwargs['data'])
     _log_request('GET', url, kwargs)
     response = _call_requests_get(url, **kwargs)
     _log_response(response)
@@ -228,7 +237,7 @@ def get(url, **kwargs):
 def post(url, data=None, **kwargs):
     """A wrapper for ``requests.post``."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
+    if _content_type_is_json(kwargs) and data is not None:
         data = json.dumps(data)
     _log_request('POST', url, kwargs, data)
     response = _call_requests_post(url, data, **kwargs)
@@ -239,7 +248,7 @@ def post(url, data=None, **kwargs):
 def put(url, data=None, **kwargs):
     """A wrapper for ``requests.put``. Sends a PUT request."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
+    if _content_type_is_json(kwargs) and data is not None:
         data = json.dumps(data)
     _log_request('PUT', url, kwargs, data)
     response = _call_requests_put(url, data, **kwargs)
@@ -250,7 +259,7 @@ def put(url, data=None, **kwargs):
 def patch(url, data=None, **kwargs):
     """A wrapper for ``requests.patch``. Sends a PATCH request."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
+    if _content_type_is_json(kwargs) and data is not None:
         data = json.dumps(data)
     _log_request('PATCH', url, kwargs, data)
     response = _call_requests_patch(url, data, **kwargs)
@@ -261,8 +270,8 @@ def patch(url, data=None, **kwargs):
 def delete(url, **kwargs):
     """A wrapper for ``requests.delete``. Sends a DELETE request."""
     _set_content_type(kwargs)
-    if _content_type_is_json(kwargs):
-        kwargs['data'] = json.dumps(kwargs.pop('data', {}))
+    if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
+        kwargs['data'] = json.dumps(kwargs['data'])
     _log_request('DELETE', url, kwargs)
     response = _call_requests_delete(url, **kwargs)
     _log_response(response)

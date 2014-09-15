@@ -347,7 +347,7 @@ class RepositoriesTestCase(TestCase):
         """
         # Create a repository and upload an RPM file.
         attrs = entities.Repository(url=FAKE_1_YUM_REPO).create()
-        response = client._call_requests_post(  # FIXME: use `client.post`
+        response = client.post(
             entities.Repository(id=attrs['id']).path(which='upload_content'),
             {},
             auth=get_server_credentials(),
