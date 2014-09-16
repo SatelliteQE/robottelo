@@ -898,9 +898,12 @@ class TestContentView(CLITestCase):
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][0]['id'],
-                         env1['id'],
-                         "Promotion of version not successful to the env")
+
+        environment = {
+            'id': env1['id'],
+            'name': env1['name'],
+        }
+        self.assertIn(environment, result.stdout['environments'])
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):

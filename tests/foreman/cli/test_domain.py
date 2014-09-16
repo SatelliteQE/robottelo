@@ -2,14 +2,15 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Domain  CLI"""
 
-from ddt import data
 from robottelo import orm
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import make_domain, CLIFactoryError
+from robottelo.common.decorators import data
 from robottelo.test import MetaCLITestCase
 
 
 class TestDomain(MetaCLITestCase):
+    """Domain CLI tests"""
 
     factory = make_domain
     factory_obj = Domain
@@ -151,8 +152,12 @@ class TestDomain(MetaCLITestCase):
         # check - parameter set
         result = Domain.info({'id': domain['id']})
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['parameters'][options['name']],
-                         options['value'])
+
+        parameter = {
+            # Sattelite applies lower to parameter's name
+            options['name'].lower(): options['value'],
+        }
+        self.assertDictEqual(parameter, result.stdout['parameters'])
 
     @data(
         {'name': 'white spaces %s' % orm.StringField().get_value(),
