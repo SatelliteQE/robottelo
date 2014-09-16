@@ -5,13 +5,6 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_activationkey`
--------------------------------------------
-
-.. automodule:: tests.foreman.api.test_activationkey
-    :members:
-    :undoc-members:
-
 :mod:`tests.foreman.api.test_activationkey_v2`
 ----------------------------------------------
 
@@ -100,13 +93,6 @@
 --------------------------------------------
 
 .. automodule:: tests.foreman.api.test_multiple_paths
-    :members:
-    :undoc-members:
-
-:mod:`tests.foreman.api.test_org`
----------------------------------
-
-.. automodule:: tests.foreman.api.test_org
     :members:
     :undoc-members:
 
