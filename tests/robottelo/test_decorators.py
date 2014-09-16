@@ -111,3 +111,43 @@ class RmBugIsOpenTestCase(TestCase):
             raise decorators.BugFetchError
         decorators._get_redmine_bug_status_id = bomb
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
+
+
+class RunOnlyOnTestCase(TestCase):
+    """Tests for :func:`robottelo.common.decorators.run_only_on`."""
+    def setUp(self):
+        """Backup object."""
+        self.project_backup = conf.properties.get('main.project')
+
+    def tearDown(self):
+        """Restore backed-up object."""
+        conf.properties['main.project'] = self.project_backup
+
+    def test_project_mode_different_cases(self):
+        """Assert ``True`` for different cases of accepted input values
+           for project / robottelo modes."""
+        accepted_values = ('SAT', 'SAt', 'SaT', 'Sat', 'sat', 'sAt',
+                           'SAM', 'SAm', 'SaM', 'Sam', 'sam', 'sAm')
+
+        # Test different project values
+        conf.properties['main.project'] = 'sam'
+        for project in accepted_values:
+            self.assertTrue(decorators.run_only_on(project))
+
+        # Test different mode values
+        for mode in accepted_values:
+            conf.properties['main.project'] = mode
+            self.assertTrue(decorators.run_only_on('SAT'))
+
+    def test_invalid_project(self):
+        """Assert error is thrown when project has invalid value."""
+        conf.properties['main.project'] = 'sam'
+        with self.assertRaises(decorators.ProjectModeError):
+            decorators.run_only_on('satddfddffdf')
+
+    def test_invalid_mode(self):
+        """Assert error is thrown when mode has invalid value."""
+        # Invalid value for robottelo mode
+        conf.properties['main.project'] = 'samtdd'
+        with self.assertRaises(decorators.ProjectModeError):
+            decorators.run_only_on('sat')
