@@ -44,15 +44,14 @@ OPERATING_SYSTEMS = [
 ]
 
 TEMPLATE_TYPES = [
-    'PXEGrub',
-    'PXELinux',
-    'ZTP',
     'finish',
     'iPXE',
     'provision',
+    'PXEGrub',
+    'PXELinux',
     'script',
-    'snippet',
     'user_data',
+    'ZTP'
 ]
 
 #       NOTE:- Below unique filter key's are used for select-item box
