@@ -1033,14 +1033,12 @@ class Organization(
             data = {u'repository_url': repository_url}
 
         with open(path, 'rb') as manifest:
-            # FIXME used _call_requests_post because client.post makes
-            # requests.post fail. Also add tests for this helper function.
-            response = client._call_requests_post(
+            response = client.post(
                 self.path('subscriptions/upload'),
                 auth=get_server_credentials(),
                 verify=False,
                 data=data,
-                files={'content': manifest}
+                files={'content': manifest},
             )
         response.raise_for_status()
 
@@ -1097,9 +1095,7 @@ class Organization(
             received, ``synchronous is True`` and polling times out.
 
         """
-        # FIXME used _call_requests_put because client.put makes
-        # requests.put fail. Also add tests for this helper function.
-        response = client._call_requests_put(
+        response = client.put(
             self.path('subscriptions/refresh_manifest'),
             auth=get_server_credentials(),
             verify=False,
