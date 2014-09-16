@@ -71,13 +71,56 @@ def stubbed(reason=None):
     return unittest.skip(reason)
 
 
-def runIf(project):
-    """Decorator to skip tests based on server mode"""
-    mode = conf.properties['main.project'].replace('/', '')
+class ProjectModeError(Exception):
+    """Indicates an error occurred while skipping based on Project Mode."""
 
-    if project == mode:
-        return lambda func: func
-    return unittest.skip("%s specific test." % project)
+
+def run_only_on(project):
+    """Decorator to skip tests based on server mode.
+
+    If the calling function -
+
+    * uses 'sat' - test will be run for sat mode only
+
+    * uses 'sam' - test will be run for sam mode only
+
+    * does not use this decorator - test will be run for sat/sam modes
+
+    :param str project: Enter 'sat' for Satellite and 'sam' for SAM
+
+    """
+    ALLOWED_PROJECT_MODES = ('sat', 'sam')
+
+    # Validate project value
+    project = project.lower()
+    if project not in ALLOWED_PROJECT_MODES:
+        raise ProjectModeError(
+            '"{0}" is not a project mode. Did you mean any of these '
+            '{1}?'.format(project, ALLOWED_PROJECT_MODES)
+        )
+
+    # validate robottelo_mode
+    robottelo_mode = conf.properties.get('main.project')
+    # Step 1: Validate if robottelo_mode is none
+    if robottelo_mode is None:
+        raise ProjectModeError(
+            'Please specify "main.project" in robottelo.properties file'
+        )
+    else:
+        robottelo_mode = robottelo_mode.lower()
+        # Step 2: Validate robottelo_mode value
+        if robottelo_mode not in ALLOWED_PROJECT_MODES:
+            raise ProjectModeError(
+                '"{0}" is not an acceptable "main.project" value in'
+                ' robottelo.properties file. Did you mean any of these'
+                ' "{1}"?'.format(robottelo_mode, ALLOWED_PROJECT_MODES)
+            )
+
+    # Preconditions PASS.  Now skip the test if modes does not match
+    return unittest.skipIf(
+        project != robottelo_mode,
+        'Server runs in "{0}" mode and this test will run '
+        'only on "{1}" mode.'.format(robottelo_mode, project))
 
 
 def skipRemote(func):

@@ -10,7 +10,8 @@ server.hostname=
 
 server.ssh.key_private=/home/whoami/.ssh/id_hudson_dsa
 server.ssh.username=root
-project=foreman
+# Enter only 'sat' for Satellite and 'sam' for SAM 
+project=sat
 locale=en_US.UTF-8
 remote=0
 smoke=0
