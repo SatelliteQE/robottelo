@@ -27,6 +27,7 @@ from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
+from robottelo.ui.usergroup import UserGroup
 
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,
@@ -296,6 +297,29 @@ def make_user(session, org=None, loc=None, force_context=False, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     User(session.browser).create(**create_args)
+
+
+def make_usergroup(session, org=None, loc=None, force_context=False, **kwargs):
+    """Creates a usergroup
+
+    :param session: For browser session.
+    :param str org: To set Organization context.
+    :param str loc: To set Location context.
+    :param bool force_context: If ``force_context`` is ``True``, set the
+    ``org`` and ``loc`` context again. This method is useful when, for example,
+    creating entities with the same name but in different organizations.
+    :param kwargs: Arbitrary keyword arguments to update create_args.
+
+    """
+
+    create_args = {
+        'name': None,
+        'users': None
+    }
+    page = session.nav.go_to_user_groups
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    UserGroup(session.browser).create(**create_args)
 
 
 def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
