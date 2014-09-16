@@ -89,10 +89,10 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_product`
--------------------------------------
+:mod:`tests.foreman.api.test_product_v2`
+----------------------------------------
 
-.. automodule:: tests.foreman.api.test_product
+.. automodule:: tests.foreman.api.test_product_v2
     :members:
     :undoc-members:
 
