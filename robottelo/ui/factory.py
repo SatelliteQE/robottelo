@@ -306,8 +306,9 @@ def make_usergroup(session, org=None, loc=None, force_context=False, **kwargs):
     :param str org: To set Organization context.
     :param str loc: To set Location context.
     :param bool force_context: If ``force_context`` is ``True``, set the
-    ``org`` and ``loc`` context again. This method is useful when, for example,
-    creating entities with the same name but in different organizations.
+        ``org`` and ``loc`` context again. This method is useful when, for
+        example, creating entities with the same name but in different
+        organizations.
     :param kwargs: Arbitrary keyword arguments to update create_args.
 
     """
