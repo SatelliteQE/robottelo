@@ -5,7 +5,7 @@
 Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
-from robottelo.api.apicrud import ApiCrud, ApiException
+from robottelo.api.apicrud import ApiCrud
 from robottelo.common.decorators import data
 from robottelo.common.decorators import stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
@@ -15,95 +15,6 @@ from robottelo.test import APITestCase
 
 @ddt
 class TestContentView(APITestCase):
-
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
-    def test_cv_create_api(self, data):
-        # variations (subject to change):
-        # ascii string, alphanumeric, latin-1, utf8, etc.
-        """
-        @test: create content views (positive)
-        @feature: Content Views
-        @assert: content views are created
-        """
-
-        depends = ApiCrud.record_create_dependencies(data)
-        result = ApiCrud.record_create(depends)
-        self.assertIntersects(data, result)
-
-    @data(*ContentViewDefinition.enumerate(name=""))
-    def test_cv_create_api_negative_0(self, data):
-        # variations (subject to change):
-        # zero length, symbols, html, etc.
-        """
-        @test: create content views (negative)
-        @feature: Content Views
-        @assert: content views are not created; proper error thrown and
-        system handles it gracefully
-        """
-
-        try:
-            depends = ApiCrud.record_create_dependencies(data)
-            result = ApiCrud.record_create(depends)
-            self.assertIntersects(data, result)
-            correctly_failing = False
-        except ApiException:
-            correctly_failing = True
-        self.assertTrue(correctly_failing)
-
-    @data(*ContentViewDefinition.enumerate(name="  "))
-    def test_cv_create_api_negative_1(self, data):
-        # variations (subject to change):
-        # zero length, symbols, html, etc.
-        """
-        @test: create content views (negative)
-        @feature: Content Views
-        @assert: content views are not created; proper error thrown and
-        system handles it gracefully
-        """
-
-        try:
-            depends = ApiCrud.record_create_dependencies(data)
-            result = ApiCrud.record_create(depends)
-            self.assertIntersects(data, result)
-            correctly_failing = False
-        except ApiException:
-            correctly_failing = True
-        self.assertTrue(correctly_failing)
-
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
-    def test_cv_create_api_badorg_negative(self, data):
-        # Use an invalid org name
-        """
-        @test: create content views (negative)
-        @feature: Content Views
-        @assert: content views are not created; proper error thrown and
-        system handles it gracefully
-        """
-        try:
-            data.organization.name = ""
-            depends = ApiCrud.record_create_dependencies(data)
-            result = ApiCrud.record_create(depends)
-            self.assertIntersects(data, result)
-            correctly_failing = False
-        except ApiException:
-            correctly_failing = True
-        self.assertTrue(correctly_failing)
-
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
-    def test_cv_edit(self, data):
-        """
-        @test: edit content views - name, description, etc.
-        @feature: Content Views
-        @assert: edited content view save is successful and info is
-        updated
-        """
-
-        con_view = ContentViewDefinition()
-        depends = ApiCrud.record_create_dependencies(con_view)
-        t = ApiCrud.record_create(depends)
-        t['organization_id'] = depends['organization_id']
-        con_view.name = data.name
-        ApiCrud.record_update(t)
 
     @stubbed
     def test_cv_edit_rh_custom_spin(self):
@@ -120,42 +31,6 @@ class TestContentView(APITestCase):
         updated
         @status: Manual
         """
-
-    @data(*ContentViewDefinition.enumerate(description=""))
-    def test_cv_delete(self, data):
-        """
-        @test: delete content views
-        @feature: Content Views
-        @assert: edited content view can be deleted and no longer
-        appears in any content view UI
-        updated
-        """
-
-        data.label = "conview_del"
-        depends = ApiCrud.record_create_dependencies(data)
-        t = ApiCrud.record_create(depends)
-        t['organization_id'] = depends['organization_id']
-        self.assertTrue(ApiCrud.record_exists(t))
-        ApiCrud.record_remove(t)
-        self.assertFalse(ApiCrud.record_exists(t))
-
-    @data(*ContentViewDefinition.enumerate(label="", description=""))
-    def test_cv_composite_create(self, data):
-        # Note: puppet repos cannot/should not be used in this test
-        # It shouldn't work - and that is tested in a different case.
-        # Individual modules from a puppet repo, however, are a valid
-        # variation.
-        """
-        @test: create a composite content views
-        @feature: Content Views
-        @setup: sync multiple content source/types (RH, custom, etc.)
-        @assert: Composite content views are created
-       """
-
-        data.composite = True
-        depends = ApiCrud.record_create_dependencies(data)
-        result = ApiCrud.record_create(depends)
-        self.assertIntersects(data, result)
 
     # Content Views: Adding products/repos
     # katello content definition add_filter --label=MyView
