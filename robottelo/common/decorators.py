@@ -8,7 +8,6 @@ Implements various decorators
 import bugzilla
 import functools
 import logging
-import random
 import requests
 
 import sys
@@ -49,14 +48,18 @@ logging.getLogger(
 
 
 def data(*values):
-    """
-    Overrides ddt.data decorator to return only one value when doing smoke
-    tests
+    """Overrides ddt.data decorator to return only the first value
+
+    The first value will be returned just when smoke=1 on properties file
+
+    :param values: A test method will be generated for each value
+    :raises IndexError: if no value is provided
+
     """
     def wrapper(func):
         smoke = conf.properties.get('main.smoke', '0') == '1'
         if smoke:
-            return ddt_data(random.choice(values))(func)
+            return ddt_data(values[0])(func)
         else:
             return ddt_data(*values)(func)
     return wrapper
