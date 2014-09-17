@@ -12,20 +12,6 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_computeresource`
----------------------------------------------
-
-.. automodule:: tests.foreman.api.test_computeresource
-    :members:
-    :undoc-members:
-
-:mod:`tests.foreman.api.test_configtemplate`
---------------------------------------------
-
-.. automodule:: tests.foreman.api.test_configtemplate
-    :members:
-    :undoc-members:
-
 :mod:`tests.foreman.api.test_contentviews`
 ------------------------------------------
 
@@ -33,17 +19,10 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_domain`
-------------------------------------
+:mod:`tests.foreman.api.test_environment_v2`
+--------------------------------------------
 
-.. automodule:: tests.foreman.api.test_domain
-    :members:
-    :undoc-members:
-
-:mod:`tests.foreman.api.test_environments`
-------------------------------------------
-
-.. automodule:: tests.foreman.api.test_environments
+.. automodule:: tests.foreman.api.test_environment_v2
     :members:
     :undoc-members:
 
