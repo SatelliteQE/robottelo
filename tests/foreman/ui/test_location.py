@@ -7,16 +7,13 @@
 from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
+from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import (
-    generate_strings_list, generate_ipaddr, generate_email_address,
-    get_data_file)
+from robottelo.common.helpers import generate_strings_list, get_data_file
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (
-    make_loc, make_subnet, make_domain, make_env, make_user, make_org,
-    make_hostgroup, make_resource, make_media, make_templates)
+from robottelo.ui.factory import make_loc, make_templates
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -210,14 +207,17 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
-        subnet_network = generate_ipaddr(ip3=True)
+        subnet_network = FauxFactory.generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
+        subnet = entities.Subnet(
+            name=subnet_name,
+            network=subnet_network,
+            mask=subnet_mask
+        ).create()
+        self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_subnet(session, orgs=None, subnet_name=subnet_name,
-                        subnet_network=subnet_network, subnet_mask=subnet_mask)
-            self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
             self.location.update(loc_name, new_subnets=[subnet_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -228,7 +228,7 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_add_domain_1(self, domain):
+    def test_add_domain_1(self, domain_name):
         """@test: Add a domain to a Location
 
         @feature: Locations
@@ -238,26 +238,26 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        domain = entities.Domain(name=domain_name).create()
+        self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_domain(session, name=domain)
-            self.assertIsNotNone(self.domain.search(domain))
-            self.location.update(loc_name, new_domains=[domain])
+            self.location.update(loc_name, new_domains=[domain_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % domain))
+                                                      value % domain_name))
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 8)},
-          {'name': FauxFactory.generate_string('numeric', 8)},
-          {'name': FauxFactory.generate_string('alphanumeric', 8)},
-          {'name': FauxFactory.generate_string('utf8', 8)},
-          {'name': FauxFactory.generate_string('latin1', 8)})
-    def test_add_user_1(self, testdata):
+    @data(FauxFactory.generate_string('alpha', 8),
+          FauxFactory.generate_string('numeric', 8),
+          FauxFactory.generate_string('alphanumeric', 8),
+          FauxFactory.generate_string('utf8', 8),
+          FauxFactory.generate_string('latin1', 8))
+    def test_add_user_1(self, user_name):
         """@test: Create user then add user
         by using the location name
 
@@ -266,25 +266,24 @@ class Location(UITestCase):
         @assert: User is added to location
 
         """
-        user = testdata['name']
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
         password = FauxFactory.generate_string("alpha", 8)
-        email = generate_email_address()
-        search_key = "login"
+        user = entities.User(
+            login=user_name,
+            firstname=user_name,
+            lastname=user_name,
+            password=password).create()
+        self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_user(session, username=user, first_name=user,
-                      last_name=user, email=email,
-                      password1=password, password2=password)
-            self.assertIsNotNone(self.user.search(user, search_key))
-            self.location.update(loc_name, new_users=[user])
+            self.location.update(loc_name, new_users=[user_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_users"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % user))
+                                                      value % user_name))
             self.assertIsNotNone(element)
 
     def test_allvalues_hostgroup(self):
@@ -307,7 +306,7 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_add_hostgroup_1(self, host_grp):
+    def test_add_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup by using the location
         name and hostgroup name
 
@@ -318,21 +317,21 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        host_grp = entities.HostGroup(name=host_grp_name).create()
+        self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_hostgroup(session, name=host_grp)
-            self.assertIsNotNone(self.hostgroup.search(host_grp))
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % host_grp))
+                                                      value % host_grp_name))
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_add_org_1(self, org):
+    def test_add_org_1(self, org_name):
         """@test: Add a organization by using the location
         name
 
@@ -343,24 +342,24 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        org = entities.Organization(name=org_name).create()
+        self.assertEqual(org['name'], org_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_org(session, org_name=org)
-            self.assertIsNotNone(self.org.search(org))
-            self.location.update(loc_name, new_organizations=[org])
+            self.location.update(loc_name, new_organizations=[org_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_organizations"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % org))
+                                                      value % org_name))
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 8)},
-          {'name': FauxFactory.generate_string('numeric', 8)},
-          {'name': FauxFactory.generate_string('alphanumeric', 8)})
-    def test_add_environment_1(self, testdata):
+    @data(FauxFactory.generate_string('alpha', 8),
+          FauxFactory.generate_string('numeric', 8),
+          FauxFactory.generate_string('alphanumeric', 8))
+    def test_add_environment_1(self, env_name):
         """@test: Add environment by using location name and evironment name
 
         @feature: Locations
@@ -368,20 +367,19 @@ class Location(UITestCase):
         @assert: environment is added
 
         """
-        env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        env = entities.Environment(name=env_name).create()
+        self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_env(session, name=env)
-            self.assertIsNotNone(self.environment.search(env))
-            self.location.update(loc_name, new_envs=[env])
+            self.location.update(loc_name, new_envs=[env_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % env))
+                                                      value % env_name))
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
@@ -399,12 +397,15 @@ class Location(UITestCase):
         loc_name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
+        resource = entities.ComputeResource(
+            name=resource_name,
+            provider='Libvirt',
+            url=url
+        ).create()
+        self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_resource(session, name=resource_name,
-                          provider_type="Libvirt", url=url)
-            self.assertIsNotNone(self.compute_resource.search(resource_name))
             self.location.update(loc_name, new_resources=[resource_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -415,7 +416,7 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_add_medium_1(self, medium):
+    def test_add_medium_1(self, medium_name):
         """@test: Add medium by using the location name and medium name
 
         @feature: Locations
@@ -426,18 +427,21 @@ class Location(UITestCase):
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
         path = URL % FauxFactory.generate_string("alpha", 6)
-        os_family = "Red Hat"
+        medium = entities.Media(
+            name=medium_name,
+            path=path,
+            os_family='Redhat',
+        ).create()
+        self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_media(session, name=medium, path=path, os_family=os_family)
-            self.assertIsNotNone(self.medium.search(medium))
-            self.location.update(loc_name, new_medias=[medium])
+            self.location.update(loc_name, new_medias=[medium_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % medium))
+                                                      value % medium_name))
             self.assertIsNotNone(element)
 
     def test_allvalues_configtemplate(self):
@@ -487,10 +491,10 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 8)},
-          {'name': FauxFactory.generate_string('numeric', 8)},
-          {'name': FauxFactory.generate_string('alphanumeric', 8)})
-    def test_remove_environment_1(self, testdata):
+    @data(FauxFactory.generate_string('alpha', 8),
+          FauxFactory.generate_string('numeric', 8),
+          FauxFactory.generate_string('alphanumeric', 8))
+    def test_remove_environment_1(self, env_name):
         """@test: Remove environment by using location name & evironment name
 
         @feature: Locations
@@ -498,27 +502,26 @@ class Location(UITestCase):
         @assert: environment is removed from Location
 
         """
-        env = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        env = entities.Environment(name=env_name).create()
+        self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
-            make_env(session, name=env, orgs=None)
-            self.assertIsNotNone(self.environment.search(env))
-            make_loc(session, name=loc_name, envs=[env], edit=True)
+            make_loc(session, name=loc_name, envs=[env_name], edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
             element = session.nav.wait_until_element((strategy1,
-                                                      value1 % env))
+                                                      value1 % env_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.location.update(loc_name, envs=[env])
+            self.location.update(loc_name, envs=[env_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % env))
+                                                      value % env_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
@@ -535,12 +538,15 @@ class Location(UITestCase):
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
-        subnet_network = generate_ipaddr(ip3=True)
+        subnet_network = FauxFactory.generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
+        subnet = entities.Subnet(
+            name=subnet_name,
+            network=subnet_network,
+            mask=subnet_mask
+        ).create()
+        self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
-            make_subnet(session, subnet_name=subnet_name,
-                        subnet_network=subnet_network, subnet_mask=subnet_mask)
-            self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
             make_loc(session, name=loc_name, subnets=[subnet_name], edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -560,7 +566,7 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_remove_domain_1(self, domain):
+    def test_remove_domain_1(self, domain_name):
         """@test: Add a domain to an location and remove it by location
         name and domain name
 
@@ -573,33 +579,33 @@ class Location(UITestCase):
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        domain = entities.Domain(name=domain_name).create()
+        self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
-            make_domain(session, name=domain)
-            self.assertIsNotNone(self.domain.search(domain))
-            make_loc(session, name=loc_name, domains=[domain], edit=True)
+            make_loc(session, name=loc_name, domains=[domain_name], edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
             element = session.nav.wait_until_element((strategy1,
-                                                      value1 % domain))
+                                                      value1 % domain_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.location.update(loc_name, domains=[domain])
+            self.location.update(loc_name, domains=[domain_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % domain))
+                                                      value % domain_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 8)},
-          {'name': FauxFactory.generate_string('numeric', 8)},
-          {'name': FauxFactory.generate_string('alphanumeric', 8)},
-          {'name': FauxFactory.generate_string('utf8', 8)},
-          {'name': FauxFactory.generate_string('latin1', 8)})
-    def test_remove_user_1(self, testdata):
+    @data(FauxFactory.generate_string('alpha', 8),
+          FauxFactory.generate_string('numeric', 8),
+          FauxFactory.generate_string('alphanumeric', 8),
+          FauxFactory.generate_string('utf8', 8),
+          FauxFactory.generate_string('latin1', 8))
+    def test_remove_user_1(self, user_name):
         """@test: Create admin users then add user and remove it
         by using the location name
 
@@ -608,18 +614,17 @@ class Location(UITestCase):
         @assert: The user is added then removed from the location
 
         """
-        user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
         password = FauxFactory.generate_string("alpha", 8)
-        email = generate_email_address()
-        search_key = "login"
+        user = entities.User(
+            login=user_name,
+            firstname=user_name,
+            lastname=user_name,
+            password=password).create()
+        self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
-            make_user(session, username=user_name, first_name=user_name,
-                      last_name=user_name, email=email,
-                      password1=password, password2=password)
-            self.assertIsNotNone(self.user.search(user_name, search_key))
             make_loc(session, name=loc_name, users=[user_name], edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -639,7 +644,7 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_remove_hostgroup_1(self, host_grp):
+    def test_remove_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup and remove it by using the location
         name and hostgroup name
 
@@ -650,23 +655,23 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = FauxFactory.generate_string("alpha", 8)
+        host_grp = entities.HostGroup(name=host_grp_name).create()
+        self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
-            make_hostgroup(session, name=host_grp)
-            self.assertIsNotNone(self.hostgroup.search(host_grp))
             make_loc(session, name=loc_name, edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % host_grp))
+                                                      value % host_grp_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.hostgroup.delete(host_grp, True)
+            self.hostgroup.delete(host_grp_name, True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % host_grp))
+                                                      value % host_grp_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNone(element)
 
@@ -686,10 +691,13 @@ class Location(UITestCase):
         loc_name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
+        resource = entities.ComputeResource(
+            name=resource_name,
+            provider='Libvirt',
+            url=url
+        ).create()
+        self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
-            make_resource(session, name=resource_name, provider_type="Libvirt",
-                          url=url)
-            self.assertIsNotNone(self.compute_resource.search(resource_name))
             make_loc(session, name=loc_name, resources=[resource_name],
                      edit=True)
             self.location.search(loc_name).click()
@@ -710,7 +718,7 @@ class Location(UITestCase):
 
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
-    def test_remove_medium_1(self, medium):
+    def test_remove_medium_1(self, medium_name):
         """@test: Remove medium by using location name and medium name
 
         @feature: Locations
@@ -722,28 +730,30 @@ class Location(UITestCase):
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
         path = URL % FauxFactory.generate_string("alpha", 6)
-        os_family = "Red Hat"
+        medium = entities.Media(
+            name=medium_name,
+            path=path,
+            os_family='Redhat',
+        ).create()
+        self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
-            make_media(session, name=medium, path=path, os_family=os_family)
-            self.assertIsNotNone(self.medium.search(medium))
-            make_loc(session, name=loc_name, medias=[medium], edit=True)
+            make_loc(session, name=loc_name, medias=[medium_name], edit=True)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
             element = session.nav.wait_until_element((strategy1,
-                                                      value1 % medium))
+                                                      value1 % medium_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.location.update(loc_name, medias=[medium])
+            self.location.update(loc_name, medias=[medium_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
             element = session.nav.wait_until_element((strategy,
-                                                      value % medium))
+                                                      value % medium_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @skip_if_bug_open('bugzilla', 1096333)
     @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template):
@@ -752,8 +762,6 @@ class Location(UITestCase):
         @feature: Locations
 
         @assert: configtemplate is added then removed
-
-        @BZ: 1096333
 
         """
         strategy, value = common_locators["all_values_selection"]

@@ -679,7 +679,7 @@ class HostGroupClasses(orm.Entity):
         api_path = 'api/v2/hostgroups/:hostgroup_id/puppetclass_ids'
 
 
-class HostGroup(orm.Entity):
+class HostGroup(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Host Group entity."""
     name = orm.StringField(required=True)
     parent = orm.OneToOneField('HostGroup', null=True)
@@ -862,7 +862,7 @@ class Location(orm.Entity, factory.EntityFactoryMixin):
         api_path = 'api/v2/locations'
 
 
-class Media(orm.Entity):
+class Media(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Media entity."""
     # Name of media
     # validator: String

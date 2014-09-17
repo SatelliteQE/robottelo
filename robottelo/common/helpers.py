@@ -195,12 +195,13 @@ def generate_strings_list(len1=8):
     """
     Generates a list of all the input strings
     """
-    str_types = [STR.alpha,
-                 STR.numeric,
-                 STR.alphanumeric,
-                 STR.html,
-                 STR.latin1,
-                 STR.utf8]
+    str_types = ["alpha",
+                 "numeric",
+                 "alphanumeric",
+                 "latin1",
+                 "utf8",
+                 "cjk",
+                 "html"]
     str_list = []
     for str_type in str_types:
         string1 = FauxFactory.generate_string(str_type, len1)
