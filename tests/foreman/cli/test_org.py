@@ -14,6 +14,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.common.decorators import data, skip_if_bug_open, stubbed
+from fauxfactory import FauxFactory
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -1840,27 +1841,36 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_1(self, test_data):
+    @data(FauxFactory.generate_string('alpha', 10),
+          FauxFactory.generate_string('numeric', 10),
+          FauxFactory.generate_string('alphanumeric', 10),
+          FauxFactory.generate_string('utf8', 10),
+          FauxFactory.generate_string('latin1', 10))
+    def test_add_subnet_1(self, name):
         """@test: Add a subnet by using organization name and subnet name
 
         @feature: Organizations
 
         @assert: subnet is added
 
-        @status: manual
-
         """
 
-        pass
+        try:
+            org = make_org()
+            new_subnet = make_subnet({'name': name})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = Org.add_subnet({
+            'name': org['name'],
+            'subnet': new_subnet['name'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}".
+                         format(result.return_code))
+
+        result = Org.info({'id': org['id']})
+        self.assertIn(name, result.stdout['subnets'][0])
 
     @stubbed
     @data("""DATADRIVENGOESHERE
