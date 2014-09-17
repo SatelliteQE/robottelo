@@ -61,6 +61,11 @@ class TestCase(unittest.TestCase):
         super(TestCase, cls).setUpClass()
         cls.logger = logging.getLogger('robottelo')
 
+    def setUp(self):
+        """Log the test class and method name before each test"""
+        self.logger.debug(
+            'Running test {0}/{1}', type(self), self._testMethodName)
+
 
 class APITestCase(TestCase):
     """Test case for API tests."""
@@ -73,9 +78,7 @@ class CLITestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Make sure that we only read configuration values once.
-        """
+        """Make sure that we only read configuration values once."""
         super(CLITestCase, cls).setUpClass()
         cls.hostname = conf.properties['main.server.hostname']
         cls.katello_user = conf.properties['foreman.admin.username']
@@ -85,18 +88,11 @@ class CLITestCase(TestCase):
         cls.locale = conf.properties['main.locale']
         cls.verbosity = int(conf.properties['nosetests.verbosity'])
 
-    def setUp(self):
-        """
-        Log test class and method name before each test.
-        """
-        self.logger.debug("Running test %s/%s", type(self).__name__,
-                          self._testMethodName)
-
 
 class MetaCLITestCase(CLITestCase):
-    """
-    All Test modules should inherit from MetaCLI in order to obtain default
+    """All Test modules should inherit from MetaCLI in order to obtain default
     positive/negative CRUD tests.
+
     """
     __metaclass__ = MetaCLITest
 
@@ -106,9 +102,7 @@ class UITestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Make sure that we only read configuration values once.
-        """
+        """Make sure that we only read configuration values once."""
         super(UITestCase, cls).setUpClass()
         cls.katello_user = conf.properties['foreman.admin.username']
         cls.katello_passwd = conf.properties['foreman.admin.password']
@@ -142,9 +136,8 @@ class UITestCase(TestCase):
             cls.display = None
 
     def setUp(self):
-        """
-        We do want a new browser instance for every test.
-        """
+        """We do want a new browser instance for every test."""
+        super(UITestCase, self).setUp()
 
         if not self.remote:
             if self.driver_name.lower() == 'firefox':
@@ -203,9 +196,7 @@ class UITestCase(TestCase):
         self.usergroup = UserGroup(self.browser)
 
     def tearDown(self):
-        """
-        Make sure to close the browser after each test.
-        """
+        """Make sure to close the browser after each test."""
 
         self.browser.quit()
         self.browser = None
@@ -220,8 +211,7 @@ class UITestCase(TestCase):
 
 
 def assert_instance_intersects(first, other):
-    """Determines if first and other match in type
-    """
+    """Determines if first and other match in type"""
     r = not isinstance(first, type(other))
     r = r or not isinstance(other, type(first))
 
@@ -234,9 +224,9 @@ def assert_instance_intersects(first, other):
 
 
 def assert_list_intersects(first, other):
-    """Compares two lists, and determines,
-    if each item in first intersects
+    """Compares two lists, and determines, if each item in first intersects
     with at least one item in other
+
     """
     grievance = []
     for v in first:
@@ -248,8 +238,9 @@ def assert_list_intersects(first, other):
 
 
 def assert_dict_intersects(first, other):
-    """Compares two dictionaries, and determines,
-    if shared keys contain intersecting values
+    """Compares two dictionaries, and determines, if shared keys contain
+    intersecting values
+
     """
     grievance = {}
     for k in first:
@@ -297,8 +288,7 @@ def intersection(first, other):
 
 
 def assert_intersects(first, other, msg=None):
-    """Intersection based assert.
-    """
+    """Intersection based assert."""
     res = intersection(first, other)
     if res is not True:
         raise AssertionError(
@@ -309,6 +299,7 @@ def assert_intersects(first, other, msg=None):
 def is_intersecting(first, other):
     """Compares two objects to determine, if they share common information.
     Returns true or false.
+
     >>> is_intersecting("n1","n1")
     True
     >>> is_intersecting("n1","n2")
