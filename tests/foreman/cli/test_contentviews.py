@@ -159,7 +159,11 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "There should not be an exception here")
 
         test_data['organization-id'] = org_obj['id']
-        con_view = make_content_view(test_data)
+
+        try:
+            con_view = make_content_view(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
@@ -227,11 +231,13 @@ class TestContentView(CLITestCase):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
         con_name = generate_string("alpha", 10)
-        con_view = make_content_view({'name': con_name,
-                                      'organization-id': org_obj['id']})
-        result = ContentView.info({'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(con_view['name'], result.stdout['name'])
+        try:
+            con_view = make_content_view({
+                'name': con_name,
+                'organization-id': org_obj['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         con_view_update = generate_string("alpha", 10)
         result = ContentView.update({'id': con_view['id'],
@@ -281,8 +287,13 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "There should not be an exception here")
 
         con_view_name = generate_string("alpha", 10)
-        con_view = make_content_view({'name': con_view_name,
-                                      'organization-id': org_obj['id']})
+        try:
+            con_view = make_content_view({
+                'name': con_view_name,
+                'organization-id': org_obj['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ContentView.info({'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "Failed to find object")
@@ -327,11 +338,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -354,13 +364,13 @@ class TestContentView(CLITestCase):
         version1_id = result.stdout['versions'][0]['id']
 
         # Create CV
-        con_view = make_content_view({'organization-id': self.org['id'],
-                                      'composite': True})
-
-        # Assert whether content view creation was successful
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            con_view = make_content_view({
+                'organization-id': self.org['id'],
+                'composite': True
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate version to composite CV
         result = ContentView.add_version({
@@ -492,15 +502,10 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Content-View was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -557,16 +562,10 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Content-View was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate puppet repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -615,15 +614,10 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Create component CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Content-View was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -697,15 +691,10 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Content-View was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -792,16 +781,10 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Content-View was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Fetch puppet module
         puppet_result = PuppetModule.list({u'repository-id': new_repo['id'],
@@ -869,14 +852,16 @@ class TestContentView(CLITestCase):
             u'id': new_cv['id'],
             u'repository-id': self.rhel_repo['id']
         })
-        self.assertEqual(result.return_code, 0,
-                         "Repo was not associated to selected CV")
+        self.assertEqual(
+            result.return_code, 0,
+            "Repo was not associated to selected CV")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Publish a new version of CV
         result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Publishing a new version of CV was not successful")
+        self.assertEqual(
+            result.return_code, 0,
+            "Publishing a new version of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         result = ContentView.info({u'id': new_cv['id']})
@@ -888,9 +873,10 @@ class TestContentView(CLITestCase):
         })
 
         # Promote the Published version of CV to the next env
-        result = ContentView.version_promote(
-            {u'id': result.stdout['versions'][0]['id'],
-             u'lifecycle-environment-id': env1['id']})
+        result = ContentView.version_promote({
+            u'id': result.stdout['versions'][0]['id'],
+            u'lifecycle-environment-id': env1['id']
+        })
         self.assertEqual(result.return_code, 0,
                          "Promoting a version of CV was not successful")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
@@ -945,11 +931,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1014,11 +999,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1041,13 +1025,13 @@ class TestContentView(CLITestCase):
         version1_id = result.stdout['versions'][0]['id']
 
         # Create CV
-        con_view = make_content_view({'organization-id': self.org['id'],
-                                      'composite': True})
-
-        # Assert whether content view creation was successful
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            con_view = make_content_view({
+                'organization-id': self.org['id'],
+                'composite': True
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate version to composite CV
         result = ContentView.add_version({
@@ -1142,11 +1126,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1261,11 +1244,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1317,11 +1299,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1344,13 +1325,13 @@ class TestContentView(CLITestCase):
         version1_id = result.stdout['versions'][0]['id']
 
         # Create CV
-        con_view = make_content_view({'organization-id': self.org['id'],
-                                      'composite': True})
-
-        # Assert whether content view creation was successful
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            con_view = make_content_view({
+                'organization-id': self.org['id'],
+                'composite': True
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate version to composite CV
         result = ContentView.add_version({
@@ -1419,11 +1400,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1548,11 +1528,10 @@ class TestContentView(CLITestCase):
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Fetch it
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Associate repo to CV
         result = ContentView.add_repository({u'id': new_cv['id'],
@@ -1790,7 +1769,10 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0, "There should have been an exception here")
 
         # test that user can't read
-        con_view = make_content_view(test_data)
+        try:
+            con_view = make_content_view(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
 
         result = ContentView.with_user(
             no_rights_user["login"],
