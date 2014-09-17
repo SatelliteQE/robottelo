@@ -1272,7 +1272,7 @@ class TestActivationKey(CLITestCase):
         )
         self.assertEqual(
             result.stdout['name'], name,
-            u"Activation key names don't not match {} != {}".format(
+            u"Activation key names don't not match {0} != {1}".format(
                 result.stdout['name'], name
             )
         )
