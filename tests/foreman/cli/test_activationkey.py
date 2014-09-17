@@ -15,7 +15,8 @@ from robottelo.cli.factory import (
     make_org, make_product,
     make_host_collection
 )
-from robottelo.common.decorators import data, skip_if_bug_open, stubbed
+from robottelo.common.decorators import (data, run_only_on,
+                                         skip_if_bug_open, stubbed)
 from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
@@ -149,6 +150,7 @@ class TestActivationKey(CLITestCase):
              (new_ackey['description'], test_data['description']))
         )
 
+    @run_only_on('sat')
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -181,6 +183,7 @@ class TestActivationKey(CLITestCase):
              (new_ackey['lifecycle-environment'], self.library['name']))
         )
 
+    @run_only_on('sat')
     @data(
         {'name': generate_string('alpha', 15)},
         {'name': generate_string('alphanumeric', 15)},
@@ -336,6 +339,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109648)
     def test_positive_create_9(self):
         """@test: Create Activation key with environment name
@@ -755,6 +759,7 @@ class TestActivationKey(CLITestCase):
             result.stdout['description'], test_data['description'],
             'Activation key description was not updated')
 
+    @run_only_on('sat')
     @stubbed
     def test_positive_update_activation_key_4(self):
         """@Test: Update Environment in an Activation key
@@ -772,6 +777,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109649)
     @data(
         {'content-view': generate_string('alpha', 15)},
@@ -1008,6 +1014,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @stubbed
     def test_associate_product_2(self):
         """@Test: Test that custom product can be associated to Activation Keys
@@ -1025,6 +1032,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @stubbed
     def test_associate_product_3(self):
         """@Test: Test that RH/Custom product can be associated to Activation keys
@@ -1184,6 +1192,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @stubbed
     def test_end_to_end(self):
         """@Test: Create Activation key and provision systems with it

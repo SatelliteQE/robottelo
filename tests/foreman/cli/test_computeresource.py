@@ -23,13 +23,14 @@ from ddt import ddt
 from robottelo import orm
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.test import CLITestCase
 
 
+@run_only_on('sat')
 @ddt
 class TestComputeResource(CLITestCase):
     """ComputeResource CLI tests."""

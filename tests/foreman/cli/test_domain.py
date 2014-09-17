@@ -5,10 +5,11 @@
 from robottelo import orm
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import make_domain, CLIFactoryError
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.test import MetaCLITestCase
 
 
+@run_only_on('sat')
 class TestDomain(MetaCLITestCase):
     """Domain CLI tests"""
 

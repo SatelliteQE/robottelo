@@ -5,9 +5,11 @@
 
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.factory import make_architecture
+from robottelo.common.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
+@run_only_on('sat')
 class TestArchitecture(MetaCLITestCase):
     """Architecture CLI related tests. """
 
