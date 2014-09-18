@@ -1545,19 +1545,21 @@ class User(
     authentication than to spawn LDAP authentication servers for each new user.
 
     """
+    # Passing UTF8 characters for {first,last}name or login yields errors. See
+    # bugzilla bug 1144162.
     login = orm.StringField(
+        len=(1, 100),
         required=True,
-        # Passing UTF8 characters to ``login`` yields 500s.
-        str_type=('alpha', 'alphanumeric', 'cjk', 'latin1'))
-    firstname = orm.StringField(null=True, len=(1, 60))
-    lastname = orm.StringField(null=True, len=(1, 60))
-    mail = orm.EmailField(required=True)
-    # Is an admin account?
+        str_type=('alpha', 'alphanumeric', 'cjk', 'latin1'),
+    )
     admin = orm.BooleanField(null=True)
-    password = orm.StringField(required=True)
+    auth_source = orm.OneToOneField('AuthSourceLDAP', default=1, required=True)
     default_location = orm.OneToOneField('Location', null=True)
     default_organization = orm.OneToOneField('Organization', null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', default=1, required=True)
+    firstname = orm.StringField(null=True, len=(1, 50))
+    lastname = orm.StringField(null=True, len=(1, 50))
+    mail = orm.EmailField(required=True)
+    password = orm.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
