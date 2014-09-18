@@ -553,6 +553,8 @@ class TestOrg(CLITestCase):
                             result.stdout['label'])
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
+        self.assertEqual(new_obj['label'],
+                         result.stdout['label'])
 
     @data(*positive_name_desc_data())
     def test_positive_create_4(self, test_data):
