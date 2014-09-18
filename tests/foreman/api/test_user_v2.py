@@ -4,59 +4,73 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
-from ddt import data, ddt
-from robottelo.api import client
-from robottelo.api.utils import status_code_error
-from robottelo.common.helpers import get_server_credentials
-from robottelo.orm import StringField
+from fauxfactory import FauxFactory
+from random import randint
+from requests.exceptions import HTTPError
+from robottelo.common import decorators
 from robottelo import entities
 from unittest import TestCase
-import httplib
+import ddt
 # (too many public methods) pylint: disable=R0904
 
 
-@ddt
+@ddt.ddt
 class UsersTestCase(TestCase):
     """Tests for the ``users`` path."""
-    @data(
-        StringField(len=(1, 60), str_type=('alpha',)).get_value(),
-        StringField(len=(1, 60), str_type=('alphanumeric',)).get_value(),
-        StringField(len=(1, 60), str_type=('cjk',)).get_value(),
-        StringField(len=(1, 60), str_type=('latin1',)).get_value(),
+    @decorators.data(
+        {u'admin': False},
+        {u'admin': True},
+        {u'firstname': FauxFactory.generate_string(
+            'alphanumeric', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('alpha', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('cjk', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('latin1', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {
+            u'firstname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            'bugzilla': 1144162,
+        },
+        {u'lastname': FauxFactory.generate_string(
+            'alphanumeric', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('alpha', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('cjk', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('latin1', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {
+            u'lastname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            'bugzilla': 1144162,
+        },
+        {u'login': FauxFactory.generate_string(
+            'alphanumeric', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('alpha', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('cjk', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('latin1', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('numeric', randint(1, 100))},
+        {
+            u'login': FauxFactory.generate_string('utf8', randint(1, 33)),
+            'bugzilla': 1144162,
+        },
     )
-    def test_positive_create_1(self, login):
-        """@Test Create a user providing the initial login name.
+    def test_create_validate_delete(self, attrs):
+        """@Test: Create a user with attributes ``attrs`` and delete it.
 
-        @Assert: User is created and contains provided login name.
+        @Assert: The created user has the given attributes and can be deleted.
 
         @Feature: User
 
         """
-        path = entities.User().path()
-        attrs = entities.User(login=login).build()
-        response = client.post(
-            path,
-            attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = (httplib.OK, httplib.CREATED)
-        self.assertIn(
-            response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
-        )
+        bug_id = attrs.pop('bugzilla', None)
+        if bug_id is not None and decorators.bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        # Fetch the user
-        real_attrs = client.get(
-            entities.User(id=response.json()['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        # Remove the ``password`` field from ``attrs`` since it isn't
-        # returned by GET.
-        attrs.pop('password')
-        # Assert that keys and values match
-        for key, value in attrs.items():
-            self.assertIn(key, real_attrs.keys())
-            self.assertEqual(value, real_attrs[key])
+        # Create a user and validate its attributes.
+        user_id = entities.User(**attrs).create()['id']
+        real_attrs = entities.User(id=user_id).read_json()
+        for name, value in attrs.items():
+            self.assertIn(name, real_attrs.keys())
+            self.assertEqual(value, real_attrs[name])
+
+        # Delete the user.
+        entities.User(id=user_id).delete()
+        with self.assertRaises(HTTPError):
+            entities.User(id=user_id).read_json()
