@@ -1,16 +1,14 @@
 """Test class for Repository UI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
-from robottelo.common.constants import (VALID_GPG_KEY_BETA_FILE,
-                                        VALID_GPG_KEY_FILE,
-                                        FAKE_1_YUM_REPO,
-                                        FAKE_2_YUM_REPO,
-                                        REPO_DISCOVERY_URL)
+from robottelo.common.constants import (
+    VALID_GPG_KEY_BETA_FILE, VALID_GPG_KEY_FILE, FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO, REPO_DISCOVERY_URL)
 from robottelo.common.decorators import data
-from robottelo.common.helpers import (generate_string,
-                                      generate_strings_list, read_data_file)
+from robottelo.common.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository
 from robottelo.ui.locators import common_locators, locators
@@ -315,7 +313,7 @@ class Repos(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
         discovered_urls = "fakerepo01/"
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)

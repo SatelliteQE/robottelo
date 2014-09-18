@@ -3,8 +3,9 @@
 """Test class for Medium UI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
                                   make_media)
@@ -25,8 +26,8 @@ class Medium(UITestCase):
         super(Medium, self).setUp()
         #  Make sure to use the Class' org_name instance
         if (Medium.org_name is None and Medium.loc_name is None):
-            Medium.org_name = generate_string("alpha", 8)
-            Medium.loc_name = generate_string("alpha", 8)
+            Medium.org_name = FauxFactory.generate_string("alpha", 8)
+            Medium.loc_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Medium.org_name)
                 make_loc(session, name=Medium.loc_name)
@@ -41,18 +42,18 @@ class Medium(UITestCase):
 
         """
 
-        path = URL % generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
 
     @data(
-        generate_string('alphanumeric', 255),
-        generate_string('alpha', 255),
-        generate_string('numeric', 255),
-        generate_string('latin1', 255),
-        generate_string('utf8', 255)
+        FauxFactory.generate_string('alphanumeric', 255),
+        FauxFactory.generate_string('alpha', 255),
+        FauxFactory.generate_string('numeric', 255),
+        FauxFactory.generate_string('latin1', 255),
+        FauxFactory.generate_string('utf8', 255)
     )
     def test_positive_create_medium_2(self, name):
         """@Test: Create a new media with 255 characters in name
@@ -63,7 +64,7 @@ class Medium(UITestCase):
 
         """
 
-        path = URL % generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name,
@@ -79,8 +80,8 @@ class Medium(UITestCase):
 
         """
 
-        name = generate_string("alpha", 256)
-        path = URL % generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 256)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -98,7 +99,7 @@ class Medium(UITestCase):
         """
 
         name = " "
-        path = URL % generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -115,7 +116,7 @@ class Medium(UITestCase):
         """
 
         name = ""
-        path = URL % generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -131,8 +132,8 @@ class Medium(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
-        path = URL % generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -150,7 +151,7 @@ class Medium(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         path = ""
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -168,9 +169,9 @@ class Medium(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
-        new_name = generate_string("alpha", 6)
-        path = URL % generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        new_name = FauxFactory.generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -188,8 +189,8 @@ class Medium(UITestCase):
         @Assert: Media is deleted
 
         """
-        name = generate_string("alpha", 6)
-        path = URL % generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -207,10 +208,10 @@ class Medium(UITestCase):
         @Assert: Media is updated
 
         """
-        name = generate_string("alpha", 6)
-        newname = generate_string("alpha", 4)
-        path = URL % generate_string("alpha", 6)
-        newpath = URL % generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        newname = FauxFactory.generate_string("alpha", 4)
+        path = URL % FauxFactory.generate_string("alpha", 6)
+        newpath = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         new_os_family = "Debian"
         with Session(self.browser) as session:

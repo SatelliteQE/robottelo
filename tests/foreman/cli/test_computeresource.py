@@ -20,11 +20,11 @@ Subcommands::
 
 """
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo import orm
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_string
 from robottelo.cli.factory import make_compute_resource
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.test import CLITestCase
@@ -164,11 +164,11 @@ class TestComputeResource(CLITestCase):
     @data(
         {u'name': orm.StringField(str_type=('numeric',)).get_value(),
          u'description': orm.StringField(str_type=('numeric',)).get_value()},
-        {u'name': generate_string('alphanumeric', 255),
+        {u'name': FauxFactory.generate_string('alphanumeric', 255),
          u'description': orm.StringField(
              str_type=('alphanumeric',)).get_value()},
         {u'name': orm.StringField(str_type=('alphanumeric',)).get_value(),
-         u'description': generate_string('alphanumeric', 255)},
+         u'description': FauxFactory.generate_string('alphanumeric', 255)},
         {u'name': orm.StringField(str_type=('utf8',)).get_value(),
          u'description': orm.StringField(str_type=('utf8',)).get_value()},
         {u'name': '<html>%s</html>' %
@@ -201,8 +201,8 @@ class TestComputeResource(CLITestCase):
     # Negative create
 
     @data(
-        {u'name': generate_string('alphanumeric', 256)},
-        {u'description': generate_string('alphanumeric', 256)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 256)},
+        {u'description': FauxFactory.generate_string('alphanumeric', 256)},
         {u'name': 'white %s spaces' %
                   orm.StringField(str_type=('alphanumeric',)).get_value()},
         {u'name': ''},
@@ -250,9 +250,9 @@ class TestComputeResource(CLITestCase):
     # Update Positive
 
     @data(
-        {u'new-name': generate_string('utf8', 255)},
+        {u'new-name': FauxFactory.generate_string('utf8', 255)},
         {u'new-name': orm.StringField(str_type=('alphanumeric',)).get_value()},
-        {u'description': generate_string('utf8', 255)},
+        {u'description': FauxFactory.generate_string('utf8', 255)},
         {u'description': orm.StringField(
             str_type=('alphanumeric',)).get_value()},
         {u'url': orm.URLField().get_value()},
@@ -288,11 +288,11 @@ class TestComputeResource(CLITestCase):
     # Update Negative
 
     @data(
-        {u'new-name': generate_string('utf8', 256)},
+        {u'new-name': FauxFactory.generate_string('utf8', 256)},
         {u'new-name': 'white spaces %s' %
                       orm.StringField(str_type=('alphanumeric',)).get_value()},
         {u'new-name': ''},
-        {u'description': generate_string('utf8', 256)},
+        {u'description': FauxFactory.generate_string('utf8', 256)},
         {u'url': 'invalid url'},
         {u'url': ''},
     )

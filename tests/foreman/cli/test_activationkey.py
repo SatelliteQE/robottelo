@@ -3,8 +3,8 @@
 """Test class for Activation key CLI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
-
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
@@ -15,9 +15,8 @@ from robottelo.cli.factory import (
     make_org, make_product,
     make_host_collection
 )
-from robottelo.common.decorators import (data, run_only_on,
-                                         skip_if_bug_open, stubbed)
-from robottelo.common.helpers import generate_string
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
 
 
@@ -90,12 +89,12 @@ class TestActivationKey(CLITestCase):
         return ackey
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'activation-key')
     def test_positive_create_activation_key_1(self, test_data):
@@ -120,12 +119,12 @@ class TestActivationKey(CLITestCase):
         )
 
     @data(
-        {'description': generate_string('alpha', 15)},
-        {'description': generate_string('alphanumeric', 15)},
-        {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
-        {'description': generate_string('utf8', 15)},
-        {'description': generate_string('html', 15)},
+        {'description': FauxFactory.generate_string('alpha', 15)},
+        {'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {'description': FauxFactory.generate_string('numeric', 15)},
+        {'description': FauxFactory.generate_string('latin1', 15)},
+        {'description': FauxFactory.generate_string('utf8', 15)},
+        {'description': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'activation-key')
     def test_positive_create_activation_key_2(self, test_data):
@@ -152,12 +151,12 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'activation-key')
     def test_positive_create_associate_environ_1(self, test_data):
@@ -185,12 +184,12 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'activation-key')
     def test_positive_create_associate_environ_2(self, test_data):
@@ -218,14 +217,14 @@ class TestActivationKey(CLITestCase):
 
     @data(
 
-        {'name': generate_string("alpha", 10),
-         'content-view': generate_string("alpha", 10)},
-        {'name': generate_string("alphanumeric", 10),
-         'content-view': generate_string("alpha", 10)},
-        {'name': generate_string("numeric", 10),
-         'content-view': generate_string("alpha", 10)},
-        {'name': generate_string("html", 10),
-         'content-view': generate_string("alpha", 10)},
+        {'name': FauxFactory.generate_string("alpha", 10),
+         'content-view': FauxFactory.generate_string("alpha", 10)},
+        {'name': FauxFactory.generate_string("alphanumeric", 10),
+         'content-view': FauxFactory.generate_string("alpha", 10)},
+        {'name': FauxFactory.generate_string("numeric", 10),
+         'content-view': FauxFactory.generate_string("alpha", 10)},
+        {'name': FauxFactory.generate_string("html", 10),
+         'content-view': FauxFactory.generate_string("alpha", 10)},
     )
     @attr('cli', 'activation-key')
     def test_positive_create_activation_key_4(self, test_data):
@@ -421,12 +420,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1109650)
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     def test_positive_delete_activation_key_1(self, test_data):
         """@Test: Create Activation key and delete it for all variations of
@@ -469,12 +468,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1109650)
     @data(
-        {'description': generate_string('alpha', 15)},
-        {'description': generate_string('alphanumeric', 15)},
-        {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
-        {'description': generate_string('utf8', 15)},
-        {'description': generate_string('html', 15)},
+        {'description': FauxFactory.generate_string('alpha', 15)},
+        {'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {'description': FauxFactory.generate_string('numeric', 15)},
+        {'description': FauxFactory.generate_string('latin1', 15)},
+        {'description': FauxFactory.generate_string('utf8', 15)},
+        {'description': FauxFactory.generate_string('html', 15)},
     )
     def test_positive_delete_activation_key_2(self, test_data):
         """@Test: Create Activation key and delete it for all variations of
@@ -609,12 +608,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1114109)
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     def test_positive_update_activation_key_1(self, test_data):
         """@Test: Update Activation Key Name in an Activation key searching by ID
@@ -659,12 +658,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1109649)
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     def test_positive_update_activation_key_2(self, test_data):
         """@Test: Update Activation Key Name in an Activation key searching by
@@ -710,12 +709,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1109649)
     @data(
-        {'description': generate_string('alpha', 15)},
-        {'description': generate_string('alphanumeric', 15)},
-        {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
-        {'description': generate_string('utf8', 15)},
-        {'description': generate_string('html', 15)},
+        {'description': FauxFactory.generate_string('alpha', 15)},
+        {'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {'description': FauxFactory.generate_string('numeric', 15)},
+        {'description': FauxFactory.generate_string('latin1', 15)},
+        {'description': FauxFactory.generate_string('utf8', 15)},
+        {'description': FauxFactory.generate_string('html', 15)},
     )
     def test_positive_update_activation_key_3(self, test_data):
         """@Test: Update Description in an Activation key
@@ -780,12 +779,12 @@ class TestActivationKey(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109649)
     @data(
-        {'content-view': generate_string('alpha', 15)},
-        {'content-view': generate_string('alphanumeric', 15)},
-        {'content-view': generate_string('numeric', 15)},
-        {'content-view': generate_string('latin1', 15)},
-        {'content-view': generate_string('utf8', 15)},
-        {'content-view': generate_string('html', 15)},
+        {'content-view': FauxFactory.generate_string('alpha', 15)},
+        {'content-view': FauxFactory.generate_string('alphanumeric', 15)},
+        {'content-view': FauxFactory.generate_string('numeric', 15)},
+        {'content-view': FauxFactory.generate_string('latin1', 15)},
+        {'content-view': FauxFactory.generate_string('utf8', 15)},
+        {'content-view': FauxFactory.generate_string('html', 15)},
     )
     def test_positive_update_activation_key_5(self, test_data):
         """@Test: Update Content View in an Activation key
@@ -938,12 +937,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1110476)
     @data(
-        {'host-col': generate_string('alpha', 15)},
-        {'host-col': generate_string('alphanumeric', 15)},
-        {'host-col': generate_string('numeric', 15)},
-        {'host-col': generate_string('latin1', 15)},
-        {'host-col': generate_string('utf8', 15)},
-        {'host-col': generate_string('html', 15)},
+        {'host-col': FauxFactory.generate_string('alpha', 15)},
+        {'host-col': FauxFactory.generate_string('alphanumeric', 15)},
+        {'host-col': FauxFactory.generate_string('numeric', 15)},
+        {'host-col': FauxFactory.generate_string('latin1', 15)},
+        {'host-col': FauxFactory.generate_string('utf8', 15)},
+        {'host-col': FauxFactory.generate_string('html', 15)},
     )
     def test_associate_host(self, test_data):
         """@Test: Test that hosts can be associated to Activation Keys
@@ -1227,7 +1226,7 @@ class TestActivationKey(CLITestCase):
         @bz: 1111723
 
         """
-        name = generate_string('utf8', 15)
+        name = FauxFactory.generate_string('utf8', 15)
 
         try:
             activation_key = self._make_activation_key({
@@ -1237,7 +1236,7 @@ class TestActivationKey(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        new_name = generate_string('utf8', 15)
+        new_name = FauxFactory.generate_string('utf8', 15)
         result = ActivationKey.update({
             u'id': activation_key['id'],
             u'new-name': new_name,
@@ -1288,12 +1287,12 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1110467)
     @data(
-        {'host-col': generate_string('alpha', 15)},
-        {'host-col': generate_string('alphanumeric', 15)},
-        {'host-col': generate_string('numeric', 15)},
-        {'host-col': generate_string('latin1', 15)},
-        {'host-col': generate_string('utf8', 15)},
-        {'host-col': generate_string('html', 15)},
+        {'host-col': FauxFactory.generate_string('alpha', 15)},
+        {'host-col': FauxFactory.generate_string('alphanumeric', 15)},
+        {'host-col': FauxFactory.generate_string('numeric', 15)},
+        {'host-col': FauxFactory.generate_string('latin1', 15)},
+        {'host-col': FauxFactory.generate_string('utf8', 15)},
+        {'host-col': FauxFactory.generate_string('html', 15)},
     )
     def test_remove_host(self, test_data):
         """@Test: Test that hosts associated to Activation Keys can be removed

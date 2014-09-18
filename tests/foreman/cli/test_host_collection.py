@@ -4,6 +4,7 @@
 """Test class for Host Collection CLI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
@@ -12,7 +13,6 @@ from robottelo.cli.factory import (
     make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 
@@ -97,12 +97,12 @@ class TestHostCollection(CLITestCase):
         return group
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'hostcollection')
     def test_positive_create_1(self, test_data):
@@ -123,12 +123,12 @@ class TestHostCollection(CLITestCase):
         )
 
     @data(
-        {'description': generate_string('alpha', 15)},
-        {'description': generate_string('alphanumeric', 15)},
-        {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
-        {'description': generate_string('utf8', 15)},
-        {'description': generate_string('html', 15)},
+        {'description': FauxFactory.generate_string('alpha', 15)},
+        {'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {'description': FauxFactory.generate_string('numeric', 15)},
+        {'description': FauxFactory.generate_string('latin1', 15)},
+        {'description': FauxFactory.generate_string('utf8', 15)},
+        {'description': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'hostcollection')
     def test_positive_create_2(self, test_data):
@@ -171,12 +171,12 @@ class TestHostCollection(CLITestCase):
         )
 
     @data(
-        {'name': generate_string('alpha', 300)},
-        {'name': generate_string('alphanumeric', 300)},
-        {'name': generate_string('numeric', 300)},
-        {'name': generate_string('latin1', 300)},
-        {'name': generate_string('utf8', 300)},
-        {'name': generate_string('html', 300)},
+        {'name': FauxFactory.generate_string('alpha', 300)},
+        {'name': FauxFactory.generate_string('alphanumeric', 300)},
+        {'name': FauxFactory.generate_string('numeric', 300)},
+        {'name': FauxFactory.generate_string('latin1', 300)},
+        {'name': FauxFactory.generate_string('utf8', 300)},
+        {'name': FauxFactory.generate_string('html', 300)},
     )
     @attr('cli', 'hostcollection')
     def test_negative_create_1(self, test_data):
@@ -193,12 +193,12 @@ class TestHostCollection(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1084240)
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'hostcollection')
     def test_positive_update_1(self, test_data):
@@ -266,12 +266,12 @@ class TestHostCollection(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1084240)
     @data(
-        {'description': generate_string('alpha', 15)},
-        {'description': generate_string('alphanumeric', 15)},
-        {'description': generate_string('numeric', 15)},
-        {'description': generate_string('latin1', 15)},
-        {'description': generate_string('utf8', 15)},
-        {'description': generate_string('html', 15)},
+        {'description': FauxFactory.generate_string('alpha', 15)},
+        {'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {'description': FauxFactory.generate_string('numeric', 15)},
+        {'description': FauxFactory.generate_string('latin1', 15)},
+        {'description': FauxFactory.generate_string('utf8', 15)},
+        {'description': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'hostcollection')
     def test_positive_update_2(self, test_data):
@@ -393,12 +393,12 @@ class TestHostCollection(CLITestCase):
         )
 
     @data(
-        {'name': generate_string('alpha', 15)},
-        {'name': generate_string('alphanumeric', 15)},
-        {'name': generate_string('numeric', 15)},
-        {'name': generate_string('latin1', 15)},
-        {'name': generate_string('utf8', 15)},
-        {'name': generate_string('html', 15)},
+        {'name': FauxFactory.generate_string('alpha', 15)},
+        {'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {'name': FauxFactory.generate_string('numeric', 15)},
+        {'name': FauxFactory.generate_string('latin1', 15)},
+        {'name': FauxFactory.generate_string('utf8', 15)},
+        {'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'hostcollection')
     def test_positive_delete_1(self, test_data):
@@ -455,8 +455,8 @@ class TestHostCollection(CLITestCase):
 
         """
 
-        host_col_name = generate_string('alpha', 15)
-        content_host_name = generate_string('alpha', 15)
+        host_col_name = FauxFactory.generate_string('alpha', 15)
+        content_host_name = FauxFactory.generate_string('alpha', 15)
 
         try:
             new_host_col = self._new_host_collection({'name': host_col_name})
@@ -507,8 +507,8 @@ class TestHostCollection(CLITestCase):
 
         """
 
-        host_col_name = generate_string('alpha', 15)
-        content_host_name = generate_string('alpha', 15)
+        host_col_name = FauxFactory.generate_string('alpha', 15)
+        content_host_name = FauxFactory.generate_string('alpha', 15)
 
         try:
             new_host_col = self._new_host_collection({'name': host_col_name})
@@ -568,8 +568,8 @@ class TestHostCollection(CLITestCase):
 
         """
 
-        host_col_name = generate_string('alpha', 15)
-        content_host_name = generate_string('alpha', 15)
+        host_col_name = FauxFactory.generate_string('alpha', 15)
+        content_host_name = FauxFactory.generate_string('alpha', 15)
 
         try:
             new_host_col = self._new_host_collection({'name': host_col_name})

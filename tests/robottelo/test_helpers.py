@@ -4,7 +4,7 @@ import unittest
 from robottelo.common import conf
 from robottelo.common.helpers import (
     escape_search, generate_email_address, generate_ipaddr, generate_mac,
-    generate_name, generate_string, generate_strings_list, get_server_url,
+    generate_name, generate_strings_list, get_server_url,
     get_server_credentials, info_dictionary, invalid_names_list,
     valid_data_list, valid_names_list,
 )
@@ -160,32 +160,6 @@ class GenerateMACTestCase(unittest.TestCase):
     def test_return_type(self):
         """Tests if generate mac returns a unicode string"""
         self.assertIsInstance(generate_mac(), unicode)
-
-
-class GenerateStringTestCase(unittest.TestCase):
-    def test_alphanumeric_return_type(self):
-        """Tests if generate alphanumeric string returns a unicode string"""
-        self.assertIsInstance(generate_string('alphanumeric', 8), unicode)
-
-    def test_alpha_return_type(self):
-        """Tests if generate alpha string returns a unicode string"""
-        self.assertIsInstance(generate_string('alpha', 8), unicode)
-
-    def test_numeric_return_type(self):
-        """Tests if generate numeric string returns a unicode string"""
-        self.assertIsInstance(generate_string('numeric', 8), unicode)
-
-    def test_latin1_return_type(self):
-        """Tests if generate latin1 string returns a unicode string"""
-        self.assertIsInstance(generate_string('latin1', 8), unicode)
-
-    def test_utf8_return_type(self):
-        """Tests if generate utf-8 string returns a unicode string"""
-        self.assertIsInstance(generate_string('utf8', 8), unicode)
-
-    def test_html_return_type(self):
-        """Tests if generate html string returns a unicode string"""
-        self.assertIsInstance(generate_string('html', 8), unicode)
 
 
 class GenerateStringListTestCase(unittest.TestCase):

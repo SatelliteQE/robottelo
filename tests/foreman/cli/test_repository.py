@@ -3,12 +3,12 @@
 """Test class for Repository CLI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_repository)
 from robottelo.cli.repository import Repository
 from robottelo.common.decorators import data, skip_if_bug_open, stubbed
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 
@@ -60,12 +60,12 @@ class TestRepository(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'repository')
     def test_positive_create_1(self, test_data):
@@ -87,12 +87,12 @@ class TestRepository(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'repository')
     def test_positive_create_2(self, test_data):
@@ -105,7 +105,7 @@ class TestRepository(CLITestCase):
         """
 
         # Generate a random, 'safe' label
-        label = generate_string('alpha', 20)
+        label = FauxFactory.generate_string('alpha', 20)
 
         new_repo = self._make_repository(
             {u'name': test_data['name'], u'label': label})
@@ -200,12 +200,12 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1083236)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'repository')
     def test_positive_create_5(self, test_data):
@@ -248,12 +248,12 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1103944)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'repository')
     def test_positive_create_6(self, test_data):
@@ -357,12 +357,12 @@ class TestRepository(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 300)},
-        {u'name': generate_string('alphanumeric', 300)},
-        {u'name': generate_string('numeric', 300)},
-        {u'name': generate_string('latin1', 300)},
-        {u'name': generate_string('utf8', 300)},
-        {u'name': generate_string('html', 300)},
+        {u'name': FauxFactory.generate_string('alpha', 300)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 300)},
+        {u'name': FauxFactory.generate_string('numeric', 300)},
+        {u'name': FauxFactory.generate_string('latin1', 300)},
+        {u'name': FauxFactory.generate_string('utf8', 300)},
+        {u'name': FauxFactory.generate_string('html', 300)},
     )
     @attr('cli', 'repository')
     def test_negative_create_1(self, test_data):
@@ -505,12 +505,12 @@ class TestRepository(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'repository')
     def test_positive_delete_1(self, test_data):

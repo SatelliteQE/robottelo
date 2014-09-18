@@ -5,17 +5,18 @@
 """Test class for Locations UI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import (generate_strings_list,
-                                      generate_string, generate_ipaddr,
-                                      generate_email_address, get_data_file)
+from robottelo.common.helpers import (
+    generate_strings_list, generate_ipaddr, generate_email_address,
+    get_data_file)
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_loc, make_subnet, make_domain, make_env,
-                                  make_user, make_org, make_hostgroup,
-                                  make_resource, make_media, make_templates)
+from robottelo.ui.factory import (
+    make_loc, make_subnet, make_domain, make_env, make_user, make_org,
+    make_hostgroup, make_resource, make_media, make_templates)
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -37,7 +38,7 @@ class Location(UITestCase):
         @assert: Created location can be auto search by its partial name
 
         """
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         part_string = loc_name[:3]
         with Session(self.browser) as session:
             page = session.nav.go_to_loc
@@ -148,7 +149,7 @@ class Location(UITestCase):
 
         """
 
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -175,7 +176,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            new_name = generate_string("alpha", 256)
+            new_name = FauxFactory.generate_string("alpha", 256)
             self.location.update(loc_name, new_name=new_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
@@ -208,7 +209,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         with Session(self.browser) as session:
@@ -236,7 +237,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -251,11 +252,11 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)},
-          {'name': generate_string('utf8', 8)},
-          {'name': generate_string('latin1', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)},
+          {'name': FauxFactory.generate_string('utf8', 8)},
+          {'name': FauxFactory.generate_string('latin1', 8)})
     def test_add_user_1(self, testdata):
         """@test: Create user then add user
         by using the location name
@@ -267,8 +268,8 @@ class Location(UITestCase):
         """
         user = testdata['name']
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
-        password = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
+        password = FauxFactory.generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         with Session(self.browser) as session:
@@ -294,7 +295,7 @@ class Location(UITestCase):
         @assert: host group 'All values' checkbox is checked.
 
         """
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             page = session.nav.go_to_loc
             make_loc(session, name=loc_name)
@@ -316,7 +317,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["all_values_selection"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -341,7 +342,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -356,9 +357,9 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)})
     def test_add_environment_1(self, testdata):
         """@test: Add environment by using location name and evironment name
 
@@ -369,7 +370,7 @@ class Location(UITestCase):
         """
         env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -395,7 +396,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
@@ -423,8 +424,8 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
-        path = URL % generate_string("alpha", 6)
+        loc_name = FauxFactory.generate_string("alpha", 8)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -447,7 +448,7 @@ class Location(UITestCase):
         @assert: configtemplate 'All values' checkbox is checked.
 
         """
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             page = session.nav.go_to_loc
             make_loc(session, name=loc_name)
@@ -469,7 +470,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["all_values_selection"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -486,9 +487,9 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)})
     def test_remove_environment_1(self, testdata):
         """@test: Remove environment by using location name & evironment name
 
@@ -500,7 +501,7 @@ class Location(UITestCase):
         env = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_env(session, name=env, orgs=None)
             self.assertIsNotNone(self.environment.search(env))
@@ -533,7 +534,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         with Session(self.browser) as session:
@@ -571,7 +572,7 @@ class Location(UITestCase):
 
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_domain(session, name=domain)
             self.assertIsNotNone(self.domain.search(domain))
@@ -593,11 +594,11 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)},
-          {'name': generate_string('utf8', 8)},
-          {'name': generate_string('latin1', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)},
+          {'name': FauxFactory.generate_string('utf8', 8)},
+          {'name': FauxFactory.generate_string('latin1', 8)})
     def test_remove_user_1(self, testdata):
         """@test: Create admin users then add user and remove it
         by using the location name
@@ -610,8 +611,8 @@ class Location(UITestCase):
         user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
-        password = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
+        password = FauxFactory.generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         with Session(self.browser) as session:
@@ -648,7 +649,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["all_values_selection"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_hostgroup(session, name=host_grp)
             self.assertIsNotNone(self.hostgroup.search(host_grp))
@@ -682,7 +683,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
@@ -719,8 +720,8 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        loc_name = generate_string("alpha", 8)
-        path = URL % generate_string("alpha", 6)
+        loc_name = FauxFactory.generate_string("alpha", 8)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=medium, path=path, os_family=os_family)
@@ -756,7 +757,7 @@ class Location(UITestCase):
 
         """
         strategy, value = common_locators["all_values_selection"]
-        loc_name = generate_string("alpha", 8)
+        loc_name = FauxFactory.generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:

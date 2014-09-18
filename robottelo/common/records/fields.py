@@ -15,9 +15,10 @@ object creations will follow the same range determined previously.
 import rstr
 import collections
 
+from fauxfactory import FauxFactory
 from random import randint, choice
 from robottelo.common.helpers import (
-    generate_mac, generate_string, generate_ipaddr, generate_email_address)
+    generate_mac, generate_ipaddr, generate_email_address)
 from robottelo.common.helpers import STR
 
 
@@ -162,7 +163,7 @@ class StringField(Field):
                 self.fmt = self._parse_field_format(self.fmt)
             return rstr.xeger(self.fmt)[:self.maxlen]
         else:
-            return generate_string(self.str_type, self.maxlen)
+            return FauxFactory.generate_string(self.str_type, self.maxlen)
 
 
 class IntegerField(Field):

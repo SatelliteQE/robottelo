@@ -3,10 +3,10 @@
 """proxy class for Smart proxy CLI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 import random
 
@@ -30,16 +30,18 @@ class TestProxy(CLITestCase):
 
         # Create a random proxy
         with self.assertRaises(Exception):
-            make_proxy(
-                {u'url': u'http://%s:%s' % (generate_string('alpha', 6),
-                                            generate_string('numeric', 4))})
+            make_proxy({
+                u'url': u'http://{0}:{1}'.format(
+                    FauxFactory.generate_string('alpha', 6),
+                    FauxFactory.generate_string('numeric', 4)),
+            })
 
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
     )
     def test_proxy_create(self, data):
         """@Test: Proxy creation with the home proxy
@@ -59,11 +61,11 @@ class TestProxy(CLITestCase):
             data['name'], "Input and output name should be consistent")
 
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
     )
     def test_proxy_delete(self, data):
         """@Test: Proxy deletion with the home proxy
@@ -118,16 +120,16 @@ class TestProxy(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 15),
-         u'update': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15),
-         u'update': generate_string('alpha', 15)},
-        {u'name': generate_string('numeric', 15),
-         u'update': generate_string('alpha', 15)},
-        {u'name': generate_string('latin1', 15),
-         u'update': generate_string('alpha', 15)},
-        {u'name': generate_string('utf8', 15),
-         u'update': generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15),
+         u'update': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15),
+         u'update': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15),
+         u'update': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15),
+         u'update': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15),
+         u'update': FauxFactory.generate_string('alpha', 15)},
     )
     def test_proxy_update(self, data):
         """@Test: Proxy name update with the home proxy

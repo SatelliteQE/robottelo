@@ -10,6 +10,7 @@ import logging
 import os
 import random
 
+from fauxfactory import FauxFactory
 from os import chmod
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
@@ -40,8 +41,8 @@ from robottelo.common import ssh
 from robottelo.common.constants import (FOREMAN_PROVIDERS, OPERATING_SYSTEMS,
                                         SYNC_INTERVAL, TEMPLATE_TYPES)
 from robottelo.common.helpers import (
-    generate_ipaddr, generate_mac, generate_name, generate_string,
-    sleep_for_seconds, update_dictionary)
+    generate_ipaddr, generate_mac, generate_name, sleep_for_seconds,
+    update_dictionary)
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -207,7 +208,7 @@ def make_content_view(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        u'name': generate_string("alpha", 10),
+        u'name': FauxFactory.generate_string("alpha", 10),
         u'organization-id': None,
         u'composite': False,
         u'component-ids': None,
@@ -369,9 +370,9 @@ def make_product(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        u'name': generate_string('alpha', 20),
-        u'label': generate_string('alpha', 20),
-        u'description': generate_string('alpha', 20),
+        u'name': FauxFactory.generate_string('alpha', 20),
+        u'label': FauxFactory.generate_string('alpha', 20),
+        u'description': FauxFactory.generate_string('alpha', 20),
         u'organization-id': None,
         u'gpg-key-id': None,
         u'sync-plan-id': None,
@@ -445,7 +446,7 @@ def make_repository(options=None):
         raise CLIFactoryError("Please provide a valid Product ID.")
 
     args = {
-        u'name': generate_string('alpha', 15),
+        u'name': FauxFactory.generate_string('alpha', 15),
         u'label': None,
         u'content-type': u'yum',
         u'product': None,
@@ -556,8 +557,8 @@ def make_sync_plan(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        u'name': generate_string('alpha', 20),
-        u'description': generate_string('alpha', 20),
+        u'name': FauxFactory.generate_string('alpha', 20),
+        u'description': FauxFactory.generate_string('alpha', 20),
         u'organization-id': None,
         u'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         u'interval': random.choice(SYNC_INTERVAL.values()),
@@ -618,8 +619,8 @@ def make_content_host(options=None):
             'Please provide one of {0}.'.format(', '.join(LIFECYCLE_KEYS)))
 
     args = {
-        u'name': generate_string('alpha', 20),
-        u'description': generate_string('alpha', 20),
+        u'name': FauxFactory.generate_string('alpha', 20),
+        u'description': FauxFactory.generate_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
@@ -764,7 +765,7 @@ def make_host(options=None):
         u'medium-id': None,
         u'model': None,
         u'model-id': None,
-        u'name': generate_string('alpha', 10),
+        u'name': FauxFactory.generate_string('alpha', 10),
         u'operatingsystem-id': None,
         u'organization': None,
         u'organization-id': None,
@@ -780,7 +781,7 @@ def make_host(options=None):
         u'puppetclass-ids': None,
         u'realm': None,
         u'realm-id': None,
-        u'root-password': generate_string('alpha', 8),
+        u'root-password': FauxFactory.generate_string('alpha', 8),
         u'sp-subnet-id': None,
         u'subnet': None,
         u'subnet-id': None,
@@ -821,7 +822,7 @@ def make_host_collection(options=None):
     args = {
         u'description': None,
         u'max-content-hosts': None,
-        u'name': generate_string('alpha', 15),
+        u'name': FauxFactory.generate_string('alpha', 15),
         u'organization-id': None,
         u'system-ids': None,
     }
@@ -1101,7 +1102,7 @@ def make_medium(options=None):
     # Assigning default values for attributes
     args = {
         u'name': generate_name(6),
-        u'path': 'http://%s' % (generate_string('alpha', 6)),
+        u'path': 'http://%s' % (FauxFactory.generate_string('alpha', 6)),
         u'os-family': None,
         u'operatingsystem-ids': None,
     }

@@ -2,10 +2,10 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Template CLI"""
 
+from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError, make_template, make_os
 from robottelo.cli.template import Template
 from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 
@@ -21,8 +21,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = generate_string("alpha", 10)
-        name = generate_string("alpha", 10)
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
 
         try:
             new_obj = make_template(
@@ -48,8 +48,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = generate_string("alpha", 10)
-        name = generate_string("alpha", 10)
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
 
         try:
             new_obj = make_template(
@@ -66,7 +66,7 @@ class TestTemplate(CLITestCase):
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-        updated_name = generate_string("alpha", 10)
+        updated_name = FauxFactory.generate_string("alpha", 10)
         Template.update({'id': new_obj['id'], 'name': updated_name})
         result = Template.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -82,8 +82,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = generate_string("alpha", 10)
-        name = generate_string("alpha", 10)
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
 
         try:
             new_obj = make_template(
@@ -122,8 +122,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = generate_string("alpha", 10)
-        name = generate_string("alpha", 10)
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
 
         try:
             new_obj = make_template(
@@ -179,8 +179,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = generate_string("alpha", 10)
-        name = generate_string("alpha", 10)
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
 
         new_obj = make_template(
             {
@@ -209,8 +209,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = generate_string("alpha", 10)
-        name = generate_string("alpha", 10)
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
 
         new_obj = make_template(
             {
