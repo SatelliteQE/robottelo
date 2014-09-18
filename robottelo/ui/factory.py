@@ -23,6 +23,7 @@ from robottelo.ui.medium import Medium
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
 from robottelo.ui.repository import Repos
+from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.template import Template
@@ -518,3 +519,13 @@ def make_hw_model(session, org=None, loc=None, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
     HardwareModel(session.browser).create(**create_args)
+
+
+def make_role(session, org=None, loc=None, **kwargs):
+    """Creates new role"""
+
+    create_args = {'name': None}
+    page = session.nav.go_to_roles
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Role(session.browser).create(**create_args)
