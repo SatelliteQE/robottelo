@@ -529,6 +529,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(result.stdout['name'], result.stdout['label'])
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
+    @skip_if_bug_open('bugzilla', 1142821)
     @data(*positive_name_label_data())
     def test_positive_create_3(self, test_data):
         """@test: Create organization with valid unmatching name and label only
