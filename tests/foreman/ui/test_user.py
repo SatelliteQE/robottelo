@@ -10,90 +10,35 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
+from robottelo import entities
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_email_address, generate_string
+from robottelo.common.helpers import invalid_names_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
+from robottelo.ui.factory import make_user
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
 
-def gen_valid_strings(len1=255):
+def valid_strings(len1=100):
     """Generates a list of all the input strings, (excluding html)"""
-    valid_names = [
-        generate_string("alpha", 5),
-        generate_string("alpha", len1),
-        u"%s-%s" % (generate_string("alpha", 4),
-                    generate_string("alpha", 4),),
-        u"%s.%s" % (generate_string("alpha", 4),
-                    generate_string("alpha", 4),),
-        u"նոր օգտվող-%s" % generate_string("alpha", 2),
-        u"新用戶-%s" % generate_string("alpha", 2),
-        u"नए उपयोगकर्ता-%s" % generate_string("alpha", 2),
-        u"нового пользователя-%s" % generate_string("alpha", 2),
-        u"uusi käyttäjä-%s" % generate_string("alpha", 2),
-        u"νέος χρήστης-%s" % generate_string("alpha", 2),
-        u"foo@!#$^&*( ) %s" % generate_string("alpha", 2),
-        u"bar+{}|\"?hi %s" % generate_string("alpha", 2),
+    return [
+        FauxFactory.generate_string("alpha", 5),
+        FauxFactory.generate_string("alpha", len1),
+        u'{0}-{1}'.format(FauxFactory.generate_string("alpha", 4),
+                          FauxFactory.generate_string("alpha", 4)),
+        u'{0}-{1}'.format(FauxFactory.generate_string("alpha", 4),
+                          FauxFactory.generate_string("alpha", 4)),
+        u'նորօգտվող-{0}'.format(FauxFactory.generate_string("alpha", 2)),
+        u'新用戶-{0}'.format(FauxFactory.generate_string("alpha", 2)),
+        u'новогопользоват-{0}'.format(FauxFactory.generate_string("alpha", 2)),
+        u'uusikäyttäjä-{0}'.fromat(FauxFactory.generate_string("alpha", 2)),
+        u'νέοςχρήστης-{0}'.format(FauxFactory.generate_string("alpha", 2)),
     ]
 
-    return valid_names
-
-
-def gen_valid_usernames(len1=100):
-    """Generates a list of all the input strings, (excluding html)"""
-    valid_names = [
-        generate_string("alpha", 5),
-        generate_string("alpha", len1),
-        u"%s-%s" % (generate_string("alpha", 4), generate_string("alpha", 4)),
-        u"%s.%s" % (generate_string("alpha", 4), generate_string("alpha", 4)),
-        u"նորօգտվող-%s" % generate_string("alpha", 2),
-        u"新用戶-%s" % generate_string("alpha", 2),
-        # TODO: determine why this string is rejected.
-        # u"नएउपयोगकर्ता-%s" % generate_name(2),
-        u"новогопользователя-%s" % generate_string("alpha", 2),
-        u"uusikäyttäjä-%s" % generate_string("alpha", 2),
-        u"νέοςχρήστης-%s" % generate_string("alpha", 2),
-    ]
-
-    return valid_names
-
-
-def gen_invalid_strings():
-    """List of invalid names for input testing. (exluding strings padded with
-    whitespace)
-
-    """
-    invalid_names = [
-        u" ",
-        generate_string("alpha", 300),
-        generate_string("numeric", 300),
-        generate_string("alphanumeric", 300),
-        generate_string("utf8", 300),
-        generate_string("latin1", 300),
-        generate_string("html", 300),
-        generate_string("alpha", 256)
-    ]
-    return invalid_names
-
-
-def gen_invalid_surnames():
-    """List of invalid names for input testing. (exluding strings with
-    whitespace)
-
-    """
-    invalid_names = [
-        generate_string("alpha", 300),
-        generate_string("numeric", 300),
-        generate_string("alphanumeric", 300),
-        generate_string("utf8", 300),
-        generate_string("latin1", 300),
-        generate_string("html", 300),
-        generate_string("alpha", 256)
-    ]
-    return invalid_names
+search_key = "login"
 
 
 @ddt
@@ -108,38 +53,21 @@ class User(UITestCase):
     Lesser than Min Length, Greater than Max DB size
 
     """
+    org_name = None
+    org_id = None
 
-    def create_user(self, name=None, password=None,
-                    email=None, firstname=None,
-                    lastname=None,
-                    locale=None, roles=None,
-                    organizations=None,
-                    locations=None, authorized_by="INTERNAL",
-                    password2=None):
-        """Function to create a new User"""
-
-        name = name or generate_string("alpha", 8)
-        password = password or generate_string("alpha", 8)
-        if not password2:
-            password2 = password
-        email = email or generate_email_address()
-        first_name = firstname or generate_string("alpha", 10)
-        last_name = lastname or generate_string("alpha", 8)
-        self.navigator.go_to_users()
-        self.user.create(username=name, email=email,
-                         password1=password,
-                         password2=password2,
-                         first_name=first_name,
-                         last_name=last_name,
-                         roles=roles,
-                         locations=locations,
-                         organizations=organizations,
-                         locale=locale,
-                         authorized_by=authorized_by,
-                         edit=True)
+    def setUp(self):
+        super(User, self).setUp()
+        # Make sure to use the Class' org_name instance
+        if User.org_name is None:
+            org_name = FauxFactory.generate_string("alpha", 10)
+            org_attrs = entities.Organization(name=org_name).create()
+            User.org_name = org_attrs['name']
+            User.org_id = org_attrs['id']
 
     @attr('ui', 'user', 'implemented')
-    def test_delete_user(self):
+    @data(*valid_strings())
+    def test_delete_user(self, user_name):
         """@Test: Delete a User
 
         @Feature: User - Delete
@@ -147,15 +75,13 @@ class User(UITestCase):
         @Assert: User is deleted
 
         """
-        name = generate_string("alpha", 6)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name)
-        self.assertIsNotNone(self.user.search(name, search_key))
-        self.user.delete(name, search_key, really=True)
-        self.assertTrue(self.user.wait_until_element(common_locators
-                                                     ["notif.success"]))
-        self.assertIsNone(self.user.search(name, search_key))
+        with Session(self.browser) as session:
+            make_user(session, username=user_name)
+            self.assertIsNotNone(self.user.search(user_name, search_key))
+            self.user.delete(user_name, search_key, really=True)
+            self.assertIsNotNone(
+                self.user.wait_until_element(common_locators["notif.success"]))
+            self.assertIsNone(self.user.search(user_name, search_key))
 
     @skip_if_bug_open('bugzilla', 1139616)
     @attr('ui', 'user', 'implemented')
@@ -170,15 +96,14 @@ class User(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
-        new_password = generate_string("alpha", 8)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name=name)
-        self.user.update(search_key, name, password=new_password)
-        self.login.logout()
-        self.login.login(name, new_password)
-        self.assertTrue(self.login.is_logged())
+        user_name = FauxFactory.generate_string("alpha", 6)
+        new_password = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=user_name)
+            self.user.update(search_key, user_name, password=new_password)
+            self.login.logout()
+            self.login.login(user_name, new_password)
+            self.assertTrue(self.login.is_logged())
 
     @attr('ui', 'user', 'implemented')
     def test_update_role(self):
@@ -190,52 +115,46 @@ class User(UITestCase):
 
         """
 
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
-        name = generate_string("alpha", 6)
-        role = generate_string("alpha", 6)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.navigator.go_to_roles()
-        self.role.create(role)
-        self.assertIsNotNone(self, self.role.search(role))
-        self.create_user(name)
-        self.user.search(name, search_key).click()
-        self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
-        element1 = self.user.wait_until_element((strategy,
-                                                 value % role))
-        self.assertIsNone(element1)
-        self.user.update(search_key, name, new_roles=[role])
-        self.user.search(name, search_key).click()
-        self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
-        element2 = self.user.wait_until_element((strategy,
-                                                value % role))
-        self.assertTrue(element2)
+        strategy, value = common_locators["entity_deselect"]
+        name = FauxFactory.generate_string("alpha", 6)
+        role_name = entities.Role().create()['name']
+        with Session(self.browser) as session:
+            make_user(session, username=name)
+            self.user.search(name, search_key).click()
+            self.user.wait_until_element(
+                tab_locators["users.tab_roles"]).click()
+            element1 = self.user.wait_until_element((strategy,
+                                                     value % role_name))
+            self.assertIsNone(element1)
+            self.user.update(search_key, name, new_roles=[role_name])
+            self.user.search(name, search_key).click()
+            self.user.wait_until_element(
+                tab_locators["users.tab_roles"]).click()
+            element2 = self.user.wait_until_element((strategy,
+                                                     value % role_name))
+            self.assertIsNotNone(element2)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_usernames())
+    @data(*valid_strings())
     def test_positive_create_user_1(self, user_name):
         """@Test: Create User for all variations of Username
 
         @Feature: User - Positive Create
 
         @Steps:
-        1. Create User for all valid Username variation in [1] using
+        1. Create User for all valid User name variation in [1] using
         valid First Name, Surname, Email Address, Language, authorized by
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name)
-        self.assertIsNotNone(self.user.search(user_name, search_key))
+        with Session(self.browser) as session:
+            make_user(session, username=user_name)
+            self.assertIsNotNone(self.user.search(user_name, search_key))
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_usernames(50))
-    def test_positive_create_user_2(self, first):
+    @data(*valid_strings(50))
+    def test_positive_create_user_2(self, first_name):
         """@Test: Create User for all variations of First Name
 
         @Feature: User - Positive Create
@@ -246,21 +165,22 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        name = generate_string("alpha", 8)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(name, firstname=first)
-        element = self.user.search(name, search_key)
-        self.assertIsNotNone(element)
-        element.click()
-        self.assertTrue(self.user.wait_until_element(locators[
-            "users.firstname"]).get_attribute("value") == first)
+        name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=name, first_name=first_name)
+            element = self.user.search(name, search_key)
+            self.assertIsNotNone(element)
+            element.click()
+            self.assertEqual(
+                first_name,
+                self.user.wait_until_element(
+                    locators['users.firstname']
+                ).get_attribute('value')
+            )
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_usernames(50))
+    @data(*valid_strings(50))
     def test_positive_create_user_3(self, last_name):
         """@Test: Create User for all variations of Surname
 
@@ -268,22 +188,24 @@ class User(UITestCase):
 
         @Steps:
         1. Create User for all valid Surname variation in [1] using
-        valid Username, First Name, Email Address, Language, authorized by
+        valid User name, First Name, Email Address, Language, authorized by
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        name = generate_string("alpha", 8)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(name, lastname=last_name)
-        element = self.user.search(name, search_key)
-        self.assertIsNotNone(element)
-        element.click()
-        self.assertTrue(self.user.wait_until_element(locators[
-            "users.lastname"]).get_attribute("value") == last_name)
+
+        name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=name, last_name=last_name)
+            element = self.user.search(name, search_key)
+            self.assertIsNotNone(element)
+            element.click()
+            self.assertEqual(
+                last_name,
+                self.user.wait_until_element(
+                    locators['users.lastname']
+                ).get_attribute('value')
+            )
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_4(self):
@@ -304,7 +226,7 @@ class User(UITestCase):
 
     @attr('ui', 'user', 'implemented')
     @data(*LANGUAGES)
-    def test_positive_create_user_5(self, lang):
+    def test_positive_create_user_5(self, language):
         """@Test: Create User for all variations of Language
 
         @Feature: User - Positive Create
@@ -315,18 +237,19 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        name = generate_string("alpha", 8)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(name, locale=lang)
-        element = self.user.search(name, search_key)
-        self.assertIsNotNone(element)
-        element.click()
-        self.assertTrue(self.user.wait_until_element(locators[
-            "users.selected_lang"]).get_attribute("value") == lang)
+        name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=name, locale=language)
+            element = self.user.search(name, search_key)
+            self.assertIsNotNone(element)
+            element.click()
+            self.assertEqual(
+                language,
+                self.user.wait_until_element(
+                    locators['users.selected_lang']
+                ).get_attribute('value')
+            )
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_6(self):
@@ -346,7 +269,11 @@ class User(UITestCase):
         pass
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_strings())
+    @data(
+        u'foo@!#$^&*( ) {0}'.format(FauxFactory.generate_string("alpha", 2)),
+        u'bar+{{}}|\"?hi {0}'.format(FauxFactory.generate_string("alpha", 2)),
+        *valid_strings()
+    )
     def test_positive_create_user_7(self, password):
         """@Test: Create User for all variations of Password
 
@@ -358,14 +285,12 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        name = generate_string("alpha", 8)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(name, password)
-        self.assertIsNotNone(self.user.search(name, search_key))
+        name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=name, password1=password,
+                      password2=password)
+            self.assertIsNotNone(self.user.search(name, search_key))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_8(self):
@@ -391,24 +316,18 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
-        name = generate_string("alpha", 6)
-        role = generate_string("alpha", 6)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.navigator.go_to_roles()
-        self.role.create(role)
-        self.assertIsNotNone(self, self.role.search(role))
-        self.create_user(name, roles=[role])
-        self.user.search(name, search_key).click()
-        self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
-        element = self.user.wait_until_element((strategy,
-                                                value % role))
-        self.assertTrue(element)
+        strategy, value = common_locators["entity_deselect"]
+        name = FauxFactory.generate_string("alpha", 6)
+        role_name = entities.Role().create()['name']
+        with Session(self.browser) as session:
+            make_user(session, username=name, roles=[role_name], edit=True)
+            self.user.search(name, search_key).click()
+            self.user.wait_until_element(
+                tab_locators["users.tab_roles"]).click()
+            element = self.user.wait_until_element((strategy,
+                                                    value % role_name))
+            self.assertIsNotNone(element)
 
     @attr('ui', 'user', 'implemented')
     def test_positive_create_user_10(self):
@@ -421,28 +340,23 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
-        name = generate_string("alpha", 6)
-        role1 = generate_string("alpha", 6)
-        role2 = generate_string("alpha", 6)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.navigator.go_to_roles()
-        self.role.create(role1)
-        self.role.create(role2)
-        self.create_user(name, roles=[role1, role2])
-        self.user.search(name, search_key).click()
-        self.user.wait_until_element(tab_locators["users.tab_roles"]).click()
-        element1 = self.user.wait_until_element((strategy,
-                                                value % role1))
-        element2 = self.user.wait_until_element((strategy,
-                                                value % role2))
-        self.assertTrue(element1)
-        self.assertTrue(element2)
+        strategy, value = common_locators["entity_deselect"]
+        name = FauxFactory.generate_string("alpha", 6)
+        role1 = FauxFactory.generate_string("alpha", 6)
+        role2 = FauxFactory.generate_string("alpha", 6)
+        for role in [role1, role2]:
+            entities.Role(name=role).create()
+        with Session(self.browser) as session:
+            make_user(session, username=name, roles=[role1, role2],
+                      edit=True)
+            self.user.search(name, search_key).click()
+            self.user.wait_until_element(
+                tab_locators["users.tab_roles"]).click()
+            for role in [role1, role2]:
+                element = self.user.wait_until_element((strategy,
+                                                        value % role))
+                self.assertIsNotNone(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_11(self):
@@ -660,23 +574,20 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
-        name = generate_string("alpha", 6)
-        org_name = generate_string("alpha", 6)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        make_org(Session(self.browser), org_name=org_name)
-        self.create_user(name, organizations=[org_name])
-        self.user.search(name, search_key).click()
-        self.user.wait_until_element(
-            tab_locators["users.tab_organizations"]).click()
-        element = self.user.wait_until_element((strategy,
-                                                value % org_name))
-        self.assertTrue(element)
+        strategy, value = common_locators["entity_deselect"]
+        name = FauxFactory.generate_string("alpha", 6)
+        org_name = FauxFactory.generate_string("alpha", 6)
+        entities.Organization(name=org_name).create()
+        with Session(self.browser) as session:
+            make_user(session, username=name, organizations=[org_name],
+                      edit=True)
+            self.user.search(name, search_key).click()
+            self.user.wait_until_element(
+                tab_locators["users.tab_organizations"]).click()
+            element = self.user.wait_until_element((strategy,
+                                                    value % org_name))
+            self.assertIsNotNone(element)
 
     @attr('ui', 'user', 'implemented')
     def test_positive_create_user_25(self):
@@ -686,28 +597,24 @@ class User(UITestCase):
 
         @Assert: User is created
 
-        @Status: Manual
-
         """
-        strategy = common_locators["entity_deselect"][0]
-        value = common_locators["entity_deselect"][1]
-        name = generate_string("alpha", 6)
-        org_name1 = generate_string("alpha", 6)
-        org_name2 = generate_string("alpha", 6)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        make_org(Session(self.browser), org_name=org_name1)
-        make_org(Session(self.browser), org_name=org_name2)
-        self.create_user(name, organizations=[org_name1, org_name2])
-        self.user.search(name, search_key).click()
-        self.user.wait_until_element(
-            tab_locators["users.tab_organizations"]).click()
-        element1 = self.user.wait_until_element((strategy,
-                                                value % org_name1))
-        element2 = self.user.wait_until_element((strategy,
-                                                 value % org_name2))
-        self.assertTrue(element1)
-        self.assertTrue(element2)
+        strategy, value = common_locators["entity_deselect"]
+        name = FauxFactory.generate_string("alpha", 6)
+        org_name1 = FauxFactory.generate_string("alpha", 6)
+        org_name2 = FauxFactory.generate_string("alpha", 6)
+        for org_name in [org_name1, org_name2]:
+            entities.Organization(name=org_name).create()
+        with Session(self.browser) as session:
+            make_user(session, username=name,
+                      organizations=[org_name1, org_name2],
+                      edit=True)
+            self.user.search(name, search_key).click()
+            self.user.wait_until_element(
+                tab_locators["users.tab_organizations"]).click()
+            for org_name in [org_name1, org_name2]:
+                element = self.user.wait_until_element((strategy,
+                                                        value % org_name))
+                self.assertIsNotNone(element)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_26(self):
@@ -757,7 +664,7 @@ class User(UITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_1(self):
-        """@Test: [UI ONLY] Attempt to enter all User creation details and Cancel
+        """@Test:[UI ONLY] Enter all User creation details and Cancel
 
         @Feature: User - Positive Create
 
@@ -774,49 +681,46 @@ class User(UITestCase):
         pass
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_invalid_strings())
+    @data(*invalid_names_list())
     def test_negative_create_user_2(self, user_name):
-        """@Test: Create User with invalid Username
+        """@Test: Create User with invalid User Name
 
         @Feature: User - Negative Create
 
         @Steps:
-        1. Create User for all invalid Usernames in [2]
+        1. Create User for all invalid User names in [2]
         using valid First Name, Surname, Email Address, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
 
-        @Status: Manual
-
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(user_name)
-        error = self.user.wait_until_element(common_locators["haserror"])
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_user(session, username=user_name)
+            error = self.user.wait_until_element(common_locators["haserror"])
+            self.assertIsNotNone(error)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_invalid_surnames())
-    def test_negative_create_user_3(self, first):
-        """@Test: Create User with invalid Firstname
+    @data(*invalid_names_list())
+    def test_negative_create_user_3(self, first_name):
+        """@Test: Create User with invalid FirstName
 
         @Feature: User - Negative Create
 
         @Steps:
-        1. Create User for all invalid Firstname in [2]
-        using valid Username, Surname, Email Address, Language, authorized by
+        1. Create User for all invalid First name in [2]
+        using valid User name, Surname, Email Address, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
 
-        @Status: Manual
-
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(firstname=first)
-        error = self.user.wait_until_element(common_locators["haserror"])
-        self.assertTrue(error)
+        user_name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=user_name, first_name=first_name)
+            error = self.user.wait_until_element(common_locators["haserror"])
+            self.assertIsNotNone(error)
 
     @attr('ui', 'user', 'implemented')
-    @data(*gen_invalid_surnames())
+    @data(*invalid_names_list())
     def test_negative_create_user_4(self, last_name):
         """@Test: Create User with invalid Surname
 
@@ -828,13 +732,12 @@ class User(UITestCase):
 
         @Assert: User is not created. Appropriate error shown.
 
-        @Status: Manual
-
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(lastname=last_name)
-        error = self.user.wait_until_element(common_locators["haserror"])
-        self.assertTrue(error)
+        user_name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=user_name, last_name=last_name)
+            error = self.user.wait_until_element(common_locators["haserror"])
+            self.assertIsNotNone(error)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_5(self):
@@ -865,13 +768,12 @@ class User(UITestCase):
 
         @Assert: User is not created. Appropriate error shown.
 
-        @Status: Manual
-
         """
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(authorized_by="")
-        error = self.user.wait_until_element(common_locators["haserror"])
-        self.assertTrue(error)
+        user_name = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=user_name, authorized_by="")
+            error = self.user.wait_until_element(common_locators["haserror"])
+            self.assertIsNotNone(error)
 
     @attr('ui', 'user', 'implemented')
     def test_negative_create_user_8(self):
@@ -886,19 +788,19 @@ class User(UITestCase):
 
         @Assert: User is not created. Appropriate error shown.
 
-        @Status: Manual
-
         """
-        password = generate_string("alpha", 8)
-        password2 = generate_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.create_user(password=password, password2=password2)
-        error = self.user.wait_until_element(common_locators["haserror"])
-        self.assertTrue(error)
+        password = FauxFactory.generate_string("alpha", 8)
+        password2 = FauxFactory.generate_string("alpha", 8)
+        name = FauxFactory.generate_string("alpha", 6)
+        with Session(self.browser) as session:
+            make_user(session, username=name, password1=password,
+                      password2=password2)
+            error = self.user.wait_until_element(common_locators["haserror"])
+            self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1139616)
     @attr('ui', 'user', 'implemented')
-    @data(*gen_valid_usernames())
+    @data(*valid_strings())
     def test_positive_update_user_1(self, new_username):
         """@Test: Update Username in User
 
@@ -910,22 +812,20 @@ class User(UITestCase):
 
         @Assert: User is updated
 
-        @Status: Manual
-
         @BZ: 1139616
 
         """
-        name = generate_string("alpha", 6)
-        password = generate_string("alpha", 8)
-        search_key = "login"
-        self.login.login(self.katello_user, self.katello_passwd)  # login
-        self.create_user(name, password)
-        self.user.update(search_key, name, new_username)
-        self.assertIsNotNone(
-            self.user.search(new_username, search_key))
-        self.login.logout()
-        self.login.login(new_username, password)
-        self.assertTrue(self.login.is_logged())
+        name = FauxFactory.generate_string("alpha", 6)
+        password = FauxFactory.generate_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_user(session, username=name, password1=password,
+                      password2=password)
+            self.user.update(search_key, name, new_username)
+            self.assertIsNotNone(
+                self.user.search(new_username, search_key))
+            self.login.logout()
+            self.login.login(new_username, password)
+            self.assertTrue(self.login.is_logged())
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_2(self):
@@ -1439,7 +1339,7 @@ class User(UITestCase):
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_update_user_5(self):
-        """@Test: Update different values in Password and verify fields in an User
+        """@Test: Update different values in Password and verify fields
 
         @Feature: User - Negative Update
 
