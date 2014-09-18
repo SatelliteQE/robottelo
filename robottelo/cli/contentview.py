@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-
 """
 Usage::
 
@@ -37,58 +36,36 @@ from robottelo.common.helpers import info_dictionary
 
 
 class ContentView(Base):
-    """
-    Manipulates Foreman's content view.
-    """
+    """Manipulates Foreman's content view."""
 
     command_base = "content-view"
 
     @classmethod
     def add_repository(cls, options):
-        """
-        Associate repository to a selected CV.
-        """
-
+        """Associate repository to a selected CV."""
         cls.command_sub = "add-repository"
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        return result
+        return cls.execute(cls._construct_command(options), expect_csv=True)
 
     @classmethod
     def add_version(cls, options):
-        """
-        Associate version to a selected CV.
-        """
-
+        """Associate version to a selected CV."""
         cls.command_sub = "add-version"
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        return result
+        return cls.execute(cls._construct_command(options), expect_csv=True)
 
     @classmethod
     def publish(cls, options, timeout=None):
-        """
-        Publishes a new version of content-view.
-        """
-
+        """Publishes a new version of content-view."""
         cls.command_sub = "publish"
 
         # Publishing can take a while so try to wait a bit longer
         if timeout is None:
             timeout = 120
 
-        result = cls.execute(cls._construct_command(options), timeout=timeout)
-
-        return result
+        return cls.execute(cls._construct_command(options), timeout=timeout)
 
     @classmethod
     def version_info(cls, options):
-        """
-        Provides version info related to content-view's version.
-        """
-
+        """Provides version info related to content-view's version."""
         cls.command_sub = "version info"
 
         if options is None:
@@ -98,28 +75,17 @@ class ContentView(Base):
 
         # info_dictionary required to convert result.stdout
         # to dictionary format
-        updated_result = info_dictionary(result)
-
-        return updated_result
+        return info_dictionary(result)
 
     @classmethod
     def puppet_module_add(cls, options):
-        """
-        Associate puppet_module to selected CV
-        """
-
+        """Associate puppet_module to selected CV"""
         cls.command_sub = "puppet-module add"
-
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        return result
+        return cls.execute(cls._construct_command(options), expect_csv=True)
 
     @classmethod
     def puppet_module_info(cls, options):
-        """
-        Provides puppet-module info related to content-view's version.
-        """
-
+        """Provides puppet-module info related to content-view's version."""
         cls.command_sub = "puppet-module info"
 
         if options is None:
@@ -129,15 +95,11 @@ class ContentView(Base):
 
         # info_dictionary required to convert result.stdout
         # to dictionary format
-        updated_result = info_dictionary(result)
-
-        return updated_result
+        return info_dictionary(result)
 
     @classmethod
     def filter_info(cls, options):
-        """
-        Provides filter info related to content-view's version.
-        """
+        """Provides filter info related to content-view's version."""
 
         cls.command_sub = "filter info"
 
@@ -148,45 +110,46 @@ class ContentView(Base):
 
         # info_dictionary required to convert result.stdout
         # to dictionary format
-        updated_result = info_dictionary(result)
+        return info_dictionary(result)
 
-        return updated_result
+    @classmethod
+    def filter_create(cls, options):
+        """Provides filter info related to content-view's version."""
+        cls.command_sub = "filter create"
+
+        if options is None:
+            options = {}
+
+        return cls.execute(cls._construct_command(options), expect_csv=False)
+
+    @classmethod
+    def filter_rule_create(cls, options):
+        """Provides filter info related to content-view's version."""
+        cls.command_sub = "filter rule create"
+
+        if options is None:
+            options = {}
+
+        return cls.execute(cls._construct_command(options), expect_csv=False)
 
     @classmethod
     def version_list(cls, options):
-        """
-        Lists content-view's versions.
-        """
-
+        """Lists content-view's versions."""
         cls.command_sub = "version list"
 
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
-
-        return result
+        return cls.execute(cls._construct_command(options), expect_csv=True)
 
     @classmethod
     def version_promote(cls, options):
-        """
-        Promotes content-view version to next env.
-        """
-
+        """Promotes content-view version to next env."""
         cls.command_sub = "version promote"
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def version_destroy(cls, options):
-        """
-        Removes content-view version.
-        """
-
+        """Removes content-view version."""
         cls.command_sub = "version destroy"
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
