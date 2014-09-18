@@ -20,7 +20,7 @@ BZ_1118015_ENTITIES = (
     entities.ConfigTemplate, entities.ContentView, entities.Environment,
     entities.GPGKey, entities.HostCollection, entities.LifecycleEnvironment,
     entities.OperatingSystem, entities.Product, entities.Repository,
-    entities.Role, entities.System, entities.User,
+    entities.Role, entities.Subnet, entities.System, entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
@@ -51,6 +51,7 @@ class EntityTestCase(TestCase):
         # entities.Product,  # need organization_id
         # entities.Repository,  # need organization_id
         entities.Role,
+        entities.Subnet,
         # entities.System,  # need organization_id
         entities.TemplateKind,
         entities.User,
@@ -95,6 +96,7 @@ class EntityTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         entities.System,
         entities.TemplateKind,
         entities.User,
@@ -140,6 +142,7 @@ class EntityTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
@@ -190,6 +193,7 @@ class EntityTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         entities.System,
         entities.TemplateKind,
         entities.User,
@@ -234,6 +238,7 @@ class EntityIdTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
@@ -284,6 +289,7 @@ class EntityIdTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
@@ -329,6 +335,7 @@ class EntityIdTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
@@ -398,6 +405,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         # entities.User,  # password not in returned attrs
@@ -451,6 +459,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         # entities.User,  # password not in returned attrs
@@ -504,6 +513,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Product,
         entities.Repository,
         entities.Role,
+        entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
@@ -574,6 +584,7 @@ class EntityReadTestCase(TestCase):
         # entities.Product,
         entities.Repository,
         entities.Role,
+        # entities.Subnet,  # "domains" attribute is useless when reading.
         # entities.System,
         # entities.TemplateKind,  # see comments in class definition
         # entities.User,

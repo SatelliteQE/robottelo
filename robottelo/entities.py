@@ -432,7 +432,8 @@ class ContentView(
         Otherwise, call ``super``.
 
         """
-        if which in ('content_view_puppet_modules', 'content_view_versions',
+        if which in (
+                'content_view_puppet_modules', 'content_view_versions',
                 'publish', 'available_puppet_module_names'):
             return '{0}/{1}'.format(
                 super(ContentView, self).path(which='this'),
@@ -1365,35 +1366,30 @@ class Status(orm.Entity):
         api_path = 'katello/api/v2/status'
 
 
-class Subnet(orm.Entity):
+class Subnet(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Subnet entity."""
-    name = orm.StringField(required=True)
-    network = orm.IPAddressField(required=True)
-    mask = orm.IPAddressField(required=True)
-    gateway = orm.StringField(null=True)
     dns_primary = orm.IPAddressField(null=True)
     dns_secondary = orm.IPAddressField(null=True)
-    # Starting IP Address for IP auto suggestion
-    from_ip = orm.IPAddressField(null=True)
-    # Ending IP Address for IP auto suggestion
-    to_ip = orm.IPAddressField(null=True)
-    # VLAN ID for this subnet
-    vlanid = orm.StringField(null=True)
-    # Domains in which this subnet is part
     domain = orm.OneToManyField('Domain', null=True)
-    # DHCP Proxy to use within this subnet
-    # FIXME figure out related resource
+    from_ = orm.IPAddressField(null=True)
+    gateway = orm.StringField(null=True)
+    mask = orm.IPAddressField(required=True)
+    name = orm.StringField(required=True)
+    network = orm.IPAddressField(required=True)
+    to = orm.IPAddressField(null=True)  # (invalid-name) pylint:disable=C0103
+    vlanid = orm.StringField(null=True)
+
+    # FIXME: Figure out what these IDs correspond to.
     # dhcp = orm.OneToOneField(null=True)
-    # TFTP Proxy to use within this subnet
-    # FIXME figure out related resource
-    # tftp = orm.OneToOneField(null=True)
-    # DNS Proxy to use within this subnet
-    # FIXME figure out related resource
     # dns = orm.OneToOneField(null=True)
+    # tftp = orm.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/subnets'
+        api_names = (('from_', 'from'),)
 
 
 class Subscription(orm.Entity):
