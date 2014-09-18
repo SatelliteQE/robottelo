@@ -133,7 +133,7 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.architecture.wait_until_element
                                  (common_locators["name_haserror"]))
 
-    @skip_if_bug_open('bugzilla', 1131815)
+    @skip_if_bug_open('bugzilla', 1123388)
     @data({u'name': generate_string('alpha', 10),
            u'os_name': generate_string('alpha', 10),
            u'major_version': generate_string('numeric', 1)},

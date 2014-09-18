@@ -56,6 +56,7 @@ class UserGroup(Base):
 
         if element:
             element.click()
+            self.wait_for_ajax()
             if new_name:
                 if self.wait_until_element(locators["usergroups.name"]):
                     self.field_update("usergroups.name", new_name)
