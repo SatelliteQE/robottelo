@@ -10,6 +10,7 @@ import httplib
 import importlib
 import inspect
 import random
+import thread
 import threading
 import time
 import urlparse
@@ -34,19 +35,22 @@ def _poll_task(task_id, poll_rate=5, timeout=120, auth=None):
     This function is private because only entity mixins should use this.
     ``ForemanTask`` is, for obvious reasons, an exception.
 
+    :raises robottelo.orm.TaskTimeout: when ``timeout`` expires
+
     """
     if auth is None:
         auth = helpers.get_server_credentials()
 
     # Implement the timeout.
     def raise_task_timeout():
-        """Raise :class:`robottelo.orm.TaskTimeout`."""
-        raise TaskTimeout("Timed out polling task {0}".format(task_id))
+        """Raise a KeyboardInterrupt exception in the main thread."""
+        thread.interrupt_main()
     timer = threading.Timer(timeout, raise_task_timeout)
-    timer.start()
 
     # Poll until the task finishes. The timeout prevents an infinite loop.
     try:
+        timer.start()
+
         path = '{0}/foreman_tasks/api/tasks/{1}'.format(
             helpers.get_server_url(),
             task_id
@@ -55,9 +59,14 @@ def _poll_task(task_id, poll_rate=5, timeout=120, auth=None):
             response = client.get(path, auth=auth, verify=False)
             response.raise_for_status()
             task_info = response.json()
-            if task_info['pending'] is False:
+            if (task_info['result'] == 'success' or
+                    task_info['result'] == 'error'):
                 return task_info
             time.sleep(poll_rate)
+    except KeyboardInterrupt:
+        # raise_task_timeout will raise a KeyboardInterrupt when the timeout
+        # expires. Catch the exception and raise TaskTimeout
+        raise TaskTimeout("Timed out polling task {0}".format(task_id))
     finally:
         timer.cancel()
 
