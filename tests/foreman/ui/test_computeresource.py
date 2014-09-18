@@ -2,12 +2,13 @@
 # vim: ts=4 sw=4 expandtab ai
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
                                   make_resource)
@@ -26,8 +27,8 @@ class ComputeResource(UITestCase):
         # Make sure to use the Class' org_name instance
         if (ComputeResource.org_name is None and
            ComputeResource.loc_name is None):
-            ComputeResource.org_name = generate_string("alpha", 8)
-            ComputeResource.loc_name = generate_string("alpha", 8)
+            ComputeResource.org_name = FauxFactory.generate_string("alpha", 8)
+            ComputeResource.loc_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=ComputeResource.org_name)
                 make_loc(session, name=ComputeResource.loc_name)
@@ -54,11 +55,11 @@ class ComputeResource(UITestCase):
     @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(
-        generate_string('alphanumeric', 255),
-        generate_string('alpha', 255),
-        generate_string('numeric', 255),
-        generate_string('latin1', 255),
-        generate_string('utf8', 255)
+        FauxFactory.generate_string('alphanumeric', 255),
+        FauxFactory.generate_string('alpha', 255),
+        FauxFactory.generate_string('numeric', 255),
+        FauxFactory.generate_string('latin1', 255),
+        FauxFactory.generate_string('utf8', 255)
     )
     def test_create_resource_2(self, name):
         """@Test: Create a new libvirt Compute Resource with 255 char name
@@ -81,11 +82,11 @@ class ComputeResource(UITestCase):
 
     @attr('ui', 'resource', 'implemented')
     @data(
-        generate_string('alphanumeric', 255),
-        generate_string('alpha', 255),
-        generate_string('numeric', 255),
-        generate_string('latin1', 255),
-        generate_string('utf8', 255)
+        FauxFactory.generate_string('alphanumeric', 255),
+        FauxFactory.generate_string('alpha', 255),
+        FauxFactory.generate_string('numeric', 255),
+        FauxFactory.generate_string('latin1', 255),
+        FauxFactory.generate_string('utf8', 255)
     )
     def test_create_resource_3(self, description):
         """@Test: Create a new libvirt Compute Resource with 255 char description.
@@ -96,7 +97,7 @@ class ComputeResource(UITestCase):
         description.
 
         """
-        name = generate_string("alpha", 8)
+        name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
@@ -143,7 +144,7 @@ class ComputeResource(UITestCase):
         @BZ: 1120271
 
         """
-        name = generate_string("alpha", 8)
+        name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
@@ -195,18 +196,18 @@ class ComputeResource(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1123352)
     @attr('ui', 'resource', 'implemented')
-    @data({'name': generate_string('alpha', 10),
-           'newname': generate_string('alpha', 10)},
-          {'name': generate_string('numeric', 10),
-           'newname': generate_string('numeric', 10)},
-          {'name': generate_string('alphanumeric', 10),
-           'newname': generate_string('alphanumeric', 10)},
-          {'name': generate_string('utf8', 10),
-           'newname': generate_string('utf8', 10)},
-          {'name': generate_string('latin1', 10),
-           'newname': generate_string('latin1', 10)},
-          {'name': generate_string('html', 10),
-           'newname': generate_string('html', 10)})
+    @data({'name': FauxFactory.generate_string('alpha', 10),
+           'newname': FauxFactory.generate_string('alpha', 10)},
+          {'name': FauxFactory.generate_string('numeric', 10),
+           'newname': FauxFactory.generate_string('numeric', 10)},
+          {'name': FauxFactory.generate_string('alphanumeric', 10),
+           'newname': FauxFactory.generate_string('alphanumeric', 10)},
+          {'name': FauxFactory.generate_string('utf8', 10),
+           'newname': FauxFactory.generate_string('utf8', 10)},
+          {'name': FauxFactory.generate_string('latin1', 10),
+           'newname': FauxFactory.generate_string('latin1', 10)},
+          {'name': FauxFactory.generate_string('html', 10),
+           'newname': FauxFactory.generate_string('html', 10)})
     def test_update_resource(self, testdata):
         """@Test: Update a libvirt Compute Resource's Organization
 
@@ -219,8 +220,8 @@ class ComputeResource(UITestCase):
         """
         name = testdata['name']
         newname = testdata['newname']
-        org_name = generate_string("alpha", 8)
-        new_org = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
+        new_org = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])

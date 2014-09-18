@@ -3,10 +3,11 @@
 from datetime import datetime, timedelta
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common.constants import SYNC_INTERVAL
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -23,7 +24,7 @@ class Syncplan(UITestCase):
         super(Syncplan, self).setUp()
         # Make sure to use the Class' org_name instance
         if Syncplan.org_name is None:
-            Syncplan.org_name = generate_string("alpha", 8)
+            Syncplan.org_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Syncplan.org_name)
 
@@ -34,50 +35,50 @@ class Syncplan(UITestCase):
         self.navigator.go_to_sync_plans()
 
     @attr('ui', 'syncplan', 'implemented')
-    @data({u'name': generate_string('alpha', 10),
-           u'desc': generate_string('alpha', 10),
+    @data({u'name': FauxFactory.generate_string('alpha', 10),
+           u'desc': FauxFactory.generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('numeric', 10),
-           u'desc': generate_string('numeric', 10),
+          {u'name': FauxFactory.generate_string('numeric', 10),
+           u'desc': FauxFactory.generate_string('numeric', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('alphanumeric', 10),
-           u'desc': generate_string('alphanumeric', 10),
+          {u'name': FauxFactory.generate_string('alphanumeric', 10),
+           u'desc': FauxFactory.generate_string('alphanumeric', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('utf8', 10),
-           u'desc': generate_string('utf8', 10),
+          {u'name': FauxFactory.generate_string('utf8', 10),
+           u'desc': FauxFactory.generate_string('utf8', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('html', 20),
-           u'desc': generate_string('html', 10),
+          {u'name': FauxFactory.generate_string('html', 20),
+           u'desc': FauxFactory.generate_string('html', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('alpha', 10),
-           u'desc': generate_string('alpha', 10),
+          {u'name': FauxFactory.generate_string('alpha', 10),
+           u'desc': FauxFactory.generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('numeric', 10),
-           u'desc': generate_string('numeric', 10),
+          {u'name': FauxFactory.generate_string('numeric', 10),
+           u'desc': FauxFactory.generate_string('numeric', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('alphanumeric', 10),
-           u'desc': generate_string('alphanumeric', 10),
+          {u'name': FauxFactory.generate_string('alphanumeric', 10),
+           u'desc': FauxFactory.generate_string('alphanumeric', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('utf8', 10),
-           u'desc': generate_string('utf8', 10),
+          {u'name': FauxFactory.generate_string('utf8', 10),
+           u'desc': FauxFactory.generate_string('utf8', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('html', 20),
-           u'desc': generate_string('html', 10),
+          {u'name': FauxFactory.generate_string('html', 20),
+           u'desc': FauxFactory.generate_string('html', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('alpha', 10),
-           u'desc': generate_string('alpha', 10),
+          {u'name': FauxFactory.generate_string('alpha', 10),
+           u'desc': FauxFactory.generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('numeric', 10),
-           u'desc': generate_string('numeric', 10),
+          {u'name': FauxFactory.generate_string('numeric', 10),
+           u'desc': FauxFactory.generate_string('numeric', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('alphanumeric', 10),
-           u'desc': generate_string('alphanumeric', 10),
+          {u'name': FauxFactory.generate_string('alphanumeric', 10),
+           u'desc': FauxFactory.generate_string('alphanumeric', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('utf8', 10),
-           u'desc': generate_string('utf8', 10),
+          {u'name': FauxFactory.generate_string('utf8', 10),
+           u'desc': FauxFactory.generate_string('utf8', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('html', 20),
-           u'desc': generate_string('html', 10),
+          {u'name': FauxFactory.generate_string('html', 20),
+           u'desc': FauxFactory.generate_string('html', 10),
            u'interval': SYNC_INTERVAL['week']})
     def test_positive_create_1(self, test_data):
         """@Test: Create Sync Plan with minimal input parameters
@@ -131,7 +132,7 @@ class Syncplan(UITestCase):
         """
 
         locator = locators["sp.fetch_startdate"]
-        plan_name = generate_string("alpha", 8)
+        plan_name = FauxFactory.generate_string("alpha", 8)
         self.configure_syncplan()
         description = "sync plan create with start date"
         current_date = datetime.now()
@@ -167,7 +168,7 @@ class Syncplan(UITestCase):
         """
 
         locator = locators["sp.fetch_startdate"]
-        plan_name = generate_string("alpha", 8)
+        plan_name = FauxFactory.generate_string("alpha", 8)
         self.configure_syncplan()
         description = "sync plan create with start date"
         current_date = datetime.now()
@@ -248,7 +249,7 @@ class Syncplan(UITestCase):
 
         """
 
-        new_plan_name = generate_string("alpha", 8)
+        new_plan_name = FauxFactory.generate_string("alpha", 8)
         description = "update sync plan"
         self.configure_syncplan()
         self.syncplan.create(plan_name, description)
@@ -257,35 +258,35 @@ class Syncplan(UITestCase):
         self.assertIsNotNone(self.products.search(new_plan_name))
 
     @attr('ui', 'syncplan', 'implemented')
-    @data({u'name': generate_string('alpha', 10),
+    @data({u'name': FauxFactory.generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('numeric', 10),
+          {u'name': FauxFactory.generate_string('numeric', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('alphanumeric', 10),
+          {u'name': FauxFactory.generate_string('alphanumeric', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('utf8', 10),
+          {u'name': FauxFactory.generate_string('utf8', 10),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('html', 20),
+          {u'name': FauxFactory.generate_string('html', 20),
            u'interval': SYNC_INTERVAL['hour']},
-          {u'name': generate_string('alpha', 10),
+          {u'name': FauxFactory.generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('numeric', 10),
+          {u'name': FauxFactory.generate_string('numeric', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('alphanumeric', 10),
+          {u'name': FauxFactory.generate_string('alphanumeric', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('utf8', 10),
+          {u'name': FauxFactory.generate_string('utf8', 10),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('html', 20),
+          {u'name': FauxFactory.generate_string('html', 20),
            u'interval': SYNC_INTERVAL['day']},
-          {u'name': generate_string('alpha', 10),
+          {u'name': FauxFactory.generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('numeric', 10),
+          {u'name': FauxFactory.generate_string('numeric', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('alphanumeric', 10),
+          {u'name': FauxFactory.generate_string('alphanumeric', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('utf8', 10),
+          {u'name': FauxFactory.generate_string('utf8', 10),
            u'interval': SYNC_INTERVAL['week']},
-          {u'name': generate_string('html', 20),
+          {u'name': FauxFactory.generate_string('html', 20),
            u'interval': SYNC_INTERVAL['week']})
     def test_positive_update_2(self, test_data):
         """@Test: Update Sync plan's interval
@@ -320,7 +321,7 @@ class Syncplan(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
+        prd_name = FauxFactory.generate_string("alpha", 8)
         description = "update sync plan, add prds"
         strategy, value = locators["sp.prd_select"]
         self.login.login(self.katello_user, self.katello_passwd)
@@ -352,8 +353,8 @@ class Syncplan(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        plan_name = generate_string("alpha", 8)
+        prd_name = FauxFactory.generate_string("alpha", 8)
+        plan_name = FauxFactory.generate_string("alpha", 8)
         description = "update sync plan, add prds"
         strategy, value = locators["sp.prd_select"]
         self.login.login(self.katello_user, self.katello_passwd)

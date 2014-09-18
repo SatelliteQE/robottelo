@@ -1,11 +1,12 @@
 """Smoke tests for the ``UI`` end-to-end scenario."""
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.constants import (FAKE_PUPPET_REPO, GOOGLE_CHROME_REPO,
                                         REPO_TYPE, FOREMAN_PROVIDERS, DOMAIN,
                                         DEFAULT_ORG, DEFAULT_LOC)
-from robottelo.common.helpers import generate_string, generate_ipaddr
+from robottelo.common.helpers import generate_ipaddr
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_user, make_org,
                                   make_lifecycle_environment, make_product,
@@ -95,25 +96,25 @@ class TestSmoke(UITestCase):
 
         """
 
-        user_name = generate_string("alpha", 6)
-        password = generate_string("alpha", 6)
-        org_name = generate_string("alpha", 6)
-        env_1_name = generate_string("alpha", 6)
-        env_2_name = generate_string("alpha", 6)
-        product_name = generate_string("alpha", 6)
-        yum_repository_name = generate_string("alpha", 6)
-        puppet_repository_name = generate_string("alpha", 6)
-        cv_name = generate_string("alpha", 6)
+        user_name = FauxFactory.generate_string("alpha", 6)
+        password = FauxFactory.generate_string("alpha", 6)
+        org_name = FauxFactory.generate_string("alpha", 6)
+        env_1_name = FauxFactory.generate_string("alpha", 6)
+        env_2_name = FauxFactory.generate_string("alpha", 6)
+        product_name = FauxFactory.generate_string("alpha", 6)
+        yum_repository_name = FauxFactory.generate_string("alpha", 6)
+        puppet_repository_name = FauxFactory.generate_string("alpha", 6)
+        cv_name = FauxFactory.generate_string("alpha", 6)
         puppet_module = "httpd"
         module_ver = 'Latest'
-        compute_resource_name = generate_string("alpha", 6)
+        compute_resource_name = FauxFactory.generate_string("alpha", 6)
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
-        subnet_name = generate_string("alpha", 6)
-        domain_name = generate_string("alpha", 6)
+        subnet_name = FauxFactory.generate_string("alpha", 6)
+        domain_name = FauxFactory.generate_string("alpha", 6)
         domain = description = DOMAIN % domain_name
-        hostgroup_name = generate_string("alpha", 6)
+        hostgroup_name = FauxFactory.generate_string("alpha", 6)
 
         # Create new user with admin permissions
         with Session(self.browser) as session:

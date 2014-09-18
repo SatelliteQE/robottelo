@@ -1,9 +1,10 @@
 """Test class for Products UI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_product
 from robottelo.ui.locators import common_locators
@@ -21,8 +22,8 @@ class Products(UITestCase):
         super(Products, self).setUp()
         # Make sure to use the Class' org_name instance
         if Products.org_name is None and Products.loc_name is None:
-            Products.org_name = generate_string("alpha", 8)
-            Products.loc_name = generate_string("alpha", 8)
+            Products.org_name = FauxFactory.generate_string("alpha", 8)
+            Products.loc_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Products.org_name)
                 make_loc(session, name=Products.loc_name)
@@ -56,7 +57,7 @@ class Products(UITestCase):
         """
 
         description = "test 123"
-        org2_name = generate_string("alpha", 8)
+        org2_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
@@ -152,7 +153,7 @@ class Products(UITestCase):
 
         """
 
-        new_prd_name = generate_string("alpha", 8)
+        new_prd_name = FauxFactory.generate_string("alpha", 8)
         description = "test 123"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
@@ -173,7 +174,7 @@ class Products(UITestCase):
         """
 
         locator = common_locators["alert.error"]
-        new_prd_name = generate_string("alpha", 256)
+        new_prd_name = FauxFactory.generate_string("alpha", 256)
         description = "test_negative_update_0"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,

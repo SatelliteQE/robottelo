@@ -4,11 +4,11 @@
 
 from datetime import datetime, timedelta
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 
@@ -55,12 +55,12 @@ class TestSyncPlan(CLITestCase):
         return new_sync_plan
 
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'syncplan')
     def test_positive_create_1(self, test_data):
@@ -81,12 +81,12 @@ class TestSyncPlan(CLITestCase):
         )
 
     @data(
-        {u'description': generate_string('alpha', 15)},
-        {u'description': generate_string('alphanumeric', 15)},
-        {u'description': generate_string('numeric', 15)},
-        {u'description': generate_string('latin1', 15)},
-        {u'description': generate_string('utf8', 15)},
-        {u'description': generate_string('html', 15)},
+        {u'description': FauxFactory.generate_string('alpha', 15)},
+        {u'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'description': FauxFactory.generate_string('numeric', 15)},
+        {u'description': FauxFactory.generate_string('latin1', 15)},
+        {u'description': FauxFactory.generate_string('utf8', 15)},
+        {u'description': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'syncplan')
     def test_positive_create_2(self, test_data):
@@ -108,24 +108,78 @@ class TestSyncPlan(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 15), u'interval': u'hourly'},
-        {u'name': generate_string('alphanumeric', 15), u'interval': u'hourly'},
-        {u'name': generate_string('numeric', 15), u'interval': u'hourly'},
-        {u'name': generate_string('latin1', 15), u'interval': u'hourly'},
-        {u'name': generate_string('utf8', 15), u'interval': u'hourly'},
-        {u'name': generate_string('html', 15), u'interval': u'hourly'},
-        {u'name': generate_string('alpha', 15), u'interval': u'daily'},
-        {u'name': generate_string('alphanumeric', 15), u'interval': u'daily'},
-        {u'name': generate_string('numeric', 15), u'interval': u'daily'},
-        {u'name': generate_string('latin1', 15), u'interval': u'daily'},
-        {u'name': generate_string('utf8', 15), u'interval': u'daily'},
-        {u'name': generate_string('html', 15), u'interval': u'daily'},
-        {u'name': generate_string('alpha', 15), u'interval': u'weekly'},
-        {u'name': generate_string('alphanumeric', 15), u'interval': u'weekly'},
-        {u'name': generate_string('numeric', 15), u'interval': 'weekly'},
-        {u'name': generate_string('latin1', 15), u'interval': u'weekly'},
-        {u'name': generate_string('utf8', 15), u'interval': u'weekly'},
-        {u'name': generate_string('html', 15), u'interval': u'weekly'},
+        {
+            u'name': FauxFactory.generate_string('alpha', 15),
+            u'interval': u'hourly',
+        },
+        {
+            u'name': FauxFactory.generate_string('alphanumeric', 15),
+            u'interval': u'hourly',
+        },
+        {
+            u'name': FauxFactory.generate_string('numeric', 15),
+            u'interval': u'hourly'
+        },
+        {
+            u'name': FauxFactory.generate_string('latin1', 15),
+            u'interval': u'hourly'
+        },
+        {
+            u'name': FauxFactory.generate_string('utf8', 15),
+            u'interval': u'hourly'
+        },
+        {
+            u'name': FauxFactory.generate_string('html', 15),
+            u'interval': u'hourly'
+        },
+        {
+            u'name': FauxFactory.generate_string('alpha', 15),
+            u'interval': u'daily'
+        },
+        {
+            u'name': FauxFactory.generate_string('alphanumeric', 15),
+            u'interval': u'daily'
+        },
+        {
+            u'name': FauxFactory.generate_string('numeric', 15),
+            u'interval': u'daily'
+        },
+        {
+            u'name': FauxFactory.generate_string('latin1', 15),
+            u'interval': u'daily'
+        },
+        {
+            u'name': FauxFactory.generate_string('utf8', 15),
+            u'interval': u'daily'
+        },
+        {
+            u'name': FauxFactory.generate_string('html', 15),
+            u'interval': u'daily'
+        },
+        {
+            u'name': FauxFactory.generate_string('alpha', 15),
+            u'interval': u'weekly'
+        },
+        {
+            u'name': FauxFactory.generate_string('alphanumeric', 15),
+            u'interval': u'weekly'
+        },
+        {
+            u'name': FauxFactory.generate_string('numeric', 15),
+            u'interval': 'weekly'
+        },
+        {
+            u'name': FauxFactory.generate_string('latin1', 15),
+            u'interval': u'weekly'
+        },
+        {
+            u'name': FauxFactory.generate_string('utf8', 15),
+            u'interval': u'weekly'
+        },
+        {
+            u'name': FauxFactory.generate_string('html', 15),
+            u'interval': u'weekly'
+        },
     )
     @attr('cli', 'syncplan')
     def test_positive_create_3(self, test_data):
@@ -153,12 +207,12 @@ class TestSyncPlan(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 300)},
-        {u'name': generate_string('alphanumeric', 300)},
-        {u'name': generate_string('numeric', 300)},
-        {u'name': generate_string('latin1', 300)},
-        {u'name': generate_string('utf8', 300)},
-        {u'name': generate_string('html', 300)},
+        {u'name': FauxFactory.generate_string('alpha', 300)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 300)},
+        {u'name': FauxFactory.generate_string('numeric', 300)},
+        {u'name': FauxFactory.generate_string('latin1', 300)},
+        {u'name': FauxFactory.generate_string('utf8', 300)},
+        {u'name': FauxFactory.generate_string('html', 300)},
     )
     @attr('cli', 'syncplan')
     def test_negative_create_1(self, test_data):
@@ -174,12 +228,12 @@ class TestSyncPlan(CLITestCase):
             self._make_sync_plan({u'name': test_data['name']})
 
     @data(
-        {u'description': generate_string('alpha', 15)},
-        {u'description': generate_string('alphanumeric', 15)},
-        {u'description': generate_string('numeric', 15)},
-        {u'description': generate_string('latin1', 15)},
-        {u'description': generate_string('utf8', 15)},
-        {u'description': generate_string('html', 15)},
+        {u'description': FauxFactory.generate_string('alpha', 15)},
+        {u'description': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'description': FauxFactory.generate_string('numeric', 15)},
+        {u'description': FauxFactory.generate_string('latin1', 15)},
+        {u'description': FauxFactory.generate_string('utf8', 15)},
+        {u'description': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'syncplan')
     def test_positive_update_1(self, test_data):
@@ -243,41 +297,41 @@ class TestSyncPlan(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 15),
+        {u'name': FauxFactory.generate_string('alpha', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': generate_string('alphanumeric', 15),
+        {u'name': FauxFactory.generate_string('alphanumeric', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': generate_string('numeric', 15),
+        {u'name': FauxFactory.generate_string('numeric', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': generate_string('latin1', 15),
+        {u'name': FauxFactory.generate_string('latin1', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': generate_string('utf8', 15),
+        {u'name': FauxFactory.generate_string('utf8', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': generate_string('html', 15),
+        {u'name': FauxFactory.generate_string('html', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': generate_string('alpha', 15),
+        {u'name': FauxFactory.generate_string('alpha', 15),
          u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': generate_string('alphanumeric', 15),
+        {u'name': FauxFactory.generate_string('alphanumeric', 15),
          u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': generate_string('numeric', 15),
+        {u'name': FauxFactory.generate_string('numeric', 15),
          u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': generate_string('latin1', 15),
+        {u'name': FauxFactory.generate_string('latin1', 15),
          u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': generate_string('utf8', 15),
+        {u'name': FauxFactory.generate_string('utf8', 15),
          u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': generate_string('html', 15),
+        {u'name': FauxFactory.generate_string('html', 15),
          u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': generate_string('alpha', 15),
+        {u'name': FauxFactory.generate_string('alpha', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': generate_string('alphanumeric', 15),
+        {u'name': FauxFactory.generate_string('alphanumeric', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': generate_string('numeric', 15),
+        {u'name': FauxFactory.generate_string('numeric', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': generate_string('latin1', 15),
+        {u'name': FauxFactory.generate_string('latin1', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': generate_string('utf8', 15),
+        {u'name': FauxFactory.generate_string('utf8', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': generate_string('html', 15),
+        {u'name': FauxFactory.generate_string('html', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
     )
     @attr('cli', 'syncplan')
@@ -346,12 +400,12 @@ class TestSyncPlan(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'syncplan')
     def test_positive_update_3(self, test_data):
@@ -421,12 +475,12 @@ class TestSyncPlan(CLITestCase):
         )
 
     @data(
-        {u'name': generate_string('alpha', 15)},
-        {u'name': generate_string('alphanumeric', 15)},
-        {u'name': generate_string('numeric', 15)},
-        {u'name': generate_string('latin1', 15)},
-        {u'name': generate_string('utf8', 15)},
-        {u'name': generate_string('html', 15)},
+        {u'name': FauxFactory.generate_string('alpha', 15)},
+        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
+        {u'name': FauxFactory.generate_string('numeric', 15)},
+        {u'name': FauxFactory.generate_string('latin1', 15)},
+        {u'name': FauxFactory.generate_string('utf8', 15)},
+        {u'name': FauxFactory.generate_string('html', 15)},
     )
     @attr('cli', 'syncplan')
     def test_positive_delete_1(self, test_data):

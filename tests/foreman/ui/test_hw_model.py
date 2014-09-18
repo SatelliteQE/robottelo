@@ -1,9 +1,10 @@
 """Test class for Config Groups UI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_hw_model
 from robottelo.ui.locators import common_locators
@@ -21,8 +22,10 @@ class HardwareModelTestCase(UITestCase):
         # Make sure to use the Class' org_name instance
         if (HardwareModelTestCase.org_name is None and
                 HardwareModelTestCase.loc_name is None):
-            HardwareModelTestCase.org_name = generate_string("alpha", 8)
-            HardwareModelTestCase.loc_name = generate_string("alpha", 8)
+            HardwareModelTestCase.org_name = FauxFactory.generate_string(
+                "alpha", 8)
+            HardwareModelTestCase.loc_name = FauxFactory.generate_string(
+                "alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=HardwareModelTestCase.org_name)
                 make_loc(session, name=HardwareModelTestCase.loc_name)
@@ -44,11 +47,11 @@ class HardwareModelTestCase(UITestCase):
 
     @attr('ui', 'hardware-model', 'implemented')
     @data(
-        generate_string('alphanumeric', 255),
-        generate_string('alpha', 255),
-        generate_string('numeric', 255),
-        generate_string('latin1', 255),
-        generate_string('utf8', 255)
+        FauxFactory.generate_string('alphanumeric', 255),
+        FauxFactory.generate_string('alpha', 255),
+        FauxFactory.generate_string('numeric', 255),
+        FauxFactory.generate_string('latin1', 255),
+        FauxFactory.generate_string('utf8', 255)
     )
     def test_create_positive_2(self, name):
         """@test: Create new Hardware-Model with 255 chars
@@ -110,16 +113,16 @@ class HardwareModelTestCase(UITestCase):
             self.assertIsNotNone(error)
 
     @attr('ui', 'hardware-model', 'implemented')
-    @data({'name': generate_string('alpha', 10),
-           'new_name': generate_string('alpha', 10)},
-          {'name': generate_string('numeric', 10),
-           'new_name': generate_string('numeric', 10)},
-          {'name': generate_string('alphanumeric', 10),
-           'new_name': generate_string('alphanumeric', 10)},
-          {'name': generate_string('utf8', 10),
-           'new_name': generate_string('utf8', 10)},
-          {'name': generate_string('latin1', 20),
-           'new_name': generate_string('latin1', 10)})
+    @data({'name': FauxFactory.generate_string('alpha', 10),
+           'new_name': FauxFactory.generate_string('alpha', 10)},
+          {'name': FauxFactory.generate_string('numeric', 10),
+           'new_name': FauxFactory.generate_string('numeric', 10)},
+          {'name': FauxFactory.generate_string('alphanumeric', 10),
+           'new_name': FauxFactory.generate_string('alphanumeric', 10)},
+          {'name': FauxFactory.generate_string('utf8', 10),
+           'new_name': FauxFactory.generate_string('utf8', 10)},
+          {'name': FauxFactory.generate_string('latin1', 20),
+           'new_name': FauxFactory.generate_string('latin1', 10)})
     def test_update_positive_1(self, testdata):
         """@test: Updates the Hardware-Model
 

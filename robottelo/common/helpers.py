@@ -11,8 +11,8 @@ import re
 import string
 import time
 
+from fauxfactory import FauxFactory
 from itertools import izip
-from robottelo.common.constants import HTML_TAGS
 from robottelo.common import conf
 from urllib2 import urlopen, Request, URLError
 from urlparse import urlunsplit
@@ -126,12 +126,12 @@ def valid_data_list():
     List of valid data for input testing.
     """
     return [
-        generate_string("alpha", 8),
-        generate_string("numeric", 8),
-        generate_string("alphanumeric", 8),
-        generate_string("utf8", 8),
-        generate_string("latin1", 8),
-        generate_string("html", 8)
+        FauxFactory.generate_string("alpha", 8),
+        FauxFactory.generate_string("numeric", 8),
+        FauxFactory.generate_string("alphanumeric", 8),
+        FauxFactory.generate_string("utf8", 8),
+        FauxFactory.generate_string("latin1", 8),
+        FauxFactory.generate_string("html", 8)
     ]
 
 
@@ -140,13 +140,13 @@ def invalid_names_list():
     List of invalid names for input testing.
     """
     return [
-        generate_string("alpha", 300),
-        generate_string("numeric", 300),
-        generate_string("alphanumeric", 300),
-        generate_string("utf8", 300),
-        generate_string("latin1", 300),
-        generate_string("html", 300),
-        generate_string("alpha", 256)
+        FauxFactory.generate_string("alpha", 300),
+        FauxFactory.generate_string("numeric", 300),
+        FauxFactory.generate_string("alphanumeric", 300),
+        FauxFactory.generate_string("utf8", 300),
+        FauxFactory.generate_string("latin1", 300),
+        FauxFactory.generate_string("html", 300),
+        FauxFactory.generate_string("alpha", 256)
     ]
 
 
@@ -191,71 +191,6 @@ class STR:
     utf8 = "utf8"
 
 
-def generate_string(str_type, length):
-    '''
-    This function will allow creation of a wide variety of string types,
-    of arbitrary length.  Presently the unicode strings are CJK-only but
-    should suffice for the purposes of most multibyte testing.
-    '''
-    # approximate range of CJK Unified Ideographs
-    # It does not include extensions: '4E00- 9FFF'
-    # (note: big block of unused -- possibly reserved -- characters
-    # at the end of range above.  Code below does not include these
-    # as they are, in the end, invalid unicode for now)
-    # Latin 1 range: '00C0-00F0'
-    # (note: includes some mathematical symbol, which sort of wreaks
-    # havoc with using full range.  See range broken outto avoid these,
-    # below)
-
-    # First lowercase the selected str type
-    str_type = str_type.lower()
-
-    if str_type == "alphanumeric":
-        output_string = u''.join(
-            random.choice(
-                string.ascii_letters + string.digits
-            ) for i in range(length))
-    elif str_type == "alpha":
-        output_string = u''.join(
-            random.choice(string.ascii_letters) for i in range(length)
-        )
-    elif str_type == "numeric":
-        output_string = u''.join(
-            random.choice(string.digits) for i in range(length)
-        )
-    elif str_type == "latin1":
-        range0 = range1 = range2 = []
-        range0 = ['00C0', '00D6']
-        range1 = ['00D8', '00F6']
-        range2 = ['00F8', '00FF']
-        output_array = []
-        for i in range(int(range0[0], 16), int(range0[1], 16)):
-            output_array.append(i)
-        for i in range(int(range1[0], 16), int(range1[1], 16)):
-            output_array.append(i)
-        for i in range(int(range2[0], 16), int(range2[1], 16)):
-            output_array.append(i)
-        output_string = u''.join(
-            unichr(random.choice(output_array)) for x in xrange(length))
-    elif str_type == "utf8":
-        cjk_range = []
-        cjk_range = ['4E00', '9FCC']
-        output_array = []
-        for i in range(int(cjk_range[0], 16), int(cjk_range[1], 16)):
-            output_array.append(i)
-        output_string = u''.join(
-            unichr(random.choice(output_array)) for x in xrange(length))
-    elif str_type == "html":
-        html_tag = random.choice(HTML_TAGS).lower()
-        output_string = u'<%s>%s</%s>' % (
-            html_tag, generate_string("alpha", length), html_tag)
-    else:
-        raise Exception(
-            'Unexpected output type, valid types are \"alpha\", \
-            \"alphanumeric\", \"html\", \"latin1\", \"numeric\" or \"utf8\".')
-    return unicode(output_string)
-
-
 def generate_strings_list(len1=8):
     """
     Generates a list of all the input strings
@@ -268,7 +203,7 @@ def generate_strings_list(len1=8):
                  STR.utf8]
     str_list = []
     for str_type in str_types:
-        string1 = generate_string(str_type, len1)
+        string1 = FauxFactory.generate_string(str_type, len1)
         str_list.append(string1)
     return str_list
 

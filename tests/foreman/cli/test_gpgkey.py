@@ -5,14 +5,14 @@
 """Test class for GPG Key CLI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError, make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import data, skip_if_bug_open, stubbed
-from robottelo.common.helpers import (generate_name, generate_string,
-                                      get_data_file)
+from robottelo.common.helpers import generate_name, get_data_file
 from tempfile import mkstemp
 from robottelo.test import CLITestCase
 
@@ -24,12 +24,12 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': generate_string("latin1", 10)},
-        {'name': generate_string("utf8", 10)},
-        {'name': generate_string("alpha", 10)},
-        {'name': generate_string("alphanumeric", 10)},
-        {'name': generate_string("numeric", 20)},
-        {'name': generate_string("html", 10)},
+        {'name': FauxFactory.generate_string("latin1", 10)},
+        {'name': FauxFactory.generate_string("utf8", 10)},
+        {'name': FauxFactory.generate_string("alpha", 10)},
+        {'name': FauxFactory.generate_string("alphanumeric", 10)},
+        {'name': FauxFactory.generate_string("numeric", 20)},
+        {'name': FauxFactory.generate_string("html", 10)},
     )
 
 
@@ -38,12 +38,12 @@ def negative_create_data():
 
     return (
         {'name': ' '},
-        {'name': generate_string('alpha', 300)},
-        {'name': generate_string('numeric', 300)},
-        {'name': generate_string('alphanumeric', 300)},
-        {'name': generate_string('utf8', 300)},
-        {'name': generate_string('latin1', 300)},
-        {'name': generate_string('html', 300)},
+        {'name': FauxFactory.generate_string('alpha', 300)},
+        {'name': FauxFactory.generate_string('numeric', 300)},
+        {'name': FauxFactory.generate_string('alphanumeric', 300)},
+        {'name': FauxFactory.generate_string('utf8', 300)},
+        {'name': FauxFactory.generate_string('latin1', 300)},
+        {'name': FauxFactory.generate_string('html', 300)},
     )
 
 
@@ -103,7 +103,7 @@ class TestGPGKey(CLITestCase):
         """
 
         # GPG Key data
-        data = {'name': generate_string("alpha", 10)}
+        data = {'name': FauxFactory.generate_string("alpha", 10)}
         data['organization-id'] = self.org['id']
 
         # Setup a new key file
@@ -138,7 +138,7 @@ class TestGPGKey(CLITestCase):
         """
 
         # GPG Key data
-        data = {'name': generate_string("alpha", 10)}
+        data = {'name': FauxFactory.generate_string("alpha", 10)}
         data['organization-id'] = self.org['id']
 
         # Setup a new key file
@@ -176,7 +176,7 @@ class TestGPGKey(CLITestCase):
         """
 
         # GPG Key data
-        data = {'name': generate_string("alpha", 10)}
+        data = {'name': FauxFactory.generate_string("alpha", 10)}
         data['organization-id'] = self.org['id']
 
         # Setup a new key file

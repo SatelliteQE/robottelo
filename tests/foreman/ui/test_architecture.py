@@ -2,9 +2,9 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Architecture UI"""
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import (generate_string,
-                                      generate_strings_list)
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc,
                                   make_os, make_arch)
@@ -23,24 +23,24 @@ class Architecture(UITestCase):
         super(Architecture, self).setUp()
         #  Make sure to use the Class' org_name instance
         if (Architecture.org_name is None and Architecture.loc_name is None):
-            Architecture.org_name = generate_string("alpha", 8)
-            Architecture.loc_name = generate_string("alpha", 8)
+            Architecture.org_name = FauxFactory.generate_string("alpha", 8)
+            Architecture.loc_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Architecture.org_name)
                 make_loc(session, name=Architecture.loc_name)
 
-    @data({u'name': generate_string('alpha', 10),
-           u'os_name': generate_string('alpha', 10),
-           u'major_version': generate_string('numeric', 1)},
-          {u'name': generate_string('html', 10),
-           u'os_name': generate_string('html', 10),
-           u'major_version': generate_string('numeric', 4)},
-          {u'name': generate_string('utf8', 10),
-           u'os_name': generate_string('utf8', 10),
-           u'major_version': generate_string('numeric', 5)},
-          {u'name': generate_string('alphanumeric', 255),
-           u'os_name': generate_string('alphanumeric', 255),
-           u'major_version': generate_string('numeric', 5)})
+    @data({u'name': FauxFactory.generate_string('alpha', 10),
+           u'os_name': FauxFactory.generate_string('alpha', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 1)},
+          {u'name': FauxFactory.generate_string('html', 10),
+           u'os_name': FauxFactory.generate_string('html', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 4)},
+          {u'name': FauxFactory.generate_string('utf8', 10),
+           u'os_name': FauxFactory.generate_string('utf8', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 5)},
+          {u'name': FauxFactory.generate_string('alphanumeric', 255),
+           u'os_name': FauxFactory.generate_string('alphanumeric', 255),
+           u'major_version': FauxFactory.generate_string('numeric', 5)})
     def test_positive_create_arch_1(self, test_data):
         """@Test: Create a new Architecture with OS
 
@@ -134,18 +134,18 @@ class Architecture(UITestCase):
                                  (common_locators["name_haserror"]))
 
     @skip_if_bug_open('bugzilla', 1123388)
-    @data({u'name': generate_string('alpha', 10),
-           u'os_name': generate_string('alpha', 10),
-           u'major_version': generate_string('numeric', 1)},
-          {u'name': generate_string('html', 10),
-           u'os_name': generate_string('html', 10),
-           u'major_version': generate_string('numeric', 4)},
-          {u'name': generate_string('utf8', 10),
-           u'os_name': generate_string('utf8', 10),
-           u'major_version': generate_string('numeric', 5)},
-          {u'name': generate_string('alphanumeric', 255),
-           u'os_name': generate_string('alphanumeric', 255),
-           u'major_version': generate_string('numeric', 5)})
+    @data({u'name': FauxFactory.generate_string('alpha', 10),
+           u'os_name': FauxFactory.generate_string('alpha', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 1)},
+          {u'name': FauxFactory.generate_string('html', 10),
+           u'os_name': FauxFactory.generate_string('html', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 4)},
+          {u'name': FauxFactory.generate_string('utf8', 10),
+           u'os_name': FauxFactory.generate_string('utf8', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 5)},
+          {u'name': FauxFactory.generate_string('alphanumeric', 255),
+           u'os_name': FauxFactory.generate_string('alphanumeric', 255),
+           u'major_version': FauxFactory.generate_string('numeric', 5)})
     def test_remove_arch(self, test_data):
         """@Test: Delete an existing Architecture
 
@@ -169,22 +169,22 @@ class Architecture(UITestCase):
             self.assertIsNone(self.architecture.search(test_data['name']))
 
     @skip_if_bug_open('bugzilla', 1123388)
-    @data({u'old_name': generate_string('alpha', 10),
-           u'new_name': generate_string('alpha', 10),
-           u'os_name': generate_string('alpha', 10),
-           u'major_version': generate_string('numeric', 1)},
-          {u'old_name': generate_string('html', 10),
-           u'new_name': generate_string('html', 10),
-           u'os_name': generate_string('html', 10),
-           u'major_version': generate_string('numeric', 4)},
-          {u'old_name': generate_string('utf8', 10),
-           u'new_name': generate_string('utf8', 10),
-           u'os_name': generate_string('utf8', 10),
-           u'major_version': generate_string('numeric', 5)},
-          {u'old_name': generate_string('alphanumeric', 255),
-           u'new_name': generate_string('alphanumeric', 255),
-           u'os_name': generate_string('alphanumeric', 255),
-           u'major_version': generate_string('numeric', 5)})
+    @data({u'old_name': FauxFactory.generate_string('alpha', 10),
+           u'new_name': FauxFactory.generate_string('alpha', 10),
+           u'os_name': FauxFactory.generate_string('alpha', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 1)},
+          {u'old_name': FauxFactory.generate_string('html', 10),
+           u'new_name': FauxFactory.generate_string('html', 10),
+           u'os_name': FauxFactory.generate_string('html', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 4)},
+          {u'old_name': FauxFactory.generate_string('utf8', 10),
+           u'new_name': FauxFactory.generate_string('utf8', 10),
+           u'os_name': FauxFactory.generate_string('utf8', 10),
+           u'major_version': FauxFactory.generate_string('numeric', 5)},
+          {u'old_name': FauxFactory.generate_string('alphanumeric', 255),
+           u'new_name': FauxFactory.generate_string('alphanumeric', 255),
+           u'os_name': FauxFactory.generate_string('alphanumeric', 255),
+           u'major_version': FauxFactory.generate_string('numeric', 5)})
     def test_update_arch(self, test_data):
         """@Test: Update Architecture with new name and OS
 

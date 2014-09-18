@@ -5,10 +5,10 @@
 import sys
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.cli.fact import Fact
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 if sys.hexversion >= 0x2070000:
@@ -45,10 +45,10 @@ class TestFact(CLITestCase):
         self.assertEqual(stdout[0]['fact'], fact)
 
     @data(
-        generate_string("alpha", 10),
-        generate_string("alpha", 10),
-        generate_string("alpha", 10),
-        generate_string("alpha", 10),
+        FauxFactory.generate_string("alpha", 10),
+        FauxFactory.generate_string("alpha", 10),
+        FauxFactory.generate_string("alpha", 10),
+        FauxFactory.generate_string("alpha", 10),
     )
     @attr('cli', 'fact')
     def test_list_fail(self, fact):

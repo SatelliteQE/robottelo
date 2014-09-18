@@ -3,11 +3,11 @@
 
 """Test class for Template UI"""
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
 from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import (generate_string, get_data_file,
-                                      generate_strings_list)
+from robottelo.common.helpers import get_data_file, generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_org, make_loc, make_templates,
                                   make_os)
@@ -26,8 +26,8 @@ class Template(UITestCase):
         super(Template, self).setUp()
         #  Make sure to use the Class' org_name instance
         if (Template.org_name is None and Template.loc_name is None):
-            Template.org_name = generate_string("alpha", 8)
-            Template.loc_name = generate_string("alpha", 8)
+            Template.org_name = FauxFactory.generate_string("alpha", 8)
+            Template.loc_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Template.org_name)
                 make_loc(session, name=Template.loc_name)
@@ -66,7 +66,7 @@ class Template(UITestCase):
 
         """
 
-        name = generate_string("alpha", 256)
+        name = FauxFactory.generate_string("alpha", 256)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -129,7 +129,7 @@ class Template(UITestCase):
         @BZ: 1129612
 
         """
-        name = generate_string("alpha", 16)
+        name = FauxFactory.generate_string("alpha", 16)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -152,7 +152,7 @@ class Template(UITestCase):
         @BZ: 1129612
 
         """
-        name = generate_string("alpha", 16)
+        name = FauxFactory.generate_string("alpha", 16)
         temp_type = ""
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -174,7 +174,7 @@ class Template(UITestCase):
         @BZ: 1129612
 
         """
-        name = generate_string("alpha", 16)
+        name = FauxFactory.generate_string("alpha", 16)
         temp_type = 'PXELinux'
         template_path = ""
         with Session(self.browser) as session:
@@ -195,8 +195,8 @@ class Template(UITestCase):
         @BZ: 1129612
 
         """
-        name = generate_string("alpha", 16)
-        audit_comment = generate_string("alpha", 256)
+        name = FauxFactory.generate_string("alpha", 16)
+        audit_comment = FauxFactory.generate_string("alpha", 256)
         temp_type = 'PXELinux'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -220,7 +220,7 @@ class Template(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         template_path = get_data_file(SNIPPET_DATA_FILE)
         with Session(self.browser) as session:
             make_templates(session, name=name, template_path=template_path,
@@ -239,7 +239,7 @@ class Template(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -263,8 +263,8 @@ class Template(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
-        new_name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        new_name = FauxFactory.generate_string("alpha", 6)
         temp_type = 'provision'
         new_temp_type = 'PXELinux'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -288,13 +288,13 @@ class Template(UITestCase):
         @BZ: 1129612
 
         """
-        name = generate_string("alpha", 6)
-        new_name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        new_name = FauxFactory.generate_string("alpha", 6)
         temp_type = 'provision'
-        os_name1 = generate_string("alpha", 6)
-        os_name2 = generate_string("alpha", 6)
+        os_name1 = FauxFactory.generate_string("alpha", 6)
+        os_name2 = FauxFactory.generate_string("alpha", 6)
         os_list = [os_name1, os_name2]
-        major_version = generate_string('numeric', 1)
+        major_version = FauxFactory.generate_string('numeric', 1)
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
             for os_name in os_list:

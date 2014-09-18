@@ -3,11 +3,10 @@
 """Test class for Setting Parameter values"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_string
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc,
-                                  edit_param)
+from robottelo.ui.factory import make_org, make_loc, edit_param
 from robottelo.ui.locators import tab_locators, common_locators
 from robottelo.ui.session import Session
 
@@ -23,8 +22,8 @@ class Settings(UITestCase):
         super(Settings, self).setUp()
         #  Make sure to use the Class' org_name instance
         if (Settings.org_name is None and Settings.loc_name is None):
-            Settings.org_name = generate_string("alpha", 8)
-            Settings.loc_name = generate_string("alpha", 8)
+            Settings.org_name = FauxFactory.generate_string("alpha", 8)
+            Settings.loc_name = FauxFactory.generate_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Settings.org_name)
                 make_loc(session, name=Settings.loc_name)
@@ -54,16 +53,22 @@ class Settings(UITestCase):
             self.assertEqual(test_data['param_value'], saved_element)
 
     @skip_if_bug_open('bugzilla', 1125181)
-    @data({u'param_value': generate_string("latin1", 10) +
-           "@somemail.com"},
-          {u'param_value': generate_string("utf8", 10) +
-           "@somemail.com"},
-          {u'param_value': generate_string("alpha", 10) + "@somemail.com"},
-          {u'param_value': generate_string("html", 10) + "@somemail.com"},
-          {u'param_value': generate_string("alphanumeric", 10) +
-           "@somemail.com"},
-          {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
-          {u'param_value': generate_string("alphanumeric", 50) + "@somem.com"})
+    @data(
+        {u'param_value': FauxFactory.generate_string("latin1", 10) +
+         "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string("utf8", 10) +
+         "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "alpha", 10) + "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "html", 10) + "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string("alphanumeric", 10) +
+         "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "numeric", 10) + "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "alphanumeric", 50) + "@somem.com"}
+    )
     def test_positive_update_general_param_2(self, test_data):
         """@Test: Updates param "administrator" under General tab
 
@@ -151,7 +156,7 @@ class Settings(UITestCase):
         @Assert: Parameter is updated
 
         """
-        param_value = generate_string("numeric", 5)
+        param_value = FauxFactory.generate_string("numeric", 5)
         tab_locator = tab_locators["settings.tab_general"]
         param_name = "entries_per_page"
         value_type = "input"
@@ -168,16 +173,22 @@ class Settings(UITestCase):
             self.assertEqual(param_value.lstrip("0"), saved_element)
 
     @skip_if_bug_open('bugzilla', 1125181)
-    @data({u'param_value': generate_string("latin1", 10) +
-           "@somemail.com"},
-          {u'param_value': generate_string("utf8", 10) +
-           "@somemail.com"},
-          {u'param_value': generate_string("alpha", 10) + "@somemail.com"},
-          {u'param_value': generate_string("html", 10) + "@somemail.com"},
-          {u'param_value': generate_string("alphanumeric", 10) +
-           "@somemail.com"},
-          {u'param_value': generate_string("numeric", 10) + "@somemail.com"},
-          {u'param_value': generate_string("alphanumeric", 50) + "@somem.com"})
+    @data(
+        {u'param_value': FauxFactory.generate_string("latin1", 10) +
+         "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string("utf8", 10) +
+         "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "alpha", 10) + "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "html", 10) + "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string("alphanumeric", 10) +
+         "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "numeric", 10) + "@somemail.com"},
+        {u'param_value': FauxFactory.generate_string(
+            "alphanumeric", 50) + "@somem.com"}
+    )
     def test_positive_update_general_param_6(self, test_data):
         """@Test: Updates param "email_reply_address" under General tab
 
@@ -280,8 +291,8 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
-    @data({'param_value': generate_string("numeric", 2)},
-          {'param_value': generate_string("numeric", 5)})
+    @data({'param_value': FauxFactory.generate_string("numeric", 2)},
+          {'param_value': FauxFactory.generate_string("numeric", 5)})
     def test_positive_update_general_param_10(self, test_data):
         """@Test: Updates param "max_trend"
         under General tab
@@ -342,8 +353,8 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
-    @data({'param_value': generate_string("numeric", 1)},
-          {'param_value': generate_string("numeric", 5)})
+    @data({'param_value': FauxFactory.generate_string("numeric", 1)},
+          {'param_value': FauxFactory.generate_string("numeric", 5)})
     def test_positive_update_general_param_12(self, test_data):
         """@Test: Updates param "idle_timeout"
         under General tab
@@ -373,12 +384,14 @@ class Settings(UITestCase):
                 saved_element
             )
 
-    @data({u'param_value': "http://" + generate_string("alpha", 10) +
-           ".dom.com"},
-          {u'param_value': "https://" + generate_string("alphanumeric", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("numeric", 10) +
-           ".dom.com"})
+    @data(
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "alpha", 10) + ".dom.com"},
+        {u'param_value': "https://" + FauxFactory.generate_string(
+            "alphanumeric", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "numeric", 10) + ".dom.com"}
+    )
     def test_positive_update_general_param_13(self, test_data):
         """@Test: Updates param "foreman_url" under General tab
 
@@ -401,15 +414,17 @@ class Settings(UITestCase):
             self.assertEqual(test_data['param_value'], saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
-    @data({u'param_value': "http://\\" + generate_string("alpha", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("utf8", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("latin1", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("html", 10) +
-           ".dom.com"},
-          {u'param_value': " "})
+    @data(
+        {u'param_value': "http://\\" + FauxFactory.generate_string(
+            "alpha", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "utf8", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "latin1", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "html", 10) + ".dom.com"},
+        {u'param_value': " "}
+    )
     def test_negative_update_general_param_14(self, test_data):
         """@Test: Updates param "foreman_url" under General tab
 
@@ -459,11 +474,11 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @data({u'param_value': generate_string("latin1", 10)},
-          {u'param_value': generate_string("utf8", 10)},
-          {u'param_value': generate_string("alpha", 10)},
-          {u'param_value': generate_string("alphanumeric", 10)},
-          {u'param_value': generate_string("numeric", 10)})
+    @data({u'param_value': FauxFactory.generate_string("latin1", 10)},
+          {u'param_value': FauxFactory.generate_string("utf8", 10)},
+          {u'param_value': FauxFactory.generate_string("alpha", 10)},
+          {u'param_value': FauxFactory.generate_string("alphanumeric", 10)},
+          {u'param_value': FauxFactory.generate_string("numeric", 10)})
     def test_positive_update_auth_param_16(self, test_data):
         """@Test: Updates param
         "authorize_login_delegation_auth_source_user_autocreate"
@@ -487,12 +502,14 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
-    @data({u'param_value': "http://" + generate_string("alpha", 10) +
-           ".dom.com"},
-          {u'param_value': "https://" + generate_string("alphanumeric", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("numeric", 10) +
-           ".dom.com"})
+    @data(
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "alpha", 10) + ".dom.com"},
+        {u'param_value': "https://" + FauxFactory.generate_string(
+            "alphanumeric", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "numeric", 10) + ".dom.com"}
+    )
     def test_positive_update_auth_param_17(self, test_data):
         """@Test: Updates param "login_delegation_logout_url" under Auth tab
 
@@ -615,12 +632,14 @@ class Settings(UITestCase):
                            value_type=value_type,
                            param_value='false')
 
-    @data({u'param_value': "http://" + generate_string("alpha", 10) +
-           ".dom.com"},
-          {u'param_value': "https://" + generate_string("alphanumeric", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("numeric", 10) +
-           ".dom.com"})
+    @data(
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "alpha", 10) + ".dom.com"},
+        {u'param_value': "https://" + FauxFactory.generate_string(
+            "alphanumeric", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "numeric", 10) + ".dom.com"}
+    )
     def test_positive_update_auth_param_22(self, test_data):
         """@Test: Updates param "signo_url" under Auth tab
 
@@ -643,14 +662,16 @@ class Settings(UITestCase):
             self.assertEqual(test_data['param_value'], saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
-    @data({u'param_value': "http://\\" + generate_string("alpha", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("utf8", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("latin1", 10) +
-           ".dom.com"},
-          {u'param_value': "http://" + generate_string("html", 10) +
-           ".dom.com"})
+    @data(
+        {u'param_value': "http://\\" + FauxFactory.generate_string(
+            "alpha", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "utf8", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "latin1", 10) + ".dom.com"},
+        {u'param_value': "http://" + FauxFactory.generate_string(
+            "html", 10) + ".dom.com"}
+    )
     def test_negative_update_auth_param_23(self, test_data):
         """@Test: Updates param "signo_url" under Auth tab
 
@@ -676,9 +697,14 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
-    @data({u'param_value': "[ " + generate_string("utf8", 10) + " ]"},
-          {u'param_value': "[ " + generate_string("alphanumeric", 10) + " ]"},
-          {u'param_value': "[ " + generate_string("numeric", 10) + " ]"})
+    @data(
+        {u'param_value': "[ " + FauxFactory.generate_string(
+            "utf8", 10) + " ]"},
+        {u'param_value': "[ " + FauxFactory.generate_string(
+            "alphanumeric", 10) + " ]"},
+        {u'param_value': "[ " + FauxFactory.generate_string(
+            "numeric", 10) + " ]"}
+    )
     def test_positive_update_auth_param_24(self, test_data):
         """@Test: Updates param
         "trusted_puppetmaster_hosts"

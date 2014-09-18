@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-from robottelo.common.helpers import (update_dictionary, generate_string,
-                                      generate_email_address)
+from fauxfactory import FauxFactory
+from robottelo.common.helpers import update_dictionary, generate_email_address
 from robottelo.common.constants import REPO_TYPE
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
@@ -277,7 +277,7 @@ def make_user(session, org=None, loc=None, force_context=False, **kwargs):
     """
     Creates a user
     """
-    password = generate_string("alpha", 6)
+    password = FauxFactory.generate_string("alpha", 6)
 
     create_args = {
         'username': None,
@@ -286,8 +286,8 @@ def make_user(session, org=None, loc=None, force_context=False, **kwargs):
         'password2': password,
         'authorized_by': "INTERNAL",
         'locale': None,
-        'first_name': generate_string("alpha", 6),
-        'last_name': generate_string("alpha", 6),
+        'first_name': FauxFactory.generate_string("alpha", 6),
+        'last_name': FauxFactory.generate_string("alpha", 6),
         'roles': None,
         'locations': None,
         'organizations': None,

@@ -3,7 +3,7 @@
 """Test class for Global parameters CLI"""
 
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.common.helpers import generate_string
+from fauxfactory import FauxFactory
 from robottelo.test import CLITestCase
 
 
@@ -18,9 +18,9 @@ class TestGlobalParameter(CLITestCase):
         @Assert: Global Param is set
 
         """
-        name = "opt-%s" % generate_string("alpha", 10)
-        val_part1 = generate_string("alpha", 10)
-        val_part2 = generate_string("alpha", 10)
+        name = "opt-%s" % FauxFactory.generate_string("alpha", 10)
+        val_part1 = FauxFactory.generate_string("alpha", 10)
+        val_part2 = FauxFactory.generate_string("alpha", 10)
         value = "val-%s %s" % (val_part1, val_part2)
         result = GlobalParameter().set({
             'name': name,
@@ -37,9 +37,9 @@ class TestGlobalParameter(CLITestCase):
         @Assert: Global Param List is displayed
 
         """
-        name = "opt-%s" % generate_string("alpha", 10)
-        val_part1 = generate_string("alpha", 10)
-        val_part2 = generate_string("alpha", 10)
+        name = "opt-%s" % FauxFactory.generate_string("alpha", 10)
+        val_part1 = FauxFactory.generate_string("alpha", 10)
+        val_part2 = FauxFactory.generate_string("alpha", 10)
         value = "val-%s %s" % (val_part1, val_part2)
         result = GlobalParameter().set({
             'name': name,
@@ -64,9 +64,9 @@ class TestGlobalParameter(CLITestCase):
         @Assert: Global Param is deleted
 
         """
-        name = "opt-%s" % generate_string("alpha", 10)
-        val_part1 = generate_string("alpha", 10)
-        val_part2 = generate_string("alpha", 10)
+        name = "opt-%s" % FauxFactory.generate_string("alpha", 10)
+        val_part1 = FauxFactory.generate_string("alpha", 10)
+        val_part2 = FauxFactory.generate_string("alpha", 10)
         value = "val-%s %s" % (val_part1, val_part2)
         result = GlobalParameter().set({
             'name': name,

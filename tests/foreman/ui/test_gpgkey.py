@@ -10,16 +10,16 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
-from robottelo.common.constants import (NOT_IMPLEMENTED, VALID_GPG_KEY_FILE,
-                                        VALID_GPG_KEY_BETA_FILE,
-                                        FAKE_1_YUM_REPO, FAKE_2_YUM_REPO)
+from robottelo.common.constants import (
+    NOT_IMPLEMENTED, VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE,
+    FAKE_1_YUM_REPO, FAKE_2_YUM_REPO)
 from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import (generate_string, get_data_file,
-                                      read_data_file, valid_names_list,
-                                      invalid_names_list,
-                                      generate_strings_list)
+from robottelo.common.helpers import (
+    get_data_file, read_data_file, valid_names_list, invalid_names_list,
+    generate_strings_list)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_gpgkey
 from robottelo.ui.locators import common_locators
@@ -265,8 +265,8 @@ class GPGKey(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
-        new_name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        new_name = FauxFactory.generate_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=GPGKey.org_name,
@@ -288,7 +288,7 @@ class GPGKey(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         with Session(self.browser) as session:
@@ -311,8 +311,8 @@ class GPGKey(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
-        new_name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
+        new_name = FauxFactory.generate_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=GPGKey.org_name,
@@ -333,7 +333,7 @@ class GPGKey(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         with Session(self.browser) as session:
@@ -358,7 +358,7 @@ class GPGKey(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=GPGKey.org_name,
@@ -382,7 +382,7 @@ class GPGKey(UITestCase):
 
         """
 
-        name = generate_string("alpha", 6)
+        name = FauxFactory.generate_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=GPGKey.org_name,
@@ -407,7 +407,7 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -440,8 +440,8 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -483,9 +483,9 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_1_name = generate_string("alpha", 8)
-        repository_2_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_1_name = FauxFactory.generate_string("alpha", 8)
+        repository_2_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -536,7 +536,7 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -567,8 +567,8 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -611,9 +611,9 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_1_name = generate_string("alpha", 8)
-        repository_2_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_1_name = FauxFactory.generate_string("alpha", 8)
+        repository_2_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -686,9 +686,9 @@ class GPGKey(UITestCase):
         @assert: gpg key is associated with product before/after update
 
         """
-        name = generate_string("alpha", 8)
-        new_name = generate_string("alpha", 8)
-        product_name = generate_string("alpha", 8)
+        name = FauxFactory.generate_string("alpha", 8)
+        new_name = FauxFactory.generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -727,9 +727,9 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        new_name = generate_string("alpha", 8)
-        repository_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        new_name = FauxFactory.generate_string("alpha", 8)
+        repository_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -779,10 +779,10 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        new_name = generate_string("alpha", 8)
-        repository_1_name = generate_string("alpha", 8)
-        repository_2_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        new_name = FauxFactory.generate_string("alpha", 8)
+        repository_1_name = FauxFactory.generate_string("alpha", 8)
+        repository_2_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -841,8 +841,8 @@ class GPGKey(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
-        new_name = generate_string("alpha", 8)
+        prd_name = FauxFactory.generate_string("alpha", 8)
+        new_name = FauxFactory.generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -882,9 +882,9 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        new_name = generate_string("alpha", 8)
-        repository_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        new_name = FauxFactory.generate_string("alpha", 8)
+        repository_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -935,10 +935,10 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        new_name = generate_string("alpha", 8)
-        repository_1_name = generate_string("alpha", 8)
-        repository_2_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        new_name = FauxFactory.generate_string("alpha", 8)
+        repository_1_name = FauxFactory.generate_string("alpha", 8)
+        repository_2_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -1023,7 +1023,7 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -1061,8 +1061,8 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -1110,9 +1110,9 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_1_name = generate_string("alpha", 8)
-        repository_2_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_1_name = FauxFactory.generate_string("alpha", 8)
+        repository_2_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -1169,7 +1169,7 @@ class GPGKey(UITestCase):
 
         """
 
-        prd_name = generate_string("alpha", 8)
+        prd_name = FauxFactory.generate_string("alpha", 8)
         url = "http://omaciel.fedorapeople.org/"
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -1208,8 +1208,8 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
             name=name,
@@ -1258,9 +1258,9 @@ class GPGKey(UITestCase):
 
         """
 
-        product_name = generate_string("alpha", 8)
-        repository_1_name = generate_string("alpha", 8)
-        repository_2_name = generate_string("alpha", 8)
+        product_name = FauxFactory.generate_string("alpha", 8)
+        repository_1_name = FauxFactory.generate_string("alpha", 8)
+        repository_2_name = FauxFactory.generate_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         # Creates New GPGKey
         gpgkey_attrs = entities.GPGKey(

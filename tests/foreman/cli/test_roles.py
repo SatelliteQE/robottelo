@@ -2,9 +2,9 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Roles CLI"""
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError, make_role
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.helpers import generate_string
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 from robottelo.cli.role import Role
@@ -17,11 +17,11 @@ class TestRole(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138551)
     @skip_if_bug_open('bugzilla', 1138553)
     @data(
-        generate_string('alpha', 15),
-        generate_string('alphanumeric', 15),
-        generate_string('numeric', 15),
-        generate_string('latin1', 15),
-        generate_string('utf8', 15),
+        FauxFactory.generate_string('alpha', 15),
+        FauxFactory.generate_string('alphanumeric', 15),
+        FauxFactory.generate_string('numeric', 15),
+        FauxFactory.generate_string('latin1', 15),
+        FauxFactory.generate_string('utf8', 15),
     )
     def test_positive_create_role_1(self, data):
         """@Test: Create new roles and assign to the custom user
@@ -56,9 +56,9 @@ class TestRole(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1138553)
     @data(
-        generate_string('alpha', 15),
-        generate_string('alphanumeric', 15),
-        generate_string('numeric', 15),
+        FauxFactory.generate_string('alpha', 15),
+        FauxFactory.generate_string('alphanumeric', 15),
+        FauxFactory.generate_string('numeric', 15),
     )
     def test_positive_delete_role_1(self, data):
         """@Test: Delete roles after creating them
@@ -92,9 +92,9 @@ class TestRole(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1138553)
     @data(
-        generate_string('alpha', 15),
-        generate_string('alphanumeric', 15),
-        generate_string('numeric', 15),
+        FauxFactory.generate_string('alpha', 15),
+        FauxFactory.generate_string('alphanumeric', 15),
+        FauxFactory.generate_string('numeric', 15),
     )
     def test_positive_update_role_1(self, data):
         """@Test: Update roles after creating them
@@ -104,7 +104,7 @@ class TestRole(CLITestCase):
         @Assert: Assert updation of roles
 
         """
-        name = generate_string('alpha', 15)
+        name = FauxFactory.generate_string('alpha', 15)
         try:
             role = make_role({'name': name})
         except CLIFactoryError as err:

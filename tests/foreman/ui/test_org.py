@@ -10,12 +10,13 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
+from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.decorators import data
-from robottelo.common.helpers import (generate_strings_list,
-                                      generate_string, generate_ipaddr,
-                                      generate_email_address, get_data_file)
+from robottelo.common.helpers import (
+    generate_strings_list, generate_ipaddr, generate_email_address,
+    get_data_file)
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.common.decorators import skip_if_bug_open, stubbed
 from robottelo.test import UITestCase
@@ -43,7 +44,7 @@ class Org(UITestCase):
 
         """
 
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         part_string = org_name[:3]
         with Session(self.browser) as session:
             page = session.nav.go_to_org
@@ -74,24 +75,24 @@ class Org(UITestCase):
 
     @unittest.skip("parent_org feature is disabled currently")
     @attr('ui', 'org', 'implemented')
-    @data({'label': generate_string('alpha', 10),
-           'name': generate_string('alpha', 10),
-           'desc': generate_string('alpha', 10)},
-          {'label': generate_string('numeric', 10),
-           'name': generate_string('numeric', 10),
-           'desc': generate_string('numeric', 10)},
-          {'label': generate_string('alphanumeric', 10),
-           'name': generate_string('alphanumeric', 10),
-           'desc': generate_string('alphanumeric', 10)},
-          {'label': generate_string('alpha', 10),
-           'name': generate_string('utf8', 10),
-           'desc': generate_string('utf8', 10)},
-          {'label': generate_string('alpha', 10),
-           'name': generate_string('latin1', 20),
-           'desc': generate_string('latin1', 10)},
-          {'label': generate_string('alpha', 10),
-           'name': generate_string('html', 20),
-           'desc': generate_string('html', 10)})
+    @data({'label': FauxFactory.generate_string('alpha', 10),
+           'name': FauxFactory.generate_string('alpha', 10),
+           'desc': FauxFactory.generate_string('alpha', 10)},
+          {'label': FauxFactory.generate_string('numeric', 10),
+           'name': FauxFactory.generate_string('numeric', 10),
+           'desc': FauxFactory.generate_string('numeric', 10)},
+          {'label': FauxFactory.generate_string('alphanumeric', 10),
+           'name': FauxFactory.generate_string('alphanumeric', 10),
+           'desc': FauxFactory.generate_string('alphanumeric', 10)},
+          {'label': FauxFactory.generate_string('alpha', 10),
+           'name': FauxFactory.generate_string('utf8', 10),
+           'desc': FauxFactory.generate_string('utf8', 10)},
+          {'label': FauxFactory.generate_string('alpha', 10),
+           'name': FauxFactory.generate_string('latin1', 20),
+           'desc': FauxFactory.generate_string('latin1', 10)},
+          {'label': FauxFactory.generate_string('alpha', 10),
+           'name': FauxFactory.generate_string('html', 20),
+           'desc': FauxFactory.generate_string('html', 10)})
     def test_positive_create_2(self, test_data):
         """@test: Create organization with valid name, label, parent_org, desc.
 
@@ -100,7 +101,7 @@ class Org(UITestCase):
         @assert: organization is created.
 
         """
-        parent = generate_string("alpha", 8)
+        parent = FauxFactory.generate_string("alpha", 8)
         desc = test_data['desc']
         label = test_data['label']
         org_name = test_data['name']
@@ -111,12 +112,12 @@ class Org(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
 
     @attr('ui', 'org', 'implemented')
-    @data({'name': generate_string('alpha', 10),
-           'label': generate_string('alpha', 10)},
-          {'name': generate_string('numeric', 10),
-           'label': generate_string('numeric', 10)},
-          {'name': generate_string('alphanumeric', 10),
-           'label': generate_string('alphanumeric', 10)})
+    @data({'name': FauxFactory.generate_string('alpha', 10),
+           'label': FauxFactory.generate_string('alpha', 10)},
+          {'name': FauxFactory.generate_string('numeric', 10),
+           'label': FauxFactory.generate_string('numeric', 10)},
+          {'name': FauxFactory.generate_string('alphanumeric', 10),
+           'label': FauxFactory.generate_string('alphanumeric', 10)})
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_3(self, test_data):
         """@test: Create organization with valid unmatching name and label only
@@ -141,9 +142,9 @@ class Org(UITestCase):
             self.assertNotEqual(name, label)
 
     @attr('ui', 'org', 'implemented')
-    @data({'data': generate_string('alpha', 10)},
-          {'data': generate_string('numeric', 10)},
-          {'data': generate_string('alphanumeric', 10)})
+    @data({'data': FauxFactory.generate_string('alpha', 10)},
+          {'data': FauxFactory.generate_string('numeric', 10)},
+          {'data': FauxFactory.generate_string('alphanumeric', 10)})
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_4(self, test_data):
         """@test: Create organization with valid matching name and label only.
@@ -168,18 +169,18 @@ class Org(UITestCase):
     @skip_if_bug_open('bugzilla', 1079482)
     @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
-    @data({'name': generate_string('alpha', 10),
-           'desc': generate_string('alpha', 10)},
-          {'name': generate_string('numeric', 10),
-           'desc': generate_string('numeric', 10)},
-          {'name': generate_string('alphanumeric', 10),
-           'desc': generate_string('alphanumeric', 10)},
-          {'name': generate_string('utf8', 10),
-           'desc': generate_string('utf8', 10)},
-          {'name': generate_string('latin1', 20),
-           'desc': generate_string('latin1', 10)},
-          {'name': generate_string('html', 20),
-           'desc': generate_string('html', 10)})
+    @data({'name': FauxFactory.generate_string('alpha', 10),
+           'desc': FauxFactory.generate_string('alpha', 10)},
+          {'name': FauxFactory.generate_string('numeric', 10),
+           'desc': FauxFactory.generate_string('numeric', 10)},
+          {'name': FauxFactory.generate_string('alphanumeric', 10),
+           'desc': FauxFactory.generate_string('alphanumeric', 10)},
+          {'name': FauxFactory.generate_string('utf8', 10),
+           'desc': FauxFactory.generate_string('utf8', 10)},
+          {'name': FauxFactory.generate_string('latin1', 20),
+           'desc': FauxFactory.generate_string('latin1', 10)},
+          {'name': FauxFactory.generate_string('html', 20),
+           'desc': FauxFactory.generate_string('html', 10)})
     def test_positive_create_5(self, test_data):
         """@test: Create organization with valid name and description only.
 
@@ -312,7 +313,7 @@ class Org(UITestCase):
 
         """
 
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
@@ -338,7 +339,7 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
-            new_name = generate_string("alpha", 256)
+            new_name = FauxFactory.generate_string("alpha", 256)
             self.org.update(org_name, new_name=new_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
@@ -378,7 +379,7 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_domain(session, name=domain)
             self.assertIsNotNone(self.domain.search(domain))
@@ -402,11 +403,11 @@ class Org(UITestCase):
 
     #  Note: HTML username is invalid as per the UI msg.
     @attr('ui', 'org', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)},
-          {'name': generate_string('utf8', 8)},
-          {'name': generate_string('latin1', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)},
+          {'name': FauxFactory.generate_string('utf8', 8)},
+          {'name': FauxFactory.generate_string('latin1', 8)})
     def test_remove_user_1(self, testdata):
         """@test: Create admin users then add user and remove it
         by using the organization name.
@@ -419,8 +420,8 @@ class Org(UITestCase):
         user_name = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
-        password = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
+        password = FauxFactory.generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         with Session(self.browser) as session:
@@ -458,7 +459,7 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_hostgroup(session, name=host_grp)
             self.assertIsNotNone(self.hostgroup.search(host_grp))
@@ -514,7 +515,7 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         with Session(self.browser) as session:
@@ -542,7 +543,7 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
@@ -557,11 +558,11 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(generate_string('alpha', 8),
-          generate_string('numeric', 8),
-          generate_string('alphanumeric', 8),
-          generate_string('utf8', 8),
-          generate_string('latin1', 8))
+    @data(FauxFactory.generate_string('alpha', 8),
+          FauxFactory.generate_string('numeric', 8),
+          FauxFactory.generate_string('alphanumeric', 8),
+          FauxFactory.generate_string('utf8', 8),
+          FauxFactory.generate_string('latin1', 8))
     def test_add_user_2(self, name):
         """@test: Create different types of users then add user
         by using the organization name.
@@ -573,8 +574,8 @@ class Org(UITestCase):
         """
 
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
-        password = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
+        password = FauxFactory.generate_string("alpha", 8)
         email = generate_email_address()
         search_key = "login"
         with Session(self.browser) as session:
@@ -605,7 +606,7 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
@@ -631,7 +632,7 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
@@ -658,7 +659,7 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
@@ -696,8 +697,8 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
-        path = URL % generate_string("alpha", 6)
+        org_name = FauxFactory.generate_string("alpha", 8)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=medium, path=path, os_family=os_family)
@@ -736,7 +737,7 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -762,9 +763,9 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)})
     def test_add_environment_1(self, testdata):
         """@test: Add environment by using organization name and evironment name.
 
@@ -775,7 +776,7 @@ class Org(UITestCase):
         """
         env = testdata['name']
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
@@ -825,7 +826,7 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
@@ -853,8 +854,8 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
-        path = URL % generate_string("alpha", 6)
+        org_name = FauxFactory.generate_string("alpha", 8)
+        path = URL % FauxFactory.generate_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -885,7 +886,7 @@ class Org(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -904,9 +905,9 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data({'name': generate_string('alpha', 8)},
-          {'name': generate_string('numeric', 8)},
-          {'name': generate_string('alphanumeric', 8)})
+    @data({'name': FauxFactory.generate_string('alpha', 8)},
+          {'name': FauxFactory.generate_string('numeric', 8)},
+          {'name': FauxFactory.generate_string('alphanumeric', 8)})
     def test_remove_environment_1(self, testdata):
         """@test: Remove environment by using organization name & evironment name.
 
@@ -918,7 +919,7 @@ class Org(UITestCase):
         env = testdata['name']
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             make_env(session, name=env)
             search = self.environment.search(env)
@@ -953,7 +954,7 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
-        org_name = generate_string("alpha", 8)
+        org_name = FauxFactory.generate_string("alpha", 8)
         subnet_network = generate_ipaddr(ip3=True)
         subnet_mask = "255.255.255.0"
         with Session(self.browser) as session:

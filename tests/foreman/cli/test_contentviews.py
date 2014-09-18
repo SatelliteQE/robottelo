@@ -9,6 +9,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
 import unittest
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view, make_org, make_repository, make_product,
@@ -21,7 +22,6 @@ from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.common.constants import NOT_IMPLEMENTED
 from robottelo.common.decorators import data, skip_if_bug_open, stubbed
-from robottelo.common.helpers import generate_string
 from robottelo.test import CLITestCase
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
@@ -31,12 +31,12 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': generate_string("latin1", 10)},
-        {'name': generate_string("utf8", 10)},
-        {'name': generate_string("alpha", 10)},
-        {'name': generate_string("alphanumeric", 10)},
-        {'name': generate_string("numeric", 20)},
-        {'name': generate_string("html", 10)},
+        {'name': FauxFactory.generate_string("latin1", 10)},
+        {'name': FauxFactory.generate_string("utf8", 10)},
+        {'name': FauxFactory.generate_string("alpha", 10)},
+        {'name': FauxFactory.generate_string("alphanumeric", 10)},
+        {'name': FauxFactory.generate_string("numeric", 20)},
+        {'name': FauxFactory.generate_string("html", 10)},
     )
 
 
@@ -45,12 +45,12 @@ def negative_create_data():
 
     return (
         {'name': ' '},
-        {'name': generate_string('alpha', 300)},
-        {'name': generate_string('numeric', 300)},
-        {'name': generate_string('alphanumeric', 300)},
-        {'name': generate_string('utf8', 300)},
-        {'name': generate_string('latin1', 300)},
-        {'name': generate_string('html', 300)},
+        {'name': FauxFactory.generate_string('alpha', 300)},
+        {'name': FauxFactory.generate_string('numeric', 300)},
+        {'name': FauxFactory.generate_string('alphanumeric', 300)},
+        {'name': FauxFactory.generate_string('utf8', 300)},
+        {'name': FauxFactory.generate_string('latin1', 300)},
+        {'name': FauxFactory.generate_string('html', 300)},
     )
 
 
@@ -206,8 +206,8 @@ class TestContentView(CLITestCase):
 
         """
 
-        org_name = generate_string("alpha", 10)
-        con_name = generate_string("alpha", 10)
+        org_name = FauxFactory.generate_string("alpha", 10)
+        con_name = FauxFactory.generate_string("alpha", 10)
         result = ContentView.create({'name': con_name,
                                      'organization-id': org_name})
         self.assertNotEqual(result.return_code, 0)
@@ -230,7 +230,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
-        con_name = generate_string("alpha", 10)
+        con_name = FauxFactory.generate_string("alpha", 10)
         try:
             con_view = make_content_view({
                 'name': con_name,
@@ -239,7 +239,7 @@ class TestContentView(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        con_view_update = generate_string("alpha", 10)
+        con_view_update = FauxFactory.generate_string("alpha", 10)
         result = ContentView.update({'id': con_view['id'],
                                      'name': con_view_update})
         self.assertEqual(result.return_code, 0, "Failed to update object")
@@ -286,7 +286,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        con_view_name = generate_string("alpha", 10)
+        con_view_name = FauxFactory.generate_string("alpha", 10)
         try:
             con_view = make_content_view({
                 'name': con_view_name,
