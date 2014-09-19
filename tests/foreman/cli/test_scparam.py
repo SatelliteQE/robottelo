@@ -3,11 +3,12 @@
 """Test class for Smart Class Parameter CLI."""
 
 from robottelo.cli.smartclass import SmartClassParameter
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.common import ssh
 from robottelo.test import CLITestCase
 
 
+@run_only_on('sat')
 class TestSmartClassParameter(CLITestCase):
     """Test class for Smart Class Parameter CLI."""
 

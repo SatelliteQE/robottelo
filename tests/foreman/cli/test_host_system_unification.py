@@ -8,6 +8,7 @@ Test class for Host/System Unification
 import sys
 
 from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 if sys.hexversion >= 0x2070000:
@@ -16,6 +17,7 @@ else:
     import unittest2 as unittest
 
 
+@run_only_on('sat')
 class TestHostSystemUnificationCLI(CLITestCase):
     # Testing notes for host/system unification in katello/foreman:
     # Basically assuring that hosts in foreman/katello bits are joined

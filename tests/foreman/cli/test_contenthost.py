@@ -14,7 +14,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -183,6 +183,7 @@ class TestContentHost(CLITestCase):
             self.LIBRARY['name'],
             "Environments don't match")
 
+    @run_only_on('sat')
     @attr('cli', 'content-host')
     def test_positive_create_5(self):
         """@Test: Check if content host can be created with content view name
@@ -205,6 +206,7 @@ class TestContentHost(CLITestCase):
             "Content views don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1107319)
     @attr('cli', 'content-host')
     def test_positive_create_6(self):
@@ -228,6 +230,7 @@ class TestContentHost(CLITestCase):
             "Lifecycle environments don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1114046)
     @attr('cli', 'content-host')
     def test_positive_create_7(self):
@@ -253,6 +256,7 @@ class TestContentHost(CLITestCase):
             "Environments don't match"
         )
 
+    @run_only_on('sat')
     @attr('cli', 'content-host')
     def test_positive_create_8(self):
         """@Test: Check if content host can be created with new content view
@@ -303,6 +307,7 @@ class TestContentHost(CLITestCase):
                 u'content-view-id': self.DEFAULT_CV['id'],
                 u'lifecycle-environment-id': self.LIBRARY['id']})
 
+    @run_only_on('sat')
     @attr('cli', 'content-host')
     def test_negative_create_2(self):
         """@Test: Check if content host can be created with new content view

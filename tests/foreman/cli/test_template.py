@@ -5,10 +5,11 @@
 from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError, make_template, make_os
 from robottelo.cli.template import Template
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
+@run_only_on('sat')
 class TestTemplate(CLITestCase):
     """Test class for Config Template CLI."""
 

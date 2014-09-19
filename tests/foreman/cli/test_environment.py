@@ -7,9 +7,11 @@ from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment
+from robottelo.common.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
+@run_only_on('sat')
 class TestEnvironment(MetaCLITestCase):
 
     factory = make_environment
