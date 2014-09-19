@@ -10,7 +10,7 @@ from robottelo.cli.template import Template
 from robottelo.cli.factory import (
     CLIFactoryError, make_architecture, make_os, make_partition_table,
     make_template)
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -82,6 +82,7 @@ NEGATIVE_DELETE_DATA = (
 )
 
 
+@run_only_on('sat')
 @ddt
 class TestOperatingSystem(CLITestCase):
     """Test class for Operating System CLI."""

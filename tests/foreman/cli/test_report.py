@@ -6,9 +6,11 @@ import random
 
 from robottelo.cli.report import Report
 from robottelo.common import ssh
+from robottelo.common.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
+@run_only_on('sat')
 class TestReport(CLITestCase):
     """Test class for Reports CLI. """
 

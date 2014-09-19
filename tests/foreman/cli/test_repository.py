@@ -8,7 +8,8 @@ from nose.plugins.attrib import attr
 from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
                                    make_repository)
 from robottelo.cli.repository import Repository
-from robottelo.common.decorators import data, skip_if_bug_open, stubbed
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
 
 
@@ -58,6 +59,7 @@ class TestRepository(CLITestCase):
         # Return the repository dictionary
         return new_repo
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -85,6 +87,7 @@ class TestRepository(CLITestCase):
             "Names don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -121,6 +124,7 @@ class TestRepository(CLITestCase):
             "Label should not match the repository name"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
@@ -159,6 +163,7 @@ class TestRepository(CLITestCase):
             "Content Types don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/',
@@ -197,6 +202,7 @@ class TestRepository(CLITestCase):
             "Content Types don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1083236)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
@@ -245,6 +251,7 @@ class TestRepository(CLITestCase):
             "GPG Keys name don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1103944)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
@@ -293,6 +300,7 @@ class TestRepository(CLITestCase):
             "GPG Keys name don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1083256)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(u'true', u'yes', u'1')
@@ -326,6 +334,7 @@ class TestRepository(CLITestCase):
             "Publishing methods don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(u'false', u'no', u'0')
     @attr('cli', 'repository')
@@ -356,6 +365,7 @@ class TestRepository(CLITestCase):
             "Publishing methods don't match"
         )
 
+    @run_only_on('sat')
     @data(
         {u'name': FauxFactory.generate_string('alpha', 300)},
         {u'name': FauxFactory.generate_string('alphanumeric', 300)},
@@ -377,6 +387,7 @@ class TestRepository(CLITestCase):
         with self.assertRaises(Exception):
             self._make_repository({u'name': test_data['name']})
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
@@ -421,6 +432,7 @@ class TestRepository(CLITestCase):
             'Finished',
             "The new status of repository should be 'Finished'")
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/'},
@@ -471,6 +483,7 @@ class TestRepository(CLITestCase):
             "Urls don't match"
         )
 
+    @run_only_on('sat')
     @stubbed
     @skip_if_bug_open('bugzilla', 1083236)
     @attr('cli', 'repository')
@@ -487,6 +500,7 @@ class TestRepository(CLITestCase):
 
         """
 
+    @run_only_on('sat')
     @stubbed
     @skip_if_bug_open('bugzilla', 1083256)
     @attr('cli', 'repository')
@@ -503,6 +517,7 @@ class TestRepository(CLITestCase):
 
         """
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},

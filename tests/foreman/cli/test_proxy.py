@@ -6,11 +6,12 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 import random
 
 
+@run_only_on('sat')
 @ddt
 class TestProxy(CLITestCase):
 

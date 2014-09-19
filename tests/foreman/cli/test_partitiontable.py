@@ -6,8 +6,10 @@ from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import CLIFactoryError, make_partition_table
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
+from robottelo.common.decorators import run_only_on
 
 
+@run_only_on('sat')
 class TestPartitionTableUpdateCreate(CLITestCase):
     """Test case for CLI tests."""
 

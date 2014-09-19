@@ -6,9 +6,10 @@
 
 from robottelo.test import CLITestCase
 from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 
 
+@run_only_on('sat')
 class TestPuppetModule(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 

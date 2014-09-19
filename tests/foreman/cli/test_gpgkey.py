@@ -11,7 +11,8 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import data, skip_if_bug_open, stubbed
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import generate_name, get_data_file
 from tempfile import mkstemp
 from robottelo.test import CLITestCase
@@ -47,6 +48,7 @@ def negative_create_data():
     )
 
 
+@run_only_on('sat')
 @ddt
 class TestGPGKey(CLITestCase):
     """Tests for GPG Keys via Hammer CLI"""

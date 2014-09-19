@@ -6,10 +6,11 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
+@run_only_on('sat')
 @ddt
 class TestLifeCycleEnvironment(CLITestCase):
     """Test class for Lifecycle Environment CLI"""

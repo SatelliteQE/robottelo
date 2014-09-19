@@ -4,9 +4,11 @@
 
 from robottelo.cli.globalparam import GlobalParameter
 from fauxfactory import FauxFactory
+from robottelo.common.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
+@run_only_on('sat')
 class TestGlobalParameter(CLITestCase):
     """GlobalParameter related CLI tests."""
 

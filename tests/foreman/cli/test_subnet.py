@@ -7,11 +7,12 @@ from nose.plugins.attrib import attr
 from robottelo import orm
 from robottelo.cli.factory import make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
-from robottelo.common.decorators import bz_bug_is_open, data
+from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
 from robottelo.test import CLITestCase
 import re
 
 
+@run_only_on('sat')
 @ddt
 class TestSubnet(CLITestCase):
     """Subnet CLI tests."""

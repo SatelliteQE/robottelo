@@ -8,7 +8,7 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.cli.fact import Fact
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.test import CLITestCase
 
 if sys.hexversion >= 0x2070000:
@@ -17,6 +17,7 @@ else:
     import unittest2 as unittest
 
 
+@run_only_on('sat')
 @ddt
 class TestFact(CLITestCase):
     """Fact related tests."""

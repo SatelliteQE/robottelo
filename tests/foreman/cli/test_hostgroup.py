@@ -6,9 +6,11 @@
 from fauxfactory import FauxFactory
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.factory import make_hostgroup
+from robottelo.common.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
+@run_only_on('sat')
 class TestHostGroup(MetaCLITestCase):
 
     factory = make_hostgroup

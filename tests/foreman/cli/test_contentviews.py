@@ -21,7 +21,8 @@ from robottelo.entities import Organization
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bug_open, stubbed
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
 
 PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
@@ -54,6 +55,7 @@ def negative_create_data():
     )
 
 
+@run_only_on('sat')
 @ddt
 class TestContentView(CLITestCase):
     """Content View CLI tests"""

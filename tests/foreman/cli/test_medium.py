@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_medium, make_os
 from robottelo.cli.medium import Medium
@@ -24,6 +24,7 @@ OSES = [
 ]
 
 
+@run_only_on('sat')
 @ddt
 class TestMedium(CLITestCase):
 

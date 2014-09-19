@@ -8,7 +8,7 @@ from robottelo.cli.factory import (
     CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
 from robottelo.cli.product import Product
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -26,6 +26,7 @@ class TestProduct(CLITestCase):
         if TestProduct.org is None:
             TestProduct.org = make_org()
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -69,6 +70,7 @@ class TestProduct(CLITestCase):
             len(result.stdout['label']), 0, "Label not automatically created"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15),
@@ -119,6 +121,7 @@ class TestProduct(CLITestCase):
             result.stdout['label'], new_product['label'], "Labels don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15),
@@ -171,6 +174,7 @@ class TestProduct(CLITestCase):
             "Descriptions don't match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -219,6 +223,7 @@ class TestProduct(CLITestCase):
             new_gpg_key['id'],
             "GPG Keys don't match")
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -265,6 +270,7 @@ class TestProduct(CLITestCase):
             new_sync_plan['id'],
             "Sync plans don't match")
 
+    @run_only_on('sat')
     @data(
         {u'name': FauxFactory.generate_string('alpha', 300)},
         {u'name': FauxFactory.generate_string('alphanumeric', 300)},
@@ -291,6 +297,7 @@ class TestProduct(CLITestCase):
                 }
             )
 
+    @run_only_on('sat')
     @data(
         {u'name': FauxFactory.generate_string('latin1', 15),
          u'label': FauxFactory.generate_string('latin1', 15)},
@@ -318,6 +325,7 @@ class TestProduct(CLITestCase):
                 }
             )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'description': FauxFactory.generate_string('alpha', 15)},
@@ -381,6 +389,7 @@ class TestProduct(CLITestCase):
             "Descriptions should not match"
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -478,6 +487,7 @@ class TestProduct(CLITestCase):
             first_gpg_key['id'],
             "GPG Keys should not match")
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},
@@ -576,6 +586,7 @@ class TestProduct(CLITestCase):
             first_sync_plan['id'],
             "Sync plans should not match")
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': FauxFactory.generate_string('alpha', 15)},

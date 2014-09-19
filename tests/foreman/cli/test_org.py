@@ -14,7 +14,8 @@ from robottelo.cli.factory import (
     make_compute_resource, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.common.decorators import data, skip_if_bug_open, stubbed
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
 
 
@@ -134,6 +135,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
+    @run_only_on('sat')
     @skip_if_bug_open('redmine', 4295)
     def test_remove_domain(self):
         """@Test: Check if a Domain can be removed from an Org
@@ -397,6 +399,7 @@ class TestOrg(CLITestCase):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
 
+    @run_only_on('sat')
     def test_bugzilla_1062295_1(self):
         """@Test: Foreman Cli : Add_Config template fails
 
@@ -415,6 +418,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     def test_bugzilla_1062295_2(self):
         """@Test: Foreman Cli : Add_Config template fails
 
@@ -624,6 +628,7 @@ class TestOrg(CLITestCase):
             "There should not be an exception here"
         )
 
+    @run_only_on('sat')
     def test_add_subnet(self):
         """@Test: Check if a subnet can be added to an Org
 
@@ -641,6 +646,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     def test_remove_subnet(self):
         """@Test: Check if a subnet can be removed from an Org
 
@@ -696,6 +702,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     def test_add_hostgroup(self):
         """@Test: Check if a hostgroup can be added to an Org
 
@@ -714,6 +721,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     def test_remove_hostgroup(self):
         """@Test: Check if a hostgroup can be removed from an Org
 
@@ -735,6 +743,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     def test_add_computeresource(self):
         """@Test: Check if a Compute Resource can be added to an Org
 
@@ -763,6 +772,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(result.stdout['compute-resources'][0],
                          compute_res['name'])
 
+    @run_only_on('sat')
     @stubbed
     def test_remove_computeresource(self):
         """@Test: Check if a ComputeResource can be removed from an Org
@@ -776,6 +786,7 @@ class TestOrg(CLITestCase):
         """
         pass
 
+    @run_only_on('sat')
     def test_add_medium(self):
         """@Test: Check if a Medium can be added to an Org
 
@@ -794,6 +805,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     def test_remove_medium(self):
         """@Test: Check if a Medium can be removed from an Org
 
@@ -815,6 +827,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     @data(
         FauxFactory.generate_string('alpha', 15),
         FauxFactory.generate_string('alphanumeric', 15),
@@ -853,6 +866,7 @@ class TestOrg(CLITestCase):
             result.stdout['templates']
         )
 
+    @run_only_on('sat')
     @data(
         FauxFactory.generate_string('alpha', 15),
         FauxFactory.generate_string('alphanumeric', 15),
@@ -909,6 +923,7 @@ class TestOrg(CLITestCase):
             result.stdout['templates']
         )
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1099655)
     def test_add_environment(self):
         """@Test: Check if an environment can be added to an Org
@@ -938,6 +953,7 @@ class TestOrg(CLITestCase):
             environment.return_code, 0, "Could not fetch list of environments")
         self.assertEqual(new_env['name'], env_result['name'])
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1099655)
     def test_remove_environment(self):
         """@Test: Check if an Environment can be removed from an Org
@@ -987,6 +1003,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(environment.stdout), 0, "Environment was not removed")
 
+    @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
     def test_add_smartproxy(self):
         """@Test: Check if a Smartproxy can be added to an Org
@@ -1006,6 +1023,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
+    @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
     def test_remove_smartproxy(self):
         """@Test: Check if a Smartproxy can be removed from an Org
@@ -1663,6 +1681,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1686,6 +1705,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1709,6 +1729,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1732,6 +1753,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -1755,6 +1777,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1777,6 +1800,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1799,6 +1823,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1821,6 +1846,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -1843,6 +1869,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @data(FauxFactory.generate_string('alpha', 10),
           FauxFactory.generate_string('numeric', 10),
           FauxFactory.generate_string('alphanumeric', 10),
@@ -1874,6 +1901,7 @@ class TestOrg(CLITestCase):
         result = Org.info({'id': org['id']})
         self.assertIn(name, result.stdout['subnets'][0])
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1896,6 +1924,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1918,6 +1947,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -1940,6 +1970,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         domain name is alpha
@@ -2030,6 +2061,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -2053,6 +2085,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -2076,6 +2109,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -2099,6 +2133,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
@@ -2122,6 +2157,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2145,6 +2181,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2168,6 +2205,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2191,6 +2229,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2214,6 +2253,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2236,6 +2276,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2258,6 +2299,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2280,6 +2322,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2302,6 +2345,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -2324,6 +2368,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2347,6 +2392,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2370,6 +2416,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2393,6 +2440,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2416,6 +2464,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -2438,6 +2487,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -2460,6 +2510,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -2482,6 +2533,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -2504,6 +2556,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2527,6 +2580,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2550,6 +2604,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2573,6 +2628,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
@@ -2596,6 +2652,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2618,6 +2675,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2640,6 +2698,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2662,6 +2721,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         medium name is alpha
@@ -2684,6 +2744,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -2707,6 +2768,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -2730,6 +2792,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -2753,6 +2816,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
@@ -2776,6 +2840,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2798,6 +2863,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2820,6 +2886,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2842,6 +2909,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         environment name is alpha
@@ -2864,6 +2932,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -2886,6 +2955,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -2908,6 +2978,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
@@ -2930,6 +3001,7 @@ class TestOrg(CLITestCase):
 
         pass
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
