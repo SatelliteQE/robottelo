@@ -10,6 +10,7 @@ from robottelo.common.constants import (VALID_GPG_KEY_FILE,
                                         VALID_GPG_KEY_BETA_FILE,
                                         FAKE_PUPPET_REPO, FAKE_1_YUM_REPO,
                                         FAKE_2_YUM_REPO, RPM_TO_UPLOAD)
+from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import (get_server_credentials, read_data_file,
                                       get_data_file)
 from robottelo import entities, orm
@@ -24,6 +25,7 @@ import httplib
 class RepositoriesTestCase(TestCase):
     """Tests for ``katello/api/v2/repositories``."""
 
+    @run_only_on('sat')
     @ddt.data(
         orm.StringField(str_type=('alphanumeric',)).get_value(),
         orm.StringField(str_type=('alpha',)).get_value(),
@@ -49,6 +51,7 @@ class RepositoriesTestCase(TestCase):
         self.assertEqual(response['name'], name)
         self.assertEqual(response['content_type'], "yum")
 
+    @run_only_on('sat')
     @ddt.data(
         orm.StringField(str_type=('alphanumeric',)).get_value(),
         orm.StringField(str_type=('alpha',)).get_value(),
@@ -88,6 +91,7 @@ class RepositoriesTestCase(TestCase):
         self.assertEqual(response['name'], name)
         self.assertEqual(response['gpg_key_id'], gpgkey_attrs['id'])
 
+    @run_only_on('sat')
     def test_positive_create_3(self):
         """@Test: Create a repository with same name
         in two different organizations
@@ -119,6 +123,7 @@ class RepositoriesTestCase(TestCase):
         response = entities.Repository(id=repository_2_attrs['id']).read_json()
         self.assertEqual(response['name'], repository_name)
 
+    @run_only_on('sat')
     def test_positive_create_4(self):
         """@Test: Create a repository of content-type: 'Puppet'
 
@@ -140,6 +145,7 @@ class RepositoriesTestCase(TestCase):
         self.assertEqual(response['name'], repository_name)
         self.assertEqual(response['content_type'], "puppet")
 
+    @run_only_on('sat')
     @ddt.data(
         {u'name': orm.StringField(str_type=('alphanumeric',)).get_value(),
          u'new_name': orm.StringField(str_type=('alphanumeric',)).get_value()},
@@ -190,6 +196,7 @@ class RepositoriesTestCase(TestCase):
             repository_attrs['name'],
         )
 
+    @run_only_on('sat')
     def test_positive_update_2(self):
         """@Test: Create a repository and update its URL
 
@@ -235,6 +242,7 @@ class RepositoriesTestCase(TestCase):
             FAKE_2_YUM_REPO,
         )
 
+    @run_only_on('sat')
     def test_positive_update_3(self):
         """@Test: Create a repository and update its GPGKey
 
@@ -296,6 +304,7 @@ class RepositoriesTestCase(TestCase):
             gpgkey_2_attrs['id'],
         )
 
+    @run_only_on('sat')
     def test_positive_update_4(self):
         """@Test: Create a repository and update to publish it via HTTP
 
@@ -337,6 +346,7 @@ class RepositoriesTestCase(TestCase):
             True,
         )
 
+    @run_only_on('sat')
     def test_positive_update_5(self):
         """@Test: Create a repository and upload rpm contents
 

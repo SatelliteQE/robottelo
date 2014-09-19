@@ -1,11 +1,12 @@
 """Unit tests for the ``foreman_tasks/api/v2/tasks`` paths."""
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo import entities
 from unittest import TestCase
 # (too many public methods) pylint: disable=R0904
 
 
+@run_only_on('sat')
 class ForemanTasksIdTestCase(TestCase):
     """Tests for the ``foreman_tasks/api/v2/tasks/:id`` path."""
     @skip_if_bug_open('bugzilla', 1131702)

@@ -4,7 +4,7 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.records.architecture import Architecture
 from robottelo.records.domain import Domain
 from robottelo.records.role import add_permission_to_user
@@ -16,6 +16,7 @@ from robottelo.test import APITestCase
 class TestPermission(APITestCase):
     """Testing basic positive permissions"""
 
+    @run_only_on('sat')
     @data(Domain, Architecture)
     def test_basic_create(self, test_data):
         """
@@ -42,6 +43,7 @@ class TestPermission(APITestCase):
         created = ApiCrud.record_create(deps, user_definition)
         self.assertIntersects(deps, created)
 
+    @run_only_on('sat')
     @data(Domain, Architecture)
     def test_basic_read(self, test_data):
         """
@@ -67,6 +69,7 @@ class TestPermission(APITestCase):
         eres = ApiCrud.record_resolve(created, user_definition)
         self.assertIntersects(eres, created)
 
+    @run_only_on('sat')
     @data(Domain, Architecture)
     def test_basic_remove(self, test_data):
         """
@@ -92,6 +95,7 @@ class TestPermission(APITestCase):
         ApiCrud.record_remove(created, user_definition)
         self.assertFalse(ApiCrud.record_exists(created))
 
+    @run_only_on('sat')
     @data(Domain, Architecture)
     def test_basic_update(self, test_data):
         """

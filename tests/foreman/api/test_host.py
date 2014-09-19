@@ -6,10 +6,12 @@ Test class for Domain  CLI
 """
 
 from robottelo.api.apicrud import ApiCrud
+from robottelo.common.decorators import run_only_on
 from robottelo.records.host import Host
 from robottelo.test import APITestCase
 
 
+@run_only_on('sat')
 class TestHost(APITestCase):
 
     def test_create(self):

@@ -14,6 +14,7 @@ import random
 # (too many public methods) pylint: disable=R0904
 
 
+@decorators.run_only_on('sat')
 @ddt.ddt
 class EnvironmentTestCase(TestCase):
     """Tests for environments."""

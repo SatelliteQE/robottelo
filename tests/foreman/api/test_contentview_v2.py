@@ -15,6 +15,7 @@ import ddt
 # (too many public methods) pylint: disable=R0904
 
 
+@decorators.run_only_on('sat')
 @ddt.ddt
 class ContentViewTestCase(TestCase):
     """Tests for content views."""
