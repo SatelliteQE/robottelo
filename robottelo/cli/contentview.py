@@ -153,6 +153,32 @@ class ContentView(Base):
         return updated_result
 
     @classmethod
+    def filter_create(cls, options):
+        """
+        Provides filter info related to content-view's version.
+        """
+
+        cls.command_sub = "filter create"
+
+        if options is None:
+            options = {}
+
+        return cls.execute(cls._construct_command(options), expect_csv=False)
+
+    @classmethod
+    def filter_rule_create(cls, options):
+        """
+        Provides filter info related to content-view's version.
+        """
+
+        cls.command_sub = "filter rule create"
+
+        if options is None:
+            options = {}
+
+        return cls.execute(cls._construct_command(options), expect_csv=False)
+
+    @classmethod
     def version_list(cls, options):
         """
         Lists content-view's versions.
