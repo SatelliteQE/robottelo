@@ -445,13 +445,7 @@ class TestContentView(CLITestCase):
             "Repo was not associated to CV"
         )
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh_custom_spin(self):
-        # Variations might be:
-        #   * A filter on errata date (only content that matches date
-        # in filter)
-        #   * A filter on severity (only content of specific errata
-        # severity.
         """@test: associate Red Hat content in a view
 
         @feature: Content Views
@@ -462,9 +456,68 @@ class TestContentView(CLITestCase):
 
         @assert: Filtered RH content only is available/can be seen in a view
 
-        @status: Manual
-
         """
+        self.create_rhel_content()
+        # Create CV
+        try:
+            new_cv = make_content_view({
+                u'organization-id': self.rhel_content_org['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Associate repo to CV
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
+            u'organization-id': TestContentView.rhel_content_org['id'],
+        })
+
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Repository was not associated to selected CV")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(
+            result.return_code,
+            0,
+            "ContentView was not found")
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'],
+            TestContentView.rhel_repo_name,
+            "Repo was not associated to CV"
+        )
+
+        name = FauxFactory.generate_string("alphanumeric", 10)
+        result_flt = ContentView.filter_create({
+            "content-view-id": new_cv['id'],
+            "type": "rpm",
+            "inclusion": "true",
+            "name": name,
+        })
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Filter was not created")
+        self.assertEqual(
+            len(result_flt.stderr), 0, "No error was expected")
+
+        result_rl = ContentView.filter_rule_create({
+            "content-view-id": new_cv['id'],
+            "name": "walgrind",
+            "content-view-filter": name,
+        })
+        self.assertEqual(
+            result.return_code,
+            0,
+            "Filter rule was not created")
+        self.assertEqual(
+            len(result_rl.stderr), 0, "No error was expected")
 
     @skip_if_bug_open('bugzilla', 1127408)
     def test_associate_view_custom_content(self):
