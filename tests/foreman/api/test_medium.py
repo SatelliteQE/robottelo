@@ -10,10 +10,11 @@ else:
 
 from ddt import ddt
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.test import APITestCase
 
 
+@run_only_on('sat')
 @ddt
 class TestMedium(APITestCase):
     """Testing /api/organization entrypoint"""

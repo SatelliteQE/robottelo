@@ -3,7 +3,7 @@
 
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.records.repository import CustomRepository
 from robottelo.test import APITestCase
 
@@ -14,6 +14,7 @@ class Repository(APITestCase):
 
     # Positive Create
 
+    @run_only_on('sat')
     @data(*CustomRepository.enumerate())
     def test_positive_create_1(self, test_data):
         """
@@ -24,6 +25,7 @@ class Repository(APITestCase):
         result = ApiCrud.record_create_recursive(test_data)
         self.assertIntersects(test_data, result)
 
+    @run_only_on('sat')
     @data(*CustomRepository.enumerate())
     def test_positive_remove_1(self, test_data):
         """
@@ -36,6 +38,7 @@ class Repository(APITestCase):
         ApiCrud.record_remove(result)
         self.assertFalse(ApiCrud.record_exists(result))
 
+    @run_only_on('sat')
     @data(*CustomRepository.enumerate())
     def test_positive_sync_1(self, test_data):
         """

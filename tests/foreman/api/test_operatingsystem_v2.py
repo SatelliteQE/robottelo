@@ -5,10 +5,12 @@ http://theforeman.org/api/apidoc/v2/parameters.html
 
 """
 from robottelo import entities
+from robottelo.common.decorators import run_only_on
 from unittest import TestCase
 # (too many public methods) pylint: disable=R0904
 
 
+@run_only_on('sat')
 class OSParameterTestCase(TestCase):
     """Tests for the ``api/v2/operatingsystems/:id/parameters`` paths."""
     def test_bz_1114640(self):

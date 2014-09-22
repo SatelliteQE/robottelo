@@ -6,13 +6,13 @@ Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud
-from robottelo.common.decorators import data
-from robottelo.common.decorators import stubbed
+from robottelo.common.decorators import data, run_only_on, stubbed
 from robottelo.records.content_view_definition import ContentViewDefinition
 from robottelo.records.environment import EnvironmentKatello
 from robottelo.test import APITestCase
 
 
+@run_only_on('sat')
 @ddt
 class TestContentView(APITestCase):
 

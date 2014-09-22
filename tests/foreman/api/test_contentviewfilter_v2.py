@@ -5,6 +5,7 @@ http://theforeman.org/api/apidoc/v2/content_view_filters.html
 
 """
 from robottelo.api import client
+from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -12,6 +13,7 @@ import httplib
 # (too many public methods) pylint: disable=R0904
 
 
+@run_only_on('sat')
 class ContentViewFilterTestCase(TestCase):
     """Tests for content view filters."""
     def test_get_with_no_args(self):

@@ -20,6 +20,7 @@ import ddt
 class ProductsTestCase(TestCase):
     """Tests for ``katello/api/v2/products``."""
 
+    @decorators.run_only_on('sat')
     @decorators.data(
         {u'name': FauxFactory.generate_string('alphanumeric',
                                               randint(1, 255))},
@@ -53,6 +54,7 @@ class ProductsTestCase(TestCase):
             self.assertIn(name, prod_attrs.keys())
             self.assertEqual(value, prod_attrs[name])
 
+    @decorators.run_only_on('sat')
     def test_positive_create_2(self):
         """@Test: Create a product and provide a GPG key.
 
@@ -82,6 +84,7 @@ class ProductsTestCase(TestCase):
         self.assertEqual(attrs['gpg_key_id'], gpgkey_attrs['id'])
 
 
+@decorators.run_only_on('sat')
 @ddt.ddt
 class ProductUpdateTestCase(TestCase):
     """Tests for updating a product."""
