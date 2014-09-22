@@ -20,7 +20,7 @@ class TaskTimeout(Exception):
     """Indicates that a task did not finish before the timout limit."""
 
 
-def _poll_task(task_id, poll_rate=5, timeout=120, auth=None):
+def _poll_task(task_id, poll_rate=5, timeout=180, auth=None):
     """Implement :meth:`robottelo.entities.ForemanTask.poll`.
 
     :meth:`robottelo.entities.ForemanTask.poll` calls this function, as does
