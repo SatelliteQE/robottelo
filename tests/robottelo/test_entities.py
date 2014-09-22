@@ -56,6 +56,7 @@ class PathTestCase(TestCase):
         (entities.Organization, '/organizations', 'subscriptions/delete_manifest'),  # flake8:noqa pylint:disable=C0301
         (entities.Organization, '/organizations', 'subscriptions/refresh_manifest'),  # flake8:noqa pylint:disable=C0301
         (entities.Organization, '/organizations', 'subscriptions/upload'),
+        (entities.Organization, '/organizations', 'sync_plans'),
         (entities.Repository, '/repositories', 'sync'),
         (entities.Repository, '/repositories', 'upload_content'),
     )
@@ -92,6 +93,7 @@ class PathTestCase(TestCase):
         (entities.Organization, 'subscriptions/delete_manifest'),
         (entities.Organization, 'subscriptions/refresh_manifest'),
         (entities.Organization, 'subscriptions/upload'),
+        (entities.Organization, 'sync_plans'),
         (entities.Organization, 'this'),
         (entities.Repository, 'sync'),
         (entities.Repository, 'upload_content'),
