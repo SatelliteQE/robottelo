@@ -15,11 +15,10 @@ from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_strings_list, get_data_file
-from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
+from robottelo.common.helpers import generate_strings_list
 from robottelo.common.decorators import skip_if_bug_open, stubbed
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_templates
+from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -488,7 +487,7 @@ class Org(UITestCase):
         smartproxy name is html
     """)
     def test_add_smartproxy_1(self, test_data):
-        """@test: Add a smart proxy by using organization name and smartproxy name
+        """@test: Add a smart proxy by using org and smartproxy name
 
         @feature: Organizations
 
@@ -727,10 +726,9 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @skip_if_bug_open('bugzilla', 1129612)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
-    def test_remove_configtemplate_1(self, template):
+    def test_remove_configtemplate_1(self, template_name):
         """@test: Remove config template.
 
         @feature: Organizations dissociate config templates.
@@ -743,27 +741,23 @@ class Org(UITestCase):
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         org_name = FauxFactory.generate_string("alpha", 8)
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        entities.ConfigTemplate(name=template_name).create()
         with Session(self.browser) as session:
-            make_templates(session, name=template, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
-            self.assertIsNotNone(self.template.search(template))
-            make_org(session, org_name=org_name, templates=[template],
+            make_org(session, org_name=org_name, templates=[template_name],
                      edit=True)
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
-            element = session.nav.wait_until_element((strategy1,
-                                                      value1 % template))
+            element = session.nav.wait_until_element(
+                (strategy1, value1 % template_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.org.update(org_name, templates=[template])
+            self.org.update(org_name, templates=[template_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
-            element = self.org.wait_until_element((strategy,
-                                                   value % template))
+            element = self.org.wait_until_element(
+                (strategy, value % template_name))
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
@@ -879,10 +873,9 @@ class Org(UITestCase):
                                                       value % medium_name))
             self.assertIsNotNone(element)
 
-    @skip_if_bug_open('bugzilla', 1129612)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
-    def test_add_configtemplate_1(self, template):
+    def test_add_configtemplate_1(self, template_name):
         """@test: Add config template by using organization name and
         configtemplate name.
 
@@ -895,21 +888,17 @@ class Org(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         org_name = FauxFactory.generate_string("alpha", 8)
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        entities.ConfigTemplate(name=template_name).create()
+
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
-            session.nav.go_to_provisioning_templates()
-            make_templates(session, name=template, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
-            self.assertIsNotNone(self.template.search(template))
-            self.org.update(org_name, new_templates=[template])
+            self.org.update(org_name, new_templates=[template_name])
             self.org.search(org_name).click()
             self.org.wait_until_element(
                 tab_locators["context.tab_template"]).click()
-            element = session.nav.wait_until_element((strategy,
-                                                      value % template))
+            element = session.nav.wait_until_element(
+                (strategy, value % template_name))
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
@@ -917,7 +906,7 @@ class Org(UITestCase):
           FauxFactory.generate_string('numeric', 8),
           FauxFactory.generate_string('alphanumeric', 8))
     def test_remove_environment_1(self, env_name):
-        """@test: Remove environment by using organization name & evironment name.
+        """@test: Remove environment by using org & evironment name.
 
         @feature: Organizations dis-associate environment.
 
