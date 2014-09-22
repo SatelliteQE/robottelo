@@ -12,6 +12,7 @@ inner class contains non-field information. This information is especially
 useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
+from datetime import datetime
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file, get_server_credentials
@@ -999,12 +1000,14 @@ class Organization(
           ``/organizations/:id/subscriptions/delete_manifest``.
         * ``'subscriptions/refresh_manifest'``, return a path in the format
           ``/organizations/:id/subscriptions/refresh_manifest``
+        * ``'sync_plans'``, return a path in the format
+          ``/organizations/:id/sync_plans``.
 
         Otherwise, call ``super``.
 
         """
         if which in ('subscriptions/upload', 'subscriptions/delete_manifest',
-                     'subscriptions/refresh_manifest'):
+                     'subscriptions/refresh_manifest', 'sync_plans'):
             return '{0}/{1}'.format(
                 super(Organization, self).path(which='this'),
                 which
@@ -1111,6 +1114,27 @@ class Organization(
             return task_id
         return None
 
+    def sync_plan(self, name, interval):
+        """Helper for creating a sync_plan.
+
+        :returns: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` If the server responds with
+            an HTTP 4XX or 5XX message.
+
+        """
+
+        sync_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        response = client.post(
+            self.path('sync_plans'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'name': name,
+                  u'interval': interval,
+                  u'sync_date': sync_date},
+        )
+        response.raise_for_status()
+        return response.json()
 
 class OSDefaultTemplate(orm.Entity):
     """A representation of a OS Default Template entity."""

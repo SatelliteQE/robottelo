@@ -1,15 +1,15 @@
 """Test class for Sync Plan UI"""
 
-from datetime import datetime, timedelta
-
 from ddt import ddt
+from datetime import datetime, timedelta
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
+from robottelo import entities
 from robottelo.common.constants import SYNC_INTERVAL
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
+from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -19,20 +19,16 @@ class Syncplan(UITestCase):
     """Implements Sync Plan tests in UI"""
 
     org_name = None
+    org_id = None
 
     def setUp(self):
         super(Syncplan, self).setUp()
         # Make sure to use the Class' org_name instance
         if Syncplan.org_name is None:
-            Syncplan.org_name = FauxFactory.generate_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Syncplan.org_name)
-
-    def configure_syncplan(self):
-        """Configures sync plan in UI"""
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_sync_plans()
+            org_name = FauxFactory.generate_string("alpha", 10)
+            org_attrs = entities.Organization(name=org_name).create()
+            Syncplan.org_name = org_attrs['name']
+            Syncplan.org_id = org_attrs['id']
 
     @attr('ui', 'syncplan', 'implemented')
     @data({u'name': FauxFactory.generate_string('alpha', 10),
@@ -89,20 +85,21 @@ class Syncplan(UITestCase):
 
         """
 
-        self.configure_syncplan()
-        self.syncplan.create(test_data['name'], description=test_data['desc'],
-                             sync_interval=test_data['interval'])
-        self.assertIsNotNone(self.products.search(test_data['name']))
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name,
+                          name=test_data['name'],
+                          description=test_data['desc'],
+                          sync_interval=test_data['interval'])
+            self.assertIsNotNone(self.syncplan.search(test_data['name']))
 
-    @skip_if_bug_open('bugzilla', 1087425)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, name):
-        """@Test: Create Sync Plan with same input parameters
+        """@Test: Create Sync Plan with an existing name
 
         @Feature: Content Sync Plan - Positive Create
 
-        @Assert: Sync Plan is not created
+        @Assert: Sync Plan cannot be created with existing name
 
         @BZ: 1087425
 
@@ -111,12 +108,13 @@ class Syncplan(UITestCase):
         description = "with same name"
         # TODO: Due to bug 1087425 using common_haserror instead of name_error
         locator = common_locators["common_haserror"]
-        self.configure_syncplan()
-        self.syncplan.create(name)
-        self.assertIsNotNone(self.products.search(name))
-        self.syncplan.create(name, description)
-        error = self.products.wait_until_element(locator)
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name, name=name)
+            self.assertIsNotNone(self.syncplan.search(name))
+            make_syncplan(session, org=self.org_name, name=name,
+                          description=description)
+            error = self.syncplan.wait_until_element(locator)
+            self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
@@ -133,26 +131,29 @@ class Syncplan(UITestCase):
 
         locator = locators["sp.fetch_startdate"]
         plan_name = FauxFactory.generate_string("alpha", 8)
-        self.configure_syncplan()
         description = "sync plan create with start date"
         current_date = datetime.now()
         startdate = current_date + timedelta(minutes=10)
         starthour = startdate.strftime("%H")
         startminute = startdate.strftime("%M")
-        # Formatting current_date to web-UI format "%b %d, %Y %I:%M:%S %p"
-        # Removed zero padded hrs & mins as fetching via web-UI doesn't have it
+        # Formatting current_date to web-UI format "%b %d, %Y %I:%M:%S %p" and
+        # removed zero-padded date(%-d) and hrs(%l) as fetching via web-UI
+        # doesn't have it
+        formatted_date_time = startdate.strftime("%b %-d, %Y %l:%M:%S %p")
         # Removed the seconds info as it would be too quick to validate via UI.
-        fetch_starttime = startdate.strftime("%b %d, %Y %I:%M:%S %p").\
-            lstrip("0").replace(" 0", " ").rpartition(':')[0]
-        self.syncplan.create(plan_name, description, start_hour=starthour,
-                             start_minute=startminute)
-        self.assertIsNotNone(self.products.search(plan_name))
-        self.syncplan.search(plan_name).click()
-        self.syncplan.wait_for_ajax()
-        # Removed the seconds info as it would be too quick to validate via UI.
-        starttime_text = str(self.syncplan.wait_until_element(locator).text).\
-            rpartition(':')[0]
-        self.assertEqual(starttime_text, fetch_starttime)
+        starttime = formatted_date_time.rpartition(':')[0]
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name, name=plan_name,
+                          description=description, start_hour=starthour,
+                          start_minute=startminute)
+            self.assertIsNotNone(self.syncplan.search(plan_name))
+            self.syncplan.search(plan_name).click()
+            self.syncplan.wait_for_ajax()
+            starttime_text = self.syncplan.wait_until_element(locator).text
+            # Removed the seconds info as it would be too quick
+            # to validate via UI.
+            saved_starttime = str(starttime_text).rpartition(':')[0]
+            self.assertEqual(saved_starttime, starttime)
 
     @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
@@ -169,59 +170,43 @@ class Syncplan(UITestCase):
 
         locator = locators["sp.fetch_startdate"]
         plan_name = FauxFactory.generate_string("alpha", 8)
-        self.configure_syncplan()
         description = "sync plan create with start date"
         current_date = datetime.now()
         startdate = current_date + timedelta(days=10)
         startdate_str = startdate.strftime("%Y-%m-%d")
+        current_date_time = startdate.strftime("%b %-d, %Y %I:%M:%S %p")
         # validating only for date
-        fetch_startdate = startdate.strftime("%b %-d, %Y %I:%M:%S %p").\
-            rpartition(',')[0]
-        self.syncplan.create(plan_name, description, startdate=startdate_str)
-        self.assertIsNotNone(self.products.search(plan_name))
-        self.syncplan.search(plan_name).click()
-        self.syncplan.wait_for_ajax()
-        startdate_text = str(self.syncplan.wait_until_element(locator).text).\
-            rpartition(',')[0]
-        self.assertEqual(startdate_text, fetch_startdate)
+        fetch_startdate = current_date_time.rpartition(',')[0]
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name, name=plan_name,
+                          description=description, startdate=startdate_str)
+            self.assertIsNotNone(self.syncplan.search(plan_name))
+            self.syncplan.search(plan_name).click()
+            self.syncplan.wait_for_ajax()
+            startdate_text = self.syncplan.wait_until_element(locator).text
+            saved_startdate = str(startdate_text).rpartition(',')[0]
+            self.assertEqual(saved_startdate, fetch_startdate)
 
-    def test_negative_create_1(self):
-        """@Test: Create Sync Plan with whitespace as name input parameters
-
-        @Feature: Content Sync Plan - Negative Create
-
-        @Assert: Sync Plan is not created with whitespace input
-
-        """
-
-        name = "   "
-        locator = common_locators["common_invalid"]
-        self.configure_syncplan()
-        self.syncplan.create(name)
-        invalid = self.products.wait_until_element(locator)
-        self.assertTrue(invalid)
-
-    def test_negative_create_2(self):
-        """@Test: Create Sync Plan with blank as name input parameters
+    @data("", "  ")
+    def test_negative_create_1(self, name):
+        """@Test: Create Sync Plan with blank and whitespace in name
 
         @Feature: Content Sync Plan - Negative Create
 
-        @Assert: Sync Plan is not created with blank input
-
+        @Assert: Sync Plan is not created
         """
 
-        name = ""
         locator = common_locators["common_invalid"]
-        self.configure_syncplan()
-        self.syncplan.create(name)
-        invalid = self.products.wait_until_element(locator)
-        self.assertTrue(invalid)
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name, name=name)
+            invalid = self.syncplan.wait_until_element(locator)
+            self.assertIsNotNone(invalid)
 
     @skip_if_bug_open('bugzilla', 1087425)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list(len1=256))
-    def test_negative_create_3(self, name):
-        """@Test: Create Sync Plan with long chars for name as input parameters
+    def test_negative_create_2(self, name):
+        """@Test: Create Sync Plan with 256 characters in name
 
         @Feature: Content Sync Plan - Negative Create
 
@@ -233,10 +218,11 @@ class Syncplan(UITestCase):
 
         locator = common_locators["common_haserror"]
         description = "more than 255 chars"
-        self.configure_syncplan()
-        self.syncplan.create(name, description)
-        error = self.products.wait_until_element(locator)
-        self.assertTrue(error)
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name, name=name,
+                          description=description)
+            error = self.syncplan.wait_until_element(locator)
+            self.assertIsNotNone(error)
 
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
@@ -250,12 +236,15 @@ class Syncplan(UITestCase):
         """
 
         new_plan_name = FauxFactory.generate_string("alpha", 8)
-        description = "update sync plan"
-        self.configure_syncplan()
-        self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
-        self.syncplan.update(plan_name, new_name=new_plan_name)
-        self.assertIsNotNone(self.products.search(new_plan_name))
+        entities.Organization(id=self.org_id).sync_plan(
+            name=plan_name,
+            interval=SYNC_INTERVAL['day']
+        )
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_sync_plans()
+            self.syncplan.update(plan_name, new_name=new_plan_name)
+            self.assertIsNotNone(self.syncplan.search(new_plan_name))
 
     @attr('ui', 'syncplan', 'implemented')
     @data({u'name': FauxFactory.generate_string('alpha', 10),
@@ -297,18 +286,22 @@ class Syncplan(UITestCase):
 
         """
 
-        description = "delete sync plan"
         locator = locators["sp.fetch_interval"]
-        self.configure_syncplan()
-        self.syncplan.create(test_data['name'], description)
-        self.assertIsNotNone(self.products.search(test_data['name']))
-        self.syncplan.update(test_data['name'],
-                             new_sync_interval=test_data['interval'])
-        self.navigator.go_to_sync_plans()
-        self.syncplan.search(test_data['name']).click()
-        self.syncplan.wait_for_ajax()
-        interval_text = self.syncplan.wait_until_element(locator).text
-        self.assertEqual(interval_text, test_data['interval'])
+        entities.Organization(id=self.org_id).sync_plan(
+            name=test_data['name'],
+            interval=SYNC_INTERVAL['day']
+        )
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_sync_plans()
+            self.syncplan.update(test_data['name'],
+                                 new_sync_interval=test_data['interval'])
+            session.nav.go_to_sync_plans()
+            self.syncplan.search(test_data['name']).click()
+            self.syncplan.wait_for_ajax()
+            # Assert updated sync interval
+            interval_text = self.syncplan.wait_until_element(locator).text
+            self.assertEqual(interval_text, test_data['interval'])
 
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
@@ -321,26 +314,27 @@ class Syncplan(UITestCase):
 
         """
 
-        prd_name = FauxFactory.generate_string("alpha", 8)
-        description = "update sync plan, add prds"
         strategy, value = locators["sp.prd_select"]
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.navigator.go_to_sync_plans()
-        self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
-        self.syncplan.update(plan_name, add_products=[prd_name])
-        self.syncplan.search(plan_name).click()
-        self.syncplan.wait_for_ajax()
-        self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
-            click()
-        self.syncplan.wait_for_ajax()
-        prd_element = self.syncplan.wait_until_element((strategy,
-                                                        value % prd_name))
-        self.assertTrue(prd_element)
+        product_name = entities.Product(
+            organization=self.org_id
+        ).create()['name']
+        entities.Organization(id=self.org_id).sync_plan(
+            name=plan_name,
+            interval=SYNC_INTERVAL['week']
+        )
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_sync_plans()
+            self.syncplan.update(plan_name, add_products=[product_name])
+            self.syncplan.search(plan_name).click()
+            self.syncplan.wait_for_ajax()
+            # Assert product is associated with sync plan
+            self.syncplan.wait_until_element(
+                tab_locators["sp.tab_products"]).click()
+            self.syncplan.wait_for_ajax()
+            element = self.syncplan.wait_until_element(
+                (strategy, value % product_name))
+            self.assertIsNotNone(element)
 
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
@@ -353,39 +347,40 @@ class Syncplan(UITestCase):
 
         """
 
-        prd_name = FauxFactory.generate_string("alpha", 8)
-        plan_name = FauxFactory.generate_string("alpha", 8)
-        description = "update sync plan, add prds"
         strategy, value = locators["sp.prd_select"]
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_select_org(self.org_name)
-        self.navigator.go_to_products()
-        self.products.create(prd_name, description)
-        self.assertIsNotNone(self.products.search(prd_name))
-        self.navigator.go_to_sync_plans()
-        self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
-        self.syncplan.update(plan_name, add_products=[prd_name])
-        self.syncplan.search(plan_name).click()
-        self.syncplan.wait_for_ajax()
-        self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
-            click()
-        self.syncplan.wait_for_ajax()
-        prd_element = self.syncplan.wait_until_element((strategy,
-                                                        value % prd_name))
-        self.assertTrue(prd_element)
-        self.syncplan.update(plan_name, rm_products=[prd_name])
-        self.syncplan.search(plan_name).click()
-        self.syncplan.wait_for_ajax()
-        self.syncplan.wait_until_element(tab_locators["sp.tab_products"]).\
-            click()
-        self.syncplan.wait_for_ajax()
-        self.syncplan.wait_until_element(tab_locators["sp.add_prd"]).\
-            click()
-        self.syncplan.wait_for_ajax()
-        prd_element = self.syncplan.wait_until_element((strategy,
-                                                        value % prd_name))
-        self.assertTrue(prd_element)
+        product_name = entities.Product(
+            organization=self.org_id
+        ).create()['name']
+        entities.Organization(id=self.org_id).sync_plan(
+            name=plan_name,
+            interval=SYNC_INTERVAL['week']
+        )
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_sync_plans()
+            self.syncplan.update(plan_name, add_products=[product_name])
+            self.syncplan.search(plan_name).click()
+            self.syncplan.wait_for_ajax()
+            self.syncplan.wait_until_element(
+                tab_locators["sp.tab_products"]).click()
+            self.syncplan.wait_for_ajax()
+            element = self.syncplan.wait_until_element(
+                (strategy, value % product_name))
+            self.assertIsNotNone(element)
+            # Dis-associate the product from sync plan and the selected product
+            # should automatically move from 'List/Remove` tab to 'Add' tab
+            self.syncplan.update(plan_name, rm_products=[product_name])
+            self.syncplan.search(plan_name).click()
+            self.syncplan.wait_for_ajax()
+            self.syncplan.wait_until_element(
+                tab_locators["sp.tab_products"]).click()
+            self.syncplan.wait_for_ajax()
+            self.syncplan.wait_until_element(
+                tab_locators["sp.add_prd"]).click()
+            self.syncplan.wait_for_ajax()
+            element = self.syncplan.wait_until_element(
+                (strategy, value % product_name))
+            self.assertIsNotNone(element)
 
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
@@ -397,10 +392,12 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan is deleted
 
         """
-
-        description = "delete sync plan"
-        self.configure_syncplan()
-        self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
-        self.syncplan.delete(plan_name)
-        self.assertIsNone(self.products.search(plan_name))
+        entities.Organization(id=self.org_id).sync_plan(
+            name=plan_name,
+            interval=SYNC_INTERVAL['day']
+        )
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_sync_plans()
+            self.syncplan.delete(plan_name)
+            self.assertIsNone(self.syncplan.search(plan_name))

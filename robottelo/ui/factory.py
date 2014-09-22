@@ -26,6 +26,7 @@ from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
 from robottelo.ui.subnet import Subnet
+from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.template import Template
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
@@ -506,3 +507,20 @@ def make_role(session, org=None, loc=None, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
     Role(session.browser).create(**create_args)
+
+
+def make_syncplan(session, org=None, loc=None, **kwargs):
+    """Create new Sync Plan"""
+
+    create_args = {
+        u'name': None,
+        u'description': None,
+        u'startdate': None,
+        u'sync_interval': None,
+        u'start_hour': None,
+        u'start_minute': None
+    }
+    page = session.nav.go_to_sync_plans
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc)
+    Syncplan(session.browser).create(**create_args)
