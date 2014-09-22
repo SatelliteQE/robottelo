@@ -83,26 +83,25 @@ def set_context(session, org=None, loc=None, force_context=False):
 
 
 def make_org(session, force_context=False, **kwargs):
-    """
-    Creates an organization
-    """
+    """Creates an organization"""
+
     create_args = {
-        'org_name': None,
-        'parent_org': None,
-        'label': None,
-        'desc': None,
-        'users': None,
-        'proxies': None,
-        'subnets': None,
-        'resources': None,
-        'medias': None,
-        'templates': None,
-        'domains': None,
-        'envs': None,
-        'hostgroups': None,
-        'locations': None,
-        'edit': False,
-        'select': True,
+        u'org_name': None,
+        u'parent_org': None,
+        u'label': None,
+        u'desc': None,
+        u'users': None,
+        u'proxies': None,
+        u'subnets': None,
+        u'resources': None,
+        u'medias': None,
+        u'templates': None,
+        u'domains': None,
+        u'envs': None,
+        u'hostgroups': None,
+        u'locations': None,
+        u'edit': False,
+        u'select': True,
     }
     page = session.nav.go_to_org
     core_factory(create_args, kwargs, session, page, force_context=False)
@@ -110,24 +109,23 @@ def make_org(session, force_context=False, **kwargs):
 
 
 def make_loc(session, force_context=False, **kwargs):
-    """
-    Creates a location
-    """
+    """Creates a location"""
+
     create_args = {
-        'name': None,
-        'parent': None,
-        'users': None,
-        'proxies': None,
-        'subnets': None,
-        'resources': None,
-        'medias': None,
-        'templates': None,
-        'domains': None,
-        'envs': None,
-        'hostgroups': None,
-        'organizations': None,
-        'edit': False,
-        'select': True,
+        u'name': None,
+        u'parent': None,
+        u'users': None,
+        u'proxies': None,
+        u'subnets': None,
+        u'resources': None,
+        u'medias': None,
+        u'templates': None,
+        u'domains': None,
+        u'envs': None,
+        u'hostgroups': None,
+        u'organizations': None,
+        u'edit': False,
+        u'select': True,
     }
     page = session.nav.go_to_loc
     core_factory(create_args, kwargs, session, page,
@@ -140,9 +138,9 @@ def make_lifecycle_environment(session, org=None, loc=None,
     """Creates Life-cycle Environment"""
 
     create_args = {
-        'name': None,
-        'description': None,
-        'prior': None,
+        u'name': None,
+        u'description': None,
+        u'prior': None,
     }
     page = session.nav.go_to_life_cycle_environments
     core_factory(create_args, kwargs, session, page,
@@ -155,11 +153,11 @@ def make_activationkey(session, org=None, loc=None,
     """Creates Activation Key"""
 
     create_args = {
-        'name': None,
-        'env': None,
-        'limit': None,
-        'description': None,
-        'content_view': None,
+        u'name': None,
+        u'env': None,
+        u'limit': None,
+        u'description': None,
+        u'content_view': None,
     }
     page = session.nav.go_to_activation_keys
     core_factory(create_args, kwargs, session, page,
@@ -168,17 +166,16 @@ def make_activationkey(session, org=None, loc=None,
 
 
 def make_product(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a product
-    """
+    """Creates a product"""
+
     create_args = {
-        'name': None,
-        'description': None,
-        'sync_plan': None,
-        'startdate': None,
-        'create_sync_plan': False,
-        'gpg_key': None,
-        'sync_interval': None,
+        u'name': None,
+        u'description': None,
+        u'sync_plan': None,
+        u'startdate': None,
+        u'create_sync_plan': False,
+        u'gpg_key': None,
+        u'sync_interval': None,
     }
     page = session.nav.go_to_products
     core_factory(create_args, kwargs, session, page,
@@ -188,16 +185,15 @@ def make_product(session, org=None, loc=None, force_context=False, **kwargs):
 
 def make_repository(session, org=None, loc=None,
                     force_context=False, **kwargs):
-    """
-    Creates a repository
-    """
+    """Creates a repository"""
+
     create_args = {
-        'name': None,
-        'product': None,
-        'gpg_key': None,
-        'http': False,
-        'url': None,
-        'repo_type': REPO_TYPE['yum'],
+        u'name': None,
+        u'product': None,
+        u'gpg_key': None,
+        u'http': False,
+        u'url': None,
+        u'repo_type': REPO_TYPE['yum'],
     }
     page = session.nav.go_to_products
     core_factory(create_args, kwargs, session, page,
@@ -207,14 +203,13 @@ def make_repository(session, org=None, loc=None,
 
 def make_contentview(session, org=None, loc=None,
                      force_context=False, **kwargs):
-    """
-    Creates a content-view
-    """
+    """Creates a content-view"""
+
     create_args = {
-        'name': None,
-        'label': None,
-        'description': None,
-        'is_composite': False,
+        u'name': None,
+        u'label': None,
+        u'description': None,
+        u'is_composite': False,
     }
     page = session.nav.go_to_content_views
     core_factory(create_args, kwargs, session, page,
@@ -223,14 +218,13 @@ def make_contentview(session, org=None, loc=None,
 
 
 def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a gpgkey
-    """
+    """Creates a gpgkey"""
+
     create_args = {
-        'name': None,
-        'upload_key': False,
-        'key_path': None,
-        'key_content': None,
+        u'name': None,
+        u'upload_key': False,
+        u'key_path': None,
+        u'key_content': None,
     }
     page = session.nav.go_to_gpg_keys
     core_factory(create_args, kwargs, session, page,
@@ -239,18 +233,17 @@ def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a subnet
-    """
+    """Creates a subnet"""
+
     create_args = {
-        'orgs': None,
-        'subnet_name': None,
-        'subnet_network': None,
-        'subnet_mask': None,
-        'subnet_gateway': None,
-        'subnet_primarydns': None,
-        'subnet_secondarydns': None,
-        'org_select': False,
+        u'orgs': None,
+        u'subnet_name': None,
+        u'subnet_network': None,
+        u'subnet_mask': None,
+        u'subnet_gateway': None,
+        u'subnet_primarydns': None,
+        u'subnet_secondarydns': None,
+        u'org_select': False,
     }
     page = session.nav.go_to_subnets
     core_factory(create_args, kwargs, session, page,
@@ -259,13 +252,12 @@ def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_domain(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a domain
-    """
+    """Creates a domain"""
+
     create_args = {
-        'name': None,
-        'description': None,
-        'dns_proxy': None,
+        u'name': None,
+        u'description': None,
+        u'dns_proxy': None,
     }
     page = session.nav.go_to_domains
     core_factory(create_args, kwargs, session, page,
@@ -274,25 +266,24 @@ def make_domain(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_user(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a user
-    """
+    """Creates a user"""
+
     password = FauxFactory.generate_string("alpha", 6)
 
     create_args = {
-        'username': None,
-        'email': generate_email_address(),
-        'password1': password,
-        'password2': password,
-        'authorized_by': "INTERNAL",
-        'locale': None,
-        'first_name': FauxFactory.generate_string("alpha", 6),
-        'last_name': FauxFactory.generate_string("alpha", 6),
-        'roles': None,
-        'locations': None,
-        'organizations': None,
-        'edit': False,
-        'select': True,
+        u'username': None,
+        u'email': generate_email_address(),
+        u'password1': password,
+        u'password2': password,
+        u'authorized_by': u'INTERNAL',
+        u'locale': None,
+        u'first_name': FauxFactory.generate_string("alpha", 6),
+        u'last_name': FauxFactory.generate_string("alpha", 6),
+        u'roles': None,
+        u'locations': None,
+        u'organizations': None,
+        u'edit': False,
+        u'select': True,
     }
     page = session.nav.go_to_users
     core_factory(create_args, kwargs, session, page,
@@ -315,8 +306,8 @@ def make_usergroup(session, org=None, loc=None, force_context=False, **kwargs):
     """
 
     create_args = {
-        'name': None,
-        'users': None
+        u'name': None,
+        u'users': None
     }
     page = session.nav.go_to_user_groups
     core_factory(create_args, kwargs, session, page,
@@ -325,13 +316,12 @@ def make_usergroup(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a host_group
-    """
+    """Creates a host_group"""
+
     create_args = {
-        'name': None,
-        'parent': None,
-        'environment': None,
+        u'name': None,
+        u'parent': None,
+        u'environment': None,
     }
     page = session.nav.go_to_host_groups
     core_factory(create_args, kwargs, session, page,
@@ -340,13 +330,12 @@ def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_env(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates an Environment
-    """
+    """Creates an Environment"""
+
     create_args = {
-        'name': None,
-        'orgs': None,
-        'org_select': False,
+        u'name': None,
+        u'orgs': None,
+        u'org_select': False,
     }
     page = session.nav.go_to_environments
     core_factory(create_args, kwargs, session, page,
@@ -355,22 +344,21 @@ def make_env(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a compute resource
-    """
+    """Creates a compute resource"""
+
     create_args = {
-        'name': None,
-        'orgs': None,
-        'description': None,
-        'org_select': False,
-        'provider_type': None,
-        'url': None,
-        'user': None,
-        'password': None,
-        'region': None,
-        'libvirt_display': None,
-        'libvirt_set_passwd': True,
-        'tenant': None,
+        u'name': None,
+        u'orgs': None,
+        u'description': None,
+        u'org_select': False,
+        u'provider_type': None,
+        u'url': None,
+        u'user': None,
+        u'password': None,
+        u'region': None,
+        u'libvirt_display': None,
+        u'libvirt_set_passwd': True,
+        u'tenant': None,
     }
     page = session.nav.go_to_compute_resources
     core_factory(create_args, kwargs, session, page,
@@ -379,13 +367,12 @@ def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_media(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates an installation media
-    """
+    """Creates an installation media"""
+
     create_args = {
-        'name': None,
-        'path': None,
-        'os_family': None,
+        u'name': None,
+        u'path': None,
+        u'os_family': None,
     }
     page = session.nav.go_to_installation_media
     core_factory(create_args, kwargs, session, page,
@@ -394,16 +381,15 @@ def make_media(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
-    """
-    Creates a provisioning template
-    """
+    """Creates a provisioning template"""
+
     create_args = {
-        'name': None,
-        'template_path': None,
-        'custom_really': None,
-        'template_type': None,
-        'snippet': None,
-        'os_list': None,
+        u'name': None,
+        u'template_path': None,
+        u'custom_really': None,
+        u'template_type': None,
+        u'snippet': None,
+        u'os_list': None,
     }
     page = session.nav.go_to_provisioning_templates
     core_factory(create_args, kwargs, session, page,
@@ -412,20 +398,19 @@ def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_os(session, org=None, loc=None, **kwargs):
-    """
-    Creates an Operating system
-    """
+    """Creates an Operating system"""
+
     create_args = {
-        'name': None,
-        'major_version': None,
-        'minor_version': None,
-        'description': None,
-        'os_family': None,
-        'archs': None,
-        'ptables': None,
-        'mediums': None,
-        'select': True,
-        'template': None
+        u'name': None,
+        u'major_version': None,
+        u'minor_version': None,
+        u'description': None,
+        u'os_family': None,
+        u'archs': None,
+        u'ptables': None,
+        u'mediums': None,
+        u'select': True,
+        u'template': None
     }
     page = session.nav.go_to_operating_systems
     core_factory(create_args, kwargs, session, page,
@@ -434,12 +419,11 @@ def make_os(session, org=None, loc=None, **kwargs):
 
 
 def make_arch(session, org=None, loc=None, **kwargs):
-    """
-    Creates new architecture from webUI
-    """
+    """Creates new architecture from webUI"""
+
     create_args = {
-        'name': None,
-        'os_names': None
+        u'name': None,
+        u'os_names': None
     }
     page = session.nav.go_to_architectures
     core_factory(create_args, kwargs, session, page,
@@ -448,13 +432,12 @@ def make_arch(session, org=None, loc=None, **kwargs):
 
 
 def make_partitiontable(session, org=None, loc=None, **kwargs):
-    """
-    Creates new Partition table from webUI
-    """
+    """Creates new Partition table from webUI"""
+
     create_args = {
-        'name': None,
-        'layout': None,
-        'os_family': None
+        u'name': None,
+        u'layout': None,
+        u'os_family': None
     }
     page = session.nav.go_to_partition_tables
     core_factory(create_args, kwargs, session, page,
@@ -463,12 +446,11 @@ def make_partitiontable(session, org=None, loc=None, **kwargs):
 
 
 def make_puppetclasses(session, org=None, loc=None, **kwargs):
-    """
-    Creates new Puppet Classes from webUI
-    """
+    """Creates new Puppet Classes from webUI"""
+
     create_args = {
-        'name': None,
-        'environment': None,
+        u'name': None,
+        u'environment': None,
     }
     page = session.nav.go_to_puppet_classes
     core_factory(create_args, kwargs, session, page,
@@ -477,12 +459,9 @@ def make_puppetclasses(session, org=None, loc=None, **kwargs):
 
 
 def make_config_groups(session, org=None, loc=None, **kwargs):
-    """
-    Creates new Config Groups from webUI
-    """
-    create_args = {
-        'name': None
-    }
+    """Creates new Config Groups from webUI"""
+
+    create_args = {u'name': None}
     page = session.nav.go_to_config_groups
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
@@ -490,14 +469,13 @@ def make_config_groups(session, org=None, loc=None, **kwargs):
 
 
 def edit_param(session, org=None, loc=None, **kwargs):
-    """
-    Updates selected parameter value under settings
-    """
+    """Updates selected parameter value under settings"""
+
     update_args = {
-        'tab_locator': None,
-        'param_name': None,
-        'value_type': None,
-        'param_value': None
+        u'tab_locator': None,
+        u'param_name': None,
+        u'value_type': None,
+        u'param_value': None
     }
     page = session.nav.go_to_settings
     core_factory(update_args, kwargs, session, page,
@@ -506,14 +484,13 @@ def edit_param(session, org=None, loc=None, **kwargs):
 
 
 def make_hw_model(session, org=None, loc=None, **kwargs):
-    """
-    Creates new Hardware Models from webUI
-    """
+    """Creates new Hardware Models from webUI"""
+
     create_args = {
-        'name': None,
-        'hw_model': None,
-        'vendor_class': None,
-        'info': None
+        u'name': None,
+        u'hw_model': None,
+        u'vendor_class': None,
+        u'info': None
     }
     page = session.nav.go_to_hardware_models
     core_factory(create_args, kwargs, session, page,
@@ -524,7 +501,7 @@ def make_hw_model(session, org=None, loc=None, **kwargs):
 def make_role(session, org=None, loc=None, **kwargs):
     """Creates new role"""
 
-    create_args = {'name': None}
+    create_args = {u'name': None}
     page = session.nav.go_to_roles
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc)
