@@ -15,11 +15,16 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 from datetime import datetime
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.helpers import get_data_file, get_server_credentials
+from robottelo.common.helpers import (get_data_file, get_server_credentials,
+                                      escape_search)
 from robottelo import factory, orm
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
+
+
+class APIResponseError(Exception):
+    """Indicates an error if response returns unexpected result."""
 
 
 class ActivationKey(
@@ -982,22 +987,25 @@ class Organization(
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        If a user specifies a ``which`` of:
+        Return:
 
-        * ``'subscriptions/upload'``, return a path in the format
-          ``/organizations/:id/subscriptions/upload``.
-        * ``'subscriptions/delete_manifest'``, return a path in the format
-          ``/organizations/:id/subscriptions/delete_manifest``.
-        * ``'subscriptions/refresh_manifest'``, return a path in the format
-          ``/organizations/:id/subscriptions/refresh_manifest``
-        * ``'sync_plans'``, return a path in the format
-          ``/organizations/:id/sync_plans``.
+        * ``/organizations/:id/subscriptions/upload`` if the user
+            specifies a which of ``'subscriptions/upload'``.
+        * ``/organizations/:id/subscriptions/delete_manifest`` if the user
+            specifies a which of ``'subscriptions/delete_manifest'``.
+        * ``/organizations/:id/subscriptions/refresh_manifest`` if the user
+            specifies a which of ``'subscriptions/refresh_manifest'``.
+        * ``/organizations/:id/sync_plans`` if the user
+            specifies a which of ``'sync_plans'``.
+        * ``/organizations/:id/products`` if the user
+            specifies a which of ``'products'``.
 
         Otherwise, call ``super``.
 
         """
         if which in ('subscriptions/upload', 'subscriptions/delete_manifest',
-                     'subscriptions/refresh_manifest', 'sync_plans'):
+                     'subscriptions/refresh_manifest', 'sync_plans',
+                     'products'):
             return '{0}/{1}'.format(
                 super(Organization, self).path(which='this'),
                 which
@@ -1126,6 +1134,47 @@ class Organization(
         response.raise_for_status()
         return response.json()
 
+    def list_rhproducts(self, per_page=None):
+        """Lists all the RedHat Products after the importing of a manifest.
+
+        :param int per_page: The no.of results to be shown per page.
+
+        """
+        response = client.get(
+            self.path('products'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'per_page': per_page},
+        )
+        response.raise_for_status()
+        return response.json()['results']
+
+    def fetch_rhproduct_id(self, name):
+        """Fetches the RedHat Product Id for a given Product name.
+
+        To be used for the Products created when manifest is imported.
+        RedHat Product Id could vary depending upon other custom products.
+        So, we use the product name to fetch the RH Product Id.
+
+        :param str name: The RedHat product's name who's ID is to be fetched.
+        :return: The RedHat Product Id is returned.
+
+        """
+        response = client.get(
+            self.path('products'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'search': 'name={}'.format(escape_search(name))},
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        if len(results) != 1:
+            raise APIResponseError(
+                "The length of the results is:", len(results))
+        else:
+            return results[0]['id']
+
+
 class OSDefaultTemplate(orm.Entity):
     """A representation of a OS Default Template entity."""
     operatingsystem = orm.OneToOneField('OperatingSystem')
@@ -1201,6 +1250,136 @@ class Product(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/products'
+
+    def path(self, which=None):
+        """Extend the default implementation of
+        :meth:`robottelo.orm.Entity.path`.
+
+        Return:
+
+        * ``/products/:product_id/repository_sets`` if the user specifies a
+            which of ``'repository_sets'``.
+        * ``/products/:product_id/repository_sets/:id/enable`` if the user
+            specifies a which of ``'repository_sets/:id/enable'``.
+        * `/products/:product_id/repository_sets/:id/disable`` if the user
+            specifies a which of ``'repository_sets/:id/disable'``
+
+        Otherwise, call ``super``.
+
+        """
+        if which.startswith("repository_sets"):
+            return '{0}/{1}'.format(
+                super(Product, self).path(which='this'),
+                which,
+            )
+        return super(Product, self).path(which=which)
+
+    def list_repositorysets(self, per_page=None):
+        """Lists all the RepositorySets in a Product.
+
+        :param int per_page: The no.of results to be shown per page.
+
+        """
+        response = client.get(
+            self.path('repository_sets'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'per_page': per_page}
+        )
+        response.raise_for_status()
+        return response.json()['results']
+
+    def fetch_reposet_id(self, name):
+        """Fetches the RepositorySet Id for a given name.
+
+        RedHat Products do not directly contain Repositories.
+        Product first contains many RepositorySets and each
+        RepositorySet contains many Repositories.
+        RepositorySet Id could vary. So, we use the reposet name
+        to fetch the RepositorySet Id.
+
+        :param str name: The RepositorySet's name.
+        :return: The RepositorySet's Id is returned.
+
+        """
+        response = client.get(
+            self.path('repository_sets'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'name': name},
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        if len(results) != 1:
+            raise APIResponseError(
+                "The length of the results is:", len(results))
+        else:
+            return results[0]['id']
+
+    def enable_rhrepo(self, reposet_id, base_arch,
+                      release_ver, synchronous=True):
+        """Enables the RedHat Repository
+
+        RedHat Repos needs to be enabled first, so that we can sync it.
+
+        :param str reposet_id: The RepositorySet Id.
+        :param str base_arch: The architecture type of the repo to enable.
+        :param str release_ver: The release version type of the repo to enable.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: A foreman task ID if an HTTP 202 (accepted) response is
+            received, or None if any other response is received.
+
+        """
+        response = client.put(
+            self.path('repository_sets/{0}/enable'.format(reposet_id)),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'basearch': base_arch,
+                  u'releasever': release_ver},
+        )
+        response.raise_for_status()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
+
+    def disable_rhrepo(self, reposet_id, base_arch,
+                       release_ver, synchronous=True):
+        """Disables the RedHat Repository
+
+        :param str reposet_id: The RepositorySet Id.
+        :param str base_arch: The architecture type of the repo to disable.
+        :param str release_ver: The release version type of the repo to
+            disable.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: A foreman task ID if an HTTP 202 (accepted) response is
+            received, or None if any other response is received.
+
+        """
+        response = client.put(
+            self.path('repository_sets/{0}/disable'.format(reposet_id)),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'basearch': base_arch,
+                  u'releasever': release_ver},
+        )
+        response.raise_for_status()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
 
 
 class PartitionTable(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
@@ -1306,16 +1485,38 @@ class Repository(
 
     def sync(self):
         """Helper for syncing an existing repository."""
-
         response = client.post(
             self.path('sync'),
             auth=get_server_credentials(),
             verify=False,
-            data={u'id': self.id} # Fixme: "Sync" path already includes an ID,
-                                  # This is a redundant ID, need to remove
         )
         response.raise_for_status()
         return response.json()
+
+    def fetch_repoid(self, org_id, repo_name):
+        """Fetch the repository Id.
+
+        This is required for RedHat Repositories, as products, reposets
+        and repositories get automatically populated upon the manifest import.
+
+        :param str org_id: The org Id for which repository listing is required.
+        :param str repo_name: The repository name who's Id has to be searched.
+
+        """
+        response = client.get(
+            self.path(which=None),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'organization_id': org_id,
+                  u'search': 'name={}'.format(escape_search(repo_name))}
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        if len(results) != 1:
+            raise APIResponseError(
+                "The length of the results is:", len(results))
+        else:
+            return results[0]['id']
 
     class Meta(object):
         """Non-field information about this entity."""
