@@ -14,7 +14,7 @@ from fauxfactory import FauxFactory
 from robottelo.cli.factory import make_user
 from robottelo.cli.user import User as UserObj
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import bz_bug_is_open, data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -103,12 +103,17 @@ class User(CLITestCase):
 
     # CRUD
 
-    @data({'login': FauxFactory.generate_string("latin1", 10)},
-          {'login': FauxFactory.generate_string("utf8", 10)},
-          {'login': FauxFactory.generate_string("alpha", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)},
-          {'login': FauxFactory.generate_string("numeric", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 100)})
+    @data(
+        {'login': FauxFactory.generate_string("latin1", 10)},
+        {
+            'login': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'login': FauxFactory.generate_string("alpha", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)},
+        {'login': FauxFactory.generate_string("numeric", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 100)}
+    )
     def test_positive_create_user_1(self, data):
         """@Test: Create User for all variations of Username
 
@@ -120,16 +125,27 @@ class User(CLITestCase):
 
         @Assert: User is created
 
+        @BZ: 1144162
+
         """
+        bug_id = data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'firstname': FauxFactory.generate_string("latin1", 10)},
-          {'firstname': FauxFactory.generate_string("utf8", 10)},
-          {'firstname': FauxFactory.generate_string("alpha", 10)},
-          {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
-          {'firstname': FauxFactory.generate_string("numeric", 10)},
-          {'firstname': FauxFactory.generate_string("alphanumeric", 50)})
+    @data(
+        {'firstname': FauxFactory.generate_string("latin1", 10)},
+        {
+            'firstname': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'firstname': FauxFactory.generate_string("alpha", 10)},
+        {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
+        {'firstname': FauxFactory.generate_string("numeric", 10)},
+        {'firstname': FauxFactory.generate_string("alphanumeric", 50)}
+    )
     def test_positive_create_user_2(self, data):
         """@Test: Create User for all variations of First Name
 
@@ -141,16 +157,27 @@ class User(CLITestCase):
 
         @Assert: User is created
 
+        @BZ: 1144162
+
         """
+        bug_id = data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'lastname': FauxFactory.generate_string("latin1", 10)},
-          {'lastname': FauxFactory.generate_string("utf8", 10)},
-          {'lastname': FauxFactory.generate_string("alpha", 10)},
-          {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
-          {'lastname': FauxFactory.generate_string("numeric", 10)},
-          {'lastname': FauxFactory.generate_string("alphanumeric", 50)})
+    @data(
+        {'lastname': FauxFactory.generate_string("latin1", 10)},
+        {
+            'lastname': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'lastname': FauxFactory.generate_string("alpha", 10)},
+        {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
+        {'lastname': FauxFactory.generate_string("numeric", 10)},
+        {'lastname': FauxFactory.generate_string("alphanumeric", 50)}
+    )
     def test_positive_create_user_3(self, data):
         """@Test: Create User for all variations of Surname
 
@@ -162,7 +189,13 @@ class User(CLITestCase):
 
         @Assert: User is created
 
+        @BZ: 1144162
+
         """
+        bug_id = data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         args = make_user(data)
         self.__assert_exists(args)
 
@@ -698,11 +731,16 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @data({'firstname': FauxFactory.generate_string("latin1", 10)},
-          {'firstname': FauxFactory.generate_string("utf8", 10)},
-          {'firstname': FauxFactory.generate_string("alpha", 10)},
-          {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
-          {'firstname': FauxFactory.generate_string("numeric", 10)},)
+    @data(
+        {'firstname': FauxFactory.generate_string("latin1", 10)},
+        {
+            'firstname': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'firstname': FauxFactory.generate_string("alpha", 10)},
+        {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
+        {'firstname': FauxFactory.generate_string("numeric", 10)},
+    )
     def test_positive_update_user_1(self, test_data):
         """@Test: Update Username in User
 
@@ -714,7 +752,12 @@ class User(CLITestCase):
 
         @Assert: User is updated
 
+        @BZ: 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
         new_obj = make_user()
         # Can we find the new object?
@@ -741,12 +784,17 @@ class User(CLITestCase):
             "User first name was not updated"
         )
 
-    @data({'login': FauxFactory.generate_string("latin1", 10)},
-          {'login': FauxFactory.generate_string("utf8", 10)},
-          {'login': FauxFactory.generate_string("alpha", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)},
-          {'login': FauxFactory.generate_string("numeric", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 100)})
+    @data(
+        {'login': FauxFactory.generate_string("latin1", 10)},
+        {
+            'login': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'login': FauxFactory.generate_string("alpha", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)},
+        {'login': FauxFactory.generate_string("numeric", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 100)}
+    )
     def test_positive_update_user_2(self, test_data):
         """@Test: Update Login in User
 
@@ -758,7 +806,12 @@ class User(CLITestCase):
 
         @Assert: User login is updated
 
+        @BZ: 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
         new_obj = make_user()
         # Can we find the new object?
@@ -784,11 +837,16 @@ class User(CLITestCase):
             "User login was not updated"
         )
 
-    @data({'lastname': FauxFactory.generate_string("latin1", 10)},
-          {'lastname': FauxFactory.generate_string("utf8", 10)},
-          {'lastname': FauxFactory.generate_string("alpha", 10)},
-          {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
-          {'lastname': FauxFactory.generate_string("numeric", 10)},)
+    @data(
+        {'lastname': FauxFactory.generate_string("latin1", 10)},
+        {
+            'lastname': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'lastname': FauxFactory.generate_string("alpha", 10)},
+        {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
+        {'lastname': FauxFactory.generate_string("numeric", 10)},
+    )
     def test_positive_update_user_3(self, test_data):
         """@Test: Update Surname in User
 
@@ -800,7 +858,12 @@ class User(CLITestCase):
 
         @Assert: User is updated
 
+        @BZ: 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
         new_obj = make_user()
         # Can we find the new object?
@@ -1370,12 +1433,17 @@ class User(CLITestCase):
         self.assertEqual(updated_user.stdout['email'], new_user['mail'])
 
     @skip_if_bug_open('bugzilla', 1079649)
-    @data({'login': FauxFactory.generate_string("latin1", 10)},
-          {'login': FauxFactory.generate_string("utf8", 10)},
-          {'login': FauxFactory.generate_string("alpha", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)},
-          {'login': FauxFactory.generate_string("numeric", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)})
+    @data(
+        {'login': FauxFactory.generate_string("latin1", 10)},
+        {
+            'login': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'login': FauxFactory.generate_string("alpha", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)},
+        {'login': FauxFactory.generate_string("numeric", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)}
+    )
     def test_positive_delete_user_1(self, test_data):
         """@Test: Delete a user
 
@@ -1387,9 +1455,13 @@ class User(CLITestCase):
 
         @Assert: User is deleted
 
-        @BZ: 1079649
+        @BZ: 1079649, 1144162
 
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
@@ -1401,12 +1473,17 @@ class User(CLITestCase):
         self.assertGreater(len(result.stderr), 0)
 
     @skip_if_bug_open('bugzilla', 1079649)
-    @data({'login': FauxFactory.generate_string("latin1", 10)},
-          {'login': FauxFactory.generate_string("utf8", 10)},
-          {'login': FauxFactory.generate_string("alpha", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)},
-          {'login': FauxFactory.generate_string("numeric", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)})
+    @data(
+        {'login': FauxFactory.generate_string("latin1", 10)},
+        {
+            'login': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'login': FauxFactory.generate_string("alpha", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)},
+        {'login': FauxFactory.generate_string("numeric", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)}
+    )
     def test_positive_delete_user_2(self, test_data):
         """@Test: Delete an admin user
 
@@ -1418,7 +1495,13 @@ class User(CLITestCase):
 
         @Assert: User is deleted
 
+        @BZ: 1079649, 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         test_data.update({'admin': 'true'})
         user = make_user(test_data)
         self.__assert_exists(user)
@@ -1454,12 +1537,17 @@ class User(CLITestCase):
         result = UserObj().exists(tuple_search=('login', 'admin'))
         self.assertTrue(result.stdout)
 
-    @data({'login': FauxFactory.generate_string("alpha", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 10)},
-          {'login': FauxFactory.generate_string("numeric", 10)},
-          {'login': FauxFactory.generate_string("latin1", 10)},
-          {'login': FauxFactory.generate_string("utf8", 10)},
-          {'login': FauxFactory.generate_string("alphanumeric", 100)})
+    @data(
+        {'login': FauxFactory.generate_string("alpha", 10)},
+        {'login': FauxFactory.generate_string("alphanumeric", 10)},
+        {'login': FauxFactory.generate_string("numeric", 10)},
+        {'login': FauxFactory.generate_string("latin1", 10)},
+        {
+            'login': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'login': FauxFactory.generate_string("alphanumeric", 100)}
+    )
     def test_list_user_1(self, test_data):
         """@Test: List User for all variations of Username
 
@@ -1472,7 +1560,13 @@ class User(CLITestCase):
 
         @Assert: User is listed
 
+        @BZ: 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({'search': 'login = %s' % test_data['login']})
@@ -1485,12 +1579,17 @@ class User(CLITestCase):
             'id': user['id'],
             'email': user['mail']}, result.stdout[0])
 
-    @data({'firstname': FauxFactory.generate_string("latin1", 10)},
-          {'firstname': FauxFactory.generate_string("utf8", 10)},
-          {'firstname': FauxFactory.generate_string("alpha", 10)},
-          {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
-          {'firstname': FauxFactory.generate_string("numeric", 10)},
-          {'firstname': FauxFactory.generate_string("alphanumeric", 50)})
+    @data(
+        {'firstname': FauxFactory.generate_string("latin1", 10)},
+        {
+            'firstname': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'firstname': FauxFactory.generate_string("alpha", 10)},
+        {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
+        {'firstname': FauxFactory.generate_string("numeric", 10)},
+        {'firstname': FauxFactory.generate_string("alphanumeric", 50)}
+    )
     def test_list_user_2(self, test_data):
         """@Test: List User for all variations of Firstname
 
@@ -1503,7 +1602,13 @@ class User(CLITestCase):
 
         @Assert: User is listed
 
+        @BZ: 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list(
@@ -1516,12 +1621,17 @@ class User(CLITestCase):
             'id': user['id'],
             'email': user['mail']} in result.stdout)
 
-    @data({'lastname': FauxFactory.generate_string("latin1", 10)},
-          {'lastname': FauxFactory.generate_string("utf8", 10)},
-          {'lastname': FauxFactory.generate_string("alpha", 10)},
-          {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
-          {'lastname': FauxFactory.generate_string("numeric", 10)},
-          {'lastname': FauxFactory.generate_string("alphanumeric", 50)})
+    @data(
+        {'lastname': FauxFactory.generate_string("latin1", 10)},
+        {
+            'lastname': FauxFactory.generate_string("utf8", 10),
+            'bugzilla': 1144162,
+        },
+        {'lastname': FauxFactory.generate_string("alpha", 10)},
+        {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
+        {'lastname': FauxFactory.generate_string("numeric", 10)},
+        {'lastname': FauxFactory.generate_string("alphanumeric", 50)}
+    )
     def test_list_user_3(self, test_data):
         """@Test: List User for all variations of Surname
 
@@ -1534,7 +1644,13 @@ class User(CLITestCase):
 
         @Assert: User is listed
 
+        @BZ: 1144162
+
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list(
