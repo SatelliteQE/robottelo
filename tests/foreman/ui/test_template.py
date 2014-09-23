@@ -4,13 +4,12 @@
 """Test class for Template UI"""
 from ddt import ddt
 from fauxfactory import FauxFactory
+from robottelo import entities
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_data_file, generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc, make_templates,
-                                  make_os)
+from robottelo.ui.factory import make_templates
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -21,18 +20,22 @@ class Template(UITestCase):
 
     org_name = None
     loc_name = None
+    org_id = None
+    loc_id = None
 
     def setUp(self):
         super(Template, self).setUp()
         #  Make sure to use the Class' org_name instance
-        if (Template.org_name is None and Template.loc_name is None):
-            Template.org_name = FauxFactory.generate_string("alpha", 8)
-            Template.loc_name = FauxFactory.generate_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Template.org_name)
-                make_loc(session, name=Template.loc_name)
+        if Template.org_name is None and Template.loc_name is None:
+            org_name = FauxFactory.generate_string("alpha", 8)
+            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_attrs = entities.Organization(name=org_name).create()
+            loc_attrs = entities.Location(name=loc_name).create()
+            Template.org_name = org_attrs['name']
+            Template.org_id = org_attrs['id']
+            Template.loc_name = loc_attrs['name']
+            Template.loc_id = loc_attrs['id']
 
-    @skip_if_bug_open('bugzilla', 1129612)
     @data(*generate_strings_list())
     def test_positive_create_template(self, name):
         """@Test: Create new template
@@ -53,8 +56,6 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
-    @skip_if_bug_open('bugzilla', 1121521)
     def test_negative_create_template_1(self):
         """@Test: Template - Create a new template with 256 characters in name
 
@@ -76,9 +77,9 @@ class Template(UITestCase):
                                  (common_locators["name_haserror"]))
             self.assertIsNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
-    def test_negative_create_template_2(self):
-        """@Test: Template - Create a new template with whitespace
+    @data(" ", "")
+    def test_negative_create_template_2(self, name):
+        """@Test: Create a new template with blank and whitespace in name
 
         @Feature: Template - Negative Create
 
@@ -87,7 +88,6 @@ class Template(UITestCase):
         @BZ: 1129612
 
         """
-        name = " "
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -97,28 +97,6 @@ class Template(UITestCase):
                                  (common_locators["name_haserror"]))
             self.assertIsNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
-    def test_negative_create_template_3(self):
-        """@Test: Template - Create a new template with blank name
-
-        @Feature: Template - Negative Create
-
-        @Assert: Template is not created
-
-        @BZ: 1129612
-
-        """
-        name = ""
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
-        with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
-            self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["name_haserror"]))
-            self.assertIsNone(self.template.search(name))
-
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_4(self):
         """@Test: Template - Create a new template with same name
 
@@ -141,7 +119,6 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["name_haserror"]))
 
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_5(self):
         """@Test: Template - Create a new template without selecting its type
 
@@ -163,7 +140,6 @@ class Template(UITestCase):
                              "Could not create template '%s'"
                              " without type" % name)
 
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_6(self):
         """@Test: Template - Create a new template without uploading a template
 
@@ -184,7 +160,6 @@ class Template(UITestCase):
             self.assertEqual(context.exception.message,
                              "Could not create blank template '%s'" % name)
 
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_negative_create_template_7(self):
         """@Test: Create a new template with 256 characters in audit comments
 
@@ -207,8 +182,8 @@ class Template(UITestCase):
                                  (common_locators["alert.error"]))
             self.assertIsNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
-    def test_positive_create_snippet_template(self):
+    @data(*generate_strings_list())
+    def test_positive_create_snippet_template(self, name):
         """@Test: Create new template of type snippet
 
         @Feature: Template - Positive Create
@@ -220,15 +195,14 @@ class Template(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
         template_path = get_data_file(SNIPPET_DATA_FILE)
         with Session(self.browser) as session:
             make_templates(session, name=name, template_path=template_path,
                            custom_really=True, snippet=True)
             self.assertIsNotNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1096333)
-    def test_remove_template(self):
+    @data(*generate_strings_list())
+    def test_remove_template(self, template_name):
         """@Test: Remove a template
 
         @Feature: Template - Positive Delete
@@ -239,19 +213,14 @@ class Template(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        entities.ConfigTemplate(name=template_name).create()['name']
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
-            self.assertIsNotNone(self.template.search(name))
-            self.template.delete(name, True)
+            session.nav.go_to_provisioning_templates
+            self.template.delete(template_name, True)
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["notif.success"]))
-            self.assertIsNone(self.template.search(name))
+            self.assertIsNone(self.template.search(template_name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_update_template(self):
         """@Test: Update template name and template type
 
@@ -275,7 +244,6 @@ class Template(UITestCase):
             self.template.update(name, False, new_name, None, new_temp_type)
             self.assertIsNotNone(self.template.search(new_name))
 
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_update_template_os(self):
         """@Test: Creates new template, along with two OS's
         and associate list of OS's with created template
@@ -291,16 +259,11 @@ class Template(UITestCase):
         name = FauxFactory.generate_string("alpha", 6)
         new_name = FauxFactory.generate_string("alpha", 6)
         temp_type = 'provision'
-        os_name1 = FauxFactory.generate_string("alpha", 6)
-        os_name2 = FauxFactory.generate_string("alpha", 6)
-        os_list = [os_name1, os_name2]
-        major_version = FauxFactory.generate_string('numeric', 1)
+        os_1_name = entities.OperatingSystem().create()['name']
+        os_2_name = entities.OperatingSystem().create()['name']
+        os_list = [os_1_name, os_2_name]
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            for os_name in os_list:
-                make_os(session, name=os_name,
-                        major_version=major_version)
-                self.assertIsNotNone(self.operatingsys.search(os_name))
             make_templates(session, name=name, template_path=template_path,
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(name))
