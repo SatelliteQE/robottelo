@@ -1,7 +1,7 @@
 """Test utilities for writing foreman tests
 
 All test cases for foreman tests are defined in this module and have utilities
- to help writting API, CLI and UI tests.
+to help writting API, CLI and UI tests.
 
 """
 import logging
@@ -73,9 +73,7 @@ class CLITestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Make sure that we only read configuration values once.
-        """
+        """Make sure that we only read configuration values once."""
         super(CLITestCase, cls).setUpClass()
         cls.hostname = conf.properties['main.server.hostname']
         cls.katello_user = conf.properties['foreman.admin.username']
@@ -86,17 +84,15 @@ class CLITestCase(TestCase):
         cls.verbosity = int(conf.properties['nosetests.verbosity'])
 
     def setUp(self):
-        """
-        Log test class and method name before each test.
-        """
-        self.logger.debug("Running test %s/%s", type(self).__name__,
-                          self._testMethodName)
+        """Log test class and method name before each test."""
+        self.logger.debug(
+            "Running test %s/%s", type(self).__name__, self._testMethodName)
 
 
 class MetaCLITestCase(CLITestCase):
-    """
-    All Test modules should inherit from MetaCLI in order to obtain default
+    """All Test modules should inherit from MetaCLI in order to obtain default
     positive/negative CRUD tests.
+
     """
     __metaclass__ = MetaCLITest
 
@@ -106,9 +102,7 @@ class UITestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Make sure that we only read configuration values once.
-        """
+        """Make sure that we only read configuration values once."""
         super(UITestCase, cls).setUpClass()
         cls.katello_user = conf.properties['foreman.admin.username']
         cls.katello_passwd = conf.properties['foreman.admin.password']
@@ -123,6 +117,11 @@ class UITestCase(TestCase):
             from easyprocess import EasyProcess, EasyProcessError
             cls.display = Display(size=(1024, 768))
             cls.display.start()
+            cls.logger.debug(
+                'Virtual display started (pid=%d, display="%s")',
+                cls.window_manager.pid,
+                cls.window_manager.display
+            )
 
             window_manager_cmd = conf.properties.get(
                 'main.window_manager_command', '')
@@ -130,6 +129,11 @@ class UITestCase(TestCase):
             try:
                 cls.window_manager = EasyProcess(window_manager_cmd)
                 cls.window_manager.start()
+                cls.logger.debug(
+                    'Window manager started (pid=%d, cmd="%s")',
+                    cls.window_manager.pid,
+                    cls.window_manager.cmd
+                )
             except EasyProcessError as err:
                 cls.window_manager = None
                 cls.logger.warning(
@@ -142,10 +146,7 @@ class UITestCase(TestCase):
             cls.display = None
 
     def setUp(self):
-        """
-        We do want a new browser instance for every test.
-        """
-
+        """We do want a new browser instance for every test."""
         if not self.remote:
             if self.driver_name.lower() == 'firefox':
                 self.browser = webdriver.Firefox()
@@ -203,9 +204,7 @@ class UITestCase(TestCase):
         self.usergroup = UserGroup(self.browser)
 
     def tearDown(self):
-        """
-        Make sure to close the browser after each test.
-        """
+        """Make sure to close the browser after each test."""
 
         self.browser.quit()
         self.browser = None
@@ -215,13 +214,32 @@ class UITestCase(TestCase):
         if cls.display is not None:
             if (cls.window_manager is not None and
                     cls.window_manager.is_started):
+                cls.logger.debug(
+                    'Stopping window manager (pid=%d, cmd="%s")',
+                    cls.window_manager.pid,
+                    cls.window_manager.cmd
+                )
                 cls.window_manager.stop()
+                cls.logger.debug(
+                    'Window manager stopped (pid=%d, cmd="%s")',
+                    cls.window_manager.pid,
+                    cls.window_manager.cmd
+                )
+            cls.logger.debug(
+                'Stopping virtual display (pid=%d, display="%s"',
+                cls.display.pid,
+                cls.display.display
+            )
             cls.display.stop()
+            cls.logger.debug(
+                'Virtual display stopped (pid=%d, display="%s"',
+                cls.display.pid,
+                cls.display.display
+            )
 
 
 def assert_instance_intersects(first, other):
-    """Determines if first and other match in type
-    """
+    """Determines if first and other match in type"""
     r = not isinstance(first, type(other))
     r = r or not isinstance(other, type(first))
 
@@ -234,9 +252,9 @@ def assert_instance_intersects(first, other):
 
 
 def assert_list_intersects(first, other):
-    """Compares two lists, and determines,
-    if each item in first intersects
+    """Compares two lists, and determines, if each item in first intersects
     with at least one item in other
+
     """
     grievance = []
     for v in first:
@@ -248,8 +266,9 @@ def assert_list_intersects(first, other):
 
 
 def assert_dict_intersects(first, other):
-    """Compares two dictionaries, and determines,
-    if shared keys contain intersecting values
+    """Compares two dictionaries, and determines, if shared keys contain
+    intersecting values
+
     """
     grievance = {}
     for k in first:
@@ -266,6 +285,7 @@ def assert_dict_intersects(first, other):
 
 def intersection(first, other):
     """Compares two objects to determine, if they share common information.
+
     Returns either true, or touple describing the difference
 
     >>> intersection("n1","n2")
@@ -297,8 +317,7 @@ def intersection(first, other):
 
 
 def assert_intersects(first, other, msg=None):
-    """Intersection based assert.
-    """
+    """Intersection based assert."""
     res = intersection(first, other)
     if res is not True:
         raise AssertionError(
@@ -308,7 +327,9 @@ def assert_intersects(first, other, msg=None):
 
 def is_intersecting(first, other):
     """Compares two objects to determine, if they share common information.
+
     Returns true or false.
+
     >>> is_intersecting("n1","n1")
     True
     >>> is_intersecting("n1","n2")
@@ -332,6 +353,7 @@ def is_intersecting(first, other):
     >>> t2.c = 2
     >>> is_intersecting(t1,t2)
     True
+
     """
     if intersection(first, other) is True:
         return True
