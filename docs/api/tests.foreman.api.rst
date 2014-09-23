@@ -96,10 +96,10 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_repository`
-----------------------------------------
+:mod:`tests.foreman.api.test_repository_v2`
+-------------------------------------------
 
-.. automodule:: tests.foreman.api.test_repository
+.. automodule:: tests.foreman.api.test_repository_v2
     :members:
     :undoc-members:
 
