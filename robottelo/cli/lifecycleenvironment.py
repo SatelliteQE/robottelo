@@ -37,3 +37,8 @@ class LifecycleEnvironment(Base):
             options, per_page=per_page)
 
         return result
+
+    @classmethod
+    def paths(cls, options=None):
+        cls.command_sub = "paths"
+        return cls.execute(cls._construct_command(options))
