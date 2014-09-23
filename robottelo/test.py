@@ -132,7 +132,7 @@ class UITestCase(TestCase):
                 cls.logger.debug(
                     'Window manager started (pid=%d, cmd="%s")',
                     cls.window_manager.pid,
-                    cls.window_manager.cmd
+                    cls.window_manager.cmd_as_string
                 )
             except EasyProcessError as err:
                 cls.window_manager = None
@@ -217,14 +217,28 @@ class UITestCase(TestCase):
                 cls.logger.debug(
                     'Stopping window manager (pid=%d, cmd="%s")',
                     cls.window_manager.pid,
-                    cls.window_manager.cmd
+                    cls.window_manager.cmd_as_string
                 )
-                cls.window_manager.stop()
-                cls.logger.debug(
-                    'Window manager stopped (pid=%d, cmd="%s")',
-                    cls.window_manager.pid,
-                    cls.window_manager.cmd
-                )
+                cls.window_manager.sendstop()
+                # Give 30 seconds to the process terminate. Kill it if timeout
+                # happens
+                if cls.window_manager.wait(30).timeout_happened:
+                    import os
+                    import signal
+                    os.kill(cls.window_manager.pid, signal.SIGKILL)
+                    _, return_code = os.waitpid(cls.window_manager.pid, 0)
+                    cls.logger.debug(
+                        'Window manager killed (pid=%d, cmd="%s", rcode=%d)',
+                        cls.window_manager.pid,
+                        cls.window_manager.cmd_as_string,
+                        return_code
+                    )
+                else:
+                    cls.logger.debug(
+                        'Window manager stopped (pid=%d, cmd="%s")',
+                        cls.window_manager.pid,
+                        cls.window_manager.cmd_as_string
+                    )
             cls.logger.debug(
                 'Stopping virtual display (pid=%d, display="%s"',
                 cls.display.pid,
