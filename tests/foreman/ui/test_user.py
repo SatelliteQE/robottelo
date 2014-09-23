@@ -34,7 +34,7 @@ def valid_strings(len1=100):
         u'նորօգտվող-{0}'.format(FauxFactory.generate_string("alpha", 2)),
         u'新用戶-{0}'.format(FauxFactory.generate_string("alpha", 2)),
         u'новогопользоват-{0}'.format(FauxFactory.generate_string("alpha", 2)),
-        u'uusikäyttäjä-{0}'.fromat(FauxFactory.generate_string("alpha", 2)),
+        u'uusikäyttäjä-{0}'.format(FauxFactory.generate_string("alpha", 2)),
         u'νέοςχρήστης-{0}'.format(FauxFactory.generate_string("alpha", 2)),
     ]
 
