@@ -51,10 +51,10 @@ class UsersTestCase(TestCase):
             'bugzilla': 1144162,
         },
     )
-    def test_create_validate_delete(self, attrs):
+    def test_create(self, attrs):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
-        @Assert: The created user has the given attributes and can be deleted.
+        @Assert: The created user has the given attributes.
 
         @Feature: User
 
@@ -70,7 +70,54 @@ class UsersTestCase(TestCase):
             self.assertIn(name, real_attrs.keys())
             self.assertEqual(value, real_attrs[name])
 
-        # Delete the user.
+    @decorators.data(
+        {u'admin': False},
+        {u'admin': True},
+        {u'firstname': FauxFactory.generate_string(
+            'alphanumeric', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('alpha', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('cjk', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('latin1', randint(1, 50))},
+        {u'firstname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {
+            u'firstname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            'bugzilla': 1144162,
+        },
+        {u'lastname': FauxFactory.generate_string(
+            'alphanumeric', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('alpha', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('cjk', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('latin1', randint(1, 50))},
+        {u'lastname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {
+            u'lastname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            'bugzilla': 1144162,
+        },
+        {u'login': FauxFactory.generate_string(
+            'alphanumeric', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('alpha', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('cjk', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('latin1', randint(1, 100))},
+        {u'login': FauxFactory.generate_string('numeric', randint(1, 100))},
+        {
+            u'login': FauxFactory.generate_string('utf8', randint(1, 33)),
+            'bugzilla': 1144162,
+        },
+    )
+    def test_delete(self, attrs):
+        """@Test: Create a user with attributes ``attrs`` and delete it.
+
+        @Assert: The user cannot be fetched after deletion.
+
+        @Feature: User
+
+        """
+        bug_id = attrs.pop('bugzilla', None)
+        if bug_id is not None and decorators.bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
+        # Create a user and delete it immediately afterward.
+        user_id = entities.User(**attrs).create()['id']
         entities.User(id=user_id).delete()
         with self.assertRaises(HTTPError):
             entities.User(id=user_id).read_json()
