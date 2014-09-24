@@ -1203,7 +1203,8 @@ class Product(
         api_path = 'katello/api/v2/products'
 
 
-class PartitionTable(orm.Entity):
+class PartitionTable(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Partition Table entity."""
     name = orm.StringField(required=True)
     layout = orm.StringField(required=True)

@@ -3,23 +3,14 @@
 """Test class for UserGroup UI"""
 
 from ddt import ddt
+from fauxfactory import FauxFactory
 from robottelo import entities
-from robottelo.common.decorators import data
-from robottelo.orm import StringField
+from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-
-
-def valid_usergroup_list():
-    """List of valid data for input testing."""
-
-    return [
-        StringField(len=(5, 80), str_type=('alpha',)).get_value(),
-        StringField(len=(5, 80), str_type=('alphanumeric',)).get_value(),
-        StringField(len=(5, 80), str_type=('numeric',)).get_value(),
-    ]
 
 
 @ddt
@@ -34,13 +25,13 @@ class UserGroup(UITestCase):
 
         # Make sure to use the Class' org_name instance
         if UserGroup.org_name is None:
-            org_name = StringField(str_type=('alphanumeric',),
-                                   len=(5, 80)).get_value()
+            org_name = FauxFactory.generate_string("alpha", 6)
             org_attrs = entities.Organization(name=org_name).create()
             UserGroup.org_name = org_attrs['name']
             UserGroup.org_id = org_attrs['id']
 
-    @data(*valid_usergroup_list())
+    @skip_if_bug_open('bugzilla', 1142588)
+    @data(*generate_strings_list())
     def test_positive_create_usergroup(self, group_name):
         """@Test: Create new Usergroup
 
@@ -50,8 +41,8 @@ class UserGroup(UITestCase):
 
         """
 
-        user_name = StringField(str_type=('alpha',)).get_value()
-        password = StringField(str_type=('alpha',)).get_value()
+        user_name = FauxFactory.generate_string("alpha", 6)
+        password = FauxFactory.generate_string("alpha", 6)
         # Create a new user
         entities.User(
             login=user_name,
@@ -62,7 +53,9 @@ class UserGroup(UITestCase):
             make_usergroup(session, name=group_name, users=[user_name])
             self.assertIsNotNone(self.usergroup.search(group_name))
 
-    def test_negative_create_usergroup_1(self):
+    @skip_if_bug_open('bugzilla', 1142588)
+    @data(*generate_strings_list(len1=256))
+    def test_negative_create_usergroup_1(self, group_name):
         """@Test: Create a new UserGroup with 256 characters in name
 
         @Feature:  Usergroup - Negative Create
@@ -70,8 +63,7 @@ class UserGroup(UITestCase):
         @Assert:  Usergroup is not created
 
         """
-        group_name = StringField(str_type=('alphanumeric',),
-                                 len=256).get_value()
+
         with Session(self.browser) as session:
             make_usergroup(session, org=self.org_name, name=group_name)
             self.assertIsNotNone(self.usergroup.wait_until_element
@@ -93,7 +85,7 @@ class UserGroup(UITestCase):
             self.assertIsNotNone(self.usergroup.wait_until_element
                                  (common_locators["name_haserror"]))
 
-    @data(*valid_usergroup_list())
+    @data(*generate_strings_list())
     def test_negative_create_usergroup_3(self, group_name):
         """@Test: Create a new UserGroup with same name
 
@@ -110,7 +102,8 @@ class UserGroup(UITestCase):
             self.assertIsNotNone(self.usergroup.wait_until_element
                                  (common_locators["name_haserror"]))
 
-    @data(*valid_usergroup_list())
+    @skip_if_bug_open('bugzilla', 1142588)
+    @data(*generate_strings_list())
     def test_remove_empty_usergroup(self, group_name):
         """@Test: Delete an empty Usergroup
 
@@ -128,7 +121,8 @@ class UserGroup(UITestCase):
                                  (common_locators["notif.success"]))
             self.assertIsNone(self.usergroup.search(group_name))
 
-    @data(*valid_usergroup_list())
+    @skip_if_bug_open('bugzilla', 1142588)
+    @data(*generate_strings_list())
     def test_remove_usergroup(self, group_name):
         """@Test: Delete an Usergroup that contains a user
 
@@ -138,8 +132,8 @@ class UserGroup(UITestCase):
 
         """
 
-        user_name = StringField(str_type=('alpha',)).get_value()
-        password = StringField(str_type=('alpha',)).get_value()
+        user_name = FauxFactory.generate_string("alpha", 6)
+        password = FauxFactory.generate_string("alpha", 6)
         # Create a new user
         entities.User(login=user_name, password=password).create()
 
@@ -153,12 +147,17 @@ class UserGroup(UITestCase):
             self.assertIsNotNone(self.user.search
                                  (name=user_name, search_key="login"))
 
-    @data({'name': StringField(str_type=('alpha',)).get_value(),
-           'new_name': StringField(str_type=('alpha',)).get_value()},
-          {'name': StringField(str_type=('alphanumeric',)).get_value(),
-           'new_name': StringField(str_type=('alphanumeric',)).get_value()},
-          {'name': StringField(str_type=('numeric',)).get_value(),
-           'new_name': StringField(str_type=('numeric',)).get_value()})
+    @skip_if_bug_open('bugzilla', 1142588)
+    @data({'name': FauxFactory.generate_string("alpha", 6),
+           'new_name': FauxFactory.generate_string("alpha", 6)},
+          {'name': FauxFactory.generate_string("alphanumeric", 6),
+           'new_name': FauxFactory.generate_string("alphanumeric", 6)},
+          {'name': FauxFactory.generate_string("numeric", 6),
+           'new_name': FauxFactory.generate_string("numeric", 6)},
+          {'name': FauxFactory.generate_string("utf8", 6),
+           'new_name': FauxFactory.generate_string("utf8", 6)},
+          {'name': FauxFactory.generate_string("latin1", 6),
+           'new_name': FauxFactory.generate_string("latin1", 6)})
     def test_update_usergroup(self, test_data):
         """@Test: Update usergroup with name or users
 
@@ -169,8 +168,8 @@ class UserGroup(UITestCase):
         """
         name = test_data['name']
         new_name = test_data['new_name']
-        user_name = StringField(str_type=('alpha',)).get_value()
-        password = StringField(str_type=('alpha',)).get_value()
+        user_name = FauxFactory.generate_string("alpha", 6)
+        password = FauxFactory.generate_string("alpha", 6)
         # Create a new user
         entities.User(login=user_name, password=password).create()
         with Session(self.browser) as session:

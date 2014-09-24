@@ -132,30 +132,16 @@ class Domain(UITestCase):
             element = self.domain.search(description, timeout=5)
             self.assertIsNone(element)
 
-    def test_negative_create_domain_2(self):
-        """@Test: Negative create a domain with blank name
+    @data("", "  ")
+    def test_negative_create_domain_2(self, name):
+        """@Test: Create domain with whitespace and blank in name
 
         @Feature: Domain - Negative Create
 
         @Assert: Domain is not created
 
         """
-        domain_name = description = ""
-        with Session(self.browser) as session:
-            make_domain(session, name=domain_name, description=description)
-            error = session.nav.wait_until_element(
-                common_locators["name_haserror"])
-            self.assertIsNotNone(error)
-
-    def test_negative_create_domain_3(self):
-        """@Test: Negative create a domain with whitespace name
-
-        @Feature: Domain - Negative Create
-
-        @Assert: Domain is not created
-
-        """
-        domain_name = description = "   "
+        domain_name = description = name
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
             error = session.nav.wait_until_element(

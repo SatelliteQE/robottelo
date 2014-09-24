@@ -3,11 +3,11 @@
 """Test class for Architecture UI"""
 from ddt import ddt
 from fauxfactory import FauxFactory
+from robottelo import entities
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc,
-                                  make_os, make_arch)
+from robottelo.ui.factory import make_arch
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -18,29 +18,30 @@ class Architecture(UITestCase):
 
     org_name = None
     loc_name = None
+    org_id = None
+    loc_id = None
 
     def setUp(self):
         super(Architecture, self).setUp()
         #  Make sure to use the Class' org_name instance
-        if (Architecture.org_name is None and Architecture.loc_name is None):
-            Architecture.org_name = FauxFactory.generate_string("alpha", 8)
-            Architecture.loc_name = FauxFactory.generate_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Architecture.org_name)
-                make_loc(session, name=Architecture.loc_name)
+        if Architecture.org_name is None and Architecture.loc_name is None:
+            org_name = FauxFactory.generate_string("alpha", 8)
+            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_attrs = entities.Organization(name=org_name).create()
+            loc_attrs = entities.Location(name=loc_name).create()
+            Architecture.org_name = org_attrs['name']
+            Architecture.org_id = org_attrs['id']
+            Architecture.loc_name = loc_attrs['name']
+            Architecture.loc_id = loc_attrs['id']
 
     @data({u'name': FauxFactory.generate_string('alpha', 10),
-           u'os_name': FauxFactory.generate_string('alpha', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 1)},
+           u'os_name': FauxFactory.generate_string('alpha', 10)},
           {u'name': FauxFactory.generate_string('html', 10),
-           u'os_name': FauxFactory.generate_string('html', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 4)},
+           u'os_name': FauxFactory.generate_string('html', 10)},
           {u'name': FauxFactory.generate_string('utf8', 10),
-           u'os_name': FauxFactory.generate_string('utf8', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 5)},
+           u'os_name': FauxFactory.generate_string('utf8', 10)},
           {u'name': FauxFactory.generate_string('alphanumeric', 255),
-           u'os_name': FauxFactory.generate_string('alphanumeric', 255),
-           u'major_version': FauxFactory.generate_string('numeric', 5)})
+           u'os_name': FauxFactory.generate_string('alphanumeric', 255)})
     def test_positive_create_arch_1(self, test_data):
         """@Test: Create a new Architecture with OS
 
@@ -49,12 +50,8 @@ class Architecture(UITestCase):
         @Assert: Architecture is created
 
         """
-
+        entities.OperatingSystem(name=test_data['os_name']).create()
         with Session(self.browser) as session:
-            make_os(session, name=test_data['os_name'],
-                    major_version=test_data['major_version'])
-            self.assertIsNotNone(self.operatingsys.search
-                                 (test_data['os_name']))
             make_arch(session, name=test_data['name'],
                       os_names=[test_data['os_name']])
             self.assertIsNotNone(self.architecture.search(test_data['name']))
@@ -88,7 +85,8 @@ class Architecture(UITestCase):
                                  (common_locators["name_haserror"]))
             self.assertIsNone(self.architecture.search(name))
 
-    def test_negative_create_arch_2(self):
+    @data("", "  ")
+    def test_negative_create_arch_2(self, name):
         """@Test: Create a new Architecture with whitespace in name
 
         @Feature: Architecture - Negative Create
@@ -96,21 +94,7 @@ class Architecture(UITestCase):
         @Assert: Architecture is not created
 
         """
-        name = " "
-        with Session(self.browser) as session:
-            make_arch(session, name=name)
-            self.assertIsNotNone(self.architecture.wait_until_element
-                                 (common_locators["name_haserror"]))
 
-    def test_negative_create_arch_3(self):
-        """@Test: Create a new Architecture with blank name
-
-        @Feature: Architecture - Negative Create
-
-        @Assert: Architecture is not created
-
-        """
-        name = ""
         with Session(self.browser) as session:
             make_arch(session, name=name)
             self.assertIsNotNone(self.architecture.wait_until_element
@@ -135,17 +119,13 @@ class Architecture(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1123388)
     @data({u'name': FauxFactory.generate_string('alpha', 10),
-           u'os_name': FauxFactory.generate_string('alpha', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 1)},
+           u'os_name': FauxFactory.generate_string('alpha', 10)},
           {u'name': FauxFactory.generate_string('html', 10),
-           u'os_name': FauxFactory.generate_string('html', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 4)},
+           u'os_name': FauxFactory.generate_string('html', 10)},
           {u'name': FauxFactory.generate_string('utf8', 10),
-           u'os_name': FauxFactory.generate_string('utf8', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 5)},
+           u'os_name': FauxFactory.generate_string('utf8', 10)},
           {u'name': FauxFactory.generate_string('alphanumeric', 255),
-           u'os_name': FauxFactory.generate_string('alphanumeric', 255),
-           u'major_version': FauxFactory.generate_string('numeric', 5)})
+           u'os_name': FauxFactory.generate_string('alphanumeric', 255)})
     def test_remove_arch(self, test_data):
         """@Test: Delete an existing Architecture
 
@@ -157,11 +137,8 @@ class Architecture(UITestCase):
 
         """
 
+        entities.OperatingSystem(name=test_data['os_name']).create()
         with Session(self.browser) as session:
-            make_os(session, name=test_data['os_name'],
-                    major_version=test_data['major_version'])
-            self.assertIsNotNone(self.operatingsys.search
-                                 (test_data['os_name']))
             make_arch(session, name=test_data['name'],
                       os_names=[test_data['os_name']])
             self.assertIsNotNone(self.architecture.search(test_data['name']))
@@ -171,20 +148,16 @@ class Architecture(UITestCase):
     @skip_if_bug_open('bugzilla', 1123388)
     @data({u'old_name': FauxFactory.generate_string('alpha', 10),
            u'new_name': FauxFactory.generate_string('alpha', 10),
-           u'os_name': FauxFactory.generate_string('alpha', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 1)},
+           u'os_name': FauxFactory.generate_string('alpha', 10)},
           {u'old_name': FauxFactory.generate_string('html', 10),
            u'new_name': FauxFactory.generate_string('html', 10),
-           u'os_name': FauxFactory.generate_string('html', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 4)},
+           u'os_name': FauxFactory.generate_string('html', 10)},
           {u'old_name': FauxFactory.generate_string('utf8', 10),
            u'new_name': FauxFactory.generate_string('utf8', 10),
-           u'os_name': FauxFactory.generate_string('utf8', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 5)},
+           u'os_name': FauxFactory.generate_string('utf8', 10)},
           {u'old_name': FauxFactory.generate_string('alphanumeric', 255),
            u'new_name': FauxFactory.generate_string('alphanumeric', 255),
-           u'os_name': FauxFactory.generate_string('alphanumeric', 255),
-           u'major_version': FauxFactory.generate_string('numeric', 5)})
+           u'os_name': FauxFactory.generate_string('alphanumeric', 255)})
     def test_update_arch(self, test_data):
         """@Test: Update Architecture with new name and OS
 
@@ -193,12 +166,8 @@ class Architecture(UITestCase):
         @Assert: Architecture is updated
 
         """
-
+        entities.OperatingSystem(name=test_data['os_name']).create()
         with Session(self.browser) as session:
-            make_os(session, name=test_data['os_name'],
-                    major_version=test_data['major_version'])
-            self.assertIsNotNone(self.operatingsys.search
-                                 (test_data['os_name']))
             make_arch(session, name=test_data['old_name'])
             self.assertIsNotNone(self.architecture.search
                                  (test_data['old_name']))

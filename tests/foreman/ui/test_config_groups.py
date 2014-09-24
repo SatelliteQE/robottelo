@@ -82,7 +82,8 @@ class ConfigGroups(UITestCase):
             search = self.configgroups.search(name)
             self.assertIsNone(search)
 
-    def test_create_negative_2(self):
+    @data("", "  ")
+    def test_create_negative_2(self, name):
         """@Test: Create new config-groups with blank name
 
         @Feature: Config-Groups - Negative Create
@@ -90,22 +91,7 @@ class ConfigGroups(UITestCase):
         @Assert: Config-Groups is not created
 
         """
-        name = ""
-        with Session(self.browser) as session:
-            make_config_groups(session, name=name)
-            error = session.nav.wait_until_element(
-                common_locators["name_haserror"])
-            self.assertIsNotNone(error)
 
-    def test_create_negative_3(self):
-        """@Test: Create new config-groups with blank name
-
-        @Feature: Config-Groups - Negative Create
-
-        @Assert: Config-Groups is not created
-
-        """
-        name = "    "
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
             error = session.nav.wait_until_element(

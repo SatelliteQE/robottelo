@@ -4,15 +4,14 @@
 
 from ddt import ddt
 from fauxfactory import FauxFactory
+from robottelo import entities
 from robottelo.common.constants import (
-    INSTALL_MEDIUM_URL, OS_TEMPLATE_DATA_FILE, PARTITION_SCRIPT_DATA_FILE)
+    INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
 from robottelo.common.decorators import data
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (
-    make_org, make_loc, make_os, make_arch, make_media, make_templates,
-    make_partitiontable)
+from robottelo.ui.factory import make_os
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -23,16 +22,21 @@ class OperatingSys(UITestCase):
 
     org_name = None
     loc_name = None
+    org_id = None
+    loc_id = None
 
     def setUp(self):
         super(OperatingSys, self).setUp()
         #  Make sure to use the Class' org_name instance
-        if (OperatingSys.org_name is None and OperatingSys.loc_name is None):
-            OperatingSys.org_name = FauxFactory.generate_string("alpha", 8)
-            OperatingSys.loc_name = FauxFactory.generate_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=OperatingSys.org_name)
-                make_loc(session, name=OperatingSys.loc_name)
+        if OperatingSys.org_name is None and OperatingSys.loc_name is None:
+            org_name = FauxFactory.generate_string("alpha", 8)
+            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_attrs = entities.Organization(name=org_name).create()
+            loc_attrs = entities.Location(name=loc_name).create()
+            OperatingSys.org_name = org_attrs['name']
+            OperatingSys.org_id = org_attrs['id']
+            OperatingSys.loc_name = loc_attrs['name']
+            OperatingSys.loc_id = loc_attrs['id']
 
     def test_create_os(self):
         """@Test: Create a new OS
@@ -55,7 +59,6 @@ class OperatingSys(UITestCase):
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.search(name))
 
-    @skip_if_bug_open('bugzilla', 1120568)
     @data({u'name': FauxFactory.generate_string('alpha', 10),
            u'major_version': FauxFactory.generate_string('numeric', 1),
            u'minor_version': FauxFactory.generate_string('numeric', 1),
@@ -73,7 +76,7 @@ class OperatingSys(UITestCase):
            u'os_family': "SUSE"},
           {u'name': FauxFactory.generate_string('alphanumeric', 255),
            u'major_version': FauxFactory.generate_string('numeric', 5),
-           u'minor_version': FauxFactory.generate_string('numeric', 0),
+           u'minor_version': FauxFactory.generate_string('numeric', 1),
            u'desc': FauxFactory.generate_string('alphanumeric', 255),
            u'os_family': "SUSE"})
     def test_positive_create_os(self, test_data):
@@ -97,7 +100,6 @@ class OperatingSys(UITestCase):
             self.assertIsNotNone(self.operatingsys.search
                                  (test_data['desc'], search_key="description"))
 
-    @skip_if_bug_open('bugzilla', 1120181)
     def test_negative_create_os_1(self):
         """@Test: OS - Create a new OS with 256 characters in name
 
@@ -237,7 +239,6 @@ class OperatingSys(UITestCase):
                                  (common_locators["haserror"]))
             self.assertIsNone(self.operatingsys.search(name))
 
-    @skip_if_bug_open('bugzilla', 1120199)
     def test_negative_create_os_7(self):
         """@Test: OS - Create a new OS with -ve value of major version
 
@@ -300,23 +301,33 @@ class OperatingSys(UITestCase):
         @Assert: OS is deleted
 
         """
-
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
-        os_family = "Red Hat"
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version,
-                    minor_version=minor_version,
-                    os_family=os_family)
-            self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.delete(name, really=True)
+            session.nav.go_to_operating_systems()
+            self.operatingsys.delete(os_name, really=True)
             self.assertIsNotNone(self.user.wait_until_element
                                  (common_locators["notif.success"]))
-            self.assertIsNone(self.operatingsys.search(name))
+            self.assertIsNone(self.operatingsys.search(os_name))
 
-    def test_update_os_1(self):
+    @data(
+        {u'new_name': FauxFactory.generate_string('alpha', 10),
+         u'new_major_version': FauxFactory.generate_string('numeric', 1),
+         u'new_minor_version': FauxFactory.generate_string('numeric', 1),
+         u'new_os_family': "Red Hat"},
+        {u'new_name': FauxFactory.generate_string('html', 10),
+         u'new_major_version': FauxFactory.generate_string('numeric', 4),
+         u'new_minor_version': FauxFactory.generate_string('numeric', 4),
+         u'new_os_family': "Gentoo"},
+        {u'new_name': FauxFactory.generate_string('utf8', 10),
+         u'new_major_version': FauxFactory.generate_string('numeric', 5),
+         u'new_minor_version': FauxFactory.generate_string('numeric', 16),
+         u'new_os_family': "SUSE"},
+        {u'new_name': FauxFactory.generate_string('alphanumeric', 255),
+         u'new_major_version': FauxFactory.generate_string('numeric', 5),
+         u'new_minor_version': FauxFactory.generate_string('numeric', 1),
+         u'new_os_family': "SUSE"}
+    )
+    def test_update_os_1(self, test_data):
         """@Test: Update OS name, major_version, minor_version, os_family
         and arch
 
@@ -326,28 +337,17 @@ class OperatingSys(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
-        os_family = "Red Hat"
-        new_name = FauxFactory.generate_string("alpha", 4)
-        new_major_version = FauxFactory.generate_string('numeric', 1)
-        new_minor_version = FauxFactory.generate_string('numeric', 1)
-        new_os_family = "Debian"
-        new_arch = FauxFactory.generate_string("alpha", 4)
+        os_name = entities.OperatingSystem().create()['name']
+        arch_name = entities.Architecture().create()['name']
         with Session(self.browser) as session:
-            make_arch(session, name=new_arch)
-            self.assertIsNotNone(self.architecture.search(new_arch))
-            make_os(session, name=name,
-                    major_version=major_version,
-                    minor_version=minor_version,
-                    os_family=os_family)
-            self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.update(name, new_name, new_major_version,
-                                     new_minor_version,
-                                     os_family=new_os_family,
-                                     new_archs=[new_arch])
-            self.assertIsNotNone(self.operatingsys.search(new_name))
+            session.nav.go_to_operating_systems()
+            self.operatingsys.update(os_name, test_data['new_name'],
+                                     test_data['new_major_version'],
+                                     test_data['new_minor_version'],
+                                     os_family=test_data['new_os_family'],
+                                     new_archs=[arch_name])
+            self.assertIsNotNone(self.operatingsys.search(
+                test_data['new_name']))
 
     def test_update_os_medium(self):
         """@Test: Update OS medium
@@ -358,19 +358,18 @@ class OperatingSys(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        medium = FauxFactory.generate_string("alpha", 4)
-        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
+        medium_name = FauxFactory.generate_string("alpha", 4)
+        path = INSTALL_MEDIUM_URL % medium_name
+        medium = entities.Media(
+            name=medium_name,
+            media_path=path,
+        ).create()
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_media(session, name=medium, path=path)
-            self.assertIsNotNone(self.medium.search(medium))
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.update(name, new_mediums=[medium])
-            result_object = self.operatingsys.get_os_entities(name, "medium")
-            self.assertEqual(medium, result_object['medium'])
+            session.nav.go_to_operating_systems()
+            self.operatingsys.update(os_name, new_mediums=[medium])
+            result_obj = self.operatingsys.get_os_entities(os_name, "medium")
+            self.assertEqual(medium_name, result_obj['medium'])
 
     def test_update_os_partition_table(self):
         """@Test: Update OS partition table
@@ -381,23 +380,21 @@ class OperatingSys(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
         ptable = FauxFactory.generate_string("alpha", 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
         with open(script_file, 'r') as file_contents:
             layout = file_contents.read()
+        entities.PartitionTable(
+            name=ptable,
+            layout=layout,
+        ).create()
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_partitiontable(session, name=ptable, layout=layout)
-            self.assertIsNotNone(self.partitiontable.search(ptable))
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
-            self.operatingsys.update(name, new_ptables=[ptable])
-            result_object = self.operatingsys.get_os_entities(name, "ptable")
-            self.assertEqual(ptable, result_object['ptable'])
+            session.nav.go_to_operating_systems()
+            self.operatingsys.update(os_name, new_ptables=[ptable])
+            result_obj = self.operatingsys.get_os_entities(os_name, "ptable")
+            self.assertEqual(ptable, result_obj['ptable'])
 
-    @skip_if_bug_open('bugzilla', 1129612)
     def test_update_os_template(self):
         """@Test: Update provisioning template
 
@@ -408,23 +405,15 @@ class OperatingSys(UITestCase):
         @BZ: 1129612
 
         """
-
-        os_name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
+        os_name = FauxFactory.generate_string("alpha", 4)
         template_name = FauxFactory.generate_string("alpha", 4)
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
-        os_list = [os_name]
+        os_attrs = entities.OperatingSystem(name=os_name).create()
+        entities.ConfigTemplate(
+            name=template_name,
+            operatingsystem=[os_attrs['id']]
+        ).create()
         with Session(self.browser) as session:
-            make_os(session, name=os_name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(os_name))
-            make_templates(session, name=template_name,
-                           template_path=template_path,
-                           custom_really=True, template_type=temp_type,
-                           os_list=os_list)
-            self.assertIsNotNone(self.template.search(template_name))
-            self.navigator.go_to_operating_systems()
+            session.nav.go_to_operating_systems()
             self.operatingsys.update(os_name, template=template_name)
             result_obj = self.operatingsys.get_os_entities(os_name, "template")
             self.assertEqual(template_name, result_obj['template'])
@@ -437,16 +426,14 @@ class OperatingSys(UITestCase):
         @Assert: OS is updated
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
-        major_version = FauxFactory.generate_string('numeric', 1)
+
         param_name = FauxFactory.generate_string("alpha", 4)
         param_value = FauxFactory.generate_string("alpha", 3)
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
+            session.nav.go_to_operating_systems()
             try:
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
             except Exception as e:
                 self.fail(e)
@@ -459,16 +446,14 @@ class OperatingSys(UITestCase):
         @Assert: Parameter is created with blank value
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
-        major_version = FauxFactory.generate_string('numeric', 1)
+
         param_name = FauxFactory.generate_string("alpha", 4)
         param_value = ""
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
+            session.nav.go_to_operating_systems()
             try:
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
             except Exception as e:
                 self.fail(e)
@@ -481,21 +466,19 @@ class OperatingSys(UITestCase):
         @Assert: OS is updated
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
+
         param_name = FauxFactory.generate_string("alpha", 4)
         param_value = FauxFactory.generate_string("alpha", 3)
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
+            session.nav.go_to_operating_systems()
             try:
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
-                self.operatingsys.remove_os_parameter(name, param_name)
+                self.operatingsys.remove_os_parameter(os_name, param_name)
             except Exception as e:
                 self.fail(e)
 
-    @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_os_parameter_1(self):
         """@Test: Set same OS parameter again as it was set earlier
 
@@ -506,25 +489,22 @@ class OperatingSys(UITestCase):
         @BZ: 1120663
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
-        major_version = FauxFactory.generate_string('numeric', 1)
+
         param_name = FauxFactory.generate_string("alpha", 4)
         param_value = FauxFactory.generate_string("alpha", 3)
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
+            session.nav.go_to_operating_systems()
             try:
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
             except Exception as e:
                 self.fail(e)
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators["common_param_error"]))
 
-    @skip_if_bug_open('bugzilla', 1120663)
     def test_negative_set_os_parameter_2(self):
         """@Test: Set OS parameter with blank name and value
 
@@ -535,16 +515,14 @@ class OperatingSys(UITestCase):
         @BZ: 1120663
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
-        major_version = FauxFactory.generate_string('numeric', 1)
+
         param_name = " "
         param_value = " "
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
+            session.nav.go_to_operating_systems()
             try:
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
             except Exception as e:
                 self.fail(e)
@@ -559,16 +537,14 @@ class OperatingSys(UITestCase):
         @Assert: Proper error should be raised, Name should contain a value
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
-        major_version = FauxFactory.generate_string('numeric', 1)
+
         param_name = FauxFactory.generate_string("alpha", 256)
         param_value = FauxFactory.generate_string("alpha", 256)
+        os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
-            make_os(session, name=name,
-                    major_version=major_version)
-            self.assertIsNotNone(self.operatingsys.search(name))
+            session.nav.go_to_operating_systems()
             try:
-                self.operatingsys.set_os_parameter(name, param_name,
+                self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
             except Exception as e:
                 self.fail(e)
