@@ -4,16 +4,14 @@
 
 from ddt import ddt
 from fauxfactory import FauxFactory
+from robottelo import entities
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_ipaddr, generate_strings_list
-from robottelo.ui.factory import make_org, make_loc, make_subnet, make_domain
+from robottelo.ui.factory import make_subnet
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
-
-
-DOMAIN = "lab.dom.%s.com"
 
 
 @ddt
@@ -21,22 +19,26 @@ class Subnet(UITestCase):
     """Implements Subnet tests in UI"""
     org_name = None
     loc_name = None
+    org_id = None
+    loc_id = None
 
     def setUp(self):
         super(Subnet, self).setUp()
         # Make sure to use the Class' org_name instance
         if Subnet.org_name is None and Subnet.loc_name is None:
-            Subnet.org_name = FauxFactory.generate_string("alpha", 8)
-            Subnet.loc_name = FauxFactory.generate_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Subnet.org_name)
-                make_loc(session, name=Subnet.loc_name)
+            org_name = FauxFactory.generate_string("alpha", 8)
+            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_attrs = entities.Organization(name=org_name).create()
+            loc_attrs = entities.Location(name=loc_name).create()
+            Subnet.org_name = org_attrs['name']
+            Subnet.org_id = org_attrs['id']
+            Subnet.loc_name = loc_attrs['name']
+            Subnet.loc_id = loc_attrs['id']
 
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_subnet_1(self, name):
-        """@Test: Create new subnet - given subnet name, subnet network,
-        subnet mask.
+        """@Test: Create new subnet
 
         @Feature: Subnet - Positive Create
 
@@ -60,8 +62,7 @@ class Subnet(UITestCase):
         FauxFactory.generate_string('utf8', 255)
     )
     def test_create_subnet_2(self, name):
-        """@Test: Create new subnet - given subnet name, subnet network,
-        subnet mask.
+        """@Test: Create new subnet with 255 characters in name
 
         @Feature: Subnet - Positive Create
 
@@ -76,8 +77,7 @@ class Subnet(UITestCase):
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
 
     def test_create_subnet_3(self):
-        """@Test: Create new subnet - given subnet name, subnet network,
-        subnet mask and domain
+        """@Test: Create new subnet and associate domain with it
 
         @Feature: Subnet - Positive Create
 
@@ -87,27 +87,25 @@ class Subnet(UITestCase):
         strategy, value = common_locators["entity_deselect"]
         name = FauxFactory.generate_string("alpha", 4)
         network = generate_ipaddr(ip3=True)
-        domain_name = description = DOMAIN % name
         mask = "255.255.255.0"
+        domain_name = entities.Domain().create()['name']
         with Session(self.browser) as session:
-            make_domain(session, name=domain_name, description=description)
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask, domains=[domain_name])
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
-            session.nav.search_entity(name,
-                                      locators['subnet.display_name']).click()
+            session.nav.search_entity(
+                name, locators['subnet.display_name']).click()
             session.nav.wait_until_element(
                 tab_locators["subnet.tab_domain"]).click()
-            element = session.nav.wait_until_element((strategy,
-                                                      value % domain_name))
+            element = session.nav.wait_until_element(
+                (strategy, value % domain_name))
             self.assertIsNotNone(element)
 
     @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_subnet_negative_1(self, name):
-        """@Test: Create new subnet - given subnet name, subnet network,
-        subnet mask.
+        """@Test: Create new subnet with 256 characters in name
 
         @Feature: Subnet - Negative Create
 
@@ -121,31 +119,16 @@ class Subnet(UITestCase):
                         subnet_mask=mask)
             self.assertIsNone(self.subnet.search_subnet(subnet_name=name))
 
-    def test_create_subnet_negative_2(self):
-        """@Test: Create new subnet with blank name.
+    @data("", " ")
+    def test_create_subnet_negative_2(self, name):
+        """@Test: Create new subnet with whitespace and blank in name.
 
         @Feature: Subnet - Negative Create.
 
-        @Assert: Subnet is not created with blank name.
+        @Assert: Subnet is not created.
 
         """
-        name = ""
-        network = generate_ipaddr(ip3=True)
-        mask = "255.255.255.0"
-        with Session(self.browser) as session:
-            make_subnet(session, subnet_name=name, subnet_network=network,
-                        subnet_mask=mask)
-            self.assertIsNone(self.subnet.search_subnet(subnet_name=name))
 
-    def test_create_subnet_negative_3(self):
-        """@Test: Create new subnet with whitespace name.
-
-        @Feature: Subnet - Negative Create.
-
-        @Assert: Subnet is not created with blank name.
-
-        """
-        name = "   "
         network = generate_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
@@ -212,8 +195,9 @@ class Subnet(UITestCase):
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_remove_subnet_2(self, name):
-        """@Test: Create subnet. Attempt to delete subnet but cancel
-        in the confirmation dialog box.
+        """@Test: Delete subnet.
+
+        Attempt to delete subnet but cancel in the confirmation dialog box.
 
         @Feature: Subnet - Negative Delete
 

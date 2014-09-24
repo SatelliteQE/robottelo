@@ -89,7 +89,7 @@ class ComputeResource(UITestCase):
         FauxFactory.generate_string('utf8', 255)
     )
     def test_create_resource_3(self, description):
-        """@Test: Create a new libvirt Compute Resource with 255 char description.
+        """@Test: Create libvirt Compute Resource with 255 char description.
 
         @Feature: Compute Resource - Create with long description.
 
@@ -134,7 +134,7 @@ class ComputeResource(UITestCase):
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_2(self, description):
-        """@Test: Create a new libvirt Compute Resource with 256 char description.
+        """@Test: Create libvirt Compute Resource with 256 char description.
 
         @Feature: Compute Resource - Create with long description.
 
@@ -156,7 +156,8 @@ class ComputeResource(UITestCase):
                 common_locators["haserror"])
             self.assertIsNotNone(error)
 
-    def test_create_resource_negative_3(self):
+    @data("", "  ")
+    def test_create_resource_negative_3(self, name):
         """@Test: Create a new libvirt Compute Resource with whitespace
 
         @Feature: Compute Resource - Create
@@ -164,26 +165,7 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created
 
         """
-        name = "   "
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
-        with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          provider_type=provider_type, url=url)
-            error = session.nav.wait_until_element(
-                common_locators["name_haserror"])
-            self.assertIsNotNone(error)
 
-    def test_create_resource_negative_4(self):
-        """@Test: Create a new libvirt Compute Resource with name blank
-
-        @Feature: Compute Resource - Create
-
-        @Assert: A libvirt Compute Resource is not created
-
-        """
-        name = ""
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])

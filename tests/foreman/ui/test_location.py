@@ -11,14 +11,12 @@ from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list, get_data_file
-from robottelo.common.constants import OS_TEMPLATE_DATA_FILE
+from robottelo.common.constants import (
+    OS_TEMPLATE_DATA_FILE, INSTALL_MEDIUM_URL)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_loc, make_templates
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
-
-
-URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
 
 @ddt
@@ -426,7 +424,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
-        path = URL % FauxFactory.generate_string("alpha", 6)
+        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
         medium = entities.Media(
             name=medium_name,
             path=path,
@@ -729,7 +727,7 @@ class Location(UITestCase):
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = FauxFactory.generate_string("alpha", 8)
-        path = URL % FauxFactory.generate_string("alpha", 6)
+        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
         medium = entities.Media(
             name=medium_name,
             path=path,
