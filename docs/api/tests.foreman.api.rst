@@ -117,20 +117,6 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_subnet`
-------------------------------------
-
-.. automodule:: tests.foreman.api.test_subnet
-    :members:
-    :undoc-members:
-
-:mod:`tests.foreman.api.test_user`
-----------------------------------
-
-.. automodule:: tests.foreman.api.test_user
-    :members:
-    :undoc-members:
-
 :mod:`tests.foreman.api.test_user_v2`
 -------------------------------------
 
