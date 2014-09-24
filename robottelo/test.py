@@ -5,6 +5,8 @@ to help writting API, CLI and UI tests.
 
 """
 import logging
+import os
+import signal
 import sys
 if sys.hexversion >= 0x2070000:
     import unittest
@@ -215,30 +217,18 @@ class UITestCase(TestCase):
             if (cls.window_manager is not None and
                     cls.window_manager.is_started):
                 cls.logger.debug(
-                    'Stopping window manager (pid=%d, cmd="%s")',
+                    'Killing window manager (pid=%d, cmd="%s")',
                     cls.window_manager.pid,
                     cls.window_manager.cmd_as_string
                 )
-                cls.window_manager.sendstop()
-                # Give 30 seconds to the process terminate. Kill it if timeout
-                # happens
-                if cls.window_manager.wait(30).timeout_happened:
-                    import os
-                    import signal
-                    os.kill(cls.window_manager.pid, signal.SIGKILL)
-                    _, return_code = os.waitpid(cls.window_manager.pid, 0)
-                    cls.logger.debug(
-                        'Window manager killed (pid=%d, cmd="%s", rcode=%d)',
-                        cls.window_manager.pid,
-                        cls.window_manager.cmd_as_string,
-                        return_code
-                    )
-                else:
-                    cls.logger.debug(
-                        'Window manager stopped (pid=%d, cmd="%s")',
-                        cls.window_manager.pid,
-                        cls.window_manager.cmd_as_string
-                    )
+                os.kill(cls.window_manager.pid, signal.SIGKILL)
+                _, return_code = os.waitpid(cls.window_manager.pid, 0)
+                cls.logger.debug(
+                    'Window manager killed (pid=%d, cmd="%s", rcode=%d)',
+                    cls.window_manager.pid,
+                    cls.window_manager.cmd_as_string,
+                    return_code
+                )
             cls.logger.debug(
                 'Stopping virtual display (pid=%d, display="%s"',
                 cls.display.pid,
