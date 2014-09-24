@@ -1,16 +1,12 @@
-"""Unit tests for the ``content_views`` paths.
-
-A full API reference for content views can be found here:
-http://theforeman.org/api/apidoc/v2/content_views.html
-
-"""
+"""Unit tests for the ``content_views`` paths."""
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import decorators
 from robottelo.factory import FactoryError
-from robottelo import entities, orm
+from robottelo import entities
 from unittest import TestCase
+from fauxfactory import gen_utf8
 import ddt
 # (too many public methods) pylint: disable=R0904
 
@@ -147,7 +143,7 @@ class ContentViewUpdateTestCase(TestCase):
 
     @decorators.data(
         {'label': entities.ContentView.label.get_value()},  # Immutable.
-        {'name': orm.StringField(len=256).get_value()},
+        {'name': gen_utf8(256)},
     )
     def test_negative_update(self, attrs):
         """@Test: Update a content view and provide an invalid attribute.
