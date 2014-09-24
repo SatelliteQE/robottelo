@@ -30,7 +30,7 @@ distribution. For example:
 
 Get the source code and install dependencies::
 
-    $ git clone git://github.com/omaciel/robottelo.git
+    $ git clone git://github.com/SatelliteQE/robottelo.git
     $ pip install -r requirements.txt
 
 That's it! You can now go ahead and start testing The Foreman. However, there
@@ -59,6 +59,7 @@ That done, you can run tests using ``make``::
     $ make test-foreman-api
     $ make test-foreman-cli
     $ make test-foreman-ui
+    $ make test-foreman-smoke
 
 If you want to run the test suite without the aid of ``make``, you can do that
 with either `unittest`_ or `nose`_::
@@ -195,7 +196,7 @@ covered by the API. For more granular information, follow one of the links.
 Miscellany
 ==========
 
-Bugs are listed `on GitHub <https://github.com/omaciel/robottelo/issues>`_. If
+Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_. If
 you think you've found a new issue, please do one of the following:
 
 * Open a new bug report on Github.
@@ -225,7 +226,7 @@ The design and development for this software is led by `Og Maciel`_.
 .. _Og Maciel: http://www.ogmaciel.com
 .. _Paramiko: http://www.paramiko.org/
 .. _Requests: http://docs.python-requests.org/en/latest/
-.. _Robottelo: https://github.com/omaciel/robottelo
+.. _Robottelo: https://github.com/SatelliteQE/robottelo
 .. _SauceLabs: https://saucelabs.com/
 .. _Sphinx: http://sphinx-doc.org/index.html
 .. _The Foreman: http://theforeman.org/
