@@ -865,28 +865,18 @@ class Location(orm.Entity, factory.EntityFactoryMixin):
 
 class Media(orm.Entity, factory.EntityFactoryMixin):
     """A representation of a Media entity."""
-    # Name of media
-    # validator: String
     name = orm.StringField(required=True)
-    # The path to the medium, can be a URL or a valid NFS server (exclusive of
-    # the architecture). for example
-    # mirror.centos.org/centos/$version/os/$arch where $arch will be
-    # substituted for the host's actual OS architecture and $version, $major
-    # and $minor will be substituted for the version of the operating system.
-    # Solaris and Debian media may also use $release.
-    path = orm.StringField(required=True)
-    # The family that the operating system belongs to.
-    # Available families: AIX, Archlinux, Debian, Freebsd, Gentoo, Junos,
-    # Redhat, Solaris, Suse, Windows
+    operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
     os_family = orm.StringField(choices=(
         'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos', 'Redhat',
         'Solaris', 'Suse', 'Windows',
     ), null=True)
-    operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
+    media_path = orm.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/media'
+        api_names = (('media_path', 'path'),)
 
 
 class Model(
