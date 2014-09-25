@@ -1,6 +1,6 @@
 """Tests for :mod:`robottelo.factory`."""
 # (Too many public methods) pylint: disable=R0904
-from fauxfactory import FauxFactory
+from fauxfactory import gen_utf8
 from mock import Mock
 from robottelo.api import client
 from robottelo.common import conf
@@ -21,26 +21,6 @@ class SampleFactory(factory.Factory):
     def _factory_data(self):
         """Return data for creating a "Sample" entity."""
         return {'name': SAMPLE_FACTORY_NAME, 'cost': SAMPLE_FACTORY_COST}
-
-
-class MockResponse(object):  # (too-few-public-methods) pylint:disable=R0903
-    """A mock ``requests.response`` object."""
-    def json(self):  # (no-self-use) pylint:disable=R0201
-        """A wrapper around method ``SampleFactory._factory_data``."""
-        # (protected-access) pylint:disable=W0212
-        return SampleFactory()._factory_data()
-
-
-class MockErrorResponse(object):  # too-few-public-methods pylint:disable=R0903
-    """A mock ``requests.response`` object."""
-    def json(self):  # (no-self-use) pylint:disable=R0201
-        """Return a simple error message.
-
-        The error message returned by this method is similar to what might be
-        returned by a real Foreman server.
-
-        """
-        return {'error': {'error name': 'error message'}}
 
 
 class SampleEntityFactory(orm.Entity, factory.EntityFactoryMixin):
@@ -189,19 +169,13 @@ class SampleFactoryTestCase(TestCase):
         response.
 
         """
-        client.post = Mock(return_value=MockResponse())
-        self.assertEqual(MockResponse().json(), SampleFactory().create())
+        # Make client.post(...).json() return {'foo': 'bar'}
+        mock_response = Mock()
+        mock_response.json.return_value = {'foo': 'bar'}
+        client.post = Mock(return_value=mock_response)
 
-    def test_create_error(self):
-        """Call ``create`` with no arguments. Receive an error response.
-
-        Assert that ``create`` raises a :class:`robottelo.factory.FactoryError`
-        if a (mock) server response contains an error message.
-
-        """
-        client.post = Mock(return_value=MockErrorResponse())
-        with self.assertRaises(factory.FactoryError):
-            SampleFactory().create()
+        # Does create() return client.post(...).json()?
+        self.assertEqual(SampleFactory().create(), {'foo': 'bar'})
 
     def test_create_auth(self):
         """Call ``create`` and specify the ``auth`` argument.
@@ -210,11 +184,8 @@ class SampleFactoryTestCase(TestCase):
         :func:`robottelo.api.client.post`.
 
         """
-        client.post = Mock(return_value=MockResponse())
-        auth = (
-            FauxFactory.generate_string('utf8', 10),  # username
-            FauxFactory.generate_string('utf8', 10),  # password
-        )
+        client.post = Mock()
+        auth = (gen_utf8(10), gen_utf8(10))  # (username, password)
         SampleFactory().create(auth=auth)
         self.assertEqual(auth, client.post.call_args[1]['auth'])
 

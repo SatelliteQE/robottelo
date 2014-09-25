@@ -5,11 +5,11 @@ http://theforeman.org/api/apidoc/v2/activation_keys.html
 
 """
 from ddt import data, ddt
+from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo.factory import FactoryError
 from robottelo import entities
 from robottelo.orm import IntegerField, StringField
 from unittest import TestCase
@@ -31,7 +31,7 @@ class ActivationKeysTestCase(TestCase):
         """
         try:
             attrs = entities.ActivationKey().create()
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         # Assert that it defaults to unlimited content host
         self.assertTrue(
@@ -57,7 +57,7 @@ class ActivationKeysTestCase(TestCase):
                 unlimited_content_hosts=False,
                 max_content_hosts=max_content_hosts,
             ).create()
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         # Assert that it defaults to limited content host...
         self.assertFalse(
@@ -90,7 +90,7 @@ class ActivationKeysTestCase(TestCase):
         """
         try:
             attrs = entities.ActivationKey(name=name).create()
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
 
         # Fetch the activation key. Assert that initial values match.
@@ -120,7 +120,7 @@ class ActivationKeysTestCase(TestCase):
             entity_id = entities.ActivationKey(
                 description=description
             ).create()['id']
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
 
         # Fetch the activation key. Assert that initial values match.
@@ -136,7 +136,7 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
 
         """
-        with self.assertRaises(FactoryError):
+        with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_content_hosts=False).create()
 
     @data(
@@ -153,7 +153,7 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
 
         """
-        with self.assertRaises(FactoryError):
+        with self.assertRaises(HTTPError):
             entities.ActivationKey(
                 unlimited_content_hosts=False,
                 max_content_hosts=max_content_hosts
@@ -173,7 +173,7 @@ class ActivationKeysTestCase(TestCase):
         @Feature: ActivationKey
 
         """
-        with self.assertRaises(FactoryError):
+        with self.assertRaises(HTTPError):
             entities.ActivationKey(
                 unlimited_content_hosts=True,
                 max_content_hosts=max_content_hosts
@@ -197,7 +197,7 @@ class ActivationKeysTestCase(TestCase):
             activation_key = entities.ActivationKey(
                 id=entities.ActivationKey().create()['id']
             )
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
 
         # Update the activation key.
@@ -239,7 +239,7 @@ class ActivationKeysTestCase(TestCase):
         """
         try:
             attrs = entities.ActivationKey().create()
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path()
 
@@ -323,7 +323,7 @@ class ActivationKeysTestCase(TestCase):
         """
         try:
             attrs = entities.ActivationKey().create()
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path(which='releases')
         response = client.get(
@@ -349,7 +349,7 @@ class ActivationKeysTestCase(TestCase):
         """
         try:
             attrs = entities.ActivationKey().create()
-        except FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         response = client.get(
             entities.ActivationKey(id=attrs['id']).path(which='releases'),

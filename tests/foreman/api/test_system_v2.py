@@ -15,12 +15,12 @@ A full list of system-related URLs can be found here:
 http://theforeman.org/api/apidoc/v2/systems.html
 
 """
+from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System
-from robottelo import factory
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
@@ -80,7 +80,7 @@ class EntityIdTestCaseClone(TestCase):
         """
         try:
             attrs = System().create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         path = System(uuid=attrs['uuid']).path()
         response = client.delete(
@@ -178,7 +178,7 @@ class LongMessageTestCaseClone(TestCase):
         """
         try:
             attrs = System().create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         System(uuid=attrs['uuid']).delete()
 
