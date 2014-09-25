@@ -32,18 +32,23 @@ BZ_1122267_ENTITIES = (
 
 
 def skip_if_sam(self, entity):
-    """Skip test if server is in "sam" mode and entity is unavailable in "sam".
+    """Skip test if testing sam features and entity is unavailable in sam.
 
     :param entity: One of the entities defined in :meth:`robottelo.entities`.
+    :returns: Either ``self.skipTest`` or ``None``.
 
     """
     robottelo_mode = conf.properties.get('main.project', '').lower()
-    server_mode = map(lambda item: item.lower(), entity().Meta.server_mode)
+    server_modes = [
+        server_mode.lower()
+        for server_mode
+        in entity.Meta.server_mode
+    ]
 
-    if (robottelo_mode == 'sam' and 'sam' not in server_mode):
+    if robottelo_mode == 'sam' and 'sam' not in server_modes:
         return self.skipTest(
             'Server runs in "{0}" mode and this entity is associated only to '
-            '"{1}" mode(s).'.format(robottelo_mode, "".join(server_mode))
+            '"{1}" mode(s).'.format(robottelo_mode, "".join(server_modes))
         )
 
     # else just return - do nothing!
