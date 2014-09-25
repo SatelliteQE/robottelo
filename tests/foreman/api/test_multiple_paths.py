@@ -3,7 +3,9 @@ from ddt import data, ddt
 from functools import partial
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
+from robottelo.common import conf
+from robottelo.common.decorators import (
+    bz_bug_is_open, run_only_on, skip_if_bug_open)
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities, factory
 from unittest import TestCase
@@ -26,6 +28,24 @@ BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
     entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
+
+
+def skip_if_sam(self, entity):
+    """Skip test if server is in "sam" mode and entity is unavailable in "sam".
+
+    :param entity: One of the entities defined in :meth:`robottelo.entities`.
+
+    """
+    robottelo_mode = conf.properties.get('main.project', '').lower()
+    server_mode = map(lambda item: item.lower(), entity().Meta.server_mode)
+
+    if (robottelo_mode == 'sam' and 'sam' not in server_mode):
+        return self.skipTest(
+            'Server runs in "{0}" mode and this entity is associated only to '
+            '"{1}" mode(s).'.format(robottelo_mode, "".join(server_mode))
+        )
+
+    # else just return - do nothing!
 
 
 @ddt
@@ -62,6 +82,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
+        skip_if_sam(self, entity)
         path = entity().path()
         response = client.get(
             path,
@@ -107,6 +128,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
+        skip_if_sam(self, entity)
         path = entity().path()
         response = client.get(path, verify=False)
         status_code = httplib.UNAUTHORIZED
@@ -153,6 +175,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
         """
+        skip_if_sam(self, entity)
         # Some arguments are "normal" classes and others are objects produced
         # by functools.partial. Also, `partial(SomeClass).func == SomeClass`.
         if ((entity.func if isinstance(entity, partial) else entity) in
@@ -205,6 +228,7 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
+        skip_if_sam(self, entity)
         path = entity().path()
         response = client.post(path, verify=False)
         status_code = httplib.UNAUTHORIZED
@@ -249,6 +273,7 @@ class EntityIdTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
+        skip_if_sam(self, entity)
         if entity is entities.ActivationKey and bz_bug_is_open(1127335):
             self.skipTest("Bugzilla bug 1127335 is open.""")
         try:
@@ -300,6 +325,7 @@ class EntityIdTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
+        skip_if_sam(self, entity)
         path = entity(id=entity().create()['id']).path()
         response = client.put(
             path,
@@ -348,6 +374,7 @@ class EntityIdTestCase(TestCase):
         content-type.
 
         """
+        skip_if_sam(self, entity)
         if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
         try:
@@ -416,6 +443,7 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The updated entity has the correct attributes.
 
         """
+        skip_if_sam(self, entity)
         if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
             self.skipTest("Bugzilla bug 1140313 is open.""")
 
@@ -470,6 +498,7 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The created entity has the correct attributes.
 
         """
+        skip_if_sam(self, entity)
         if entity in BZ_1122267_ENTITIES and bz_bug_is_open(1122267):
             self.skipTest("Bugzilla bug 1122267 is open.""")
         if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
@@ -524,6 +553,7 @@ class DoubleCheckTestCase(TestCase):
         @Assert: An HTTP 404 is returned when fetching the missing entity.
 
         """
+        skip_if_sam(self, entity)
         if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
 
@@ -596,12 +626,14 @@ class EntityReadTestCase(TestCase):
         @Assert: The just-read entity is an instance of the correct class.
 
         """
+        skip_if_sam(self, entity)
         if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
             self.skipTest("Bugzilla bug 1140313 is open.""")
         attrs = entity().create()
         read_entity = entity(id=attrs['id']).read()
         self.assertIsInstance(read_entity, entity)
 
+    @run_only_on('sat')
     def test_osparameter_read(self):
         """@Test: Create an OperatingSystemParameter and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
