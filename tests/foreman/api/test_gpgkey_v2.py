@@ -1,9 +1,4 @@
-"""Unit tests for the ``gpgkeys`` paths.
-
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/gpgkeys.html
-
-"""
+"""Unit tests for the ``gpgkeys`` paths."""
 from robottelo.api import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
