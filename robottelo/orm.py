@@ -20,7 +20,7 @@ class TaskTimeout(Exception):
     """Indicates that a task did not finish before the timout limit."""
 
 
-def _poll_task(task_id, poll_rate=5, timeout=180, auth=None):
+def _poll_task(task_id, poll_rate=5, timeout=120, auth=None):
     """Implement :meth:`robottelo.entities.ForemanTask.poll`.
 
     :meth:`robottelo.entities.ForemanTask.poll` calls this function, as does
@@ -59,8 +59,7 @@ def _poll_task(task_id, poll_rate=5, timeout=180, auth=None):
             response = client.get(path, auth=auth, verify=False)
             response.raise_for_status()
             task_info = response.json()
-            if (task_info['result'] == 'success' or
-                    task_info['result'] == 'error'):
+            if task_info['state'] != 'running':
                 return task_info
             time.sleep(poll_rate)
     except KeyboardInterrupt:
