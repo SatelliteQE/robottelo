@@ -4,11 +4,12 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/roles.html
 
 """
+from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities, factory, orm
+from robottelo import entities, orm
 from unittest import TestCase
 import ddt
 import httplib
@@ -22,7 +23,7 @@ class RoleTestCase(TestCase):
         """Create a role with name ``name``."""
         try:
             role_attrs = entities.Role(name=name).create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)  # fail instead of error
 
         # Creation apparently succeeded. GET the role and verify it's name.
@@ -81,7 +82,7 @@ class RoleTestCase(TestCase):
         """
         try:
             role_attrs = entities.Role(name=name).create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)  # fail instead of error
 
         path = entities.Role(id=role_attrs['id']).path()
@@ -126,7 +127,7 @@ class RoleTestCase(TestCase):
         """
         try:
             role_attrs = entities.Role(name=test_data['name']).create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)  # fail instead of error
 
         path = entities.Role(id=role_attrs['id']).path()
@@ -171,7 +172,7 @@ class RoleTestCase(TestCase):
 
         try:
             role_attrs = entities.Role(name=role_name).create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)  # fail instead of error
 
         path = entities.Role(id=role_attrs['id']).path()
@@ -220,7 +221,7 @@ class RoleTestCase(TestCase):
 
         try:
             role_attrs = entities.Role(name=role_name).create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)  # fail instead of error
 
         path = entities.Role(id=role_attrs['id']).path()
@@ -279,7 +280,7 @@ class RoleTestCase(TestCase):
 
         try:
             role_attrs = entities.Role(name=role_name).create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)  # fail instead of error
 
         path = entities.Role(id=role_attrs['id']).path()

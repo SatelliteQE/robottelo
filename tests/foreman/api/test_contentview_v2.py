@@ -3,7 +3,6 @@ from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import decorators
-from robottelo.factory import FactoryError
 from robottelo import entities
 from unittest import TestCase
 from fauxfactory import gen_utf8
@@ -102,7 +101,7 @@ class ContentViewTestCase(TestCase):
         @Feature: ContentView
 
         """
-        with self.assertRaises(FactoryError):
+        with self.assertRaises(HTTPError):
             entities.ContentView(name=name).create()
 
 

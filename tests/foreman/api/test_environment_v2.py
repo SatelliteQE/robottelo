@@ -5,8 +5,8 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 """
 from fauxfactory import FauxFactory
+from requests.exceptions import HTTPError
 from robottelo.common import decorators
-from robottelo.factory import FactoryError
 from robottelo import entities
 from unittest import TestCase
 import ddt
@@ -61,5 +61,5 @@ class EnvironmentTestCase(TestCase):
             Name is alphanumeric and cannot contain spaces
 
         """
-        with self.assertRaises(FactoryError):
+        with self.assertRaises(HTTPError):
             entities.Environment(name=name).create()

@@ -878,7 +878,7 @@ class LifecycleEnvironment(
                 }
             ).json()['results']
             if len(query_results) != 1:
-                raise factory.FactoryError(
+                raise APIResponseError(
                     'Could not find the "Library" lifecycle environment for '
                     'organization {0}. Search returned {1} results.'
                     ''.format(self.organization, len(query_results))
@@ -1426,7 +1426,8 @@ class Product(
         return None
 
 
-class PartitionTable(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+class PartitionTable(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         factory.EntityFactoryMixin):
     """A representation of a Partition Table entity."""
     name = orm.StringField(required=True)

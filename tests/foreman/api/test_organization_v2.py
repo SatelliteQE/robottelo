@@ -9,7 +9,7 @@ from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities, factory, orm
+from robottelo import entities, orm
 from unittest import TestCase
 import ddt
 import httplib
@@ -165,7 +165,7 @@ class OrganizationTestCase(TestCase):
         @Feature: Organization
 
         """
-        with self.assertRaises(factory.FactoryError):
+        with self.assertRaises(HTTPError):
             entities.Organization(name=name).create()
 
     def test_negative_create_duplicate(self):
@@ -178,7 +178,7 @@ class OrganizationTestCase(TestCase):
         """
         name = entities.Organization.name.get_value()
         entities.Organization(name=name).create()
-        with self.assertRaises(factory.FactoryError):
+        with self.assertRaises(HTTPError):
             entities.Organization(name=name).create()
 
     def test_positive_search(self):

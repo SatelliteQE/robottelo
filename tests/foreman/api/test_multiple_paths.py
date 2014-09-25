@@ -1,13 +1,14 @@
 """Data-driven unit tests for multiple paths."""
 from ddt import data, ddt
 from functools import partial
+from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common import conf
 from robottelo.common.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities, factory
+from robottelo import entities
 from unittest import TestCase
 import httplib
 import logging
@@ -278,7 +279,7 @@ class EntityIdTestCase(TestCase):
             self.skipTest("Bugzilla bug 1127335 is open.""")
         try:
             attrs = entity().create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         path = entity(id=attrs['id']).path()
         response = client.get(
@@ -379,7 +380,7 @@ class EntityIdTestCase(TestCase):
             self.skipTest('Cannot delete config templates.')
         try:
             attrs = entity().create()
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         path = entity(id=attrs['id']).path()
         response = client.delete(
@@ -560,7 +561,7 @@ class DoubleCheckTestCase(TestCase):
         # Create an entity, then delete it.
         try:
             entity_n = entity(id=entity().create()['id'])
-        except factory.FactoryError as err:
+        except HTTPError as err:
             self.fail(err)
         logger.info('test_delete_and_get path: {0}'.format(entity_n.path()))
         entity_n.delete()

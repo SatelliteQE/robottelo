@@ -61,10 +61,6 @@ def field_is_required(field_type):
     return False
 
 
-class FactoryError(Exception):
-    """Indicates an error occurred while creating an entity."""
-
-
 class Factory(object):
     """A mechanism for populating or creating Foreman entities.
 
@@ -209,31 +205,23 @@ class Factory(object):
             used.
         :return: Information about the newly created entity.
         :rtype: dict
-        :raises robottelo.factory.FactoryError: If the server returns an error
-            when attempting to create an entity.
+        :raises: ``requests.exceptions.HTTPError`` if the server returns an
+            HTTP 4XX or 5XX response.
 
         """
         if auth is None:
             auth = get_server_credentials()
-
-        # Create dependent entities and generate values for non-FK fields.
-        values = self.build(auth)
+        data = self.build(auth)
 
         # Create the current entity.
-        path = urljoin(get_server_url(), self._factory_path())
-        response = client.post(path, values, auth=auth, verify=False).json()
-        if 'error' in response.keys() or 'errors' in response.keys():
-            if 'error' in response.keys():
-                message = response['error']
-            else:
-                message = response['errors']
-            raise FactoryError(
-                'Error encountered while POSTing to {0}. Error received: {1}'
-                ''.format(path, message)
-            )
-
-        # Tell caller about created entity.
-        return response
+        response = client.post(
+            urljoin(get_server_url(), self._factory_path()),
+            data,
+            auth=auth,
+            verify=False,
+        )
+        response.raise_for_status()
+        return response.json()
 
 
 class EntityFactoryMixin(Factory):
