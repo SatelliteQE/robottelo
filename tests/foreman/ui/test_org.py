@@ -16,7 +16,7 @@ from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_strings_list
-from robottelo.common.decorators import skip_if_bug_open, stubbed
+from robottelo.common.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
@@ -362,6 +362,7 @@ class Org(UITestCase):
 
     # Associations
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain_name):
@@ -441,6 +442,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp_name):
@@ -477,6 +479,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -499,6 +502,7 @@ class Org(UITestCase):
 
         pass
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
@@ -530,6 +534,7 @@ class Org(UITestCase):
                                                       value % subnet_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain_name):
@@ -591,6 +596,7 @@ class Org(UITestCase):
                                                       value % user_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp_name):
@@ -617,6 +623,7 @@ class Org(UITestCase):
                                                       value % host_grp_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_location_1(self, location_name):
@@ -643,6 +650,7 @@ class Org(UITestCase):
                                                       value % location_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
@@ -685,6 +693,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium_name):
@@ -726,6 +735,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template_name):
@@ -761,6 +771,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(FauxFactory.generate_string('alpha', 8),
           FauxFactory.generate_string('numeric', 8),
@@ -788,6 +799,7 @@ class Org(UITestCase):
                                                       value % env_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @stubbed
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
@@ -811,6 +823,7 @@ class Org(UITestCase):
 
         pass
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
@@ -843,6 +856,7 @@ class Org(UITestCase):
                                                       value % resource_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium_name):
@@ -873,6 +887,7 @@ class Org(UITestCase):
                                                       value % medium_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template_name):
@@ -901,6 +916,7 @@ class Org(UITestCase):
                 (strategy, value % template_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(FauxFactory.generate_string('alpha', 8),
           FauxFactory.generate_string('numeric', 8),
@@ -937,6 +953,7 @@ class Org(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):

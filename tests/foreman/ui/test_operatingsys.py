@@ -8,7 +8,7 @@ from robottelo import entities
 from robottelo.common.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
 from robottelo.common.decorators import data
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_os
@@ -16,6 +16,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class OperatingSys(UITestCase):
     """Implements Operating system tests from UI"""

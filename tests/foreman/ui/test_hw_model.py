@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_hw_model
@@ -11,6 +11,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class HardwareModelTestCase(UITestCase):
     """Implements Hardware Model tests in UI."""

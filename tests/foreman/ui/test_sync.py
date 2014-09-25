@@ -4,7 +4,7 @@ from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
 from robottelo.common.constants import FAKE_1_YUM_REPO
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common.manifests import clone
 from robottelo.common.ssh import upload_file
@@ -40,9 +40,10 @@ class Sync(UITestCase):
             Sync.org_name = org_attrs['name']
             Sync.org_id = org_attrs['id']
 
+    @run_only_on('sat')
     @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())
-    def test_sync_repos(self, repository_name):
+    def test_sync_custom_repos(self, repository_name):
         """@Test: Create Content Custom Sync with minimal input parameters
 
         @Feature: Content Custom Sync - Positive Create
@@ -69,7 +70,7 @@ class Sync(UITestCase):
             # syn.sync_rh_repos returns boolean values and not objects
             self.assertTrue(sync)
 
-    def test_sync_rhrepos(self):
+    def test_sync_rh_repos(self):
         """@Test: Create Content RedHat Sync with two repos.
 
         @Feature: Content RedHat Sync - Positive Create

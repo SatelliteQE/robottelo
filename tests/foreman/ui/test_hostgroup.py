@@ -5,7 +5,7 @@
 from ddt import ddt
 from ddt import data as ddt_data
 from fauxfactory import FauxFactory
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_hostgroup
@@ -13,6 +13,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class Hostgroup(UITestCase):
     """Implements HostGroup tests from UI"""

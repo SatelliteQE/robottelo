@@ -4,7 +4,7 @@
 
 from ddt import ddt
 from fauxfactory import FauxFactory
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, edit_param
 from robottelo.ui.locators import tab_locators, common_locators
@@ -782,6 +782,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_27(self, test_data):
@@ -806,6 +807,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_28(self, test_data):
@@ -830,6 +832,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_29(self, test_data):
@@ -854,6 +857,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_provisioning_param_30(self, test_data):
@@ -878,6 +882,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1125156)
     @data({u'param_value': " "},
           {u'param_value': "-1"},
@@ -908,6 +913,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
+    @run_only_on('sat')
     @data("90", "0")
     def test_positive_update_provisioning_param_32(self, param_value):
         """@Test: Updates param "token_duration" under Provisioning tab
