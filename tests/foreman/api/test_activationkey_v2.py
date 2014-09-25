@@ -1,9 +1,4 @@
-"""Unit tests for the ``activation_keys`` paths.
-
-A full API reference for activation keys can be found here:
-http://theforeman.org/api/apidoc/v2/activation_keys.html
-
-"""
+"""Unit tests for the ``activation_keys`` paths."""
 from ddt import data, ddt
 from requests.exceptions import HTTPError
 from robottelo.api import client
