@@ -1,6 +1,7 @@
 """Test class for Subscriptions"""
 
 from ddt import ddt
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -151,3 +152,88 @@ class TestSubscription(CLITestCase):
 
         self.assertEqual(result.return_code, 0, "Repo was not synchronized")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
+
+    def test_manifest_history(self):
+        """@Test: upload manifest (positive) and check history
+
+        @Feature: Subscriptions/Manifest History
+
+        @Assert: Manifest history is shown properly
+
+        """
+        upload_file(self.manifest, remote_file=self.manifest)
+        result = Subscription.upload({
+            'file': self.manifest,
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while uploading manifest.")
+
+        result = Subscription.list(
+            {'organization-id': self.org['id']}, per_page=None)
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while listing the manifest.")
+        self.assertGreater(len(result.stdout), 0)
+
+        result = Subscription.manifest_history({
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception for manifest history.")
+        self.assertIn('{0} file imported successfully.'
+                      ''.format(self.org['name']),
+                      ''.join(result.stdout))
+
+    @skip_if_bug_open('bugzilla', 1147559)
+    def test_manifest_refresh(self):
+        """@Test: upload manifest (positive) and refresh
+
+        @Feature: Subscriptions/Manifest refresh
+
+        @Assert: Manifests can be refreshed
+
+        """
+        upload_file(self.manifest, remote_file=self.manifest)
+        result = Subscription.upload({
+            'file': self.manifest,
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while uploading manifest.")
+
+        result = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False)
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while listing the manifest.")
+        self.assertGreater(len(result.stdout), 0)
+
+        result = Subscription.refresh_manifest({
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0,
+            "There should not be an exception while refreshing the manifest .")
