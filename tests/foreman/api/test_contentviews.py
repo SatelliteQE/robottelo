@@ -180,22 +180,6 @@ class TestContentView(APITestCase):
         @status: Manual
         """
 
-    def test_cv_promote_default_negative(self):
-        """
-        @test: attempt to promote a the default content views
-        @feature: Content Views
-        @assert: Default content views cannot be promoted
-        """
-        env = EnvironmentKatello()
-        created_env = ApiCrud.record_create_recursive(env)
-        task = ContentViewDefinition._meta.api_class.promote(
-            1,
-            created_env.id
-            )
-        self.assertIn(
-            'errors', task.json,
-            "Default cv shouldn't be promoted")
-
     @stubbed
     def test_cv_promote_badid_negative(self):
         """
@@ -212,27 +196,6 @@ class TestContentView(APITestCase):
         self.assertIn(
             'errors', task.json,
             "Invalid id shouldn't be promoted")
-
-    def test_cv_promote_badenvironment_negative(self):
-        """
-        @test: attempt to promote a content view using an invalid environment
-        @feature: Content Views
-        @assert: Content views cannot be promoted; handled gracefully
-        """
-        con_view = ApiCrud.record_create_recursive(ContentViewDefinition())
-        self.assertIntersects(data, con_view)
-        task = con_view._meta.api_class.publish(con_view)
-        task.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        self.assertEqual('success', task.result())
-        published = ApiCrud.record_resolve(con_view)
-        task = published._meta.api_class.promote(
-            published.versions[0]['id'],
-            -1
-            )
-
-        self.assertIn(
-            'errors', task.json,
-            "Shouldn't be promoted to invalid env")
 
     # Content Views: publish
     # katello content definition publish --label=MyView
