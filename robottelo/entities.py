@@ -63,12 +63,63 @@ class Architecture(
         factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
-    operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
+    operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/architectures'
         server_mode = ('sat')
+
+    # FIXME: This method should not need to exist. The API has a bug.
+    def create(self, auth=None, data=None):
+        """Extend the implementation of
+        :meth:`robottelo.factory.Factory.create`.
+
+        Clients must submit a nested hash of attributes when creating an
+        architecture. For example, this will not work correctly::
+
+            {'name': 'foo', 'operatingsystem_ids': [1, 2, 3]}
+
+        However, this will work correctly::
+
+            {'architecture': {'name': 'foo', 'operatingsystem_ids': [1, 2, 3]}}
+
+        """
+        if data is None:
+            data = {u'architecture': self.build(auth=auth)}
+        return super(Architecture, self).create(auth, data)
+
+    # FIXME: This method should not need to exist. The API has a bug.
+    def read(self, auth=None, entity=None, attrs=None):
+        """Override the default implementation of
+        :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        An architecture points to zero or more operating systems.
+        Unfortunately, the API communicates the list of pointed-to operating
+        systems as a list of hashes named "operatingsystems"::
+
+            {
+                u'name': 'i386',
+                u'operatingsystems': [
+                    {u'id': 1, u'name': u'rhel65'},
+                    {u'id': 2, u'name': u'rhel7'},
+                ]
+            }
+
+        This is incorrect behaviour. The API _should_ return a list of IDs
+        named "operatingsystem_ids"::
+
+            {u'name': 'i386', u'operatingsystem_ids': [1, 2]}
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth)
+            attrs['operatingsystem_ids'] = [
+                operatingsystem['id']
+                for operatingsystem
+                in attrs.pop('operatingsystems')
+            ]
+        return super(Architecture, self).read(auth, entity, attrs)
 
 
 class AuthSourceLDAP(

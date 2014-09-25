@@ -192,7 +192,7 @@ class Factory(object):
         # to the caller.
         return values
 
-    def create(self, auth=None):
+    def create(self, auth=None, data=None):
         """Create a new entity, plus all of its dependent entities.
 
         Create an entity at the path returned by :meth:`Factory._factory_path`.
@@ -203,6 +203,8 @@ class Factory(object):
             communicating with the API. If ``None``, the credentials returned
             by :func:`robottelo.common.helpers.get_server_credentials` are
             used.
+        :param dict data: A JSON version of this data is POSTed to the server.
+            ``self.build``'s return value is used if ``None``.
         :return: Information about the newly created entity.
         :rtype: dict
         :raises: ``requests.exceptions.HTTPError`` if the server returns an
@@ -211,7 +213,8 @@ class Factory(object):
         """
         if auth is None:
             auth = get_server_credentials()
-        data = self.build(auth)
+        if data is None:
+            data = self.build(auth)
 
         # Create the current entity.
         response = client.post(
