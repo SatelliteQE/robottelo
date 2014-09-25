@@ -1267,7 +1267,7 @@ class Product(
         Otherwise, call ``super``.
 
         """
-        if which.startswith("repository_sets"):
+        if which is not None and which.startswith("repository_sets"):
             return '{0}/{1}'.format(
                 super(Product, self).path(which='this'),
                 which,
