@@ -67,10 +67,10 @@ class ActivationKey(UITestCase):
         ).create()
 
         # Sync repository
-        response = entities.Repository(id=repo_attrs['id']).sync()
-        task_status = entities.ForemanTask(id=response['id']).poll()
+        task_id = entities.Repository(id=repo_attrs['id']).sync()
+        task_result = entities.ForemanTask(id=task_id).poll()['results']
         self.assertEqual(
-            task_status['result'],
+            task_result,
             u'success',
             u"Sync for repository {0} failed.".format(repo_attrs['name']))
 
@@ -91,6 +91,7 @@ class ActivationKey(UITestCase):
             auth=get_server_credentials(),
             verify=False,
             data={u'repository_ids': [repo_attrs['id']]})
+        response.raise_for_status()
 
         # Publish content view
         task = entities.ContentView(id=content_view['id']).publish()

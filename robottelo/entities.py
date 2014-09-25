@@ -1415,6 +1415,32 @@ class Product(
         response.raise_for_status()
         return response.json()['results']
 
+    def fetch_rhproduct_id(self, name, org_id):
+        """Fetches the RedHat Product Id for a given Product name.
+
+        To be used for the Products created when manifest is imported.
+        RedHat Product Id could vary depending upon other custom products.
+        So, we use the product name to fetch the RedHat Product Id.
+
+        :param str org_id: The Organization Id.
+        :param str name: The RedHat product's name who's ID is to be fetched.
+        :return: The RedHat Product Id is returned.
+
+        """
+        response = client.get(
+            self.path(which="all"),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'search': 'name={}'.format(escape_search(name)),
+                  u'organization_id': org_id},
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        if len(results) != 1:
+            raise APIResponseError(
+                "The length of the results is:", len(results))
+        return results[0]['id']
+
     def fetch_reposet_id(self, name):
         """Fetches the RepositorySet Id for a given name.
 
@@ -1439,11 +1465,10 @@ class Product(
         if len(results) != 1:
             raise APIResponseError(
                 "The length of the results is:", len(results))
-        else:
-            return results[0]['id']
+        return results[0]['id']
 
-    def enable_rhrepo(self, reposet_id, base_arch,
-                      release_ver, synchronous=True):
+    def enable_rhrepo(self, base_arch,
+                      release_ver, reposet_id, synchronous=True):
         """Enables the RedHat Repository
 
         RedHat Repos needs to be enabled first, so that we can sync it.
@@ -1475,8 +1500,8 @@ class Product(
             return task_id
         return None
 
-    def disable_rhrepo(self, reposet_id, base_arch,
-                       release_ver, synchronous=True):
+    def disable_rhrepo(self, base_arch,
+                       release_ver, reposet_id, synchronous=True):
         """Disables the RedHat Repository
 
         :param str reposet_id: The RepositorySet Id.
@@ -1608,11 +1633,14 @@ class Repository(
         attrs['product_id'] = attrs.pop('product')['id']
         return super(Repository, self).read(auth, entity, attrs)
 
-    def sync(self):
+    def sync(self, synchronous=True):
         """Helper for syncing an existing repository.
 
-        :returns: Information about a ``ForemanTask``.
-        :rtype: dict
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: A foreman task ID if an HTTP 202 (accepted) response is
+            received, or None if any other response is received.
 
         """
         response = client.post(
@@ -1621,16 +1649,23 @@ class Repository(
             verify=False,
         )
         response.raise_for_status()
-        return response.json()
 
-    def fetch_repoid(self, org_id, repo_name):
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
+
+    def fetch_repoid(self, org_id, name):
         """Fetch the repository Id.
 
         This is required for RedHat Repositories, as products, reposets
         and repositories get automatically populated upon the manifest import.
 
         :param str org_id: The org Id for which repository listing is required.
-        :param str repo_name: The repository name who's Id has to be searched.
+        :param str name: The repository name who's Id has to be searched.
 
         """
         response = client.get(
@@ -1638,15 +1673,14 @@ class Repository(
             auth=get_server_credentials(),
             verify=False,
             data={u'organization_id': org_id,
-                  u'search': 'name={}'.format(escape_search(repo_name))}
+                  u'search': 'name={}'.format(escape_search(name))}
         )
         response.raise_for_status()
         results = response.json()['results']
         if len(results) != 1:
             raise APIResponseError(
                 "The length of the results is:", len(results))
-        else:
-            return results[0]['id']
+        return results[0]['id']
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1858,6 +1892,7 @@ class System(
                 self.uuid
             )
         return super(System, self).path(which=which)
+
 
 class TemplateCombination(orm.Entity):
     """A representation of a Template Combination entity."""

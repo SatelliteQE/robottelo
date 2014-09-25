@@ -7,6 +7,7 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE, FAKE_0_PUPPET_REPO,
     FAKE_2_YUM_REPO, RPM_TO_UPLOAD)
 from robottelo.common import decorators
+from robottelo.common import manifests
 from robottelo.common.helpers import (
     get_server_credentials, get_data_file, read_data_file)
 from robottelo import entities
@@ -198,7 +199,7 @@ class RepositoryTestCase(TestCase):
 
         """
         repo_id = entities.Repository(product=self.prod_id).create()['id']
-        task_id = entities.Repository(id=repo_id).sync()['id']
+        task_id = entities.Repository(id=repo_id).sync()
         entities.ForemanTask(id=task_id).poll()
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'rpm'], 1)
@@ -243,3 +244,66 @@ class RepositoryUpdateTestCase(TestCase):
         for name, value in attrs.items():
             self.assertIn(name, real_attrs.keys())
             self.assertEqual(value, real_attrs[name])
+
+
+def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
+                              reposet, releasever):
+    """Enable a RedHat Repository and fetches it's Id.
+
+    :param str org_id: The organization Id.
+    :param str product: The product name in which repository exists.
+    :param str reposet: The reposet name in which repository exists.
+    :param str repo: The repository name who's Id is to be fetched.
+    :param str basearch: The architecture of the repository.
+    :param str releasever: The releasever of the repository.
+    :return: Returns the repository Id.
+    :rtype: str
+
+    """
+    prd_id = entities.Product().fetch_rhproduct_id(name=product, org_id=org_id)
+    reposet_id = entities.Product(id=prd_id).fetch_reposet_id(name=reposet)
+    task_id = entities.Product(id=prd_id).enable_rhrepo(
+        base_arch=basearch,
+        release_ver=releasever,
+        reposet_id=reposet_id,
+    )
+    task_result = entities.ForemanTask(id=task_id).poll()['result']
+    if task_result != "success":
+        raise entities.APIResponseError(
+            "Enabling the RedHat Repository '{}' failed".format(repo))
+    return entities.Repository().fetch_repoid(name=repo, org_id=org_id)
+
+
+class RepositorySyncTestCase(TestCase):
+    """Tests for ``/katello/api/repositories/:id/sync``."""
+
+    @decorators.run_only_on('sat')
+    def test_redhat_sync_1(self):
+        """@Test: Sync RedHat Repository.
+
+        @Feature: Repositories
+
+        @Assert: Repository synced should fetch the data successfully.
+
+        """
+        cloned_manifest_path = manifests.clone()
+        org_id = entities.Organization().create()['id']
+        repo = "Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3"
+        task_id = entities.Organization(
+            id=org_id).upload_manifest(path=cloned_manifest_path)
+        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        self.assertEqual(u'success', task_result)
+        repo_id = entities.enable_rhrepo_and_fetchid(
+            "x86_64",
+            org_id,
+            "Red Hat Enterprise Linux Server",
+            repo,
+            "Red Hat Enterprise Linux 6 Server - RH Common (RPMs)",
+            "6.3",
+        )
+        task_id = entities.Repository(id=repo_id).sync()
+        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        self.assertEqual(
+            task_result,
+            u'success',
+            u"Sync for repository '{0}' failed.".format(repo))
