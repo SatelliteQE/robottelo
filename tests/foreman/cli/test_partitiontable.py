@@ -2,8 +2,10 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Partition table CLI"""
 from robottelo.test import CLITestCase
+from fauxfactory import FauxFactory
 from robottelo.common.helpers import generate_name
-from robottelo.cli.factory import CLIFactoryError, make_partition_table
+from robottelo.cli.factory import (
+    CLIFactoryError, make_partition_table, make_os)
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.common.decorators import run_only_on
@@ -153,3 +155,43 @@ class TestPartitionTableDelete(CLITestCase):
         self.assertEqual(result.return_code, 0, "Association Failed")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
+
+    def test_removeoperatingsystem_ptable(self):
+        """@Test: Check if associated operating system can be removed
+
+        @Feature: Partition Table - Add operating system
+
+        @Assert: Operating system removed
+
+        """
+        content = FauxFactory.generate_string("alpha", 10)
+        name = FauxFactory.generate_string("alpha", 10)
+        try:
+            ptable = make_partition_table({'name': name, 'content': content})
+            os = make_os()
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        args = {
+            'id': ptable['id'],
+            'operatingsystem-id': os['id'],
+        }
+
+        result = PartitionTable.add_operating_system(args)
+        self.assertEqual(result.return_code, 0, "Association Failed")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+
+        result = PartitionTable.info({'id': ptable['id']})
+        self.assertIn(os['full-name'],
+                      result.stdout['operating-systems'])
+
+        result = PartitionTable.remove_operating_system(args)
+        self.assertEqual(result.return_code, 0, "Association Failed")
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an exception here")
+
+        result = PartitionTable.info({'id': ptable['id']})
+        self.assertNotIn(
+            os['full-name'],
+            result.stdout['operating-systems'])
