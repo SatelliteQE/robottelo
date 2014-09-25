@@ -601,7 +601,7 @@ class EntityReadTestCase(TestCase):
     # LibvirtComputeResource.
     @data(
         # entities.ActivationKey,
-        # entities.Architecture,
+        # entities.Architecture,  # see test_architecture_read
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
         # partial(entities.ComputeResource, provider='Libvirt'),
@@ -638,6 +638,19 @@ class EntityReadTestCase(TestCase):
         attrs = entity().create()
         read_entity = entity(id=attrs['id']).read()
         self.assertIsInstance(read_entity, entity)
+
+    def test_architecture_read(self):
+        """@Test: Create an arch that points to an OS, and read the arch.
+
+        @Assert: The call to :meth:`robottelo.entities.Architecture.read`
+        succeeds, and the response contains the correct operating system ID.
+
+        """
+        os_id = entities.OperatingSystem().create()['id']
+        arch_id = entities.Architecture(operatingsystem=[os_id]).create()['id']
+        architecture = entities.Architecture(id=arch_id).read()
+        self.assertEqual(len(architecture.operatingsystem), 1)
+        self.assertEqual(architecture.operatingsystem[0].id, os_id)
 
     @run_only_on('sat')
     def test_osparameter_read(self):
