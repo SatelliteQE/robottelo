@@ -14,9 +14,9 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 """
 from datetime import datetime
 from robottelo.api import client
-from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.helpers import (get_data_file, get_server_credentials,
-                                      escape_search)
+from robottelo.common.constants import FAKE_1_YUM_REPO, VALID_GPG_KEY_FILE
+from robottelo.common.helpers import (
+    get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
 import httplib
 import random
@@ -1436,34 +1436,27 @@ class Repository(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
-    name = orm.StringField(required=True)
-    label = orm.StringField()
-    # Product the repository belongs to
-    product = orm.OneToOneField('Product', required=True)
-    # repository source url
-    url = orm.URLField(required=True)
-    # id of the gpg key that will be assigned to the new repository
-    gpg_key = orm.OneToOneField('GPGKey')
-    # true if this repository can be published via HTTP
-    unprotected = orm.BooleanField()
-    # type of repo (either 'yum' or 'puppet', defaults to 'yum')
     content_type = orm.StringField(
         choices=('puppet', 'yum', 'file'),
         default='yum',
         required=True,
     )
+    gpg_key = orm.OneToOneField('GPGKey')
+    label = orm.StringField()
+    name = orm.StringField(required=True)
+    product = orm.OneToOneField('Product', required=True)
+    unprotected = orm.BooleanField()
+    url = orm.URLField(required=True, default=FAKE_1_YUM_REPO)
 
     def path(self, which=None):
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        If a user specifies a ``which`` of ``'sync'``, return a path in the
-        format ``/repositories/<id>/sync``.
-
-        If a user specifies a ``which`` of ``'upload_content'``, return a path
-        in the format ``/repositories/<id>/upload_content``.
-
-        Otherwise, call ``super``.
+        * Return a path in the format ``/repositories/<id>/sync`` if ``which is
+          'sync'``.
+        * Return a path in the format ``/repositories/<id>/upload_content`` if
+          ``which is 'upload_content'``.
+        * Call ``super`` by default.
 
         """
         if which in ('sync', 'upload_content'):
@@ -1475,16 +1468,22 @@ class Repository(
 
     def read(self, auth=None, entity=None, attrs=None):
         """Override the default implementation of
-        `robottelo.orm.EntityReadMixin.read`.
+        :meth:`robottelo.orm.EntityReadMixin.read`.
 
         """
+        # FIXME: This method is a hack. It should not need to exist.
         if attrs is None:
             attrs = self.read_json(auth)
         attrs['product_id'] = attrs.pop('product')['id']
         return super(Repository, self).read(auth, entity, attrs)
 
     def sync(self):
-        """Helper for syncing an existing repository."""
+        """Helper for syncing an existing repository.
+
+        :returns: Information about a ``ForemanTask``.
+        :rtype: dict
+
+        """
         response = client.post(
             self.path('sync'),
             auth=get_server_credentials(),
