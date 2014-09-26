@@ -148,7 +148,15 @@ FILTER_TYPE = {'include': "Include",
                'exclude': "Exclude"}
 
 GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
-FAKE_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
+FAKE_0_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo/"
 FAKE_1_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
 FAKE_2_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo2/"
+FAKE_3_YUM_REPO = "http://omaciel.fedorapeople.org/fakerepo01"
+FAKE_4_YUM_REPO = "http://omaciel.fedorapeople.org/fakerepo02"
+FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
+FAKE_1_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet01"
+FAKE_2_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet02"
+FAKE_3_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet03"
+FAKE_4_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet04"
+FAKE_5_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet05"
 REPO_DISCOVERY_URL = "http://omaciel.fedorapeople.org/"

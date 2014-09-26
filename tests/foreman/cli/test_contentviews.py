@@ -12,20 +12,28 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
-    make_content_view, make_org, make_repository, make_product,
-    make_lifecycle_environment, make_user, CLIFactoryError)
+    CLIFactoryError,
+    make_content_view,
+    make_lifecycle_environment,
+    make_org,
+    make_product,
+    make_repository,
+    make_user,
+)
 from robottelo.common.manifests import clone
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.entities import Organization
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
 from robottelo.common.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+    data,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+)
 from robottelo.test import CLITestCase
-
-PUPPET_REPO_URL = "http://davidd.fedorapeople.org/repos/random_puppet/"
 
 
 def positive_create_data():
@@ -601,7 +609,7 @@ class TestContentView(CLITestCase):
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id'],
                                     u'content-type': u'puppet',
-                                    u'url': PUPPET_REPO_URL})
+                                    u'url': FAKE_0_PUPPET_REPO})
         # Fetch it
         result = Repository.info(
             {
@@ -811,7 +819,7 @@ class TestContentView(CLITestCase):
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id'],
                                     u'content-type': u'puppet',
-                                    u'url': PUPPET_REPO_URL})
+                                    u'url': FAKE_0_PUPPET_REPO})
         # Fetch it
         result = Repository.info(
             {

@@ -3,13 +3,33 @@
 """Test class for Repository CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
-from robottelo.cli.factory import (make_gpg_key, make_org, make_product,
-                                   make_repository)
+from robottelo.cli.factory import (
+    make_gpg_key,
+    make_org,
+    make_product,
+    make_repository,
+)
 from robottelo.cli.repository import Repository
+from robottelo.common.constants import (
+    FAKE_0_YUM_REPO,
+    FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
+    FAKE_3_YUM_REPO,
+    FAKE_4_YUM_REPO,
+    FAKE_1_PUPPET_REPO,
+    FAKE_2_PUPPET_REPO,
+    FAKE_3_PUPPET_REPO,
+    FAKE_4_PUPPET_REPO,
+    FAKE_5_PUPPET_REPO,
+)
 from robottelo.common.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+    data,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+)
 from robottelo.test import CLITestCase
 
 
@@ -43,11 +63,7 @@ class TestRepository(CLITestCase):
         new_repo = make_repository(options)
 
         # Fetch it
-        result = Repository.info(
-            {
-                u'id': new_repo['id']
-            }
-        )
+        result = Repository.info({u'id': new_repo['id']})
 
         self.assertEqual(
             result.return_code,
@@ -62,15 +78,15 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
     )
     @attr('cli', 'repository')
-    def test_positive_create_1(self, test_data):
+    def test_positive_create_1(self, name):
         """@Test: Check if repository can be created with random names
 
         @Feature: Repository
@@ -79,26 +95,22 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository({u'name': test_data['name']})
+        new_repo = self._make_repository({u'name': name})
         # Assert that name matches data passed
-        self.assertEqual(
-            new_repo['name'],
-            test_data['name'],
-            "Names don't match"
-        )
+        self.assertEqual(new_repo['name'], name, "Names don't match")
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
     )
     @attr('cli', 'repository')
-    def test_positive_create_2(self, test_data):
+    def test_positive_create_2(self, name):
         """@Test: Check if repository can be created with random names and labels
 
         @Feature: Repository
@@ -108,16 +120,11 @@ class TestRepository(CLITestCase):
         """
 
         # Generate a random, 'safe' label
-        label = FauxFactory.generate_string('alpha', 20)
+        label = gen_string('alpha', 20)
 
-        new_repo = self._make_repository(
-            {u'name': test_data['name'], u'label': label})
+        new_repo = self._make_repository({u'name': name, u'label': label})
         # Assert that name matches data passed
-        self.assertEqual(
-            new_repo['name'],
-            test_data['name'],
-            "Names don't match"
-        )
+        self.assertEqual(new_repo['name'], name, "Names don't match")
         self.assertNotEqual(
             new_repo['name'],
             new_repo['label'],
@@ -127,16 +134,11 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
-         u'content-type': u'yum'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/',
-         u'content-type': u'yum'},
-        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo/',
-         u'content-type': u'yum'},
-        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo2/',
-         u'content-type': u'yum'},
-        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo3/',
-         u'content-type': u'yum'},
+        {u'url': FAKE_3_YUM_REPO, u'content-type': u'yum'},
+        {u'url': FAKE_4_YUM_REPO, u'content-type': u'yum'},
+        {u'url': FAKE_0_YUM_REPO, u'content-type': u'yum'},
+        {u'url': FAKE_2_YUM_REPO, u'content-type': u'yum'},
+        {u'url': FAKE_1_YUM_REPO, u'content-type': u'yum'},
     )
     @attr('cli', 'repository')
     def test_positive_create_3(self, test_data):
@@ -153,10 +155,7 @@ class TestRepository(CLITestCase):
              u'content-type': test_data['content-type']})
         # Assert that urls and content types matches data passed
         self.assertEqual(
-            new_repo['url'],
-            test_data['url'],
-            "Urls don't match"
-        )
+            new_repo['url'], test_data['url'], "Urls don't match")
         self.assertEqual(
             new_repo['content-type'],
             test_data['content-type'],
@@ -166,16 +165,11 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet02/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet03/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet04/',
-         u'content-type': u'puppet'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet05/',
-         u'content-type': u'puppet'},
+        {u'url': FAKE_1_PUPPET_REPO, u'content-type': u'puppet'},
+        {u'url': FAKE_2_PUPPET_REPO, u'content-type': u'puppet'},
+        {u'url': FAKE_3_PUPPET_REPO, u'content-type': u'puppet'},
+        {u'url': FAKE_4_PUPPET_REPO, u'content-type': u'puppet'},
+        {u'url': FAKE_5_PUPPET_REPO, u'content-type': u'puppet'},
     )
     @attr('cli', 'repository')
     def test_positive_create_4(self, test_data):
@@ -192,10 +186,7 @@ class TestRepository(CLITestCase):
              u'content-type': test_data['content-type']})
         # Assert that urls and content types matches data passed
         self.assertEqual(
-            new_repo['url'],
-            test_data['url'],
-            "Urls don't match"
-        )
+            new_repo['url'], test_data['url'], "Urls don't match")
         self.assertEqual(
             new_repo['content-type'],
             test_data['content-type'],
@@ -206,15 +197,15 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1083236)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
     )
     @attr('cli', 'repository')
-    def test_positive_create_5(self, test_data):
+    def test_positive_create_5(self, name):
         """@Test: Check if repository can be created with gpg key ID
 
         @Feature: Repository
@@ -229,7 +220,7 @@ class TestRepository(CLITestCase):
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
         new_repo = self._make_repository(
-            {u'name': test_data['name'], u'gpg-key-id': new_gpg_key['id']})
+            {u'name': name, u'gpg-key-id': new_gpg_key['id']})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -255,15 +246,15 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1103944)
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
     )
     @attr('cli', 'repository')
-    def test_positive_create_6(self, test_data):
+    def test_positive_create_6(self, name):
         """@Test: Check if repository can be created with gpg key name
 
         @Feature: Repository
@@ -278,7 +269,7 @@ class TestRepository(CLITestCase):
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
         new_repo = self._make_repository(
-            {u'name': test_data['name'], u'gpg-key': new_gpg_key['name']})
+            {u'name': name, u'gpg-key': new_gpg_key['name']})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -316,8 +307,7 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository(
-            {'publish-via-http': test_data})
+        new_repo = self._make_repository({'publish-via-http': test_data})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -338,7 +328,7 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1129617)
     @data(u'false', u'no', u'0')
     @attr('cli', 'repository')
-    def test_positive_create_8(self, test_data):
+    def test_positive_create_8(self, use_http):
         """@Test: Create repository not published via http
 
         @Feature: Repository
@@ -348,7 +338,7 @@ class TestRepository(CLITestCase):
         """
 
         new_repo = self._make_repository(
-            {'publish-via-http': test_data})
+            {'publish-via-http': use_http})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -367,15 +357,15 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 300)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 300)},
-        {u'name': FauxFactory.generate_string('numeric', 300)},
-        {u'name': FauxFactory.generate_string('latin1', 300)},
-        {u'name': FauxFactory.generate_string('utf8', 300)},
-        {u'name': FauxFactory.generate_string('html', 300)},
+        gen_string('alpha', 300),
+        gen_string('alphanumeric', 300),
+        gen_string('numeric', 300),
+        gen_string('latin1', 300),
+        gen_string('utf8', 300),
+        gen_string('html', 300),
     )
     @attr('cli', 'repository')
-    def test_negative_create_1(self, test_data):
+    def test_negative_create_1(self, name):
         """@Test: Repository name cannot be 300-characters long
 
         @Feature: Repository
@@ -385,17 +375,14 @@ class TestRepository(CLITestCase):
         """
 
         with self.assertRaises(Exception):
-            self._make_repository({u'name': test_data['name']})
+            self._make_repository({u'name': name})
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
-         u'content-type': u'yum'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/',
-         u'content-type': u'yum'},
-        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo3/',
-         u'content-type': u'yum'},
+        {u'url': FAKE_3_YUM_REPO, u'content-type': u'yum'},
+        {u'url': FAKE_4_YUM_REPO, u'content-type': u'yum'},
+        {u'url': FAKE_1_YUM_REPO, u'content-type': u'yum'},
     )
     @attr('cli', 'repository')
     def test_positive_synchronize_1(self, test_data):
@@ -435,14 +422,14 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'url': u'http://omaciel.fedorapeople.org/fakerepo02/'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet01/'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet02/'},
-        {u'url': u'http://omaciel.fedorapeople.org/fakepuppet03/'},
-        {u'url': u'http://inecas.fedorapeople.org/fakerepos/zoo3/'},
+        FAKE_4_YUM_REPO,
+        FAKE_1_PUPPET_REPO,
+        FAKE_2_PUPPET_REPO,
+        FAKE_3_PUPPET_REPO,
+        FAKE_1_YUM_REPO,
     )
     @attr('cli', 'repository')
-    def test_positive_update_1(self, test_data):
+    def test_positive_update_1(self, url):
         """@Test: Update the original url for a repository
 
         @Feature: Repository
@@ -456,7 +443,7 @@ class TestRepository(CLITestCase):
         # Update the url
         result = Repository.update(
             {u'id': new_repo['id'],
-             u'url': test_data['url']})
+             u'url': url})
         self.assertEqual(
             result.return_code,
             0,
@@ -479,7 +466,7 @@ class TestRepository(CLITestCase):
         )
         self.assertEqual(
             result.stdout['url'],
-            test_data['url'],
+            url,
             "Urls don't match"
         )
 
@@ -520,15 +507,15 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1129617)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
     )
     @attr('cli', 'repository')
-    def test_positive_delete_1(self, test_data):
+    def test_positive_delete_1(self, name):
         """@Test: Check if repository can be created and deleted
 
         @Feature: Repository
@@ -537,13 +524,9 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository({u'name': test_data['name']})
+        new_repo = self._make_repository({u'name': name})
         # Assert that name matches data passed
-        self.assertEqual(
-            new_repo['name'],
-            test_data['name'],
-            "Names don't match"
-        )
+        self.assertEqual(new_repo['name'], name, "Names don't match")
 
         # Delete it
         result = Repository.delete(
