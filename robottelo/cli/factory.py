@@ -38,8 +38,13 @@ from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.common import ssh
-from robottelo.common.constants import (FOREMAN_PROVIDERS, OPERATING_SYSTEMS,
-                                        SYNC_INTERVAL, TEMPLATE_TYPES)
+from robottelo.common.constants import (
+    FAKE_1_YUM_REPO,
+    FOREMAN_PROVIDERS,
+    OPERATING_SYSTEMS,
+    SYNC_INTERVAL,
+    TEMPLATE_TYPES,
+)
 from robottelo.common.helpers import (
     generate_ipaddr, generate_mac, generate_name, sleep_for_seconds,
     update_dictionary)
@@ -452,7 +457,7 @@ def make_repository(options=None):
         u'product': None,
         u'product-id': None,
         u'publish-via-http': u'true',
-        u'url': u'http://omaciel.fedorapeople.org/fakerepo01/',
+        u'url': FAKE_1_YUM_REPO,
         u'gpg-key': None,
         u'gpg-key-id': None,
         u'organization': None,

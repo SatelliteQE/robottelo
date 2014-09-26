@@ -20,7 +20,7 @@ from robottelo.api import client
 
 from robottelo.common.constants import (
     FILTER_CONTENT_TYPE, FILTER_TYPE, REPO_TYPE, FAKE_1_YUM_REPO,
-    FAKE_PUPPET_REPO, NOT_IMPLEMENTED)
+    FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     invalid_names_list, valid_names_list, get_server_credentials)
@@ -192,7 +192,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        repo_url = FAKE_PUPPET_REPO
+        repo_url = FAKE_0_PUPPET_REPO
         name = FauxFactory.generate_string("alpha", 8)
         puppet_module = "httpd"
         module_ver = 'Latest'
@@ -467,7 +467,7 @@ class TestContentViewsUI(UITestCase):
         composite_name = FauxFactory.generate_string("alpha", 8)
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, cv_name,
-                                    repo_url=FAKE_PUPPET_REPO,
+                                    repo_url=FAKE_0_PUPPET_REPO,
                                     repo_type=REPO_TYPE['puppet'])
             self.content_views.add_puppet_module(
                 cv_name,

@@ -3,7 +3,7 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common import conf
-from robottelo.common.constants import (FAKE_PUPPET_REPO, GOOGLE_CHROME_REPO,
+from robottelo.common.constants import (FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO,
                                         REPO_TYPE, FOREMAN_PROVIDERS, DOMAIN,
                                         DEFAULT_ORG, DEFAULT_LOC)
 from robottelo.common.helpers import generate_ipaddr
@@ -153,7 +153,7 @@ class TestSmoke(UITestCase):
 
             # Create a puppet Repository
             make_repository(session, org=org_name, name=puppet_repository_name,
-                            product=product_name, url=FAKE_PUPPET_REPO,
+                            product=product_name, url=FAKE_0_PUPPET_REPO,
                             repo_type=REPO_TYPE['puppet'])
             self.assertIsNotNone(self.repository.search
                                  (puppet_repository_name))

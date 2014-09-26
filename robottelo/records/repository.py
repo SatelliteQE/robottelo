@@ -4,10 +4,11 @@
 Module for Activation Key api an record implementation
 """
 
-from robottelo.common import records
 from robottelo.api.apicrud import ApiCrud, Task
-from robottelo.records.product import CustomProduct
 from robottelo.api.base import request
+from robottelo.common import records
+from robottelo.common.constants import FAKE_1_YUM_REPO
+from robottelo.records.product import CustomProduct
 
 
 class CustomRepositoryApi(ApiCrud):
@@ -36,7 +37,7 @@ class CustomRepository(records.Record):
     description = records.BasicPositiveField()
     product = records.RelatedField(CustomProduct)
     url = records.StringField(
-        default="http://inecas.fedorapeople.org/fakerepos/zoo/"
+        default=FAKE_1_YUM_REPO
         )
     enabled = records.Field(default=True)
     content_type = records.StringField(default="yum")

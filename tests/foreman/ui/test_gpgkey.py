@@ -14,8 +14,13 @@ from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
 from robottelo.common.constants import (
-    NOT_IMPLEMENTED, VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE,
-    FAKE_1_YUM_REPO, FAKE_2_YUM_REPO)
+    FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
+    NOT_IMPLEMENTED,
+    REPO_DISCOVERY_URL,
+    VALID_GPG_KEY_BETA_FILE,
+    VALID_GPG_KEY_FILE,
+)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     get_data_file, read_data_file, valid_names_list, invalid_names_list,
@@ -538,7 +543,7 @@ class GPGKey(UITestCase):
         """
 
         product_name = FauxFactory.generate_string("alpha", 8)
-        url = "http://omaciel.fedorapeople.org/"
+        url = REPO_DISCOVERY_URL
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
@@ -844,7 +849,7 @@ class GPGKey(UITestCase):
 
         prd_name = FauxFactory.generate_string("alpha", 8)
         new_name = FauxFactory.generate_string("alpha", 8)
-        url = "http://omaciel.fedorapeople.org/"
+        url = REPO_DISCOVERY_URL
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         entities.GPGKey(
@@ -1171,7 +1176,7 @@ class GPGKey(UITestCase):
         """
 
         prd_name = FauxFactory.generate_string("alpha", 8)
-        url = "http://omaciel.fedorapeople.org/"
+        url = REPO_DISCOVERY_URL
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         entities.GPGKey(

@@ -2,7 +2,7 @@
 from nose.plugins.attrib import attr
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.constants import FAKE_PUPPET_REPO, GOOGLE_CHROME_REPO
+from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import helpers
@@ -285,7 +285,7 @@ class TestSmoke(TestCase):
         repo2 = entities.Repository(
             product=prod['id'],
             content_type=u'puppet',
-            url=FAKE_PUPPET_REPO
+            url=FAKE_0_PUPPET_REPO
         ).create()
 
         # step 2.6: Synchronize both repositories

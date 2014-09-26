@@ -4,7 +4,7 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.constants import (
-    VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE, FAKE_PUPPET_REPO,
+    VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE, FAKE_0_PUPPET_REPO,
     FAKE_2_YUM_REPO, RPM_TO_UPLOAD)
 from robottelo.common import decorators
 from robottelo.common.helpers import (
@@ -26,7 +26,7 @@ class RepositoryTestCase(TestCase):
 
     @decorators.run_only_on('sat')
     @decorators.data(
-        {'content_type': 'puppet', 'url': FAKE_PUPPET_REPO},
+        {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
         {'name': FauxFactory.generate_string('alphanumeric', randint(10, 50))},
         {'name': FauxFactory.generate_string('alpha', randint(10, 50))},
         {'name': FauxFactory.generate_string('cjk', randint(10, 50))},
@@ -105,7 +105,7 @@ class RepositoryTestCase(TestCase):
 
     @decorators.run_only_on('sat')
     @decorators.data(
-        {'content_type': 'puppet', 'url': FAKE_PUPPET_REPO},
+        {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
         {'name': FauxFactory.generate_string('alphanumeric', randint(10, 50))},
         {'name': FauxFactory.generate_string('alpha', randint(10, 50))},
         {'name': FauxFactory.generate_string('cjk', randint(10, 50))},
