@@ -86,7 +86,35 @@ def run_only_on(project):
 
     * does not use this decorator - test will be run for sat/sam modes
 
+    Note: The server mode is identified by ``main.project`` in
+    ``robottelo.properties``
+
+    Usage:
+
+    To skip an entire test class::
+
+        from robottelo.common.decorators import run_only_on
+
+        @run_only_on('sat')
+        Class HostTests():
+            def test_create_hosts():
+                # test code continues here
+
+            def test_delete_hosts():
+                # test code continues here
+
+    To skip a specific test::
+
+        from robottelo.common.decorators import run_only_on
+
+        @run_only_on('sat')
+        def test_hostgroup_create():
+            # test code continues here
+
     :param str project: Enter 'sat' for Satellite and 'sam' for SAM
+    :returns: ``unittest.skipIf``
+    :raises: :meth:`ProjectModeError` if invalid `project` is given or invalid
+        mode is specified in ``robottelo.properties`` file
 
     """
     ALLOWED_PROJECT_MODES = ('sat', 'sam')
