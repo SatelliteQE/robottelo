@@ -6,7 +6,7 @@ from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -16,6 +16,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""

@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_product
@@ -28,6 +28,7 @@ class Products(UITestCase):
                 make_org(session, org_name=Products.org_name)
                 make_loc(session, name=Products.loc_name)
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, prd_name):
@@ -45,6 +46,7 @@ class Products(UITestCase):
                          name=prd_name, description=description)
             self.assertIsNotNone(self.products.search(prd_name))
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, prd_name):
@@ -66,6 +68,7 @@ class Products(UITestCase):
                          name=prd_name, description=description)
             self.assertIsNotNone(self.products.search(prd_name))
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_1(self, prd_name):
@@ -85,6 +88,7 @@ class Products(UITestCase):
             error = session.nav.wait_until_element(locator)
             self.assertIsNotNone(error)
 
+    @run_only_on('sat')
     def test_negative_create_2(self):
         """@Test: Create Content Product without input parameter
 
@@ -103,6 +107,7 @@ class Products(UITestCase):
             invalid = self.products.wait_until_element(locator)
             self.assertIsNotNone(invalid)
 
+    @run_only_on('sat')
     def test_negative_create_3(self):
         """@Test: Create Content Product with whitespace input parameter
 
@@ -121,6 +126,7 @@ class Products(UITestCase):
             invalid = self.products.wait_until_element(locator)
             self.assertIsNotNone(invalid)
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_4(self, prd_name):
@@ -142,6 +148,7 @@ class Products(UITestCase):
             error = self.products.wait_until_element(locator)
             self.assertIsNotNone(error)
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, prd_name):
@@ -162,6 +169,7 @@ class Products(UITestCase):
             self.products.update(prd_name, new_name=new_prd_name)
             self.assertIsNotNone(self.products.search(new_prd_name))
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, prd_name):
@@ -184,6 +192,7 @@ class Products(UITestCase):
             error = self.products.wait_until_element(locator)
             self.assertIsNotNone(error)
 
+    @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_remove_prd(self, prd_name):

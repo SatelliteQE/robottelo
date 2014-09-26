@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo import entities
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_ipaddr, generate_strings_list
 from robottelo.ui.factory import make_subnet
 from robottelo.test import UITestCase
@@ -14,6 +14,7 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class Subnet(UITestCase):
     """Implements Subnet tests in UI"""

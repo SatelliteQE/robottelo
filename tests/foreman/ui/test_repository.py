@@ -7,7 +7,7 @@ from robottelo import entities, orm
 from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE, VALID_GPG_KEY_FILE, FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO, REPO_DISCOVERY_URL)
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository
@@ -39,6 +39,7 @@ class Repos(UITestCase):
             Repos.loc_name = loc_attrs['name']
             Repos.loc_id = loc_attrs['id']
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_1(self, repo_name):
@@ -61,6 +62,7 @@ class Repos(UITestCase):
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_2(self, repo_name):
@@ -98,6 +100,7 @@ class Repos(UITestCase):
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
 
+    @run_only_on('sat')
     @data("", "   ")
     def test_negative_create_1(self, repo_name):
         """@Test: Create repository with blank and whitespace in name
@@ -122,6 +125,7 @@ class Repos(UITestCase):
                 common_locators["common_invalid"])
             self.assertIsNotNone(invalid)
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_2(self, repo_name):
@@ -151,6 +155,7 @@ class Repos(UITestCase):
                 common_locators["common_invalid"])
             self.assertTrue(invalid)
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_3(self, repo_name):
@@ -176,6 +181,7 @@ class Repos(UITestCase):
                 common_locators["common_haserror"])
             self.assertTrue(error)
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, repo_name):
@@ -209,6 +215,7 @@ class Repos(UITestCase):
             url_text = self.repository.wait_until_element(locator).text
             self.assertEqual(url_text, FAKE_2_YUM_REPO)
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_2(self, repo_name):
@@ -256,6 +263,7 @@ class Repos(UITestCase):
             gpgkey_2_text = self.repository.wait_until_element(locator).text
             self.assertEqual(gpgkey_2_text, gpgkey_2_name)
 
+    @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_remove_repo(self, repo_name):
@@ -281,6 +289,7 @@ class Repos(UITestCase):
             self.repository.delete(repo_name)
             self.assertIsNone(self.repository.search(repo_name))
 
+    @run_only_on('sat')
     def test_discover_repo_1(self):
         """@Test: Create repository via repo-discovery under existing product
 
@@ -304,6 +313,7 @@ class Repos(UITestCase):
                                           discovered_urls=[discovered_urls],
                                           product=product_name)
 
+    @run_only_on('sat')
     def test_discover_repo_2(self):
         """@Test: Create repository via repo discovery under new product
 

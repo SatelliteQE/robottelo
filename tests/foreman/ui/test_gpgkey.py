@@ -16,7 +16,7 @@ from robottelo import entities, orm
 from robottelo.common.constants import (
     NOT_IMPLEMENTED, VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE,
     FAKE_1_YUM_REPO, FAKE_2_YUM_REPO)
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     get_data_file, read_data_file, valid_names_list, invalid_names_list,
     generate_strings_list)
@@ -26,6 +26,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class GPGKey(UITestCase):
     """Implements tests for GPG Keys via UI"""

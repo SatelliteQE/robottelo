@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo import entities
 from robottelo.common.constants import INSTALL_MEDIUM_URL
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_media
@@ -14,6 +14,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class Medium(UITestCase):
     """Implements all Installation Media tests"""

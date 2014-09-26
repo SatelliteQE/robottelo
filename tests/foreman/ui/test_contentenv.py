@@ -4,12 +4,14 @@
 
 from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
+from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_lifecycle_environment
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 class ContentEnvironment(UITestCase):
     """Implements Life cycle content environment tests in UI"""
 

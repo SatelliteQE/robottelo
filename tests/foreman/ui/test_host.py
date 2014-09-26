@@ -8,10 +8,12 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 from fauxfactory import FauxFactory
+from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
 
 
+@run_only_on('sat')
 class Host(UITestCase):
 
     @unittest.skip("Test needs to create other required stuff")

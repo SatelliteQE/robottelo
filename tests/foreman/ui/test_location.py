@@ -9,7 +9,7 @@ from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import conf
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list, get_data_file
 from robottelo.common.constants import (
     OS_TEMPLATE_DATA_FILE, INSTALL_MEDIUM_URL)
@@ -19,6 +19,7 @@ from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class Location(UITestCase):
     """Implements Location tests in UI"""

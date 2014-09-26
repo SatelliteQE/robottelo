@@ -14,7 +14,7 @@ from fauxfactory import FauxFactory
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import invalid_names_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
@@ -422,6 +422,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_15(self):
         """@Test: Create User with one Domain host
@@ -438,6 +439,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_16(self):
         """@Test: Create User with mutiple Domain hosts
@@ -454,6 +456,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_17(self):
         """@Test: Create User with all Domain hosts
@@ -470,6 +473,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_18(self):
         """@Test: Create User with one Compute Resource
@@ -486,6 +490,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_19(self):
         """@Test: Create User with mutiple Compute Resources
@@ -502,6 +507,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_20(self):
         """@Test: Create User with all Compute Resources
@@ -518,6 +524,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_21(self):
         """@Test: Create User with one Host group
@@ -534,6 +541,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_22(self):
         """@Test: Create User with multiple Host groups
@@ -550,6 +558,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_23(self):
         """@Test: Create User with all Host groups
@@ -629,6 +638,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_create_user_27(self):
         """@Test: Create User with a new Fact filter
@@ -1048,6 +1058,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_15(self):
         """@Test: Update User with one Domain host
@@ -1065,6 +1076,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_16(self):
         """@Test: Update User with multiple Domain hosts
@@ -1082,6 +1094,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_17(self):
         """@Test: Update User with all Domain hosts
@@ -1099,6 +1112,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_18(self):
         """@Test: Update User with one Compute Resource
@@ -1116,6 +1130,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_19(self):
         """@Test: Update User with multiple Compute Resources
@@ -1133,6 +1148,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_20(self):
         """@Test: Update User with all Compute Resources
@@ -1150,6 +1166,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_21(self):
         """@Test: Update User with one Host group
@@ -1167,6 +1184,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_22(self):
         """@Test: Update User with multiple Host groups
@@ -1184,6 +1202,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_23(self):
         """@Test: Update User with all Host groups
@@ -1252,6 +1271,7 @@ class User(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_update_user_28(self):
         """@Test: Update User with a new Fact filter

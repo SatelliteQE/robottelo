@@ -15,7 +15,7 @@ from robottelo import entities, orm
 from robottelo.api import client
 from robottelo.common.constants import (
     ENVIRONMENT, FAKE_1_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     invalid_names_list, valid_data_list, get_server_credentials)
 from robottelo.ui.factory import make_activationkey
@@ -158,6 +158,7 @@ class ActivationKey(UITestCase):
                                description=description)
             self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @run_only_on('sat')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_3(self, env_name):
@@ -187,6 +188,7 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @run_only_on('sat')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_4(self, cv_name):
@@ -454,6 +456,7 @@ class ActivationKey(UITestCase):
             self.activationkey.delete(name, True)
             self.assertIsNone(self.activationkey.search_key(name))
 
+    @run_only_on('sat')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_3(self, env_name):
@@ -484,6 +487,7 @@ class ActivationKey(UITestCase):
             self.activationkey.delete(name, True)
             self.assertIsNone(self.activationkey.search_key(name))
 
+    @run_only_on('sat')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_4(self, cv_name):
@@ -533,6 +537,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1117753)
     def test_positive_delete_activation_key_6(self):
         """@Test: Delete a Content View associated to an Activation Key
@@ -647,6 +652,7 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element
                                  (common_locators["alert.success"]))
 
+    @run_only_on('sat')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_3(self, env_name):
@@ -683,6 +689,7 @@ class ActivationKey(UITestCase):
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(env_name, selected_env)
 
+    @run_only_on('sat')
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_4(self, cv2_name):
@@ -925,6 +932,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     def test_associate_product_2(self):
         """@Test: Test that custom product can be associated to Activation Keys
 
@@ -957,6 +965,7 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element
                                  (common_locators["alert.success"]))
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
@@ -1020,6 +1029,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):

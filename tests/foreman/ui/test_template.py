@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import FauxFactory
 from robottelo import entities
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import get_data_file, generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_templates
@@ -14,6 +14,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_only_on('sat')
 @ddt
 class Template(UITestCase):
     """Implements Provisioning Template tests from UI"""
