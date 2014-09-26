@@ -14,7 +14,8 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 """
 from datetime import datetime
 from robottelo.api import client
-from robottelo.common.constants import FAKE_1_YUM_REPO, VALID_GPG_KEY_FILE
+from robottelo.common.constants import (
+    FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
@@ -994,19 +995,49 @@ class OperatingSystem(
     values are accepted, and they may be no longer than 5 digits long. Also see
     bugzilla bug #1122261.
 
+    The following fields are valid despite not being listed in the API docs:
+
+    * architecture
+    * medium
+    * ptable
+
     """
-    # validator: Must match regular expression /\A(\S+)\Z/.
-    name = orm.StringField(required=True)
-    major = orm.StringField(required=True, str_type=('numeric',), len=(1, 5))
-    minor = orm.StringField(null=True)
+    architecture = orm.OneToManyField('Architecture')
     description = orm.StringField(null=True)
-    family = orm.StringField(null=True)
+    family = orm.StringField(null=True, choices=OPERATING_SYSTEMS)
+    major = orm.StringField(required=True, str_type=('numeric',), len=(1, 5))
+    medium = orm.OneToManyField('Media')
+    minor = orm.StringField(null=True)
+    name = orm.StringField(required=True)
+    ptable = orm.OneToManyField('PartitionTable')
     release_name = orm.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/operatingsystems'
         server_modes = ('sat')
+
+    # FIXME: This method should not need to exist. The API has a bug.
+    def create(self, auth=None, data=None):
+        """Extend the implementation of
+        :meth:`robottelo.factory.Factory.create`.
+
+        Clients must submit a nested hash of attributes when creating an
+        operating system that points to an architecture or partition table.
+        For example, this will not work correctly::
+
+            {'name': 'foo', 'ptable_ids': [1, 2], 'architecture_ids': [2, 3]}
+
+        However, this will work correctly::
+
+            {'operatingsystem': {
+                'name': 'foo', 'ptable_ids': [1, 2], 'architecture_ids': [2, 3]
+            }}
+
+        """
+        if data is None:
+            data = {u'operatingsystem': self.build(auth=auth)}
+        return super(OperatingSystem, self).create(auth, data)
 
 
 class OperatingSystemParameter(
@@ -1483,7 +1514,7 @@ class PartitionTable(
     """A representation of a Partition Table entity."""
     name = orm.StringField(required=True)
     layout = orm.StringField(required=True)
-    os_family = orm.StringField(null=True)
+    os_family = orm.StringField(null=True, choices=OPERATING_SYSTEMS)
 
     class Meta(object):
         """Non-field information about this entity."""
