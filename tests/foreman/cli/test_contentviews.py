@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""Test class for Host/System Unification"""
+"""Test class for Content Views"""
 import unittest
 
 from ddt import ddt
