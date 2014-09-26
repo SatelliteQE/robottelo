@@ -43,7 +43,7 @@ class ActivationKey(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/activation_keys'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -68,7 +68,7 @@ class Architecture(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/architectures'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
     # FIXME: This method should not need to exist. The API has a bug.
     def create(self, auth=None, data=None):
@@ -163,7 +163,7 @@ class AuthSourceLDAP(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/auth_source_ldaps'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Bookmark(orm.Entity):
@@ -176,7 +176,7 @@ class Bookmark(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/bookmarks'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class CommonParameter(orm.Entity):
@@ -187,7 +187,7 @@ class CommonParameter(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/common_parameters'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ComputeAttribute(orm.Entity):
@@ -210,7 +210,7 @@ class ComputeAttribute(orm.Entity):
         # 'compute_attributes',
         #
         # '/api/v2/compute_profiles/:compute_profile_id/compute_attributes',
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ComputeProfile(
@@ -222,7 +222,7 @@ class ComputeProfile(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/compute_profiles'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ComputeResource(
@@ -249,7 +249,7 @@ class ComputeResource(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/compute_resources'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
     def _factory_data(self):
         """Customize the data provided to :class:`robottelo.factory.Factory`.
@@ -302,7 +302,7 @@ class ConfigGroup(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/config_groups'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ConfigTemplate(
@@ -322,7 +322,7 @@ class ConfigTemplate(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/config_templates'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
     def _factory_data(self):
         """Customize the data provided to :class:`robottelo.factory.Factory`.
@@ -355,7 +355,7 @@ class ContentUpload(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/repositories/:repository_id/'
                     'content_uploads')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ContentViewVersion(orm.Entity):
@@ -364,7 +364,7 @@ class ContentViewVersion(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/content_view_versions'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -423,7 +423,7 @@ class ContentViewFilterRule(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/content_view_filters/'
                     ':content_view_filter_id/rules')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ContentViewFilter(orm.Entity):
@@ -446,7 +446,7 @@ class ContentViewFilter(orm.Entity):
         # Alternative path
         #
         # '/katello/api/v2/content_views/:content_view_id/filters',
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ContentViewPuppetModule(orm.Entity):
@@ -460,7 +460,7 @@ class ContentViewPuppetModule(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/content_views/:content_view_id/'
                     'content_view_puppet_modules')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ContentView(
@@ -482,7 +482,7 @@ class ContentView(
         # Alternative paths
         #
         # '/katello/api/v2/organizations/:organization_id/content_views',
-        server_mode = ('sat')
+        server_modes = ('sat')
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -547,7 +547,7 @@ class CustomInfo(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/custom_info/:informable_type/'
                     ':informable_id')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Domain(
@@ -567,7 +567,7 @@ class Domain(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/domains'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Environment(
@@ -582,7 +582,7 @@ class Environment(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/environments'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Errata(orm.Entity):
@@ -592,7 +592,7 @@ class Errata(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/errata'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Filter(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
@@ -606,7 +606,7 @@ class Filter(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/filters'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class ForemanTask(orm.Entity, orm.EntityReadMixin):
@@ -615,7 +615,7 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'foreman_tasks/api/tasks'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
     def path(self, which=None):
         """Override the default implementation of
@@ -697,7 +697,7 @@ class GPGKey(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/gpg_keys'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class HostClasses(orm.Entity):
@@ -708,7 +708,7 @@ class HostClasses(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/hosts/:host_id/puppetclass_ids'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class HostCollectionErrata(orm.Entity):
@@ -719,7 +719,7 @@ class HostCollectionErrata(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/organizations/:organization_id/'
                     'host_collections/:host_collection_id/errata')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class HostCollectionPackage(orm.Entity):
@@ -731,7 +731,7 @@ class HostCollectionPackage(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/organizations/:organization_id/'
                     'host_collections/:host_collection_id/packages')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class HostCollection(
@@ -750,7 +750,7 @@ class HostCollection(
         # Alternative paths.
         #
         # '/katello/api/v2/organizations/:organization_id/host_collections'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class HostGroupClasses(orm.Entity):
@@ -761,7 +761,7 @@ class HostGroupClasses(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/hostgroups/:hostgroup_id/puppetclass_ids'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class HostGroup(orm.Entity, factory.EntityFactoryMixin):
@@ -784,7 +784,7 @@ class HostGroup(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/hostgroups'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Host(orm.Entity, orm.EntityReadMixin, factory.EntityFactoryMixin):
@@ -829,7 +829,7 @@ class Host(orm.Entity, orm.EntityReadMixin, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_names = (('name', 'name'),)
         api_path = 'api/v2/hosts'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Image(orm.Entity):
@@ -844,7 +844,7 @@ class Image(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/compute_resources/:compute_resource_id/images'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Interface(orm.Entity):
@@ -866,7 +866,7 @@ class Interface(orm.Entity):
         """Non-field information about this entity."""
         api_names = (('interface_type', 'type'),)
         api_path = 'api/v2/hosts/:host_id/interfaces'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class LifecycleEnvironment(
@@ -940,7 +940,7 @@ class LifecycleEnvironment(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/environments'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Location(orm.Entity, factory.EntityFactoryMixin):
@@ -950,7 +950,7 @@ class Location(orm.Entity, factory.EntityFactoryMixin):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/locations'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Media(orm.Entity, factory.EntityFactoryMixin):
@@ -967,7 +967,7 @@ class Media(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_path = 'api/v2/media'
         api_names = (('media_path', 'path'),)
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Model(
@@ -982,7 +982,7 @@ class Model(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/models'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class OperatingSystem(
@@ -1006,7 +1006,7 @@ class OperatingSystem(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/operatingsystems'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class OperatingSystemParameter(
@@ -1057,7 +1057,7 @@ class OrganizationDefaultInfo(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('katello/api/v2/organizations/:organization_id/'
                     'default_info/:informable_type')
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class Organization(
@@ -1071,7 +1071,7 @@ class Organization(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/organizations'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -1275,7 +1275,7 @@ class OSDefaultTemplate(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('api/v2/operatingsystems/:operatingsystem_id/'
                     'os_default_templates')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class OverrideValue(orm.Entity):
@@ -1294,7 +1294,7 @@ class OverrideValue(orm.Entity):
             '/api/v2/smart_class_parameters/:smart_class_parameter_id/'
             'override_values',
         )
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Permission(orm.Entity, factory.EntityFactoryMixin):
@@ -1317,7 +1317,7 @@ class Permission(orm.Entity, factory.EntityFactoryMixin):
         """Non-field information about this entity."""
         api_names = (('permission_type', 'type'),)
         api_path = 'api/v2/permissions'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class Ping(orm.Entity):
@@ -1326,7 +1326,7 @@ class Ping(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/ping'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class Product(
@@ -1344,7 +1344,7 @@ class Product(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/products'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -1488,7 +1488,7 @@ class PartitionTable(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/ptables'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class PuppetClass(orm.Entity):
@@ -1498,7 +1498,7 @@ class PuppetClass(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/puppetclasses'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Realm(orm.Entity):
@@ -1514,7 +1514,7 @@ class Realm(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/realms'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Report(orm.Entity):
@@ -1529,7 +1529,7 @@ class Report(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/reports'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Repository(
@@ -1620,7 +1620,7 @@ class Repository(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/repositories'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class RoleLDAPGroups(orm.Entity):
@@ -1630,7 +1630,7 @@ class RoleLDAPGroups(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/roles/:role_id/ldap_groups'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class Role(
@@ -1647,7 +1647,7 @@ class Role(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/roles'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class SmartProxy(orm.Entity):
@@ -1658,7 +1658,7 @@ class SmartProxy(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/smart_proxies'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class SmartVariable(orm.Entity):
@@ -1675,7 +1675,7 @@ class SmartVariable(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/smart_variables'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Status(orm.Entity):
@@ -1684,7 +1684,7 @@ class Status(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/status'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Subnet(
@@ -1711,7 +1711,7 @@ class Subnet(
         """Non-field information about this entity."""
         api_path = 'api/v2/subnets'
         api_names = (('from_', 'from'),)
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class Subscription(orm.Entity):
@@ -1733,7 +1733,7 @@ class Subscription(orm.Entity):
         #
         # '/katello/api/v2/systems/:system_id/subscriptions',
         # '/katello/api/v2/activation_keys/:activation_key_id/subscriptions',
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
 
 class SyncPlan(orm.Entity):
@@ -1753,7 +1753,7 @@ class SyncPlan(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/organizations/:organization_id/sync_plans'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class SystemPackage(orm.Entity):
@@ -1767,7 +1767,7 @@ class SystemPackage(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/systems/:system_id/packages'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class System(
@@ -1804,7 +1804,7 @@ class System(
         # Alternative paths.
         # '/katello/api/v2/environments/:environment_id/systems'
         # '/katello/api/v2/host_collections/:host_collection_id/systems'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -1838,7 +1838,7 @@ class TemplateCombination(orm.Entity):
         """Non-field information about this entity."""
         api_path = ('api/v2/config_templates/:config_template_id/'
                     'template_combinations')
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class TemplateKind(orm.Entity):
@@ -1849,7 +1849,7 @@ class TemplateKind(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/template_kinds'
-        server_mode = ('sat')
+        server_modes = ('sat')
         NUM_CREATED_BY_DEFAULT = 8
 
 
@@ -1860,7 +1860,7 @@ class UserGroup(orm.Entity):
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/usergroups'
-        server_mode = ('sat')
+        server_modes = ('sat')
 
 
 class User(
@@ -1893,4 +1893,4 @@ class User(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/users'
-        server_mode = ('sat', 'sam')
+        server_modes = ('sat', 'sam')
