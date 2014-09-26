@@ -563,15 +563,27 @@ class Domain(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         factory.EntityFactoryMixin):
     """A representation of a Domain entity."""
-    # The full DNS Domain name
-    name = orm.StringField(required=True)
-    # Full name describing the domain
+    domain_parameters_attributes = orm.ListField(null=True)
     fullname = orm.StringField(null=True)
+    name = orm.StringField(required=True)
     # DNS Proxy to use within this domain
     # FIXME figure out related resource
     # dns = orm.OneToOneField(null=True)
-    # Array of parameters (name, value)
-    domain_parameters_attributes = orm.ListField(null=True)
+
+    def _factory_data(self):
+        """Customize the data provided to :class:`robottelo.factory.Factory`.
+
+        By default, :meth:`robottelo.orm.URLField.get_value` does not return
+        especially unique values. This is problematic, as all domain names must
+        be unique.
+
+        """
+        if self.name is None:
+            self.name = '{0}.{1}'.format(
+                gen_alpha().lower(),
+                gen_alpha().lower()
+            )
+        return super(Domain, self)._factory_data()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -790,49 +802,95 @@ class HostGroup(orm.Entity, factory.EntityFactoryMixin):
         server_modes = ('sat')
 
 
-class Host(orm.Entity, orm.EntityReadMixin, factory.EntityFactoryMixin):
+class Host(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Host entity."""
-    name = orm.StringField(required=True)
-    environment = orm.OneToOneField('Environment', null=True)
-    # not required if using a subnet with dhcp proxy
-    ip = orm.StringField(null=True)  # (invalid-name) pylint:disable=C0103
-    # not required if its a virtual machine
-    mac = orm.StringField(null=True)
-    architecture = orm.OneToOneField('Architecture', null=True)
-    domain = orm.OneToOneField('Domain', null=True)
-    realm = orm.OneToOneField('Realm', null=True)
-    # FIXME figure out related resource
-    # puppet_proxy = orm.OneToOneField(null=True)
-    puppet_classes = orm.OneToManyField('PuppetClass', null=True)
-    operatingsystem = orm.OneToOneField('OperatingSystem', null=True)
-    medium = orm.OneToOneField('Media', null=True)
-    ptable = orm.OneToOneField('PartitionTable', null=True)
-    subnet = orm.OneToOneField('Subnet', null=True)
-    compute_resource = orm.OneToOneField('ComputeResource', null=True)
-    sp_subnet = orm.OneToOneField('Subnet', null=True)
-    model = orm.OneToOneField('Model', null=True)
-    hostgroup = orm.OneToOneField('HostGroup', null=True)
-    owner = orm.OneToOneField('User', null=True)
-    # FIXME figure out related resource
-    # puppet_ca_proxy = orm.OneToOneField(null=True)
-    image = orm.OneToOneField('Image', null=True)
-    host_parameters_attributes = orm.ListField(null=True)
-    build = orm.BooleanField(null=True)
-    enabled = orm.BooleanField(null=True)
-    provision_method = orm.StringField(null=True)
-    managed = orm.BooleanField(null=True)
-    # UUID to track orchestration tasks status,
-    # GET /api/v2/orchestration/:UUID/tasks
-    # FIXME figure out related resource
-    # progress_report = orm.OneToOneField(null=True)
+    architecture = orm.OneToOneField('Architecture', null=True, required=True)
+    build_ = orm.BooleanField(null=True)
     capabilities = orm.StringField(null=True)
     compute_profile = orm.OneToOneField('ComputeProfile', null=True)
+    compute_resource = orm.OneToOneField('ComputeResource', null=True)
+    domain = orm.OneToOneField('Domain', null=True, required=True)
+    enabled = orm.BooleanField(null=True)
+    environment = orm.OneToOneField('Environment', null=True, required=True)
+    hostgroup = orm.OneToOneField('HostGroup', null=True)
+    host_parameters_attributes = orm.ListField(null=True)
+    image = orm.OneToOneField('Image', null=True)
+    ip = orm.StringField(null=True)  # (invalid-name) pylint:disable=C0103
+    location = orm.OneToOneField('Location', required=True)
+    mac = orm.MACAddressField(null=True, required=True)
+    managed = orm.BooleanField(null=True)
+    medium = orm.OneToOneField('Media', null=True)
+    model = orm.OneToOneField('Model', null=True)
+    name = orm.StringField(required=True, str_type=('alpha',))
+    operatingsystem = orm.OneToOneField(
+        'OperatingSystem',
+        null=True,
+        required=True
+    )
+    organization = orm.OneToOneField('Organization', required=True)
+    owner = orm.OneToOneField('User', null=True)
+    provision_method = orm.StringField(null=True)
+    ptable = orm.OneToOneField('PartitionTable', null=True)
+    puppet_classes = orm.OneToManyField('PuppetClass', null=True)
+    puppet_proxy = orm.OneToOneField('SmartProxy', null=True, required=True)
+    realm = orm.OneToOneField('Realm', null=True)
+    root_pass = orm.StringField(len=(8, 30), required=True)
+    sp_subnet = orm.OneToOneField('Subnet', null=True)
+    subnet = orm.OneToOneField('Subnet', null=True)
+
+    # FIXME figure out these related resources
+    # progress_report = orm.OneToOneField(null=True)
+    # puppet_ca_proxy = orm.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('name', 'name'),)
+        api_names = (('build_', 'build'),)
         api_path = 'api/v2/hosts'
         server_modes = ('sat')
+
+    def _factory_data(self):
+        """Extend :meth:`robottelo.factory.Factory._factory_data`.
+
+        A host's dependency graph must, in part, look like this::
+
+                 .-> medium --------.
+                 |-> architecture <-V--.
+            host --> operating system -|
+                 |-> partition table <-'
+                 `-> smart proxy
+
+        This is complicated by the fact that the user might provide values for
+        any number of fields, it is impossible to create a bogus smart proxy,
+        some links are optional and the links are a combination of one-to-one
+        and one-to-many. This method will create a dependent architecture,
+        operating system, partition table and medium **only if all four fields
+        are unset.**
+
+        """
+        if (self.operatingsystem is None and
+                self.architecture is None and
+                self.ptable is None and
+                self.medium is None):
+            self.architecture = Architecture().create()['id']
+            self.ptable = PartitionTable().create()['id']
+            self.operatingsystem = OperatingSystem(
+                architecture=[self.architecture],
+                ptable=[self.ptable],
+            ).create()['id']
+            self.medium = Media(
+                operatingsystem=[self.operatingsystem]
+            ).create()['id']
+        if self.puppet_proxy is None:
+            response = client.get(
+                SmartProxy().path(),
+                auth=get_server_credentials(),
+                verify=False,
+            )
+            response.raise_for_status()
+            self.puppet_proxy = response.json()['results'][0]['id']
+        return super(Host, self)._factory_data()
 
 
 class Image(orm.Entity):
