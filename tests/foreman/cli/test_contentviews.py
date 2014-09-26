@@ -1,11 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""Test class for Host/System Unification
-
-Feature details: https://fedorahosted.org/katello/wiki/ContentViewCLI
-
-"""
+"""Test class for Host/System Unification"""
 import unittest
 
 from ddt import ddt
