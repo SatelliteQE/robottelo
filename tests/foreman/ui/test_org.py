@@ -944,7 +944,7 @@ class Org(UITestCase):
                                                       value1 % env_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.org.update(org_name, envs=[env])
+            self.org.update(org_name, envs=[env_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
