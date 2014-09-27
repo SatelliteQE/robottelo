@@ -1,19 +1,23 @@
 """Smoke tests for the ``UI`` end-to-end scenario."""
+
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
 from nose.plugins.attrib import attr
 from robottelo.common import conf
-from robottelo.common.constants import (FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO,
-                                        REPO_TYPE, FOREMAN_PROVIDERS, DOMAIN,
-                                        DEFAULT_ORG, DEFAULT_LOC)
+from robottelo.common import manifests
+from robottelo.common.constants import (
+    FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO, REPO_TYPE, FOREMAN_PROVIDERS,
+    DOMAIN, DEFAULT_ORG, DEFAULT_LOC, RHVA_REPO_TREE)
+from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_user, make_org,
                                   make_lifecycle_environment, make_product,
                                   make_repository, make_contentview,
                                   make_resource, make_subnet, make_domain,
-                                  make_hostgroup)
+                                  make_hostgroup, make_activationkey)
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 @ddt
@@ -213,3 +217,116 @@ class TestSmoke(UITestCase):
             # Create a HostGroup
             make_hostgroup(session, name=hostgroup_name)
             self.assertIsNotNone(self.hostgroup.search(hostgroup_name))
+
+    def end_to_end_ui_test(self):
+        """@Test: Perform end to end smoke tests using RH repos.
+
+        @Feature: Smoke test
+
+        @Assert: All tests should succeed and Content should be successfully
+        fetched by client
+
+        """
+        org_name = gen_string("alpha", 6)
+        cv_name = gen_string("alpha", 6)
+        activation_key_name = gen_string("alpha", 6)
+        env_name = gen_string("alpha", 6)
+        server_name = conf.properties['main.server.hostname']
+        product_name = "Red Hat Employee Subscription"
+        repo_names = [
+            "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
+            "RPMs x86_64 6.5",
+            "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
+            "RPMs x86_64 6Server",
+        ]
+        repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
+        package_name = "python-kitchen"
+        cloned_manifest_path = manifests.clone()
+        # upload_file function should take care of uploading to sauce labs.
+        upload_file(cloned_manifest_path, remote_file=cloned_manifest_path)
+        with Session(self.browser) as session:
+            # Create New organization
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            # Create New Lifecycle environment
+            make_lifecycle_environment(session, org=org_name, name=env_name)
+            self.assertIsNotNone(
+                self.contentenv.wait_until_element(
+                    common_locators["alert.success"]))
+            # Navigate UI to select org and redhat subscription page
+            session.nav.go_to_select_org(org_name)
+            session.nav.go_to_red_hat_subscriptions()
+            # Upload manifest from webui
+            self.subscriptions.upload(cloned_manifest_path)
+            self.assertTrue(
+                session.nav.wait_until_element(
+                    common_locators['alert.success']))
+            session.nav.go_to_red_hat_repositories()
+            # List of dictionary passed to enable the redhat repos
+            # It selects Product->Reposet-> Repo
+            self.sync.enable_rh_repos(repos)
+            session.nav.go_to_sync_status()
+            # Sync the repos
+            sync = self.sync.sync_rh_repos(repos)
+            # syn.sync_rh_repos returns boolean values and not objects
+            self.assertTrue(sync)
+            # Create new content-view
+            make_contentview(session, org=org_name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add YUM repository to content-view
+            self.content_views.add_remove_repos(cv_name, repo_names)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators["alert.success"]))
+            # Publish content-view
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators["alert.success"]))
+
+            # Promote content-view to life-cycle environment 1
+            self.content_views.promote(cv_name, version="Version 1",
+                                       env=env_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators["alert.success"]))
+            # Create Activation-Key
+            make_activationkey(
+                session, org=org_name, name=activation_key_name, env=env_name,
+                content_view=cv_name)
+            self.activationkey.associate_product(
+                activation_key_name, [product_name]
+            )
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators["alert.success"]))
+            # Create VM
+            with VirtualMachine(distro='rhel65') as vm:
+                # Install rpm
+                result = vm.run(
+                    'rpm -i http://{0}/pub/katello-ca-consumer-'
+                    '{0}-1.0-1.noarch.rpm'.format(server_name)
+                )
+                self.assertEqual(
+                    result.return_code, 0,
+                    "failed to install katello-ca-consumer rpm"
+                )
+                # Register client with foreman server using activation-key
+                result = vm.run(
+                    'subscription-manager register --activationkey {0} '
+                    '--org {1} --force'
+                    .format(activation_key_name, org_name)
+                )
+                self.assertEqual(
+                    result.return_code, 0,
+                    "failed to register client"
+                )
+                # Install contents from sat6 server
+                result = vm.run('yum install -y {0}'.format(package_name))
+                self.assertEqual(
+                    result.return_code, 0,
+                    "Package install failed"
+                )
+                # Verify if package is installed by query it
+                result = vm.run('rpm -q {0}'.format(package_name))
+                self.assertIn(package_name, result.stdout[0])

@@ -124,11 +124,41 @@ SYNC_INTERVAL = {'hour': "hourly",
 REPO_TYPE = {'yum': "yum",
              'puppet': "puppet"}
 
+# On importing manifests, Red Hat repositories are listed like this:
+# Product -> RepositorySet -> Repository
+# We need to first select the Product, then the reposet and then the repos
+# Example: 'rhel' is the name of Product that contains following REPOSETs
+
 PRDS = {'rhcf': "Red Hat CloudForms",
         'rhel': "Red Hat Enterprise Linux Server"}
 
-REPOSET = {'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
-           'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)"}
+REPOSET = {
+    'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
+    'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)",
+    'rhva6': "Red Hat Enterprise Virtualization Agents "
+    "for RHEL 6 Server (RPMs)"
+}
+
+# The 'create_repos_tree' function under 'sync' module uses the following
+# list of tuples. It actually includes following two repos under
+# Reposet: Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs
+#
+# Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.5
+# Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64
+# 6Server
+
+RHVA_REPO_TREE = [
+    ('rhel', 'rhva6', 'rhva65', 'repo_name',
+     'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
+     'x86_64 6.5'),
+    ('rhel', 'rhva6', 'rhva65', 'repo_arch', 'x86_64'),
+    ('rhel', 'rhva6', 'rhva65', 'repo_ver', '6.5'),
+    ('rhel', 'rhva6', 'rhva6S', 'repo_name',
+     'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
+     'x86_64 6Server'),
+    ('rhel', 'rhva6', 'rhva6S', 'repo_arch', 'x86_64'),
+    ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server')
+]
 
 DEFAULT_ORG = "Default_Organization"
 DEFAULT_LOC = "Default_Location"
