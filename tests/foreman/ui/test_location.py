@@ -428,7 +428,7 @@ class Location(UITestCase):
         path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
         medium = entities.Media(
             name=medium_name,
-            path=path,
+            media_path=path,
             os_family='Redhat',
         ).create()
         self.assertEqual(medium['name'], medium_name)
