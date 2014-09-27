@@ -361,14 +361,14 @@ class OperatingSys(UITestCase):
 
         medium_name = FauxFactory.generate_string("alpha", 4)
         path = INSTALL_MEDIUM_URL % medium_name
-        medium = entities.Media(
+        entities.Media(
             name=medium_name,
             media_path=path,
         ).create()
         os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
-            self.operatingsys.update(os_name, new_mediums=[medium])
+            self.operatingsys.update(os_name, new_mediums=[medium_name])
             result_obj = self.operatingsys.get_os_entities(os_name, "medium")
             self.assertEqual(medium_name, result_obj['medium'])
 
