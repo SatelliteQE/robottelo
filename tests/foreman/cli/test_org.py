@@ -5,7 +5,7 @@
 """Test class for Organization CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.cli.factory import (
@@ -23,12 +23,12 @@ def positive_create_data_1():
     """Random data for positive creation"""
 
     return (
-        {'name': FauxFactory.generate_string("latin1", 10)},
-        {'name': FauxFactory.generate_string("utf8", 10)},
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
-        {'name': FauxFactory.generate_string("html", 10)},
+        {'name': gen_string("latin1", 10)},
+        {'name': gen_string("utf8", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("html", 10)},
     )
 
 
@@ -40,13 +40,13 @@ def positive_create_data_2():
     """Random simpler data for positive creation"""
 
     return (
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
-        {'name': '{0}-{1}'.format(FauxFactory.generate_string("alpha", 5),
-                                  FauxFactory.generate_string("alpha", 5))},
-        {'name': '{0}_{1}'.format(FauxFactory.generate_string("alpha", 5),
-                                  FauxFactory.generate_string("alpha", 5))},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': '{0}-{1}'.format(gen_string("alpha", 5),
+                                  gen_string("alpha", 5))},
+        {'name': '{0}_{1}'.format(gen_string("alpha", 5),
+                                  gen_string("alpha", 5))},
     )
 
 
@@ -55,18 +55,18 @@ def positive_name_label_data():
     """Random data for Label tests"""
 
     return (
-        {'name': FauxFactory.generate_string("latin1", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("utf8", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alpha", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("html", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
+        {'name': gen_string("latin1", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("utf8", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("alpha", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("numeric", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("html", 10),
+         'label': gen_string("alpha", 10)},
     )
 
 
@@ -74,18 +74,18 @@ def positive_name_desc_data():
     """Random data for Descriptions tests"""
 
     return (
-        {'name': FauxFactory.generate_string("latin1", 10),
-         'description': FauxFactory.generate_string("latin1", 10)},
-        {'name': FauxFactory.generate_string("utf8", 10),
-         'description': FauxFactory.generate_string("utf8", 10)},
-        {'name': FauxFactory.generate_string("alpha", 10),
-         'description': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10),
-         'description': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10),
-         'description': FauxFactory.generate_string("numeric", 10)},
-        {'name': FauxFactory.generate_string("html", 10),
-         'description': FauxFactory.generate_string("numeric", 10)},
+        {'name': gen_string("latin1", 10),
+         'description': gen_string("latin1", 10)},
+        {'name': gen_string("utf8", 10),
+         'description': gen_string("utf8", 10)},
+        {'name': gen_string("alpha", 10),
+         'description': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10),
+         'description': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10),
+         'description': gen_string("numeric", 10)},
+        {'name': gen_string("html", 10),
+         'description': gen_string("numeric", 10)},
     )
 
 
@@ -93,18 +93,18 @@ def positive_name_desc_label_data():
     """Random data for Labels and Description"""
 
     return (
-        {'name': FauxFactory.generate_string("alpha", 10),
-         'description': FauxFactory.generate_string("alpha", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10),
-         'description': FauxFactory.generate_string("alphanumeric", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10),
-         'description': FauxFactory.generate_string("numeric", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("html", 10),
-         'description': FauxFactory.generate_string("numeric", 10),
-         'label': FauxFactory.generate_string("alpha", 10)},
+        {'name': gen_string("alpha", 10),
+         'description': gen_string("alpha", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10),
+         'description': gen_string("alphanumeric", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("numeric", 10),
+         'description': gen_string("numeric", 10),
+         'label': gen_string("alpha", 10)},
+        {'name': gen_string("html", 10),
+         'description': gen_string("numeric", 10),
+         'label': gen_string("alpha", 10)},
     )
 
 
@@ -316,7 +316,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
         # Update the org name
-        new_name = FauxFactory.generate_string("alpha", 15)
+        new_name = gen_string("alpha", 15)
         result = Org.update({'id': new_obj['id'],
                              'new-name': new_name})
 
@@ -596,7 +596,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        test_data['label'] = FauxFactory.generate_string('alpha', 10)
+        test_data['label'] = gen_string('alpha', 10)
         new_obj = make_org(test_data)
 
         # Can we find the new object?
@@ -829,11 +829,11 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        FauxFactory.generate_string('alpha', 15),
-        FauxFactory.generate_string('alphanumeric', 15),
-        FauxFactory.generate_string('numeric', 15),
-        FauxFactory.generate_string('latin1', 15),
-        FauxFactory.generate_string('utf8', 15),
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
     )
     def test_add_configtemplate(self, data):
         """@Test: Check if a Config Template can be added to an Org
@@ -847,7 +847,7 @@ class TestOrg(CLITestCase):
             org = make_org()
             template = make_template({
                 'name': data,
-                'content': FauxFactory.generate_string('alpha', 10),
+                'content': gen_string('alpha', 10),
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -868,11 +868,11 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        FauxFactory.generate_string('alpha', 15),
-        FauxFactory.generate_string('alphanumeric', 15),
-        FauxFactory.generate_string('numeric', 15),
-        FauxFactory.generate_string('latin1', 15),
-        FauxFactory.generate_string('utf8', 15),
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
     )
     def test_remove_configtemplate(self, data):
         """@Test: Check if a ConfigTemplate can be removed from an Org
@@ -886,7 +886,7 @@ class TestOrg(CLITestCase):
             org = make_org()
             tmplt = make_template({
                 'name': data,
-                'content': FauxFactory.generate_string('alpha', 10)
+                'content': gen_string('alpha', 10)
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -1048,18 +1048,18 @@ class TestOrg(CLITestCase):
 
     # Negative Create
 
-    @data({'label': FauxFactory.generate_string('alpha', 10),
-           'name': FauxFactory.generate_string('alpha', 300)},
-          {'label': FauxFactory.generate_string('alpha', 10),
-           'name': FauxFactory.generate_string('numeric', 300)},
-          {'label': FauxFactory.generate_string('alpha', 10),
-           'name': FauxFactory.generate_string('alphanumeric', 300)},
-          {'label': FauxFactory.generate_string('alpha', 10),
-           'name': FauxFactory.generate_string('utf8', 300)},
-          {'label': FauxFactory.generate_string('alpha', 10),
-           'name': FauxFactory.generate_string('latin1', 300)},
-          {'label': FauxFactory.generate_string('alpha', 10),
-           'name': FauxFactory.generate_string('html', 300)})
+    @data({'label': gen_string('alpha', 10),
+           'name': gen_string('alpha', 300)},
+          {'label': gen_string('alpha', 10),
+           'name': gen_string('numeric', 300)},
+          {'label': gen_string('alpha', 10),
+           'name': gen_string('alphanumeric', 300)},
+          {'label': gen_string('alpha', 10),
+           'name': gen_string('utf8', 300)},
+          {'label': gen_string('alpha', 10),
+           'name': gen_string('latin1', 300)},
+          {'label': gen_string('alpha', 10),
+           'name': gen_string('html', 300)})
     def test_negative_create_0(self, test_data):
         """@test: Create organization with valid label and description, name is
         too long
@@ -1074,9 +1074,9 @@ class TestOrg(CLITestCase):
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
 
-    @data(FauxFactory.generate_string('alpha', 10),
-          FauxFactory.generate_string('numeric', 10),
-          FauxFactory.generate_string('alphanumeric', 10))
+    @data(gen_string('alpha', 10),
+          gen_string('numeric', 10),
+          gen_string('alphanumeric', 10))
     def test_negative_create_1(self, test_data):
         """@test: Create organization with valid label and description, name is
         blank
@@ -1091,9 +1091,9 @@ class TestOrg(CLITestCase):
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
 
-    @data(FauxFactory.generate_string('alpha', 10),
-          FauxFactory.generate_string('numeric', 10),
-          FauxFactory.generate_string('alphanumeric', 10))
+    @data(gen_string('alpha', 10),
+          gen_string('numeric', 10),
+          gen_string('alphanumeric', 10))
     def test_negative_create_2(self, test_data):
         """@test: Create organization with valid label and description, name is
         whitespace
@@ -1109,9 +1109,9 @@ class TestOrg(CLITestCase):
             len(result.stderr), 0, "There should be an exception here.")
         self.assertNotEqual(result.return_code, 0)
 
-    @data(FauxFactory.generate_string('alpha', 10),
-          FauxFactory.generate_string('numeric', 10),
-          FauxFactory.generate_string('alphanumeric', 10))
+    @data(gen_string('alpha', 10),
+          gen_string('numeric', 10),
+          gen_string('alphanumeric', 10))
     def test_negative_create_3(self, test_data):
         """@test: Create organization with valid values, then create a new one
         with same values.
@@ -1240,12 +1240,12 @@ class TestOrg(CLITestCase):
     # Positive Update
 
     @skip_if_bug_open('bugzilla', 1076541)
-    @data({'name': FauxFactory.generate_string("latin1", 10)},
-          {'name': FauxFactory.generate_string("utf8", 10)},
-          {'name': FauxFactory.generate_string("alpha", 10)},
-          {'name': FauxFactory.generate_string("alphanumeric", 10)},
-          {'name': FauxFactory.generate_string("numeric", 10)},
-          {'name': FauxFactory.generate_string("html", 10)})
+    @data({'name': gen_string("latin1", 10)},
+          {'name': gen_string("utf8", 10)},
+          {'name': gen_string("alpha", 10)},
+          {'name': gen_string("alphanumeric", 10)},
+          {'name': gen_string("numeric", 10)},
+          {'name': gen_string("html", 10)})
     def test_positive_update_1(self, test_data):
         """@test: Create organization with valid values then update its name
 
@@ -1282,12 +1282,12 @@ class TestOrg(CLITestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': FauxFactory.generate_string("latin1", 10)},
-          {'description': FauxFactory.generate_string("utf8", 10)},
-          {'description': FauxFactory.generate_string("alpha", 10)},
-          {'description': FauxFactory.generate_string("alphanumeric", 10)},
-          {'description': FauxFactory.generate_string("numeric", 10)},
-          {'description': FauxFactory.generate_string("html", 10)})
+    @data({'description': gen_string("latin1", 10)},
+          {'description': gen_string("utf8", 10)},
+          {'description': gen_string("alpha", 10)},
+          {'description': gen_string("alphanumeric", 10)},
+          {'description': gen_string("numeric", 10)},
+          {'description': gen_string("html", 10)})
     def test_positive_update_3(self, test_data):
         """@test: Create organization with valid values then update its
         description
@@ -1326,18 +1326,18 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1076541)
     @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': FauxFactory.generate_string("latin1", 10),
-           'name': FauxFactory.generate_string("latin1", 10)},
-          {'description': FauxFactory.generate_string("utf8", 10),
-           'name': FauxFactory.generate_string("utf8", 10)},
-          {'description': FauxFactory.generate_string("alpha", 10),
-           'name': FauxFactory.generate_string("alpha", 10)},
-          {'description': FauxFactory.generate_string("alphanumeric", 10),
-           'name': FauxFactory.generate_string("alphanumeric", 10)},
-          {'description': FauxFactory.generate_string("numeric", 10),
-           'name': FauxFactory.generate_string("numeric", 10)},
-          {'description': FauxFactory.generate_string("html", 10),
-           'name': FauxFactory.generate_string("html", 10)})
+    @data({'description': gen_string("latin1", 10),
+           'name': gen_string("latin1", 10)},
+          {'description': gen_string("utf8", 10),
+           'name': gen_string("utf8", 10)},
+          {'description': gen_string("alpha", 10),
+           'name': gen_string("alpha", 10)},
+          {'description': gen_string("alphanumeric", 10),
+           'name': gen_string("alphanumeric", 10)},
+          {'description': gen_string("numeric", 10),
+           'name': gen_string("numeric", 10)},
+          {'description': gen_string("html", 10),
+           'name': gen_string("html", 10)})
     def test_positive_update_4(self, test_data):
         """@test: Create organization with valid values then update all values
 
@@ -1384,12 +1384,12 @@ class TestOrg(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1076541)
     @data({'name': ' '},
-          {'name': FauxFactory.generate_string('alpha', 300)},
-          {'name': FauxFactory.generate_string('numeric', 300)},
-          {'name': FauxFactory.generate_string('alphanumeric', 300)},
-          {'name': FauxFactory.generate_string('utf8', 300)},
-          {'name': FauxFactory.generate_string('latin1', 300)},
-          {'name': FauxFactory.generate_string('html', 300)})
+          {'name': gen_string('alpha', 300)},
+          {'name': gen_string('numeric', 300)},
+          {'name': gen_string('alphanumeric', 300)},
+          {'name': gen_string('utf8', 300)},
+          {'name': gen_string('latin1', 300)},
+          {'name': gen_string('html', 300)})
     def test_negative_update_1(self, test_data):
         """@test: Create organization then fail to update
         its name
@@ -1417,12 +1417,12 @@ class TestOrg(CLITestCase):
                            "There should be error - hammer expects error")
 
     @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': FauxFactory.generate_string('alpha', 3000)},
-          {'description': FauxFactory.generate_string('numeric', 3000)},
-          {'description': FauxFactory.generate_string('alphanumeric', 3000)},
-          {'description': FauxFactory.generate_string('utf8', 3000)},
-          {'description': FauxFactory.generate_string('latin1', 3000)},
-          {'description': FauxFactory.generate_string('html', 3000)})
+    @data({'description': gen_string('alpha', 3000)},
+          {'description': gen_string('numeric', 3000)},
+          {'description': gen_string('alphanumeric', 3000)},
+          {'description': gen_string('utf8', 3000)},
+          {'description': gen_string('latin1', 3000)},
+          {'description': gen_string('html', 3000)})
     def test_negative_update_3(self, test_data):
         """@test: Create organization then fail to update description
         its description
@@ -1870,11 +1870,11 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @data(FauxFactory.generate_string('alpha', 10),
-          FauxFactory.generate_string('numeric', 10),
-          FauxFactory.generate_string('alphanumeric', 10),
-          FauxFactory.generate_string('utf8', 10),
-          FauxFactory.generate_string('latin1', 10))
+    @data(gen_string('alpha', 10),
+          gen_string('numeric', 10),
+          gen_string('alphanumeric', 10),
+          gen_string('utf8', 10),
+          gen_string('latin1', 10))
     def test_add_subnet_1(self, name):
         """@test: Add a subnet by using organization name and subnet name
 

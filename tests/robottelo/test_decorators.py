@@ -1,6 +1,6 @@
 """Unit tests for :mod:`robottelo.common.decorators`."""
 from ddt import DATA_ATTR
-from fauxfactory import FauxFactory
+from fauxfactory import gen_integer
 from robottelo.common import conf, decorators
 from unittest import TestCase
 # (Too many public methods) pylint: disable=R0904
@@ -38,7 +38,7 @@ class BzBugIsOpenTestCase(TestCase):
     def setUp(self):  # pylint:disable=C0103
         """Back up objects and generate common values."""
         self.backup = decorators._get_bugzilla_bug
-        self.bug_id = FauxFactory.generate_integer()
+        self.bug_id = gen_integer()
 
     def tearDown(self):  # pylint:disable=C0103
         """Restore backed-up objects."""
@@ -83,7 +83,7 @@ class RmBugIsOpenTestCase(TestCase):
         self.rm_backup = decorators._get_redmine_bug_status_id
         self.stat_backup = decorators._redmine_closed_issue_statuses
         decorators._redmine_closed_issue_statuses = lambda: [1, 2]
-        self.bug_id = FauxFactory.generate_integer()
+        self.bug_id = gen_integer()
 
     def tearDown(self):  # pylint:disable=C0103
         """Restore backed-up objects."""

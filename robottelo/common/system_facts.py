@@ -1,6 +1,9 @@
 """JSON representation for a RHEL server."""
 
-from fauxfactory import FauxFactory
+from fauxfactory import (
+    gen_alpha, gen_choice, gen_date,
+    gen_integer, gen_ipaddr, gen_mac, gen_uuid
+)
 
 import copy
 import datetime
@@ -19,7 +22,7 @@ def _bios_date():
     today = datetime.date.today()
     # and 10 years ago (~365 days * 10 years) is
     ten_years_ago = today - datetime.timedelta(3650)
-    return FauxFactory.generate_date(ten_years_ago, today)
+    return gen_date(ten_years_ago, today)
 
 ARCHITECTURES = [
     u"i386",
@@ -33,30 +36,30 @@ DISTRO_IDS = [
     {u'id': u'Maipo',
      u'version': u'7.0',
      # There is no 'i386' for RHEL 7
-     u'architecture': FauxFactory.generate_choice(ARCHITECTURES[1:]),
+     u'architecture': gen_choice(ARCHITECTURES[1:]),
      u'kernel': u'3.10.0-123.el7'},
     {u'id': u'Santiago',
-     u'version': u'6.{0}'.format(FauxFactory.generate_integer(1, 5)),
-     u'architecture': FauxFactory.generate_choice(ARCHITECTURES),
+     u'version': u'6.{0}'.format(gen_integer(1, 5)),
+     u'architecture': gen_choice(ARCHITECTURES),
      u'kernel': u'2.6.32-431.el6'},
     {u'id': u'Tikanga',
-     u'version': u'5.{0}'.format(FauxFactory.generate_integer(1, 10)),
-     u'architecture': FauxFactory.generate_choice(ARCHITECTURES),
+     u'version': u'5.{0}'.format(gen_integer(1, 10)),
+     u'architecture': gen_choice(ARCHITECTURES),
      u'kernel': u'2.6.18-371.el5'},
     {u'id': u'Nahant',
-     u'version': u'4.{0}'.format(FauxFactory.generate_integer(1, 9)),
+     u'version': u'4.{0}'.format(gen_integer(1, 9)),
      # Assuming only 'i386' and 'x86_64'
-     u'architecture': FauxFactory.generate_choice(ARCHITECTURES[:2]),
+     u'architecture': gen_choice(ARCHITECTURES[:2]),
      u'kernel': u'2.6.9-100.el4'},
     {u'id': u'Taroon',
-     u'version': u'3.{0}'.format(FauxFactory.generate_integer(1, 9)),
+     u'version': u'3.{0}'.format(gen_integer(1, 9)),
      # Assuming only 'i386' and 'x86_64'
-     u'architecture': FauxFactory.generate_choice(ARCHITECTURES[:2]),
+     u'architecture': gen_choice(ARCHITECTURES[:2]),
      u'kernel': u'2.4.21-50.el3'},
     {u'id': u'Pensacola',
-     u'version': u'2.{0}'.format(FauxFactory.generate_integer(1, 7)),
+     u'version': u'2.{0}'.format(gen_integer(1, 7)),
      # Assuming only 'i386' and 'x86_64'
-     u'architecture': FauxFactory.generate_choice(ARCHITECTURES[:2]),
+     u'architecture': gen_choice(ARCHITECTURES[:2]),
      u'kernel': u'2.4.9-e.57.el2'},
 ]
 
@@ -183,25 +186,25 @@ def generate_system_facts(name=None):
     """
     if name is None:
         name = u'{0}.example.net'.format(
-            FauxFactory.generate_alpha().lower())
+            gen_alpha().lower())
 
     # Make a copy of the system facts 'template'
     new_facts = copy.deepcopy(SYSTEM_FACTS)
     # Select a random RHEL version...
-    distro = FauxFactory.generate_choice(DISTRO_IDS)
+    distro = gen_choice(DISTRO_IDS)
 
     # ...and update our facts
     new_facts['distribution.id'] = distro['id']
     new_facts['distribution.version'] = distro['version']
     new_facts['dmi.bios.relase_date'] = _bios_date().strftime('%m/%d/%Y')
-    new_facts['dmi.memory.maximum_capacity'] = FauxFactory.generate_choice(
+    new_facts['dmi.memory.maximum_capacity'] = gen_choice(
         MEMORY_CAPACITY)
-    new_facts['dmi.memory.size'] = FauxFactory.generate_choice(MEMORY_SIZE)
-    new_facts['dmi.system.uuid'] = FauxFactory.generate_uuid()
+    new_facts['dmi.memory.size'] = gen_choice(MEMORY_SIZE)
+    new_facts['dmi.system.uuid'] = gen_uuid()
     new_facts['dmi.system.version'] = u'RHEL'
     new_facts['lscpu.architecture'] = distro['architecture']
-    new_facts['net.interface.eth1.hwaddr'] = FauxFactory.generate_mac()
-    new_facts['net.interface.eth1.ipaddr'] = FauxFactory.generate_ipaddr()
+    new_facts['net.interface.eth1.hwaddr'] = gen_mac()
+    new_facts['net.interface.eth1.ipaddr'] = gen_ipaddr()
     new_facts['network.hostname'] = name
     new_facts['network.ipaddr'] = new_facts['net.interface.eth1.ipaddr']
     new_facts['uname.machine'] = distro['architecture']

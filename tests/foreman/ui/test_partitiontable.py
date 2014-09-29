@@ -3,7 +3,7 @@
 
 """Test class for Partition Table UI"""
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.common.helpers import read_data_file, generate_strings_list
@@ -27,8 +27,8 @@ class PartitionTable(UITestCase):
         #  Make sure to use the Class' org_name instance
         if (PartitionTable.org_name is None
                 and PartitionTable.loc_name is None):
-            PartitionTable.org_name = FauxFactory.generate_string("alpha", 8)
-            PartitionTable.loc_name = FauxFactory.generate_string("alpha", 8)
+            PartitionTable.org_name = gen_string("alpha", 8)
+            PartitionTable.loc_name = gen_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=PartitionTable.org_name)
                 make_loc(session, name=PartitionTable.loc_name)
@@ -149,14 +149,14 @@ class PartitionTable(UITestCase):
                             (common_locators["notif.success"]))
             self.assertIsNone(self.partitiontable.search(name))
 
-    @data({u'name': FauxFactory.generate_string('alpha', 10),
-           u'new_name': FauxFactory.generate_string('alpha', 10)},
-          {u'name': FauxFactory.generate_string('html', 10),
-           u'new_name': FauxFactory.generate_string('html', 10)},
-          {u'name': FauxFactory.generate_string('utf8', 10),
-           u'new_name': FauxFactory.generate_string('utf8', 10)},
-          {u'name': FauxFactory.generate_string('alphanumeric', 255),
-           u'new_name': FauxFactory.generate_string('alphanumeric', 255)})
+    @data({u'name': gen_string('alpha', 10),
+           u'new_name': gen_string('alpha', 10)},
+          {u'name': gen_string('html', 10),
+           u'new_name': gen_string('html', 10)},
+          {u'name': gen_string('utf8', 10),
+           u'new_name': gen_string('utf8', 10)},
+          {u'name': gen_string('alphanumeric', 255),
+           u'new_name': gen_string('alphanumeric', 255)})
     def test_update_partition_table(self, test_data):
         """@Test: Update partition table with its name, layout and OS family
 

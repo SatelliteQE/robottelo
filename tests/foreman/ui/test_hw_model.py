@@ -1,7 +1,7 @@
 """Test class for Config Groups UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
@@ -23,9 +23,9 @@ class HardwareModelTestCase(UITestCase):
         # Make sure to use the Class' org_name instance
         if (HardwareModelTestCase.org_name is None and
                 HardwareModelTestCase.loc_name is None):
-            HardwareModelTestCase.org_name = FauxFactory.generate_string(
+            HardwareModelTestCase.org_name = gen_string(
                 "alpha", 8)
-            HardwareModelTestCase.loc_name = FauxFactory.generate_string(
+            HardwareModelTestCase.loc_name = gen_string(
                 "alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=HardwareModelTestCase.org_name)
@@ -48,11 +48,11 @@ class HardwareModelTestCase(UITestCase):
 
     @attr('ui', 'hardware-model', 'implemented')
     @data(
-        FauxFactory.generate_string('alphanumeric', 255),
-        FauxFactory.generate_string('alpha', 255),
-        FauxFactory.generate_string('numeric', 255),
-        FauxFactory.generate_string('latin1', 255),
-        FauxFactory.generate_string('utf8', 255)
+        gen_string('alphanumeric', 255),
+        gen_string('alpha', 255),
+        gen_string('numeric', 255),
+        gen_string('latin1', 255),
+        gen_string('utf8', 255)
     )
     def test_create_positive_2(self, name):
         """@test: Create new Hardware-Model with 255 chars
@@ -114,16 +114,16 @@ class HardwareModelTestCase(UITestCase):
             self.assertIsNotNone(error)
 
     @attr('ui', 'hardware-model', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 10),
-           'new_name': FauxFactory.generate_string('alpha', 10)},
-          {'name': FauxFactory.generate_string('numeric', 10),
-           'new_name': FauxFactory.generate_string('numeric', 10)},
-          {'name': FauxFactory.generate_string('alphanumeric', 10),
-           'new_name': FauxFactory.generate_string('alphanumeric', 10)},
-          {'name': FauxFactory.generate_string('utf8', 10),
-           'new_name': FauxFactory.generate_string('utf8', 10)},
-          {'name': FauxFactory.generate_string('latin1', 20),
-           'new_name': FauxFactory.generate_string('latin1', 10)})
+    @data({'name': gen_string('alpha', 10),
+           'new_name': gen_string('alpha', 10)},
+          {'name': gen_string('numeric', 10),
+           'new_name': gen_string('numeric', 10)},
+          {'name': gen_string('alphanumeric', 10),
+           'new_name': gen_string('alphanumeric', 10)},
+          {'name': gen_string('utf8', 10),
+           'new_name': gen_string('utf8', 10)},
+          {'name': gen_string('latin1', 20),
+           'new_name': gen_string('latin1', 10)})
     def test_update_positive_1(self, testdata):
         """@test: Updates the Hardware-Model
 

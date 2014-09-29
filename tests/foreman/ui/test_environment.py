@@ -3,7 +3,7 @@
 """Test class for Environment UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
@@ -28,17 +28,17 @@ class Environment(UITestCase):
         # Make sure to use the Class' org_name instance
         if (Environment.org_name is None and
            Environment.loc_name is None):
-            Environment.org_name = FauxFactory.generate_string("alpha", 8)
-            Environment.loc_name = FauxFactory.generate_string("alpha", 8)
+            Environment.org_name = gen_string("alpha", 8)
+            Environment.loc_name = gen_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Environment.org_name)
                 make_loc(session, name=Environment.loc_name)
 
     @attr('ui', 'environment', 'implemented')
     @data(
-        FauxFactory.generate_string('alpha', 8),
-        FauxFactory.generate_string('numeric', 8),
-        FauxFactory.generate_string('alphanumeric', 8)
+        gen_string('alpha', 8),
+        gen_string('numeric', 8),
+        gen_string('alphanumeric', 8)
     )
     def test_create_env_positive_1(self, name):
         """@Test: Create new environment
@@ -55,9 +55,9 @@ class Environment(UITestCase):
 
     @attr('ui', 'environment', 'implemented')
     @data(
-        FauxFactory.generate_string('alpha', 255),
-        FauxFactory.generate_string('numeric', 255),
-        FauxFactory.generate_string('alphanumeric', 255)
+        gen_string('alpha', 255),
+        gen_string('numeric', 255),
+        gen_string('alphanumeric', 255)
     )
     def test_create_env_positive_2(self, name):
         """@Test: Create new environment with 255 chars
@@ -74,9 +74,9 @@ class Environment(UITestCase):
 
     @attr('ui', 'environment', 'implemented')
     @data(
-        FauxFactory.generate_string('alpha', 256),
-        FauxFactory.generate_string('numeric', 256),
-        FauxFactory.generate_string('alphanumeric', 256)
+        gen_string('alpha', 256),
+        gen_string('numeric', 256),
+        gen_string('alphanumeric', 256)
     )
     def test_create_env_negative_1(self, name):
         """@Test: Create new environment with 256 chars
@@ -108,12 +108,12 @@ class Environment(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1126033)
     @attr('ui', 'environment', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 8),
-           'new_name': FauxFactory.generate_string('alpha', 8)},
-          {'name': FauxFactory.generate_string('numeric', 8),
-           'new_name': FauxFactory.generate_string('numeric', 8)},
-          {'name': FauxFactory.generate_string('alphanumeric', 8),
-           'new_name': FauxFactory.generate_string('alphanumeric', 8)})
+    @data({'name': gen_string('alpha', 8),
+           'new_name': gen_string('alpha', 8)},
+          {'name': gen_string('numeric', 8),
+           'new_name': gen_string('numeric', 8)},
+          {'name': gen_string('alphanumeric', 8),
+           'new_name': gen_string('alphanumeric', 8)})
     def test_update_env(self, testdata):
         """@Test: Update an environment and associated OS
 
@@ -135,9 +135,9 @@ class Environment(UITestCase):
     @skip_if_bug_open('bugzilla', 1126033)
     @attr('ui', 'environment', 'implemented')
     @data(
-        FauxFactory.generate_string('alpha', 8),
-        FauxFactory.generate_string('numeric', 8),
-        FauxFactory.generate_string('alphanumeric', 8)
+        gen_string('alpha', 8),
+        gen_string('numeric', 8),
+        gen_string('alphanumeric', 8)
     )
     def test_remove_env(self, name):
         """@Test: Delete an environment

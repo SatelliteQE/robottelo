@@ -3,7 +3,7 @@
 """Test class for Medium UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.common.constants import INSTALL_MEDIUM_URL
 from robottelo.common.decorators import data, run_only_on
@@ -28,8 +28,8 @@ class Medium(UITestCase):
         super(Medium, self).setUp()
         #  Make sure to use the Class' org_name instance
         if (Medium.org_name is None and Medium.loc_name is None):
-            org_name = FauxFactory.generate_string("alpha", 8)
-            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_name = gen_string("alpha", 8)
+            loc_name = gen_string("alpha", 8)
             org_attrs = entities.Organization(name=org_name).create()
             loc_attrs = entities.Location(name=loc_name).create()
             Medium.org_name = org_attrs['name']
@@ -47,18 +47,18 @@ class Medium(UITestCase):
 
         """
 
-        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
+        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
 
     @data(
-        FauxFactory.generate_string('alphanumeric', 255),
-        FauxFactory.generate_string('alpha', 255),
-        FauxFactory.generate_string('numeric', 255),
-        FauxFactory.generate_string('latin1', 255),
-        FauxFactory.generate_string('utf8', 255)
+        gen_string('alphanumeric', 255),
+        gen_string('alpha', 255),
+        gen_string('numeric', 255),
+        gen_string('latin1', 255),
+        gen_string('utf8', 255)
     )
     def test_positive_create_medium_2(self, name):
         """@Test: Create a new media with 255 characters in name
@@ -69,7 +69,7 @@ class Medium(UITestCase):
 
         """
 
-        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
+        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name,
@@ -85,7 +85,7 @@ class Medium(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 256)
+        name = gen_string("alpha", 256)
         path = INSTALL_MEDIUM_URL % name
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -104,7 +104,7 @@ class Medium(UITestCase):
 
         """
 
-        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
+        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -120,7 +120,7 @@ class Medium(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         path = INSTALL_MEDIUM_URL % name
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -139,7 +139,7 @@ class Medium(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         path = ""
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -157,9 +157,9 @@ class Medium(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        new_name = FauxFactory.generate_string("alpha", 6)
-        path = INSTALL_MEDIUM_URL % FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        new_name = gen_string("alpha", 6)
+        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
         os_family = "Red Hat"
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
@@ -177,7 +177,7 @@ class Medium(UITestCase):
         @Assert: Media is deleted
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         path = INSTALL_MEDIUM_URL % name
         os_family = "Red Hat"
         with Session(self.browser) as session:
@@ -196,8 +196,8 @@ class Medium(UITestCase):
         @Assert: Media is updated
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        newname = FauxFactory.generate_string("alpha", 4)
+        name = gen_string("alpha", 6)
+        newname = gen_string("alpha", 4)
         path = INSTALL_MEDIUM_URL % name
         newpath = INSTALL_MEDIUM_URL % newname
         os_family = "Red Hat"

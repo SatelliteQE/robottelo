@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Model CLI"""
 
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
@@ -37,7 +37,7 @@ class TestModel(MetaCLITestCase):
 
         """
         result = self.factory({
-            'vendor-class': FauxFactory.generate_string("alpha", 10),
+            'vendor-class': gen_string("alpha", 10),
         })
         # Check that Model was created with proper values
         model = Model().info({'name': result['name']})
@@ -52,7 +52,7 @@ class TestModel(MetaCLITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         try:
             model = self.factory({'name': name})
         except CLIFactoryError as err:
@@ -60,7 +60,7 @@ class TestModel(MetaCLITestCase):
 
         self.assertEqual(name, model['name'])
 
-        new_name = FauxFactory.generate_string("alpha", 10)
+        new_name = gen_string("alpha", 10)
         result = Model().update({'name': model['name'], 'new-name': new_name})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(

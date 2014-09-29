@@ -4,7 +4,7 @@
 
 from ddt import ddt
 from ddt import data as ddt_data
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -24,9 +24,9 @@ class Hostgroup(UITestCase):
     def setUp(self):
         super(Hostgroup, self).setUp()
         #  Make sure to use the Class' org_name instance
-        if (Hostgroup.org_name is None and Hostgroup.loc_name is None):
-            Hostgroup.org_name = FauxFactory.generate_string("alpha", 8)
-            Hostgroup.loc_name = FauxFactory.generate_string("alpha", 8)
+        if Hostgroup.org_name is None and Hostgroup.loc_name is None:
+            Hostgroup.org_name = gen_string("alpha", 8)
+            Hostgroup.loc_name = gen_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Hostgroup.org_name)
                 make_loc(session, name=Hostgroup.loc_name)
@@ -64,18 +64,18 @@ class Hostgroup(UITestCase):
             self.assertIsNone(self.hostgroup.search(name))
 
     @skip_if_bug_open('bugzilla', 1121755)
-    @data({u'name': FauxFactory.generate_string('alpha', 10),
-           u'new_name': FauxFactory.generate_string('alpha', 10)},
-          {u'name': FauxFactory.generate_string('latin1', 10),
-           u'new_name': FauxFactory.generate_string('latin1', 10)},
-          {u'name': FauxFactory.generate_string('numeric', 10),
-           u'new_name': FauxFactory.generate_string('numeric', 10)},
-          {u'name': FauxFactory.generate_string('html', 10),
-           u'new_name': FauxFactory.generate_string('html', 10)},
-          {u'name': FauxFactory.generate_string('utf8', 10),
-           u'new_name': FauxFactory.generate_string('utf8', 10)},
-          {u'name': FauxFactory.generate_string('alphanumeric', 255),
-           u'new_name': FauxFactory.generate_string('alphanumeric', 255)})
+    @data({u'name': gen_string('alpha', 10),
+           u'new_name': gen_string('alpha', 10)},
+          {u'name': gen_string('latin1', 10),
+           u'new_name': gen_string('latin1', 10)},
+          {u'name': gen_string('numeric', 10),
+           u'new_name': gen_string('numeric', 10)},
+          {u'name': gen_string('html', 10),
+           u'new_name': gen_string('html', 10)},
+          {u'name': gen_string('utf8', 10),
+           u'new_name': gen_string('utf8', 10)},
+          {u'name': gen_string('alphanumeric', 255),
+           u'new_name': gen_string('alphanumeric', 255)})
     def test_update_hostgroup(self, test_data):
         """@Test: Update hostgroup with a new name
 

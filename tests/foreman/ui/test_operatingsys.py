@@ -3,7 +3,7 @@
 """Test class for Operating System UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.common.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
@@ -30,8 +30,8 @@ class OperatingSys(UITestCase):
         super(OperatingSys, self).setUp()
         #  Make sure to use the Class' org_name instance
         if OperatingSys.org_name is None and OperatingSys.loc_name is None:
-            org_name = FauxFactory.generate_string("alpha", 8)
-            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_name = gen_string("alpha", 8)
+            loc_name = gen_string("alpha", 8)
             org_attrs = entities.Organization(name=org_name).create()
             loc_attrs = entities.Location(name=loc_name).create()
             OperatingSys.org_name = org_attrs['name']
@@ -48,9 +48,9 @@ class OperatingSys(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
+        name = gen_string("alpha", 6)
+        major_version = gen_string('numeric', 1)
+        minor_version = gen_string('numeric', 1)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -60,25 +60,25 @@ class OperatingSys(UITestCase):
                     os_family=os_family, archs=[arch])
             self.assertIsNotNone(self.operatingsys.search(name))
 
-    @data({u'name': FauxFactory.generate_string('alpha', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 1),
-           u'minor_version': FauxFactory.generate_string('numeric', 1),
-           u'desc': FauxFactory.generate_string('alpha', 10),
+    @data({u'name': gen_string('alpha', 10),
+           u'major_version': gen_string('numeric', 1),
+           u'minor_version': gen_string('numeric', 1),
+           u'desc': gen_string('alpha', 10),
            u'os_family': "Red Hat"},
-          {u'name': FauxFactory.generate_string('html', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 4),
-           u'minor_version': FauxFactory.generate_string('numeric', 4),
-           u'desc': FauxFactory.generate_string('html', 10),
+          {u'name': gen_string('html', 10),
+           u'major_version': gen_string('numeric', 4),
+           u'minor_version': gen_string('numeric', 4),
+           u'desc': gen_string('html', 10),
            u'os_family': "Gentoo"},
-          {u'name': FauxFactory.generate_string('utf8', 10),
-           u'major_version': FauxFactory.generate_string('numeric', 5),
-           u'minor_version': FauxFactory.generate_string('numeric', 16),
-           u'desc': FauxFactory.generate_string('utf8', 10),
+          {u'name': gen_string('utf8', 10),
+           u'major_version': gen_string('numeric', 5),
+           u'minor_version': gen_string('numeric', 16),
+           u'desc': gen_string('utf8', 10),
            u'os_family': "SUSE"},
-          {u'name': FauxFactory.generate_string('alphanumeric', 255),
-           u'major_version': FauxFactory.generate_string('numeric', 5),
-           u'minor_version': FauxFactory.generate_string('numeric', 1),
-           u'desc': FauxFactory.generate_string('alphanumeric', 255),
+          {u'name': gen_string('alphanumeric', 255),
+           u'major_version': gen_string('numeric', 5),
+           u'minor_version': gen_string('numeric', 1),
+           u'desc': gen_string('alphanumeric', 255),
            u'os_family': "SUSE"})
     def test_positive_create_os(self, test_data):
         """@Test: Create a new OS with different data values
@@ -112,9 +112,9 @@ class OperatingSys(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 256)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
+        name = gen_string("alpha", 256)
+        major_version = gen_string('numeric', 1)
+        minor_version = gen_string('numeric', 1)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -135,8 +135,8 @@ class OperatingSys(UITestCase):
 
         """
         name = ""
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
+        major_version = gen_string('numeric', 1)
+        minor_version = gen_string('numeric', 1)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -156,10 +156,10 @@ class OperatingSys(UITestCase):
         @Assert: OS is not created
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
-        description = FauxFactory.generate_string("alphanumeric", 256)
+        name = gen_string("alpha", 6)
+        major_version = gen_string('numeric', 1)
+        minor_version = gen_string('numeric', 1)
+        description = gen_string("alphanumeric", 256)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -181,9 +181,9 @@ class OperatingSys(UITestCase):
         @Assert: OS is not created
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 6)
-        minor_version = FauxFactory.generate_string('numeric', 1)
+        name = gen_string("alpha", 6)
+        major_version = gen_string('numeric', 6)
+        minor_version = gen_string('numeric', 1)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -204,9 +204,9 @@ class OperatingSys(UITestCase):
         @Assert: OS is not created
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 17)
+        name = gen_string("alpha", 6)
+        major_version = gen_string('numeric', 1)
+        minor_version = gen_string('numeric', 17)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -226,9 +226,9 @@ class OperatingSys(UITestCase):
         @Assert: OS is not created
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         major_version = " "
-        minor_version = FauxFactory.generate_string('numeric', 6)
+        minor_version = gen_string('numeric', 6)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -250,7 +250,7 @@ class OperatingSys(UITestCase):
         @BZ: 1120199
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         major_version = "-6"
         minor_version = "-5"
         os_family = "Red Hat"
@@ -275,9 +275,9 @@ class OperatingSys(UITestCase):
         @BZ: 1120985
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        major_version = FauxFactory.generate_string('numeric', 1)
-        minor_version = FauxFactory.generate_string('numeric', 1)
+        name = gen_string("alpha", 6)
+        major_version = gen_string('numeric', 1)
+        minor_version = gen_string('numeric', 1)
         os_family = "Red Hat"
         arch = "x86_64"
         with Session(self.browser) as session:
@@ -311,21 +311,21 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(os_name))
 
     @data(
-        {u'new_name': FauxFactory.generate_string('alpha', 10),
-         u'new_major_version': FauxFactory.generate_string('numeric', 1),
-         u'new_minor_version': FauxFactory.generate_string('numeric', 1),
+        {u'new_name': gen_string('alpha', 10),
+         u'new_major_version': gen_string('numeric', 1),
+         u'new_minor_version': gen_string('numeric', 1),
          u'new_os_family': "Red Hat"},
-        {u'new_name': FauxFactory.generate_string('html', 10),
-         u'new_major_version': FauxFactory.generate_string('numeric', 4),
-         u'new_minor_version': FauxFactory.generate_string('numeric', 4),
+        {u'new_name': gen_string('html', 10),
+         u'new_major_version': gen_string('numeric', 4),
+         u'new_minor_version': gen_string('numeric', 4),
          u'new_os_family': "Gentoo"},
-        {u'new_name': FauxFactory.generate_string('utf8', 10),
-         u'new_major_version': FauxFactory.generate_string('numeric', 5),
-         u'new_minor_version': FauxFactory.generate_string('numeric', 16),
+        {u'new_name': gen_string('utf8', 10),
+         u'new_major_version': gen_string('numeric', 5),
+         u'new_minor_version': gen_string('numeric', 16),
          u'new_os_family': "SUSE"},
-        {u'new_name': FauxFactory.generate_string('alphanumeric', 255),
-         u'new_major_version': FauxFactory.generate_string('numeric', 5),
-         u'new_minor_version': FauxFactory.generate_string('numeric', 1),
+        {u'new_name': gen_string('alphanumeric', 255),
+         u'new_major_version': gen_string('numeric', 5),
+         u'new_minor_version': gen_string('numeric', 1),
          u'new_os_family': "SUSE"}
     )
     def test_update_os_1(self, test_data):
@@ -359,7 +359,7 @@ class OperatingSys(UITestCase):
 
         """
 
-        medium_name = FauxFactory.generate_string("alpha", 4)
+        medium_name = gen_string("alpha", 4)
         path = INSTALL_MEDIUM_URL % medium_name
         entities.Media(
             name=medium_name,
@@ -381,7 +381,7 @@ class OperatingSys(UITestCase):
 
         """
 
-        ptable = FauxFactory.generate_string("alpha", 4)
+        ptable = gen_string("alpha", 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
         with open(script_file, 'r') as file_contents:
             layout = file_contents.read()
@@ -406,8 +406,8 @@ class OperatingSys(UITestCase):
         @BZ: 1129612
 
         """
-        os_name = FauxFactory.generate_string("alpha", 4)
-        template_name = FauxFactory.generate_string("alpha", 4)
+        os_name = gen_string("alpha", 4)
+        template_name = gen_string("alpha", 4)
         os_attrs = entities.OperatingSystem(name=os_name).create()
         entities.ConfigTemplate(
             name=template_name,
@@ -428,8 +428,8 @@ class OperatingSys(UITestCase):
 
         """
 
-        param_name = FauxFactory.generate_string("alpha", 4)
-        param_value = FauxFactory.generate_string("alpha", 3)
+        param_name = gen_string("alpha", 4)
+        param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
@@ -448,7 +448,7 @@ class OperatingSys(UITestCase):
 
         """
 
-        param_name = FauxFactory.generate_string("alpha", 4)
+        param_name = gen_string("alpha", 4)
         param_value = ""
         os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
@@ -468,8 +468,8 @@ class OperatingSys(UITestCase):
 
         """
 
-        param_name = FauxFactory.generate_string("alpha", 4)
-        param_value = FauxFactory.generate_string("alpha", 3)
+        param_name = gen_string("alpha", 4)
+        param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
@@ -491,8 +491,8 @@ class OperatingSys(UITestCase):
 
         """
 
-        param_name = FauxFactory.generate_string("alpha", 4)
-        param_value = FauxFactory.generate_string("alpha", 3)
+        param_name = gen_string("alpha", 4)
+        param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
@@ -539,8 +539,8 @@ class OperatingSys(UITestCase):
 
         """
 
-        param_name = FauxFactory.generate_string("alpha", 256)
-        param_value = FauxFactory.generate_string("alpha", 256)
+        param_name = gen_string("alpha", 256)
+        param_value = gen_string("alpha", 256)
         os_name = entities.OperatingSystem().create()['name']
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()

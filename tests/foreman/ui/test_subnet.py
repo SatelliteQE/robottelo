@@ -3,11 +3,11 @@
 """Test class for Subnet UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string, gen_ipaddr
 from robottelo import entities
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import generate_ipaddr, generate_strings_list
+from robottelo.common.helpers import generate_strings_list
 from robottelo.ui.factory import make_subnet
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -27,8 +27,8 @@ class Subnet(UITestCase):
         super(Subnet, self).setUp()
         # Make sure to use the Class' org_name instance
         if Subnet.org_name is None and Subnet.loc_name is None:
-            org_name = FauxFactory.generate_string("alpha", 8)
-            loc_name = FauxFactory.generate_string("alpha", 8)
+            org_name = gen_string("alpha", 8)
+            loc_name = gen_string("alpha", 8)
             org_attrs = entities.Organization(name=org_name).create()
             loc_attrs = entities.Location(name=loc_name).create()
             Subnet.org_name = org_attrs['name']
@@ -46,7 +46,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is created
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -56,11 +56,11 @@ class Subnet(UITestCase):
     @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
     @data(
-        FauxFactory.generate_string('alphanumeric', 255),
-        FauxFactory.generate_string('alpha', 255),
-        FauxFactory.generate_string('numeric', 255),
-        FauxFactory.generate_string('latin1', 255),
-        FauxFactory.generate_string('utf8', 255)
+        gen_string('alphanumeric', 255),
+        gen_string('alpha', 255),
+        gen_string('numeric', 255),
+        gen_string('latin1', 255),
+        gen_string('utf8', 255)
     )
     def test_create_subnet_2(self, name):
         """@Test: Create new subnet with 255 characters in name
@@ -70,7 +70,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is created with 255 chars
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -86,8 +86,8 @@ class Subnet(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        name = FauxFactory.generate_string("alpha", 4)
-        network = generate_ipaddr(ip3=True)
+        name = gen_string("alpha", 4)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         domain_name = entities.Domain().create()['name']
         with Session(self.browser) as session:
@@ -113,7 +113,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is not created with 256 chars
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -130,7 +130,7 @@ class Subnet(UITestCase):
 
         """
 
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -145,7 +145,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is not created with negative values
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         network = "292.256.256.0"
         mask = "292.292.292.0"
         gateway = "292.256.256.254"
@@ -182,7 +182,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is deleted
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -205,7 +205,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is not deleted
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -224,9 +224,9 @@ class Subnet(UITestCase):
         @Assert: Subnet name is updated
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
-        new_name = FauxFactory.generate_string("alpha", 10)
+        new_name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -244,9 +244,9 @@ class Subnet(UITestCase):
         @Assert: Subnet network is updated
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
-        new_network = generate_ipaddr(ip3=True)
+        new_network = gen_ipaddr(ip3=True)
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -264,7 +264,7 @@ class Subnet(UITestCase):
         @Assert: Subnet mask is updated
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         new_mask = "128.128.128.0"
         with Session(self.browser) as session:
@@ -284,7 +284,7 @@ class Subnet(UITestCase):
         @Assert: Subnet is found
 
         """
-        network = generate_ipaddr(ip3=True)
+        network = gen_ipaddr(ip3=True)
         mask = "255.255.255.0"
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -302,7 +302,7 @@ class Subnet(UITestCase):
         @Assert: Subnet name is not found
 
         """
-        subnet_name = FauxFactory.generate_string("alpha", 8)
+        subnet_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             session.nav.go_to_subnets()  # go to subnet page
             self.assertIsNone(self.subnet.search_subnet(subnet_name))

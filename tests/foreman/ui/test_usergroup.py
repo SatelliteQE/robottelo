@@ -3,7 +3,7 @@
 """Test class for UserGroup UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
@@ -25,7 +25,7 @@ class UserGroup(UITestCase):
 
         # Make sure to use the Class' org_name instance
         if UserGroup.org_name is None:
-            org_name = FauxFactory.generate_string("alpha", 6)
+            org_name = gen_string("alpha", 6)
             org_attrs = entities.Organization(name=org_name).create()
             UserGroup.org_name = org_attrs['name']
             UserGroup.org_id = org_attrs['id']
@@ -41,8 +41,8 @@ class UserGroup(UITestCase):
 
         """
 
-        user_name = FauxFactory.generate_string("alpha", 6)
-        password = FauxFactory.generate_string("alpha", 6)
+        user_name = gen_string("alpha", 6)
+        password = gen_string("alpha", 6)
         # Create a new user
         entities.User(
             login=user_name,
@@ -132,8 +132,8 @@ class UserGroup(UITestCase):
 
         """
 
-        user_name = FauxFactory.generate_string("alpha", 6)
-        password = FauxFactory.generate_string("alpha", 6)
+        user_name = gen_string("alpha", 6)
+        password = gen_string("alpha", 6)
         # Create a new user
         entities.User(login=user_name, password=password).create()
 
@@ -148,16 +148,16 @@ class UserGroup(UITestCase):
                                  (name=user_name, search_key="login"))
 
     @skip_if_bug_open('bugzilla', 1142588)
-    @data({'name': FauxFactory.generate_string("alpha", 6),
-           'new_name': FauxFactory.generate_string("alpha", 6)},
-          {'name': FauxFactory.generate_string("alphanumeric", 6),
-           'new_name': FauxFactory.generate_string("alphanumeric", 6)},
-          {'name': FauxFactory.generate_string("numeric", 6),
-           'new_name': FauxFactory.generate_string("numeric", 6)},
-          {'name': FauxFactory.generate_string("utf8", 6),
-           'new_name': FauxFactory.generate_string("utf8", 6)},
-          {'name': FauxFactory.generate_string("latin1", 6),
-           'new_name': FauxFactory.generate_string("latin1", 6)})
+    @data({'name': gen_string("alpha", 6),
+           'new_name': gen_string("alpha", 6)},
+          {'name': gen_string("alphanumeric", 6),
+           'new_name': gen_string("alphanumeric", 6)},
+          {'name': gen_string("numeric", 6),
+           'new_name': gen_string("numeric", 6)},
+          {'name': gen_string("utf8", 6),
+           'new_name': gen_string("utf8", 6)},
+          {'name': gen_string("latin1", 6),
+           'new_name': gen_string("latin1", 6)})
     def test_update_usergroup(self, test_data):
         """@Test: Update usergroup with name or users
 
@@ -168,8 +168,8 @@ class UserGroup(UITestCase):
         """
         name = test_data['name']
         new_name = test_data['new_name']
-        user_name = FauxFactory.generate_string("alpha", 6)
-        password = FauxFactory.generate_string("alpha", 6)
+        user_name = gen_string("alpha", 6)
+        password = gen_string("alpha", 6)
         # Create a new user
         entities.User(login=user_name, password=password).create()
         with Session(self.browser) as session:

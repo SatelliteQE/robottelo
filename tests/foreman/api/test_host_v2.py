@@ -4,7 +4,7 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/hosts.html
 
 """
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string, gen_integer
 from robottelo.api import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
@@ -25,9 +25,9 @@ class HostsTestCase(TestCase):
         @Assert: HTTP 200 is returned, along with ``search`` term.
 
         """
-        query = FauxFactory.generate_string(
+        query = gen_string(
             'utf8',
-            FauxFactory.generate_integer(1, 100)
+            gen_integer(1, 100)
         )
         response = client.get(
             entities.Host().path(),
@@ -46,7 +46,7 @@ class HostsTestCase(TestCase):
         @Assert: HTTP 200 is returned, along with per ``per_page`` value.
 
         """
-        per_page = FauxFactory.generate_integer(1, 1000)
+        per_page = gen_integer(1, 1000)
         response = client.get(
             entities.Host().path(),
             auth=get_server_credentials(),

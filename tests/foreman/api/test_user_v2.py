@@ -4,7 +4,7 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.common import decorators
@@ -20,34 +20,34 @@ class UsersTestCase(TestCase):
     @decorators.data(
         {u'admin': False},
         {u'admin': True},
-        {u'firstname': FauxFactory.generate_string(
+        {u'firstname': gen_string(
             'alphanumeric', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('alpha', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('cjk', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('latin1', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {u'firstname': gen_string('alpha', randint(1, 50))},
+        {u'firstname': gen_string('cjk', randint(1, 50))},
+        {u'firstname': gen_string('latin1', randint(1, 50))},
+        {u'firstname': gen_string('numeric', randint(1, 50))},
         {
-            u'firstname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            u'firstname': gen_string('utf8', randint(1, 16)),
             'bugzilla': 1144162,
         },
-        {u'lastname': FauxFactory.generate_string(
+        {u'lastname': gen_string(
             'alphanumeric', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('alpha', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('cjk', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('latin1', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {u'lastname': gen_string('alpha', randint(1, 50))},
+        {u'lastname': gen_string('cjk', randint(1, 50))},
+        {u'lastname': gen_string('latin1', randint(1, 50))},
+        {u'lastname': gen_string('numeric', randint(1, 50))},
         {
-            u'lastname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            u'lastname': gen_string('utf8', randint(1, 16)),
             'bugzilla': 1144162,
         },
-        {u'login': FauxFactory.generate_string(
+        {u'login': gen_string(
             'alphanumeric', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('alpha', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('cjk', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('latin1', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('numeric', randint(1, 100))},
+        {u'login': gen_string('alpha', randint(1, 100))},
+        {u'login': gen_string('cjk', randint(1, 100))},
+        {u'login': gen_string('latin1', randint(1, 100))},
+        {u'login': gen_string('numeric', randint(1, 100))},
         {
-            u'login': FauxFactory.generate_string('utf8', randint(1, 33)),
+            u'login': gen_string('utf8', randint(1, 33)),
             'bugzilla': 1144162,
         },
     )
@@ -73,34 +73,34 @@ class UsersTestCase(TestCase):
     @decorators.data(
         {u'admin': False},
         {u'admin': True},
-        {u'firstname': FauxFactory.generate_string(
+        {u'firstname': gen_string(
             'alphanumeric', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('alpha', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('cjk', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('latin1', randint(1, 50))},
-        {u'firstname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {u'firstname': gen_string('alpha', randint(1, 50))},
+        {u'firstname': gen_string('cjk', randint(1, 50))},
+        {u'firstname': gen_string('latin1', randint(1, 50))},
+        {u'firstname': gen_string('numeric', randint(1, 50))},
         {
-            u'firstname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            u'firstname': gen_string('utf8', randint(1, 16)),
             'bugzilla': 1144162,
         },
-        {u'lastname': FauxFactory.generate_string(
+        {u'lastname': gen_string(
             'alphanumeric', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('alpha', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('cjk', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('latin1', randint(1, 50))},
-        {u'lastname': FauxFactory.generate_string('numeric', randint(1, 50))},
+        {u'lastname': gen_string('alpha', randint(1, 50))},
+        {u'lastname': gen_string('cjk', randint(1, 50))},
+        {u'lastname': gen_string('latin1', randint(1, 50))},
+        {u'lastname': gen_string('numeric', randint(1, 50))},
         {
-            u'lastname': FauxFactory.generate_string('utf8', randint(1, 16)),
+            u'lastname': gen_string('utf8', randint(1, 16)),
             'bugzilla': 1144162,
         },
-        {u'login': FauxFactory.generate_string(
+        {u'login': gen_string(
             'alphanumeric', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('alpha', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('cjk', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('latin1', randint(1, 100))},
-        {u'login': FauxFactory.generate_string('numeric', randint(1, 100))},
+        {u'login': gen_string('alpha', randint(1, 100))},
+        {u'login': gen_string('cjk', randint(1, 100))},
+        {u'login': gen_string('latin1', randint(1, 100))},
+        {u'login': gen_string('numeric', randint(1, 100))},
         {
-            u'login': FauxFactory.generate_string('utf8', randint(1, 33)),
+            u'login': gen_string('utf8', randint(1, 33)),
             'bugzilla': 1144162,
         },
     )

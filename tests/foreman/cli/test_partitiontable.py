@@ -2,8 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Partition table CLI"""
 from robottelo.test import CLITestCase
-from fauxfactory import FauxFactory
-from robottelo.common.helpers import generate_name
+from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import (
     CLIFactoryError, make_partition_table, make_os)
 from robottelo.cli.operatingsys import OperatingSys
@@ -19,7 +18,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         """Set up file"""
         super(TestPartitionTableUpdateCreate, self).setUp()
         self.content = "Fake ptable"
-        self.name = generate_name(6)
+        self.name = gen_alphanumeric(6)
         self.args = {'name': self.name,
                      'content': self.content}
 
@@ -62,7 +61,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
 
-        nw_nm = generate_name(6)
+        nw_nm = gen_alphanumeric(6)
         args = {'name': self.name,
                 'new-name': nw_nm}
         result = PartitionTable().update(args)
@@ -86,7 +85,7 @@ class TestPartitionTableDelete(CLITestCase):
         """
 
         content = "Fake ptable"
-        name = generate_name(6)
+        name = gen_alphanumeric(6)
         make_partition_table({'name': name, 'content': content})
 
         ptable = PartitionTable().exists(tuple_search=('name', name)).stdout
@@ -107,7 +106,7 @@ class TestPartitionTableDelete(CLITestCase):
         """
 
         content = "Fake ptable"
-        name = generate_name(6)
+        name = gen_alphanumeric(6)
         make_partition_table({'name': name, 'content': content})
 
         ptable = PartitionTable().exists(tuple_search=('name', name)).stdout
@@ -122,7 +121,8 @@ class TestPartitionTableDelete(CLITestCase):
             PartitionTable().exists(tuple_search=('name', name)).stdout)
 
     def test_addoperatingsystem_ptable(self):
-        """@Test: Check if Partition Table can be associated with operating system
+        """@Test: Check if Partition Table can be associated
+                  with operating system
 
         @Feature: Partition Table - Add operating system
 
@@ -131,7 +131,7 @@ class TestPartitionTableDelete(CLITestCase):
         """
 
         content = "Fake ptable"
-        name = generate_name(6)
+        name = gen_alphanumeric(6)
         try:
             make_partition_table({'name': name, 'content': content})
         except CLIFactoryError as err:
@@ -164,8 +164,8 @@ class TestPartitionTableDelete(CLITestCase):
         @Assert: Operating system removed
 
         """
-        content = FauxFactory.generate_string("alpha", 10)
-        name = FauxFactory.generate_string("alpha", 10)
+        content = gen_string("alpha", 10)
+        name = gen_string("alpha", 10)
         try:
             ptable = make_partition_table({'name': name, 'content': content})
             os = make_os()

@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Operating System CLI"""
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
@@ -15,66 +15,66 @@ from robottelo.test import CLITestCase
 
 
 POSITIVE_CREATE_DATA = (
-    {'name': FauxFactory.generate_string("latin1", 10)},
-    {'name': FauxFactory.generate_string("utf8", 10)},
-    {'name': FauxFactory.generate_string("alpha", 10)},
-    {'name': FauxFactory.generate_string("alphanumeric", 10)},
-    {'name': FauxFactory.generate_string("numeric", 10)},
-    {'name': FauxFactory.generate_string("html", 10)},
+    {'name': gen_string("latin1", 10)},
+    {'name': gen_string("utf8", 10)},
+    {'name': gen_string("alpha", 10)},
+    {'name': gen_string("alphanumeric", 10)},
+    {'name': gen_string("numeric", 10)},
+    {'name': gen_string("html", 10)},
 )
 
 NEGATIVE_CREATE_DATA = (
-    {'name': FauxFactory.generate_string("latin1", 300)},
-    {'name': FauxFactory.generate_string("utf8", 300)},
-    {'name': FauxFactory.generate_string("alpha", 300)},
-    {'name': FauxFactory.generate_string("alphanumeric", 300)},
-    {'name': FauxFactory.generate_string("numeric", 300)},
-    {'name': FauxFactory.generate_string("alphanumeric", 300)},
+    {'name': gen_string("latin1", 300)},
+    {'name': gen_string("utf8", 300)},
+    {'name': gen_string("alpha", 300)},
+    {'name': gen_string("alphanumeric", 300)},
+    {'name': gen_string("numeric", 300)},
+    {'name': gen_string("alphanumeric", 300)},
     {'name': " "},
 )
 
 POSITIVE_UPDATE_DATA = (
-    ({'name': FauxFactory.generate_string("latin1", 10)},
-     {'name': FauxFactory.generate_string("latin1", 10)}),
-    ({'name': FauxFactory.generate_string("utf8", 10)},
-     {'name': FauxFactory.generate_string("utf8", 10)}),
-    ({'name': FauxFactory.generate_string("alpha", 10)},
-     {'name': FauxFactory.generate_string("alpha", 10)}),
-    ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-     {'name': FauxFactory.generate_string("alphanumeric", 10)}),
-    ({'name': FauxFactory.generate_string("numeric", 10)},
-     {'name': FauxFactory.generate_string("numeric", 10)}),
-    ({'name': FauxFactory.generate_string("utf8", 10)},
-     {'name': FauxFactory.generate_string("html", 6)}),
+    ({'name': gen_string("latin1", 10)},
+     {'name': gen_string("latin1", 10)}),
+    ({'name': gen_string("utf8", 10)},
+     {'name': gen_string("utf8", 10)}),
+    ({'name': gen_string("alpha", 10)},
+     {'name': gen_string("alpha", 10)}),
+    ({'name': gen_string("alphanumeric", 10)},
+     {'name': gen_string("alphanumeric", 10)}),
+    ({'name': gen_string("numeric", 10)},
+     {'name': gen_string("numeric", 10)}),
+    ({'name': gen_string("utf8", 10)},
+     {'name': gen_string("html", 6)}),
 )
 
 NEGATIVE_UPDATE_DATA = (
-    ({'name': FauxFactory.generate_string("latin1", 10)},
-     {'name': FauxFactory.generate_string("latin1", 300)}),
-    ({'name': FauxFactory.generate_string("utf8", 10)},
-     {'name': FauxFactory.generate_string("utf8", 300)}),
-    ({'name': FauxFactory.generate_string("alpha", 10)},
-     {'name': FauxFactory.generate_string("alpha", 300)}),
-    ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-     {'name': FauxFactory.generate_string("alphanumeric", 300)}),
-    ({'name': FauxFactory.generate_string("numeric", 10)},
-     {'name': FauxFactory.generate_string("numeric", 300)}),
-    ({'name': FauxFactory.generate_string("utf8", 10)},
+    ({'name': gen_string("latin1", 10)},
+     {'name': gen_string("latin1", 300)}),
+    ({'name': gen_string("utf8", 10)},
+     {'name': gen_string("utf8", 300)}),
+    ({'name': gen_string("alpha", 10)},
+     {'name': gen_string("alpha", 300)}),
+    ({'name': gen_string("alphanumeric", 10)},
+     {'name': gen_string("alphanumeric", 300)}),
+    ({'name': gen_string("numeric", 10)},
+     {'name': gen_string("numeric", 300)}),
+    ({'name': gen_string("utf8", 10)},
      {'name': " "}),
-    ({'name': FauxFactory.generate_string("utf8", 10)},
-     {'name': FauxFactory.generate_string("html", 300)}),
+    ({'name': gen_string("utf8", 10)},
+     {'name': gen_string("html", 300)}),
 )
 
 POSITIVE_DELETE_DATA = (
-    {'name': FauxFactory.generate_string("latin1", 10)},
-    {'name': FauxFactory.generate_string("utf8", 10)},
-    {'name': FauxFactory.generate_string("alpha", 10)},
-    {'name': FauxFactory.generate_string("alphanumeric", 10)},
-    {'name': FauxFactory.generate_string("numeric", 10)},
+    {'name': gen_string("latin1", 10)},
+    {'name': gen_string("utf8", 10)},
+    {'name': gen_string("alpha", 10)},
+    {'name': gen_string("alphanumeric", 10)},
+    {'name': gen_string("numeric", 10)},
 )
 
 NEGATIVE_DELETE_DATA = (
-    {'id': FauxFactory.generate_string("alpha", 10)},
+    {'id': gen_string("alpha", 10)},
     {'id': None},
     {'id': ""},
     {},
@@ -161,7 +161,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(result.return_code, 0)
         length = len(result.stdout)
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         result = make_os({'name': name})
 
         os_list = OperatingSys.list({'search': 'name=%s' % name})

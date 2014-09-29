@@ -6,7 +6,7 @@
 """Test class for Content-Host CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.cli.factory import (
     CLIFactoryError, make_org, make_content_view,
@@ -72,12 +72,12 @@ class TestContentHost(CLITestCase):
                 TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
 
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'content-host')
     def test_positive_create_1(self, test_data):
@@ -102,12 +102,12 @@ class TestContentHost(CLITestCase):
         )
 
     @data(
-        {u'description': FauxFactory.generate_string('alpha', 15)},
-        {u'description': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'description': FauxFactory.generate_string('numeric', 15)},
-        {u'description': FauxFactory.generate_string('latin1', 15)},
-        {u'description': FauxFactory.generate_string('utf8', 15)},
-        {u'description': FauxFactory.generate_string('html', 15)},
+        {u'description': gen_string('alpha', 15)},
+        {u'description': gen_string('alphanumeric', 15)},
+        {u'description': gen_string('numeric', 15)},
+        {u'description': gen_string('latin1', 15)},
+        {u'description': gen_string('utf8', 15)},
+        {u'description': gen_string('html', 15)},
     )
     @attr('cli', 'content-host')
     def test_positive_create_2(self, test_data):
@@ -142,7 +142,7 @@ class TestContentHost(CLITestCase):
         """
 
         new_system = make_content_host({
-            u'name': FauxFactory.generate_string('alpha', 15),
+            u'name': gen_string('alpha', 15),
             u'organization': self.NEW_ORG['name'],
             u'content-view-id': self.DEFAULT_CV['id'],
             u'lifecycle-environment-id': self.LIBRARY['id']})
@@ -168,7 +168,7 @@ class TestContentHost(CLITestCase):
         """
 
         new_system = make_content_host({
-            u'name': FauxFactory.generate_string('alpha', 15),
+            u'name': gen_string('alpha', 15),
             u'organization-label': self.NEW_ORG['label'],
             u'content-view-id': self.DEFAULT_CV['id'],
             u'lifecycle-environment-id': self.LIBRARY['id']})
@@ -195,7 +195,7 @@ class TestContentHost(CLITestCase):
         """
 
         new_system = make_content_host({
-            u'name': FauxFactory.generate_string('alpha', 15),
+            u'name': gen_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view': self.DEFAULT_CV['name'],
             u'lifecycle-environment-id': self.LIBRARY['id']})
@@ -219,7 +219,7 @@ class TestContentHost(CLITestCase):
         """
 
         new_system = make_content_host({
-            u'name': FauxFactory.generate_string('alpha', 15),
+            u'name': gen_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
             u'lifecycle-environment': self.LIBRARY['name']})
@@ -245,7 +245,7 @@ class TestContentHost(CLITestCase):
         """
 
         new_system = make_content_host({
-            u'name': FauxFactory.generate_string('alpha', 15),
+            u'name': gen_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.PROMOTED_CV['id'],
             u'lifecycle-environment-id': self.NEW_LIFECYCLE['id']})
@@ -271,7 +271,7 @@ class TestContentHost(CLITestCase):
             self.fail("Couldn't prepare promoted contentview for this test")
 
         new_system = make_content_host({
-            u'name': FauxFactory.generate_string('alpha', 15),
+            u'name': gen_string('alpha', 15),
             u'organization-id': TestContentHost.NEW_ORG['id'],
             u'content-view-id': TestContentHost.PROMOTED_CV['id'],
             u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE['id']})
@@ -283,12 +283,12 @@ class TestContentHost(CLITestCase):
         )
 
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 300)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 300)},
-        {u'name': FauxFactory.generate_string('numeric', 300)},
-        {u'name': FauxFactory.generate_string('latin1', 300)},
-        {u'name': FauxFactory.generate_string('utf8', 300)},
-        {u'name': FauxFactory.generate_string('html', 300)},
+        {u'name': gen_string('alpha', 300)},
+        {u'name': gen_string('alphanumeric', 300)},
+        {u'name': gen_string('numeric', 300)},
+        {u'name': gen_string('latin1', 300)},
+        {u'name': gen_string('utf8', 300)},
+        {u'name': gen_string('html', 300)},
     )
     @attr('cli', 'content-host')
     def test_negative_create_1(self, test_data):
@@ -324,18 +324,18 @@ class TestContentHost(CLITestCase):
         with self.assertRaises(Exception):
             env = TestContentHost.NEW_LIFECYCLE['id']
             make_content_host({
-                u'name': FauxFactory.generate_string('alpha', 15),
+                u'name': gen_string('alpha', 15),
                 u'organization-id': TestContentHost.NEW_ORG['id'],
                 u'content-view-id': con_view['id'],
                 u'lifecycle-environment-id': env})
 
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'content-host')
     def test_positive_update_1(self, test_data):
@@ -399,12 +399,12 @@ class TestContentHost(CLITestCase):
         )
 
     @data(
-        {u'description': FauxFactory.generate_string('alpha', 15)},
-        {u'description': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'description': FauxFactory.generate_string('numeric', 15)},
-        {u'description': FauxFactory.generate_string('latin1', 15)},
-        {u'description': FauxFactory.generate_string('utf8', 15)},
-        {u'description': FauxFactory.generate_string('html', 15)},
+        {u'description': gen_string('alpha', 15)},
+        {u'description': gen_string('alphanumeric', 15)},
+        {u'description': gen_string('numeric', 15)},
+        {u'description': gen_string('latin1', 15)},
+        {u'description': gen_string('utf8', 15)},
+        {u'description': gen_string('html', 15)},
     )
     @attr('cli', 'content-host')
     def test_positive_update_2(self, test_data):
@@ -467,12 +467,12 @@ class TestContentHost(CLITestCase):
         )
 
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'content-host')
     def test_positive_delete_1(self, test_data):

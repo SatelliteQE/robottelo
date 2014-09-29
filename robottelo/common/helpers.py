@@ -11,7 +11,7 @@ import re
 import string
 import time
 
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string, gen_integer
 from itertools import izip
 from robottelo.common import conf
 from urllib2 import urlopen, Request, URLError
@@ -126,12 +126,12 @@ def valid_data_list():
     List of valid data for input testing.
     """
     return [
-        FauxFactory.generate_string("alpha", 8),
-        FauxFactory.generate_string("numeric", 8),
-        FauxFactory.generate_string("alphanumeric", 8),
-        FauxFactory.generate_string("utf8", 8),
-        FauxFactory.generate_string("latin1", 8),
-        FauxFactory.generate_string("html", 8)
+        gen_string("alpha", 8),
+        gen_string("numeric", 8),
+        gen_string("alphanumeric", 8),
+        gen_string("utf8", 8),
+        gen_string("latin1", 8),
+        gen_string("html", 8)
     ]
 
 
@@ -140,13 +140,13 @@ def invalid_names_list():
     List of invalid names for input testing.
     """
     return [
-        FauxFactory.generate_string("alpha", 300),
-        FauxFactory.generate_string("numeric", 300),
-        FauxFactory.generate_string("alphanumeric", 300),
-        FauxFactory.generate_string("utf8", 300),
-        FauxFactory.generate_string("latin1", 300),
-        FauxFactory.generate_string("html", 300),
-        FauxFactory.generate_string("alpha", 256)
+        gen_string("alpha", 300),
+        gen_string("numeric", 300),
+        gen_string("alphanumeric", 300),
+        gen_string("utf8", 300),
+        gen_string("latin1", 300),
+        gen_string("html", 300),
+        gen_string("alpha", 256)
     ]
 
 
@@ -173,7 +173,7 @@ def generate_mac(delimiter=u':'):
     # limited to):  ':', "-", "None"
 
     mac = delimiter.join(
-        chars[random.randrange(0, len(chars), 1)]+chars[random.randrange(
+        chars[random.randrange(0, len(chars), 1)] + chars[random.randrange(
             0, len(chars), 1)] for x in range(6))
 
     return unicode(mac)
@@ -195,18 +195,12 @@ def generate_strings_list(len1=8):
     """
     Generates a list of all the input strings
     """
-    str_types = ["alpha",
-                 "numeric",
-                 "alphanumeric",
-                 "latin1",
-                 "utf8",
-                 "cjk",
-                 "html"]
-    str_list = []
-    for str_type in str_types:
-        string1 = FauxFactory.generate_string(str_type, len1)
-        str_list.append(string1)
-    return str_list
+    return [
+        gen_string(str_type, gen_integer(3, 30))
+        for str_type
+        in ('alpha', 'numeric', 'alphanumeric',
+            'latin1', 'utf8', 'cjk', 'html')
+    ]
 
 
 def csv_to_dictionary(data):

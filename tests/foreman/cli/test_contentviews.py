@@ -5,7 +5,7 @@
 import unittest
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -36,12 +36,12 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': FauxFactory.generate_string("latin1", 10)},
-        {'name': FauxFactory.generate_string("utf8", 10)},
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 20)},
-        {'name': FauxFactory.generate_string("html", 10)},
+        {'name': gen_string("latin1", 10)},
+        {'name': gen_string("utf8", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 20)},
+        {'name': gen_string("html", 10)},
     )
 
 
@@ -50,12 +50,12 @@ def negative_create_data():
 
     return (
         {'name': ' '},
-        {'name': FauxFactory.generate_string('alpha', 300)},
-        {'name': FauxFactory.generate_string('numeric', 300)},
-        {'name': FauxFactory.generate_string('alphanumeric', 300)},
-        {'name': FauxFactory.generate_string('utf8', 300)},
-        {'name': FauxFactory.generate_string('latin1', 300)},
-        {'name': FauxFactory.generate_string('html', 300)},
+        {'name': gen_string('alpha', 300)},
+        {'name': gen_string('numeric', 300)},
+        {'name': gen_string('alphanumeric', 300)},
+        {'name': gen_string('utf8', 300)},
+        {'name': gen_string('latin1', 300)},
+        {'name': gen_string('html', 300)},
     )
 
 
@@ -212,8 +212,8 @@ class TestContentView(CLITestCase):
 
         """
 
-        org_name = FauxFactory.generate_string("alpha", 10)
-        con_name = FauxFactory.generate_string("alpha", 10)
+        org_name = gen_string("alpha", 10)
+        con_name = gen_string("alpha", 10)
         result = ContentView.create({'name': con_name,
                                      'organization-id': org_name})
         self.assertNotEqual(result.return_code, 0)
@@ -236,7 +236,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
-        con_name = FauxFactory.generate_string("alpha", 10)
+        con_name = gen_string("alpha", 10)
         try:
             con_view = make_content_view({
                 'name': con_name,
@@ -245,7 +245,7 @@ class TestContentView(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        con_view_update = FauxFactory.generate_string("alpha", 10)
+        con_view_update = gen_string("alpha", 10)
         result = ContentView.update({'id': con_view['id'],
                                      'name': con_view_update})
         self.assertEqual(result.return_code, 0, "Failed to update object")
@@ -292,7 +292,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(
             len(result.stderr), 0, "There should not be an exception here")
 
-        con_view_name = FauxFactory.generate_string("alpha", 10)
+        con_view_name = gen_string("alpha", 10)
         try:
             con_view = make_content_view({
                 'name': con_view_name,
@@ -497,7 +497,7 @@ class TestContentView(CLITestCase):
             "Repo was not associated to CV"
         )
 
-        name = FauxFactory.generate_string("alphanumeric", 10)
+        name = gen_string("alphanumeric", 10)
         result_flt = ContentView.filter_create({
             "content-view-id": new_cv['id'],
             "type": "rpm",
@@ -709,7 +709,7 @@ class TestContentView(CLITestCase):
             result = make_content_view(
                 {
                     u'organization-id': self.org['id'],
-                    u'component-ids':  cv_version.stdout[0]['id']
+                    u'component-ids': cv_version.stdout[0]['id']
                 }
             )
 
@@ -1819,9 +1819,9 @@ class TestContentView(CLITestCase):
         result = ContentView.with_user(
             no_rights_user["login"],
             no_rights_user["password"]
-            ).create(
+        ).create(
             test_data
-            )
+        )
         self.assertGreater(
             result.return_code, 0, "User shouldn't be able to create object")
         self.assertGreater(
@@ -1836,8 +1836,9 @@ class TestContentView(CLITestCase):
         result = ContentView.with_user(
             no_rights_user["login"],
             no_rights_user["password"]
-            ).info(
-            {'id': con_view['id']})
+        ).info(
+            {'id': con_view['id']}
+        )
         self.assertGreater(
             result.return_code, 0,
             "User shouldn't be able to create object")

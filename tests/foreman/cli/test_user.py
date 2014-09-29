@@ -10,7 +10,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.factory import make_user
 from robottelo.cli.user import User as UserObj
 from robottelo.common.constants import NOT_IMPLEMENTED
@@ -104,15 +104,15 @@ class User(CLITestCase):
     # CRUD
 
     @data(
-        {'login': FauxFactory.generate_string("latin1", 10)},
+        {'login': gen_string("latin1", 10)},
         {
-            'login': FauxFactory.generate_string("utf8", 10),
+            'login': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'login': FauxFactory.generate_string("alpha", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)},
-        {'login': FauxFactory.generate_string("numeric", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 100)}
+        {'login': gen_string("alpha", 10)},
+        {'login': gen_string("alphanumeric", 10)},
+        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("alphanumeric", 100)}
     )
     def test_positive_create_user_1(self, data):
         """@Test: Create User for all variations of Username
@@ -136,15 +136,15 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        {'firstname': FauxFactory.generate_string("latin1", 10)},
+        {'firstname': gen_string("latin1", 10)},
         {
-            'firstname': FauxFactory.generate_string("utf8", 10),
+            'firstname': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'firstname': FauxFactory.generate_string("alpha", 10)},
-        {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
-        {'firstname': FauxFactory.generate_string("numeric", 10)},
-        {'firstname': FauxFactory.generate_string("alphanumeric", 50)}
+        {'firstname': gen_string("alpha", 10)},
+        {'firstname': gen_string("alphanumeric", 10)},
+        {'firstname': gen_string("numeric", 10)},
+        {'firstname': gen_string("alphanumeric", 50)}
     )
     def test_positive_create_user_2(self, data):
         """@Test: Create User for all variations of First Name
@@ -168,15 +168,15 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        {'lastname': FauxFactory.generate_string("latin1", 10)},
+        {'lastname': gen_string("latin1", 10)},
         {
-            'lastname': FauxFactory.generate_string("utf8", 10),
+            'lastname': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'lastname': FauxFactory.generate_string("alpha", 10)},
-        {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
-        {'lastname': FauxFactory.generate_string("numeric", 10)},
-        {'lastname': FauxFactory.generate_string("alphanumeric", 50)}
+        {'lastname': gen_string("alpha", 10)},
+        {'lastname': gen_string("alphanumeric", 10)},
+        {'lastname': gen_string("numeric", 10)},
+        {'lastname': gen_string("alphanumeric", 50)}
     )
     def test_positive_create_user_3(self, data):
         """@Test: Create User for all variations of Surname
@@ -200,13 +200,13 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        {'mail': FauxFactory.generate_string("latin1", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string("utf8", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string("alpha", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string(
+        {'mail': gen_string("latin1", 10) + "@somemail.com"},
+        {'mail': gen_string("utf8", 10) + "@somemail.com"},
+        {'mail': gen_string("alpha", 10) + "@somemail.com"},
+        {'mail': gen_string(
             "alphanumeric", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string("numeric", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string(
+        {'mail': gen_string("numeric", 10) + "@somemail.com"},
+        {'mail': gen_string(
             "alphanumeric", 50) + "@somem.com"}  # max 60 chars
     )
     def test_positive_create_user_4(self, data):
@@ -224,12 +224,12 @@ class User(CLITestCase):
         args = make_user(data)
         self.__assert_exists(args)
 
-    @data({'password': FauxFactory.generate_string("latin1", 10)},
-          {'password': FauxFactory.generate_string("utf8", 10)},
-          {'password': FauxFactory.generate_string("alpha", 10)},
-          {'password': FauxFactory.generate_string("alphanumeric", 10)},
-          {'password': FauxFactory.generate_string("numeric", 10)},
-          {'password': FauxFactory.generate_string("alphanumeric", 3000)})
+    @data({'password': gen_string("latin1", 10)},
+          {'password': gen_string("utf8", 10)},
+          {'password': gen_string("alpha", 10)},
+          {'password': gen_string("alphanumeric", 10)},
+          {'password': gen_string("numeric", 10)},
+          {'password': gen_string("alphanumeric", 3000)})
     def test_positive_create_user_5(self, data):
         """@Test: Create User for all variations of Password
 
@@ -572,9 +572,9 @@ class User(CLITestCase):
         pass
 
     @data({'login': ''},
-          {'login': "space %s" % FauxFactory.generate_string("alpha", 10)},
-          {'login': FauxFactory.generate_string("alpha", 101)},
-          {'login': FauxFactory.generate_string("html", 10)})
+          {'login': "space %s" % gen_string("alpha", 10)},
+          {'login': gen_string("alpha", 101)},
+          {'login': gen_string("html", 10)})
     def test_negative_create_user_1(self, opts):
         """@Test: Create User with invalid Username
 
@@ -590,7 +590,7 @@ class User(CLITestCase):
         options = {
             'login': opts['login'],
             'mail': "root@localhost",
-            'password': FauxFactory.generate_string("alpha", 10),
+            'password': gen_string("alpha", 10),
             'auth-source-id': 1
         }
         self.logger.debug(str(options))
@@ -598,8 +598,8 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @data({'firstname': FauxFactory.generate_string("alpha", 51)},
-          {'firstname': FauxFactory.generate_string("html", 10)})
+    @data({'firstname': gen_string("alpha", 51)},
+          {'firstname': gen_string("html", 10)})
     def test_negative_create_user_2(self, opts):
         """@Test: Create User with invalid Firstname
 
@@ -613,18 +613,18 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': FauxFactory.generate_string("alpha", 10),
+            'login': gen_string("alpha", 10),
             'firstname': opts['firstname'],
             'mail': "root@localhost",
-            'password': FauxFactory.generate_string("alpha", 10),
+            'password': gen_string("alpha", 10),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @data({'lastname': FauxFactory.generate_string("alpha", 51)},
-          {'lastname': FauxFactory.generate_string("html", 10)})
+    @data({'lastname': gen_string("alpha", 51)},
+          {'lastname': gen_string("html", 10)})
     def test_negative_create_user_3(self, opts):
         """@Test: Create User with invalid Surname
 
@@ -638,10 +638,10 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': FauxFactory.generate_string("alpha", 10),
+            'login': gen_string("alpha", 10),
             'lastname': opts['lastname'],
             'mail': "root@localhost",
-            'password': FauxFactory.generate_string("alpha", 10),
+            'password': gen_string("alpha", 10),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
@@ -657,9 +657,9 @@ class User(CLITestCase):
         'A@b@c@example.com',
         'email@brazil.b',
         '{0}@example.com'.format(
-            FauxFactory.generate_string('alpha', 49)),  # total length 61
+            gen_string('alpha', 49)),  # total length 61
         '',
-        '{0}@example.com'.format(FauxFactory.generate_string('html', 10)),
+        '{0}@example.com'.format(gen_string('html', 10)),
         's p a c e s@example.com',
         'dot..dot@example.com'
     )
@@ -676,11 +676,11 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': FauxFactory.generate_string("alpha", 10),
-            'firstname': FauxFactory.generate_string("alpha", 10),
-            'lastname': FauxFactory.generate_string("alpha", 10),
+            'login': gen_string("alpha", 10),
+            'firstname': gen_string("alpha", 10),
+            'lastname': gen_string("alpha", 10),
             'mail': email,
-            'password': FauxFactory.generate_string("alpha", 10),
+            'password': gen_string("alpha", 10),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
@@ -700,7 +700,7 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': FauxFactory.generate_string("alpha", 10),
+            'login': gen_string("alpha", 10),
             'mail': "root@localhost",
             'auth-source-id': ''
         }
@@ -722,9 +722,9 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': FauxFactory.generate_string("alpha", 10),
+            'login': gen_string("alpha", 10),
             'mail': "root@localhost",
-            'password': FauxFactory.generate_string("alpha", 10),
+            'password': gen_string("alpha", 10),
             'auth-source-id': ''
         }
         result = UserObj().create(options)
@@ -732,14 +732,14 @@ class User(CLITestCase):
         self.assertTrue(result.stderr)
 
     @data(
-        {'firstname': FauxFactory.generate_string("latin1", 10)},
+        {'firstname': gen_string("latin1", 10)},
         {
-            'firstname': FauxFactory.generate_string("utf8", 10),
+            'firstname': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'firstname': FauxFactory.generate_string("alpha", 10)},
-        {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
-        {'firstname': FauxFactory.generate_string("numeric", 10)},
+        {'firstname': gen_string("alpha", 10)},
+        {'firstname': gen_string("alphanumeric", 10)},
+        {'firstname': gen_string("numeric", 10)},
     )
     def test_positive_update_user_1(self, test_data):
         """@Test: Update Username in User
@@ -785,15 +785,15 @@ class User(CLITestCase):
         )
 
     @data(
-        {'login': FauxFactory.generate_string("latin1", 10)},
+        {'login': gen_string("latin1", 10)},
         {
-            'login': FauxFactory.generate_string("utf8", 10),
+            'login': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'login': FauxFactory.generate_string("alpha", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)},
-        {'login': FauxFactory.generate_string("numeric", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 100)}
+        {'login': gen_string("alpha", 10)},
+        {'login': gen_string("alphanumeric", 10)},
+        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("alphanumeric", 100)}
     )
     def test_positive_update_user_2(self, test_data):
         """@Test: Update Login in User
@@ -838,14 +838,14 @@ class User(CLITestCase):
         )
 
     @data(
-        {'lastname': FauxFactory.generate_string("latin1", 10)},
+        {'lastname': gen_string("latin1", 10)},
         {
-            'lastname': FauxFactory.generate_string("utf8", 10),
+            'lastname': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'lastname': FauxFactory.generate_string("alpha", 10)},
-        {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
-        {'lastname': FauxFactory.generate_string("numeric", 10)},
+        {'lastname': gen_string("alpha", 10)},
+        {'lastname': gen_string("alphanumeric", 10)},
+        {'lastname': gen_string("numeric", 10)},
     )
     def test_positive_update_user_3(self, test_data):
         """@Test: Update Surname in User
@@ -892,11 +892,11 @@ class User(CLITestCase):
             "User last name was not updated"
         )
 
-    @data({'mail': FauxFactory.generate_string("latin1", 10)},
-          {'mail': FauxFactory.generate_string("utf8", 10)},
-          {'mail': FauxFactory.generate_string("alpha", 10)},
-          {'mail': FauxFactory.generate_string("alphanumeric", 10)},
-          {'mail': FauxFactory.generate_string("numeric", 10)},)
+    @data({'mail': gen_string("latin1", 10)},
+          {'mail': gen_string("utf8", 10)},
+          {'mail': gen_string("alpha", 10)},
+          {'mail': gen_string("alphanumeric", 10)},
+          {'mail': gen_string("numeric", 10)},)
     def test_positive_update_user_4(self, test_data):
         """@Test: Update Email Address in User
 
@@ -1344,8 +1344,8 @@ class User(CLITestCase):
         """
         pass
 
-    @data({'firstname': FauxFactory.generate_string("alpha", 51)},
-          {'firstname': FauxFactory.generate_string("html", 10)})
+    @data({'firstname': gen_string("alpha", 51)},
+          {'firstname': gen_string("html", 10)})
     def test_negative_update_user_2(self, opts):
         """@Test: Update invalid Firstname in an User
 
@@ -1370,8 +1370,8 @@ class User(CLITestCase):
                                                       (new_user['firstname'],
                                                        new_user['lastname']))
 
-    @data({'lastname': FauxFactory.generate_string("alpha", 51)},
-          {'lastname': FauxFactory.generate_string("html", 10)})
+    @data({'lastname': gen_string("alpha", 51)},
+          {'lastname': gen_string("html", 10)})
     def test_negative_update_user_3(self, opts):
         """@Test: Update invalid Surname in an User
 
@@ -1404,10 +1404,10 @@ class User(CLITestCase):
         'Abc.example.com',
         'A@b@c@example.com',
         'email@brazil.b',
-        '{0}@example.com'.format(FauxFactory.generate_string(
+        '{0}@example.com'.format(gen_string(
             'alpha', 49)),  # total length 61
         '',
-        '{0}@example.com'.format(FauxFactory.generate_string('html', 10)),
+        '{0}@example.com'.format(gen_string('html', 10)),
         's p a c e s@example.com',
         'dot..dot@example.com'
     )
@@ -1434,15 +1434,15 @@ class User(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1079649)
     @data(
-        {'login': FauxFactory.generate_string("latin1", 10)},
+        {'login': gen_string("latin1", 10)},
         {
-            'login': FauxFactory.generate_string("utf8", 10),
+            'login': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'login': FauxFactory.generate_string("alpha", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)},
-        {'login': FauxFactory.generate_string("numeric", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)}
+        {'login': gen_string("alpha", 10)},
+        {'login': gen_string("alphanumeric", 10)},
+        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("alphanumeric", 10)}
     )
     def test_positive_delete_user_1(self, test_data):
         """@Test: Delete a user
@@ -1474,15 +1474,15 @@ class User(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1079649)
     @data(
-        {'login': FauxFactory.generate_string("latin1", 10)},
+        {'login': gen_string("latin1", 10)},
         {
-            'login': FauxFactory.generate_string("utf8", 10),
+            'login': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'login': FauxFactory.generate_string("alpha", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)},
-        {'login': FauxFactory.generate_string("numeric", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)}
+        {'login': gen_string("alpha", 10)},
+        {'login': gen_string("alphanumeric", 10)},
+        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("alphanumeric", 10)}
     )
     def test_positive_delete_user_2(self, test_data):
         """@Test: Delete an admin user
@@ -1538,15 +1538,15 @@ class User(CLITestCase):
         self.assertTrue(result.stdout)
 
     @data(
-        {'login': FauxFactory.generate_string("alpha", 10)},
-        {'login': FauxFactory.generate_string("alphanumeric", 10)},
-        {'login': FauxFactory.generate_string("numeric", 10)},
-        {'login': FauxFactory.generate_string("latin1", 10)},
+        {'login': gen_string("alpha", 10)},
+        {'login': gen_string("alphanumeric", 10)},
+        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("latin1", 10)},
         {
-            'login': FauxFactory.generate_string("utf8", 10),
+            'login': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'login': FauxFactory.generate_string("alphanumeric", 100)}
+        {'login': gen_string("alphanumeric", 100)}
     )
     def test_list_user_1(self, test_data):
         """@Test: List User for all variations of Username
@@ -1580,15 +1580,15 @@ class User(CLITestCase):
             'email': user['mail']}, result.stdout[0])
 
     @data(
-        {'firstname': FauxFactory.generate_string("latin1", 10)},
+        {'firstname': gen_string("latin1", 10)},
         {
-            'firstname': FauxFactory.generate_string("utf8", 10),
+            'firstname': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'firstname': FauxFactory.generate_string("alpha", 10)},
-        {'firstname': FauxFactory.generate_string("alphanumeric", 10)},
-        {'firstname': FauxFactory.generate_string("numeric", 10)},
-        {'firstname': FauxFactory.generate_string("alphanumeric", 50)}
+        {'firstname': gen_string("alpha", 10)},
+        {'firstname': gen_string("alphanumeric", 10)},
+        {'firstname': gen_string("numeric", 10)},
+        {'firstname': gen_string("alphanumeric", 50)}
     )
     def test_list_user_2(self, test_data):
         """@Test: List User for all variations of Firstname
@@ -1622,15 +1622,15 @@ class User(CLITestCase):
             'email': user['mail']} in result.stdout)
 
     @data(
-        {'lastname': FauxFactory.generate_string("latin1", 10)},
+        {'lastname': gen_string("latin1", 10)},
         {
-            'lastname': FauxFactory.generate_string("utf8", 10),
+            'lastname': gen_string("utf8", 10),
             'bugzilla': 1144162,
         },
-        {'lastname': FauxFactory.generate_string("alpha", 10)},
-        {'lastname': FauxFactory.generate_string("alphanumeric", 10)},
-        {'lastname': FauxFactory.generate_string("numeric", 10)},
-        {'lastname': FauxFactory.generate_string("alphanumeric", 50)}
+        {'lastname': gen_string("alpha", 10)},
+        {'lastname': gen_string("alphanumeric", 10)},
+        {'lastname': gen_string("numeric", 10)},
+        {'lastname': gen_string("alphanumeric", 50)}
     )
     def test_list_user_3(self, test_data):
         """@Test: List User for all variations of Surname
@@ -1664,13 +1664,13 @@ class User(CLITestCase):
             'email': user['mail']} in result.stdout)
 
     @data(
-        {'mail': FauxFactory.generate_string("latin1", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string("utf8", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string("alpha", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string(
+        {'mail': gen_string("latin1", 10) + "@somemail.com"},
+        {'mail': gen_string("utf8", 10) + "@somemail.com"},
+        {'mail': gen_string("alpha", 10) + "@somemail.com"},
+        {'mail': gen_string(
             "alphanumeric", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string("numeric", 10) + "@somemail.com"},
-        {'mail': FauxFactory.generate_string(
+        {'mail': gen_string("numeric", 10) + "@somemail.com"},
+        {'mail': gen_string(
             "alphanumeric", 50) + "@somem.com"}
     )
     def test_list_user_4(self, test_data):

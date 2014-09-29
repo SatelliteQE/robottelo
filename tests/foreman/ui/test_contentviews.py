@@ -14,7 +14,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo import entities, orm
 from robottelo.api import client
 
@@ -52,8 +52,8 @@ class TestContentViewsUI(UITestCase):
     def setup_to_create_cv(self, session, cv_name, repo_name=None,
                            repo_url=None, repo_type=None):
         """Create product/repo and sync it and create CV"""
-        cv_name = cv_name or FauxFactory.generate_string("alpha", 8)
-        repo_name = repo_name or FauxFactory.generate_string("alpha", 8)
+        cv_name = cv_name or gen_string("alpha", 8)
+        repo_name = repo_name or gen_string("alpha", 8)
         repo_url = repo_url or FAKE_1_YUM_REPO
         repo_type = repo_type or REPO_TYPE['yum']
 
@@ -155,9 +155,9 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        repo_name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 8)
-        name = FauxFactory.generate_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 8)
+        name = gen_string("alpha", 8)
         publish_version = "Version 1"
         with Session(self.browser) as session:
             # Create Life-cycle environment
@@ -193,7 +193,7 @@ class TestContentViewsUI(UITestCase):
         """
 
         repo_url = FAKE_0_PUPPET_REPO
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         puppet_module = "httpd"
         module_ver = 'Latest'
         with Session(self.browser) as session:
@@ -222,8 +222,8 @@ class TestContentViewsUI(UITestCase):
         @assert: content views filter removed successfully
 
         """
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        filter_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        filter_name = gen_string("alpha", 8)
         content_type = FILTER_CONTENT_TYPE['package']
         filter_type = FILTER_TYPE['exclude']
         with Session(self.browser) as session:
@@ -246,9 +246,9 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        filter_name = FauxFactory.generate_string("alpha", 8)
-        repo_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        filter_name = gen_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
         content_type = FILTER_CONTENT_TYPE['package']
         filter_type = FILTER_TYPE['include']
         package_names = ['cow', 'bird', 'crow', 'bear']
@@ -274,9 +274,9 @@ class TestContentViewsUI(UITestCase):
         can be added for inclusion/exclusion
 
         """
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        filter_name = FauxFactory.generate_string("alpha", 8)
-        repo_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        filter_name = gen_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
         content_type = FILTER_CONTENT_TYPE['package group']
         filter_type = FILTER_TYPE['include']
         package_group = 'mammals'
@@ -303,9 +303,9 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        filter_name = FauxFactory.generate_string("alpha", 8)
-        repo_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        filter_name = gen_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
         content_type = FILTER_CONTENT_TYPE['erratum by id']
         filter_type = FILTER_TYPE['include']
         errata_ids = ['RHEA-2012:0001', 'RHEA-2012:0004']
@@ -330,8 +330,8 @@ class TestContentViewsUI(UITestCase):
         updated
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
-        desc = FauxFactory.generate_string("alpha", 15)
+        name = gen_string("alpha", 8)
+        desc = gen_string("alpha", 15)
         with Session(self.browser) as session:
             make_contentview(session, org=self.org_name,
                              name=name, description=desc)
@@ -349,8 +349,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        desc = FauxFactory.generate_string("alpha", 15)
+        name = gen_string("alpha", 8)
+        desc = gen_string("alpha", 15)
         with Session(self.browser) as session:
             make_contentview(session, org=self.org_name,
                              name=name, description=desc)
@@ -372,8 +372,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        desc = FauxFactory.generate_string("alpha", 15)
+        name = gen_string("alpha", 8)
+        desc = gen_string("alpha", 15)
         with Session(self.browser) as session:
             make_contentview(session, org=self.org_name,
                              name=name, description=desc)
@@ -391,9 +391,9 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        desc = FauxFactory.generate_string("alpha", 15)
-        new_description = FauxFactory.generate_string("alpha", 256)
+        name = gen_string("alpha", 8)
+        desc = gen_string("alpha", 15)
+        new_description = gen_string("alpha", 256)
         with Session(self.browser) as session:
             make_contentview(session, org=self.org_name,
                              name=name, description=desc)
@@ -431,7 +431,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string('latin1', 8)
+        name = gen_string('latin1', 8)
 
         with Session(self.browser) as session:
             make_contentview(session, org=self.org_name,
@@ -463,8 +463,8 @@ class TestContentViewsUI(UITestCase):
 
         puppet_module = "httpd"
         module_ver = 'Latest'
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        composite_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        composite_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, cv_name,
                                     repo_url=FAKE_0_PUPPET_REPO,
@@ -542,8 +542,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        repo_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, cv_name, repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
@@ -562,7 +562,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        composite_name = FauxFactory.generate_string("alpha", 8)
+        composite_name = gen_string("alpha", 8)
         puppet_module = "httpd"
         module_ver = 'Latest'
         with Session(self.browser) as session:
@@ -586,8 +586,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        cv1_name = FauxFactory.generate_string("alpha", 8)
-        cv2_name = FauxFactory.generate_string("alpha", 8)
+        cv1_name = gen_string("alpha", 8)
+        cv2_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_contentview(session, org=self.org_name,
                              name=cv1_name)
@@ -611,8 +611,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        repo_name = FauxFactory.generate_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, cv_name, repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
@@ -677,10 +677,10 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        repo_name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 8)
         publish_version = "Version 1"
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_name)
@@ -769,9 +769,9 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-        repo_name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 8)
-        name = FauxFactory.generate_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_name)

@@ -3,11 +3,10 @@
 """Test class for Medium  CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_name
 from robottelo.cli.factory import make_medium, make_os
 from robottelo.cli.medium import Medium
 
@@ -31,12 +30,12 @@ class TestMedium(CLITestCase):
     factory = make_medium
     factory_obj = Medium
 
-    @data({'name': FauxFactory.generate_string("latin1", 10)},
-          {'name': FauxFactory.generate_string("utf8", 10)},
-          {'name': FauxFactory.generate_string("alpha", 10)},
-          {'name': FauxFactory.generate_string("alphanumeric", 10)},
-          {'name': FauxFactory.generate_string("numeric", 10)},
-          {'name': FauxFactory.generate_string("html", 10)})
+    @data({'name': gen_string("latin1", 10)},
+          {'name': gen_string("utf8", 10)},
+          {'name': gen_string("alpha", 10)},
+          {'name': gen_string("alphanumeric", 10)},
+          {'name': gen_string("numeric", 10)},
+          {'name': gen_string("html", 10)})
     def test_positive_create_1(self, test_data):
         """@Test: Check if Medium can be created
 
@@ -59,12 +58,12 @@ class TestMedium(CLITestCase):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
-    @data({'name': FauxFactory.generate_string("latin1", 10)},
-          {'name': FauxFactory.generate_string("utf8", 10)},
-          {'name': FauxFactory.generate_string("alpha", 10)},
-          {'name': FauxFactory.generate_string("alphanumeric", 10)},
-          {'name': FauxFactory.generate_string("numeric", 10)},
-          {'name': FauxFactory.generate_string("html", 10)})
+    @data({'name': gen_string("latin1", 10)},
+          {'name': gen_string("utf8", 10)},
+          {'name': gen_string("alpha", 10)},
+          {'name': gen_string("alphanumeric", 10)},
+          {'name': gen_string("numeric", 10)},
+          {'name': gen_string("html", 10)})
     def test_positive_delete_1(self, test_data):
         """@Test: Check if Medium can be deleted
 
@@ -106,7 +105,7 @@ class TestMedium(CLITestCase):
 
         """
 
-        name = generate_name(6)
+        name = gen_alphanumeric(6)
         try:
             medium = make_medium({'name': name})
         except CLIFactoryError as e:
@@ -135,7 +134,7 @@ class TestMedium(CLITestCase):
 
         """
 
-        name = generate_name(6)
+        name = gen_alphanumeric(6)
         try:
             medium = make_medium({'name': name})
         except CLIFactoryError as e:
@@ -178,8 +177,8 @@ class TestMedium(CLITestCase):
 
         """
 
-        name = generate_name(6)
-        new_name = generate_name(6)
+        name = gen_alphanumeric(6)
+        new_name = gen_alphanumeric(6)
         try:
             medium = make_medium({'name': name})
         except CLIFactoryError as e:

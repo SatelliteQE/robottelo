@@ -1,7 +1,7 @@
 """Test class for Subscriptions/Manifests UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import skipRemote
 from robottelo.common.manifests import clone
@@ -22,7 +22,7 @@ class SubscriptionTestCase(UITestCase):
         super(SubscriptionTestCase, self).setUp()
         # Make sure to use the Class' org_name instance
         if SubscriptionTestCase.org_name is None:
-            SubscriptionTestCase.org_name = FauxFactory.generate_string(
+            SubscriptionTestCase.org_name = gen_string(
                 "alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=SubscriptionTestCase.org_name)

@@ -9,7 +9,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
 from robottelo.api import client
@@ -54,7 +54,7 @@ class ActivationKey(UITestCase):
     def create_cv(self, name, env_name):
         """Create product/repo and sync it and promote to given env"""
 
-        repo_name = FauxFactory.generate_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
 
         # Creates new product and repository via API's
         product_attrs = entities.Product(
@@ -132,7 +132,7 @@ class ActivationKey(UITestCase):
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=FauxFactory.generate_string("alpha", 16)
+                description=gen_string("alpha", 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
@@ -152,7 +152,7 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT,
@@ -177,14 +177,14 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        cv_name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
-                description=FauxFactory.generate_string("alpha", 16),
+                description=gen_string("alpha", 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -207,14 +207,14 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 6)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
-                description=FauxFactory.generate_string("alpha", 16),
+                description=gen_string("alpha", 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -276,11 +276,11 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=FauxFactory.generate_string("alpha", 16)
+                description=gen_string("alpha", 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
@@ -300,8 +300,8 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
-        description = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
+        description = gen_string("alpha", 10)
         limit = "6"
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
@@ -326,7 +326,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT)
@@ -367,8 +367,8 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
-        description = FauxFactory.generate_string("alpha", 1001)
+        name = gen_string("alpha", 10)
+        description = gen_string("alpha", 1001)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT,
@@ -394,7 +394,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT,
@@ -425,7 +425,7 @@ class ActivationKey(UITestCase):
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=FauxFactory.generate_string("alpha", 16)
+                description=gen_string("alpha", 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, True)
@@ -448,7 +448,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT,
@@ -475,14 +475,14 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        cv_name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
-                description=FauxFactory.generate_string("alpha", 16)
+                description=gen_string("alpha", 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, True)
@@ -506,14 +506,14 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 6)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
-                description=FauxFactory.generate_string("alpha", 16),
+                description=gen_string("alpha", 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -555,15 +555,15 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 6)
-        cv_name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 6)
+        cv_name = gen_string("alpha", 6)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
-                description=FauxFactory.generate_string("alpha", 16),
+                description=gen_string("alpha", 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -590,11 +590,11 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=FauxFactory.generate_string("alpha", 16)
+                description=gen_string("alpha", 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, really=False)
@@ -617,7 +617,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT)
@@ -642,8 +642,8 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
-        description = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
+        description = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT,
@@ -671,14 +671,14 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        cv_name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=FauxFactory.generate_string("alpha", 16)
+                description=gen_string("alpha", 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             env_locator = locators["ak.selected_env"]
@@ -709,17 +709,17 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        env1_name = FauxFactory.generate_string("alpha", 8)
-        env2_name = FauxFactory.generate_string("alpha", 8)
-        cv1_name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
+        env1_name = gen_string("alpha", 8)
+        env2_name = gen_string("alpha", 8)
+        cv1_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
         self.create_cv(cv1_name, env1_name)
         self.create_cv(cv2_name, env2_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env1_name,
-                description=FauxFactory.generate_string("alpha", 16),
+                description=gen_string("alpha", 16),
                 content_view=cv1_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -750,7 +750,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         limit = "8"
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
@@ -777,7 +777,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         limit = "6"
         new_limit = "Unlimited"
         with Session(self.browser) as session:
@@ -805,7 +805,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT)
@@ -831,9 +831,9 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
-        description = FauxFactory.generate_string("alpha", 10)
-        new_description = FauxFactory.generate_string("alpha", 1001)
+        name = gen_string("alpha", 10)
+        description = gen_string("alpha", 10)
+        new_description = gen_string("alpha", 1001)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT,
@@ -862,7 +862,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
                                name=name, env=ENVIRONMENT)
@@ -949,16 +949,16 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
-        cv_name = FauxFactory.generate_string("alpha", 8)
-        env_name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
         # and it returns product name to associate it with key
         product_name = self.create_cv(cv_name, env_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
-                description=FauxFactory.generate_string("alpha", 16),
+                description=gen_string("alpha", 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
