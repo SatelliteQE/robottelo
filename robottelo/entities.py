@@ -262,12 +262,15 @@ class ComputeResource(
         values = super(ComputeResource, self)._factory_data()
         cls = type(self)
         provider = values['provider']
+        # Generate required fields according to the provider. First check if
+        # the field is already set by the user, if not generate a random value
         if provider == 'EC2' or provider == 'Ovirt' or provider == 'Openstack':
-            values['name'] = cls.name.get_value()
-            values['password'] = cls.password.get_value()
-            values['user'] = cls.user.get_value()
+            for field in ('name', 'password', 'user'):
+                if values.get(field) is None:
+                    values[field] = getattr(cls, field).get_value()
         elif provider == 'GCE':
-            values['name'] = cls.name.get_value()
+            if values.get('name') is None:
+                values['name'] = cls.name.get_value()
             # values['email'] = cls.email.get_value()
             # values['key_path'] = cls.key_path.get_value()
             # values['project'] = cls.project.get_value()
@@ -279,7 +282,8 @@ class ComputeResource(
             # 2. Uncomment the above.
             # 3. File an issue on bugzilla asking for the docs to be expanded.
         elif provider == 'Libvirt':
-            values['name'] = cls.name.get_value()
+            if values.get('name') is None:
+                values['name'] = cls.name.get_value()
         elif provider == 'Rackspace':
             # FIXME: Foreman always returns this error:
             #
@@ -289,10 +293,9 @@ class ComputeResource(
             # 2. Figure out what data is necessary and add it here.
             pass
         elif provider == 'Vmware':
-            values['name'] = cls.name.get_value()
-            values['password'] = cls.password.get_value()
-            values['user'] = cls.user.get_value()
-            values['uuid'] = cls.uuid.get_value()
+            for field in ('name', 'password', 'user', 'uuid'):
+                if values.get(field) is None:
+                    values[field] = getattr(cls, field).get_value()
         return values
 
 
