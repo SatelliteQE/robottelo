@@ -6,7 +6,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 """
 from robottelo import entities
 from unittest import TestCase
-from robottelo.common.manifests import clone
+from robottelo.common import manifests
 
 
 class SubscriptionsTestCase(TestCase):
@@ -20,7 +20,7 @@ class SubscriptionsTestCase(TestCase):
         @Feature: Subscriptions
 
         """
-        cloned_manifest_path = clone()
+        cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
         task_id = entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
@@ -36,7 +36,7 @@ class SubscriptionsTestCase(TestCase):
         @Feature: Subscriptions
 
         """
-        cloned_manifest_path = clone()
+        cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
         task_id = entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
@@ -55,7 +55,7 @@ class SubscriptionsTestCase(TestCase):
         @Feature: Subscriptions
 
         """
-        cloned_manifest_path = clone()
+        cloned_manifest_path = manifests.clone()
         orgid_one = entities.Organization().create()['id']
         orgid_two = entities.Organization().create()['id']
         taskid_one = entities.Organization(id=orgid_one).upload_manifest(
