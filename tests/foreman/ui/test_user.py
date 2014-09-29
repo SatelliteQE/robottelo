@@ -10,7 +10,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
@@ -25,17 +25,17 @@ from robottelo.ui.session import Session
 def valid_strings(len1=100):
     """Generates a list of all the input strings, (excluding html)"""
     return [
-        FauxFactory.generate_string("alpha", 5),
-        FauxFactory.generate_string("alpha", len1),
-        u'{0}-{1}'.format(FauxFactory.generate_string("alpha", 4),
-                          FauxFactory.generate_string("alpha", 4)),
-        u'{0}-{1}'.format(FauxFactory.generate_string("alpha", 4),
-                          FauxFactory.generate_string("alpha", 4)),
-        u'նորօգտվող-{0}'.format(FauxFactory.generate_string("alpha", 2)),
-        u'新用戶-{0}'.format(FauxFactory.generate_string("alpha", 2)),
-        u'новогопользоват-{0}'.format(FauxFactory.generate_string("alpha", 2)),
-        u'uusikäyttäjä-{0}'.format(FauxFactory.generate_string("alpha", 2)),
-        u'νέοςχρήστης-{0}'.format(FauxFactory.generate_string("alpha", 2)),
+        gen_string("alpha", 5),
+        gen_string("alpha", len1),
+        u'{0}-{1}'.format(gen_string("alpha", 4),
+                          gen_string("alpha", 4)),
+        u'{0}-{1}'.format(gen_string("alpha", 4),
+                          gen_string("alpha", 4)),
+        u'նորօգտվող-{0}'.format(gen_string("alpha", 2)),
+        u'新用戶-{0}'.format(gen_string("alpha", 2)),
+        u'новогопользоват-{0}'.format(gen_string("alpha", 2)),
+        u'uusikäyttäjä-{0}'.format(gen_string("alpha", 2)),
+        u'νέοςχρήστης-{0}'.format(gen_string("alpha", 2)),
     ]
 
 search_key = "login"
@@ -60,7 +60,7 @@ class User(UITestCase):
         super(User, self).setUp()
         # Make sure to use the Class' org_name instance
         if User.org_name is None:
-            org_name = FauxFactory.generate_string("alpha", 10)
+            org_name = gen_string("alpha", 10)
             org_attrs = entities.Organization(name=org_name).create()
             User.org_name = org_attrs['name']
             User.org_id = org_attrs['id']
@@ -96,8 +96,8 @@ class User(UITestCase):
 
         """
 
-        user_name = FauxFactory.generate_string("alpha", 6)
-        new_password = FauxFactory.generate_string("alpha", 8)
+        user_name = gen_string("alpha", 6)
+        new_password = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=user_name)
             self.user.update(search_key, user_name, password=new_password)
@@ -116,7 +116,7 @@ class User(UITestCase):
         """
 
         strategy, value = common_locators["entity_deselect"]
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         role_name = entities.Role().create()['name']
         with Session(self.browser) as session:
             make_user(session, username=name)
@@ -166,7 +166,7 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=name, first_name=first_name)
             element = self.user.search(name, search_key)
@@ -194,7 +194,7 @@ class User(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=name, last_name=last_name)
             element = self.user.search(name, search_key)
@@ -238,7 +238,7 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=name, locale=language)
             element = self.user.search(name, search_key)
@@ -270,8 +270,8 @@ class User(UITestCase):
 
     @attr('ui', 'user', 'implemented')
     @data(
-        u'foo@!#$^&*( ) {0}'.format(FauxFactory.generate_string("alpha", 2)),
-        u'bar+{{}}|\"?hi {0}'.format(FauxFactory.generate_string("alpha", 2)),
+        u'foo@!#$^&*( ) {0}'.format(gen_string("alpha", 2)),
+        u'bar+{{}}|\"?hi {0}'.format(gen_string("alpha", 2)),
         *valid_strings()
     )
     def test_positive_create_user_7(self, password):
@@ -286,7 +286,7 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=name, password1=password,
                       password2=password)
@@ -318,7 +318,7 @@ class User(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
         role_name = entities.Role().create()['name']
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role_name], edit=True)
@@ -342,9 +342,9 @@ class User(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        name = FauxFactory.generate_string("alpha", 6)
-        role1 = FauxFactory.generate_string("alpha", 6)
-        role2 = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        role1 = gen_string("alpha", 6)
+        role2 = gen_string("alpha", 6)
         for role in [role1, role2]:
             entities.Role(name=role).create()
         with Session(self.browser) as session:
@@ -585,8 +585,8 @@ class User(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        name = FauxFactory.generate_string("alpha", 6)
-        org_name = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        org_name = gen_string("alpha", 6)
         entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
@@ -608,9 +608,9 @@ class User(UITestCase):
 
         """
         strategy, value = common_locators["entity_deselect"]
-        name = FauxFactory.generate_string("alpha", 6)
-        org_name1 = FauxFactory.generate_string("alpha", 6)
-        org_name2 = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        org_name1 = gen_string("alpha", 6)
+        org_name2 = gen_string("alpha", 6)
         for org_name in [org_name1, org_name2]:
             entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
@@ -723,7 +723,7 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        user_name = FauxFactory.generate_string("alpha", 8)
+        user_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=user_name, first_name=first_name)
             error = self.user.wait_until_element(common_locators["haserror"])
@@ -743,7 +743,7 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        user_name = FauxFactory.generate_string("alpha", 8)
+        user_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=user_name, last_name=last_name)
             error = self.user.wait_until_element(common_locators["haserror"])
@@ -779,7 +779,7 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        user_name = FauxFactory.generate_string("alpha", 8)
+        user_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=user_name, authorized_by="")
             error = self.user.wait_until_element(common_locators["haserror"])
@@ -799,9 +799,9 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        password = FauxFactory.generate_string("alpha", 8)
-        password2 = FauxFactory.generate_string("alpha", 8)
-        name = FauxFactory.generate_string("alpha", 6)
+        password = gen_string("alpha", 8)
+        password2 = gen_string("alpha", 8)
+        name = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_user(session, username=name, password1=password,
                       password2=password2)
@@ -825,8 +825,8 @@ class User(UITestCase):
         @BZ: 1139616
 
         """
-        name = FauxFactory.generate_string("alpha", 6)
-        password = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 6)
+        password = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=name, password1=password,
                       password2=password)

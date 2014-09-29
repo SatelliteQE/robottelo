@@ -3,7 +3,7 @@
 """Test class for Roles UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.common.decorators import data, bz_bug_is_open
 from robottelo import entities
 from robottelo.test import UITestCase
@@ -17,14 +17,14 @@ class Role(UITestCase):
     """Implements Roles tests from UI"""
 
     @data(
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 255)},
-        {'name': FauxFactory.generate_string("utf8", 10),
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("alphanumeric", 255)},
+        {'name': gen_string("utf8", 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string("latin1", 10),
+        {'name': gen_string("latin1", 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string("html", 10),
+        {'name': gen_string("html", 10),
          u'bz-bug': 1112657}
     )
     def test_create_role(self, test_data):
@@ -60,14 +60,14 @@ class Role(UITestCase):
             self.assertIsNotNone(error)
 
     @data(
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 255)},
-        {'name': FauxFactory.generate_string("utf8", 10),
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("alphanumeric", 255)},
+        {'name': gen_string("utf8", 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string("latin1", 10),
+        {'name': gen_string("latin1", 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string("html", 10),
+        {'name': gen_string("html", 10),
          u'bz-bug': 1112657}
     )
     def test_negative_create_role_2(self, test_data):
@@ -90,14 +90,14 @@ class Role(UITestCase):
             self.assertIsNone(self.role.search(test_data['name']))
 
     @data(
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 255)},
-        {'name': FauxFactory.generate_string("utf8", 10),
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("alphanumeric", 255)},
+        {'name': gen_string("utf8", 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string("latin1", 10),
+        {'name': gen_string("latin1", 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string("html", 10),
+        {'name': gen_string("html", 10),
          u'bz-bug': 1112657}
     )
     def test_remove_role(self, test_data):
@@ -121,20 +121,20 @@ class Role(UITestCase):
             self.assertIsNone(self.role.search(test_data['name']))
 
     @data(
-        {'name': FauxFactory.generate_string('alpha', 10),
-         'new_name': FauxFactory.generate_string('alpha', 10)},
-        {'name': FauxFactory.generate_string('numeric', 10),
-         'new_name': FauxFactory.generate_string('numeric', 10)},
-        {'name': FauxFactory.generate_string('alphanumeric', 10),
-         'new_name': FauxFactory.generate_string('alphanumeric', 10)},
-        {'name': FauxFactory.generate_string('utf8', 10),
-         'new_name': FauxFactory.generate_string('utf8', 10),
+        {'name': gen_string('alpha', 10),
+         'new_name': gen_string('alpha', 10)},
+        {'name': gen_string('numeric', 10),
+         'new_name': gen_string('numeric', 10)},
+        {'name': gen_string('alphanumeric', 10),
+         'new_name': gen_string('alphanumeric', 10)},
+        {'name': gen_string('utf8', 10),
+         'new_name': gen_string('utf8', 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string('latin1', 10),
-         'new_name': FauxFactory.generate_string('latin1', 10),
+        {'name': gen_string('latin1', 10),
+         'new_name': gen_string('latin1', 10),
          u'bz-bug': 1112657},
-        {'name': FauxFactory.generate_string('html', 10),
-         'new_name': FauxFactory.generate_string('html', 10),
+        {'name': gen_string('html', 10),
+         'new_name': gen_string('html', 10),
          u'bz-bug': 1112657},
     )
     def test_update_role_name(self, test_data):
@@ -163,7 +163,7 @@ class Role(UITestCase):
         @Assert: Role is updated
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         resource_type = 'Architecture'
         permission_list = ['view_architectures', 'create_architectures']
         with Session(self.browser) as session:
@@ -181,7 +181,7 @@ class Role(UITestCase):
         @Assert: Role is updated
 
         """
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         resource_type = 'Activation Keys'
         permission_list = ['view_activation_keys']
         org_name = entities.Organization().create()['name']

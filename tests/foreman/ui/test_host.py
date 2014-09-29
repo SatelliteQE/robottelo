@@ -7,7 +7,7 @@ if sys.hexversion >= 0x2070000:
     import unittest
 else:
     import unittest2 as unittest
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
@@ -26,7 +26,7 @@ class Host(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_hosts()
         self.hosts.create(name, "some.domain.redhat.com",
@@ -53,7 +53,7 @@ class Host(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 8)
+        name = gen_string("alpha", 8)
         self.login.login(self.katello_user, self.katello_passwd)
         self.navigator.go_to_hosts()
         self.hosts.create(name, "some.domain.redhat.com",

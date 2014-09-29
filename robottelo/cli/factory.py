@@ -10,7 +10,10 @@ import logging
 import os
 import random
 
-from fauxfactory import FauxFactory
+from fauxfactory import (
+    gen_alphanumeric, gen_integer,
+    gen_ipaddr, gen_mac, gen_string
+)
 from os import chmod
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
@@ -45,9 +48,7 @@ from robottelo.common.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
-from robottelo.common.helpers import (
-    generate_ipaddr, generate_mac, generate_name, sleep_for_seconds,
-    update_dictionary)
+from robottelo.common.helpers import sleep_for_seconds, update_dictionary
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -147,7 +148,7 @@ def make_activation_key(options=None):
         u'lifecycle-environment': None,
         u'lifecycle-environment-id': None,
         u'max-content-hosts': None,
-        u'name': generate_name(),
+        u'name': gen_alphanumeric(),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
@@ -175,7 +176,7 @@ def make_architecture(options=None):
     """
 
     args = {
-        u'name': generate_name(),
+        u'name': gen_alphanumeric(),
         u'operatingsystem-ids': None,
     }
 
@@ -213,7 +214,7 @@ def make_content_view(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        u'name': FauxFactory.generate_string("alpha", 10),
+        u'name': gen_string("alpha", 10),
         u'organization-id': None,
         u'composite': False,
         u'component-ids': None,
@@ -252,15 +253,15 @@ def make_gpg_key(options=None):
         (_, key_filename) = mkstemp(text=True)
         os.chmod(key_filename, 0700)
         with open(key_filename, "w") as gpg_key_file:
-            gpg_key_file.write(generate_name(minimum=20, maximum=50))
+            gpg_key_file.write(gen_alphanumeric(gen_integer(20, 50)))
     else:
         # If the key is provided get its local path and remove it from options
         # to not override the remote path
         key_filename = options.pop('key')
 
     args = {
-        u'name': generate_name(),
-        u'key': "/tmp/%s" % generate_name(),
+        u'name': gen_alphanumeric(),
+        u'key': "/tmp/%s" % gen_alphanumeric(),
         u'organization-id': None,
     }
 
@@ -291,7 +292,7 @@ def make_model(options=None):
     """
 
     args = {
-        u'name': generate_name(),
+        u'name': gen_alphanumeric(),
         u'info': None,
         u'vendor-class': None,
         u'hardware-model': None,
@@ -339,8 +340,8 @@ def make_partition_table(options=None):
         ptable.write(options.get('content', 'default ptable content'))
 
     args = {
-        u'name': generate_name(),
-        u'file': "/tmp/%s" % generate_name(),
+        u'name': gen_alphanumeric(),
+        u'file': "/tmp/%s" % gen_alphanumeric(),
         u'os-family': random.choice(OPERATING_SYSTEMS)
     }
 
@@ -375,9 +376,9 @@ def make_product(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        u'name': FauxFactory.generate_string('alpha', 20),
-        u'label': FauxFactory.generate_string('alpha', 20),
-        u'description': FauxFactory.generate_string('alpha', 20),
+        u'name': gen_string('alpha', 20),
+        u'label': gen_string('alpha', 20),
+        u'description': gen_string('alpha', 20),
         u'organization-id': None,
         u'gpg-key-id': None,
         u'sync-plan-id': None,
@@ -402,7 +403,7 @@ def make_proxy(options=None):
     """
 
     args = {
-        u'name': generate_name(),
+        u'name': gen_alphanumeric(),
     }
 
     args = update_dictionary(args, options)
@@ -451,7 +452,7 @@ def make_repository(options=None):
         raise CLIFactoryError("Please provide a valid Product ID.")
 
     args = {
-        u'name': FauxFactory.generate_string('alpha', 15),
+        u'name': gen_string('alpha', 15),
         u'label': None,
         u'content-type': u'yum',
         u'product': None,
@@ -482,7 +483,7 @@ def make_role(options=None):
     """
 
     # Assigning default values for attributes
-    args = {u'name': generate_name(6)}
+    args = {u'name': gen_alphanumeric(6)}
     args = update_dictionary(args, options)
     args.update(create_object(Role, args))
 
@@ -515,8 +516,8 @@ def make_subnet(options=None):
     """
 
     args = {
-        u'name': generate_name(8, 8),
-        u'network': generate_ipaddr(ip3=True),
+        u'name': gen_alphanumeric(8, 8),
+        u'network': gen_ipaddr(ip3=True),
         u'mask': u'255.255.255.0',
         u'gateway': None,
         u'dns-primary': None,
@@ -562,8 +563,8 @@ def make_sync_plan(options=None):
         raise CLIFactoryError("Please provide a valid ORG ID.")
 
     args = {
-        u'name': FauxFactory.generate_string('alpha', 20),
-        u'description': FauxFactory.generate_string('alpha', 20),
+        u'name': gen_string('alpha', 20),
+        u'description': gen_string('alpha', 20),
         u'organization-id': None,
         u'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         u'interval': random.choice(SYNC_INTERVAL.values()),
@@ -624,8 +625,8 @@ def make_content_host(options=None):
             'Please provide one of {0}.'.format(', '.join(LIFECYCLE_KEYS)))
 
     args = {
-        u'name': FauxFactory.generate_string('alpha', 20),
-        u'description': FauxFactory.generate_string('alpha', 20),
+        u'name': gen_string('alpha', 20),
+        u'description': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
@@ -761,16 +762,16 @@ def make_host(options=None):
         u'hostgroup-id': None,
         u'image-id': None,
         u'interface': None,
-        u'ip': generate_ipaddr(),
+        u'ip': gen_ipaddr(),
         u'location': None,
         u'location-id': None,
-        u'mac': generate_mac(),
+        u'mac': gen_mac(),
         u'managed': None,
         u'medium': None,
         u'medium-id': None,
         u'model': None,
         u'model-id': None,
-        u'name': FauxFactory.generate_string('alpha', 10),
+        u'name': gen_string('alpha', 10),
         u'operatingsystem-id': None,
         u'organization': None,
         u'organization-id': None,
@@ -786,7 +787,7 @@ def make_host(options=None):
         u'puppetclass-ids': None,
         u'realm': None,
         u'realm-id': None,
-        u'root-password': FauxFactory.generate_string('alpha', 8),
+        u'root-password': gen_string('alpha', 8),
         u'sp-subnet-id': None,
         u'subnet': None,
         u'subnet-id': None,
@@ -827,7 +828,7 @@ def make_host_collection(options=None):
     args = {
         u'description': None,
         u'max-content-hosts': None,
-        u'name': FauxFactory.generate_string('alpha', 15),
+        u'name': gen_string('alpha', 15),
         u'organization-id': None,
         u'system-ids': None,
     }
@@ -855,16 +856,16 @@ def make_user(options=None):
         --auth-source-id AUTH_SOURCE_ID
     """
 
-    login = generate_name(6)
+    login = gen_alphanumeric(6)
 
     # Assigning default values for attributes
     args = {
         u'login': login,
-        u'firstname': generate_name(),
-        u'lastname': generate_name(),
+        u'firstname': gen_alphanumeric(),
+        u'lastname': gen_alphanumeric(),
         u'mail': "%s@example.com" % login,
         u'admin': None,
-        u'password': generate_name(),
+        u'password': gen_alphanumeric(),
         u'auth-source-id': 1,
     }
 
@@ -898,7 +899,7 @@ def make_compute_resource(options=None):
         -h, --help                    print help
     """
     args = {
-        u'name': generate_name(8, 8),
+        u'name': gen_alphanumeric(8),
         u'provider': None,
         u'url': None,
         u'description': None,
@@ -935,7 +936,7 @@ def make_org(options=None):
 
     # Assigning default values for attributes
     args = {
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
         u'label': None,
         u'description': None,
     }
@@ -978,7 +979,7 @@ def make_os(options=None):
         u'major': random.randint(0, 10),
         u'medium-ids': None,
         u'minor': random.randint(0, 10),
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
         u'ptable-ids': None,
         u'release-name': None,
     }
@@ -1003,7 +1004,7 @@ def make_domain(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
         u'dns-id': None,
         u'description': None,
     }
@@ -1052,7 +1053,7 @@ def make_hostgroup(options=None):
         u'environment': None,
         u'medium': None,
         u'medium-id': None,
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
         u'operatingsystem-id': None,
         u'parent-id': None,
         u'ptable': None,
@@ -1106,8 +1107,8 @@ def make_medium(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'name': generate_name(6),
-        u'path': 'http://%s' % (FauxFactory.generate_string('alpha', 6)),
+        u'name': gen_alphanumeric(6),
+        u'path': 'http://%s' % (gen_string('alpha', 6)),
         u'os-family': None,
         u'operatingsystem-ids': None,
     }
@@ -1130,7 +1131,7 @@ def make_environment(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
     }
 
     args = update_dictionary(args, options)
@@ -1166,7 +1167,7 @@ def make_lifecycle_environment(options=None):
     # Assigning default values for attributes
     args = {
         u'organization-id': None,
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
         u'description': None,
         u'prior': None,
     }
@@ -1196,9 +1197,9 @@ def make_template(options=None):
     """
     # Assigning default values for attribute
     args = {
-        u'file': "/tmp/%s" % generate_name(),
+        u'file': "/tmp/%s" % gen_alphanumeric(),
         u'type': random.choice(TEMPLATE_TYPES),
-        u'name': generate_name(6),
+        u'name': gen_alphanumeric(6),
         u'audit-comment': None,
         u'operatingsystem-ids': None,
     }
@@ -1207,7 +1208,7 @@ def make_template(options=None):
     if options is not None and 'content' in options.keys():
         content = options.pop('content')
     else:
-        content = generate_name()
+        content = gen_alphanumeric()
 
     # Special handling for template factory
     (file_handle, layout) = mkstemp(text=True)

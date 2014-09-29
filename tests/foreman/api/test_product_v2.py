@@ -4,7 +4,7 @@ A full API reference for products can be found here:
 http://theforeman.org/api/apidoc/v2/products.html
 
 """
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from random import randint
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
@@ -22,23 +22,18 @@ class ProductsTestCase(TestCase):
 
     @decorators.run_only_on('sat')
     @decorators.data(
-        {u'name': FauxFactory.generate_string('alphanumeric',
-                                              randint(1, 255))},
-        {u'name': FauxFactory.generate_string('alpha', randint(1, 255))},
-        {u'name': FauxFactory.generate_string('cjk', randint(1, 85))},
-        {u'name': FauxFactory.generate_string('latin1', randint(1, 255))},
-        {u'name': FauxFactory.generate_string('numeric', randint(1, 255))},
-        {u'name': FauxFactory.generate_string('utf8', randint(1, 85))},
-        {u'description': FauxFactory.generate_string('alphanumeric',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('alpha',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('cjk', randint(1, 85))},
-        {u'description': FauxFactory.generate_string('latin1',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('numeric',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('utf8', randint(1, 85))},
+        {u'name': gen_string('alphanumeric', randint(1, 255))},
+        {u'name': gen_string('alpha', randint(1, 255))},
+        {u'name': gen_string('cjk', randint(1, 85))},
+        {u'name': gen_string('latin1', randint(1, 255))},
+        {u'name': gen_string('numeric', randint(1, 255))},
+        {u'name': gen_string('utf8', randint(1, 85))},
+        {u'description': gen_string('alphanumeric', randint(1, 255))},
+        {u'description': gen_string('alpha', randint(1, 255))},
+        {u'description': gen_string('cjk', randint(1, 85))},
+        {u'description': gen_string('latin1', randint(1, 255))},
+        {u'description': gen_string('numeric', randint(1, 255))},
+        {u'description': gen_string('utf8', randint(1, 85))},
     )
     def test_positive_create_1(self, attrs):
         """@Test: Create a product and provide a name or description.
@@ -96,23 +91,18 @@ class ProductUpdateTestCase(TestCase):
         )
 
     @decorators.data(
-        {u'name': FauxFactory.generate_string('alphanumeric',
-                                              randint(1, 255))},
-        {u'name': FauxFactory.generate_string('alpha', randint(1, 255))},
-        {u'name': FauxFactory.generate_string('cjk', randint(1, 85))},
-        {u'name': FauxFactory.generate_string('latin1', randint(1, 255))},
-        {u'name': FauxFactory.generate_string('numeric', randint(1, 255))},
-        {u'name': FauxFactory.generate_string('utf8', randint(1, 85))},
-        {u'description': FauxFactory.generate_string('alphanumeric',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('alpha',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('cjk', randint(1, 85))},
-        {u'description': FauxFactory.generate_string('latin1',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('numeric',
-                                                     randint(1, 255))},
-        {u'description': FauxFactory.generate_string('utf8', randint(1, 85))},
+        {u'name': gen_string('alphanumeric', randint(1, 255))},
+        {u'name': gen_string('alpha', randint(1, 255))},
+        {u'name': gen_string('cjk', randint(1, 85))},
+        {u'name': gen_string('latin1', randint(1, 255))},
+        {u'name': gen_string('numeric', randint(1, 255))},
+        {u'name': gen_string('utf8', randint(1, 85))},
+        {u'description': gen_string('alphanumeric', randint(1, 255))},
+        {u'description': gen_string('alpha', randint(1, 255))},
+        {u'description': gen_string('cjk', randint(1, 85))},
+        {u'description': gen_string('latin1', randint(1, 255))},
+        {u'description': gen_string('numeric', randint(1, 255))},
+        {u'description': gen_string('utf8', randint(1, 85))},
     )
     def test_positive_update_1(self, attrs):
         """@Test: Update a product with a new name or description.

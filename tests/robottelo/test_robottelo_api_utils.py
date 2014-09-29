@@ -1,5 +1,5 @@
 """Unit tests for module ``robottelo.api.utils``."""
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string, gen_integer
 from robottelo.api import utils
 from sys import version_info
 from unittest import TestCase
@@ -8,17 +8,17 @@ from unittest import TestCase
 class MockResponse(object):
     """A mock ``requests.Response`` object."""
     def __init__(self):
-        self.status_code = FauxFactory.generate_integer()
+        self.status_code = gen_integer()
 
 
 class StatusCodeErrorTestCase(TestCase):
     """Tests fore :func:`robottelo.api.utils.status_code_error`."""
     def setUp(self):
-        self.path = FauxFactory.generate_string(
+        self.path = gen_string(
             'utf8',
-            FauxFactory.generate_integer(min_value=1, max_value=100)
+            gen_integer(min_value=1, max_value=100)
         )
-        self.desired = FauxFactory.generate_integer()
+        self.desired = gen_integer()
         self.response = MockResponse()
 
     def test_no_json(self):

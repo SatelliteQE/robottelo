@@ -3,7 +3,7 @@
 
 """Test class for Environment  CLI"""
 
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment
@@ -18,37 +18,37 @@ class TestEnvironment(MetaCLITestCase):
     factory_obj = Environment
 
     POSITIVE_CREATE_DATA = (
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10)},
     )
 
     POSITIVE_UPDATE_DATA = (
-        ({'name': FauxFactory.generate_string("alpha", 10)},
-         {'new-name': FauxFactory.generate_string("alpha", 10)}),
-        ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-         {'new-name': FauxFactory.generate_string("alphanumeric", 10)}),
-        ({'name': FauxFactory.generate_string("numeric", 10)},
-         {'new-name': FauxFactory.generate_string("numeric", 10)}),
+        ({'name': gen_string("alpha", 10)},
+         {'new-name': gen_string("alpha", 10)}),
+        ({'name': gen_string("alphanumeric", 10)},
+         {'new-name': gen_string("alphanumeric", 10)}),
+        ({'name': gen_string("numeric", 10)},
+         {'new-name': gen_string("numeric", 10)}),
     )
 
     NEGATIVE_UPDATE_DATA = (
-        ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-         {'new-name': FauxFactory.generate_string("alphanumeric", 300)}),
-        ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-         {'new-name': FauxFactory.generate_string("latin1", 10)}),
-        ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-         {'new-name': FauxFactory.generate_string("utf8", 10)}),
-        ({'name': FauxFactory.generate_string("alphanumeric", 10)},
-         {'new-name': FauxFactory.generate_string("html", 6)}),
-        ({'name': FauxFactory.generate_string("alphanumeric", 10)},
+        ({'name': gen_string("alphanumeric", 10)},
+         {'new-name': gen_string("alphanumeric", 300)}),
+        ({'name': gen_string("alphanumeric", 10)},
+         {'new-name': gen_string("latin1", 10)}),
+        ({'name': gen_string("alphanumeric", 10)},
+         {'new-name': gen_string("utf8", 10)}),
+        ({'name': gen_string("alphanumeric", 10)},
+         {'new-name': gen_string("html", 6)}),
+        ({'name': gen_string("alphanumeric", 10)},
          {'new-name': ""}),
     )
 
     POSITIVE_DELETE_DATA = (
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10)},
     )
 
     def test_info(self):
@@ -59,7 +59,7 @@ class TestEnvironment(MetaCLITestCase):
         @Assert: Environment Info is displayed
 
         """
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         Environment().create({'name': name})
         result = Environment().info({'name': name})
 
@@ -77,7 +77,7 @@ class TestEnvironment(MetaCLITestCase):
         @Assert: Environment List is displayed
 
         """
-        name = FauxFactory.generate_string("alpha", 10)
+        name = gen_string("alpha", 10)
         Environment().create({'name': name})
         result = Environment().list({'search': name})
         self.assertTrue(len(result.stdout) == 1,
@@ -92,7 +92,7 @@ class TestEnvironment(MetaCLITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alphanumeric", 10)
+        name = gen_string("alphanumeric", 10)
         try:
             make_environment({'name': name})
         except CLIFactoryError as err:

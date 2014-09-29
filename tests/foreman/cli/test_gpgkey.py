@@ -5,7 +5,7 @@
 """Test class for GPG Key CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string, gen_alphanumeric, gen_integer
 from robottelo.cli.factory import CLIFactoryError, make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
@@ -13,7 +13,7 @@ from robottelo.common import ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import generate_name, get_data_file
+from robottelo.common.helpers import get_data_file
 from tempfile import mkstemp
 from robottelo.test import CLITestCase
 
@@ -25,12 +25,12 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': FauxFactory.generate_string("latin1", 10)},
-        {'name': FauxFactory.generate_string("utf8", 10)},
-        {'name': FauxFactory.generate_string("alpha", 10)},
-        {'name': FauxFactory.generate_string("alphanumeric", 10)},
-        {'name': FauxFactory.generate_string("numeric", 20)},
-        {'name': FauxFactory.generate_string("html", 10)},
+        {'name': gen_string("latin1", 10)},
+        {'name': gen_string("utf8", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 20)},
+        {'name': gen_string("html", 10)},
     )
 
 
@@ -39,12 +39,12 @@ def negative_create_data():
 
     return (
         {'name': ' '},
-        {'name': FauxFactory.generate_string('alpha', 300)},
-        {'name': FauxFactory.generate_string('numeric', 300)},
-        {'name': FauxFactory.generate_string('alphanumeric', 300)},
-        {'name': FauxFactory.generate_string('utf8', 300)},
-        {'name': FauxFactory.generate_string('latin1', 300)},
-        {'name': FauxFactory.generate_string('html', 300)},
+        {'name': gen_string('alpha', 300)},
+        {'name': gen_string('numeric', 300)},
+        {'name': gen_string('alphanumeric', 300)},
+        {'name': gen_string('utf8', 300)},
+        {'name': gen_string('latin1', 300)},
+        {'name': gen_string('html', 300)},
     )
 
 
@@ -67,7 +67,7 @@ class TestGPGKey(CLITestCase):
     @classmethod
     def create_org(cls):
         """Creates and returns an organization"""
-        label = generate_name(6)
+        label = gen_alphanumeric(6)
         org = make_org({'label': label})
         result = Org.exists(tuple_search=('id', org['id']))
 
@@ -83,7 +83,7 @@ class TestGPGKey(CLITestCase):
 
         (file_handle, key_filename) = mkstemp(text=True)
         if not content:
-            content = generate_name(minimum=20, maximum=50)
+            content = gen_alphanumeric(gen_integer(20, 50))
         with open(key_filename, "w") as gpg_key_file:
             gpg_key_file.write(content)
             return key_filename
@@ -105,7 +105,7 @@ class TestGPGKey(CLITestCase):
         """
 
         # GPG Key data
-        data = {'name': FauxFactory.generate_string("alpha", 10)}
+        data = {'name': gen_string("alpha", 10)}
         data['organization-id'] = self.org['id']
 
         # Setup a new key file
@@ -140,11 +140,11 @@ class TestGPGKey(CLITestCase):
         """
 
         # GPG Key data
-        data = {'name': FauxFactory.generate_string("alpha", 10)}
+        data = {'name': gen_string("alpha", 10)}
         data['organization-id'] = self.org['id']
 
         # Setup a new key file
-        content = generate_name()
+        content = gen_alphanumeric()
         gpg_key = self.create_gpg_key_file(content=content)
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
         data['key'] = gpg_key
@@ -178,7 +178,7 @@ class TestGPGKey(CLITestCase):
         """
 
         # GPG Key data
-        data = {'name': FauxFactory.generate_string("alpha", 10)}
+        data = {'name': gen_string("alpha", 10)}
         data['organization-id'] = self.org['id']
 
         # Setup a new key file
@@ -305,7 +305,7 @@ class TestGPGKey(CLITestCase):
             new_obj[self.search_key], result.stdout[self.search_key])
 
         # Setup a new key file
-        data['key'] = '/tmp/%s' % generate_name()
+        data['key'] = '/tmp/%s' % gen_alphanumeric()
         gpg_key = self.create_gpg_key_file()
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
         ssh.upload_file(local_file=gpg_key, remote_file=data['key'])
@@ -351,7 +351,7 @@ class TestGPGKey(CLITestCase):
 
         # Setup data to pass to create
         data = data.copy()
-        data['key'] = '/tmp/%s' % generate_name()
+        data['key'] = '/tmp/%s' % gen_alphanumeric()
         data['organization-id'] = self.org['id']
 
         ssh.upload_file(
@@ -1759,7 +1759,7 @@ class TestGPGKey(CLITestCase):
     """
     @stubbed
     def test_consume_content_3(self):
-        """@test: Hosts can install packages using different gpg keys associated
+        """@test:Hosts can install packages using different gpg keys associated
         with multiple custom repositories
 
         @feature: GPG Keys

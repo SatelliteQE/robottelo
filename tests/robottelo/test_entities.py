@@ -1,7 +1,7 @@
 """Tests for :mod:`robottelo.entities`."""
 import mock
 from ddt import data, ddt, unpack
-from fauxfactory import FauxFactory
+from fauxfactory import gen_integer
 from robottelo.api import client
 from robottelo.common import conf
 from robottelo import entities, orm
@@ -18,7 +18,7 @@ class PathTestCase(TestCase):
         """Backup and customize ``conf.properties``, and generate an ID."""
         self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
-        self.id_ = FauxFactory.generate_integer(min_value=1)
+        self.id_ = gen_integer(min_value=1)
 
     def tearDown(self):  # pylint:disable=C0103
         """Restore ``conf.properties``."""
@@ -171,7 +171,7 @@ class OrganizationTestCase(TestCase):
         conf.properties['foreman.admin.password'] = 'hackme'
         self.client_post = client.post
         # SomeEntity(id=self.entity_id)
-        self.entity_id = FauxFactory.generate_integer(min_value=1)
+        self.entity_id = gen_integer(min_value=1)
 
     def tearDown(self):  # pylint:disable=C0103
         """Restore ``conf.properties``."""
@@ -205,7 +205,7 @@ class OrganizationTestCase(TestCase):
 
         """
         # Create a mock server response object.
-        foreman_task_id = FauxFactory.generate_integer()
+        foreman_task_id = gen_integer()
         mock_response = mock.Mock()
         mock_response.status_code = 202
         mock_response.raise_for_status.return_value = None

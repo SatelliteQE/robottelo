@@ -4,7 +4,7 @@
 # Python 3.3 and later includes module `ipaddress` in the standard library. If
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
-from fauxfactory import FauxFactory
+from fauxfactory import gen_integer
 from robottelo.api import client
 from robottelo.common import conf, helpers
 from robottelo import entities, orm
@@ -186,7 +186,7 @@ class IntegerFieldTestCase(unittest.TestCase):
         value.
 
         """
-        min_val = FauxFactory.generate_integer()
+        min_val = gen_integer()
         val = orm.IntegerField(min_val=min_val).get_value()
         self.assertGreaterEqual(val, min_val)
 
@@ -197,7 +197,7 @@ class IntegerFieldTestCase(unittest.TestCase):
         value.
 
         """
-        max_val = FauxFactory.generate_integer()
+        max_val = gen_integer()
         val = orm.IntegerField(max_val=max_val).get_value()
         self.assertLessEqual(val, max_val)
 
@@ -207,8 +207,8 @@ class IntegerFieldTestCase(unittest.TestCase):
         Assert the number generated falls between the specified bounds.
 
         """
-        min_val = FauxFactory.generate_integer(-1000, 0)
-        max_val = FauxFactory.generate_integer(0, 1000)
+        min_val = gen_integer(-1000, 0)
+        max_val = gen_integer(0, 1000)
 
         # First, we'll allow a range of values...
         val = orm.IntegerField(min_val, max_val).get_value()
@@ -419,7 +419,7 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         conf.properties['foreman.admin.password'] = 'hackme'
 
         # e.g. SomeEntity(id=self.entity_id)
-        self.entity_id = FauxFactory.generate_integer(min_value=1)
+        self.entity_id = gen_integer(min_value=1)
 
     def tearDown(self):  # pylint:disable=C0103
         """Restore backed-up objects."""
@@ -454,7 +454,7 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
 
         """
         # Create a mock server response object.
-        foreman_task_id = FauxFactory.generate_integer()
+        foreman_task_id = gen_integer()
         mock_response = mock.Mock()
         mock_response.status_code = 202
         mock_response.raise_for_status.return_value = None

@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Life cycle environments UI"""
 
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
@@ -21,7 +21,7 @@ class ContentEnvironment(UITestCase):
         super(ContentEnvironment, self).setUp()
         # Make sure to use the Class' org_name instance
         if ContentEnvironment.org_name is None:
-            ContentEnvironment.org_name = FauxFactory.generate_string(
+            ContentEnvironment.org_name = gen_string(
                 "alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=ContentEnvironment.org_name)
@@ -36,8 +36,8 @@ class ContentEnvironment(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        description = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        description = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=name, description=description)
@@ -54,9 +54,9 @@ class ContentEnvironment(UITestCase):
 
         """
 
-        env_1_name = FauxFactory.generate_string("alpha", 6)
-        env_2_name = FauxFactory.generate_string("alpha", 6)
-        description = FauxFactory.generate_string("alpha", 6)
+        env_1_name = gen_string("alpha", 6)
+        env_2_name = gen_string("alpha", 6)
+        description = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_1_name,
@@ -77,8 +77,8 @@ class ContentEnvironment(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        description = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        description = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=name, description=description)
@@ -98,9 +98,9 @@ class ContentEnvironment(UITestCase):
 
         """
 
-        name = FauxFactory.generate_string("alpha", 6)
-        new_name = FauxFactory.generate_string("alpha", 6)
-        description = FauxFactory.generate_string("alpha", 6)
+        name = gen_string("alpha", 6)
+        new_name = gen_string("alpha", 6)
+        description = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=name)

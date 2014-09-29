@@ -5,7 +5,7 @@
 import sys
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.cli.fact import Fact
 from robottelo.common.decorators import data, run_only_on
@@ -46,10 +46,10 @@ class TestFact(CLITestCase):
         self.assertEqual(stdout[0]['fact'], fact)
 
     @data(
-        FauxFactory.generate_string("alpha", 10),
-        FauxFactory.generate_string("alpha", 10),
-        FauxFactory.generate_string("alpha", 10),
-        FauxFactory.generate_string("alpha", 10),
+        gen_string("alpha", 10),
+        gen_string("alpha", 10),
+        gen_string("alpha", 10),
+        gen_string("alpha", 10),
     )
     @attr('cli', 'fact')
     def test_list_fail(self, fact):

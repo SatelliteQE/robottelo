@@ -1,7 +1,7 @@
 """Test class for Repository UI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities, orm
 from robottelo.common.constants import (
@@ -323,7 +323,7 @@ class Repos(UITestCase):
 
         """
 
-        product_name = FauxFactory.generate_string("alpha", 8)
+        product_name = gen_string("alpha", 8)
         discovered_urls = "fakerepo01/"
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)

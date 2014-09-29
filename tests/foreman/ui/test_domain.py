@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Domain UI"""
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
@@ -26,8 +26,8 @@ class Domain(UITestCase):
         super(Domain, self).setUp()
         # Make sure to use the Class' org_name instance
         if Domain.org_name is None and Domain.loc_name is None:
-            Domain.org_name = FauxFactory.generate_string("alpha", 8)
-            Domain.loc_name = FauxFactory.generate_string("alpha", 8)
+            Domain.org_name = gen_string("alpha", 8)
+            Domain.loc_name = gen_string("alpha", 8)
             with Session(self.browser) as session:
                 make_org(session, org_name=Domain.org_name)
                 make_loc(session, name=Domain.loc_name)
@@ -75,7 +75,7 @@ class Domain(UITestCase):
         @Assert: Domain is deleted
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
+        name = gen_string("alpha", 4)
         domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
@@ -87,18 +87,18 @@ class Domain(UITestCase):
             self.assertIsNone(self.domain.search(description, timeout=5))
 
     @attr('ui', 'domain', 'implemented')
-    @data({'name': FauxFactory.generate_string('alpha', 10),
-           'newname': FauxFactory.generate_string('alpha', 10)},
-          {'name': FauxFactory.generate_string('numeric', 10),
-           'newname': FauxFactory.generate_string('numeric', 10)},
-          {'name': FauxFactory.generate_string('alphanumeric', 10),
-           'newname': FauxFactory.generate_string('alphanumeric', 10)},
-          {'name': FauxFactory.generate_string('utf8', 10),
-           'newname': FauxFactory.generate_string('utf8', 10)},
-          {'name': FauxFactory.generate_string('latin1', 10),
-           'newname': FauxFactory.generate_string('latin1', 10)},
-          {'name': FauxFactory.generate_string('html', 10),
-           'newname': FauxFactory.generate_string('html', 10)})
+    @data({'name': gen_string('alpha', 10),
+           'newname': gen_string('alpha', 10)},
+          {'name': gen_string('numeric', 10),
+           'newname': gen_string('numeric', 10)},
+          {'name': gen_string('alphanumeric', 10),
+           'newname': gen_string('alphanumeric', 10)},
+          {'name': gen_string('utf8', 10),
+           'newname': gen_string('utf8', 10)},
+          {'name': gen_string('latin1', 10),
+           'newname': gen_string('latin1', 10)},
+          {'name': gen_string('html', 10),
+           'newname': gen_string('html', 10)})
     def test_update_domain(self, testdata):
         """@Test: Update a domain with name and description\
 
@@ -160,8 +160,8 @@ class Domain(UITestCase):
 
         """
         domain_name = description = DOMAIN % name
-        param_name = FauxFactory.generate_string("alpha", 4)
-        param_value = FauxFactory.generate_string("alpha", 3)
+        param_name = gen_string("alpha", 4)
+        param_value = gen_string("alpha", 3)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)
@@ -180,10 +180,10 @@ class Domain(UITestCase):
         @Assert: Domain parameter is created.
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
+        name = gen_string("alpha", 4)
         domain_name = description = DOMAIN % name
-        param_name = FauxFactory.generate_string("alpha", 255)
-        param_value = FauxFactory.generate_string("alpha", 255)
+        param_name = gen_string("alpha", 255)
+        param_value = gen_string("alpha", 255)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)
@@ -202,9 +202,9 @@ class Domain(UITestCase):
         @Assert: Domain parameter is created with blank value.
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
+        name = gen_string("alpha", 4)
         domain_name = description = DOMAIN % name
-        param_name = FauxFactory.generate_string("alpha", 4)
+        param_name = gen_string("alpha", 4)
         param_value = ""
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
@@ -224,10 +224,10 @@ class Domain(UITestCase):
         @Assert: Domain parameter is not updated.
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
+        name = gen_string("alpha", 4)
         domain_name = description = DOMAIN % name
-        param_name = FauxFactory.generate_string("alpha", 256)
-        param_value = FauxFactory.generate_string("alpha", 256)
+        param_name = gen_string("alpha", 256)
+        param_value = gen_string("alpha", 256)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)
@@ -251,10 +251,10 @@ class Domain(UITestCase):
         @BZ: 1123360
 
         """
-        name = FauxFactory.generate_string("alpha", 4)
+        name = gen_string("alpha", 4)
         domain_name = description = DOMAIN % name
-        param_name = FauxFactory.generate_string("alpha", 8)
-        param_value = FauxFactory.generate_string("alpha", 8)
+        param_name = gen_string("alpha", 8)
+        param_value = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)
@@ -280,8 +280,8 @@ class Domain(UITestCase):
 
         """
         domain_name = description = DOMAIN % name
-        param_name = FauxFactory.generate_string("alpha", 3)
-        param_value = FauxFactory.generate_string("alpha", 3)
+        param_name = gen_string("alpha", 3)
+        param_value = gen_string("alpha", 3)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
             element = self.domain.search(description)

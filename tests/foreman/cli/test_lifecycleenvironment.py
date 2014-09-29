@@ -3,7 +3,7 @@
 """Test class for Host CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.factory import (
     make_lifecycle_environment, make_org, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
@@ -72,8 +72,8 @@ class TestLifeCycleEnvironment(CLITestCase):
 
         payload = {
             'organization-id': self.org['id'],
-            'name': FauxFactory.generate_string('utf8', 15),
-            }
+            'name': gen_string('utf8', 15),
+        }
 
         new_obj = make_lifecycle_environment(payload)
         self.assertIsNotNone(
@@ -105,12 +105,12 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1099655)
     @data(
-        {'name': FauxFactory.generate_string("alpha", 15)},
-        {'name': FauxFactory.generate_string("alphanumeric", 15)},
-        {'name': FauxFactory.generate_string("numeric", 15)},
-        {'name': FauxFactory.generate_string("latin1", 15)},
-        {'name': FauxFactory.generate_string("utf8", 15)},
-        {'name': FauxFactory.generate_string("html", 15)},
+        {'name': gen_string("alpha", 15)},
+        {'name': gen_string("alphanumeric", 15)},
+        {'name': gen_string("numeric", 15)},
+        {'name': gen_string("latin1", 15)},
+        {'name': gen_string("utf8", 15)},
+        {'name': gen_string("html", 15)},
     )
     def test_positive_create_1(self, test_data):
         """@Test: Create lifecycle environment with valid name, prior to Library
@@ -126,7 +126,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         payload = {
             'organization-id': self.org['id'],
             'name': test_data['name'],
-            }
+        }
 
         new_obj = make_lifecycle_environment(payload)
         self.assertIsNotNone(
@@ -156,12 +156,12 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1099655)
     @data(
-        {'name': FauxFactory.generate_string("alpha", 15)},
-        {'name': FauxFactory.generate_string("alphanumeric", 15)},
-        {'name': FauxFactory.generate_string("numeric", 15)},
-        {'name': FauxFactory.generate_string("latin1", 15)},
-        {'name': FauxFactory.generate_string("utf8", 15)},
-        {'name': FauxFactory.generate_string("html", 15)},
+        {'name': gen_string("alpha", 15)},
+        {'name': gen_string("alphanumeric", 15)},
+        {'name': gen_string("numeric", 15)},
+        {'name': gen_string("latin1", 15)},
+        {'name': gen_string("utf8", 15)},
+        {'name': gen_string("html", 15)},
     )
     def test_positive_create_2(self, test_data):
         """@Test: Create lifecycle environment with valid name and description,
@@ -179,7 +179,7 @@ class TestLifeCycleEnvironment(CLITestCase):
             'organization-id': self.org['id'],
             'name': test_data['name'],
             'description': test_data['name'],
-            }
+        }
 
         new_obj = make_lifecycle_environment(payload)
         self.assertIsNotNone(
@@ -214,12 +214,12 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1099655)
     @data(
-        {'name': FauxFactory.generate_string("alpha", 15)},
-        {'name': FauxFactory.generate_string("alphanumeric", 15)},
-        {'name': FauxFactory.generate_string("numeric", 15)},
-        {'name': FauxFactory.generate_string("latin1", 15)},
-        {'name': FauxFactory.generate_string("utf8", 15)},
-        {'name': FauxFactory.generate_string("html", 15)},
+        {'name': gen_string("alpha", 15)},
+        {'name': gen_string("alphanumeric", 15)},
+        {'name': gen_string("numeric", 15)},
+        {'name': gen_string("latin1", 15)},
+        {'name': gen_string("utf8", 15)},
+        {'name': gen_string("html", 15)},
     )
     def test_positive_delete_1(self, test_data):
         """@Test: Create lifecycle environment with valid name, prior to Library
@@ -235,7 +235,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         payload = {
             'organization-id': self.org['id'],
             'name': test_data['name'],
-            }
+        }
 
         new_obj = make_lifecycle_environment(payload)
         self.assertIsNotNone(
@@ -290,12 +290,12 @@ class TestLifeCycleEnvironment(CLITestCase):
     @skip_if_bug_open('bugzilla', 1095937)
     @skip_if_bug_open('bugzilla', 1099655)
     @data(
-        {'name': FauxFactory.generate_string("alpha", 15)},
-        {'name': FauxFactory.generate_string("alphanumeric", 15)},
-        {'name': FauxFactory.generate_string("numeric", 15)},
-        {'name': FauxFactory.generate_string("latin1", 15)},
-        {'name': FauxFactory.generate_string("utf8", 15)},
-        {'name': FauxFactory.generate_string("html", 15)},
+        {'name': gen_string("alpha", 15)},
+        {'name': gen_string("alphanumeric", 15)},
+        {'name': gen_string("numeric", 15)},
+        {'name': gen_string("latin1", 15)},
+        {'name': gen_string("utf8", 15)},
+        {'name': gen_string("html", 15)},
     )
     def test_positive_update_1(self, test_data):
         """@Test: Create lifecycle environment then update its name
@@ -310,7 +310,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
         payload = {
             'organization-id': self.org['id'],
-            }
+        }
 
         new_obj = make_lifecycle_environment(payload)
         self.assertIsNotNone(
@@ -359,12 +359,12 @@ class TestLifeCycleEnvironment(CLITestCase):
     @skip_if_bug_open('bugzilla', 1095937)
     @skip_if_bug_open('bugzilla', 1099655)
     @data(
-        {'description': FauxFactory.generate_string("alpha", 15)},
-        {'description': FauxFactory.generate_string("alphanumeric", 15)},
-        {'description': FauxFactory.generate_string("numeric", 15)},
-        {'description': FauxFactory.generate_string("latin1", 15)},
-        {'description': FauxFactory.generate_string("utf8", 15)},
-        {'description': FauxFactory.generate_string("html", 15)},
+        {'description': gen_string("alpha", 15)},
+        {'description': gen_string("alphanumeric", 15)},
+        {'description': gen_string("numeric", 15)},
+        {'description': gen_string("latin1", 15)},
+        {'description': gen_string("utf8", 15)},
+        {'description': gen_string("html", 15)},
     )
     def test_positive_update_2(self, test_data):
         """@Test: Create lifecycle environment then update its description
@@ -379,7 +379,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
         payload = {
             'organization-id': self.org['id'],
-            }
+        }
 
         new_obj = make_lifecycle_environment(payload)
         self.assertIsNotNone(

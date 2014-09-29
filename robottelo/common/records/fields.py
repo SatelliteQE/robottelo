@@ -15,10 +15,8 @@ object creations will follow the same range determined previously.
 import rstr
 import collections
 
-from fauxfactory import FauxFactory
+from fauxfactory import gen_email, gen_ipaddr, gen_mac, gen_string
 from random import randint, choice
-from robottelo.common.helpers import (
-    generate_mac, generate_ipaddr, generate_email_address)
 from robottelo.common.helpers import STR
 
 
@@ -163,7 +161,7 @@ class StringField(Field):
                 self.fmt = self._parse_field_format(self.fmt)
             return rstr.xeger(self.fmt)[:self.maxlen]
         else:
-            return FauxFactory.generate_string(self.str_type, self.maxlen)
+            return gen_string(self.str_type, self.maxlen)
 
 
 class IntegerField(Field):
@@ -184,21 +182,15 @@ class IntegerField(Field):
 
 class EmailField(Field):
     """
-    A Field subclass that represents a MAC address type and generates random
-    value in the format XX:XX:XX:XX:XX:XX where XX is a two digit hexadecimal
-    value and : is the delimiter. The delimiter could be changed by defining
-    the delimiter attribute which defaults to :.
+    A Field subclass that represents an Email address type and generates random
+    value in the format [name]@[domain].[tlds].
     """
 
-    def __init__(self, name_length=8, domain_length=6, **kwargs):
+    def __init__(self, **kwargs):
         super(EmailField, self).__init__(**kwargs)
-        self.name_length = name_length
-        self.domain_length = domain_length
 
     def generate(self):
-        return generate_email_address(
-            name_length=self.name_length,
-            domain_length=self.domain_length)
+        return gen_email()
 
 
 class MACField(Field):
@@ -214,7 +206,7 @@ class MACField(Field):
         self.delimiter = delimiter
 
     def generate(self):
-        return generate_mac(self.delimiter)
+        return gen_mac(self.delimiter)
 
 
 class IpAddrField(Field):
@@ -230,7 +222,7 @@ class IpAddrField(Field):
         self.ip3 = ip3
 
     def generate(self):
-        return generate_ipaddr(self.ip3)
+        return gen_ipaddr(self.ip3)
 
 
 class ChoiceField(Field):

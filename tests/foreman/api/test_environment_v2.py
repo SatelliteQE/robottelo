@@ -4,7 +4,7 @@ A full API reference for environments can be found here:
 http://theforeman.org/api/apidoc/v2/environments.html
 
 """
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 from robottelo.common import decorators
 from robottelo import entities
@@ -19,9 +19,9 @@ import random
 class EnvironmentTestCase(TestCase):
     """Tests for environments."""
     @decorators.data(
-        FauxFactory.generate_string('alpha', random.randint(1, 255)),
-        FauxFactory.generate_string('numeric', random.randint(1, 255)),
-        FauxFactory.generate_string('alphanumeric', random.randint(1, 255)),
+        gen_string('alpha', random.randint(1, 255)),
+        gen_string('numeric', random.randint(1, 255)),
+        gen_string('alphanumeric', random.randint(1, 255)),
     )
     def test_positive_create_1(self, name):
         """@Test: Create an environment and provide a valid name.
@@ -40,12 +40,12 @@ class EnvironmentTestCase(TestCase):
         self.assertEqual(attrs['name'], name)
 
     @decorators.data(
-        FauxFactory.generate_string('alpha', 256),
-        FauxFactory.generate_string('numeric', 256),
-        FauxFactory.generate_string('alphanumeric', 256),
-        FauxFactory.generate_string('cjk', random.randint(1, 255)),
-        FauxFactory.generate_string('latin1', random.randint(1, 255)),
-        FauxFactory.generate_string('utf8', random.randint(1, 255)),
+        gen_string('alpha', 256),
+        gen_string('numeric', 256),
+        gen_string('alphanumeric', 256),
+        gen_string('cjk', random.randint(1, 255)),
+        gen_string('latin1', random.randint(1, 255)),
+        gen_string('utf8', random.randint(1, 255)),
     )
     def test_negative_create_1(self, name):
         """@Test: Create an environment and provide an invalid name.

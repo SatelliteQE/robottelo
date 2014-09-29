@@ -1,5 +1,5 @@
 """Unit tests for the ``repositories`` paths."""
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.api import client
@@ -28,12 +28,12 @@ class RepositoryTestCase(TestCase):
     @decorators.run_only_on('sat')
     @decorators.data(
         {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
-        {'name': FauxFactory.generate_string('alphanumeric', randint(10, 50))},
-        {'name': FauxFactory.generate_string('alpha', randint(10, 50))},
-        {'name': FauxFactory.generate_string('cjk', randint(10, 50))},
-        {'name': FauxFactory.generate_string('latin1', randint(10, 50))},
-        {'name': FauxFactory.generate_string('numeric', randint(10, 50))},
-        {'name': FauxFactory.generate_string('utf8', randint(10, 50))},
+        {'name': gen_string('alphanumeric', randint(10, 50))},
+        {'name': gen_string('alpha', randint(10, 50))},
+        {'name': gen_string('cjk', randint(10, 50))},
+        {'name': gen_string('latin1', randint(10, 50))},
+        {'name': gen_string('numeric', randint(10, 50))},
+        {'name': gen_string('utf8', randint(10, 50))},
         {'unprotected': True},
         {'url': FAKE_2_YUM_REPO},
     )
@@ -107,12 +107,12 @@ class RepositoryTestCase(TestCase):
     @decorators.run_only_on('sat')
     @decorators.data(
         {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
-        {'name': FauxFactory.generate_string('alphanumeric', randint(10, 50))},
-        {'name': FauxFactory.generate_string('alpha', randint(10, 50))},
-        {'name': FauxFactory.generate_string('cjk', randint(10, 50))},
-        {'name': FauxFactory.generate_string('latin1', randint(10, 50))},
-        {'name': FauxFactory.generate_string('numeric', randint(10, 50))},
-        {'name': FauxFactory.generate_string('utf8', randint(10, 50))},
+        {'name': gen_string('alphanumeric', randint(10, 50))},
+        {'name': gen_string('alpha', randint(10, 50))},
+        {'name': gen_string('cjk', randint(10, 50))},
+        {'name': gen_string('latin1', randint(10, 50))},
+        {'name': gen_string('numeric', randint(10, 50))},
+        {'name': gen_string('utf8', randint(10, 50))},
         {'unprotected': True},
         {'url': FAKE_2_YUM_REPO},
     )
@@ -217,12 +217,12 @@ class RepositoryUpdateTestCase(TestCase):
 
     @decorators.run_only_on('sat')
     @decorators.data(
-        {'name': FauxFactory.generate_string('alphanumeric', randint(10, 50))},
-        {'name': FauxFactory.generate_string('alpha', randint(10, 50))},
-        {'name': FauxFactory.generate_string('cjk', randint(10, 50))},
-        {'name': FauxFactory.generate_string('latin1', randint(10, 50))},
-        {'name': FauxFactory.generate_string('numeric', randint(10, 50))},
-        {'name': FauxFactory.generate_string('utf8', randint(10, 50))},
+        {'name': gen_string('alphanumeric', randint(10, 50))},
+        {'name': gen_string('alpha', randint(10, 50))},
+        {'name': gen_string('cjk', randint(10, 50))},
+        {'name': gen_string('latin1', randint(10, 50))},
+        {'name': gen_string('numeric', randint(10, 50))},
+        {'name': gen_string('utf8', randint(10, 50))},
         {'unprotected': True},
         {'url': FAKE_2_YUM_REPO},
     )

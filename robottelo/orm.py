@@ -1,5 +1,9 @@
 """Module that define the model layer used to define entities"""
-from fauxfactory import FauxFactory
+from fauxfactory import (
+    gen_boolean, gen_choice, gen_email,
+    gen_integer, gen_ipaddr, gen_mac,
+    gen_string, gen_url
+)
 from robottelo.api import client
 from robottelo.common import helpers
 import booby
@@ -88,7 +92,7 @@ def _get_value(field, default):
     if 'default' in field.options.keys():
         return field.options['default']
     elif 'choices' in field.options.keys():
-        return FauxFactory.generate_choice(field.options['choices'])
+        return gen_choice(field.options['choices'])
     elif callable(default):
         return default()
     else:
@@ -105,14 +109,14 @@ class BooleanField(booby.fields.Boolean):
     """Field that represents a boolean"""
     def get_value(self):
         """Return a value suitable for a :class:`BooleanField`."""
-        return _get_value(self, FauxFactory.generate_boolean)
+        return _get_value(self, gen_boolean)
 
 
 class EmailField(booby.fields.Email):
     """Field that represents an email"""
     def get_value(self):
         """Return a value suitable for a :class:`EmailField`."""
-        return _get_value(self, FauxFactory.generate_email)
+        return _get_value(self, gen_email)
 
 
 class FloatField(booby.fields.Float):
@@ -133,7 +137,7 @@ class IntegerField(booby.fields.Integer):
         """Return a value suitable for a :class:`IntegerField`."""
         return _get_value(
             self,
-            FauxFactory.generate_integer(self.min_val, self.max_val)
+            gen_integer(self.min_val, self.max_val)
         )
 
 
@@ -157,7 +161,7 @@ class StringField(booby.fields.String):
             integer.
         :param sequence str_type: The types of characters to generate when
             :meth:`get-value` is called. Any argument which can be passed to
-            ``FauxFactory.generate_string`` can be provided in the sequence.
+            ``gen_string`` can be provided in the sequence.
 
         """
         if isinstance(len, tuple):
@@ -171,9 +175,9 @@ class StringField(booby.fields.String):
         """Return a value suitable for a :class:`StringField`."""
         return _get_value(
             self,
-            lambda: FauxFactory.generate_string(
-                FauxFactory.generate_choice(self.str_type),
-                FauxFactory.generate_integer(self.min_len, self.max_len)
+            lambda: gen_string(
+                gen_choice(self.str_type),
+                gen_integer(self.min_len, self.max_len)
             )
         )
 
@@ -201,7 +205,7 @@ class IPAddressField(StringField):
     """Field that represents an IP adrress"""
     def get_value(self):
         """Return a value suitable for a :class:`IPAddressField`."""
-        return _get_value(self, FauxFactory.generate_ipaddr)
+        return _get_value(self, gen_ipaddr)
 
 
 # FIXME: implement get_value()
@@ -220,7 +224,7 @@ class MACAddressField(StringField):
     """Field that represents a MAC adrress"""
     def get_value(self):
         """Return a value suitable for a :class:`MACAddressField`."""
-        return _get_value(self, FauxFactory.generate_mac)
+        return _get_value(self, gen_mac)
 
 
 class OneToOneField(Field):
@@ -254,7 +258,7 @@ class URLField(StringField):
     """Field that represents an URL"""
     def get_value(self):
         """Return a value suitable for a :class:`URLField`."""
-        return _get_value(self, FauxFactory.generate_url)
+        return _get_value(self, gen_url)
 
 
 def _get_class(class_or_name, module='robottelo.entities'):

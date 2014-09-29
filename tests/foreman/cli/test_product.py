@@ -3,7 +3,7 @@
 """Test class for Product CLI"""
 
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_string
 from robottelo.cli.factory import (
     CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
 from robottelo.cli.product import Product
@@ -29,12 +29,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_1(self, test_name):
@@ -73,18 +73,18 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15),
-         u'label': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15),
-         u'label': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15),
-         u'label': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15),
-         u'label': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15),
-         u'label': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('html', 15),
-         u'label': FauxFactory.generate_string('numeric', 15)},
+        {u'name': gen_string('alpha', 15),
+         u'label': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15),
+         u'label': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15),
+         u'label': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15),
+         u'label': gen_string('alpha', 15)},
+        {u'name': gen_string('utf8', 15),
+         u'label': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('html', 15),
+         u'label': gen_string('numeric', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_2(self, test_name):
@@ -124,18 +124,18 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15),
-         u'description': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15),
-         u'description': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15),
-         u'description': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15),
-         u'description': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15),
-         u'description': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15),
-         u'description': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15),
+         u'description': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15),
+         u'description': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15),
+         u'description': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15),
+         u'description': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15),
+         u'description': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15),
+         u'description': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_3(self, test_name):
@@ -177,12 +177,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_4(self, test_name):
@@ -226,12 +226,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_create_5(self, test_name):
@@ -272,12 +272,12 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 300)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 300)},
-        {u'name': FauxFactory.generate_string('numeric', 300)},
-        {u'name': FauxFactory.generate_string('latin1', 300)},
-        {u'name': FauxFactory.generate_string('utf8', 300)},
-        {u'name': FauxFactory.generate_string('html', 300)},
+        {u'name': gen_string('alpha', 300)},
+        {u'name': gen_string('alphanumeric', 300)},
+        {u'name': gen_string('numeric', 300)},
+        {u'name': gen_string('latin1', 300)},
+        {u'name': gen_string('utf8', 300)},
+        {u'name': gen_string('html', 300)},
     )
     @attr('cli', 'product')
     def test_negative_create_1(self, test_name):
@@ -299,12 +299,12 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @data(
-        {u'name': FauxFactory.generate_string('latin1', 15),
-         u'label': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15),
-         u'label': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15),
-         u'label': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('latin1', 15),
+         u'label': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15),
+         u'label': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15),
+         u'label': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_negative_create_2(self, test_name):
@@ -328,12 +328,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'description': FauxFactory.generate_string('alpha', 15)},
-        {u'description': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'description': FauxFactory.generate_string('numeric', 15)},
-        {u'description': FauxFactory.generate_string('latin1', 15)},
-        {u'description': FauxFactory.generate_string('utf8', 15)},
-        {u'description': FauxFactory.generate_string('html', 15)},
+        {u'description': gen_string('alpha', 15)},
+        {u'description': gen_string('alphanumeric', 15)},
+        {u'description': gen_string('numeric', 15)},
+        {u'description': gen_string('latin1', 15)},
+        {u'description': gen_string('utf8', 15)},
+        {u'description': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_1(self, test_data):
@@ -392,12 +392,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_2(self, test_name):
@@ -490,12 +490,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_update_3(self, test_name):
@@ -589,12 +589,12 @@ class TestProduct(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
     @data(
-        {u'name': FauxFactory.generate_string('alpha', 15)},
-        {u'name': FauxFactory.generate_string('alphanumeric', 15)},
-        {u'name': FauxFactory.generate_string('numeric', 15)},
-        {u'name': FauxFactory.generate_string('latin1', 15)},
-        {u'name': FauxFactory.generate_string('utf8', 15)},
-        {u'name': FauxFactory.generate_string('html', 15)},
+        {u'name': gen_string('alpha', 15)},
+        {u'name': gen_string('alphanumeric', 15)},
+        {u'name': gen_string('numeric', 15)},
+        {u'name': gen_string('latin1', 15)},
+        {u'name': gen_string('utf8', 15)},
+        {u'name': gen_string('html', 15)},
     )
     @attr('cli', 'product')
     def test_positive_delete_1(self, test_name):

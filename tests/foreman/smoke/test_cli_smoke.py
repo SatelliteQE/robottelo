@@ -1,6 +1,6 @@
 """Smoke tests for the ``CLI`` end-to-end scenario."""
 from ddt import ddt
-from fauxfactory import FauxFactory
+from fauxfactory import gen_alphanumeric, gen_ipaddr
 from nose.plugins.attrib import attr
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -114,7 +114,7 @@ class TestSmoke(CLITestCase):
         new_org = self._create(
             new_user,
             Org,
-            {u'name': self._generate_name()}
+            {u'name': gen_alphanumeric()}
         )
 
         # Create new lifecycle environment 1
@@ -122,7 +122,7 @@ class TestSmoke(CLITestCase):
             new_user,
             LifecycleEnvironment,
             {u'organization-id': new_org['id'],
-             u'name': self._generate_name(),
+             u'name': gen_alphanumeric(),
              u'prior': u'Library'}
         )
 
@@ -131,7 +131,7 @@ class TestSmoke(CLITestCase):
             new_user,
             LifecycleEnvironment,
             {u'organization-id': new_org['id'],
-             u'name': self._generate_name(),
+             u'name': gen_alphanumeric(),
              u'prior': lifecycle1['name']}
         )
 
@@ -140,7 +140,7 @@ class TestSmoke(CLITestCase):
             new_user,
             Product,
             {u'organization-id': new_org['id'],
-             u'name': self._generate_name()}
+             u'name': gen_alphanumeric()}
         )
 
         # Create a YUM repository
@@ -148,7 +148,7 @@ class TestSmoke(CLITestCase):
             new_user,
             Repository,
             {u'product-id': new_product['id'],
-             u'name': self._generate_name(),
+             u'name': gen_alphanumeric(),
              u'content-type': u'yum',
              u'publish-via-http': u'true',
              u'url': GOOGLE_CHROME_REPO}
@@ -159,7 +159,7 @@ class TestSmoke(CLITestCase):
             new_user,
             Repository,
             {u'product-id': new_product['id'],
-             u'name': self._generate_name(),
+             u'name': gen_alphanumeric(),
              u'content-type': u'puppet',
              u'publish-via-http': u'true',
              u'url': FAKE_0_PUPPET_REPO}
@@ -198,7 +198,7 @@ class TestSmoke(CLITestCase):
             new_user,
             ContentView,
             {u'organization-id': new_org['id'],
-             u'name': self._generate_name()}
+             u'name': gen_alphanumeric()}
         )
 
         # Associate yum repository to content view
@@ -325,7 +325,7 @@ class TestSmoke(CLITestCase):
             new_user,
             ComputeResource,
             {
-                u'name': self._generate_name(),
+                u'name': gen_alphanumeric(),
                 u'provider': u'Libvirt',
                 u'url': u'qemu+tcp://{0}:16509/system'.format(
                     conf.properties['main.server.hostname'])
@@ -336,8 +336,8 @@ class TestSmoke(CLITestCase):
             new_user,
             Subnet,
             {
-                u'name': self._generate_name(),
-                u'network': FauxFactory.generate_ipaddr(ip3=True),
+                u'name': gen_alphanumeric(),
+                u'network': gen_ipaddr(ip3=True),
                 u'mask': u'255.255.255.0'
             }
         )
@@ -347,7 +347,7 @@ class TestSmoke(CLITestCase):
             new_user,
             Domain,
             {
-                u'name': self._generate_name(),
+                u'name': gen_alphanumeric(),
             }
         )
 
@@ -392,7 +392,7 @@ class TestSmoke(CLITestCase):
             new_user,
             HostGroup,
             {
-                u'name': self._generate_name(),
+                u'name': gen_alphanumeric(),
                 u'domain-id': new_domain['id'],
                 u'subnet-id': new_subnet['id'],
                 u'environment-id': puppet_env[0]['id'],
@@ -449,20 +449,6 @@ class TestSmoke(CLITestCase):
                 result.return_code))
 
         return result.stdout
-
-    def _generate_name(self):
-        """
-        Generates a random name string.
-
-        :return: A random string of random length.
-        :rtype: str
-        """
-
-        name = unicode(FauxFactory.generate_string(
-            FauxFactory.generate_choice(['alpha', 'cjk', 'latin1', 'utf8']),
-            FauxFactory.generate_integer(1, 30)))
-
-        return name
 
     def _search(self, entity, attrs):
         """
