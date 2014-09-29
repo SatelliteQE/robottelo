@@ -293,7 +293,7 @@ class RepositorySyncTestCase(TestCase):
             id=org_id).upload_manifest(path=cloned_manifest_path)
         task_result = entities.ForemanTask(id=task_id).poll()['result']
         self.assertEqual(u'success', task_result)
-        repo_id = entities.enable_rhrepo_and_fetchid(
+        repo_id = enable_rhrepo_and_fetchid(
             "x86_64",
             org_id,
             "Red Hat Enterprise Linux Server",
