@@ -68,7 +68,7 @@ class ActivationKey(UITestCase):
 
         # Sync repository
         task_id = entities.Repository(id=repo_attrs['id']).sync()
-        task_result = entities.ForemanTask(id=task_id).poll()['results']
+        task_result = entities.ForemanTask(id=task_id).poll()['result']
         self.assertEqual(
             task_result,
             u'success',
