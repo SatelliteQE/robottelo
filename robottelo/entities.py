@@ -56,7 +56,7 @@ class ActivationKey(
 
         """
         if which == 'releases':
-            return super(ActivationKey, self).path(which='this') + '/releases'
+            return super(ActivationKey, self).path(which='self') + '/releases'
         return super(ActivationKey, self).path()
 
 
@@ -382,7 +382,7 @@ class ContentViewVersion(orm.Entity):
         """
         if which == 'promote':
             return super(ContentViewVersion, self).path(
-                which='this') + '/promote'
+                which='self') + '/promote'
         return super(ContentViewVersion, self).path(which)
 
     def promote(self, environment_id):
@@ -514,7 +514,7 @@ class ContentView(
                 'content_view_puppet_modules', 'content_view_versions',
                 'publish', 'available_puppet_module_names'):
             return '{0}/{1}'.format(
-                super(ContentView, self).path(which='this'),
+                super(ContentView, self).path(which='self'),
                 which
             )
         return super(ContentView, self).path()
@@ -643,9 +643,9 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
         """
         if which == 'bulk_search':
             return '{0}/bulk_search'.format(
-                super(ForemanTask, self).path(which='all')
+                super(ForemanTask, self).path(which='base')
             )
-        return super(ForemanTask, self).path(which='this')
+        return super(ForemanTask, self).path(which='self')
 
     def poll(self, poll_rate=5, timeout=120, auth=None):
         """Return the status of a task or timeout.
@@ -1148,7 +1148,7 @@ class Organization(
                      'subscriptions/refresh_manifest', 'sync_plans',
                      'products'):
             return '{0}/{1}'.format(
-                super(Organization, self).path(which='this'),
+                super(Organization, self).path(which='self'),
                 which
             )
         return super(Organization, self).path(which=which)
@@ -1415,7 +1415,7 @@ class Product(
         """
         if which is not None and which.startswith("repository_sets"):
             return '{0}/{1}'.format(
-                super(Product, self).path(which='this'),
+                super(Product, self).path(which='self'),
                 which,
             )
         return super(Product, self).path(which=which)
@@ -1448,7 +1448,7 @@ class Product(
 
         """
         response = client.get(
-            self.path(which="all"),
+            self.path(which='base'),
             auth=get_server_credentials(),
             verify=False,
             data={u'search': 'name={}'.format(escape_search(name)),
@@ -1637,7 +1637,7 @@ class Repository(
         """
         if which in ('sync', 'upload_content'):
             return '{0}/{1}'.format(
-                super(Repository, self).path(which='this'),
+                super(Repository, self).path(which='self'),
                 which
             )
         return super(Repository, self).path()
@@ -1906,9 +1906,9 @@ class System(
         * ``which == 'this'``.
 
         """
-        if self.uuid is not None and (which is None or which == 'this'):
+        if self.uuid is not None and (which is None or which == 'self'):
             return '{0}/{1}'.format(
-                super(System, self).path(which='all'),
+                super(System, self).path(which='base'),
                 self.uuid
             )
         return super(System, self).path(which=which)

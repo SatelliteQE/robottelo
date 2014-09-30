@@ -319,15 +319,15 @@ class Entity(booby.Model):
     def path(self, which=None):
         """Return the path to the current entity.
 
-        Return the path to all entities of this entity's type if:
+        Return the path to base entities of this entity's type if:
 
-        * ``which`` is ``'all'``, or
+        * ``which`` is ``'base'``, or
         * ``which`` is ``None`` and instance attribute ``id`` is unset.
 
         Return the path to this exact entity if instance attribute ``id`` is
         set and:
 
-        * ``which`` is ``'this'``, or
+        * ``which`` is ``'self'``, or
         * ``which`` is ``None``.
 
         Raise :class:`NoSuchPathError` otherwise.
@@ -345,7 +345,7 @@ class Entity(booby.Model):
         This will allow the extending method to accept a custom parameter
         without accidentally raising a :class:`NoSuchPathError`.
 
-        :param str which: Optional. Valid arguments are 'this' and 'all'.
+        :param str which: Optional. Valid arguments are 'self' and 'base'.
         :return: A fully qualified URL.
         :rtype: str
         :raises robottelo.orm.NoSuchPathError: If no path can be built.
@@ -365,9 +365,9 @@ class Entity(booby.Model):
             helpers.get_server_url() + '/',
             self.Meta.api_path
         )
-        if which == 'all' or which is None and self.id is None:
+        if which == 'base' or which is None and self.id is None:
             return base
-        elif self.id is not None and (which is None or which == 'this'):
+        elif self.id is not None and (which is None or which == 'self'):
             return urlparse.urljoin(base + '/', str(self.id))
         raise NoSuchPathError
 
@@ -416,7 +416,7 @@ class EntityDeleteMixin(object):
     def delete(self, auth=None, synchronous=True):
         """Delete the current entity.
 
-        Send an HTTP DELETE request to ``self.path(which='this')``.
+        Send an HTTP DELETE request to ``self.path(which='self')``.
 
         :param tuple auth: A ``(username, password)`` tuple used when accessing
             the API. If ``None``, the credentials provided by
@@ -438,7 +438,7 @@ class EntityDeleteMixin(object):
         if auth is None:
             auth = helpers.get_server_credentials()
         response = client.delete(
-            self.path(which='this'),
+            self.path(which='self'),
             auth=auth,
             verify=False,
         )
@@ -461,7 +461,7 @@ class EntityReadMixin(object):
     def read_json(self, auth=None):
         """Get information about the current entity.
 
-        Send an HTTP GET request to ``self.path(which='this')``. Return the
+        Send an HTTP GET request to ``self.path(which='self')``. Return the
         decoded JSON response.
 
         :param tuple auth: A ``(username, password)`` tuple used when accessing
@@ -477,7 +477,7 @@ class EntityReadMixin(object):
         if auth is None:
             auth = helpers.get_server_credentials()
         response = client.get(
-            self.path(which='this'),
+            self.path(which='self'),
             auth=auth,
             verify=False,
         )

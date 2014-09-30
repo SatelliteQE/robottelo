@@ -93,17 +93,17 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'content_view_versions'),
         (entities.ContentView, 'publish'),
         (entities.ContentViewVersion, 'promote'),
-        (entities.ForemanTask, 'this'),
+        (entities.ForemanTask, 'self'),
         (entities.Organization, 'subscriptions/delete_manifest'),
         (entities.Organization, 'subscriptions/refresh_manifest'),
         (entities.Organization, 'subscriptions/upload'),
         (entities.Organization, 'sync_plans'),
         (entities.Organization, 'products'),
         (entities.Product, 'repository_sets'),
-        (entities.Organization, 'this'),
+        (entities.Organization, 'self'),
         (entities.Repository, 'sync'),
         (entities.Repository, 'upload_content'),
-        (entities.System, 'this'),
+        (entities.System, 'self'),
     )
     @unpack
     def test_no_such_path(self, entity, path):
@@ -140,19 +140,19 @@ class PathTestCase(TestCase):
         Assert that correct paths are returned when:
 
         * A UUID is provided and ``which`` is omitted.
-        * A UUID is provided and ``which='this'``.
+        * A UUID is provided and ``which='self'``.
         * A UUID is omitted and ``which`` is omitted.
-        * A UUID is omitted and ``which='all'``.
+        * A UUID is omitted and ``which='base'``.
 
         """
         for gen_path in (
                 entities.System(uuid=self.id_).path(),
-                entities.System(uuid=self.id_).path(which='this')):
+                entities.System(uuid=self.id_).path(which='self')):
             self.assertIn('/systems/{0}'.format(self.id_), gen_path)
             self.assertRegexpMatches(gen_path, '{0}$'.format(self.id_))
         for gen_path in (
                 entities.System().path(),
-                entities.System().path(which='all')):
+                entities.System().path(which='base')):
             self.assertIn('/systems', gen_path)
             self.assertRegexpMatches(gen_path, 'systems$')
 
