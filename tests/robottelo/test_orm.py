@@ -97,7 +97,6 @@ class EntityTestCase(unittest.TestCase):
         self.assertEqual(values['name'], name)
         self.assertEqual(values['value'], value)
 
-
     def test_entity_get_fields(self):
         """Test :meth:`robottelo.orm.Entity.get_fields`."""
         fields = SampleEntity().get_fields()
@@ -112,9 +111,9 @@ class EntityTestCase(unittest.TestCase):
         """Test :meth:`robottelo.orm.Entity.path`."""
         self.assertEqual(SampleEntity().path(), self.base_path)
         self.assertEqual(SampleEntity(id=5).path(), self.base_path + '/5')
-        self.assertEqual(SampleEntity(id=5).path('all'), self.base_path)
+        self.assertEqual(SampleEntity(id=5).path('base'), self.base_path)
         with self.assertRaises(orm.NoSuchPathError):
-            SampleEntity().path('this')
+            SampleEntity().path('self')
 
 
 class OneToManyFieldTestCase(unittest.TestCase):
