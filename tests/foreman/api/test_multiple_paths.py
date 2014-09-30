@@ -635,7 +635,7 @@ class EntityReadTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         # entities.LifecycleEnvironment,
-        # entities.Media,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         # entities.OperatingSystemParameter,  # see test_osparameter_read
@@ -707,3 +707,15 @@ class EntityReadTestCase(TestCase):
         self.assertIsInstance(read_entity, entities.Permission)
         self.assertGreater(len(read_entity.name), 0)
         self.assertGreater(len(read_entity.resource_type), 0)
+
+    def test_media_read(self):
+        """@Test: Create a media pointing at an OS and read the media.
+
+        @Assert: The media points at the correct operating system.
+
+        """
+        os_id = entities.OperatingSystem().create()['id']
+        media_id = entities.Media(operatingsystem=[os_id]).create()['id']
+        media = entities.Media(id=media_id).read()
+        self.assertEqual(len(media.operatingsystem), 1)
+        self.assertEqual(media.operatingsystem[0].id, os_id)

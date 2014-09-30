@@ -522,6 +522,11 @@ class EntityReadMixin(object):
         if attrs is None:
             attrs = self.read_json(auth=auth)
 
+        # Rename fields using entity.Meta.api_names, if present.
+        if hasattr(entity.Meta, 'api_names'):
+            for local_name, remote_name in entity.Meta.api_names:
+                attrs[local_name] = attrs.pop(remote_name)
+
         # We must populate `entity`'s attributes from `attrs`.
         #
         # * OneToOneField names end with "_id"
