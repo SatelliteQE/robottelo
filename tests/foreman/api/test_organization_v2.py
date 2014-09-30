@@ -9,7 +9,8 @@ from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities, orm
+from robottelo import entities
+from fauxfactory import gen_string
 from unittest import TestCase
 import ddt
 import httplib
@@ -94,18 +95,18 @@ class OrganizationTestCase(TestCase):
 
     @ddt.data(
         # two-tuples of data
-        (orm.StringField(str_type=('alpha',)).get_value(),
-         orm.StringField(str_type=('alpha',)).get_value()),
-        (orm.StringField(str_type=('alphanumeric',)).get_value(),
-         orm.StringField(str_type=('alphanumeric',)).get_value()),
-        (orm.StringField(str_type=('cjk',)).get_value(),
-         orm.StringField(str_type=('cjk',)).get_value()),
-        (orm.StringField(str_type=('latin1',)).get_value(),
-         orm.StringField(str_type=('latin1',)).get_value()),
-        (orm.StringField(str_type=('numeric',)).get_value(),
-         orm.StringField(str_type=('numeric',)).get_value()),
-        (orm.StringField(str_type=('utf8',)).get_value(),
-         orm.StringField(str_type=('utf8',)).get_value()),
+        (gen_string(str_type='alpha'),
+         gen_string(str_type='alpha')),
+        (gen_string(str_type='alphanumeric'),
+         gen_string(str_type='alphanumeric')),
+        (gen_string(str_type='cjk'),
+         gen_string(str_type='cjk')),
+        (gen_string(str_type='latin1'),
+         gen_string(str_type='latin1')),
+        (gen_string(str_type='numeric'),
+         gen_string(str_type='numeric')),
+        (gen_string(str_type='utf8'),
+         gen_string(str_type='utf8')),
     )
     @ddt.unpack
     def test_positive_create_4(self, name, description):
@@ -153,7 +154,7 @@ class OrganizationTestCase(TestCase):
         self.assertEqual(attrs['description'], description)
 
     @ddt.data(
-        orm.StringField(len=256).get_value(),  # longer than 255
+        gen_string('utf8', length=256),  # longer than 255
         '',
         ' ',
     )
@@ -212,18 +213,18 @@ class OrganizationUpdateTestCase(TestCase):
         ).read()
 
     @ddt.data(
-        {'description': orm.StringField(str_type=('alpha',)).get_value()},
-        {'description': orm.StringField(str_type=('alphanumeric',)).get_value()},  # flake8:noqa pylint:disable=C0301
-        {'description': orm.StringField(str_type=('cjk',)).get_value()},
-        {'description': orm.StringField(str_type=('latin1',)).get_value()},
-        {'description': orm.StringField(str_type=('numeric',)).get_value()},
-        {'description': orm.StringField(str_type=('utf8',)).get_value()},
-        {'name': orm.StringField(str_type=('alpha',)).get_value()},
-        {'name': orm.StringField(str_type=('alphanumeric',)).get_value()},
-        {'name': orm.StringField(str_type=('cjk',)).get_value()},
-        {'name': orm.StringField(str_type=('latin1',)).get_value()},
-        {'name': orm.StringField(str_type=('numeric',)).get_value()},
-        {'name': orm.StringField(str_type=('utf8',)).get_value()},
+        {'description': gen_string(str_type='alpha')},
+        {'description': gen_string(str_type='alphanumeric')},
+        {'description': gen_string(str_type='cjk')},
+        {'description': gen_string(str_type='latin1')},
+        {'description': gen_string(str_type='numeric')},
+        {'description': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='alpha')},
+        {'name': gen_string(str_type='alphanumeric')},
+        {'name': gen_string(str_type='cjk')},
+        {'name': gen_string(str_type='latin1')},
+        {'name': gen_string(str_type='numeric')},
+        {'name': gen_string(str_type='utf8')},
         {  # can we update two attrs at once?
             'description': entities.Organization.description.get_value(),
             'name': entities.Organization.name.get_value(),
@@ -251,8 +252,8 @@ class OrganizationUpdateTestCase(TestCase):
             self.assertEqual(new_attrs[name], value)
 
     @ddt.data(
-        {'name': orm.StringField(len=256).get_value()},
-        {'label': orm.StringField().get_value()},  # Immutable. See BZ 1089996.
+        {'name': gen_string(str_type='utf8', length=256)},
+        {'label': gen_string(str_type='utf8')},  # Immutable. See BZ 1089996.
     )
     def test_negative_update(self, attrs):
         """@Test: Update an organization's attributes with invalid values.

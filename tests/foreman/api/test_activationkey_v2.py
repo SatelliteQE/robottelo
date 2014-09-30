@@ -6,7 +6,7 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
-from robottelo.orm import IntegerField, StringField
+from fauxfactory import gen_integer, gen_string
 from unittest import TestCase
 import httplib
 # (too many public methods) pylint: disable=R0904
@@ -36,8 +36,8 @@ class ActivationKeysTestCase(TestCase):
         )
 
     @data(
-        IntegerField(min_val=1, max_val=20).get_value(),
-        IntegerField(min_val=10000, max_val=20000).get_value(),
+        gen_integer(min_value=1, max_value=20),
+        gen_integer(min_value=10000, max_value=20000),
     )
     def test_positive_create_2(self, max_content_hosts):
         """@Test: Create an activation key with limited content hosts.
@@ -69,10 +69,10 @@ class ActivationKeysTestCase(TestCase):
         )
 
     @data(
-        StringField(str_type=('alpha',)).get_value(),
-        StringField(str_type=('alphanumeric',)).get_value(),
-        StringField(str_type=('cjk',)).get_value(),
-        StringField(str_type=('latin1',)).get_value(),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='cjk'),
+        gen_string(str_type='latin1'),
     )
     @skip_if_bug_open('bugzilla', 1127335)
     def test_positive_create_3(self, name):
@@ -98,10 +98,10 @@ class ActivationKeysTestCase(TestCase):
         )
 
     @data(
-        StringField(str_type=('alphanumeric',)).get_value(),
-        StringField(str_type=('cjk',)).get_value(),
-        StringField(str_type=('latin1',)).get_value(),
-        StringField(str_type=('utf8',)).get_value(),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='cjk'),
+        gen_string(str_type='latin1'),
     )
     def test_positive_create_4(self, description):
         """@Test: Create an activation key and provide a description.
@@ -135,8 +135,8 @@ class ActivationKeysTestCase(TestCase):
             entities.ActivationKey(unlimited_content_hosts=False).create()
 
     @data(
-        StringField(str_type=('alpha',)).get_value(),
-        IntegerField(max_val=-1).get_value(),
+        gen_string(str_type='alpha'),
+        gen_integer(max_value=-1),
         0,
     )
     def test_negative_create_2(self, max_content_hosts):
@@ -155,9 +155,9 @@ class ActivationKeysTestCase(TestCase):
             ).create()
 
     @data(
-        IntegerField(min_val=-10, max_val=-1).get_value(),
-        IntegerField(min_val=1, max_val=20).get_value(),
-        StringField(str_type=('alpha',)).get_value(),
+        gen_integer(min_value=-10, max_value=-1),
+        gen_integer(min_value=1, max_value=20),
+        gen_string(str_type='alpha'),
     )
     def test_negative_create_3(self, max_content_hosts):
         """@Test Create activation key with unlimited content hosts and set max
@@ -175,8 +175,8 @@ class ActivationKeysTestCase(TestCase):
             ).create()
 
     @data(
-        IntegerField(min_val=1, max_val=30).get_value(),
-        IntegerField(min_val=10000, max_val=20000).get_value(),
+        gen_integer(min_value=1, max_value=30),
+        gen_integer(min_value=10000, max_value=20000),
     )
     def test_positive_update_1(self, max_content_hosts):
         """@Test: Create activation key then update it to limited content
@@ -216,8 +216,8 @@ class ActivationKeysTestCase(TestCase):
         self.assertFalse(real_attrs['unlimited_content_hosts'])
 
     @data(
-        StringField(len=(1, 30), str_type=('alpha',)).get_value(),
-        IntegerField(min_val=-200, max_val=-1).get_value(),
+        gen_string(str_type='alpha'),
+        gen_integer(min_value=-200, max_value=-1),
         -1,
         0
     )

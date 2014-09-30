@@ -1,4 +1,4 @@
-from robottelo import orm
+from fauxfactory import gen_string, gen_integer
 from robottelo.test import CLITestCase
 from robottelo.cli.factory import (
     CLIFactoryError, make_architecture, make_domain, make_environment,
@@ -24,8 +24,7 @@ class HostTestCase(CLITestCase):
         self.assertGreater(len(result.stdout), 0)
         puppet_proxy = result.stdout[0]
 
-        host_name = orm.StringField(
-            str_type=('alpha',), len=(1, 10)).get_value()
+        host_name = gen_string(str_type='alpha', length=gen_integer(1, 10))
 
         try:
             # Creating dependent objects

@@ -19,7 +19,7 @@ from robottelo.common.constants import (
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
-import fauxfactory
+from fauxfactory import gen_alpha, gen_url
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
@@ -979,8 +979,8 @@ class Media(
 
         """
         if self.media_path is None:
-            self.media_path = fauxfactory.gen_url(
-                subdomain=fauxfactory.gen_alpha()
+            self.media_path = gen_url(
+                subdomain=gen_alpha()
             )
         return super(Media, self)._factory_data()
 
@@ -1725,7 +1725,7 @@ class Role(
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(
         required=True,
-        str_type=('alphanumeric',),
+        str_type='alphanumeric',
         len=(2, 30),  # min length is 2 and max length is arbitrary
     )
 

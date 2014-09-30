@@ -4,7 +4,7 @@
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo import orm
+from fauxfactory import gen_string, gen_integer, gen_ipaddr
 from robottelo.cli.factory import make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
@@ -18,11 +18,11 @@ class TestSubnet(CLITestCase):
     """Subnet CLI tests."""
 
     @data(
-        orm.StringField(str_type=('alpha',)).get_value(),
-        orm.StringField(str_type=('alphanumeric',)).get_value(),
-        orm.StringField(str_type=('numeric',)).get_value(),
-        orm.StringField(str_type=('latin1',)).get_value(),
-        orm.StringField(str_type=('utf8',)).get_value(),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='numeric'),
+        gen_string(str_type='latin1'),
+        gen_string(str_type='utf8'),
     )
     @attr('cli', 'subnet')
     def test_positive_create_1(self, test_name):
@@ -50,9 +50,9 @@ class TestSubnet(CLITestCase):
             result.stdout['name'], new_subnet['name'], "Names don't match")
 
     @data(
-        [orm.IntegerField(min_val=1, max_val=255).get_value(),
-         orm.IntegerField(min_val=1, max_val=255).get_value()],
-        [orm.IntegerField(min_val=1, max_val=255).get_value()] * 2,
+        [gen_integer(min_value=1, max_value=255),
+         gen_integer(min_value=1, max_value=255)],
+        [gen_integer(min_value=1, max_value=255)] * 2,
         [1, 255],
     )
     def test_positive_create_2(self, pool):
@@ -65,8 +65,7 @@ class TestSubnet(CLITestCase):
         """
         pool.sort()
         mask = '255.255.255.0'
-        network = orm.IPAddressField().get_value()
-        # generate pool range from network address
+        network = gen_ipaddr()       # generate pool range from network address
         from_ip = re.sub('\d+$', str(pool[0]), network)
         to_ip = re.sub('\d+$', str(pool[1]), network)
         try:
@@ -105,10 +104,10 @@ class TestSubnet(CLITestCase):
             make_subnet(options)
 
     @data(
-        {u'from': orm.IntegerField(min_val=1, max_val=255).get_value()},
-        {u'to': orm.IntegerField(min_val=1, max_val=255).get_value()},
-        {u'from': orm.IntegerField(min_val=128, max_val=255).get_value(),
-         u'to': orm.IntegerField(min_val=1, max_val=127).get_value()},
+        {u'from': gen_integer(min_value=1, max_value=255)},
+        {u'to': gen_integer(min_value=1, max_value=255)},
+        {u'from': gen_integer(min_value=128, max_value=255),
+         u'to': gen_integer(min_value=1, max_value=127)},
         {u'from': 256, u'to': 257},
     )
     def test_negative_create_2(self, pool):
@@ -120,8 +119,7 @@ class TestSubnet(CLITestCase):
 
         """
         mask = '255.255.255.0'
-        network = orm.IPAddressField().get_value()
-
+        network = gen_ipaddr()
         opts = {u'mask': mask, u'network': network}
         # generate pool range from network address
         for key, val in pool.iteritems():
@@ -158,11 +156,11 @@ class TestSubnet(CLITestCase):
             "Total subnets should have increased")
 
     @data(
-        orm.StringField(str_type=('alpha',)).get_value(),
-        orm.StringField(str_type=('alphanumeric',)).get_value(),
-        orm.StringField(str_type=('numeric',)).get_value(),
-        orm.StringField(str_type=('latin1',)).get_value(),
-        orm.StringField(str_type=('utf8',)).get_value(),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='numeric'),
+        gen_string(str_type='latin1'),
+        gen_string(str_type='utf8'),
     )
     @attr('cli', 'subnet')
     def test_positive_update_1(self, test_name):
@@ -221,7 +219,7 @@ class TestSubnet(CLITestCase):
 
         """
 
-        network = orm.IPAddressField().get_value()
+        network = gen_ipaddr()
         mask = '255.255.255.0'
         try:
             subnet = make_subnet({
@@ -230,7 +228,7 @@ class TestSubnet(CLITestCase):
             })
         except CLIFactoryError as err:
             self.fail(err)
-        new_network = orm.IPAddressField().get_value()
+        new_network = gen_ipaddr()
         new_mask = '255.255.192.0'
         result = Subnet.update({
             u'id': subnet['id'],
@@ -245,9 +243,9 @@ class TestSubnet(CLITestCase):
         self.assertEqual(result.stdout['mask'], new_mask)
 
     @data(
-        [orm.IntegerField(min_val=1, max_val=255).get_value(),
-         orm.IntegerField(min_val=1, max_val=255).get_value()],
-        [orm.IntegerField(min_val=1, max_val=255).get_value()]*2,
+        [gen_integer(min_value=1, max_value=255),
+         gen_integer(min_value=1, max_value=255)],
+        [gen_integer(min_value=1, max_value=255)] * 2,
         [1, 255],
     )
     def test_positive_update_3(self, pool):
@@ -316,10 +314,10 @@ class TestSubnet(CLITestCase):
             self.assertEqual(subnet[key], result.stdout[key])
 
     @data(
-        {u'from': orm.IntegerField(min_val=1, max_val=255).get_value()},
-        {u'to': orm.IntegerField(min_val=1, max_val=255).get_value()},
-        {u'from': orm.IntegerField(min_val=128, max_val=255).get_value(),
-         u'to': orm.IntegerField(min_val=1, max_val=127).get_value()},
+        {u'from': gen_integer(min_value=1, max_value=255)},
+        {u'to': gen_integer(min_value=1, max_value=255)},
+        {u'from': gen_integer(min_value=128, max_value=255),
+         u'to': gen_integer(min_value=1, max_value=127)},
         {u'from': 256, u'to': 257},
     )
     def test_negative_update_2(self, options):
@@ -348,11 +346,11 @@ class TestSubnet(CLITestCase):
             self.assertEqual(result.stdout[key], subnet[key])
 
     @data(
-        orm.StringField(str_type=('alpha',)).get_value(),
-        orm.StringField(str_type=('alphanumeric',)).get_value(),
-        orm.StringField(str_type=('numeric',)).get_value(),
-        orm.StringField(str_type=('latin1',)).get_value(),
-        orm.StringField(str_type=('utf8',)).get_value(),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='numeric'),
+        gen_string(str_type='latin1'),
+        gen_string(str_type='utf8'),
     )
     @attr('cli', 'subnet')
     def test_positive_delete_1(self, test_name):

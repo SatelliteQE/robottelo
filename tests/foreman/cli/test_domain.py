@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Domain  CLI"""
 
-from robottelo import orm
+from fauxfactory import gen_string
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import make_domain, CLIFactoryError
 from robottelo.common.decorators import data, run_only_on
@@ -17,14 +17,14 @@ class TestDomain(MetaCLITestCase):
     factory_obj = Domain
 
     @data(
-        {u'name': 'white spaces %s' % orm.StringField().get_value(),
-         u'description': orm.StringField(str_type=('alpha',)).get_value()},
-        {u'name': orm.StringField(str_type=('utf8',)).get_value(),
-         u'description': orm.StringField(str_type=('utf8',)).get_value()},
-        {u'name': orm.StringField(str_type=('numeric',)).get_value(),
-         u'description': orm.StringField(str_type=('numeric',)).get_value()},
-        {u'name': orm.StringField(len=255).get_value(),
-         u'description': orm.StringField(len=255).get_value()},
+        {u'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+         u'description': gen_string(str_type='alpha')},
+        {u'name': gen_string(str_type='utf8'),
+         u'description': gen_string(str_type='utf8')},
+        {u'name': gen_string(str_type='numeric'),
+         u'description': gen_string(str_type='numeric')},
+        {u'name': gen_string(str_type='utf8', length=255),
+         u'description': gen_string(str_type='utf8', length=255)},
     )
     def test_positive_create(self, options):
         """@Test: Create domain with valid name and description
@@ -40,9 +40,9 @@ class TestDomain(MetaCLITestCase):
             self.fail(err)
 
     @data(
-        {u'description': orm.StringField(len=256).get_value()},
+        {u'description': gen_string(str_type='utf8', length=256)},
         {u'dns-id': '-1'},
-        {u'name': orm.StringField(len=256).get_value()},
+        {u'name': gen_string(str_type='utf8', length=256)},
     )
     def test_negative_create(self, options):
         """@Test: Create domain with invalid values
@@ -56,14 +56,14 @@ class TestDomain(MetaCLITestCase):
             make_domain(options)
 
     @data(
-        {u'name': 'white spaces %s' % orm.StringField().get_value(),
-         u'description': orm.StringField(str_type=('alpha',)).get_value()},
-        {u'name': orm.StringField(str_type=('utf8',)).get_value(),
-         u'description': orm.StringField(str_type=('utf8',)).get_value()},
-        {u'name': orm.StringField(str_type=('numeric',)).get_value(),
-         u'description': orm.StringField(str_type=('numeric',)).get_value()},
-        {u'name': orm.StringField(len=255).get_value(),
-         u'description': orm.StringField(len=255).get_value()},
+        {u'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+         u'description': gen_string(str_type='alpha')},
+        {u'name': gen_string(str_type='utf8'),
+         u'description': gen_string(str_type='utf8')},
+        {u'name': gen_string(str_type='numeric'),
+         u'description': gen_string(str_type='numeric')},
+        {u'name': gen_string(str_type='utf8', length=255),
+         u'description': gen_string(str_type='utf8', length=255)},
     )
     def test_positive_update(self, options):
         """@Test: Update domain with valid values
@@ -75,7 +75,7 @@ class TestDomain(MetaCLITestCase):
         """
         try:
             domain = make_domain({
-                u'description': orm.StringField().get_value()
+                u'description': gen_string(str_type='utf8')
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -93,8 +93,8 @@ class TestDomain(MetaCLITestCase):
 
     @data(
         {u'name': ''},
-        {u'name': orm.StringField(len=256).get_value()},
-        {u'description': orm.StringField(len=256).get_value()},
+        {u'name': gen_string(str_type='utf8', length=256)},
+        {u'description': gen_string(str_type='utf8', length=256)},
         {u'dns-id': '-1'},
     )
     def test_negative_update(self, options):
@@ -122,13 +122,13 @@ class TestDomain(MetaCLITestCase):
             self.assertEqual(result.stdout[key], domain[key])
 
     @data(
-        {'name': orm.StringField().get_value(),
-         'value': orm.StringField().get_value()},
-        {'name': orm.StringField(len=255).get_value(),
-         'value': orm.StringField().get_value()},
-        {'name': orm.StringField().get_value(),
-         'value': orm.StringField(len=255).get_value()},
-        {'name': orm.StringField().get_value(),
+        {'name': gen_string(str_type='utf8'),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=255),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8'),
+         'value': gen_string(str_type='utf8', length=255)},
+        {'name': gen_string(str_type='utf8'),
          'value': ''},
     )
     def test_positive_set_parameter(self, options):
@@ -161,12 +161,12 @@ class TestDomain(MetaCLITestCase):
         self.assertDictEqual(parameter, result.stdout['parameters'])
 
     @data(
-        {'name': 'white spaces %s' % orm.StringField().get_value(),
-         'value': orm.StringField().get_value()},
+        {'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+         'value': gen_string(str_type='utf8')},
         {'name': '',
-         'value': orm.StringField().get_value()},
-        {'name': orm.StringField(len=256).get_value(),
-         'value': orm.StringField().get_value()},
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=256),
+         'value': gen_string(str_type='utf8')},
     )
     def test_negative_set_parameter(self, options):
         """@Test: Domain set-parameter with invalid values
@@ -192,11 +192,11 @@ class TestDomain(MetaCLITestCase):
         self.assertEqual(len(result.stdout['parameters']), 0)
 
     @data(
-        {'name': orm.StringField().get_value(),
-         'value': orm.StringField().get_value()},
-        {'name': orm.StringField(len=255).get_value(),
-         'value': orm.StringField().get_value()},
-        {'name': orm.StringField().get_value(),
+        {'name': gen_string(str_type='utf8'),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=255),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8'),
          'value': ''},
     )
     def test_positive_delete_parameter(self, options):
