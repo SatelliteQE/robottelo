@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nose.plugins.attrib import attr
-from robottelo import entities, orm
+from robottelo import entities
 from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE, VALID_GPG_KEY_FILE, FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO, REPO_DISCOVERY_URL)
@@ -28,10 +28,8 @@ class Repos(UITestCase):
         super(Repos, self).setUp()
         # Make sure to use the Class' org_name instance
         if Repos.org_name is None and Repos.loc_name is None:
-            org_name = orm.StringField(str_type=('alphanumeric',),
-                                       len=(5, 80)).get_value()
-            loc_name = orm.StringField(str_type=('alphanumeric',),
-                                       len=(5, 80)).get_value()
+            org_name = gen_string("alpha", 10)
+            loc_name = gen_string("alpha", 10)
             org_attrs = entities.Organization(name=org_name).create()
             loc_attrs = entities.Location(name=loc_name).create()
             Repos.org_name = org_attrs['name']
@@ -74,8 +72,7 @@ class Repos(UITestCase):
 
         """
 
-        org_2_name = orm.StringField(str_type=('alphanumeric',),
-                                     len=(5, 80)).get_value()
+        org_2_name = gen_string("alpha", 10)
         # Creates new product_1
         product_1_name = entities.Product(
             organization=self.org_id,
