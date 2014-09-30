@@ -692,3 +692,18 @@ class EntityReadTestCase(TestCase):
             ).read(),
             entities.OperatingSystemParameter
         )
+
+    @run_only_on('sat')
+    def test_permission_read(self):
+        """@Test: Create an Permission entity and get it using
+        :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        @Assert: The just-read entity is an instance of the correct class and
+        name and resource_type fields are populated
+
+        """
+        attrs = entities.Permission().search(per_page=1)[0]
+        read_entity = entities.Permission(id=attrs['id']).read()
+        self.assertIsInstance(read_entity, entities.Permission)
+        self.assertGreater(len(read_entity.name), 0)
+        self.assertGreater(len(read_entity.resource_type), 0)

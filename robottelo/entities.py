@@ -1348,27 +1348,47 @@ class OverrideValue(orm.Entity):
         server_modes = ('sat')
 
 
-class Permission(orm.Entity, factory.EntityFactoryMixin):
+class Permission(orm.Entity, orm.EntityReadMixin):
     """A representation of a Permission entity."""
-    description = orm.StringField(null=True)
     name = orm.StringField(required=True)
-    organization = orm.OneToOneField('Organization')
-    # array of tag ids
-    tags = orm.ListField()
-    # name of a resource or 'all'
-    permission_type = orm.StringField(required=True)
-    # array of permission verbs
-    verbs = orm.ListField()
-    # True if the permission should use all tags
-    all_tags = orm.BooleanField()
-    # True if the permission should use all verbs
-    all_verbs = orm.BooleanField()
+    resource_type = orm.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('permission_type', 'type'),)
         api_path = 'api/v2/permissions'
         server_modes = ('sat', 'sam')
+
+    def search(self, per_page=10000):
+        """Searches for permissions using the values for instance name and
+        resource_type
+
+        Usage::
+
+            result = Permission(resource_type='Architecture').search()
+            result = Permission(name='create_architectures').search()
+
+        If you search by using both name and resource_type then the default
+        server behavior is to search by resource_type.
+
+        :param int per_page: number of results per page to return
+        :return: A list with the found results
+        :rtype: list
+
+        """
+        search_terms = {u'per_page': per_page}
+        if self.name is not None:
+            search_terms[u'name'] = self.name
+        if self.resource_type is not None:
+            search_terms[u'resource_type'] = self.resource_type
+
+        response = client.get(
+            self.path('all'),
+            auth=get_server_credentials(),
+            verify=False,
+            data=search_terms
+        )
+        response.raise_for_status()
+        return response.json()['results']
 
 
 class Ping(orm.Entity):
