@@ -83,6 +83,7 @@ class EntityTestCase(TestCase):
         entities.Host,
         # entities.HostCollection,  # need organization_id
         # entities.LifecycleEnvironment,  # need organization_id
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -129,6 +130,7 @@ class EntityTestCase(TestCase):
         entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -176,6 +178,7 @@ class EntityTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -228,6 +231,7 @@ class EntityTestCase(TestCase):
         entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -274,6 +278,7 @@ class EntityIdTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -326,6 +331,7 @@ class EntityIdTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -373,6 +379,7 @@ class EntityIdTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -444,6 +451,7 @@ class DoubleCheckTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -499,6 +507,7 @@ class DoubleCheckTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -554,6 +563,7 @@ class DoubleCheckTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         entities.LifecycleEnvironment,
+        entities.Media,
         entities.Model,
         entities.OperatingSystem,
         entities.Organization,
@@ -625,6 +635,7 @@ class EntityReadTestCase(TestCase):
         # entities.Host,  # Host().create() does not work
         entities.HostCollection,
         # entities.LifecycleEnvironment,
+        # entities.Media,
         entities.Model,
         entities.OperatingSystem,
         # entities.OperatingSystemParameter,  # see test_osparameter_read

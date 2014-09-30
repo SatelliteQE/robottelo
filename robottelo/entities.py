@@ -19,6 +19,7 @@ from robottelo.common.constants import (
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
+import fauxfactory
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
@@ -957,15 +958,31 @@ class Location(orm.Entity, factory.EntityFactoryMixin):
         server_modes = ('sat')
 
 
-class Media(orm.Entity, factory.EntityFactoryMixin):
+class Media(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Media entity."""
+    media_path = orm.URLField(required=True)
     name = orm.StringField(required=True)
-    operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
+    operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
     os_family = orm.StringField(choices=(
         'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos', 'Redhat',
         'Solaris', 'Suse', 'Windows',
     ), null=True)
-    media_path = orm.StringField(required=True)
+
+    def _factory_data(self):
+        """Customize the data provided to :class:`robottelo.factory.Factory`.
+
+        By default, :meth:`robottelo.orm.URLField.get_value` does not return
+        especially unique values. This is problematic, as all media must have a
+        unique path.
+
+        """
+        if self.media_path is None:
+            self.media_path = fauxfactory.gen_url(
+                subdomain=fauxfactory.gen_alpha()
+            )
+        return super(Media, self)._factory_data()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1060,7 +1077,7 @@ class OperatingSystemParameter(
 
     def read(self, auth=None, entity=None, attrs=None):
         """Override the default implementation of
-        `robottelo.orm.EntityReadMixin.read`.
+        :meth:`robottelo.orm.EntityReadMixin.read`.
 
         """
         # Passing `entity=self` also succeeds. However, the attributes of the
