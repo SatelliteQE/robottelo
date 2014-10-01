@@ -68,14 +68,37 @@ class ActivationKey(
 
         releases
             /activation_keys/<id>/releases
+        subscriptions
+            /activation_keys/<id>/subscriptions
 
         ``super`` is called otherwise.
 
         """
-        if which == 'releases':
-            return super(ActivationKey, self).path(which='self') + '/releases'
+        if which in ('releases', 'subscriptions',):
+            return '{0}/{1}'.format(
+                super(ActivationKey, self).path(which='self'),
+                which
+            )
         return super(ActivationKey, self).path(which)
 
+    def add_subsciptions(self, subscription_id, quantity):
+        """Helper for adding subscriptions to activation key.
+
+        :returns: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` If the server responds with
+            an HTTP 4XX or 5XX message.
+
+        """
+        response = client.post(
+            self.path('subscriptions'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'id': subscription_id,
+                  u'quantity': quantity,}
+        )
+        response.raise_for_status()
+        return response.json()
 
 class Architecture(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
@@ -1281,6 +1304,8 @@ class Organization(
             /organizations/<id>/sync_plans
         products
             /organizations/<id>/products
+        subscriptions
+            /organizations/<id>/subscriptions
 
         Otherwise, call ``super``.
 
