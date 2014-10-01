@@ -21,6 +21,7 @@ help:
 	@echo "  test-foreman-ui-xvfb  to test a Foreman deployment UI using xvfb-run"
 	@echo "  test-foreman-smoke    to perform a generic smoke test"
 	@echo "  graph-entities        to graph entity relationships"
+	@echo "  lint                  to run pylint on the entire codebase"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -54,8 +55,11 @@ test-foreman-smoke:
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
 
+lint:
+	scripts/lint.py
+
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
         test-foreman-api test-foreman-cli test-foreman-ui \
-        test-foreman-ui-xvfb test-foreman-smoke graph-entities
+        test-foreman-ui-xvfb test-foreman-smoke graph-entities lint
