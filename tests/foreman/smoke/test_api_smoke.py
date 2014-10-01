@@ -6,7 +6,8 @@ from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import helpers
-from robottelo import entities, orm
+from robottelo import entities
+from fauxfactory import gen_string
 from unittest import TestCase
 import httplib
 import random
@@ -257,8 +258,8 @@ class TestSmoke(TestCase):
         # alphanumeric charset, because Foreman complains about incomplete
         # multi-byte chars when latin1 chars are used.
         #
-        login = orm.StringField(str_type=('alphanumeric',)).get_value()
-        password = orm.StringField(str_type=('alphanumeric',)).get_value()
+        login = gen_string(str_type='alphanumeric')
+        password = gen_string(str_type='alphanumeric')
 
         # step 1: Create a new user with admin permissions
         entities.User(admin=True, login=login, password=password).create()

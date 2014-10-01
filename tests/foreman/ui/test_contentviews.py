@@ -14,8 +14,8 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import gen_string
-from robottelo import entities, orm
+from fauxfactory import gen_string, gen_integer
+from robottelo import entities
 from robottelo.api import client
 
 from robottelo.common.constants import (
@@ -43,8 +43,8 @@ class TestContentViewsUI(UITestCase):
 
         # Make sure to use the Class' org_name instance
         if TestContentViewsUI.org_name is None:
-            org_name = orm.StringField(str_type=('alphanumeric',),
-                                       len=(5, 80)).get_value()
+            org_name = gen_string(str_type='alphanumeric',
+                                  length=gen_integer(5, 80))
             org_attrs = entities.Organization(name=org_name).create()
             TestContentViewsUI.org_name = org_attrs['name']
             TestContentViewsUI.org_id = org_attrs['id']

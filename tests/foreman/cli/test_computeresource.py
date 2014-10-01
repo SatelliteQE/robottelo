@@ -20,8 +20,7 @@ Subcommands::
 
 """
 from ddt import ddt
-from fauxfactory import gen_string
-from robottelo import orm
+from fauxfactory import gen_string, gen_url
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
 from robottelo.common.decorators import data, run_only_on
@@ -51,7 +50,7 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute reource is created
 
         """
-        name = orm.StringField(str_type=('alpha',)).get_value()
+        name = gen_string(str_type='alpha')
         result = ComputeResource.create({
             'name': name,
             'provider': 'Libvirt',
@@ -162,23 +161,22 @@ class TestComputeResource(CLITestCase):
     # Positive create
 
     @data(
-        {u'name': orm.StringField(str_type=('numeric',)).get_value(),
-         u'description': orm.StringField(str_type=('numeric',)).get_value()},
+        {u'name': gen_string(str_type='numeric'),
+         u'description': gen_string(str_type='numeric')},
         {u'name': gen_string('alphanumeric', 255),
-         u'description': orm.StringField(
-             str_type=('alphanumeric',)).get_value()},
-        {u'name': orm.StringField(str_type=('alphanumeric',)).get_value(),
+         u'description': gen_string(str_type='alphanumeric')},
+        {u'name': gen_string(str_type='alphanumeric'),
          u'description': gen_string('alphanumeric', 255)},
-        {u'name': orm.StringField(str_type=('utf8',)).get_value(),
-         u'description': orm.StringField(str_type=('utf8',)).get_value()},
+        {u'name': gen_string(str_type='utf8'),
+         u'description': gen_string(str_type='utf8')},
         {u'name': '<html>%s</html>' %
-                  orm.StringField(str_type=('alpha',)).get_value(),
+                  gen_string(str_type='alpha'),
          u'description': '<html>%s</html>' %
-                         orm.StringField(str_type=('alpha',)).get_value()},
+                         gen_string(str_type='alpha')},
         {u'name': "%s[]@#$%%^&*(),./?\"{}><|''" %
-                  orm.StringField(str_type=('utf8',)).get_value(),
+                  gen_string(str_type='utf8'),
          u'description': "%s[]@#$%%^&*(),./?\"{}><|''" %
-                         orm.StringField(str_type=('alpha',)).get_value()},
+                         gen_string(str_type='alpha')},
     )
     def test_create_positive_libvirt(self, options):
         """@Test: Test Compute Resource create
@@ -190,7 +188,7 @@ class TestComputeResource(CLITestCase):
         """
         result = ComputeResource.create({
             u'name': options['name'],
-            u'url': orm.URLField().get_value(),
+            u'url': gen_url(),
             u'provider': FOREMAN_PROVIDERS['libvirt'],
             u'description': options['description']
         })
@@ -204,7 +202,7 @@ class TestComputeResource(CLITestCase):
         {u'name': gen_string('alphanumeric', 256)},
         {u'description': gen_string('alphanumeric', 256)},
         {u'name': 'white %s spaces' %
-                  orm.StringField(str_type=('alphanumeric',)).get_value()},
+                  gen_string(str_type='alphanumeric')},
         {u'name': ''},
         {u'url': 'invalid url'},
         {u'url': ''},
@@ -219,9 +217,9 @@ class TestComputeResource(CLITestCase):
         """
         result = ComputeResource.create({
             u'name': options.get(
-                'name', orm.StringField(str_type=('alphanumeric',)).get_value()
+                'name', gen_string(str_type='alphanumeric')
             ),
-            u'url': options.get('url', orm.URLField().get_value()),
+            u'url': options.get('url', gen_url()),
             u'provider': FOREMAN_PROVIDERS['libvirt'],
             u'description': options.get('description', '')
         })
@@ -242,7 +240,7 @@ class TestComputeResource(CLITestCase):
         result = ComputeResource.create({
             u'name': comp_res['name'],
             u'provider': FOREMAN_PROVIDERS['libvirt'],
-            u'url': orm.URLField().get_value()
+            u'url': gen_url()
         })
         self.assertNotEquals(result.return_code, 0)
         self.assertNotEqual(len(result.stderr), 0)
@@ -251,11 +249,10 @@ class TestComputeResource(CLITestCase):
 
     @data(
         {u'new-name': gen_string('utf8', 255)},
-        {u'new-name': orm.StringField(str_type=('alphanumeric',)).get_value()},
+        {u'new-name': gen_string(str_type='alphanumeric')},
         {u'description': gen_string('utf8', 255)},
-        {u'description': orm.StringField(
-            str_type=('alphanumeric',)).get_value()},
-        {u'url': orm.URLField().get_value()},
+        {u'description': gen_string(str_type='alphanumeric')},
+        {u'url': gen_url()},
     )
     def test_update_positive(self, options):
         """@Test: Compute Resource positive update
@@ -290,7 +287,7 @@ class TestComputeResource(CLITestCase):
     @data(
         {u'new-name': gen_string('utf8', 256)},
         {u'new-name': 'white spaces %s' %
-                      orm.StringField(str_type=('alphanumeric',)).get_value()},
+                      gen_string(str_type='alphanumeric')},
         {u'new-name': ''},
         {u'description': gen_string('utf8', 256)},
         {u'url': 'invalid url'},

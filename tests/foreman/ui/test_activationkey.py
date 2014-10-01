@@ -9,9 +9,9 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import gen_string
+from fauxfactory import gen_string, gen_integer
 from nose.plugins.attrib import attr
-from robottelo import entities, orm
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.constants import (
     ENVIRONMENT, FAKE_1_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
@@ -45,8 +45,8 @@ class ActivationKey(UITestCase):
         super(ActivationKey, self).setUp()
         # Make sure to use the Class' org_name instance
         if ActivationKey.org_name is None:
-            org_name = orm.StringField(str_type=('alphanumeric',),
-                                       len=(5, 80)).get_value()
+            org_name = gen_string(str_type='alphanumeric',
+                                  length=gen_integer(5, 80))
             org_attrs = entities.Organization(name=org_name).create()
             ActivationKey.org_name = org_attrs['name']
             ActivationKey.org_id = org_attrs['id']
@@ -234,7 +234,7 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = orm.StringField(str_type=('alpha',)).get_value()
+        name = gen_string(str_type='alpha')
 
         # create Host Collection using API
         host_col = entities.HostCollection(

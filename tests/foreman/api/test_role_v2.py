@@ -9,7 +9,8 @@ from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities, orm
+from robottelo import entities
+from fauxfactory import gen_string
 from unittest import TestCase
 import ddt
 import httplib
@@ -35,9 +36,9 @@ class RoleTestCase(TestCase):
         self.assertEqual(response['name'], name)
 
     @ddt.data(
-        orm.StringField(str_type=('alphanumeric',)).get_value(),
-        orm.StringField(str_type=('alpha',)).get_value(),
-        orm.StringField(str_type=('numeric',)).get_value(),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='numeric'),
     )
     def test_positive_create_1(self, name):
         """@Test: Create a role with a name containing alphanumeric chars.
@@ -52,9 +53,9 @@ class RoleTestCase(TestCase):
 
     @skip_if_bug_open('bugzilla', 1112657)
     @ddt.data(
-        orm.StringField(str_type=('cjk',)).get_value(),
-        orm.StringField(str_type=('latin1',)).get_value(),
-        orm.StringField(str_type=('utf8',)).get_value(),
+        gen_string(str_type='cjk'),
+        gen_string(str_type='latin1'),
+        gen_string(str_type='utf8'),
     )
     def test_positive_create_2(self, name):
         """@Test: Create a role with a name containing non-alphanumeric chars.
@@ -68,9 +69,9 @@ class RoleTestCase(TestCase):
         self._test_role_name(name)
 
     @ddt.data(
-        orm.StringField(str_type=('alphanumeric',)).get_value(),
-        orm.StringField(str_type=('alpha',)).get_value(),
-        orm.StringField(str_type=('numeric',)).get_value(),
+        gen_string(str_type='alphanumeric'),
+        gen_string(str_type='alpha'),
+        gen_string(str_type='numeric'),
     )
     def test_positive_delete_1(self, name):
         """@Test: Create a role and delete it
@@ -110,12 +111,12 @@ class RoleTestCase(TestCase):
         )
 
     @ddt.data(
-        {u'name': orm.StringField(str_type=('alphanumeric',)).get_value(),
-         u'new_name': orm.StringField(str_type=('alphanumeric',)).get_value()},
-        {u'name': orm.StringField(str_type=('numeric',)).get_value(),
-         u'new_name': orm.StringField(str_type=('numeric',)).get_value()},
-        {u'name': orm.StringField(str_type=('alpha',)).get_value(),
-         u'new_name': orm.StringField(str_type=('alpha',)).get_value()}
+        {u'name': gen_string(str_type='alphanumeric'),
+         u'new_name': gen_string(str_type='alphanumeric')},
+        {u'name': gen_string(str_type='numeric'),
+         u'new_name': gen_string(str_type='numeric')},
+        {u'name': gen_string(str_type='alpha'),
+         u'new_name': gen_string(str_type='alpha')}
     )
     def test_positive_update_1(self, test_data):
         """@Test: Create a role and update its name
@@ -168,7 +169,7 @@ class RoleTestCase(TestCase):
         of a selected resource_type
 
         """
-        role_name = orm.StringField(str_type=('alphanumeric',)).get_value()
+        role_name = gen_string(str_type='alphanumeric')
 
         try:
             role_attrs = entities.Role(name=role_name).create()
@@ -217,7 +218,7 @@ class RoleTestCase(TestCase):
         @Assert: Filter should be deleted
 
         """
-        role_name = orm.StringField(str_type=('alphanumeric',)).get_value()
+        role_name = gen_string(str_type='alphanumeric')
 
         try:
             role_attrs = entities.Role(name=role_name).create()
@@ -276,7 +277,7 @@ class RoleTestCase(TestCase):
         @Assert: Role as well as inclusive filter should be deleted
 
         """
-        role_name = orm.StringField(str_type=('alphanumeric',)).get_value()
+        role_name = gen_string(str_type='alphanumeric')
 
         try:
             role_attrs = entities.Role(name=role_name).create()

@@ -207,8 +207,8 @@ class SampleEntityFactoryTestCase(TestCase):
         Assert :meth:`robottelo.factory.EntityFactoryMixin._factory_data`
         returns explicitly-specified values.
         """
-        name = orm.StringField().get_value()
-        label = orm.StringField().get_value()
+        name = gen_utf8()
+        label = gen_utf8()
         attrs = SampleEntityFactory(name=name, label=label)._factory_data()
         self.assertIn('name', attrs.keys())
         self.assertIn('label', attrs.keys())

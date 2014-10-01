@@ -2,7 +2,8 @@
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo import entities, orm
+from robottelo import entities
+from fauxfactory import gen_string, gen_integer
 from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
@@ -34,8 +35,8 @@ class Sync(UITestCase):
         super(Sync, self).setUp()
         # Make sure to use the Class' org_name instance
         if Sync.org_name is None:
-            org_name = orm.StringField(str_type=('alphanumeric',),
-                                       len=(5, 80)).get_value()
+            org_name = gen_string(str_type='alphanumeric',
+                                  length=gen_integer(5, 80))
             org_attrs = entities.Organization(name=org_name).create()
             Sync.org_name = org_attrs['name']
             Sync.org_id = org_attrs['id']
