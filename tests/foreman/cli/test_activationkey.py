@@ -18,6 +18,9 @@ from robottelo.cli.factory import (
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
+from robottelo.cli.subscription import Subscription
+from robottelo.common import manifests
+from robottelo.common.ssh import upload_file
 
 
 @ddt
@@ -1368,3 +1371,46 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             len(result.stdout['host-collections']), 0,
             'Activation key host-collection removed')
+
+    def test_add_subscription(self):
+        """@Test: Test that subscription can be added to activation key
+
+        @Feature: Activation key - Host
+
+        @Steps:
+        1. Create Activation key
+        2. Upload manifest and add subscription
+        3. Associate the activation key to subscription
+
+        @Assert: Subscription successfully added to activation key
+
+        """
+        manifest = manifests.clone()
+        upload_file(manifest, remote_file=manifest)
+        try:
+            org = make_org()
+            activation_key = self._make_activation_key({
+                u'organization-id': org['id'],
+            })
+            result = Subscription.upload({
+                'file': manifest,
+                'organization-id': self.org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        subs_id = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False)
+
+        result = ActivationKey.add_subscription({
+            u'id': activation_key['id'],
+            u'subscription-id': subs_id.stdout[0]['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0, 'There should not be an error here')
+        self.assertIn("Subscription added to activation key",
+                      result.stdout)
