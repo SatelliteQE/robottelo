@@ -168,7 +168,11 @@ class StringField(booby.fields.String):
             self.min_len, self.max_len = len
         else:
             self.min_len = self.max_len = len
-        self.str_type = str_type
+        # Adjust str_type if a string is provided
+        if isinstance(str_type, (str, unicode)):  # FIXME: python3
+            self.str_type = (str_type,)
+        else:
+            self.str_type = str_type
         super(StringField, self).__init__(*args, **kwargs)
 
     def get_value(self):

@@ -1077,7 +1077,7 @@ class OperatingSystem(
     description = orm.StringField(null=True)
     family = orm.StringField(null=True, choices=OPERATING_SYSTEMS)
     major = orm.StringField(required=True, str_type=('numeric',), len=(1, 5))
-    medium = orm.OneToManyField('Media')
+    media = orm.OneToManyField('Media')
     minor = orm.StringField(null=True)
     name = orm.StringField(required=True)
     ptable = orm.OneToManyField('PartitionTable')
@@ -1086,6 +1086,11 @@ class OperatingSystem(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/operatingsystems'
+        api_names = (
+            ('media_ids', 'media'),
+            ('ptable_ids', 'ptables'),
+            ('architecture_ids', 'architectures'),
+        )
         server_modes = ('sat')
 
     # FIXME: This method should not need to exist. The API has a bug.
@@ -1796,7 +1801,7 @@ class Role(
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(
         required=True,
-        str_type='alphanumeric',
+        str_type=('alphanumeric',),
         len=(2, 30),  # min length is 2 and max length is arbitrary
     )
 
