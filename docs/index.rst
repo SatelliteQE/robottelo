@@ -215,7 +215,7 @@ you have `graphviz`_ installed::
 
 To check for code smells::
 
-    $ ./lint.py | less
+    $ make lint
 
 The design and development for this software is led by `Og Maciel`_.
 
