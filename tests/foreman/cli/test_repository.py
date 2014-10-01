@@ -10,6 +10,7 @@ from robottelo.cli.factory import (
     make_org,
     make_product,
     make_repository,
+    CLIFactoryError
 )
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import (
@@ -31,6 +32,9 @@ from robottelo.common.decorators import (
     stubbed,
 )
 from robottelo.test import CLITestCase
+from robottelo.common import ssh
+from robottelo.common.constants import RPM_TO_UPLOAD
+from robottelo.common.helpers import get_data_file
 
 
 @ddt
@@ -554,3 +558,34 @@ class TestRepository(CLITestCase):
             0,
             "Expected an error here"
         )
+
+    def test_upload_content(self):
+        """@Test: Create repository and upload content
+
+        @Feature: Repository
+
+        @Assert: upload content is successful
+
+        """
+        name = gen_string('alpha', 15)
+        try:
+            new_repo = self._make_repository({'name': name})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD),
+                        remote_file="/tmp/{0}".format(RPM_TO_UPLOAD))
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+            'organization': new_repo['organization'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}"
+                         ''.format(result.return_code))
+        self.assertEqual(
+            len(result.stderr), 0, "No error was expected")
+        self.assertIn("Successfully uploaded file '{0}'"
+                      ''.format(RPM_TO_UPLOAD),
+                      result.stdout[0]['message'])

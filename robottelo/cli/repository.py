@@ -65,3 +65,10 @@ class Repository(Base):
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
         return result
+
+    @classmethod
+    def upload_content(cls, options):
+        """Upload content to repository."""
+        cls.command_sub = "upload-content"
+        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        return result
