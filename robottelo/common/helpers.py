@@ -191,12 +191,20 @@ class STR:
     utf8 = "utf8"
 
 
-def generate_strings_list(len1=8):
+def generate_strings_list(len1=None):
+    """Generates a list of all the input strings.
+
+    :param int len1: Specifies the length of the strings to be
+        be generated. If the len1 is None then the list is
+        returned with string types of random length.
+    :return: Returns a list of various string types.
+    :rtype: list
+
     """
-    Generates a list of all the input strings
-    """
+    if len1 is None:
+        len1 = gen_integer(3, 30)
     return [
-        gen_string(str_type, gen_integer(3, 30))
+        gen_string(str_type, len1)
         for str_type
         in ('alpha', 'numeric', 'alphanumeric',
             'latin1', 'utf8', 'cjk', 'html')
