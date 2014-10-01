@@ -1433,7 +1433,7 @@ class Permission(orm.Entity, orm.EntityReadMixin):
             search_terms[u'resource_type'] = self.resource_type
 
         response = client.get(
-            self.path('all'),
+            self.path('base'),
             auth=get_server_credentials(),
             verify=False,
             data=search_terms
