@@ -51,13 +51,17 @@ class ActivationKey(
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        If a user specifies a ``which`` of ``'releases'``, return a path in the
-        format ``/activation_keys/<id>/releases``. Otherwise, call ``super``.
+        The format of the returned path depends on the value of ``which``:
+
+        releases
+            /activation_keys/<id>/releases
+
+        ``super`` is called otherwise.
 
         """
         if which == 'releases':
             return super(ActivationKey, self).path(which='self') + '/releases'
-        return super(ActivationKey, self).path()
+        return super(ActivationKey, self).path(which)
 
 
 class Architecture(
@@ -375,9 +379,12 @@ class ContentViewVersion(orm.Entity):
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        If a user specifies a ``which`` of ``'promote'``, return a path in the
-        format ``/content_view_versions/<id>/promote``. Otherwise, call
-        ``super``.
+        The format of the returned path depends on the value of ``which``:
+
+        promote
+            /content_view_versions/<id>/promote
+
+        ``super`` is called otherwise.
 
         """
         if which == 'promote':
@@ -493,21 +500,18 @@ class ContentView(
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        The returned path will depend on the value of ``which`` being passed.
+        The format of the returned path depends on the value of ``which``:
 
-        If ``which is 'content_view_puppet_modules'``, return a path
-        in the format ``/content_views/<id>/content_view_puppet_modules``.
+        content_view_puppet_modules
+            /content_views/<id>/content_view_puppet_modules
+        content_view_versions
+            /content_views/<id>/content_view_versions
+        publish
+            /content_views/<id>/publish
+        available_puppet_module_names
+            /content_views/<id>/available_puppet_module_names
 
-        If ``which is 'content_view_versions'``, return a path in the
-        format ``/content_views/<id>/content_view_versions``.
-
-        If ``which is 'publish'``, return a path in the
-        format ``/content_views/<id>/publish``.
-
-        If ``which is 'available_puppet_module_names'``, return a path in
-        the format ``/content_views/<id>/available_puppet_module_names``.
-
-        Otherwise, call ``super``.
+        ``super`` is called otherwise.
 
         """
         if which in (
@@ -517,7 +521,7 @@ class ContentView(
                 super(ContentView, self).path(which='self'),
                 which
             )
-        return super(ContentView, self).path()
+        return super(ContentView, self).path(which)
 
     def publish(self):
         """Helper for publishing an existing content view.
@@ -626,19 +630,13 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
         """Override the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        There is no available path for fetching all Foreman tasks. Instead, the
-        user must either:
+        The format of the returned path depends on the value of ``which``:
 
-        * fetch a specific task by providing a UUID via the ``id`` instance
-          attribute, or
-        * perform a bulk search.
+        bulk_search
+            /foreman_tasks/api/tasks/bulk_search
 
-        Thus, this method returns a slightly unusual set of paths:
-
-        * Return the path ``/foreman_tasks/api/tasks/bulk_search`` if the user
-          specifies ``which = 'bulk_search'``.
-        * Return a path in the format ``/foreman_tasks/api/tasks/<id>``
-          otherwise.
+        ``super(which='self')`` is called otherwise. There is no path available
+        for fetching all tasks.
 
         """
         if which == 'bulk_search':
@@ -1179,18 +1177,18 @@ class Organization(
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        Return:
+        The format of the returned path depends on the value of ``which``:
 
-        * ``/organizations/:id/subscriptions/upload`` if the user
-            specifies a which of ``'subscriptions/upload'``.
-        * ``/organizations/:id/subscriptions/delete_manifest`` if the user
-            specifies a which of ``'subscriptions/delete_manifest'``.
-        * ``/organizations/:id/subscriptions/refresh_manifest`` if the user
-            specifies a which of ``'subscriptions/refresh_manifest'``.
-        * ``/organizations/:id/sync_plans`` if the user
-            specifies a which of ``'sync_plans'``.
-        * ``/organizations/:id/products`` if the user
-            specifies a which of ``'products'``.
+        subscriptions/upload
+            /organizations/<id>/subscriptions/upload
+        subscriptions/delete_manifest
+            /organizations/<id>/subscriptions/delete_manifest
+        subscriptions/refresh_manifest
+            /organizations/<id>/subscriptions/refresh_manifest
+        sync_plans
+            /organizations/<id>/sync_plans
+        products
+            /organizations/<id>/products
 
         Otherwise, call ``super``.
 
@@ -1202,7 +1200,7 @@ class Organization(
                 super(Organization, self).path(which='self'),
                 which
             )
-        return super(Organization, self).path(which=which)
+        return super(Organization, self).path(which)
 
     def upload_manifest(self, path, repository_url=None,
                         synchronous=True):
@@ -1472,16 +1470,16 @@ class Product(
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        Return:
+        The format of the returned path depends on the value of ``which``:
 
-        * ``/products/:product_id/repository_sets`` if the user specifies a
-            which of ``'repository_sets'``.
-        * ``/products/:product_id/repository_sets/:id/enable`` if the user
-            specifies a which of ``'repository_sets/:id/enable'``.
-        * `/products/:product_id/repository_sets/:id/disable`` if the user
-            specifies a which of ``'repository_sets/:id/disable'``
+        repository_sets
+            /products/<product_id>/repository_sets
+        repository_sets/<id>/enable
+            /products/<product_id>/repository_sets/<id>/enable
+        repository_sets/<id>/disable
+            /products/<product_id>/repository_sets/<id>/disable
 
-        Otherwise, call ``super``.
+        ``super`` is called otherwise.
 
         """
         if which is not None and which.startswith("repository_sets"):
@@ -1489,7 +1487,7 @@ class Product(
                 super(Product, self).path(which='self'),
                 which,
             )
-        return super(Product, self).path(which=which)
+        return super(Product, self).path(which)
 
     def list_repositorysets(self, per_page=None):
         """Lists all the RepositorySets in a Product.
@@ -1699,11 +1697,14 @@ class Repository(
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
 
-        * Return a path in the format ``/repositories/<id>/sync`` if ``which is
-          'sync'``.
-        * Return a path in the format ``/repositories/<id>/upload_content`` if
-          ``which is 'upload_content'``.
-        * Call ``super`` by default.
+        The format of the returned path depends on the value of ``which``:
+
+        sync
+            /repositories/<id>/sync
+        upload_content
+            /repositories/<id>/upload_content
+
+        ``super`` is called otherwise.
 
         """
         if which in ('sync', 'upload_content'):
@@ -1711,7 +1712,7 @@ class Repository(
                 super(Repository, self).path(which='self'),
                 which
             )
-        return super(Repository, self).path()
+        return super(Repository, self).path(which)
 
     def read(self, auth=None, entity=None, attrs=None):
         """Override the default implementation of
@@ -1982,7 +1983,7 @@ class System(
                 super(System, self).path(which='base'),
                 self.uuid
             )
-        return super(System, self).path(which=which)
+        return super(System, self).path(which)
 
 
 class TemplateCombination(orm.Entity):
