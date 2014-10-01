@@ -1004,7 +1004,7 @@ def make_domain(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'name': gen_alphanumeric(6),
+        u'name': gen_alphanumeric().lower(),
         u'dns-id': None,
         u'description': None,
     }
