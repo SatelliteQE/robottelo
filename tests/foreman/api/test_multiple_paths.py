@@ -50,6 +50,9 @@ def skip_if_sam(self, entity):
     :returns: Either ``self.skipTest`` or ``None``.
 
     """
+    # In some places functools.partial is used, better to adjust the entity
+    # accordingly
+    entity = (entity.func if isinstance(entity, partial) else entity)
     robottelo_mode = conf.properties.get('main.project', '').lower()
     server_modes = [
         server_mode.lower()
