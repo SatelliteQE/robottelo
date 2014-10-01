@@ -6,7 +6,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.factory import make_org
-from robottelo.common.manifests import clone
+from robottelo.common import manifests
 from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -22,7 +22,7 @@ class TestSubscription(CLITestCase):
 
         super(TestSubscription, self).setUp()
         self.org = make_org()
-        self.manifest = clone()
+        self.manifest = manifests.clone()
 
     def test_manifest_upload(self):
         """@Test: upload manifest (positive)
