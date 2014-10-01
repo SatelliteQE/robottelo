@@ -1,10 +1,10 @@
 """Unit tests for the ``hosts`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/hosts.html
+An API reference can be found here:
+http://theforeman.org/api/apidoc/v2/hosts.html
 
 """
-from fauxfactory import gen_string, gen_integer
+from fauxfactory import gen_integer, gen_string
 from robottelo.api import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
@@ -17,6 +17,7 @@ import httplib
 @run_only_on('sat')
 class HostsTestCase(TestCase):
     """Tests for ``entities.Host().path()``."""
+
     def test_get_search(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
@@ -25,10 +26,7 @@ class HostsTestCase(TestCase):
         @Assert: HTTP 200 is returned, along with ``search`` term.
 
         """
-        query = gen_string(
-            'utf8',
-            gen_integer(1, 100)
-        )
+        query = gen_string('utf8', gen_integer(1, 100))
         response = client.get(
             entities.Host().path(),
             auth=get_server_credentials(),

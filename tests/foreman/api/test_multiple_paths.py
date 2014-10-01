@@ -21,9 +21,10 @@ logger = logging.getLogger(__name__)  # pylint:disable=C0103
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ComputeResource,
     entities.ConfigTemplate, entities.ContentView, entities.Environment,
-    entities.GPGKey, entities.HostCollection, entities.LifecycleEnvironment,
-    entities.OperatingSystem, entities.Product, entities.Repository,
-    entities.Role, entities.Subnet, entities.System, entities.User,
+    entities.GPGKey, entities.Host, entities.HostCollection,
+    entities.LifecycleEnvironment, entities.OperatingSystem, entities.Product,
+    entities.Repository, entities.Role, entities.Subnet, entities.System,
+    entities.User,
 )
 BZ_1122267_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
@@ -178,7 +179,7 @@ class EntityTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -278,7 +279,7 @@ class EntityIdTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -331,7 +332,7 @@ class EntityIdTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -379,7 +380,7 @@ class EntityIdTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -451,7 +452,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -464,7 +465,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
-        # entities.User,  # password not in returned attrs
+        entities.User,
     )
     def test_put_and_get(self, entity):
         """@Test: Issue a PUT request and GET the updated entity.
@@ -480,7 +481,7 @@ class DoubleCheckTestCase(TestCase):
         entity_n = entity(id=entity().create()['id'])
         logger.info('test_put_and_get path: {0}'.format(entity_n.path()))
 
-        # Generate some attributes and use them to update an entity.
+        # Generate some attributes and use them to update the entity.
         gen_attrs = entity().attributes()
         response = client.put(
             entity_n.path(),
@@ -490,8 +491,14 @@ class DoubleCheckTestCase(TestCase):
         )
         response.raise_for_status()
 
-        # Get the just-updated entity and examine its attributes.
+        # Read the entity's attributes. Verify that they match `gen_attrs`.
+        # Passwords never returned by the API, so don't verify those.
         real_attrs = entity_n.read_json()
+        if entity is entities.Host:
+            del gen_attrs['root_pass']
+            del gen_attrs['name']  # FIXME: "Foo" in, "foo.example.com" out.
+        if entity is entities.User:
+            del gen_attrs['password']
         for key, value in gen_attrs.items():
             self.assertIn(key, real_attrs.keys())
             self.assertEqual(value, real_attrs[key], key)
@@ -507,7 +514,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -520,7 +527,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Subnet,
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
-        # entities.User,  # password not in returned attrs
+        entities.User,
     )
     def test_post_and_get(self, entity):
         """@Test Issue a POST request and GET the created entity.
@@ -543,11 +550,17 @@ class DoubleCheckTestCase(TestCase):
             verify=False,
         )
         response.raise_for_status()
-
-        # Get the just-created entity and examine its attributes.
         entity_n = entity(id=response.json()['id'])
         logger.info('test_post_and_get path: {0}'.format(entity_n.path()))
+
+        # Read the entity's attributes. Verify that they match `gen_attrs`.
+        # Passwords never returned by the API, so don't verify those.
         real_attrs = entity_n.read_json()
+        if entity is entities.Host:
+            del gen_attrs['root_pass']
+            del gen_attrs['name']  # FIXME: "Foo" in, "foo.example.com" out.
+        if entity is entities.User:
+            del gen_attrs['password']
         for key, value in gen_attrs.items():
             self.assertIn(key, real_attrs.keys())
             self.assertEqual(value, real_attrs[key], key)
@@ -563,7 +576,7 @@ class DoubleCheckTestCase(TestCase):
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        entities.Host,
         entities.HostCollection,
         entities.LifecycleEnvironment,
         entities.Media,
@@ -635,7 +648,7 @@ class EntityReadTestCase(TestCase):
         # entities.Domain,
         entities.Environment,
         # entities.GPGKey,
-        # entities.Host,  # Host().create() does not work
+        # entities.Host,  # FIXME: investigate this
         entities.HostCollection,
         # entities.LifecycleEnvironment,
         entities.Media,
