@@ -8,7 +8,6 @@ Several helper methods and functions.
 import os
 import random
 import re
-import string
 import time
 
 from fauxfactory import gen_string, gen_integer
@@ -70,54 +69,26 @@ def get_server_url():
         ))
 
 
-def generate_name(minimum=4, maximum=8):
-    """
-    Generates a random string using lower, upper boundaries to determine the
-    length.
-    """
-
-    if minimum <= 0:
-        minimum = 4
-    if maximum < minimum:
-        maximum = minimum
-
-    rand = random.SystemRandom()
-    pool1 = string.ascii_lowercase + string.digits
-
-    name = u''.join(
-        rand.choice(pool1) for x in range(random.randint(minimum, maximum)))
-
-    return unicode(name)
-
-
-def generate_email_address(name_length=8, domain_length=6):
-    """
-    Generates a random email address.
-    """
-    return u'%s@%s.com' % (generate_name(name_length),
-                           generate_name(domain_length))
-
-
 def valid_names_list():
     """
     List of valid names for input testing.
     """
     return [
-        generate_name(5, 5),
-        generate_name(255),
-        u"%s-%s" % (generate_name(4), generate_name(4)),
-        u"%s.%s" % (generate_name(4), generate_name(4)),
-        u"նոր օգտվող-%s" % generate_name(2),
-        u"新用戶-%s" % generate_name(2),
-        u"नए उपयोगकर्ता-%s" % generate_name(2),
-        u"нового пользователя-%s" % generate_name(2),
-        u"uusi käyttäjä-%s" % generate_name(2),
-        u"νέος χρήστης-%s" % generate_name(2),
-        u"foo@!#$^&*( ) %s" % generate_name(),
-        u"<blink>%s</blink>" % generate_name(),
-        u"bar+{}|\"?hi %s" % generate_name(),
-        u' %s' % generate_name(),
-        u'%s ' % generate_name()
+        gen_string('utf8', 5),
+        gen_string('utf8', 255),
+        u"{0}-{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
+        u"{0}.{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
+        u"նոր օգտվող-{0}".format(gen_string('utf8', 2)),
+        u"新用戶-{0}".format(gen_string('utf8', 2)),
+        u"नए उपयोगकर्ता-{0}".format(gen_string('utf8', 2)),
+        u"нового пользователя-{0}".format(gen_string('utf8', 2)),
+        u"uusi käyttäjä-{0}".format(gen_string('utf8', 2)),
+        u"νέος χρήστης-{0}".format(gen_string('utf8', 2)),
+        u"foo@!#$^&*( ) {0}".format(gen_string('utf8')),
+        u"<blink>{0}</blink>".format(gen_string('utf8')),
+        u"bar+{{}}|\"?hi {0}".format(gen_string('utf8')),
+        u' {0}'.format(gen_string('utf8')),
+        u'{0} '.format(gen_string('utf8')),
     ]
 
 
@@ -148,35 +119,6 @@ def invalid_names_list():
         gen_string("html", 300),
         gen_string("alpha", 256)
     ]
-
-
-def generate_ipaddr(ip3=False):
-    """
-    Generates a random IP address.
-    """
-    rng = 3 if ip3 else 4
-    ipaddr = u'.'.join(str(random.randrange(0, 255, 1)) for x in range(rng))
-
-    return unicode(ipaddr if not ip3 else ipaddr + u'.0')
-
-
-def generate_mac(delimiter=u':'):
-    """
-    Generates a random MAC address.
-    """
-    chars = ['a', 'b', 'c', 'd', 'e', 'f',
-             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-
-    # We'll eventually need to be able to test against all valid
-    # (and some invalid!) delimiters, so might as well make it
-    # parameterized.  Valid delimiters include (but may not be
-    # limited to):  ':', "-", "None"
-
-    mac = delimiter.join(
-        chars[random.randrange(0, len(chars), 1)] + chars[random.randrange(
-            0, len(chars), 1)] for x in range(6))
-
-    return unicode(mac)
 
 
 class STR:

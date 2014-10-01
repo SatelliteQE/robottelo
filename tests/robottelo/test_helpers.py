@@ -3,8 +3,7 @@
 import unittest
 from robottelo.common import conf
 from robottelo.common.helpers import (
-    escape_search, generate_email_address, generate_ipaddr, generate_mac,
-    generate_name, generate_strings_list, get_server_url,
+    escape_search, generate_strings_list, get_server_url,
     get_server_credentials, info_dictionary, invalid_names_list,
     valid_data_list, valid_names_list,
 )
@@ -116,18 +115,6 @@ class FakeSSHResult(object):
         self.stdout = stdout
 
 
-class GenerateNameTestCase(unittest.TestCase):
-    def test_return_type(self):
-        """Tests if generate name returns a unicode string"""
-        self.assertIsInstance(generate_name(), unicode)
-
-
-class GenerateEmailAddressTestCase(unittest.TestCase):
-    def test_return_type(self):
-        """Tests if generate email address returns a unicode string"""
-        self.assertIsInstance(generate_email_address(), unicode)
-
-
 class ValidNamesListTestCase(unittest.TestCase):
     def test_return_type(self):
         """Tests if valid names list returns a unicode string"""
@@ -147,19 +134,6 @@ class InvalidNamesListTestCase(unittest.TestCase):
         """Tests if invalid names list returns a unicode string"""
         for name in invalid_names_list():
             self.assertIsInstance(name, unicode)
-
-
-class GenerateIPAddrTestCase(unittest.TestCase):
-    def test_return_type(self):
-        """Tests if generate ipaddr returns a unicode string"""
-        self.assertIsInstance(generate_ipaddr(), unicode)
-        self.assertIsInstance(generate_ipaddr(ip3=True), unicode)
-
-
-class GenerateMACTestCase(unittest.TestCase):
-    def test_return_type(self):
-        """Tests if generate mac returns a unicode string"""
-        self.assertIsInstance(generate_mac(), unicode)
 
 
 class GenerateStringListTestCase(unittest.TestCase):
