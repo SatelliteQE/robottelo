@@ -16,7 +16,7 @@ from robottelo.cli.factory import (
     make_repository,
     make_user,
 )
-from robottelo.common.manifests import clone
+from robottelo.common import manifests
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.entities import Organization
@@ -88,7 +88,7 @@ class TestContentView(CLITestCase):
             return
 
         TestContentView.rhel_content_org = make_org()
-        manifest = clone()
+        manifest = manifests.clone()
         finished_task = Organization(
             id=TestContentView.rhel_content_org['id']
         ).upload_manifest(manifest)

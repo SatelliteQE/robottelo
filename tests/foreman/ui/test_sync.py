@@ -7,7 +7,7 @@ from fauxfactory import gen_string, gen_integer
 from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
-from robottelo.common.manifests import clone
+from robottelo.common import manifests
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
@@ -82,13 +82,13 @@ class Sync(UITestCase):
 
         repos = self.sync.create_repos_tree(RHCT)
         alert_loc = common_locators['alert.success']
-        path = clone()
+        manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
-        upload_file(path, remote_file=path)
+        upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_red_hat_subscriptions()
-            self.subscriptions.upload(path)
+            self.subscriptions.upload(manifest_path)
             success_ele = session.nav.wait_until_element(alert_loc)
             self.assertTrue(success_ele)
             session.nav.go_to_red_hat_repositories()
