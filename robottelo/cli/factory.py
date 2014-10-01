@@ -516,7 +516,7 @@ def make_subnet(options=None):
     """
 
     args = {
-        u'name': gen_alphanumeric(8, 8),
+        u'name': gen_alphanumeric(8),
         u'network': gen_ipaddr(ip3=True),
         u'mask': u'255.255.255.0',
         u'gateway': None,

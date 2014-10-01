@@ -17,7 +17,7 @@ class TestDomain(MetaCLITestCase):
     factory_obj = Domain
 
     @data(
-        {u'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+        {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
          u'description': gen_string(str_type='alpha')},
         {u'name': gen_string(str_type='utf8'),
          u'description': gen_string(str_type='utf8')},
@@ -56,7 +56,7 @@ class TestDomain(MetaCLITestCase):
             make_domain(options)
 
     @data(
-        {u'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+        {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
          u'description': gen_string(str_type='alpha')},
         {u'name': gen_string(str_type='utf8'),
          u'description': gen_string(str_type='utf8')},
@@ -161,7 +161,7 @@ class TestDomain(MetaCLITestCase):
         self.assertDictEqual(parameter, result.stdout['parameters'])
 
     @data(
-        {'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+        {'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
          'value': gen_string(str_type='utf8')},
         {'name': '',
          'value': gen_string(str_type='utf8')},
