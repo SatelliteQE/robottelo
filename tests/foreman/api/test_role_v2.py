@@ -7,10 +7,17 @@ can be found here: http://theforeman.org/api/apidoc/v2/roles.html
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common import decorators
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
-from fauxfactory import gen_string
+from fauxfactory import (
+    gen_alpha,
+    gen_alphanumeric,
+    gen_cjk,
+    gen_latin1,
+    gen_numeric_string,
+    gen_utf8,
+)
 from unittest import TestCase
 import ddt
 import httplib
@@ -20,28 +27,17 @@ import httplib
 @ddt.ddt
 class RoleTestCase(TestCase):
     """Tests for ``api/v2/roles``."""
-    def _test_role_name(self, name):
-        """Create a role with name ``name``."""
-        try:
-            role_attrs = entities.Role(name=name).create()
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
 
-        # Creation apparently succeeded. GET the role and verify it's name.
-        response = client.get(
-            entities.Role(id=role_attrs['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        self.assertEqual(response['name'], name)
-
-    @ddt.data(
-        gen_string(str_type='alphanumeric'),
-        gen_string(str_type='alpha'),
-        gen_string(str_type='numeric'),
+    @decorators.data(
+        gen_alpha,
+        gen_alphanumeric,
+        gen_cjk,
+        gen_latin1,
+        gen_numeric_string,
+        gen_utf8,
     )
-    def test_positive_create_1(self, name):
-        """@Test: Create a role with a name containing alphanumeric chars.
+    def test_positive_create_1(self, name_generator):
+        """@Test: Create a role with name ``name_generator()``.
 
         @Feature: Role
 
@@ -49,116 +45,89 @@ class RoleTestCase(TestCase):
         entity can be fetched, and the fetched entity has the specified name.
 
         """
-        self._test_role_name(name)
-
-    @skip_if_bug_open('bugzilla', 1112657)
-    @ddt.data(
-        gen_string(str_type='cjk'),
-        gen_string(str_type='latin1'),
-        gen_string(str_type='utf8'),
-    )
-    def test_positive_create_2(self, name):
-        """@Test: Create a role with a name containing non-alphanumeric chars.
-
-        @Feature: Role
-
-        @Assert: An entity can be created without receiving any errors, the
-        entity can be fetched, and the fetched entity has the specified name.
-
-        """
-        self._test_role_name(name)
-
-    @ddt.data(
-        gen_string(str_type='alphanumeric'),
-        gen_string(str_type='alpha'),
-        gen_string(str_type='numeric'),
-    )
-    def test_positive_delete_1(self, name):
-        """@Test: Create a role and delete it
-
-        @Feature: Role
-
-        @Assert: Role deletion should succeed
-
-        """
+        if decorators.bz_bug_is_open(1112657) and (
+                name_generator is gen_cjk or
+                name_generator is gen_latin1 or
+                name_generator is gen_utf8):
+            self.skipTest('Bugzilla bug 1112657 is open.')
+        name = name_generator()
         try:
-            role_attrs = entities.Role(name=name).create()
+            role_id = entities.Role(name=name).create()['id']
         except HTTPError as err:
             self.fail(err)  # fail instead of error
-
-        path = entities.Role(id=role_attrs['id']).path()
 
         # GET the role and verify it's name.
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        self.assertEqual(response['name'], name)
+        self.assertEqual(entities.Role(id=role_id).read_json()['name'], name)
 
-        # Delete the role, GET it, and assert that an HTTP 404 is returned.
-        entities.Role(id=role_attrs['id']).delete()
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
-
-    @ddt.data(
-        {u'name': gen_string(str_type='alphanumeric'),
-         u'new_name': gen_string(str_type='alphanumeric')},
-        {u'name': gen_string(str_type='numeric'),
-         u'new_name': gen_string(str_type='numeric')},
-        {u'name': gen_string(str_type='alpha'),
-         u'new_name': gen_string(str_type='alpha')}
+    @decorators.data(
+        gen_alpha,
+        gen_alphanumeric,
+        gen_cjk,
+        gen_latin1,
+        gen_numeric_string,
+        gen_utf8,
     )
-    def test_positive_update_1(self, test_data):
-        """@Test: Create a role and update its name
+    def test_positive_delete_1(self, name_generator):
+        """@Test: Delete a role with name ``name_generator()``.
 
         @Feature: Role
 
-        @Assert: Role name should be updated
+        @Assert: The role cannot be fetched after it is deleted.
 
         """
+        if decorators.bz_bug_is_open(1112657) and (
+                name_generator is gen_cjk or
+                name_generator is gen_latin1 or
+                name_generator is gen_utf8):
+            self.skipTest('Bugzilla bug 1112657 is open.')
+        name = name_generator()
         try:
-            role_attrs = entities.Role(name=test_data['name']).create()
+            role_id = entities.Role(name=name).create()['id']
         except HTTPError as err:
             self.fail(err)  # fail instead of error
 
-        path = entities.Role(id=role_attrs['id']).path()
+        # DELETE the role and verify that it cannot be fetched
+        role = entities.Role(id=role_id)
+        role.delete()
+        with self.assertRaises(HTTPError):
+            role.read_json()
 
-        role_copy = role_attrs.copy()
-        role_copy['name'] = test_data['new_name']
+    @decorators.data(
+        gen_alpha,
+        gen_alphanumeric,
+        gen_cjk,
+        gen_latin1,
+        gen_numeric_string,
+        gen_utf8,
+    )
+    def test_positive_update_1(self, name_generator):
+        """@Test: Update a role with and give a name of ``name_generator()``.
 
+        @Feature: Role
+
+        @Assert: The role is updated with the given name.
+
+        """
+        if decorators.bz_bug_is_open(1112657) and (
+                name_generator is gen_cjk or
+                name_generator is gen_latin1 or
+                name_generator is gen_utf8):
+            self.skipTest('Bugzilla bug 1112657 is open.')
+        try:
+            role_id = entities.Role().create()['id']
+        except HTTPError as err:
+            self.fail(err)  # fail instead of error
+
+        role = entities.Role(id=role_id)
+        name = name_generator()
         response = client.put(
-            path,
-            role_copy,
+            role.path(),
+            {u'name': name},
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = httplib.OK
-        self.assertEqual(
-            response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
-        )
-        # Fetch the updated role
-        updated_attrs = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        # Assert that values have changed
-        self.assertNotEqual(
-            updated_attrs['name'],
-            role_attrs['name'],
-        )
+        response.raise_for_status()
+        self.assertEqual(role.read_json()['name'], name)
 
     def test_positive_create_role_with_permissions(self):
         """@Test: Create a filter to add permissions to a selected role
@@ -169,13 +138,11 @@ class RoleTestCase(TestCase):
         of a selected resource_type
 
         """
-        role_name = gen_string(str_type='alphanumeric')
-
+        role_name = gen_alphanumeric()
         try:
             role_attrs = entities.Role(name=role_name).create()
         except HTTPError as err:
             self.fail(err)  # fail instead of error
-
         path = entities.Role(id=role_attrs['id']).path()
 
         # GET the role and verify it's name.
@@ -218,13 +185,11 @@ class RoleTestCase(TestCase):
         @Assert: Filter should be deleted
 
         """
-        role_name = gen_string(str_type='alphanumeric')
-
+        role_name = gen_alphanumeric()
         try:
             role_attrs = entities.Role(name=role_name).create()
         except HTTPError as err:
             self.fail(err)  # fail instead of error
-
         path = entities.Role(id=role_attrs['id']).path()
 
         # GET the role and verify it's name.
@@ -248,17 +213,11 @@ class RoleTestCase(TestCase):
             role=role_attrs['id'],
             permission=[permission['id'] for permission in permissions]
         ).create()
-        filter_path = entities.Filter(id=filter_attrs['id']).path()
-        client.get(
-            filter_path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
 
         # Delete the Filter, GET it, and assert that an HTTP 404 is returned.
         entities.Filter(id=filter_attrs['id']).delete()
         response = client.get(
-            filter_path,
+            entities.Filter(id=filter_attrs['id']).path(),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -277,13 +236,11 @@ class RoleTestCase(TestCase):
         @Assert: Role as well as inclusive filter should be deleted
 
         """
-        role_name = gen_string(str_type='alphanumeric')
-
+        role_name = gen_alphanumeric()
         try:
             role_attrs = entities.Role(name=role_name).create()
         except HTTPError as err:
             self.fail(err)  # fail instead of error
-
         path = entities.Role(id=role_attrs['id']).path()
 
         # GET the role and verify it's name.
