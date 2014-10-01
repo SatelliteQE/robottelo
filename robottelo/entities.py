@@ -19,7 +19,7 @@ from robottelo.common.constants import (
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
-from fauxfactory import gen_alpha, gen_url
+from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
@@ -579,10 +579,7 @@ class Domain(
 
         """
         if self.name is None:
-            self.name = '{0}.{1}'.format(
-                gen_alpha().lower(),
-                gen_alpha().lower()
-            )
+            self.name = gen_alphanumeric().lower()
         return super(Domain, self)._factory_data()
 
     class Meta(object):
