@@ -24,7 +24,7 @@ class TaskTimeout(Exception):
     """Indicates that a task did not finish before the timout limit."""
 
 
-def _poll_task(task_id, poll_rate=5, timeout=120, auth=None):
+def _poll_task(task_id, poll_rate=5, timeout=180, auth=None):
     """Implement :meth:`robottelo.entities.ForemanTask.poll`.
 
     :meth:`robottelo.entities.ForemanTask.poll` calls this function, as does
@@ -488,7 +488,7 @@ class EntityReadMixin(object):
         if response.status_code is 404:
             # Avoid 404 on faster machines with faster connections. Give some
             # time to server finish creating the entity
-            time.sleep(1)
+            time.sleep(3)
             response = client.get(
                 self.path(which='self'),
                 auth=auth,
