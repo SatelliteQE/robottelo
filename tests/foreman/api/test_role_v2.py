@@ -1,12 +1,11 @@
 """Unit tests for the ``roles`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/roles.html
+An API reference is available here:
+http://theforeman.org/api/apidoc/v2/roles.html
 
 """
 from requests.exceptions import HTTPError
 from robottelo.api import client
-from robottelo.api.utils import status_code_error
 from robottelo.common import decorators
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
@@ -20,7 +19,6 @@ from fauxfactory import (
 )
 from unittest import TestCase
 import ddt
-import httplib
 # (too many public methods) pylint: disable=R0904
 
 
@@ -128,172 +126,3 @@ class RoleTestCase(TestCase):
         )
         response.raise_for_status()
         self.assertEqual(role.read_json()['name'], name)
-
-    def test_positive_create_role_with_permissions(self):
-        """@Test: Create a filter to add permissions to a selected role
-
-        @Feature: Role and Permissions
-
-        @Assert: Filter should be created with all permissions
-        of a selected resource_type
-
-        """
-        role_name = gen_alphanumeric()
-        try:
-            role_attrs = entities.Role(name=role_name).create()
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
-        path = entities.Role(id=role_attrs['id']).path()
-
-        # GET the role and verify it's name.
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        self.assertEqual(response['name'], role_name)
-        # Get permissions that have a resource_type of ConfigTemplate.
-        permissions = client.get(
-            entities.Permission().path(),
-            auth=get_server_credentials(),
-            verify=False,
-            data={'resource_type': 'ConfigTemplate'},
-        ).json()['results']
-        # Create a filter under a selected role with all permissions
-        # of a selected resource_type.
-        filter_attrs = entities.Filter(
-            role=role_attrs['id'],
-            permission=[permission['id'] for permission in permissions]
-        ).create()
-        # Get all permissions from created filter
-        permission_names = client.get(
-            entities.Filter(id=filter_attrs['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()['permissions']
-        get_permissions = [permission_name['name']
-                           for permission_name in permission_names]
-        real_permissions = [permission['name'] for permission in permissions]
-
-        self.assertListEqual(get_permissions, real_permissions)
-
-    def test_positive_delete_filter_from_role(self):
-        """@Test: Delete the filter to remove permissions from a role.
-
-        @Feature: Role and Permissions
-
-        @Assert: Filter should be deleted
-
-        """
-        role_name = gen_alphanumeric()
-        try:
-            role_attrs = entities.Role(name=role_name).create()
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
-        path = entities.Role(id=role_attrs['id']).path()
-
-        # GET the role and verify it's name.
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        self.assertEqual(response['name'], role_name)
-        # Get permissions that have a resource_type of ConfigTemplate.
-        permissions = client.get(
-            entities.Permission().path(),
-            auth=get_server_credentials(),
-            verify=False,
-            data={'resource_type': 'Ptable'},
-        ).json()['results']
-
-        # Create a filter under a selected role with all permissions
-        # of a selected resource_type.
-        filter_attrs = entities.Filter(
-            role=role_attrs['id'],
-            permission=[permission['id'] for permission in permissions]
-        ).create()
-
-        # Delete the Filter, GET it, and assert that an HTTP 404 is returned.
-        entities.Filter(id=filter_attrs['id']).delete()
-        response = client.get(
-            entities.Filter(id=filter_attrs['id']).path(),
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
-
-    def test_positive_delete_role_inclusive_permissions(self):
-        """@Test: Delete a role that includes some permissions.
-
-        @Feature: Role and Permissions
-
-        @Assert: Role as well as inclusive filter should be deleted
-
-        """
-        role_name = gen_alphanumeric()
-        try:
-            role_attrs = entities.Role(name=role_name).create()
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
-        path = entities.Role(id=role_attrs['id']).path()
-
-        # GET the role and verify it's name.
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        self.assertEqual(response['name'], role_name)
-        # Get permissions that have a resource_type of ConfigTemplate.
-        permissions = client.get(
-            entities.Permission().path(),
-            auth=get_server_credentials(),
-            verify=False,
-            data={'resource_type': 'Ptable'},
-        ).json()['results']
-
-        # Create a filter under a selected role with all permissions
-        # of a selected resource_type.
-        filter_attrs = entities.Filter(
-            role=role_attrs['id'],
-            permission=[permission['id'] for permission in permissions]
-        ).create()
-        filter_path = entities.Filter(id=filter_attrs['id']).path()
-        client.get(
-            filter_path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-
-        # Delete the role, GET it, and assert that HTTP 404 is returned for
-        # deleted role and filter.
-        entities.Role(id=role_attrs['id']).delete()
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
-        # 404 should be returned for deleted filter too
-        response = client.get(
-            filter_path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
