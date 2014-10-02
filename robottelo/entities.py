@@ -613,7 +613,9 @@ class Errata(orm.Entity):
         server_modes = ('sat')
 
 
-class Filter(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class Filter(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Filter entity."""
     role = orm.OneToOneField('Role', required=True)
     search = orm.StringField(null=True)
