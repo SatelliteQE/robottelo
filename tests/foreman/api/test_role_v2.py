@@ -4,11 +4,6 @@ An API reference is available here:
 http://theforeman.org/api/apidoc/v2/roles.html
 
 """
-from requests.exceptions import HTTPError
-from robottelo.api import client
-from robottelo.common import decorators
-from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
 from fauxfactory import (
     gen_alpha,
     gen_alphanumeric,
@@ -17,6 +12,11 @@ from fauxfactory import (
     gen_numeric_string,
     gen_utf8,
 )
+from requests.exceptions import HTTPError
+from robottelo.api import client
+from robottelo.common.helpers import get_server_credentials
+from robottelo.common import decorators
+from robottelo import entities
 from unittest import TestCase
 import ddt
 # (too many public methods) pylint: disable=R0904
