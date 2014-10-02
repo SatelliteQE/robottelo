@@ -485,6 +485,15 @@ class EntityReadMixin(object):
             auth=auth,
             verify=False,
         )
+        if response.status_code is 404:
+            # Avoid 404 on faster machines with faster connections. Give some
+            # time to server finish creating the entity
+            time.sleep(1)
+            response = client.get(
+                self.path(which='self'),
+                auth=auth,
+                verify=False,
+            )
         response.raise_for_status()
         return response.json()
 
