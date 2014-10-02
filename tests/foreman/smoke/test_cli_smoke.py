@@ -116,7 +116,7 @@ class TestSmoke(CLITestCase):
         """
 
         # Create new user
-        new_user = make_user({'admin': 'true'})
+        new_user = make_user({u'admin': 'true'})
 
         # Create new org as new user
         new_org = self._create(
@@ -129,55 +129,65 @@ class TestSmoke(CLITestCase):
         lifecycle1 = self._create(
             new_user,
             LifecycleEnvironment,
-            {u'organization-id': new_org['id'],
-             u'name': gen_alphanumeric(),
-             u'prior': u'Library'}
+            {
+                u'organization-id': new_org['id'],
+                u'name': gen_alphanumeric(),
+                u'prior': u'Library',
+            }
         )
 
         # Create new lifecycle environment 2
         lifecycle2 = self._create(
             new_user,
             LifecycleEnvironment,
-            {u'organization-id': new_org['id'],
-             u'name': gen_alphanumeric(),
-             u'prior': lifecycle1['name']}
+            {
+                u'organization-id': new_org['id'],
+                u'name': gen_alphanumeric(),
+                u'prior': lifecycle1['name'],
+            }
         )
 
         # Create a new product
         new_product = self._create(
             new_user,
             Product,
-            {u'organization-id': new_org['id'],
-             u'name': gen_alphanumeric()}
+            {
+                u'organization-id': new_org['id'],
+                u'name': gen_alphanumeric(),
+            }
         )
 
         # Create a YUM repository
         new_repo1 = self._create(
             new_user,
             Repository,
-            {u'product-id': new_product['id'],
-             u'name': gen_alphanumeric(),
-             u'content-type': u'yum',
-             u'publish-via-http': u'true',
-             u'url': GOOGLE_CHROME_REPO}
+            {
+                u'product-id': new_product['id'],
+                u'name': gen_alphanumeric(),
+                u'content-type': u'yum',
+                u'publish-via-http': u'true',
+                u'url': GOOGLE_CHROME_REPO,
+            }
         )
 
         # Create a Puppet repository
         new_repo2 = self._create(
             new_user,
             Repository,
-            {u'product-id': new_product['id'],
-             u'name': gen_alphanumeric(),
-             u'content-type': u'puppet',
-             u'publish-via-http': u'true',
-             u'url': FAKE_0_PUPPET_REPO}
+            {
+                u'product-id': new_product['id'],
+                u'name': gen_alphanumeric(),
+                u'content-type': u'puppet',
+                u'publish-via-http': u'true',
+                u'url': FAKE_0_PUPPET_REPO,
+            }
         )
 
         # Synchronize YUM repository
         result = Repository.with_user(
             new_user['login'],
             new_user['password']
-        ).synchronize({'id': new_repo1['id']})
+        ).synchronize({u'id': new_repo1['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -191,7 +201,7 @@ class TestSmoke(CLITestCase):
         result = Repository.with_user(
             new_user['login'],
             new_user['password']
-        ).synchronize({'id': new_repo2['id']})
+        ).synchronize({u'id': new_repo2['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -205,17 +215,20 @@ class TestSmoke(CLITestCase):
         new_cv = self._create(
             new_user,
             ContentView,
-            {u'organization-id': new_org['id'],
-             u'name': gen_alphanumeric()}
+            {
+                u'organization-id': new_org['id'],
+                u'name': gen_alphanumeric(),
+            }
         )
 
         # Associate yum repository to content view
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
-        ).add_repository(
-            {u'id': new_cv['id'],
-             u'repository-id': new_repo1['id']})
+        ).add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo1['id'],
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -230,9 +243,10 @@ class TestSmoke(CLITestCase):
         puppet_result = PuppetModule.with_user(
             new_user['login'],
             new_user['password']
-        ).list(
-            {u'repository-id': new_repo2['id'],
-             u'per-page': False})
+        ).list({
+            u'repository-id': new_repo2['id'],
+            u'per-page': False,
+        })
         self.assertEqual(
             puppet_result.return_code,
             0,
@@ -247,12 +261,10 @@ class TestSmoke(CLITestCase):
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
-        ).puppet_module_add(
-            {
-                u'content-view-id': new_cv['id'],
-                u'name': puppet_result.stdout[0]['name']
-            }
-        )
+        ).puppet_module_add({
+            u'content-view-id': new_cv['id'],
+            u'name': puppet_result.stdout[0]['name'],
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -298,9 +310,10 @@ class TestSmoke(CLITestCase):
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
-        ).version_promote(
-            {u'id': result.stdout['versions'][0]['id'],
-             u'lifecycle-environment-id': lifecycle1['id']})
+        ).version_promote({
+            u'id': result.stdout['versions'][0]['id'],
+            u'lifecycle-environment-id': lifecycle1['id'],
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -315,9 +328,10 @@ class TestSmoke(CLITestCase):
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
-        ).version_promote(
-            {u'id': version1_id,
-             u'lifecycle-environment-id': lifecycle2['id']})
+        ).version_promote({
+            u'id': version1_id,
+            u'lifecycle-environment-id': lifecycle2['id'],
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -336,8 +350,9 @@ class TestSmoke(CLITestCase):
                 u'name': gen_alphanumeric(),
                 u'provider': u'Libvirt',
                 u'url': u'qemu+tcp://{0}:16509/system'.format(
-                    conf.properties['main.server.hostname'])
-            })
+                    conf.properties['main.server.hostname']),
+            }
+        )
 
         # Create a new subnet
         new_subnet = self._create(
@@ -346,7 +361,7 @@ class TestSmoke(CLITestCase):
             {
                 u'name': gen_alphanumeric(),
                 u'network': gen_ipaddr(ip3=True),
-                u'mask': u'255.255.255.0'
+                u'mask': u'255.255.255.0',
             }
         )
 
@@ -372,11 +387,9 @@ class TestSmoke(CLITestCase):
         result = Environment.with_user(
             new_user['login'],
             new_user['password']
-        ).list(
-            {
-                u'search': u'organization=\"{0}\"'.format(
-                    new_org['name'])
-            })
+        ).list({
+            u'search': u'organization="{0}"'.format(new_org['name']),
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -410,12 +423,10 @@ class TestSmoke(CLITestCase):
         result = Org.with_user(
             new_user['login'],
             new_user['password']
-        ).add_hostgroup(
-            {
-                u'id': new_org['id'],
-                u'hostgroup-id': new_hg['id']
-            }
-        )
+        ).add_hostgroup({
+            u'id': new_org['id'],
+            u'hostgroup-id': new_hg['id'],
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -520,15 +531,15 @@ class TestSmoke(CLITestCase):
         # Create new org and environment
         new_org = make_org()
         new_env = make_lifecycle_environment({
-            'organization-id': new_org['id'],
-            'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'name': gen_alphanumeric(),
         })
         # Clone manifest and upload it
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
         result = Subscription.upload({
-            'file': self.manifest,
-            'organization-id': new_org['id'],
+            u'file': manifest,
+            u'organization-id': new_org['id'],
         })
         self.assertEqual(
             result.return_code, 0,
@@ -537,11 +548,11 @@ class TestSmoke(CLITestCase):
         )
         # Enable repo from Repository Set
         result = RepositorySet.enable({
-            'name': rhel_repo_set,
-            'organization-id': new_org['id'],
-            'product': rhel_product_name,
-            'releasever': '6Server',
-            'basearch': 'x86_64',
+            u'name': rhel_repo_set,
+            u'organization-id': new_org['id'],
+            u'product': rhel_product_name,
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
         })
         self.assertEqual(
             result.return_code, 0,
@@ -552,14 +563,14 @@ class TestSmoke(CLITestCase):
         result = Repository.info({
             u'name': rhel_repo_name,
             u'product': rhel_product_name,
-            u'organization-id': new_org['id']
+            u'organization-id': new_org['id'],
         })
         rhel_repo = result.stdout
         # Synchronize the repository
         result = Repository.synchronize({
-            'name': rhel_repo_name,
-            'organization-id': new_org['id'],
-            'product': rhel_product_name,
+            u'name': rhel_repo_name,
+            u'organization-id': new_org['id'],
+            u'product': rhel_product_name,
         })
         self.assertEqual(
             result.return_code, 0,
@@ -597,7 +608,7 @@ class TestSmoke(CLITestCase):
         # Promotion of version1 to next env
         result = ContentView.version_promote({
             u'id': version1_id,
-            u'lifecycle-environment-id': new_env['id']
+            u'lifecycle-environment-id': new_env['id'],
         })
         self.assertEqual(
             result.return_code, 0,
@@ -609,12 +620,13 @@ class TestSmoke(CLITestCase):
             u'name': gen_alphanumeric(),
             u'lifecycle-environment-id': new_env['id'],
             u'organization-id': new_org['id'],
-            u'content-view': new_cv['name']
+            u'content-view': new_cv['name'],
         })
         # List the subscriptions in given org
         result = Subscription.list(
-            {'organization-id': new_org['id']},
-            per_page=False)
+            {u'organization-id': new_org['id']},
+            per_page=False
+        )
         self.assertEqual(
             result.return_code, 0,
             "Failed to list subscriptions: {0} and return code: {1}"
