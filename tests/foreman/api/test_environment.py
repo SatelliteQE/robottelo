@@ -11,7 +11,7 @@ from robottelo import entities
 from unittest import TestCase
 import ddt
 import random
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @decorators.run_only_on('sat')

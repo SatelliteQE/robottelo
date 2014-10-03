@@ -12,7 +12,7 @@ from robottelo import entities
 from unittest import TestCase
 import httplib
 import logging
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 logger = logging.getLogger(__name__)  # pylint:disable=C0103

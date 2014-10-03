@@ -4,9 +4,9 @@ Systems are a bit unusual. A :class:`robottelo.entities.System` has both an ID
 and a UUID, but whereas most entities are uniquely identified by their ID, a
 ``System`` is uniquely identified by its UUID.
 
-:class:`EntityIdTestCaseClone` and :class:`LongMessageTestCaseClone` are clones
+:class:`EntityIdTestCaseClone` and :class:`DoubleCheckTestCase` are clones
 of :class:`tests.foreman.api.test_multiple_paths.EntityIdTestCase` and
-:class:`tests.foreman.api.test_multiple_paths.LongMessageTestCase`,
+:class:`tests.foreman.api.test_multiple_paths.DoubleCheckTestCase`,
 respsectively. This is unfortuante but necessary: those tests assume that an ID
 is used to uniquely identify an entity, and cannot easily be adapted to act
 otherwise.
@@ -23,7 +23,7 @@ from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System
 from unittest import TestCase
 import httplib
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 class EntityIdTestCaseClone(TestCase):
@@ -102,8 +102,14 @@ class EntityIdTestCaseClone(TestCase):
             self.assertIn('application/json', response.headers['content-type'])
 
 
-class LongMessageTestCaseClone(TestCase):
-    """Issue a variety of HTTP requests to a variety of URLs."""
+class DoubleCheckTestCase(TestCase):
+    """Perform in-depth tests on URLs.
+
+    Do not just assume that an HTTP response with a good status code indicates
+    that an action succeeded. Instead, issue a follow-up request after each
+    action to ensure that the intended action was accomplished.
+
+    """
     longMessage = True
 
     @skip_if_bug_open('bugzilla', 1133097)

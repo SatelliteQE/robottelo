@@ -8,7 +8,7 @@ from robottelo.api import client
 from robottelo.common.helpers import get_server_credentials, get_server_url
 from unittest import TestCase
 import httplib
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 class RHSMTestCase(TestCase):

@@ -1,33 +1,29 @@
-# -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
-from ddt import ddt
+"""Tests for the ``smart_proxies`` paths."""
 from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, run_only_on
-from robottelo.test import APITestCase
+from robottelo.common.decorators import run_only_on
+import unittest
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-@ddt
-class TestSmartproxy(APITestCase):
-    """Testing /api/organization entrypoint"""
+class SmartProxyTestCaseStub(unittest.TestCase):
+    """Incomplete tests for smart proxies.
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
+    When implemented, each of these tests should probably be data-driven. A
+    decorator of this form might be used::
+
+        @data(
+            medium name is alpha,
+            medium name is alpha_numeric,
+            medium name is html,
+            medium name is latin1,
+            medium name is numeric,
+            medium name is utf-8,
+        )
+
+
+    """
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_1(self, test_data):
         """
@@ -37,17 +33,6 @@ class TestSmartproxy(APITestCase):
         @status: manual
         """
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_2(self, test_data):
         """
@@ -57,17 +42,6 @@ class TestSmartproxy(APITestCase):
         @status: manual
         """
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_3(self, test_data):
         """
@@ -77,17 +51,6 @@ class TestSmartproxy(APITestCase):
         @status: manual
         """
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_4(self, test_data):
         """
@@ -98,15 +61,6 @@ class TestSmartproxy(APITestCase):
         """
 
     @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -115,17 +69,6 @@ class TestSmartproxy(APITestCase):
         @status: manual
         """
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_2(self, test_data):
         """
@@ -135,17 +78,6 @@ class TestSmartproxy(APITestCase):
         @status: manual
         """
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_3(self, test_data):
         """
@@ -155,17 +87,6 @@ class TestSmartproxy(APITestCase):
         @status: manual
         """
 
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_smartproxy_4(self, test_data):
         """
@@ -174,5 +95,3 @@ class TestSmartproxy(APITestCase):
         @assert: smartproxy is added then removed
         @status: manual
         """
-
-        pass

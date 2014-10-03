@@ -9,7 +9,7 @@ from robottelo import entities
 from fauxfactory import gen_integer, gen_string
 from unittest import TestCase
 import httplib
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt
