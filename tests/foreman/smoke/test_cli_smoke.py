@@ -263,7 +263,7 @@ class TestSmoke(CLITestCase):
             new_user['password']
         ).puppet_module_add({
             u'content-view-id': new_cv['id'],
-            u'name': puppet_result.stdout[0]['name'],
+            u'id': puppet_result.stdout[0]['id'],
         })
         self.assertEqual(
             result.return_code,
@@ -312,7 +312,7 @@ class TestSmoke(CLITestCase):
             new_user['password']
         ).version_promote({
             u'id': result.stdout['versions'][0]['id'],
-            u'lifecycle-environment-id': lifecycle1['id'],
+            u'to-lifecycle-environment-id': lifecycle1['id'],
         })
         self.assertEqual(
             result.return_code,
@@ -330,7 +330,7 @@ class TestSmoke(CLITestCase):
             new_user['password']
         ).version_promote({
             u'id': version1_id,
-            u'lifecycle-environment-id': lifecycle2['id'],
+            u'to-lifecycle-environment-id': lifecycle2['id'],
         })
         self.assertEqual(
             result.return_code,
@@ -608,7 +608,7 @@ class TestSmoke(CLITestCase):
         # Promotion of version1 to next env
         result = ContentView.version_promote({
             u'id': version1_id,
-            u'lifecycle-environment-id': new_env['id'],
+            u'to-lifecycle-environment-id': new_env['id'],
         })
         self.assertEqual(
             result.return_code, 0,
