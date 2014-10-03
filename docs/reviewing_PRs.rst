@@ -11,7 +11,7 @@ Standards`_.
 If you note something that should be changed, or want clarification, add a
 comment to the line of code or the PR as a whole.
 
-If tests were added, ensure the PR includes the results or simple a message
+If tests were added, ensure the PR includes the results or simply a message
 stating *"All tests passed."* or *"Unable to run tests at this time due to
 _____."*
 
