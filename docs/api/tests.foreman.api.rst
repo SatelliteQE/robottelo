@@ -5,38 +5,59 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_activationkey_v2`
-----------------------------------------------
+:mod:`tests.foreman.api.test_activationkey`
+-------------------------------------------
 
-.. automodule:: tests.foreman.api.test_activationkey_v2
+.. automodule:: tests.foreman.api.test_activationkey
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_contentviews`
-------------------------------------------
+:mod:`tests.foreman.api.test_contentview`
+-----------------------------------------
 
-.. automodule:: tests.foreman.api.test_contentviews
+.. automodule:: tests.foreman.api.test_contentview
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_environment_v2`
---------------------------------------------
+:mod:`tests.foreman.api.test_contentviewfilter`
+-----------------------------------------------
 
-.. automodule:: tests.foreman.api.test_environment_v2
+.. automodule:: tests.foreman.api.test_contentviewfilter
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_foremantask_v2`
---------------------------------------------
+:mod:`tests.foreman.api.test_contentviewversion`
+------------------------------------------------
 
-.. automodule:: tests.foreman.api.test_foremantask_v2
+.. automodule:: tests.foreman.api.test_contentviewversion
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_gpgkey_v2`
----------------------------------------
+:mod:`tests.foreman.api.test_environment`
+-----------------------------------------
 
-.. automodule:: tests.foreman.api.test_gpgkey_v2
+.. automodule:: tests.foreman.api.test_environment
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_filter`
+------------------------------------
+
+.. automodule:: tests.foreman.api.test_filter
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_foremantask`
+-----------------------------------------
+
+.. automodule:: tests.foreman.api.test_foremantask
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_gpgkey`
+------------------------------------
+
+.. automodule:: tests.foreman.api.test_gpgkey
     :members:
     :undoc-members:
 
@@ -54,17 +75,17 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_host_v2`
--------------------------------------
+:mod:`tests.foreman.api.test_lifecycleenvironment`
+--------------------------------------------------
 
-.. automodule:: tests.foreman.api.test_host_v2
+.. automodule:: tests.foreman.api.test_lifecycleenvironment
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_medium`
-------------------------------------
+:mod:`tests.foreman.api.test_media`
+-----------------------------------
 
-.. automodule:: tests.foreman.api.test_medium
+.. automodule:: tests.foreman.api.test_media
     :members:
     :undoc-members:
 
@@ -75,17 +96,17 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_operatingsystem_v2`
-------------------------------------------------
+:mod:`tests.foreman.api.test_operatingsystem`
+---------------------------------------------
 
-.. automodule:: tests.foreman.api.test_operatingsystem_v2
+.. automodule:: tests.foreman.api.test_operatingsystem
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_organization_v2`
----------------------------------------------
+:mod:`tests.foreman.api.test_organization`
+------------------------------------------
 
-.. automodule:: tests.foreman.api.test_organization_v2
+.. automodule:: tests.foreman.api.test_organization
     :members:
     :undoc-members:
 
@@ -96,24 +117,31 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_product_v2`
-----------------------------------------
-
-.. automodule:: tests.foreman.api.test_product_v2
-    :members:
-    :undoc-members:
-
-:mod:`tests.foreman.api.test_repository_v2`
--------------------------------------------
-
-.. automodule:: tests.foreman.api.test_repository_v2
-    :members:
-    :undoc-members:
-
-:mod:`tests.foreman.api.test_role_v2`
+:mod:`tests.foreman.api.test_product`
 -------------------------------------
 
-.. automodule:: tests.foreman.api.test_role_v2
+.. automodule:: tests.foreman.api.test_product
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_repository`
+----------------------------------------
+
+.. automodule:: tests.foreman.api.test_repository
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_rhsm`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_rhsm
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_role`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_role
     :members:
     :undoc-members:
 
@@ -124,9 +152,23 @@
     :members:
     :undoc-members:
 
-:mod:`tests.foreman.api.test_user_v2`
--------------------------------------
+:mod:`tests.foreman.api.test_subscription`
+------------------------------------------
 
-.. automodule:: tests.foreman.api.test_user_v2
+.. automodule:: tests.foreman.api.test_subscription
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_system`
+------------------------------------
+
+.. automodule:: tests.foreman.api.test_system
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.api.test_user`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_user
     :members:
     :undoc-members:

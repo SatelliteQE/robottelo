@@ -11,7 +11,7 @@ from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
 import httplib
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')

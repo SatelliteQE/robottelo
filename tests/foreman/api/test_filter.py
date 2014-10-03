@@ -7,7 +7,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 from requests.exceptions import HTTPError
 from robottelo import entities
 from unittest import TestCase
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 class FilterTestCase(TestCase):

@@ -1,2 +1,7 @@
-# -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
+"""In-depth API tests.
+
+:mod:`tests.foreman.api.test_multiple_paths` contains tests that are very
+generic and apply to a large number of API paths. The other modules contain
+tests that are more specific to individual API paths.
+
+"""

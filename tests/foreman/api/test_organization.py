@@ -15,7 +15,7 @@ from unittest import TestCase
 import ddt
 import httplib
 import sys
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt

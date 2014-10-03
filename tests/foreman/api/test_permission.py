@@ -15,7 +15,7 @@ from unittest import TestCase
 import ddt
 import itertools
 import re
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 PERMISSIONS_RESOURCE_TYPE = [key for key in PERMISSIONS.keys()

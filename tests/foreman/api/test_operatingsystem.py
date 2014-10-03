@@ -10,7 +10,7 @@ from fauxfactory import gen_utf8
 from robottelo.common.decorators import run_only_on
 from robottelo import entities
 from unittest import TestCase
-# (too many public methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')

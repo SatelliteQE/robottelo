@@ -13,7 +13,7 @@ from robottelo.common import decorators
 from robottelo import entities
 from unittest import TestCase
 import ddt
-# (too-many-public-methods) pylint: disable=R0904
+# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt
