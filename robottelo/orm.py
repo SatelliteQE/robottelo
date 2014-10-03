@@ -414,9 +414,12 @@ class Entity(booby.Model):
 
 class EntityDeleteMixin(object):
     """A mixin that adds the ability to delete an entity."""
+    # FIXME: Define `delete_raw`. Call from `delete`. Drop pylint directive.
+    #
     # (too-few-public-methods) pylint:disable=R0903
     # It's OK that this class has only one public method. It's a targeted
     # mixin, not a standalone class.
+
     def delete(self, auth=None, synchronous=True):
         """Delete the current entity.
 
@@ -459,18 +462,31 @@ class EntityDeleteMixin(object):
 
 class EntityReadMixin(object):
     """A mixin that provides the ability to read an entity."""
-    # (too-few-public-methods) pylint:disable=R0903
-    # It's OK that this class has only one public method. It's a targeted
-    # mixin, not a standalone class.
-    def read_json(self, auth=None):
+
+    def read_raw(self, auth=None):
         """Get information about the current entity.
 
-        Send an HTTP GET request to ``self.path(which='self')``. Return the
-        decoded JSON response.
+        Send an HTTP GET request to :meth:`path`. Return the response. Do not
+        check the response for any errors, such as an HTTP 4XX or 5XX status
+        code.
 
         :param tuple auth: A ``(username, password)`` tuple used when accessing
             the API. If ``None``, the credentials provided by
             :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :return: A ``requests.response`` object.
+
+        """
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        return client.get(self.path(), auth=auth, verify=False)
+
+    def read_json(self, auth=None):
+        """Get information about the current entity.
+
+        Call :meth:`read_raw`. Check the response status code, decode JSON and
+        return the decoded JSON as a dict.
+
+        :param tuple auth: Same as :meth:`read_raw`.
         :return: The server's response, with all JSON decoded.
         :rtype: dict
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
@@ -478,37 +494,27 @@ class EntityReadMixin(object):
         :raises: ``ValueError`` If the response JSON can not be decoded.
 
         """
-        if auth is None:
-            auth = helpers.get_server_credentials()
-        response = client.get(
-            self.path(which='self'),
-            auth=auth,
-            verify=False,
-        )
-        if response.status_code is 404:
-            # Avoid 404 on faster machines with faster connections. Give some
-            # time to server finish creating the entity
-            time.sleep(3)
-            response = client.get(
-                self.path(which='self'),
-                auth=auth,
-                verify=False,
-            )
+        response = self.read_raw(auth)
         response.raise_for_status()
         return response.json()
 
     def read(self, auth=None, entity=None, attrs=None):
-        """Instantiate and initialize an object of type ``type(self)``.
+        """Get information about the current entity.
 
-        Instantiate an object of type ``type(self)``. Populate the object's
-        attributes using either ``attrs`` or
-        :meth:`robottelo.orm.EntityReadMixin.read_json`. The ``attrs`` argument
-        takes precedence.
+        Call :meth:`read_json`. Use this information to populate an object of
+        type ``type(self)`` and return that object.
 
         All of an entity's one-to-one and one-to-many relationships are
         populated with objects of the correct type. For example, if
-        ``SomeEntity.other_entity`` is a one-to-one relationship, both of these
-        commands should succeed:
+        ``SomeEntity.other_entity`` is a one-to-one relationship, this should
+        return ``True``::'
+
+            isinstance(
+                SomeEntity(id=N).read().other_entity,
+                robottelo.orm.Entity
+            )
+
+        Additionally, both of these commands should succeed::
 
             SomeEntity(id=N).read().other_entity.id
             SomeEntity(id=N).read().other_entity.read().other_attr
@@ -517,17 +523,13 @@ class EntityReadMixin(object):
         with a meaningful value. Calling ``other_entity.read`` populates the
         remaining entity attributes.
 
-        :param tuple auth: Same as for
-            :meth:`robottelo.orm.EntityReadMixin.read_json`.
-        :param robottelo.orm.Entity entity: The entity to be populated and
-            returned.
-        :param dict attrs: Data used to populate the new entity's attributes.
-        :return: An instance of type ``type(self)``. In other words, an
-            instance of ``SomeEntity`` is returned if
-            ``SomeEntity(id=N).read()`` is called.
+        :param tuple auth: Same as :meth:`read_raw`.
+        :param robottelo.orm.Entity entity: The object to be populated and
+            returned. An object of type ``type(self)`` by default.
+        :param dict attrs: Data used to populate the object's attributes. The
+            response from ``read_json`` by default.
+        :return: An instance of type ``type(self)``.
         :rtype: robottelo.orm.Entity
-        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
-            4XX or 5XX status code.
 
         """
         if entity is None:
