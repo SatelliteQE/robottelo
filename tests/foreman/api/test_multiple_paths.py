@@ -58,17 +58,12 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        path = entity().path()
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
+        response = entity().read_raw()
         status_code = httplib.OK
         self.assertEqual(
             status_code,
             response.status_code,
-            status_code_error(path, status_code, response),
+            status_code_error(entity().path(), status_code, response),
         )
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -100,13 +95,12 @@ class EntityTestCase(TestCase):
         @Assert: HTTP 401 is returned
 
         """
-        path = entity().path()
-        response = client.get(path, verify=False)
+        response = entity().read_raw(auth=())
         status_code = httplib.UNAUTHORIZED
         self.assertEqual(
             status_code,
             response.status_code,
-            status_code_error(path, status_code, response),
+            status_code_error(entity().path(), status_code, response),
         )
 
     @data(
@@ -226,18 +220,16 @@ class EntityIdTestCase(TestCase):
         """
         if entity is entities.ActivationKey and bz_bug_is_open(1127335):
             self.skipTest("Bugzilla bug 1127335 is open.""")
-        attrs = entity().create()
-        path = entity(id=attrs['id']).path()
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
+        try:
+            entity_n = entity(id=entity().create()['id'])
+        except factory.FactoryError as err:
+            self.fail(err)
+        response = entity_n.read_raw()
         status_code = httplib.OK
         self.assertEqual(
             status_code,
             response.status_code,
-            status_code_error(path, status_code, response),
+            status_code_error(entity_n.path(), status_code, response),
         )
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -487,11 +479,7 @@ class DoubleCheckTestCase(TestCase):
         entity_n.delete()
 
         # Get the now non-existent entity.
-        response = client.get(
-            entity_n.path(),
-            auth=get_server_credentials(),
-            verify=False,
-        )
+        response = entity_n.read_raw()
         status_code = httplib.NOT_FOUND
         self.assertEqual(
             status_code,

@@ -79,9 +79,16 @@ def _curl_arg_user(kwargs):
     :rtype: str
 
     """
-    # True if user provided creds in this form: auth=('username', 'password')
-    # False if no creds or in e.g. this form: auth=HTTPBasicAuth('usr', 'pass')
-    if 'auth' in kwargs and isinstance(kwargs['auth'], tuple):
+    # By default, auth is `None`. The user may provide credentials in a variety
+    # for forms, such as:
+    #
+    # * ('Alice', 'hackme')
+    # * ()
+    # * HTTPBasicAuth('Bob', 'gandalf')
+    #
+    if ('auth' in kwargs and
+            isinstance(kwargs['auth'], tuple) and
+            len(kwargs['auth']) is 2):
         return u'--user {0}:{1} '.format(kwargs['auth'][0], kwargs['auth'][1])
     return ''
 
