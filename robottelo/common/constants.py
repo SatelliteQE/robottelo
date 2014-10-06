@@ -197,16 +197,9 @@ PERMISSIONS = {
     None: (
         'access_dashboard',
         'access_settings',
-        'app_root',
-        'attachments',
-        'configuration',
         'download_bootdisk',
-        'logs',
         'my_organizations',
-        'view_cases',
-        'view_log_viewer',
         'view_plugins',
-        'view_search',
         'view_statistics',
         'view_tasks',
     ),
@@ -230,6 +223,12 @@ PERMISSIONS = {
         'create_bookmarks',
         'edit_bookmarks',
         'destroy_bookmarks',
+    ),
+    'ConfigGroup': (
+        'view_config_groups',
+        'create_config_groups',
+        'edit_config_groups',
+        'destroy_config_groups',
     ),
     'ComputeProfile': (
         'view_compute_profiles',
@@ -269,6 +268,12 @@ PERMISSIONS = {
         'edit_environments',
         'destroy_environments',
         'import_environments',
+    ),
+    'ExternalUsergroups': (
+        'view_external_usergroups',
+        'create_external_usergroups',
+        'edit_external_usergroups',
+        'destroy_external_usergroups',
     ),
     'LookupKey': (
         'view_external_variables',
