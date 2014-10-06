@@ -24,8 +24,8 @@ unit test for mocking purposes.
     http://docs.python-requests.org/en/latest/api/#main-interface
 
 """
+from json import dumps
 from urllib import urlencode
-import json
 import logging
 import requests
 
@@ -181,9 +181,9 @@ def _call_requests_get(url, **kwargs):
     return requests.get(url, **kwargs)
 
 
-def _call_requests_post(url, data=None, **kwargs):
+def _call_requests_post(url, data=None, json=None, **kwargs):
     """Call ``requests.post``."""
-    return requests.post(url, data, **kwargs)
+    return requests.post(url, data, json, **kwargs)
 
 
 def _call_requests_put(url, data=None, **kwargs):
@@ -205,7 +205,7 @@ def request(method, url, **kwargs):
     """A wrapper for ``requests.request``."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
-        kwargs['data'] = json.dumps(kwargs['data'])
+        kwargs['data'] = dumps(kwargs['data'])
     _log_request(method, url, kwargs)
     response = _call_requests_request(method, url, **kwargs)
     _log_response(response)
@@ -216,7 +216,7 @@ def head(url, **kwargs):
     """A wrapper for ``requests.head``."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
-        kwargs['data'] = json.dumps(kwargs['data'])
+        kwargs['data'] = dumps(kwargs['data'])
     _log_request('HEAD', url, kwargs)
     response = _call_requests_head(url, **kwargs)
     _log_response(response)
@@ -227,20 +227,20 @@ def get(url, **kwargs):
     """A wrapper for ``requests.get``."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
-        kwargs['data'] = json.dumps(kwargs['data'])
+        kwargs['data'] = dumps(kwargs['data'])
     _log_request('GET', url, kwargs)
     response = _call_requests_get(url, **kwargs)
     _log_response(response)
     return response
 
 
-def post(url, data=None, **kwargs):
+def post(url, data=None, json=None, **kwargs):
     """A wrapper for ``requests.post``."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and data is not None:
-        data = json.dumps(data)
+        data = dumps(data)
     _log_request('POST', url, kwargs, data)
-    response = _call_requests_post(url, data, **kwargs)
+    response = _call_requests_post(url, data, json, **kwargs)
     _log_response(response)
     return response
 
@@ -249,7 +249,7 @@ def put(url, data=None, **kwargs):
     """A wrapper for ``requests.put``. Sends a PUT request."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and data is not None:
-        data = json.dumps(data)
+        data = dumps(data)
     _log_request('PUT', url, kwargs, data)
     response = _call_requests_put(url, data, **kwargs)
     _log_response(response)
@@ -260,7 +260,7 @@ def patch(url, data=None, **kwargs):
     """A wrapper for ``requests.patch``. Sends a PATCH request."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and data is not None:
-        data = json.dumps(data)
+        data = dumps(data)
     _log_request('PATCH', url, kwargs, data)
     response = _call_requests_patch(url, data, **kwargs)
     _log_response(response)
@@ -271,7 +271,7 @@ def delete(url, **kwargs):
     """A wrapper for ``requests.delete``. Sends a DELETE request."""
     _set_content_type(kwargs)
     if _content_type_is_json(kwargs) and kwargs.get('data') is not None:
-        kwargs['data'] = json.dumps(kwargs['data'])
+        kwargs['data'] = dumps(kwargs['data'])
     _log_request('DELETE', url, kwargs)
     response = _call_requests_delete(url, **kwargs)
     _log_response(response)
