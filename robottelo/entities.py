@@ -13,7 +13,7 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
 from datetime import datetime
-from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
+from fauxfactory import gen_alpha, gen_alphanumeric, gen_netmask, gen_url
 from robottelo.api import client
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
@@ -1926,7 +1926,7 @@ class Subnet(
     domain = orm.OneToManyField('Domain', null=True)
     from_ = orm.IPAddressField(null=True)
     gateway = orm.StringField(null=True)
-    mask = orm.IPAddressField(required=True)
+    mask = orm.NetmaskField(required=True)
     name = orm.StringField(required=True)
     network = orm.IPAddressField(required=True)
     to = orm.IPAddressField(null=True)  # (invalid-name) pylint:disable=C0103

@@ -1,7 +1,7 @@
 """Module that define the model layer used to define entities"""
 from fauxfactory import (
     gen_boolean, gen_choice, gen_email,
-    gen_integer, gen_ipaddr, gen_mac,
+    gen_integer, gen_ipaddr, gen_mac, gen_netmask,
     gen_string, gen_url
 )
 from robottelo.api import client
@@ -210,6 +210,13 @@ class IPAddressField(StringField):
     def get_value(self):
         """Return a value suitable for a :class:`IPAddressField`."""
         return _get_value(self, gen_ipaddr)
+
+
+class NetmaskField(StringField):
+    """Field that represents an netmask"""
+    def get_value(self):
+        """Return a value suitable for a :class:`NetmaskField`."""
+        return _get_value(self, gen_netmask)
 
 
 # FIXME: implement get_value()
