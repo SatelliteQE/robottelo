@@ -13,13 +13,14 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
 from datetime import datetime
+from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
 from robottelo.api import client
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
-from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
+from time import sleep
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
@@ -46,6 +47,16 @@ class ActivationKey(
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/activation_keys'
         server_modes = ('sat', 'sam')
+
+    def read_raw(self, auth=None):
+        super_read_raw = super(ActivationKey, self).read_raw
+        response = super_read_raw(auth)
+        if response.status_code is 404:
+            # Avoid 404 on faster machines with faster connections. Give some
+            # time to server finish creating the entity
+            sleep(5)
+            response = super_read_raw(auth)
+        return response
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -2061,7 +2072,7 @@ class TemplateCombination(orm.Entity):
         server_modes = ('sat')
 
 
-class TemplateKind(orm.Entity):
+class TemplateKind(orm.Entity, orm.EntityReadMixin):
     """A representation of a Template Kind entity."""
     # FIXME figure out fields
     # The API does not support the "api/v2/template_kinds/:id" path at all.
