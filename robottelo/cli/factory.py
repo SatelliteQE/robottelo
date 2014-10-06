@@ -152,7 +152,7 @@ def make_activation_key(options=None):
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'unlimited-content-hosts': True,
+        u'unlimited-content-hosts': 'true',
     }
 
     # Override default dictionary with updated one
