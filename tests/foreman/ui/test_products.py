@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org, make_loc, make_product
@@ -192,6 +192,7 @@ class Products(UITestCase):
             error = self.products.wait_until_element(locator)
             self.assertIsNotNone(error)
 
+    @skip_if_bug_open('redmine', 7845)
     @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
