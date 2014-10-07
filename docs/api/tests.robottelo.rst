@@ -3,10 +3,6 @@
 
 Submodules:
 
-.. toctree::
-
-    tests.robottelo.records
-
 .. automodule:: tests.robottelo
     :members:
     :undoc-members:

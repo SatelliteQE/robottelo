@@ -539,20 +539,6 @@ class ContentViewTestCaseStub(TestCase):
         @setup: Multiple environments for an org; custom content synced
         @assert: Content view can be promoted
         """
-        # con_view = ApiCrud.record_create_recursive(ContentViewDefinition())
-        # self.assertIntersects(data, con_view)
-        # task = con_view._meta.api_class.publish(con_view)
-        # task.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        # self.assertEqual('success', task.result())
-        # published = ApiCrud.record_resolve(con_view)
-        # env = EnvironmentKatello(organization=published.organization)
-        # created_env = ApiCrud.record_create_recursive(env)
-        # task2 = published._meta.api_class.promote(
-        #     published.versions[0]['id'],
-        #     created_env.id
-        #     )
-        # task2.poll(5, 100)  # poll every 5th second, max of 100 seconds
-        # self.assertEqual('success', task2.result())
 
     @decorators.stubbed
     def test_cv_promote_composite(self):

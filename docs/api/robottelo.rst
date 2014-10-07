@@ -7,7 +7,6 @@ Submodules:
     robottelo.api
     robottelo.cli
     robottelo.common
-    robottelo.records
     robottelo.ui
 
 .. automodule:: robottelo
