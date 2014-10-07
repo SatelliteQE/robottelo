@@ -545,17 +545,24 @@ def make_sync_plan(options=None):
 
     Options::
 
-        --description DESCRIPTION     sync plan description
-        --interval INTERVAL           how often synchronization should run
-                                      One of ''none',', ''hourly',',
-                                      ''daily',', ''weekly''
-                                      Default: "none"
-        --name NAME                   sync plan name
-        --organization-id ORGANIZATION_ID Filter products by organization
-                                      name or label
-        --sync-date SYNC_DATE         start date and time of the
-                                      synchronization Date and time
-                                      in YYYY-MM-DD HH:MM:SS or ISO 8601 format
+        --description DESCRIPTION               sync plan description
+        --enabled ENABLED                       enables or disables
+                                                synchronization. One of
+                                                true/false, yes/no, 1/0.
+        --interval INTERVAL                     how often synchronization
+                                                should run. One of 'none',
+                                                'hourly', 'daily', 'weekly'.
+                                                Default: ""none""
+        --name NAME                             sync plan name
+        --organization ORGANIZATION_NAME        Organization name to search by
+        --organization-id ORGANIZATION_ID       organization ID
+        --organization-label ORGANIZATION_LABEL Organization label to search by
+        --sync-date SYNC_DATE                   start date and time of the
+                                                synchronization defaults to now
+                                                Date and time in YYYY-MM-DD
+                                                HH:MM:SS or ISO 8601 format
+                                                Default: "2014-10-07 08:50:35"
+
     """
 
     # Organization ID is a required field.
@@ -565,7 +572,10 @@ def make_sync_plan(options=None):
     args = {
         u'name': gen_string('alpha', 20),
         u'description': gen_string('alpha', 20),
+        u'enabled': 'true',
+        u'organization': None,
         u'organization-id': None,
+        u'organization-label': None,
         u'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         u'interval': random.choice(SYNC_INTERVAL.values()),
     }
