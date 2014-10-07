@@ -13,10 +13,11 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 
 """
 from datetime import datetime
-from fauxfactory import gen_alpha, gen_alphanumeric, gen_netmask, gen_url
+from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
 from robottelo.api import client
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
+from robottelo.common.decorators import bz_bug_is_open
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
@@ -51,9 +52,8 @@ class ActivationKey(
     def read_raw(self, auth=None):
         super_read_raw = super(ActivationKey, self).read_raw
         response = super_read_raw(auth)
-        if response.status_code is 404:
-            # Avoid 404 on faster machines with faster connections. Give some
-            # time to server finish creating the entity
+        if response.status_code is 404 and bz_bug_is_open(1127335):
+            # Give elasticsearch a chance to index new activation keys.
             sleep(5)
             response = super_read_raw(auth)
         return response
