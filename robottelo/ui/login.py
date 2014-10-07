@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Implements Login UI
-"""
+"""Implements Login UI"""
 
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators
@@ -11,15 +9,10 @@ from robottelo.ui.navigator import Navigator
 
 
 class Login(Base):
-    """
-    Implements login, logout functions for Foreman UI
-    """
+    """Implements login, logout functions for Foreman UI"""
 
     def login(self, username, password, organization=None, location=None):
-        """
-        Logins user from UI
-        """
-
+        """Logins user from UI"""
         if self.wait_until_element(locators["login.username"]):
             self.field_update("login.username", username)
             self.field_update("login.password", password)
@@ -36,10 +29,9 @@ class Login(Base):
                 nav.go_to_select_org(organization)
 
     def logout(self):
-        """
-        Logout user from UI
-        """
-
+        """Logout user from UI"""
+        # Scroll to top
+        self.browser.execute_script('window.scroll(0, 0)')
         if self.find_element(locators["login.gravatar"]) is None:
             raise UINoSuchElementError(
                 "could not find login.gravatar to sign out")
@@ -48,10 +40,7 @@ class Login(Base):
         self.wait_for_ajax()
 
     def is_logged(self):
-        """
-        Checks whether an user is logged
-        """
-
+        """Checks whether an user is logged"""
         if self.find_element(locators["login.gravatar"]):
             return True
         else:
