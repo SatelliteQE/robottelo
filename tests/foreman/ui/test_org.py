@@ -222,8 +222,8 @@ class Org(UITestCase):
         @assert: Both organization and location are selected.
 
         """
-        org_name = test_data['org_name']
-        loc_name = test_data['loc_name']
+        org_name = test_data['org_name'].replace("@", "")
+        loc_name = test_data['loc_name'].replace("@", "")
         location = entities.Location(name=loc_name).create()
         self.assertEqual(location['name'], loc_name)
         with Session(self.browser) as session:
