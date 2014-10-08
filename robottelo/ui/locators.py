@@ -251,6 +251,14 @@ menu_locators = {
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//li[contains(@class,'org-switcher')]/a")),
+    "menu.fetch_org": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//li[contains(@class, 'org-menu')]/a")),
+    "menu.fetch_loc": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//li[contains(@class, 'loc-menu')]/a")),
 
     # Orgs
     "org.manage_org": (

@@ -349,12 +349,12 @@ class Navigator(Base):
             menu_locators['org.nav_current_org'],
             menu_locators['org.select_org'], entity=org
         )
-        current_text = self.\
-            wait_until_element(menu_locators['menu.current_text']).text
-        # Handle scenario where in both org and loc are selected via the UI.
-        if '@' in current_text and org == current_text.split("@")[0]:
-            return org
-        elif org == current_text:
+        current_text = self.wait_until_element(
+            menu_locators['menu.current_text'])
+        ActionChains(self.browser).move_to_element(current_text).perform()
+        org_text = self.wait_until_element(
+            menu_locators['menu.fetch_org']).text
+        if org == org_text:
             return org
         else:
             raise Exception(
@@ -373,12 +373,12 @@ class Navigator(Base):
             menu_locators['loc.nav_current_loc'],
             menu_locators['loc.select_loc'], entity=loc
         )
-        current_text = self.\
-            wait_until_element(menu_locators['menu.current_text']).text
-        # Handle scenario where in both org and loc are selected via the UI.
-        if '@' in current_text and loc == current_text.split("@")[1]:
-            return loc
-        elif loc == current_text:
+        current_text = self.wait_until_element(
+            menu_locators['menu.current_text'])
+        ActionChains(self.browser).move_to_element(current_text).perform()
+        loc_text = self.wait_until_element(
+            menu_locators['menu.fetch_loc']).text
+        if loc == loc_text:
             return loc
         else:
             raise Exception(
