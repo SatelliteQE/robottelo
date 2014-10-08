@@ -1252,7 +1252,7 @@ locators = {
          "/following::li/label[@ng-click='initiateCreateEnvironment()']/i")),
     "content_env.edit_name": (
         By.XPATH,
-        "//div[@ng-click='edit()']/span[2]/i"),
+        "//form[@alch-edit-text='workingOn.environment.name']//div/span/i"),
     "content_env.edit_name_text": (
         By.XPATH,
         "//form[@alch-edit-text='workingOn.environment.name']/div/input"),
