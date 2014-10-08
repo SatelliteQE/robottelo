@@ -337,6 +337,13 @@ class Navigator(Base):
         )
 
     def go_to_select_org(self, org):
+        """Selects the specified organization.
+
+        :param str org: The organization to select.
+        :return: Returns the organization.
+        :rtype: str
+
+        """
         self.menu_click(
             menu_locators['menu.any_context'],
             menu_locators['org.nav_current_org'],
@@ -345,15 +352,22 @@ class Navigator(Base):
         current_text = self.\
             wait_until_element(menu_locators['menu.current_text']).text
         # Handle scenario where in both org and loc are selected via the UI.
-        if '@' in str(current_text) and org == str(current_text).split("@")[0]:
+        if '@' in current_text and org == current_text.split("@")[0]:
             return org
-        elif org == str(current_text):
+        elif org == current_text:
             return org
         else:
             raise Exception(
-                "Could not select the org: '%s'" % org)
+                "Could not select the organization: '{0}'".format(org))
 
     def go_to_select_loc(self, loc):
+        """Selects the specified location.
+
+        :param str org: The location to select.
+        :return: Returns the location.
+        :rtype: str
+
+        """
         self.menu_click(
             menu_locators['menu.any_context'],
             menu_locators['loc.nav_current_loc'],
@@ -362,10 +376,10 @@ class Navigator(Base):
         current_text = self.\
             wait_until_element(menu_locators['menu.current_text']).text
         # Handle scenario where in both org and loc are selected via the UI.
-        if '@' in str(current_text) and loc == str(current_text).split("@")[1]:
+        if '@' in current_text and loc == current_text.split("@")[1]:
             return loc
-        elif loc == str(current_text):
+        elif loc == current_text:
             return loc
         else:
             raise Exception(
-                "Could not select the loc: '%s'" % loc)
+                "Could not select the location: '{0}'".format(loc))
