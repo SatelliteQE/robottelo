@@ -3,7 +3,7 @@
 """Test class for Subnet UI"""
 
 from ddt import ddt
-from fauxfactory import gen_string, gen_ipaddr
+from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from robottelo import entities
 from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
@@ -47,7 +47,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -71,7 +71,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -88,7 +88,7 @@ class Subnet(UITestCase):
         strategy, value = common_locators["entity_deselect"]
         name = gen_string("alpha", 4)
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         domain_name = entities.Domain().create()['name']
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -114,7 +114,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -131,7 +131,7 @@ class Subnet(UITestCase):
         """
 
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -183,7 +183,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -206,7 +206,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -225,7 +225,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         new_name = gen_string("alpha", 10)
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -245,7 +245,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         new_network = gen_ipaddr(ip3=True)
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
@@ -265,8 +265,8 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
-        new_mask = "128.128.128.0"
+        mask = gen_netmask(1, 15)
+        new_mask = gen_netmask(16, 31)
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
@@ -285,7 +285,7 @@ class Subnet(UITestCase):
 
         """
         network = gen_ipaddr(ip3=True)
-        mask = "255.255.255.0"
+        mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
