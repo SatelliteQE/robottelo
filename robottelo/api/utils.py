@@ -1,6 +1,7 @@
 """Module containing convenience functions for working with the API."""
 from robottelo.api import client
 from robottelo.common import helpers
+from robottelo import entities
 from urlparse import urljoin
 
 
@@ -100,3 +101,31 @@ def status_code_error(path, desired, response):
             err_msg = 'Response in JSON format, but contains no error message.'
     return u'Desired HTTP {0} but received HTTP {1} after sending request ' \
         'to {2}. {3}'.format(desired, response.status_code, path, err_msg)
+
+
+def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
+                              reposet, releasever):
+    """Enable a RedHat Repository and fetches it's Id.
+
+    :param str org_id: The organization Id.
+    :param str product: The product name in which repository exists.
+    :param str reposet: The reposet name in which repository exists.
+    :param str repo: The repository name who's Id is to be fetched.
+    :param str basearch: The architecture of the repository.
+    :param str releasever: The releasever of the repository.
+    :return: Returns the repository Id.
+    :rtype: str
+
+    """
+    prd_id = entities.Product().fetch_rhproduct_id(name=product, org_id=org_id)
+    reposet_id = entities.Product(id=prd_id).fetch_reposet_id(name=reposet)
+    task_id = entities.Product(id=prd_id).enable_rhrepo(
+        base_arch=basearch,
+        release_ver=releasever,
+        reposet_id=reposet_id,
+    )
+    task_result = entities.ForemanTask(id=task_id).poll()['result']
+    if task_result != "success":
+        raise entities.APIResponseError(
+            "Enabling the RedHat Repository '{0}' failed".format(repo))
+    return entities.Repository().fetch_repoid(name=repo, org_id=org_id)
