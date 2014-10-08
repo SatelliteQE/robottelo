@@ -53,7 +53,6 @@ class Org(UITestCase):
 
     # Positive Create
 
-    @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, org_name):
@@ -201,6 +200,39 @@ class Org(UITestCase):
             label_ele = session.nav.wait_until_element(label_loc)
             label_value = label_ele.get_attribute("value")
             self.assertIsNotNone(label_value)
+
+    @attr('ui', 'org', 'implemented')
+    @data({'org_name': gen_string('alpha', 10),
+           'loc_name': gen_string('alpha', 10)},
+          {'org_name': gen_string('numeric', 10),
+           'loc_name': gen_string('numeric', 10)},
+          {'org_name': gen_string('alphanumeric', 10),
+           'loc_name': gen_string('alphanumeric', 10)},
+          {'org_name': gen_string('utf8', 10),
+           'loc_name': gen_string('utf8', 10)},
+          {'org_name': gen_string('latin1', 20),
+           'loc_name': gen_string('latin1', 10)},
+          {'org_name': gen_string('html', 20),
+           'loc_name': gen_string('html', 10)})
+    def test_positive_create_6(self, test_data):
+        """@test: Select both organization and location.
+
+        @feature: Organizations
+
+        @assert: Both organization and location are selected.
+
+        """
+        org_name = test_data['org_name']
+        loc_name = test_data['loc_name']
+        location = entities.Location(name=loc_name).create()
+        self.assertEqual(location['name'], loc_name)
+        with Session(self.browser) as session:
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
+            organization = session.nav.go_to_select_org(org_name)
+            location = session.nav.go_to_select_loc(loc_name)
+            self.assertEqual(organization, org_name)
+            self.assertEqual(location, loc_name)
 
     @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list(len1=256))
