@@ -18,10 +18,8 @@ def _publish(content_view):
     :rtype: str
 
     """
-    response = entities.ContentView(id=content_view['id']).publish()
-    # FIXME: Update ``entities.ContentView.publish`` to automatically wait
-    # for task to complete.
-    return entities.ForemanTask(id=response['id']).poll()['result']
+    task_id = entities.ContentView(id=content_view['id']).publish()
+    return entities.ForemanTask(id=task_id).poll()['result']
 
 
 def _promote(content_view, lifecycle, version):
@@ -38,11 +36,10 @@ def _promote(content_view, lifecycle, version):
     # Re-fetch cotent view
     content_view = entities.ContentView(id=content_view['id']).read_json()
     # Promote it
-    response = entities.ContentViewVersion(
-        id=content_view['versions'][version]['id']).promote(lifecycle['id'])
-    # FIXME: Update ``entities.ContentViewVersion.promote`` to automatically
-    # wait for task to complete.
-    return entities.ForemanTask(id=response['id']).poll()['result']
+    task_id = entities.ContentViewVersion(
+        id=content_view['versions'][version]['id']
+    ).promote(lifecycle['id'])
+    return entities.ForemanTask(id=task_id).poll()['result']
 
 
 @decorators.run_only_on('sat')
@@ -81,12 +78,12 @@ class ContentViewTestCase(TestCase):
             data={u'content_view_id': content_view['id']},
             verify=False,
         ).json()['results'][0]
-        response = entities.ContentViewVersion(
+        task_id = entities.ContentViewVersion(
             id=content_view_version['id']
         ).promote(environment_id=lifecycle_environment['id'])
         self.assertEqual(
             u'success',
-            entities.ForemanTask(id=response['id']).poll()['result']
+            entities.ForemanTask(id=task_id).poll()['result']
         )
 
         # Create a system that is subscribed to the published and promoted

@@ -94,17 +94,18 @@ class ActivationKey(UITestCase):
         response.raise_for_status()
 
         # Publish content view
-        task = entities.ContentView(id=content_view['id']).publish()
-        task_status = entities.ForemanTask(id=task['id']).poll()
+        task_id = entities.ContentView(id=content_view['id']).publish()
+        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
             u"Publishing {0} failed.".format(content_view['name']))
         # Promote the Version 1 to selected environment
         content_view = entities.ContentView(id=content_view['id']).read_json()
-        task = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']).promote(env_attrs['id'])
-        task_status = entities.ForemanTask(id=task['id']).poll()
+        task_id = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']
+        ).promote(env_attrs['id'])
+        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',

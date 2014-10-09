@@ -352,8 +352,8 @@ class TestSmoke(TestCase):
         )
 
         # step 2.9: Publish content view
-        task = entities.ContentView(id=content_view['id']).publish()
-        task_status = entities.ForemanTask(id=task['id']).poll()
+        task_id = entities.ContentView(id=content_view['id']).publish()
+        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -369,9 +369,10 @@ class TestSmoke(TestCase):
             len(content_view['versions'][0]['environment_ids']),
             1,
             u"Content view should be present on 1 lifecycle only")
-        task = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']).promote(le1['id'])
-        task_status = entities.ForemanTask(id=task['id']).poll()
+        task_id = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']
+        ).promote(le1['id'])
+        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -387,9 +388,10 @@ class TestSmoke(TestCase):
             len(content_view['versions'][0]['environment_ids']),
             2,
             u"Content view should be present on 2 lifecycles only")
-        task = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']).promote(le2['id'])
-        task_status = entities.ForemanTask(id=task['id']).poll()
+        task_id = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']
+        ).promote(le2['id'])
+        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -424,7 +426,6 @@ class TestSmoke(TestCase):
             le2['id'],
             u"Environments do not match."
         )
-
 
     def _search(self, entity, query, auth=None):
         """

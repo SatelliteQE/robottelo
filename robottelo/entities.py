@@ -403,13 +403,15 @@ class ContentViewVersion(orm.Entity):
                 which='self') + '/promote'
         return super(ContentViewVersion, self).path(which)
 
-    def promote(self, environment_id):
+    def promote(self, environment_id, synchronous=True):
         """Helper for promoting an existing published content view.
 
-        :returns: The server's response, with all JSON decoded.
-        :rtype: dict
-        :raises: ``requests.exceptions.HTTPError`` If the server responds with
-            an HTTP 4XX or 5XX message.
+        :param str environment_id: The environment Id to promote to.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: A foreman task ID if an HTTP 202 (accepted) response is
+            received, or None if any other response is received.
 
         """
         response = client.post(
@@ -419,7 +421,14 @@ class ContentViewVersion(orm.Entity):
             data={u'environment_id': environment_id}
         )
         response.raise_for_status()
-        return response.json()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
 
 
 class ContentViewFilterRule(orm.Entity):
@@ -534,13 +543,14 @@ class ContentView(
             )
         return super(ContentView, self).path(which)
 
-    def publish(self):
+    def publish(self, synchronous=True):
         """Helper for publishing an existing content view.
 
-        :returns: The server's response, with all JSON decoded.
-        :rtype: dict
-        :raises: ``requests.exceptions.HTTPError`` If the server responds with
-            an HTTP 4XX or 5XX message.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return a task ID otherwise.
+        :return: A foreman task ID if an HTTP 202 (accepted) response is
+            received, or None if any other response is received.
 
         """
         response = client.post(
@@ -550,7 +560,14 @@ class ContentView(
             data={u'id': self.id}
         )
         response.raise_for_status()
-        return response.json()
+
+        # Return either a ForemanTask ID or None.
+        if response.status_code is httplib.ACCEPTED:
+            task_id = response.json()['id']
+            if synchronous is True:
+                ForemanTask(id=task_id).poll()
+            return task_id
+        return None
 
 
 class CustomInfo(orm.Entity):
@@ -1831,6 +1848,9 @@ class Repository(
 
         :param str org_id: The org Id for which repository listing is required.
         :param str name: The repository name who's Id has to be searched.
+        :return: Returns the repository Id.
+        :rtype: str
+        :raises: ``APIResponseError`` If the API does not return any results.
 
         """
         response = client.get(
