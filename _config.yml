@@ -3,7 +3,7 @@ title: Robottelo
 email: your-email@domain.com
 description: >
   Robottelo is a test suite which exercises The Foreman.
-baseurl: "" # the subpath of your site, e.g. /blog/
+baseurl: "/robottelo/" # the subpath of your site, e.g. /blog/
 url: "https://satelliteqe.github.io/robottelo/"
 twitter_username: OgMaciel
 github_username:  SatelliteQE

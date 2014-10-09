@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "What's New'"
+title:  "What's New"
 date:   2014-10-09 16:13:58
 categories: update
 ---
