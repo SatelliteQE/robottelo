@@ -1,0 +1,22 @@
+# Site settings
+title: Robottelo
+email: your-email@domain.com
+description: >
+  Robottelo is a test suite which exercises The Foreman.
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "https://satelliteqe.github.io/robottelo/"
+twitter_username: OgMaciel
+github_username:  SatelliteQE
+
+# Build settings
+markdown: kramdown
+
+# Github specific
+github: >
+  `Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
+  automated, suited for use in a continuous integration environment, and `data
+  driven`_.
+highlighter: pygments
+safe: true
+lsi: false
+source: .

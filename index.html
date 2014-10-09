@@ -1,173 +1,23 @@
+---
+layout: default
+---
 
+<div class="home">
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <h1 class="page-heading">Posts</h1>
 
+  <ul class="post-list">
+    {% for post in site.posts %}
+      <li>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Robottelo &mdash; Robottelo 0.0.1 documentation</title>
-    
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '0.0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Robottelo 0.0.1 documentation" href="#" />
-    <link rel="next" title="Modules" href="lib.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="lib.html" title="Modules"
-             accesskey="N">next</a> |</li>
-        <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
-  <div class="section" id="robottelo">
-<h1>Robottelo<a class="headerlink" href="#robottelo" title="Permalink to this headline">¶</a></h1>
-<p>This is an automation test suite for the <a class="reference external" href="http://katello.org/">Katello</a> project based in the <a class="reference external" href="https://github.com/cobrateam/splinter">Splinter</a> testing framework.</p>
-<p>My goal is to design a <a class="reference external" href="http://en.wikipedia.org/wiki/Keyword-driven_testing">keyword</a>, <a class="reference external" href="http://en.wikipedia.org/wiki/Data-driven_testing">data</a> driven suite that can be used in a continuous integration environment.</p>
-</div>
-<div class="section" id="quickstart">
-<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
-<p>This page gives you a good introduction in how to get started with <tt class="docutils literal"><span class="pre">Robottelo</span></tt>.</p>
-<div class="section" id="requirements">
-<h2>Requirements:<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>If you haven&#8217;t cloned the source code yet, then make sure to do it now:</p>
-<div class="highlight-python"><pre>git clone git://github.com/omaciel/robottelo.git</pre>
-</div>
-<p>Then, run <strong>pip install -r ./requirements.txt</strong> from the root of the project to have all dependencies automatically installed.</p>
-</div>
-<div class="section" id="running-the-test">
-<h2>Running the test<a class="headerlink" href="#running-the-test" title="Permalink to this headline">¶</a></h2>
-<p>Single tests can be invoked by using the included <strong>robottelo_runner</strong> script:</p>
-<div class="highlight-python"><pre>python robottello_runner.py --driver firefox --host www.example.com --project katello --tests tests.ui.test_Login</pre>
-</div>
-<p>Multiple tests can also be invoked:</p>
-<div class="highlight-python"><pre>python robottello_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login --tests tests.ui.test_Organization</pre>
-</div>
-<p>Running individual tests from a test suite from the command line:</p>
-<div class="highlight-python"><pre>python robottello_runner.py --driver firefox --host  www.example.com --project katello --tests tests.ui.test_Login.test_successful_login</pre>
-</div>
-<p>You can also run tests directly using either <strong>unittest</strong> or <strong>nosetests</strong> provided you pass all the expected arguments:</p>
-<div class="highlight-python"><pre>KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox python -m unittest tests.ui.test_Login.test_successful_login</pre>
-</div>
-<p>or</p>
-<div class="highlight-python"><pre>KATELLO_HOST=www.example.com PROJECT=katello DRIVER=firefox nosetests tests.ui.test_Login.test_successful_login</pre>
-</div>
-</div>
-</div>
-<div class="section" id="known-issues">
-<h1>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h1>
-<p>Contents:</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="lib.html">Modules</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="lib.html#module-lib.login"><tt class="docutils literal"><span class="pre">login</span></tt> Module</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
-<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
-</ul>
-</div>
-
-
-          </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Robottelo</a></li>
-<li><a class="reference internal" href="#quickstart">Quickstart</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements:</a></li>
-<li><a class="reference internal" href="#running-the-test">Running the test</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#known-issues">Known Issues</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-</ul>
-
-  <h4>Next topic</h4>
-  <p class="topless"><a href="lib.html"
-                        title="next chapter">Modules</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/index.txt"
-           rel="nofollow">Show Source</a></li>
+        <h2>
+          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+        </h2>
+      </li>
+    {% endfor %}
   </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
+
+  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
+
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="lib.html" title="Modules"
-             >next</a> |</li>
-        <li><a href="#">Robottelo 0.0.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2012, Og Maciel &lt;omaciel@redhat.com&gt;.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
-    </div>
-  </body>
-</html>

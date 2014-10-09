@@ -1,5 +1,1 @@
-docs
-log.html
-output.xml
-report.html
-src
+_site/*
