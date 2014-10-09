@@ -89,7 +89,7 @@ class Architecture(
         api_path = 'api/v2/architectures'
         server_modes = ('sat')
 
-    # FIXME: This method should not need to exist. The API has a bug.
+    # NOTE: See BZ 1151220
     def create(self, auth=None, data=None):
         """Extend the implementation of
         :meth:`robottelo.factory.Factory.create`.
@@ -1069,7 +1069,7 @@ class Media(
             )
         return super(Media, self)._factory_data()
 
-    # FIXME: This method should not need to exist. The API has a bug.
+    # NOTE: See BZ 1151220
     def create(self, auth=None, data=None):
         """Extend the implementation of
         :meth:`robottelo.factory.Factory.create`.
@@ -1178,7 +1178,7 @@ class OperatingSystem(
         )
         server_modes = ('sat')
 
-    # FIXME: This method should not need to exist. The API has a bug.
+    # NOTE: See BZ 1151220
     def create(self, auth=None, data=None):
         """Extend the implementation of
         :meth:`robottelo.factory.Factory.create`.
