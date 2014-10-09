@@ -403,7 +403,7 @@ class ContentUpload(orm.Entity):
         server_modes = ('sat')
 
 
-class ContentViewVersion(orm.Entity):
+class ContentViewVersion(orm.Entity, orm.EntityReadMixin):
     """A representation of a Content View Version non-entity."""
 
     class Meta(object):
@@ -593,6 +593,21 @@ class ContentView(
                 ForemanTask(id=task_id).poll()
             return task_id
         return None
+
+    def set_repository_ids(self, repo_ids):
+        """Set content of view.
+
+        :param repo_ids list of repository ids
+
+        """
+        response = client.put(
+            self.path(which='self'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'repository_ids': repo_ids}
+        )
+        response.raise_for_status()
+        return response.json()
 
 
 class CustomInfo(orm.Entity):

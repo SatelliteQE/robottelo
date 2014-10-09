@@ -194,6 +194,21 @@ class ContentViewCreateTestCase(TestCase):
 class ContentViewPublishTestCase(TestCase):
     """Tests for publishing content views."""
 
+    @classmethod
+    def setUpClass(self):
+        """Set up organization, product and repositories for tests."""
+        super(ContentViewPublishTestCase, self).setUpClass()
+
+        self.org = entities.Organization().create()
+        self.product = entities.Product(
+            organization=self.org['id']
+        ).create()
+
+        self.yum_repo = entities.Repository(
+            id=entities.Repository(product=self.product['id']).create()['id']
+        )
+        self.yum_repo.sync()
+
     def test_positive_publish_1(self):
         """@Test: Publish empty content view once.
 
@@ -247,10 +262,78 @@ class ContentViewPublishTestCase(TestCase):
             1,
             u"Content view should be present in 1 lifecycle only")
 
+    def test_positive_publish_3(self):
+        """@Test: Publish content view with one yum repository once.
+
+        @Assert: Content-view is published and has 1 version and yum packages.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        content_view.set_repository_ids([self.yum_repo.id])
+
+        response = _publish({'id': content_view.id})
+        self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['repositories']), 1)
+        self.assertEqual(len(cv_info['versions']), 1)
+
+        cv_version = entities.ContentViewVersion(
+            id=cv_info['versions'][0]['id']).read_json()
+        self.assertGreater(cv_version['package_count'], 0)
+
+    def test_positive_publish_4(self):
+        """@Test: Publish content view with one yum repository random times.
+
+        @Assert: Content-view is published n-times and has n versions and has
+        yum packages.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        content_view.set_repository_ids([self.yum_repo.id])
+
+        repeat = gen_integer(2, 5)
+        for _ in range(0, repeat):
+            response = _publish({'id': content_view.id})
+            self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['repositories']), 1)
+        self.assertEqual(len(cv_info['versions']), repeat)
+
+        for version in cv_info['versions']:
+            cv_ver = entities.ContentViewVersion(id=version['id']).read_json()
+            self.assertGreater(cv_ver['package_count'], 0)
+
 
 @ddt
 class ContentViewPromoteTestCase(TestCase):
     """Tests for promoting content views."""
+
+    @classmethod
+    def setUpClass(self):
+        """Set up organization, product and repositories for tests."""
+        super(ContentViewPromoteTestCase, self).setUpClass()
+
+        self.org = entities.Organization().create()
+        self.product = entities.Product(
+            organization=self.org['id']
+        ).create()
+
+        self.yum_repo = entities.Repository(
+            id=entities.Repository(product=self.product['id']).create()['id']
+        )
+        self.yum_repo.sync()
 
     def test_positive_promote_1(self):
         """@Test: Publish and promote empty content view once.
@@ -333,6 +416,79 @@ class ContentViewPromoteTestCase(TestCase):
             len(content_view['versions'][repeat - 1]['environment_ids']),
             repeat + 1,
             u"Content view should be present on 2 lifecycles only")
+
+    def test_positive_promote_3(self):
+        """@Test: Publish and promote content view with yum repository once.
+
+        @Assert: Content-view is published, has 1 version and was promoted
+        to Library + 1 environment and has yum packages.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        content_view.set_repository_ids([self.yum_repo.id])
+
+        response = _publish({'id': content_view.id})
+        self.assertEqual(response, u'success')
+
+        lifecycle = entities.LifecycleEnvironment(
+            organization=self.org['id']
+        ).create()
+
+        response = _promote({'id': content_view.id}, lifecycle, 0)
+        self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['repositories']), 1)
+        self.assertEqual(len(cv_info['versions']), 1)
+
+        cv_version = entities.ContentViewVersion(
+            id=cv_info['versions'][0]['id']).read_json()
+        self.assertEqual(len(cv_version['environments']), 2)
+        self.assertGreater(cv_version['package_count'], 0)
+
+    def test_positive_promote_4(self):
+        """@Test: Publish and promote content view with yum repository to
+        Library and random environments.
+
+        @Assert: Content-view is published, has one version and was
+        promoted to Library + random > 1 environments and has yum packages.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        content_view.set_repository_ids([self.yum_repo.id])
+
+        response = _publish({'id': content_view.id})
+        self.assertEqual(response, u'success')
+
+        # Promote it to random lifecycle
+        repeat = gen_integer(2, 5)
+        for _ in range(0, repeat):
+            # Create new lifecycle environment
+            lifecycle = entities.LifecycleEnvironment(
+                organization=self.org['id']
+            ).create()
+            # Promote
+            response = _promote({'id': content_view.id}, lifecycle, 0)
+            self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['repositories']), 1)
+        self.assertEqual(len(cv_info['versions']), 1)
+
+        cv_version = entities.ContentViewVersion(
+            id=cv_info['versions'][0]['id']).read_json()
+        self.assertEqual(len(cv_version['environments']), repeat+1)
+        self.assertGreater(cv_version['package_count'], 0)
 
 
 @ddt
