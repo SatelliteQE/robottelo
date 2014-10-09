@@ -53,6 +53,7 @@ class PathTestCase(TestCase):
         (entities.ContentView, '/content_views', 'content_view_versions'),
         (entities.ContentView, '/content_views', 'publish'),
         (entities.ContentViewVersion, '/content_view_versions', 'promote'),
+        (entities.Organization, '/organizations', 'subscriptions'),
         (entities.Organization, '/organizations', 'subscriptions/delete_manifest'),  # flake8:noqa pylint:disable=C0301
         (entities.Organization, '/organizations', 'subscriptions/refresh_manifest'),  # flake8:noqa pylint:disable=C0301
         (entities.Organization, '/organizations', 'subscriptions/upload'),
@@ -94,6 +95,7 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'publish'),
         (entities.ContentViewVersion, 'promote'),
         (entities.ForemanTask, 'self'),
+        (entities.Organization, 'subscriptions'),
         (entities.Organization, 'subscriptions/delete_manifest'),
         (entities.Organization, 'subscriptions/refresh_manifest'),
         (entities.Organization, 'subscriptions/upload'),
@@ -169,14 +171,12 @@ class OrganizationTestCase(TestCase):
         conf.properties['main.server.hostname'] = 'example.com'
         conf.properties['foreman.admin.username'] = 'Alice'
         conf.properties['foreman.admin.password'] = 'hackme'
-        self.client_post = client.post
         # SomeEntity(id=self.entity_id)
         self.entity_id = gen_integer(min_value=1)
 
     def tearDown(self):  # pylint:disable=C0103
         """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
-        client.post = self.client_post
 
     def test_delete_manifest_200(self):
         """Call :meth:`robottelo.entities.Organization.delete_manifest`.
@@ -190,12 +190,11 @@ class OrganizationTestCase(TestCase):
         mock_response.status_code = 200
         mock_response.raise_for_status.return_value = None
 
-        # Make `client.post` return the above object.
-        client.post = mock.Mock(return_value=mock_response)
-
-        # See if EntityDeleteMixin.delete_manifest behaves correctly.
-        response = entities.Organization(id=self.entity_id).delete_manifest()
-        self.assertIsNone(response)
+        with mock.patch.object(client, 'post') as mocked_post:
+            mocked_post.return_value = mock_response
+            # See if EntityDeleteMixin.delete_manifest behaves correctly.
+            response = entities.Organization(id=self.entity_id).delete_manifest()
+            self.assertIsNone(response)
 
     def test_delete_manifest_202(self):
         """Call :meth:`robottelo.entities.Organization.delete_manifest`.
@@ -211,11 +210,28 @@ class OrganizationTestCase(TestCase):
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {u'id': foreman_task_id}
 
-        # Make `client.post` return the above object.
-        client.post = mock.Mock(return_value=mock_response)
+        with mock.patch.object(client, 'post') as mocked_post:
+            mocked_post.return_value = mock_response
+            # See if EntityDeleteMixin.delete_manifest behaves correctly.
+            response = entities.Organization(id=self.entity_id).delete_manifest(
+                synchronous=False
+            )
+            self.assertEqual(response, foreman_task_id)
 
-        # See if EntityDeleteMixin.delete_manifest behaves correctly.
-        response = entities.Organization(id=self.entity_id).delete_manifest(
-            synchronous=False
-        )
-        self.assertEqual(response, foreman_task_id)
+    def test_subscriptions(self):
+        """Call :meth:`robottelo.entities.Organization.subscriptions`.
+
+        Asserts that ``entities.Organization.subscriptions`` returns a list.
+
+        """
+        # Create a mock server response object.
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {u'results': []}
+
+        with mock.patch.object(client, 'get') as mocked_client_get:
+            mocked_client_get.return_value = mock_response
+            # See if `subscriptions` behaves correctly.
+            response = entities.Organization(id=self.entity_id).subscriptions()
+            self.assertEqual(response, [])

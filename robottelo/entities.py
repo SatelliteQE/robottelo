@@ -24,7 +24,9 @@ from robottelo import factory, orm
 from time import sleep
 import httplib
 import random
+# (no-init) pylint:disable=W0232
 # (too-few-public-methods) pylint:disable=R0903
+# (too-many-lines) pylint:disable=C0302
 
 
 class APIResponseError(Exception):
@@ -699,7 +701,7 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
         :param tuple auth: A ``(username, password)`` tuple used when accessing
             the API. If ``None``, the credentials provided by
             :func:`robottelo.common.helpers.get_server_credentials` are used.
-        :return: Information about the asynchronous task.
+        :returns: Information about the asynchronous task.
         :rtype: dict
         :raises robottelo.orm.TaskTimeout: If the task is not finished before
             the timeout is exceeded.
@@ -715,7 +717,7 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
 def _gpgkey_content():
     """Return default content for a GPG key.
 
-    :return: The contents of a GPG key.
+    :returns: The contents of a GPG key.
     :rtype: str
 
     """
@@ -1283,14 +1285,37 @@ class Organization(
         Otherwise, call ``super``.
 
         """
-        if which in ('subscriptions/upload', 'subscriptions/delete_manifest',
-                     'subscriptions/refresh_manifest', 'sync_plans',
-                     'products'):
+        if which in (
+                'products',
+                'subscriptions/delete_manifest',
+                'subscriptions/refresh_manifest',
+                'subscriptions/upload',
+                'sync_plans',
+                'subscriptions',
+        ):
             return '{0}/{1}'.format(
                 super(Organization, self).path(which='self'),
                 which
             )
         return super(Organization, self).path(which)
+
+    def subscriptions(self):
+        """List the organization's subscriptions.
+
+        :returns: A list of available subscriptions.
+        :rtype: list
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON could not be decoded.
+
+        """
+        response = client.get(
+            self.path('subscriptions'),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        return response.json()['results']
 
     def upload_manifest(self, path, repository_url=None,
                         synchronous=True):
@@ -1301,7 +1326,7 @@ class Organization(
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a task ID otherwise.
-        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+        :returns: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
             202 response was received. ``None`` otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
@@ -1338,7 +1363,7 @@ class Organization(
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a task ID otherwise.
-        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+        :returns: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
             202 response was received. ``None`` otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
@@ -1368,7 +1393,7 @@ class Organization(
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a task ID otherwise.
-        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
+        :returns: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
             202 response was received. ``None`` otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
@@ -1437,7 +1462,7 @@ class Organization(
         So, we use the product name to fetch the RH Product Id.
 
         :param str name: The RedHat product's name who's ID is to be fetched.
-        :return: The RedHat Product Id is returned.
+        :returns: The RedHat Product Id is returned.
 
         """
         response = client.get(
@@ -1510,7 +1535,7 @@ class Permission(orm.Entity, orm.EntityReadMixin):
         server behavior is to search by resource_type.
 
         :param int per_page: number of results per page to return
-        :return: A list with the found results
+        :returns: A list with the found results
         :rtype: list
 
         """
@@ -1603,7 +1628,7 @@ class Product(
 
         :param str org_id: The Organization Id.
         :param str name: The RedHat product's name who's ID is to be fetched.
-        :return: The RedHat Product Id is returned.
+        :returns: The RedHat Product Id is returned.
 
         """
         response = client.get(
@@ -1630,7 +1655,7 @@ class Product(
         to fetch the RepositorySet Id.
 
         :param str name: The RepositorySet's name.
-        :return: The RepositorySet's Id is returned.
+        :returns: The RepositorySet's Id is returned.
 
         """
         response = client.get(
@@ -1658,7 +1683,7 @@ class Product(
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a task ID otherwise.
-        :return: A foreman task ID if an HTTP 202 (accepted) response is
+        :returns: A foreman task ID if an HTTP 202 (accepted) response is
             received, or None if any other response is received.
 
         """
@@ -1690,7 +1715,7 @@ class Product(
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a task ID otherwise.
-        :return: A foreman task ID if an HTTP 202 (accepted) response is
+        :returns: A foreman task ID if an HTTP 202 (accepted) response is
             received, or None if any other response is received.
 
         """
@@ -1821,7 +1846,7 @@ class Repository(
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a task ID otherwise.
-        :return: A foreman task ID if an HTTP 202 (accepted) response is
+        :returns: A foreman task ID if an HTTP 202 (accepted) response is
             received, or None if any other response is received.
 
         """
