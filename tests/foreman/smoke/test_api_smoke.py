@@ -5,6 +5,7 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
+from robottelo.common.manifests import clone
 from robottelo.common import helpers
 from robottelo import entities
 from fauxfactory import gen_string
@@ -425,6 +426,115 @@ class TestSmoke(TestCase):
             u"Environments do not match."
         )
 
+
+    def end_to_end_api_test(self):
+        """@Test: Perform end to end smoke tests using RH repos.
+
+        1. Create new organization and environment
+        2. Upload manifest
+        3. Sync a RedHat repository
+        4. Create content-view
+        5. Add repository to contet-view
+        6. Promote/publish content-view
+        7. Create an activation-key
+        8. Add product to activation-key
+        9. Create new virtualmachine
+        10. Pull rpm from Foreman server and install on client
+        11. Register client with foreman server using activation-key
+        12. Install rpm on client
+
+        @Feature: Smoke test
+
+        @Assert: All tests should succeed and Content should be successfully
+        fetched by client
+
+        """
+        rhel_product_name = u'Red Hat Enterprise Linux Server'
+        rhel_repo_set = u'Red Hat Enterprise Linux 6 Server - RH Common (RPMs)'
+        rhel_base_arch = u'x86_64'
+        rhel_release_ver = u'6.3'
+        repository_name = u'{0} {1} {2}'.format(
+            rhel_repo_set.replace('(RPMs)', 'RPMs'), #  Remove parenthesis
+            rhel_base_arch,
+            rhel_release_ver)
+
+        # Create new org and environment
+        new_org = entities.Organization(
+            id=entities.Organization().create()['id'])
+        new_env = entities.LifecycleEnvironment(
+            id=entities.LifecycleEnvironment(
+                organization=new_org.id).create()['id'])
+        # Clone manifest and upload it
+        cloned_manifest_path = clone()
+        task_id = entities.Organization(id=new_org.id).upload_manifest(
+            path=cloned_manifest_path)
+        self.assertEqual(
+            u'success',
+            entities.ForemanTask(id=task_id).poll()['result'])
+
+        # Fetch the product ID...
+        prd_id = entities.Product().fetch_rhproduct_id(
+            name=rhel_product_name, org_id=new_org.id)
+
+        # ...followed by the repository set ID
+        reposet_id = entities.Product(id=prd_id).fetch_reposet_id(
+            name=rhel_repo_set)
+
+        # Enable repository set
+        task_id = entities.Product(id=prd_id).enable_rhrepo(
+            base_arch=rhel_base_arch,
+            release_ver=rhel_release_ver,
+            reposet_id=reposet_id)
+        self.assertEqual(
+            u'success',
+            entities.ForemanTask(id=task_id).poll()['result'])
+
+        # Fetch the repository ID so we can sync it
+        repo_id = entities.Repository().fetch_repoid(
+            name=repository_name, org_id=new_org.id)
+        task_id = entities.Repository(id=repo_id).sync()
+        self.assertEqual(
+            u'success',
+            entities.ForemanTask(id=task_id).poll()['result'])
+
+        # Create content view and associate it to repo
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=new_org.id).create()['id']
+        )
+        response = client.put(
+            entities.ContentView(id=content_view.id).path(),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'repository_ids': [repo_id]})
+
+        # Publish content view
+        task = entities.ContentView(id=content_view.id).publish()
+        self.assertEqual(
+            u'success',
+            entities.ForemanTask(id=task['id']).poll()['result'])
+
+        # Promote content view to lifecycle environment
+        content_view = entities.ContentView(id=content_view.id).read_json()
+        self.assertEqual(
+            len(content_view['versions']),
+            1,
+            u'There should only be 1 version published.')
+        self.assertEqual(
+            len(content_view['versions'][0]['environment_ids']),
+            1,
+            u"Content view should be present on 1 lifecycle only")
+        task = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']).promote(new_env.id)
+        self.assertEqual(
+            u'success',
+            entities.ForemanTask(id=task['id']).poll()['result'])
+
+        # Create activation key
+        act_key = entities.ActivationKey(
+            organization=new_org.id,
+            environment=new_env.id,
+            content_view=content_view.id
+        ).create()
 
     def _search(self, entity, query, auth=None):
         """
