@@ -150,7 +150,10 @@ class ClientTestCase(TestCase):
                 inner,
                 return_value=self.mock_response
             ) as mock_inner:
-                self.assertIs(outer(self.bogus_url), self.mock_response)
+                # outer calls inner, inner returns self.mock_response, and
+                # outer returns the same.
+                self.assertIsInstance(outer(self.bogus_url), mock.Mock)
+                # Let's make sure that outer gives the right params to inner.
                 if outer in (client.delete, client.get, client.head):
                     mock_inner.assert_called_once_with(
                         self.bogus_url,
