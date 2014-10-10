@@ -177,6 +177,7 @@ FILTER_CONTENT_TYPE = {
 FILTER_TYPE = {'include': "Include",
                'exclude': "Exclude"}
 
+DOCKER_REGISTRY_HUB = u'https://registry.hub.docker.com/'
 GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
 FAKE_0_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo/"
 FAKE_1_YUM_REPO = "http://inecas.fedorapeople.org/fakerepos/zoo3/"
