@@ -5,8 +5,13 @@ from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import (
-    VALID_GPG_KEY_BETA_FILE, VALID_GPG_KEY_FILE, FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO, REPO_DISCOVERY_URL)
+    DOCKER_REGISTRY_HUB,
+    FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
+    REPO_DISCOVERY_URL,
+    VALID_GPG_KEY_BETA_FILE,
+    VALID_GPG_KEY_FILE,
+)
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
@@ -96,6 +101,56 @@ class Repos(UITestCase):
                             name=repo_name, product=product_2_name,
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented', 'docker')
+    def test_create_repo_3(self):
+        """@Test: Create a Docker-based repository
+
+        @Feature: Content Repos - Positive Create
+
+        @Assert: Docker-based repo is created.
+
+        """
+
+        # Creates new product
+        repo_name = u'wordpress'
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id,
+        ).create()['name']
+        with Session(self.browser) as session:
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            repo_type=u'docker', url=DOCKER_REGISTRY_HUB)
+            self.assertIsNotNone(self.repository.search(repo_name))
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented', 'docker')
+    def test_create_repo_4(self):
+        """@Test: Create and sync a Docker-based repository
+
+        @Feature: Content Repos - Positive Create
+
+        @Assert: Docker-based repo is created and synchronized.
+
+        """
+
+        # Creates new product
+        repo_name = u'wordpress'
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id,
+        ).create()['name']
+        with Session(self.browser) as session:
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            repo_type=u'docker', url=DOCKER_REGISTRY_HUB)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            # Synchronize it
+            self.navigator.go_to_sync_status()
+            synced = self.sync.sync_custom_repos(product_name, [repo_name])
+            self.assertIsNotNone(synced)
 
     @run_only_on('sat')
     @data("", "   ")
