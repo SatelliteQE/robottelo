@@ -4,8 +4,13 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.api import client, utils
 from robottelo.common.constants import (
-    VALID_GPG_KEY_FILE, VALID_GPG_KEY_BETA_FILE, FAKE_0_PUPPET_REPO,
-    FAKE_2_YUM_REPO, RPM_TO_UPLOAD)
+    DOCKER_REGISTRY_HUB,
+    FAKE_0_PUPPET_REPO,
+    FAKE_2_YUM_REPO,
+    RPM_TO_UPLOAD,
+    VALID_GPG_KEY_BETA_FILE,
+    VALID_GPG_KEY_FILE,
+)
 from robottelo.common import decorators
 from robottelo.common import manifests
 from robottelo.common.helpers import (
@@ -279,3 +284,59 @@ class RepositorySyncTestCase(TestCase):
             task_result,
             u'success',
             u"Sync for repository '{0}' failed.".format(repo))
+
+
+@ddt.ddt
+class DockerRepositoryTestCase(TestCase):
+    """Tests specific to using ``Docker`` repositories."""
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        cls.org_id = entities.Organization().create()['id']
+        cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
+
+    @decorators.run_only_on('sat')
+    def test_create_docker_repo(self):
+        """@Test: Create a Docker-type repository
+
+        @Assert: A repository is created with a Docker repository.
+
+        @Feature: Repository
+
+        """
+        name = u'wordpress'
+        content_type = u'docker'
+
+        repo_id = entities.Repository(
+            product=self.prod_id,
+            content_type=content_type,
+            name=name,
+            url=DOCKER_REGISTRY_HUB
+        ).create()['id']
+        real_attrs = entities.Repository(id=repo_id).read_json()
+        self.assertEqual(real_attrs['name'], name)
+        self.assertEqual(real_attrs['content_type'], content_type)
+
+    @decorators.run_only_on('sat')
+    def test_sync_docker_repo(self):
+        """@Test: Create and sync a Docker-type repository
+
+        @Assert: A repository is created with a Docker repository
+        and it is synchronized.
+
+        @Feature: Repository
+
+        """
+        repo_id = entities.Repository(
+            product=self.prod_id,
+            content_type=u'docker',
+            name=u'wordpress',
+            url=DOCKER_REGISTRY_HUB
+        ).create()['id']
+
+        task_id = entities.Repository(id=repo_id).sync()
+        self.assertEqual(
+            u'success',
+            entities.ForemanTask(id=task_id).poll()['result'])
+        attrs = entities.Repository(id=repo_id).read_json()
+        self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
