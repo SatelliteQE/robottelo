@@ -1,4 +1,6 @@
+# -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.api import client, utils
 from robottelo.api.utils import status_code_error
@@ -7,95 +9,583 @@ from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import conf
 from robottelo.common import helpers
-from robottelo import entities
-from fauxfactory import gen_string
 from robottelo.common import manifests
+from robottelo import entities
 from robottelo.vm import VirtualMachine
 from unittest import TestCase
 import httplib
 import random
 # (too many public methods) pylint: disable=R0904
 
-API_PATHS = frozenset((
-    # pylint:disable=C0301
-    u'/api',
-    u'/api/architectures',
-    u'/api/audits',
-    u'/api/auth_source_ldaps',
-    u'/api/bookmarks',
-    u'/api/common_parameters',
-    u'/api/compute_profiles',
-    u'/api/compute_resources',
-    u'/api/compute_resources/:compute_resource_id/images',
-    u'/api/config_groups',
-    u'/api/config_templates',
-    u'/api/config_templates/:config_template_id/template_combinations',
-    u'/api/dashboard',
-    u'/api/discovered_hosts',
-    u'/api/domains',
-    u'/api/environments',
-    u'/api/fact_values',
-    u'/api/filters',
-    u'/api/hostgroups',
-    u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
-    u'/api/hosts',
-    u'/api/hosts/:host_id/interfaces',
-    u'/api/hosts/:host_id/parameters',
-    u'/api/hosts/:host_id/puppetclass_ids',
-    u'/api/locations',
-    u'/api/media',
-    u'/api/models',
-    u'/api/operatingsystems',
-    u'/api/operatingsystems/:operatingsystem_id/os_default_templates',
-    u'/api/orchestration/:id/tasks',
-    u'/api/permissions',
-    u'/api/plugins',
-    u'/api/ptables',
-    u'/api/puppetclasses',
-    u'/api/realms',
-    u'/api/reports',
-    u'/api/roles',
-    u'/api/settings',
-    u'/api/smart_class_parameters',
-    u'/api/smart_proxies',
-    u'/api/smart_proxies/smart_proxy_id/autosign',
-    u'/api/smart_variables',
-    u'/api/smart_variables/:smart_variable_id/override_values',
-    u'/api/statistics',
-    u'/api/status',
-    u'/api/subnets',
-    u'/api/template_kinds',
-    u'/api/usergroups',
-    u'/api/users',
-    u'/foreman_tasks/api/tasks/:id',  # WTF
-    u'/katello/api/activation_keys',
-    u'/katello/api/capsules',
-    u'/katello/api/content_view_filters/:content_view_filter_id/rules',
-    u'/katello/api/content_views/:content_view_id/content_view_puppet_modules',
-    u'/katello/api/content_views/:content_view_id/filters',
-    u'/katello/api/content_view_versions',
-    u'/katello/api/environments',
-    u'/katello/api/errata',
-    u'/katello/api/gpg_keys',
-    u'/katello/api/host_collections',
-    u'/katello/api/organizations',
-    u'/katello/api/organizations/:organization_id/content_views',
-    u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/errata',  # flake8:noqa
-    u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/packages',  # flake8:noqa
-    u'/katello/api/organizations/:organization_id/products/:product_id/sync',
-    u'/katello/api/organizations/:organization_id/subscriptions',
-    u'/katello/api/organizations/:organization_id/sync_plans',
-    u'/katello/api/package_groups',
-    u'/katello/api/ping',
-    u'/katello/api/products',
-    u'/katello/api/products/:product_id/repository_sets',
-    u'/katello/api/puppet_modules',
-    u'/katello/api/repositories',
-    u'/katello/api/repositories/:repository_id/distributions',
-    u'/katello/api/repositories/:repository_id/packages',
-    u'/katello/api/systems',
-    u'/katello/api/systems/:system_id/errata',
-))
+API_PATHS = {
+    # flake8:noqa (line-too-long) pylint:disable=C0301
+    u'activation_keys': (
+        u'/katello/api/activation_keys',
+        u'/katello/api/activation_keys',
+        u'/katello/api/activation_keys/:id',
+        u'/katello/api/activation_keys/:id',
+        u'/katello/api/activation_keys/:id',
+        u'/katello/api/activation_keys/:id/host_collections/available',
+        u'/katello/api/activation_keys/:id/releases',
+    ),
+    u'api': (),
+    u'architectures': (
+        u'/api/architectures',
+        u'/api/architectures',
+        u'/api/architectures/:id',
+        u'/api/architectures/:id',
+        u'/api/architectures/:id',
+    ),
+    u'audits': (
+        u'/api/audits',
+        u'/api/audits/:id',
+    ),
+    u'auth_source_ldaps': (
+        u'/api/auth_source_ldaps',
+        u'/api/auth_source_ldaps',
+        u'/api/auth_source_ldaps/:id',
+        u'/api/auth_source_ldaps/:id',
+        u'/api/auth_source_ldaps/:id',
+    ),
+    u'autosign': (
+        u'/api/smart_proxies/smart_proxy_id/autosign',
+    ),
+    u'base': (),
+    u'bookmarks': (
+        u'/api/bookmarks',
+        u'/api/bookmarks',
+        u'/api/bookmarks/:id',
+        u'/api/bookmarks/:id',
+        u'/api/bookmarks/:id',
+    ),
+    u'candlepin_proxies': (
+        u'/katello/api/systems/:id/enabled_repos',
+    ),
+    u'capsule_content': (
+        u'/katello/api/capsules/:id/content/available_lifecycle_environments',
+        u'/katello/api/capsules/:id/content/lifecycle_environments',
+        u'/katello/api/capsules/:id/content/lifecycle_environments',
+        u'/katello/api/capsules/:id/content/lifecycle_environments/:environment_id',
+        u'/katello/api/capsules/:id/content/sync',
+    ),
+    u'capsules': (
+        u'/katello/api/capsules',
+        u'/katello/api/capsules/:id',
+    ),
+    u'common_parameters': (
+        u'/api/common_parameters',
+        u'/api/common_parameters',
+        u'/api/common_parameters/:id',
+        u'/api/common_parameters/:id',
+        u'/api/common_parameters/:id',
+    ),
+    u'compute_attributes': (
+        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
+        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
+    ),
+    u'compute_profiles': (
+        u'/api/compute_profiles',
+        u'/api/compute_profiles',
+        u'/api/compute_profiles/:id',
+        u'/api/compute_profiles/:id',
+        u'/api/compute_profiles/:id',
+    ),
+    u'compute_resources': (
+        u'/api/compute_resources',
+        u'/api/compute_resources',
+        u'/api/compute_resources/:id',
+        u'/api/compute_resources/:id',
+        u'/api/compute_resources/:id',
+        u'/api/compute_resources/:id/associate',
+        u'/api/compute_resources/:id/available_clusters',
+        u'/api/compute_resources/:id/available_clusters/:cluster_id/available_resource_pools',
+        u'/api/compute_resources/:id/available_folders',
+        u'/api/compute_resources/:id/available_images',
+        u'/api/compute_resources/:id/available_networks',
+        u'/api/compute_resources/:id/available_storage_domains',
+    ),
+    u'config_groups': (
+        u'/api/config_groups',
+        u'/api/config_groups',
+        u'/api/config_groups/:id',
+        u'/api/config_groups/:id',
+        u'/api/config_groups/:id',
+    ),
+    u'config_templates': (
+        u'/api/config_templates',
+        u'/api/config_templates',
+        u'/api/config_templates/build_pxe_default',
+        u'/api/config_templates/:id',
+        u'/api/config_templates/:id',
+        u'/api/config_templates/:id',
+    ),
+    u'content_uploads': (
+        u'/katello/api/repositories/:repository_id/content_uploads',
+        u'/katello/api/repositories/:repository_id/content_uploads/:id',
+        u'/katello/api/repositories/:repository_id/content_uploads/:id',
+    ),
+    u'content_view_filter_rules': (
+        u'/katello/api/content_view_filters/:content_view_filter_id/rules',
+        u'/katello/api/content_view_filters/:content_view_filter_id/rules',
+        u'/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
+        u'/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
+        u'/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
+    ),
+    u'content_view_filters': (
+        u'/katello/api/content_views/:content_view_id/filters',
+        u'/katello/api/content_views/:content_view_id/filters',
+        u'/katello/api/content_views/:content_view_id/filters/:id',
+        u'/katello/api/content_views/:content_view_id/filters/:id',
+        u'/katello/api/content_views/:content_view_id/filters/:id',
+        u'/katello/api/content_views/:content_view_id/filters/:id/available_errata',
+        u'/katello/api/content_views/:content_view_id/filters/:id/available_package_groups',
+    ),
+    u'content_view_puppet_modules': (
+        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules',
+        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules',
+        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
+        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
+        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
+    ),
+    u'content_views': (
+        u'/katello/api/content_views/:id',
+        u'/katello/api/content_views/:id',
+        u'/katello/api/content_views/:id',
+        u'/katello/api/content_views/:id/available_puppet_module_names',
+        u'/katello/api/content_views/:id/available_puppet_modules',
+        u'/katello/api/content_views/:id/copy',
+        u'/katello/api/content_views/:id/environments/:environment_id',
+        u'/katello/api/content_views/:id/history',
+        u'/katello/api/content_views/:id/publish',
+        u'/katello/api/content_views/:id/remove',
+        u'/katello/api/organizations/:organization_id/content_views',
+        u'/katello/api/organizations/:organization_id/content_views',
+    ),
+    u'content_view_versions': (
+        u'/katello/api/content_view_versions',
+        u'/katello/api/content_view_versions/:id',
+        u'/katello/api/content_view_versions/:id',
+        u'/katello/api/content_view_versions/:id/promote',
+    ),
+    u'dashboard': (
+        u'/api/dashboard',
+    ),
+    u'discovered_hosts': (
+        u'/api/v2/discovered_hosts',
+        u'/api/v2/discovered_hosts',
+        u'/api/v2/discovered_hosts/facts',
+        u'/api/v2/discovered_hosts/:id',
+        u'/api/v2/discovered_hosts/:id',
+        u'/api/v2/discovered_hosts/:id',
+    ),
+    u'disks': (
+        u'/bootdisk/api',
+        u'/bootdisk/api/generic',
+        u'/bootdisk/api/hosts/:host_id',
+    ),
+    u'distributions': (
+        u'/katello/api/repositories/:repository_id/distributions',
+        u'/katello/api/repositories/:repository_id/distributions/:id',
+    ),
+    u'domains': (
+        u'/api/domains',
+        u'/api/domains',
+        u'/api/domains/:id',
+        u'/api/domains/:id',
+        u'/api/domains/:id',
+    ),
+    u'environments': (
+        u'/api/environments',
+        u'/api/environments',
+        u'/api/environments/:id',
+        u'/api/environments/:id',
+        u'/api/environments/:id',
+        u'/api/smart_proxies/:id/import_puppetclasses',
+    ),
+    u'errata': (
+        u'/katello/api/errata',
+        u'/katello/api/errata/:id',
+    ),
+    u'external_usergroups': (
+        u'/api/usergroups/:usergroup_id/external_usergroups',
+        u'/api/usergroups/:usergroup_id/external_usergroups',
+        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
+        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
+        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
+        u'/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
+    ),
+    u'fact_values': (
+        u'/api/fact_values',
+    ),
+    u'filters': (
+        u'/api/filters',
+        u'/api/filters',
+        u'/api/filters/:id',
+        u'/api/filters/:id',
+        u'/api/filters/:id',
+    ),
+    u'foreman_tasks': (
+        u'/foreman_tasks/api/tasks/bulk_search',
+        u'/foreman_tasks/api/tasks/:id',
+    ),
+    u'gpg_keys': (
+        u'/katello/api/gpg_keys',
+        u'/katello/api/gpg_keys',
+        u'/katello/api/gpg_keys/:id',
+        u'/katello/api/gpg_keys/:id',
+        u'/katello/api/gpg_keys/:id',
+        u'/katello/api/gpg_keys/:id/content',
+    ),
+    u'home': (
+        u'/api',
+        u'/api/status',
+    ),
+    u'host_classes': (
+        u'/api/hosts/:host_id/puppetclass_ids',
+        u'/api/hosts/:host_id/puppetclass_ids',
+        u'/api/hosts/:host_id/puppetclass_ids/:id',
+    ),
+    u'host_collections': (
+        u'/katello/api/host_collections',
+        u'/katello/api/host_collections',
+        u'/katello/api/host_collections/:id',
+        u'/katello/api/host_collections/:id',
+        u'/katello/api/host_collections/:id',
+        u'/katello/api/host_collections/:id/add_systems',
+        u'/katello/api/host_collections/:id/copy',
+        u'/katello/api/host_collections/:id/remove_systems',
+        u'/katello/api/host_collections/:id/systems',
+    ),
+    u'hostgroup_classes': (
+        u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
+        u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
+        u'/api/hostgroups/:hostgroup_id/puppetclass_ids/:id',
+    ),
+    u'hostgroups': (
+        u'/api/hostgroups',
+        u'/api/hostgroups',
+        u'/api/hostgroups/:id',
+        u'/api/hostgroups/:id',
+        u'/api/hostgroups/:id',
+        u'/api/hostgroups/:id/clone',
+    ),
+    u'hosts': (
+        u'/api/hosts',
+        u'/api/hosts',
+        u'/api/hosts/facts',
+        u'/api/hosts/:id',
+        u'/api/hosts/:id',
+        u'/api/hosts/:id',
+        u'/api/hosts/:id/boot',
+        u'/api/hosts/:id/disassociate',
+        u'/api/hosts/:id/power',
+        u'/api/hosts/:id/puppetrun',
+        u'/api/hosts/:id/status',
+    ),
+    u'images': (
+        u'/api/compute_resources/:compute_resource_id/images',
+        u'/api/compute_resources/:compute_resource_id/images',
+        u'/api/compute_resources/:compute_resource_id/images/:id',
+        u'/api/compute_resources/:compute_resource_id/images/:id',
+        u'/api/compute_resources/:compute_resource_id/images/:id',
+    ),
+    u'interfaces': (
+        u'/api/hosts/:host_id/interfaces',
+        u'/api/hosts/:host_id/interfaces',
+        u'/api/hosts/:host_id/interfaces/:id',
+        u'/api/hosts/:host_id/interfaces/:id',
+        u'/api/hosts/:host_id/interfaces/:id',
+    ),
+    u'lifecycle_environments': (
+        u'/katello/api/environments',
+        u'/katello/api/environments',
+        u'/katello/api/environments/:id',
+        u'/katello/api/environments/:id',
+        u'/katello/api/environments/:id',
+        u'/katello/api/organizations/:organization_id/environments/:id/repositories',
+        u'/katello/api/organizations/:organization_id/environments/paths',
+    ),
+    u'locations': (
+        u'/api/locations',
+        u'/api/locations',
+        u'/api/locations/:id',
+        u'/api/locations/:id',
+        u'/api/locations/:id',
+    ),
+    u'media': (
+        u'/api/media',
+        u'/api/media',
+        u'/api/media/:id',
+        u'/api/media/:id',
+        u'/api/media/:id',
+    ),
+    u'models': (
+        u'/api/models',
+        u'/api/models',
+        u'/api/models/:id',
+        u'/api/models/:id',
+        u'/api/models/:id',
+    ),
+    u'operatingsystems': (
+        u'/api/operatingsystems',
+        u'/api/operatingsystems',
+        u'/api/operatingsystems/:id',
+        u'/api/operatingsystems/:id',
+        u'/api/operatingsystems/:id',
+        u'/api/operatingsystems/:id/bootfiles',
+    ),
+    u'organizations': (
+        u'/katello/api/organizations',
+        u'/katello/api/organizations',
+        u'/katello/api/organizations/:id',
+        u'/katello/api/organizations/:id',
+        u'/katello/api/organizations/:id',
+        u'/katello/api/organizations/:id/autoattach_subscriptions',
+        u'/katello/api/organizations/:id/redhat_provider',
+        u'/katello/api/organizations/:id/repo_discover',
+        u'/katello/api/organizations/:label/cancel_repo_discover',
+        u'/katello/api/organizations/:label/download_debug_certificate',
+    ),
+    u'os_default_templates': (
+        u'/api/operatingsystems/:operatingsystem_id/os_default_templates',
+        u'/api/operatingsystems/:operatingsystem_id/os_default_templates',
+        u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
+        u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
+        u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
+    ),
+    u'override_values': (
+        u'/api/smart_variables/:smart_variable_id/override_values',
+        u'/api/smart_variables/:smart_variable_id/override_values',
+        u'/api/smart_variables/:smart_variable_id/override_values/:id',
+        u'/api/smart_variables/:smart_variable_id/override_values/:id',
+        u'/api/smart_variables/:smart_variable_id/override_values/:id',
+    ),
+    u'package_groups': (
+        u'/katello/api/package_groups',
+        u'/katello/api/package_groups/:id',
+    ),
+    u'packages': (
+        u'/katello/api/packages',
+        u'/katello/api/packages/:id',
+    ),
+    u'parameters': (
+        u'/api/hosts/:host_id/parameters',
+        u'/api/hosts/:host_id/parameters',
+        u'/api/hosts/:host_id/parameters',
+        u'/api/hosts/:host_id/parameters/:id',
+        u'/api/hosts/:host_id/parameters/:id',
+        u'/api/hosts/:host_id/parameters/:id',
+    ),
+    u'permissions': (
+        u'/api/permissions',
+        u'/api/permissions/:id',
+        u'/api/permissions/resource_types',
+    ),
+    u'ping': (
+        u'/katello/api/ping',
+        u'/katello/api/status',
+    ),
+    u'plugins': (
+        u'/api/plugins',
+    ),
+    u'products_bulk_actions': (
+        u'/katello/api/products/bulk/destroy',
+        u'/katello/api/products/bulk/sync_plan',
+    ),
+    u'products': (
+        u'/katello/api/products',
+        u'/katello/api/products',
+        u'/katello/api/products/:id',
+        u'/katello/api/products/:id',
+        u'/katello/api/products/:id',
+        u'/katello/api/products/:id/sync',
+    ),
+    u'ptables': (
+        u'/api/ptables',
+        u'/api/ptables',
+        u'/api/ptables/:id',
+        u'/api/ptables/:id',
+        u'/api/ptables/:id',
+    ),
+    u'puppetclasses': (
+        u'/api/puppetclasses',
+        u'/api/puppetclasses',
+        u'/api/puppetclasses/:id',
+        u'/api/puppetclasses/:id',
+        u'/api/puppetclasses/:id',
+    ),
+    u'puppet_modules': (
+        u'/katello/api/puppet_modules',
+        u'/katello/api/puppet_modules/:id',
+    ),
+    u'realms': (
+        u'/api/realms',
+        u'/api/realms',
+        u'/api/realms/:id',
+        u'/api/realms/:id',
+        u'/api/realms/:id',
+    ),
+    u'reports': (
+        u'/api/hosts/:host_id/reports/last',
+        u'/api/reports',
+        u'/api/reports',
+        u'/api/reports/:id',
+        u'/api/reports/:id',
+    ),
+    u'repositories_bulk_actions': (
+        u'/katello/api/repositories/bulk/destroy',
+        u'/katello/api/repositories/bulk/sync',
+    ),
+    u'repositories': (
+        u'/katello/api/repositories',
+        u'/katello/api/repositories',
+        u'/katello/api/repositories/:id',
+        u'/katello/api/repositories/:id',
+        u'/katello/api/repositories/:id',
+        u'/katello/api/repositories/:id/gpg_key_content',
+        u'/katello/api/repositories/:id/import_uploads',
+        u'/katello/api/repositories/:id/sync',
+        u'/katello/api/repositories/:id/upload_content',
+    ),
+    u'repository_sets': (
+        u'/katello/api/products/:product_id/repository_sets',
+        u'/katello/api/products/:product_id/repository_sets/:id',
+        u'/katello/api/products/:product_id/repository_sets/:id/available_repositories',
+        u'/katello/api/products/:product_id/repository_sets/:id/disable',
+        u'/katello/api/products/:product_id/repository_sets/:id/enable',
+    ),
+    u'roles': (
+        u'/api/roles',
+        u'/api/roles',
+        u'/api/roles/:id',
+        u'/api/roles/:id',
+        u'/api/roles/:id',
+    ),
+    u'root': (),
+    u'settings': (
+        u'/api/settings',
+        u'/api/settings/:id',
+        u'/api/settings/:id',
+    ),
+    u'smart_class_parameters': (
+        u'/api/smart_class_parameters',
+        u'/api/smart_class_parameters/:id',
+        u'/api/smart_class_parameters/:id',
+    ),
+    u'smart_proxies': (
+        u'/api/smart_proxies',
+        u'/api/smart_proxies',
+        u'/api/smart_proxies/:id',
+        u'/api/smart_proxies/:id',
+        u'/api/smart_proxies/:id',
+        u'/api/smart_proxies/:id/import_puppetclasses',
+        u'/api/smart_proxies/:id/refresh',
+    ),
+    u'smart_variables': (
+        u'/api/smart_variables',
+        u'/api/smart_variables',
+        u'/api/smart_variables/:id',
+        u'/api/smart_variables/:id',
+        u'/api/smart_variables/:id',
+    ),
+    u'statistics': (
+        u'/api/statistics',
+    ),
+    u'subnets': (
+        u'/api/subnets',
+        u'/api/subnets',
+        u'/api/subnets/:id',
+        u'/api/subnets/:id',
+        u'/api/subnets/:id',
+    ),
+    u'subscriptions': (
+        u'/katello/api/organizations/:organization_id/subscriptions',
+        u'/katello/api/organizations/:organization_id/subscriptions/delete_manifest',
+        u'/katello/api/organizations/:organization_id/subscriptions/:id',
+        u'/katello/api/organizations/:organization_id/subscriptions/manifest_history',
+        u'/katello/api/organizations/:organization_id/subscriptions/refresh_manifest',
+        u'/katello/api/organizations/:organization_id/subscriptions/upload',
+        u'/katello/api/subscriptions/:id',
+        u'/katello/api/subscriptions/:id',
+        u'/katello/api/systems/:system_id/subscriptions/available',
+    ),
+    u'sync_plans': (
+        u'/katello/api/organizations/:organization_id/sync_plans',
+        u'/katello/api/organizations/:organization_id/sync_plans/:id',
+        u'/katello/api/organizations/:organization_id/sync_plans/:id',
+        u'/katello/api/organizations/:organization_id/sync_plans/:id',
+        u'/katello/api/organizations/:organization_id/sync_plans/:id/add_products',
+        u'/katello/api/organizations/:organization_id/sync_plans/:id/available_products',
+        u'/katello/api/organizations/:organization_id/sync_plans/:id/remove_products',
+        u'/katello/api/sync_plans',
+    ),
+    u'sync': (
+        u'/katello/api/organizations/:organization_id/products/:product_id/sync',
+    ),
+    u'system_errata': (
+        u'/katello/api/systems/:system_id/errata/apply',
+        u'/katello/api/systems/:system_id/errata/:id',
+    ),
+    u'system_packages': (
+        u'/katello/api/systems/:system_id/packages/install',
+        u'/katello/api/systems/:system_id/packages/remove',
+        u'/katello/api/systems/:system_id/packages/upgrade_all',
+    ),
+    u'systems_bulk_actions': (
+        u'/katello/api/systems/bulk/add_host_collections',
+        u'/katello/api/systems/bulk/applicable_errata',
+        u'/katello/api/systems/bulk/destroy',
+        u'/katello/api/systems/bulk/environment_content_view',
+        u'/katello/api/systems/bulk/install_content',
+        u'/katello/api/systems/bulk/remove_content',
+        u'/katello/api/systems/bulk/remove_host_collections',
+        u'/katello/api/systems/bulk/update_content',
+    ),
+    u'systems': (
+        u'/katello/api/environments/:environment_id/systems/report',
+        u'/katello/api/systems',
+        u'/katello/api/systems',
+        u'/katello/api/systems/:id',
+        u'/katello/api/systems/:id',
+        u'/katello/api/systems/:id',
+        u'/katello/api/systems/:id/available_host_collections',
+        u'/katello/api/systems/:id/errata',
+        u'/katello/api/systems/:id/events',
+        u'/katello/api/systems/:id/packages',
+        u'/katello/api/systems/:id/pools',
+        u'/katello/api/systems/:id/refresh_subscriptions',
+        u'/katello/api/systems/:id/releases',
+    ),
+    u'tasks': (
+        u'/api/orchestration/:id/tasks',
+    ),
+    u'template_combinations': (
+        u'/api/config_templates/:config_template_id/template_combinations',
+        u'/api/config_templates/:config_template_id/template_combinations',
+        u'/api/template_combinations/:id',
+        u'/api/template_combinations/:id',
+    ),
+    u'template_kinds': (
+        u'/api/template_kinds',
+    ),
+    u'uebercerts': (
+        u'/katello/api/organizations/:organization_id/uebercert',
+    ),
+    u'usergroups': (
+        u'/api/usergroups',
+        u'/api/usergroups',
+        u'/api/usergroups/:id',
+        u'/api/usergroups/:id',
+        u'/api/usergroups/:id',
+    ),
+    u'users': (
+        u'/api/users',
+        u'/api/users',
+        u'/api/users/:id',
+        u'/api/users/:id',
+        u'/api/users/:id',
+    ),
+}
 
 
 class TestAvailableURLs(TestCase):
@@ -134,17 +624,37 @@ class TestAvailableURLs(TestCase):
             self.path,
             auth=helpers.get_server_credentials(),
             verify=False,
-        ).json()
-        self.assertIn('links', response.keys())
-        links = response['links']
+        )
+        response.raise_for_status()
+        # See below for an explanation of this transformation.
+        all_paths = response.json()['links']
+        for category, path_pairs in all_paths.items():
+            all_paths[category] = tuple(path_pairs.values())
 
-        # Did the server give us correct paths?
-        self.assertEqual(API_PATHS, frozenset(links.values()))
+        for category, paths in all_paths.items():
+            self.assertIn(category, API_PATHS)
+            self.assertEqual(frozenset(paths), frozenset(API_PATHS[category]))
+            self.assertEqual(len(paths), len(API_PATHS[category]))
 
-        # Even if the server gave us exactly the right paths, its response
-        # might still be wrong. What if it the response contained duplicate
-        # paths?
-        self.assertEqual(len(API_PATHS), len(links))
+        # (line-too-long) pylint:disable=C0301
+        # response.json()['links'] is a dict like this:
+        #
+        #     {u'content_views': {
+        #          u'…': u'/katello/api/content_views/:id',
+        #          u'…': u'/katello/api/content_views/:id/available_puppet_modules',
+        #          u'…': u'/katello/api/organizations/:organization_id/content_views',
+        #          u'…': u'/katello/api/organizations/:organization_id/content_views',
+        #     }, …}
+        #
+        # We don't care about prose descriptions. It doesn't matter if those
+        # change. Transform it before running any assertions:
+        #
+        #     {u'content_views': (
+        #          u'/katello/api/content_views/:id',
+        #          u'/katello/api/content_views/:id/available_puppet_modules',
+        #          u'/katello/api/organizations/:organization_id/content_views',
+        #          u'/katello/api/organizations/:organization_id/content_views',
+        #     ), …}
 
 
 class TestSmoke(TestCase):
@@ -261,8 +771,8 @@ class TestSmoke(TestCase):
         # alphanumeric charset, because Foreman complains about incomplete
         # multi-byte chars when latin1 chars are used.
         #
-        login = gen_string(str_type='alphanumeric')
-        password = gen_string(str_type='alphanumeric')
+        login = gen_string('alphanumeric')
+        password = gen_string('alphanumeric')
 
         # step 1: Create a new user with admin permissions
         entities.User(admin=True, login=login, password=password).create()
@@ -493,8 +1003,8 @@ class TestSmoke(TestCase):
                    "for RHEL 6 Server (RPMs)")
         repo = ("Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
                 "RPMs x86_64 6Server")
-        activation_key_name = gen_string(str_type='alpha')
-        org_name = gen_string(str_type='alpha')
+        activation_key_name = gen_string('alpha')
+        org_name = gen_string('alpha')
 
         # step 1.1: Create a new organization
         org = entities.Organization(name=org_name).create()
