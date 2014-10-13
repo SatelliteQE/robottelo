@@ -108,7 +108,7 @@ class Architecture(
             data = {u'architecture': self.build(auth=auth)}
         return super(Architecture, self).create(auth, data)
 
-    # FIXME: This method should not need to exist. The API has a bug.
+    # NOTE: See BZ 1151240
     def read(self, auth=None, entity=None, attrs=None):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
@@ -1088,7 +1088,7 @@ class Media(
             data = {u'medium': self.build(auth=auth)}
         return super(Media, self).create(auth, data)
 
-    # FIXME: This method should not need to exist. The API has a bug.
+    # NOTE: See BZ 1151240
     def read(self, auth=None, entity=None, attrs=None):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
@@ -1829,12 +1829,12 @@ class Repository(
             )
         return super(Repository, self).path(which)
 
+    # NOTE: See BZ 1151240
     def read(self, auth=None, entity=None, attrs=None):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
         """
-        # FIXME: This method is a hack. It should not need to exist.
         if attrs is None:
             attrs = self.read_json(auth)
         attrs['product_id'] = attrs.pop('product')['id']

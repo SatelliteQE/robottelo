@@ -12,13 +12,13 @@ class ArchitectureTestCase(TestCase):
     """Tests for architectures."""
 
     @skip_if_bug_open('bugzilla', 1151220)
-    def test_extra_hash(self):
+    def test_post_hash(self):
         """@Test: Do not wrap API calls in an extra hash.
 
         @Assert: It is possible to associate an activation key with an
         organization.
 
-        @Feature: ActivationKey
+        @Feature: Architecture
 
         """
         name = gen_utf8()
@@ -38,3 +38,18 @@ class ArchitectureTestCase(TestCase):
         self.assertEqual(name, attrs['name'])
         self.assertIn('operatingsystems', attrs)
         self.assertEqual([os_id], attrs['operatingsystems'])
+
+    @skip_if_bug_open('bugzilla', 1151240)
+    def test_get_hash(self):
+        """@Test: Read the API and look for a list of IDs.
+
+        @Assert: The architecture-OS foreign key relationship is described with
+        a list of IDs.
+
+        @Feature: Architecture
+
+        """
+        os_id = entities.OperatingSystem().create()['id']
+        attrs = entities.Architecture(operatingsystem=[os_id]).create()
+        self.assertIn('operatingsystem_ids', attrs)
+        self.assertEqual(attrs['operatingsystem_ids'], [os_id])
