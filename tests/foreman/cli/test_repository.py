@@ -14,6 +14,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import (
+    DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
@@ -80,7 +81,6 @@ class TestRepository(CLITestCase):
         return new_repo
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -104,7 +104,6 @@ class TestRepository(CLITestCase):
         self.assertEqual(new_repo['name'], name, "Names don't match")
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -136,7 +135,6 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': FAKE_3_YUM_REPO, u'content-type': u'yum'},
         {u'url': FAKE_4_YUM_REPO, u'content-type': u'yum'},
@@ -167,7 +165,6 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': FAKE_1_PUPPET_REPO, u'content-type': u'puppet'},
         {u'url': FAKE_2_PUPPET_REPO, u'content-type': u'puppet'},
@@ -198,8 +195,6 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1083236)
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -248,7 +243,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1103944)
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -296,8 +290,6 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1083256)
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(u'true', u'yes', u'1')
     @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
@@ -306,8 +298,6 @@ class TestRepository(CLITestCase):
         @Feature: Repository
 
         @Assert: Repository is created and is published via http
-
-        @BZ: 1083256
 
         """
 
@@ -329,7 +319,6 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(u'false', u'no', u'0')
     @attr('cli', 'repository')
     def test_positive_create_8(self, use_http):
@@ -360,6 +349,36 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
+    @attr('cli', 'repository', 'docker')
+    def test_positive_create_9(self):
+        """@Test: Create a Docker repository
+
+        @Feature: Repository
+
+        @Assert: Docker repository is created and contains correct values.
+
+        """
+        content_type = u'docker'
+        new_repo = self._make_repository({
+            u'name': u'wordpress',
+            u'url': DOCKER_REGISTRY_HUB,
+            u'content-type': content_type,
+        })
+        # Assert that urls and content types matches data passed
+        self.assertEqual(
+            new_repo['url'],
+            DOCKER_REGISTRY_HUB,
+            "Expected URL {0} but received {1}".format(
+                DOCKER_REGISTRY_HUB, new_repo['url'])
+        )
+        self.assertEqual(
+            new_repo['content-type'],
+            content_type,
+            "Expected content type {0} but received {1}".format(
+                content_type, new_repo['content-type'])
+        )
+
+    @run_only_on('sat')
     @data(
         gen_string('alpha', 300),
         gen_string('alphanumeric', 300),
@@ -382,12 +401,12 @@ class TestRepository(CLITestCase):
             self._make_repository({u'name': name})
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         {u'url': FAKE_3_YUM_REPO, u'content-type': u'yum'},
         {u'url': FAKE_4_YUM_REPO, u'content-type': u'yum'},
         {u'url': FAKE_1_YUM_REPO, u'content-type': u'yum'},
     )
+    @skip_if_bug_open('bugzilla', 1152237)
     @attr('cli', 'repository')
     def test_positive_synchronize_1(self, test_data):
         """@Test: Check if repository can be created and synced
@@ -424,13 +443,41 @@ class TestRepository(CLITestCase):
             "The new status of repository should be 'Finished'")
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
+    @skip_if_bug_open('bugzilla', 1152237)
+    @attr('cli', 'repository', 'docker')
+    def test_positive_synchronize_2(self):
+        """@Test: Check if Docker repository can be created and synced
+
+        @Feature: Repository
+
+        @Assert: Docker repository is created and synced
+
+        """
+
+        new_repo = self._make_repository({
+            u'name': u'wordpress',
+            u'url': DOCKER_REGISTRY_HUB,
+            u'content-type': u'docker',
+        })
+        # Assertion that repo is not yet synced
+        self.assertEqual(new_repo['sync']['status'], 'Not Synced')
+
+        # Synchronize it
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        # Verify it has finished
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result.stdout['sync']['status'], 'Finished')
+
+    @run_only_on('sat')
     @data(
         FAKE_4_YUM_REPO,
         FAKE_1_PUPPET_REPO,
         FAKE_2_PUPPET_REPO,
         FAKE_3_PUPPET_REPO,
-        FAKE_1_YUM_REPO,
+        FAKE_2_YUM_REPO,
     )
     @attr('cli', 'repository')
     def test_positive_update_1(self, url):
@@ -476,7 +523,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @stubbed
-    @skip_if_bug_open('bugzilla', 1083236)
     @attr('cli', 'repository')
     def test_positive_update_2(self, test_data):
         """@Test: Update the original gpg key
@@ -493,7 +539,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @stubbed
-    @skip_if_bug_open('bugzilla', 1083256)
     @attr('cli', 'repository')
     def test_positive_update_3(self, test_data):
         """@Test: Update the original publishing method
@@ -509,7 +554,6 @@ class TestRepository(CLITestCase):
         """
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1129617)
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
