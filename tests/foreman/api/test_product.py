@@ -4,24 +4,24 @@ A full API reference for products can be found here:
 http://theforeman.org/api/apidoc/v2/products.html
 
 """
+from ddt import ddt
 from fauxfactory import gen_string
 from random import randint
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_server_credentials, read_data_file
-from robottelo.common import decorators
+from robottelo.common.decorators import data, run_only_on
 from robottelo import entities
 from unittest import TestCase
-import ddt
 # (too-many-public-methods) pylint:disable=R0904
 
 
-@ddt.ddt
+@ddt
 class ProductsTestCase(TestCase):
     """Tests for ``katello/api/v2/products``."""
 
-    @decorators.run_only_on('sat')
-    @decorators.data(
+    @run_only_on('sat')
+    @data(
         {u'name': gen_string('alphanumeric', randint(1, 255))},
         {u'name': gen_string('alpha', randint(1, 255))},
         {u'name': gen_string('cjk', randint(1, 85))},
@@ -49,7 +49,7 @@ class ProductsTestCase(TestCase):
             self.assertIn(name, prod_attrs.keys())
             self.assertEqual(value, prod_attrs[name])
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_positive_create_2(self):
         """@Test: Create a product and provide a GPG key.
 
@@ -79,8 +79,8 @@ class ProductsTestCase(TestCase):
         self.assertEqual(attrs['gpg_key_id'], gpgkey_attrs['id'])
 
 
-@decorators.run_only_on('sat')
-@ddt.ddt
+@run_only_on('sat')
+@ddt
 class ProductUpdateTestCase(TestCase):
     """Tests for updating a product."""
     @classmethod
@@ -90,7 +90,7 @@ class ProductUpdateTestCase(TestCase):
             id=entities.Product().create()['id']
         )
 
-    @decorators.data(
+    @data(
         {u'name': gen_string('alphanumeric', randint(1, 255))},
         {u'name': gen_string('alpha', randint(1, 255))},
         {u'name': gen_string('cjk', randint(1, 85))},
