@@ -1,6 +1,3 @@
-# For parsing config file.
-iniparse
-
 # For all tests.
 booby
 fauxfactory
