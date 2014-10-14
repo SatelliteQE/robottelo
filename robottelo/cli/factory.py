@@ -430,21 +430,25 @@ def make_repository(options=None):
 
     Options::
 
-        --content-type CONTENT_TYPE   type of repo (either 'yum' or 'puppet',
-                                      defaults to 'yum')
-        --gpg-key GPG_KEY_NAME
-        --gpg-key-id GPG_KEY_ID       id of the gpg key that will be assigned
-                                      to the new repository
+        --checksum-type CHECKSUM_TYPE           checksum of the repository,
+                                                currently 'sha1' &amp; 'sha256'
+                                                are supported.'
+        --content-type CONTENT_TYPE             type of repo (either 'yum',
+                                                'puppet' or 'docker', defaults
+                                                to 'yum')
+        --gpg-key GPG_KEY_NAME                  Name to search by
+        --gpg-key-id GPG_KEY_ID                 gpg key numeric identifier
         --label LABEL
         --name NAME
-        --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID
-        --organization-label ORGANIZATION_LABEL
-        --product PRODUCT_NAME
-        --product-id PRODUCT_ID       Product the repository belongs to
-        --publish-via-http ENABLE     Publish Via HTTP
-                                      One of true/false, yes/no, 1/0.
-        --url URL                     repository source url
+        --organization ORGANIZATION_NAME        Organization name to search by
+        --organization-id ORGANIZATION_ID       organization ID
+        --organization-label ORGANIZATION_LABEL Organization label to search by
+        --product PRODUCT_NAME                  Product name to search by
+        --product-id PRODUCT_ID                 product numeric identifier
+        --publish-via-http ENABLE               Publish Via HTTP
+                                                One of true/false, yes/no, 1/0.
+        --url URL                               repository source url
+
     """
 
     # Product ID is a required field.
@@ -454,6 +458,7 @@ def make_repository(options=None):
     args = {
         u'name': gen_string('alpha', 15),
         u'label': None,
+        u'checksum-type': None,
         u'content-type': u'yum',
         u'product': None,
         u'product-id': None,
