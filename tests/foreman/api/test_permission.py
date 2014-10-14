@@ -6,6 +6,7 @@ can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 """
 from ddt import data as ddt_data, ddt
 from fauxfactory import gen_alphanumeric
+from itertools import chain
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.constants import PERMISSIONS
@@ -13,14 +14,16 @@ from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
-import itertools
 import re
 # (too-many-public-methods) pylint:disable=R0904
 
 
-PERMISSIONS_RESOURCE_TYPE = [key for key in PERMISSIONS.keys()
-                             if key is not None]
-PERMISSIONS_NAME = [value for value in itertools.chain(*PERMISSIONS.values())]
+PERMISSIONS_RESOURCE_TYPE = [
+    key for key in PERMISSIONS.keys() if key is not None
+]
+PERMISSIONS_NAME = [
+    value for value in chain.from_iterable(PERMISSIONS.values())
+]
 
 
 @ddt
