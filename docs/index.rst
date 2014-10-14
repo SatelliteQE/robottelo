@@ -9,15 +9,13 @@ driven`_. There are three types of tests:
 * CLI tests, which rely on `Paramiko`_.
 * API tests, which rely on `Requests`_.
 
+.. contents::
+
 Quickstart
 ==========
 
-The following is only a brief setup guide for `Robottelo`_. More extensive
-documentation `is available <http://robottelo.readthedocs.org/en/latest/>`_ at
-Read the Docs.
-
-Requirements
-------------
+The following is only a brief setup guide for `Robottelo`_. The section on
+`Running the Tests`_ provides a more comprehensive guide to using Robottelo.
 
 Install Python header files. The package providing these files varies per
 distribution. For example:
@@ -181,25 +179,22 @@ It is possible to run UI tests on a headless server. To do this:
 This done, UI tests no longer launch a visible web browser. Instead, UI tests
 launch a web browser within a virtual display.
 
-API Reference
-=============
-
-If you are looking for information on a specific function, class or method, this
-part of the documentation is for you. The following is an overview of the topics
-covered by the API. For more granular information, follow one of the links.
-
-.. toctree::
-    :maxdepth: 2
-
-    api/index
-
 Miscellany
 ==========
 
-Want to contribute? Before submitting code, read through the
-:doc:`committing guide </committing>` and **Robottelo** :doc:`code standards
-</code_standards>`. Ready to start reviewing pull requests? We have :doc:`a
-guide </reviewing_PRs>` for that too!
+.. toctree::
+    :hidden:
+
+    committing
+    code_standards
+    reviewing_PRs
+    api/index
+
+Want to contribute? Before submitting code, read through the :doc:`committing
+guide </committing>` and **Robottelo** :doc:`code standards </code_standards>`.
+Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
+for that too! Finally, the :doc:`API reference </api/index>` covers individual
+functions, classes, methods and modules.
 
 Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
 If you think you've found a new issue, please do one of the following:
