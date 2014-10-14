@@ -21,7 +21,8 @@ or concerns, feel free to reach out to the team. We can be found on the
 Before you commit
 -----------------
 
-Ensure your code follows the guidelines in the `Robottelo Standards`_.
+Ensure your code follows the guidelines in the **Robottelo**
+:doc:`code standards </code_standards>`.
 
 All modules, classes, and functions should have well written docstrings.
 
@@ -111,11 +112,10 @@ Cleaning up
 If you created a branch, in your forked repository, you may merge it now.
 
 
+.. _Close an issue: https://help.github.com/articles/closing-issues-via-commit-messages/
 .. _Code of Conduct: http://www.python.org/psf/codeofconduct/
 .. _freenode: http://freenode.net/
-.. _Robottelo Standards: code_standards.rst
-.. _testimony: https://github.com/SatelliteQE/testimony
-.. _sphinx: http://sphinx-doc.org/markup/para.html
 .. _procedures: http://twistedmatrix.com/trac/wiki/CompatibilityPolicy
+.. _sphinx: http://sphinx-doc.org/rest.html
+.. _testimony: https://github.com/SatelliteQE/testimony
 .. _This link: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
-.. _Close an issue: https://help.github.com/articles/closing-issues-via-commit-messages/
