@@ -473,9 +473,9 @@ class EntityReadMixin(object):
     def read_raw(self, auth=None):
         """Get information about the current entity.
 
-        Send an HTTP GET request to :meth:`path`. Return the response. Do not
-        check the response for any errors, such as an HTTP 4XX or 5XX status
-        code.
+        Send an HTTP GET request to :meth:`Entity.path`. Return the response.
+        Do not check the response for any errors, such as an HTTP 4XX or 5XX
+        status code.
 
         :param tuple auth: A ``(username, password)`` tuple used when accessing
             the API. If ``None``, the credentials provided by
@@ -514,7 +514,7 @@ class EntityReadMixin(object):
         All of an entity's one-to-one and one-to-many relationships are
         populated with objects of the correct type. For example, if
         ``SomeEntity.other_entity`` is a one-to-one relationship, this should
-        return ``True``::'
+        return ``True``::
 
             isinstance(
                 SomeEntity(id=N).read().other_entity,
