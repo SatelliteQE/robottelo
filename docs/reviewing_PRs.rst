@@ -5,8 +5,8 @@ Reviewing PRs
 
 Ensure commits are squashed.
 
-Thoroughly review each change for errors or departures from the `Robottelo
-Standards`_.
+Thoroughly review each change for errors or departures from the **Robottelo**
+:doc:`code standards </code_standards>`.
 
 If you note something that should be changed, or want clarification, add a
 comment to the line of code or the PR as a whole.
@@ -26,6 +26,3 @@ changes, then you may merge.
 ToDo
 ----
 Elaborate on the process.
-
-
-.. _Robottelo Standards: code_standards.rst
