@@ -4,21 +4,21 @@ A full API reference for environments can be found here:
 http://theforeman.org/api/apidoc/v2/environments.html
 
 """
+from ddt import ddt
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
-from robottelo.common import decorators
+from robottelo.common.decorators import data, run_only_on
 from robottelo import entities
 from unittest import TestCase
-import ddt
 import random
 # (too-many-public-methods) pylint:disable=R0904
 
 
-@decorators.run_only_on('sat')
-@ddt.ddt
+@run_only_on('sat')
+@ddt
 class EnvironmentTestCase(TestCase):
     """Tests for environments."""
-    @decorators.data(
+    @data(
         gen_string('alpha', random.randint(1, 255)),
         gen_string('numeric', random.randint(1, 255)),
         gen_string('alphanumeric', random.randint(1, 255)),
@@ -39,7 +39,7 @@ class EnvironmentTestCase(TestCase):
         attrs = entities.Environment(id=attrs['id']).read_json()
         self.assertEqual(attrs['name'], name)
 
-    @decorators.data(
+    @data(
         gen_string('alpha', 256),
         gen_string('numeric', 256),
         gen_string('alphanumeric', 256),

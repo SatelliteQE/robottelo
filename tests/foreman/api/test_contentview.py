@@ -1,12 +1,13 @@
 """Unit tests for the ``content_views`` paths."""
+from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from requests.exceptions import HTTPError
 from robottelo.api import client
+from robottelo.common.decorators import (
+    bz_bug_is_open, data, run_only_on, stubbed)
 from robottelo.common.helpers import get_server_credentials
-from robottelo.common import decorators
 from robottelo import entities
 from unittest import TestCase
-import ddt
 # (too-many-public-methods) pylint:disable=R0904
 
 
@@ -42,8 +43,8 @@ def _promote(content_view, lifecycle, version):
     return entities.ForemanTask(id=task_id).poll()['result']
 
 
-@decorators.run_only_on('sat')
-@ddt.ddt
+@run_only_on('sat')
+@ddt
 class ContentViewTestCase(TestCase):
     """Tests for content views."""
     def test_subscribe_system_to_cv(self):
@@ -112,7 +113,7 @@ class ContentViewTestCase(TestCase):
         # )
 
 
-@ddt.ddt
+@ddt
 class ContentViewCreateTestCase(TestCase):
     """Tests for creating content views."""
 
@@ -142,7 +143,7 @@ class ContentViewCreateTestCase(TestCase):
         )
         self.assertTrue(content_view.read_json()['composite'])
 
-    @decorators.data(
+    @data(
         gen_string('alpha', gen_integer(3, 30)),
         gen_string('alphanumeric', gen_integer(3, 30)),
         gen_string('cjk', gen_integer(3, 30)),
@@ -165,7 +166,7 @@ class ContentViewCreateTestCase(TestCase):
         attrs = entities.ContentView(id=content_view).read_json()
         self.assertEqual(attrs['name'], name)
 
-    @decorators.data(
+    @data(
         gen_string('alpha', gen_integer(3, 30)),
         gen_string('alphanumeric', gen_integer(3, 30)),
         gen_string('cjk', gen_integer(3, 30)),
@@ -189,7 +190,7 @@ class ContentViewCreateTestCase(TestCase):
         self.assertEqual(attrs['description'], description)
 
 
-@ddt.ddt
+@ddt
 class ContentViewPublishTestCase(TestCase):
     """Tests for publishing content views."""
 
@@ -247,7 +248,7 @@ class ContentViewPublishTestCase(TestCase):
             u"Content view should be present in 1 lifecycle only")
 
 
-@ddt.ddt
+@ddt
 class ContentViewPromoteTestCase(TestCase):
     """Tests for promoting content views."""
 
@@ -334,7 +335,7 @@ class ContentViewPromoteTestCase(TestCase):
             u"Content view should be present on 2 lifecycles only")
 
 
-@ddt.ddt
+@ddt
 class ContentViewUpdateTestCase(TestCase):
     """Tests for updating content views."""
     @classmethod
@@ -344,7 +345,7 @@ class ContentViewUpdateTestCase(TestCase):
             id=entities.ContentView().create()['id']
         )
 
-    @decorators.data(
+    @data(
         {u'name': entities.ContentView.name.get_value()},
         {u'description': entities.ContentView.description.get_value()},
     )
@@ -369,7 +370,7 @@ class ContentViewUpdateTestCase(TestCase):
             self.assertIn(name, new_attrs.keys())
             self.assertEqual(new_attrs[name], value)
 
-    @decorators.data(
+    @data(
         {u'label': gen_utf8(30), u'bz-bug': 1147100},  # Immutable.
         {u'name': gen_utf8(256)},
     )
@@ -382,7 +383,7 @@ class ContentViewUpdateTestCase(TestCase):
 
         """
         bug_id = attrs.pop('bz-bug', None)
-        if bug_id is not None and decorators.bz_bug_is_open(bug_id):
+        if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
         response = client.put(
@@ -395,14 +396,14 @@ class ContentViewUpdateTestCase(TestCase):
             response.raise_for_status()
 
 
-@decorators.run_only_on('sat')
+@run_only_on('sat')
 class ContentViewTestCaseStub(TestCase):
     """Incomplete tests for content views."""
     # Each of these tests should be given a better name when they're
     # implemented. In the meantime, let's not worry about bad names.
     # (invalid-name) pylint:disable=C0103
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_edit_rh_custom_spin(self):
         """
         @test: edit content views for a custom rh spin.  For example,
@@ -426,7 +427,7 @@ class ContentViewTestCaseStub(TestCase):
     # katello content definition add_repo --label=MyView
     #   --repo=repo1 --org=ACME
 
-    @decorators.stubbed
+    @stubbed
     def test_associate_view_rh(self):
         """
         @test: associate Red Hat content in a view
@@ -436,7 +437,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_associate_view_rh_custom_spin(self):
         """
         @test: associate Red Hat content in a view
@@ -452,7 +453,7 @@ class ContentViewTestCaseStub(TestCase):
         #   * A filter on severity (only content of specific errata
         # severity.
 
-    @decorators.stubbed
+    @stubbed
     def test_associate_view_custom_content(self):
         """
         @test: associate Red Hat content in a view
@@ -462,7 +463,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_associate_puppet_repo_negative(self):
         """
         @test: attempt to associate puppet repos within a custom
@@ -473,7 +474,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_associate_components_composite_negative(self):
         """
         @test: attempt to associate components n a non-composite
@@ -483,7 +484,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_associate_composite_dupe_repos_negative(self):
         """
         @test: attempt to associate the same repo multiple times within a
@@ -493,7 +494,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_associate_composite_dupe_modules_negative(self):
         """
         @test: attempt to associate duplicate puppet module(s) within a
@@ -507,7 +508,7 @@ class ContentViewTestCaseStub(TestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_promote_rh(self):
         """
         @test: attempt to promote a content view containing RH content
@@ -517,7 +518,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_promote_rh_custom_spin(self):
         """
         @test: attempt to promote a content view containing a custom RH
@@ -528,7 +529,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_promote_custom_content(self):
         """
         @test: attempt to promote a content view containing custom content
@@ -537,7 +538,7 @@ class ContentViewTestCaseStub(TestCase):
         @assert: Content view can be promoted
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_promote_composite(self):
         """
         @test: attempt to promote a content view containing custom content
@@ -552,7 +553,7 @@ class ContentViewTestCaseStub(TestCase):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_promote_badid_negative(self):
         """
         @test: attempt to promote a content view using an invalid id
@@ -572,8 +573,8 @@ class ContentViewTestCaseStub(TestCase):
     # Content Views: publish
     # katello content definition publish --label=MyView
 
-    @decorators.stubbed
-    def test_cv_publish_rh(self, data):
+    @stubbed
+    def test_cv_publish_rh(self):
         """
         @test: attempt to publish a content view containing RH content
         @feature: Content Views
@@ -582,7 +583,7 @@ class ContentViewTestCaseStub(TestCase):
         """
         # See method test_subscribe_system_to_cv in module test_contentview_v2
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_publish_rh_custom_spin(self):
         """
         @test: attempt to publish  a content view containing a custom RH
@@ -593,7 +594,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_publish_custom_content(self):
         """
         @test: attempt to publish a content view containing custom content
@@ -603,7 +604,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_publish_composite(self):
         """
         @test: attempt to publish  a content view containing custom content
@@ -617,7 +618,7 @@ class ContentViewTestCaseStub(TestCase):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_publish_badlabel_negative(self):
         """
         @test: attempt to publish a content view containing invalid strings
@@ -631,7 +632,7 @@ class ContentViewTestCaseStub(TestCase):
         # Variations might be:
         # zero length, too long, symbols, etc.
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_publish_version_changes_in_target_env(self):
         """
         @test: when publishing new version to environment, version
@@ -650,7 +651,7 @@ class ContentViewTestCaseStub(TestCase):
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_publish_version_changes_in_source_env(self):
         """
         @test: when publishing new version to environment, version
@@ -668,7 +669,7 @@ class ContentViewTestCaseStub(TestCase):
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_clone_within_same_env(self):
         """
         @test: attempt to create new content view based on existing
@@ -679,7 +680,7 @@ class ContentViewTestCaseStub(TestCase):
         """
         # Dev note: "not implemented yet"
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_clone_within_diff_env(self):
         """
         @test: attempt to create new content view based on existing
@@ -690,7 +691,7 @@ class ContentViewTestCaseStub(TestCase):
         """
         # Dev note: "not implemented yet"
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
         """
         @test: attempt to refresh errata in a new view, based on
@@ -700,7 +701,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
@@ -719,7 +720,7 @@ class ContentViewTestCaseStub(TestCase):
         # * composite
         # * CVs with puppet modules
 
-    @decorators.stubbed
+    @stubbed
     def test_custom_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
@@ -729,7 +730,7 @@ class ContentViewTestCaseStub(TestCase):
         # This test is implemented in tests/foreman/smoke/test_api_smoke.py.
         # See the end of method TestSmoke.test_smoke.
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_dynflow_restart_promote(self):
         """
         @test: attempt to restart a promotion
@@ -741,7 +742,7 @@ class ContentViewTestCaseStub(TestCase):
         @status: Manual
         """
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_dynflow_restart_publish(self):
         """
         @test: attempt to restart a publish
@@ -756,7 +757,7 @@ class ContentViewTestCaseStub(TestCase):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_roles_admin_user(self):
         """
         @test: attempt to view content views
@@ -775,7 +776,7 @@ class ContentViewTestCaseStub(TestCase):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_roles_readonly_user(self):
         """
         @test: attempt to view content views
@@ -795,7 +796,7 @@ class ContentViewTestCaseStub(TestCase):
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_roles_admin_user_negative(self):
         """
         @test: attempt to view content views
@@ -814,7 +815,7 @@ class ContentViewTestCaseStub(TestCase):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
 
-    @decorators.stubbed
+    @stubbed
     def test_cv_roles_readonly_user_negative(self):
         """
         @test: attempt to view content views

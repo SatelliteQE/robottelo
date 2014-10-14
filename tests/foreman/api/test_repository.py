@@ -1,4 +1,5 @@
 """Unit tests for the ``repositories`` paths."""
+from ddt import ddt
 from fauxfactory import gen_string
 from random import randint
 from requests.exceptions import HTTPError
@@ -11,17 +12,16 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common import decorators
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common import manifests
 from robottelo.common.helpers import (
     get_server_credentials, get_data_file, read_data_file)
 from robottelo import entities
 from unittest import TestCase
-import ddt
 # (too-many-public-methods) pylint:disable=R0904
 
 
-@ddt.ddt
+@ddt
 class RepositoryTestCase(TestCase):
     """Tests for ``katello/api/v2/repositories``."""
     @classmethod
@@ -30,8 +30,8 @@ class RepositoryTestCase(TestCase):
         cls.org_id = entities.Organization().create()['id']
         cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
 
-    @decorators.run_only_on('sat')
-    @decorators.data(
+    @run_only_on('sat')
+    @data(
         {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
         {'name': gen_string('alphanumeric', randint(10, 50))},
         {'name': gen_string('alpha', randint(10, 50))},
@@ -59,7 +59,7 @@ class RepositoryTestCase(TestCase):
             self.assertIn(name, real_attrs.keys())
             self.assertEqual(value, real_attrs[name])
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_create_gpgkey(self):
         """@Test: Create a repository and provide a GPG key ID.
 
@@ -86,7 +86,7 @@ class RepositoryTestCase(TestCase):
         repo_attrs = entities.Repository(id=repo_id).read_json()
         self.assertEqual(repo_attrs['gpg_key_id'], gpgkey_id)
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_create_same_name(self):
         """@Test: Create two repos with the same name in two organizations.
 
@@ -109,8 +109,8 @@ class RepositoryTestCase(TestCase):
                 entities.Repository(id=repo2_attrs['id']).read_json()):
             self.assertEqual(attrs['name'], name)
 
-    @decorators.run_only_on('sat')
-    @decorators.data(
+    @run_only_on('sat')
+    @data(
         {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
         {'name': gen_string('alphanumeric', randint(10, 50))},
         {'name': gen_string('alpha', randint(10, 50))},
@@ -137,7 +137,7 @@ class RepositoryTestCase(TestCase):
         with self.assertRaises(HTTPError):
             entities.Repository(id=repo_id).read_json()
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_update_gpgkey(self):
         """@Test: Create a repository and update its GPGKey
 
@@ -172,7 +172,7 @@ class RepositoryTestCase(TestCase):
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertEqual(attrs['gpg_key_id'], key_2_id)
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_update_contents(self):
         """@Test: Create a repository and upload RPM contents.
 
@@ -210,7 +210,7 @@ class RepositoryTestCase(TestCase):
         self.assertGreaterEqual(attrs[u'content_counts'][u'rpm'], 1)
 
 
-@ddt.ddt
+@ddt
 class RepositoryUpdateTestCase(TestCase):
     """Tests for updating repositories."""
     @classmethod
@@ -220,8 +220,8 @@ class RepositoryUpdateTestCase(TestCase):
             id=entities.Repository().create()['id']
         )
 
-    @decorators.run_only_on('sat')
-    @decorators.data(
+    @run_only_on('sat')
+    @data(
         {'name': gen_string('alphanumeric', randint(10, 50))},
         {'name': gen_string('alpha', randint(10, 50))},
         {'name': gen_string('cjk', randint(10, 50))},
@@ -254,7 +254,7 @@ class RepositoryUpdateTestCase(TestCase):
 class RepositorySyncTestCase(TestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_redhat_sync_1(self):
         """@Test: Sync RedHat Repository.
 
@@ -286,7 +286,7 @@ class RepositorySyncTestCase(TestCase):
             u"Sync for repository '{0}' failed.".format(repo))
 
 
-@ddt.ddt
+@ddt
 class DockerRepositoryTestCase(TestCase):
     """Tests specific to using ``Docker`` repositories."""
     @classmethod
@@ -295,7 +295,7 @@ class DockerRepositoryTestCase(TestCase):
         cls.org_id = entities.Organization().create()['id']
         cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_create_docker_repo(self):
         """@Test: Create a Docker-type repository
 
@@ -317,7 +317,7 @@ class DockerRepositoryTestCase(TestCase):
         self.assertEqual(real_attrs['name'], name)
         self.assertEqual(real_attrs['content_type'], content_type)
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_sync_docker_repo(self):
         """@Test: Create and sync a Docker-type repository
 

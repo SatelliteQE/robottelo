@@ -4,15 +4,15 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 
 """
+from ddt import data as ddt_data, ddt
 from fauxfactory import gen_alphanumeric
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.constants import PERMISSIONS
+from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import get_server_credentials
-from robottelo.common import decorators
 from robottelo import entities
 from unittest import TestCase
-import ddt
 import itertools
 import re
 # (too-many-public-methods) pylint:disable=R0904
@@ -23,11 +23,11 @@ PERMISSIONS_RESOURCE_TYPE = [key for key in PERMISSIONS.keys()
 PERMISSIONS_NAME = [value for value in itertools.chain(*PERMISSIONS.values())]
 
 
-@ddt.ddt
+@ddt
 class PermissionsTestCase(TestCase):
     """Tests for the ``permissions`` path."""
-    @decorators.run_only_on('sat')
-    @ddt.data(*PERMISSIONS_NAME)
+    @run_only_on('sat')
+    @ddt_data(*PERMISSIONS_NAME)  # pylint:disable=W0142
     def test_search_by_name(self, permission_name):
         """@test: permissions can be searched by name
 
@@ -40,8 +40,8 @@ class PermissionsTestCase(TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(permission_name, result[0]['name'])
 
-    @decorators.run_only_on('sat')
-    @ddt.data(*PERMISSIONS_RESOURCE_TYPE)
+    @run_only_on('sat')
+    @ddt_data(*PERMISSIONS_RESOURCE_TYPE)  # pylint:disable=W0142
     def test_search_by_resource_type(self, resource_type):
         """@test: permissions can be searched by resource type
 
@@ -57,7 +57,7 @@ class PermissionsTestCase(TestCase):
         self.assertEqual(len(result), len(permissions))
         self.assertItemsEqual(permissions, result_permissions)
 
-    @decorators.run_only_on('sat')
+    @run_only_on('sat')
     def test_search_permissions(self):
         """@test: search with no parameters return all permissions
 
@@ -108,7 +108,7 @@ def _permission_name(entity, which_perm):
 
 
 # This class might better belong in module test_multiple_paths.
-@ddt.ddt
+@ddt
 class UserRoleTestCase(TestCase):
     """Give a user various permissions and see if they are enforced."""
 
@@ -155,7 +155,7 @@ class UserRoleTestCase(TestCase):
             verify=False,
         ).raise_for_status()
 
-    @decorators.data(
+    @data(
         entities.Architecture,
         entities.Domain,
     )
@@ -174,7 +174,7 @@ class UserRoleTestCase(TestCase):
         entity_id = entity().create(auth=self.auth)['id']
         entity(id=entity_id).read_json()  # read as an admin user
 
-    @decorators.data(
+    @data(
         entities.Architecture,
         entities.Domain,
     )
@@ -193,7 +193,7 @@ class UserRoleTestCase(TestCase):
         self.give_user_permission(_permission_name(entity, 'read'))
         entity_obj.read_json(auth=self.auth)
 
-    @decorators.data(
+    @data(
         entities.Architecture,
         entities.Domain,
     )
@@ -214,7 +214,7 @@ class UserRoleTestCase(TestCase):
         with self.assertRaises(HTTPError):
             entity_obj.read_json()  # As admin user
 
-    @decorators.data(
+    @data(
         entities.Architecture,
         entities.Domain,
     )
