@@ -196,8 +196,13 @@ covered by the API. For more granular information, follow one of the links.
 Miscellany
 ==========
 
-Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_. If
-you think you've found a new issue, please do one of the following:
+Want to contribute? Before submitting code, read through the
+:doc:`committing guide </committing>` and **Robottelo** :doc:`code standards
+</code_standards>`. Ready to start reviewing pull requests? We have :doc:`a
+guide </reviewing_PRs>` for that too!
+
+Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
+If you think you've found a new issue, please do one of the following:
 
 * Open a new bug report on Github.
 * Join the #robottelo IRC channel on Freenode (irc.freenode.net).
