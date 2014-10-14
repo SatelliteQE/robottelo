@@ -164,8 +164,13 @@ class Sync(Base):
                 for repo in repos_tree[prd][reposet]:
                     repo_values = repos_tree[prd][reposet][repo]
                     repo_name = repo_values['repo_name']
-                    self.wait_until_element(
-                        (strategy3, value3 % repo_name), 60).click()
+                    if self.wait_until_element(
+                            (strategy3, value3 % repo_name), 75):
+                        self.find_element(
+                            (strategy3, value3 % repo_name)).click()
+                    else:
+                        raise UINoSuchElementError(
+                            "Could not locate the repo: '%s'" % repo_name)
                     # Similar to above reposet checkbox spinner
                     repo_spinner = self.wait_until_element(
                         (strategy5, value5 % repo_name), 3)
