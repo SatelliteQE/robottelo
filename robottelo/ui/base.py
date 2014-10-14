@@ -296,9 +296,9 @@ class Base(object):
         Function to edit the selected entity's  text and save it
         """
 
-        self.find_element(locators[edit_loc]).click()
+        self.wait_until_element(locators[edit_loc]).click()
         self.field_update(edit_text_loc, entity_value)
-        self.find_element(locators[save_loc]).click()
+        self.wait_until_element(locators[save_loc]).click()
         self.wait_for_ajax()
 
     def auto_complete_search(self, go_to_page, entity_locator, partial_name,
