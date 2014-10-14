@@ -16,14 +16,14 @@ else:
 from ddt import ddt
 from fauxfactory import gen_string, gen_integer
 from robottelo import entities
-from robottelo.api import client
-
+from robottelo.api import utils
+from robottelo.common import manifests
+from robottelo.common.ssh import upload_file
 from robottelo.common.constants import (
     FILTER_CONTENT_TYPE, FILTER_TYPE, REPO_TYPE, FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import (
-    invalid_names_list, valid_names_list, get_server_credentials)
+from robottelo.common.helpers import invalid_names_list, valid_names_list
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
@@ -50,44 +50,56 @@ class TestContentViewsUI(UITestCase):
             TestContentViewsUI.org_id = org_attrs['id']
 
     def setup_to_create_cv(self, session, cv_name, repo_name=None,
-                           repo_url=None, repo_type=None):
+                           repo_url=None, repo_type=None, rh_repo=None):
         """Create product/repo and sync it and create CV"""
         cv_name = cv_name or gen_string("alpha", 8)
-        repo_name = repo_name or gen_string("alpha", 8)
-        repo_url = repo_url or FAKE_1_YUM_REPO
-        repo_type = repo_type or REPO_TYPE['yum']
 
-        # Creates new product and repository via API's
-        product_attrs = entities.Product(
-            organization=self.org_id
-        ).create()
+        if not rh_repo:
+            repo_name = repo_name or gen_string("alpha", 8)
 
-        repo_attrs = entities.Repository(
-            name=repo_name,
-            url=repo_url,
-            content_type=repo_type,
-            product=product_attrs['id'],
-        ).create()
+            # Creates new custom product via API's
+            product_attrs = entities.Product(
+                organization=self.org_id
+            ).create()
+
+            # Creates new custom repository via API's
+            repo_attrs = entities.Repository(
+                name=repo_name,
+                url=(repo_url or FAKE_1_YUM_REPO),
+                content_type=(repo_type or REPO_TYPE['yum']),
+                product=product_attrs['id'],
+            ).create()
+            repo_id = repo_attrs['id']
+        else:
+            # Clone the manifest and fetch it's path.
+            manifest_path = manifests.clone()
+            # upload_file function should take care of uploading to sauce labs.
+            # Uploads the file from the local machine to the sat6 machine.
+            upload_file(manifest_path, remote_file=manifest_path)
+
+            # Uploads the manifest and returns the task_id.
+            task_id = entities.Organization(
+                id=self.org_id).upload_manifest(path=manifest_path)
+            task_result = entities.ForemanTask(id=task_id).poll()['result']
+            self.assertEqual(u'success', task_result)
+
+            # Enables the RedHat repo and fetches it's Id.
+            repo_id = utils.enable_rhrepo_and_fetchid(
+                rh_repo['basearch'],
+                str(self.org_id),  # Org Id is passed as data in API hence str
+                rh_repo['product'],
+                rh_repo['name'],
+                rh_repo['reposet'],
+                rh_repo['releasever'])
+            repo_name = rh_repo['name']
 
         # Sync repository
-        response = client.post(
-            entities.Repository(id=repo_attrs['id']).path('sync'),
-            {
-                u'ids': [repo_attrs['id']],
-                u'organization_id': self.org_id
-            },
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        self.assertGreater(
-            len(response['id']),
-            1,
-            u"Was not able to fetch a task ID.")
-        task_status = entities.ForemanTask(id=response['id']).poll()
+        task_id = entities.Repository(id=repo_id).sync()
+        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
-            u"Sync for repository {0} failed.".format(repo_attrs['name']))
+            u"Sync for repository {0} failed.".format(repo_name))
         make_contentview(session, org=self.org_name, name=cv_name)
         self.assertIsNotNone(self.content_views.search(cv_name))
 
@@ -166,7 +178,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.contentenv.wait_until_element
                                  (common_locators["alert.success"]))
             # Creates a CV along with product and sync'ed repository
-            self.setup_to_create_cv(session, name, repo_name)
+            self.setup_to_create_cv(session, name, repo_name=repo_name)
             # Add repository to selected CV
             self.content_views.add_remove_repos(name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element
@@ -256,7 +268,7 @@ class TestContentViewsUI(UITestCase):
         values = ['0.3', '0.5', '0.5', '4.1']
         max_values = [None, None, None, '4.6']
         with Session(self.browser) as session:
-            self.setup_to_create_cv(session, cv_name, repo_name)
+            self.setup_to_create_cv(session, cv_name, repo_name=repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.add_filter(cv_name, filter_name,
                                           content_type, filter_type)
@@ -281,7 +293,7 @@ class TestContentViewsUI(UITestCase):
         filter_type = FILTER_TYPE['include']
         package_group = 'mammals'
         with Session(self.browser) as session:
-            self.setup_to_create_cv(session, cv_name, repo_name)
+            self.setup_to_create_cv(session, cv_name, repo_name=repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.add_filter(cv_name, filter_name,
                                           content_type, filter_type)
@@ -310,7 +322,7 @@ class TestContentViewsUI(UITestCase):
         filter_type = FILTER_TYPE['include']
         errata_ids = ['RHEA-2012:0001', 'RHEA-2012:0004']
         with Session(self.browser) as session:
-            self.setup_to_create_cv(session, cv_name, repo_name)
+            self.setup_to_create_cv(session, cv_name, repo_name=repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.add_filter(cv_name, filter_name,
                                           content_type, filter_type)
@@ -496,8 +508,7 @@ class TestContentViewsUI(UITestCase):
                                  (common_locators["alert.success"]))
         # TODO: Need to add RH contents
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_associate_view_rh(self):
+    def test_associate_view_rh_1(self):
         """@test: associate Red Hat content in a view
 
         @feature: Content Views
@@ -506,9 +517,22 @@ class TestContentViewsUI(UITestCase):
 
         @assert: RH Content can be seen in a view
 
-        @status: Manual
-
         """
+        cv_name = gen_string("alpha", 8)
+        rh_repo = {
+            'name': ("Red Hat Enterprise Linux 6 Server "
+                     "- RH Common RPMs x86_64 6.5"),
+            'product': "Red Hat Enterprise Linux Server",
+            'reposet': ("Red Hat Enterprise Linux 6 Server "
+                        "- RH Common (RPMs)"),
+            'basearch': "x86_64",
+            'releasever': "6.5"
+        }
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(session, cv_name, rh_repo=rh_repo)
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_view_rh_custom_spin(self):
@@ -545,7 +569,7 @@ class TestContentViewsUI(UITestCase):
         cv_name = gen_string("alpha", 8)
         repo_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            self.setup_to_create_cv(session, cv_name, repo_name)
+            self.setup_to_create_cv(session, cv_name, repo_name=repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
@@ -614,7 +638,7 @@ class TestContentViewsUI(UITestCase):
         cv_name = gen_string("alpha", 8)
         repo_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            self.setup_to_create_cv(session, cv_name, repo_name)
+            self.setup_to_create_cv(session, cv_name, repo_name=repo_name)
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
@@ -637,8 +661,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_promote_rh(self):
+    def test_cv_promote_rh_1(self):
         """@test: attempt to promote a content view containing RH content
 
         @feature: Content Views
@@ -647,9 +670,34 @@ class TestContentViewsUI(UITestCase):
 
         @assert: Content view can be promoted
 
-        @status: Manual
-
         """
+        cv_name = gen_string("alpha", 8)
+        rh_repo = {
+            'name': ("Red Hat Enterprise Linux 6 Server "
+                     "- RH Common RPMs x86_64 6.5"),
+            'product': "Red Hat Enterprise Linux Server",
+            'reposet': ("Red Hat Enterprise Linux 6 Server "
+                        "- RH Common (RPMs)"),
+            'basearch': "x86_64",
+            'releasever': "6.5"
+        }
+        env_name = gen_string("alpha", 8)
+        publish_version = "Version 1"
+        with Session(self.browser) as session:
+            make_lifecycle_environment(session, org=self.org_name,
+                                       name=env_name)
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.setup_to_create_cv(session, cv_name, rh_repo=rh_repo)
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.content_views.promote(cv_name, publish_version, env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
@@ -686,7 +734,7 @@ class TestContentViewsUI(UITestCase):
                                        name=env_name)
             self.assertIsNotNone(self.contentenv.wait_until_element
                                  (common_locators["alert.success"]))
-            self.setup_to_create_cv(session, name, repo_name)
+            self.setup_to_create_cv(session, name, repo_name=repo_name)
             self.content_views.add_remove_repos(name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
@@ -729,19 +777,34 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_publish_rh(self):
+    def test_cv_publish_rh_1(self):
         """@test: attempt to publish a content view containing RH content
 
         @feature: Content Views
 
-        @setup: Multiple environments for an org; RH content synced
+        @setup: RH content synced
 
         @assert: Content view can be published
 
-        @status: Manual
-
         """
+        cv_name = gen_string("alpha", 8)
+        rh_repo = {
+            'name': ("Red Hat Enterprise Linux 6 Server "
+                     "- RH Common RPMs x86_64 6.5"),
+            'product': "Red Hat Enterprise Linux Server",
+            'reposet': ("Red Hat Enterprise Linux 6 Server "
+                        "- RH Common (RPMs)"),
+            'basearch': "x86_64",
+            'releasever': "6.5"
+        }
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(session, cv_name, rh_repo=rh_repo)
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
@@ -777,7 +840,7 @@ class TestContentViewsUI(UITestCase):
                                        name=env_name)
             self.assertIsNotNone(self.contentenv.wait_until_element
                                  (common_locators["alert.success"]))
-            self.setup_to_create_cv(session, name, repo_name)
+            self.setup_to_create_cv(session, name, repo_name=repo_name)
             self.content_views.add_remove_repos(name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
