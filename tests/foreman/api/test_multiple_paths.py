@@ -26,7 +26,7 @@ BZ_1118015_ENTITIES = (
     entities.Repository, entities.Role, entities.Subnet, entities.System,
     entities.User,
 )
-BZ_1122267_ENTITIES = (
+BZ_1151240_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
     entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
@@ -463,8 +463,6 @@ class DoubleCheckTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
-        if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
-            self.skipTest("Bugzilla bug 1140313 is open.""")
 
         # Create an entity.
         entity_n = entity(id=entity().create()['id'])
@@ -525,10 +523,8 @@ class DoubleCheckTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
-        if entity in BZ_1122267_ENTITIES and bz_bug_is_open(1122267):
-            self.skipTest("Bugzilla bug 1122267 is open.""")
-        if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
-            self.skipTest("Bugzilla bug 1140313 is open.""")
+        if entity in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
+            self.skipTest("Bugzilla bug 1151240 is open.""")
 
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
@@ -657,8 +653,6 @@ class EntityReadTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
-        if entity is entities.AuthSourceLDAP and bz_bug_is_open(1140313):
-            self.skipTest("Bugzilla bug 1140313 is open.""")
         attrs = entity().create()
         read_entity = entity(id=attrs['id']).read()
         self.assertIsInstance(read_entity, entity)
