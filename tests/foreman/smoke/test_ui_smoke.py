@@ -218,7 +218,7 @@ class TestSmoke(UITestCase):
             make_hostgroup(session, name=hostgroup_name)
             self.assertIsNotNone(self.hostgroup.search(hostgroup_name))
 
-    def end_to_end_ui_test(self):
+    def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 
         @Feature: Smoke test

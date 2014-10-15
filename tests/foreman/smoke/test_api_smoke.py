@@ -976,7 +976,7 @@ class TestSmoke(TestCase):
         return response.json()
 
     @attr('smoke')
-    def end_to_end_api_test(self):
+    def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 
         1. Create new organization and environment
