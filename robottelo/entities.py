@@ -1821,6 +1821,7 @@ class Repository(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
+    checksum_type = orm.StringField(choices=('sha1', 'sha256'))
     content_type = orm.StringField(
         choices=('puppet', 'yum', 'file'),
         default='yum',
