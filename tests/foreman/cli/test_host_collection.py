@@ -61,8 +61,8 @@ class TestHostCollection(CLITestCase):
             version_id = result.stdout[0]['id']
             promotion = ContentView.version_promote({
                 u'id': version_id,
-                u'lifecycle-environment-id': TestHostCollection.new_lifecycle[
-                    'id'],
+                u'to-lifecycle-environment-id': (
+                    TestHostCollection.new_lifecycle['id']),
                 u'organization-id': TestHostCollection.org['id']
             })
             if promotion.stderr == []:
@@ -464,7 +464,8 @@ class TestHostCollection(CLITestCase):
                 u'name': content_host_name,
                 u'organization-id': self.org['id'],
                 u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id']})
+                u'lifecycle-environment-id': self.library['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
@@ -516,7 +517,8 @@ class TestHostCollection(CLITestCase):
                 u'name': content_host_name,
                 u'organization-id': self.org['id'],
                 u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id']})
+                u'lifecycle-environment-id': self.library['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
@@ -577,7 +579,8 @@ class TestHostCollection(CLITestCase):
                 u'name': content_host_name,
                 u'organization-id': self.org['id'],
                 u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id']})
+                u'lifecycle-environment-id': self.library['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
         no_of_content_host = new_host_col['total-content-hosts']

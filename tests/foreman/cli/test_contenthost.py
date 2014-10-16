@@ -64,7 +64,7 @@ class TestContentHost(CLITestCase):
             version_id = result.stdout[0]['id']
             promotion = ContentView.version_promote({
                 u'id': version_id,
-                u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE[
+                u'to-lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE[
                     'id'],
                 u'organization-id': TestContentHost.NEW_ORG['id']
             })
@@ -93,7 +93,8 @@ class TestContentHost(CLITestCase):
             u'name': test_data['name'],
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'lifecycle-environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+        })
         # Assert that name matches data passed
         self.assertEqual(
             new_system['name'],
@@ -123,7 +124,8 @@ class TestContentHost(CLITestCase):
             u'description': test_data['description'],
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'lifecycle-environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+        })
         # Assert that description matches data passed
         self.assertEqual(
             new_system['description'],
@@ -145,7 +147,8 @@ class TestContentHost(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization': self.NEW_ORG['name'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'lifecycle-environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+        })
         # Info does not tell us information about the organization so
         # let's assert that content view and environments match instead
         self.assertEqual(
@@ -171,7 +174,8 @@ class TestContentHost(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-label': self.NEW_ORG['label'],
             u'content-view-id': self.DEFAULT_CV['id'],
-            u'lifecycle-environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+        })
         # Info does not tell us information about the organization so
         # let's assert that content view and environments match instead
         self.assertEqual(
@@ -198,7 +202,8 @@ class TestContentHost(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view': self.DEFAULT_CV['name'],
-            u'lifecycle-environment-id': self.LIBRARY['id']})
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+        })
         # Assert that name matches data passed
         self.assertEqual(
             new_system['content-view'],
@@ -248,7 +253,8 @@ class TestContentHost(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
             u'content-view-id': self.PROMOTED_CV['id'],
-            u'lifecycle-environment-id': self.NEW_LIFECYCLE['id']})
+            u'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+        })
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['lifecycle-environment'],
@@ -274,7 +280,8 @@ class TestContentHost(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': TestContentHost.NEW_ORG['id'],
             u'content-view-id': TestContentHost.PROMOTED_CV['id'],
-            u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE['id']})
+            u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE['id'],
+        })
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['content-view'],
@@ -305,7 +312,8 @@ class TestContentHost(CLITestCase):
                 u'name': test_data['name'],
                 u'organization-id': self.NEW_ORG['id'],
                 u'content-view-id': self.DEFAULT_CV['id'],
-                u'lifecycle-environment-id': self.LIBRARY['id']})
+                u'lifecycle-environment-id': self.LIBRARY['id'],
+            })
 
     @run_only_on('sat')
     @attr('cli', 'content-host')
