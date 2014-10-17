@@ -2196,3 +2196,10 @@ class User(
         """Non-field information about this entity."""
         api_path = 'api/v2/users'
         server_modes = ('sat', 'sam')
+
+    # NOTE: See BZ 1151220
+    def create(self, auth=None, data=None):
+        """Wrap submitted data within an extra dict."""
+        if data is None:
+            data = {u'user': self.build(auth=auth)}
+        return super(User, self).create(auth, data)
