@@ -296,7 +296,7 @@ class EntityIdTestCase(TestCase):
         """
         skip_if_sam(self, entity)
         if entity is entities.ActivationKey and bz_bug_is_open(1127335):
-            self.skipTest("Bugzilla bug 1127335 is open.""")
+            self.skipTest("Bugzilla bug 1127335 is open.")
         try:
             entity_n = entity(id=entity().create()['id'])
         except HTTPError as err:
@@ -343,6 +343,9 @@ class EntityIdTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
+        if entity is entities.Host and bz_bug_is_open(1154156):
+            self.skipTest("Bugzilla bug 1154156 is open.")
+
         path = entity(id=entity().create()['id']).path()
         response = client.put(
             path,
@@ -463,6 +466,8 @@ class DoubleCheckTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
+        if entity is entities.Host and bz_bug_is_open(1154156):
+            self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Create an entity.
         entity_n = entity(id=entity().create()['id'])
@@ -525,6 +530,8 @@ class DoubleCheckTestCase(TestCase):
         skip_if_sam(self, entity)
         if entity in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
             self.skipTest("Bugzilla bug 1151240 is open.""")
+        if entity is entities.Host and bz_bug_is_open(1154156):
+            self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
