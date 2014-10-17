@@ -3,7 +3,7 @@
 from fauxfactory import gen_string, gen_email
 from selenium.webdriver.common.action_chains import ActionChains
 from robottelo.common.helpers import update_dictionary
-from robottelo.common.constants import REPO_TYPE
+from robottelo.common.constants import REPO_TYPE, CHECKSUM_TYPE
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
@@ -216,6 +216,7 @@ def make_repository(session, org=None, loc=None,
         u'http': False,
         u'url': None,
         u'repo_type': REPO_TYPE['yum'],
+        u'repo_checksum': CHECKSUM_TYPE['default'],
     }
     page = session.nav.go_to_products
     core_factory(create_args, kwargs, session, page,

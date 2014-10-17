@@ -121,8 +121,17 @@ SYNC_INTERVAL = {'hour': "hourly",
                  'day': "daily",
                  'week': "weekly"}
 
-REPO_TYPE = {'yum': "yum",
-             'puppet': "puppet"}
+REPO_TYPE = {
+    'yum': "yum",
+    'puppet': "puppet",
+    'docker': "docker",
+}
+
+CHECKSUM_TYPE = {
+    'default': "Default",
+    'sha256': "sha256",
+    'sha1': "sha1",
+}
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository

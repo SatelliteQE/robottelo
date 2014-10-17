@@ -995,6 +995,7 @@ locators = {
     "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
     "repo.type": (By.ID, "content_type"),
     "repo.url": (By.ID, "url"),
+    "repo.checksum": (By.ID, "checksum_type"),
     "repo.via_http": (By.ID, "unprotected"),
     "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
     "repo.remove": (
@@ -1051,6 +1052,11 @@ locators = {
     "repo.gpg_key": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
                    "//div/span")),
+    "repo.checksum_edit": (
+        By.XPATH, ("//form[@selector='repository.checksum_type']"
+                   "/div/div/span/i[contains(@class,'icon-edit')]")),
+    "repo.checksum_update": (
+        By.XPATH, ("//form[@selector='repository.checksum_type']/div/select")),
     "repo.fetch_url": (
         By.XPATH, ("//form[@alch-edit-text='repository.url']"
                    "/div[@class='alch-edit']"
@@ -1058,6 +1064,9 @@ locators = {
     "repo.fetch_gpgkey": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
                    "/div[@class='alch-edit']/div/span")),
+    "repo.fetch_checksum": (
+        By.XPATH, ("//form[@selector='repository.checksum_type']"
+                   "/div/div/span[contains(@class,'value')]")),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
