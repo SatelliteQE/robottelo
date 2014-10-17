@@ -944,6 +944,13 @@ class Host(
             self.puppet_proxy = response.json()['results'][0]['id']
         return super(Host, self)._factory_data()
 
+    # NOTE: See BZ 1151220
+    def create(self, auth=None, data=None):
+        """Wrap submitted data within an extra dict."""
+        if data is None:
+            data = {u'host': self.build(auth=auth)}
+        return super(Host, self).create(auth, data)
+
 
 class Image(orm.Entity):
     """A representation of a Image entity."""
