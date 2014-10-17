@@ -30,7 +30,7 @@ import logging
 import requests
 
 
-logger = logging.getLogger(__name__)  # (bad var name) pylint: disable=C0103
+logger = logging.getLogger(__name__)  # (invalid-name) pylint: disable=C0103
 
 
 def _content_type_is_json(kwargs):
@@ -138,14 +138,14 @@ def _log_request(method, url, kwargs, data=None):
     :rtype: None
 
     """
-    logger.info(
+    logger.debug(
         'Making HTTP %s request to %s with %s and %s.',
         method,
         url,
         'options {0}'.format(kwargs) if len(kwargs) > 0 else 'no options',
         'data {0}'.format(data) if data is not None else 'no data',
     )
-    logger.info(
+    logger.debug(
         'Equivalent curl command: curl -X %s %s%s%s %s',
         method,
         _curl_arg_user(kwargs),
@@ -166,11 +166,14 @@ def _log_response(response):
     :rtype: None
 
     """
-    logger.debug(
-        'Received HTTP %s response: %s',
+    message = u'Received HTTP {0} response: {1}'.format(
         response.status_code,
-        response.content,
+        response.text
     )
+    if response.status_code >= 400:
+        logger.warn(message)
+    else:
+        logger.debug(message)
 
 
 def _call_requests_request(method, url, **kwargs):
