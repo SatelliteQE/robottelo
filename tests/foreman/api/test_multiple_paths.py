@@ -41,11 +41,11 @@ def skip_if_sam(self, entity):
             skip_if_sam(self, entity)
             # test code continues here
 
-    The above code snippet skips the test when
-       - ``robottelo.properties`` is defined with ``main.project=sam``
-       - the corresponding entity's definition in :class:`robottelo.entities`
-         does not specify sam in server_modes. Example:
-         ``server_modes = ('sat')``
+    The above code snippet skips the test when:
+
+    * ``robottelo.properties`` is defined with ``main.project=sam``, and
+    * the corresponding entity's definition in :mod:`robottelo.entities` does
+      not specify sam in server_modes. For example: ``server_modes = ('sat')``.
 
     :param entity: One of the entities defined in :meth:`robottelo.entities`.
     :returns: Either ``self.skipTest`` or ``None``.
