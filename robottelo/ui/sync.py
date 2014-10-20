@@ -138,7 +138,14 @@ class Sync(Base):
         strategy4, value4 = locators["rh.reposet_spinner"]
         strategy5, value5 = locators["rh.repo_spinner"]
         for prd in repos_tree:
-            self.wait_until_element((strategy, value % PRDS[prd]), 60).click()
+            # UI is slow here. Hence timeout is 90 seconds.
+            prd_element = self.wait_until_element(
+                (strategy, value % PRDS[prd]), 90)
+            if prd_element:
+                prd_element.click()
+            else:
+                raise UINoSuchElementError(
+                    "Could not select the repo: '{0}'".format(PRDS[prd]))
             for reposet in repos_tree[prd]:
                 rs_exp = self.wait_until_element(
                     (strategy1, value1 % REPOSET[reposet]), 5)
@@ -164,13 +171,15 @@ class Sync(Base):
                 for repo in repos_tree[prd][reposet]:
                     repo_values = repos_tree[prd][reposet][repo]
                     repo_name = repo_values['repo_name']
-                    if self.wait_until_element(
-                            (strategy3, value3 % repo_name), 75):
-                        self.find_element(
-                            (strategy3, value3 % repo_name)).click()
+                    # UI is very slow here. Hence timeout is 120 seconds.
+                    repo_element = self.wait_until_element(
+                        (strategy3, value3 % repo_name), 120)
+                    if repo_element:
+                        repo_element.click()
                     else:
                         raise UINoSuchElementError(
-                            "Could not locate the repo: '%s'" % repo_name)
+                            "Could not select the repo: '{0}'"
+                            "".format(repo_name))
                     # Similar to above reposet checkbox spinner
                     repo_spinner = self.wait_until_element(
                         (strategy5, value5 % repo_name), 3)
