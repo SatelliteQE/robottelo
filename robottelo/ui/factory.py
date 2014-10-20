@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from fauxfactory import gen_string, gen_email
+from selenium.webdriver.common.action_chains import ActionChains
 from robottelo.common.helpers import update_dictionary
 from robottelo.common.constants import REPO_TYPE
 from robottelo.ui.activationkey import ActivationKey
@@ -57,10 +58,31 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
     page()
 
 
+def check_context(session):
+    """Checks whether the org and loc context is set.
+
+    :param session: The browser session.
+    :return: Returns a value to set context after checking whether the
+        org and loc context is set.
+    :rtype: dict
+
+    """
+    current_text = session.nav.wait_until_element(
+        menu_locators['menu.current_text'])
+    ActionChains(session.browser).move_to_element(current_text).perform()
+    current_org_text = session.nav.wait_until_element(
+        menu_locators['menu.fetch_org']).text
+    current_loc_text = session.nav.wait_until_element(
+        menu_locators['menu.fetch_loc']).text
+    return {
+        'org': current_org_text == 'Any Organization',
+        'loc': current_loc_text == 'Any Location',
+    }
+
+
 def set_context(session, org=None, loc=None, force_context=False):
     """Configures the context.
 
-    If '@' is not present in ``context_text``, configure the context.
     When configuring the context, use ``org`` and ``loc``. If ``force_context``
     is ``True``, set the ``org`` and ``loc`` context again. This method is
     useful when, for example, creating entities with the same name but
@@ -73,10 +95,9 @@ def set_context(session, org=None, loc=None, force_context=False):
     :return: None.
 
     """
-    current_text = session.nav.wait_until_element(
-        menu_locators['menu.current_text']).text
+    select_context = check_context(session)
     # Change context only if required or when force_context is set to True
-    if '@' not in str(current_text) or force_context:
+    if select_context['org'] or select_context['loc'] or force_context:
         if org:
             session.nav.go_to_select_org(org)
         if loc:
