@@ -96,10 +96,9 @@ class Repos(UITestCase):
                             name=repo_name, product=product_1_name,
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
-            session.nav.go_to_select_org(org_2_name)
             make_repository(session, org=org_2_name, loc=self.loc_name,
                             name=repo_name, product=product_2_name,
-                            url=FAKE_1_YUM_REPO)
+                            url=FAKE_1_YUM_REPO, force_context=True)
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
