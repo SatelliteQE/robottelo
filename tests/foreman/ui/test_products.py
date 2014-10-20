@@ -3,6 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nose.plugins.attrib import attr
+from robottelo import entities
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -39,7 +40,6 @@ class Products(UITestCase):
         @Assert: Product is created
 
         """
-
         description = "test 123"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
@@ -54,18 +54,20 @@ class Products(UITestCase):
 
         @Feature: Content Product - Positive Create
 
-        @Assert: Product is created
+        @Assert: Product is created successfully in both the orgs.
 
         """
-
         description = "test 123"
-        org2_name = gen_string("alpha", 8)
+        org2_name = entities.Organization(
+            name=gen_string("alpha", 8)
+        ).create()['name']
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)
             self.assertIsNotNone(self.products.search(prd_name))
             make_product(session, org=org2_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+                         name=prd_name, description=description,
+                         force_context=True)
             self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
@@ -79,7 +81,6 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-
         locator = common_locators["common_haserror"]
         description = "test_negative_create_1"
         with Session(self.browser) as session:
@@ -97,7 +98,6 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-
         locator = common_locators["common_invalid"]
         prd_name = ""
         description = "test_negative_create_2"
@@ -116,7 +116,6 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-
         locator = common_locators["common_invalid"]
         prd_name = "   "
         description = "test_negative_create_3"
@@ -137,7 +136,6 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-
         locator = common_locators["common_haserror"]
         description = "test_negative_create_4"
         with Session(self.browser) as session:
@@ -159,7 +157,6 @@ class Products(UITestCase):
         @Assert: Product is updated
 
         """
-
         new_prd_name = gen_string("alpha", 8)
         description = "test 123"
         with Session(self.browser) as session:
@@ -180,7 +177,6 @@ class Products(UITestCase):
         @Assert: Product is not updated
 
         """
-
         locator = common_locators["alert.error"]
         new_prd_name = gen_string("alpha", 256)
         description = "test_negative_update_0"
@@ -204,7 +200,6 @@ class Products(UITestCase):
         @Assert: Product is deleted
 
         """
-
         description = "test 123"
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
