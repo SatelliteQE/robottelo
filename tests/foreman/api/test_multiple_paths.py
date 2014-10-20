@@ -345,6 +345,8 @@ class EntityIdTestCase(TestCase):
         skip_if_sam(self, entity)
         if entity is entities.Host and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
+        if entity is entities.User and bz_bug_is_open(1154803):
+            self.skipTest("Bugzilla bug 1154803 is open.")
 
         path = entity(id=entity().create()['id']).path()
         response = client.put(
