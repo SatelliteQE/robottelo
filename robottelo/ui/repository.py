@@ -3,7 +3,7 @@ Implements Repos UI
 """
 
 from robottelo.ui.base import Base
-from robottelo.common.constants import REPO_TYPE
+from robottelo.common.constants import REPO_TYPE, CHECKSUM_TYPE
 from robottelo.ui.locators import locators, common_locators
 from selenium.webdriver.support.select import Select
 
@@ -14,7 +14,8 @@ class Repos(Base):
     """
 
     def create(self, name, product=None, gpg_key=None, http=False, url=None,
-               repo_type=REPO_TYPE['yum']):
+               repo_type=REPO_TYPE['yum'],
+               repo_checksum=CHECKSUM_TYPE['default']):
         """
         Creates new repository from UI
         """
@@ -31,6 +32,9 @@ class Repos(Base):
             if repo_type:
                 type_ele = self.find_element(locators["repo.type"])
                 Select(type_ele).select_by_visible_text(repo_type)
+            if self.find_element(locators["repo.checksum"]):
+                type_ele = self.find_element(locators["repo.checksum"])
+                Select(type_ele).select_by_visible_text(repo_checksum)
             if gpg_key:
                 type_ele = self.find_element(common_locators["gpg_key"])
                 Select(type_ele).select_by_visible_text(gpg_key)
@@ -43,7 +47,8 @@ class Repos(Base):
         else:
             raise Exception("Unable to find the product '%s':" % name)
 
-    def update(self, name, new_url=None, new_gpg_key=None, http=False):
+    def update(self, name, new_url=None, new_repo_checksum=None,
+               new_gpg_key=None, http=False):
         """
         Updates repositories from UI
         """
@@ -55,6 +60,12 @@ class Repos(Base):
                 self.wait_until_element(locators["repo.url_edit"]).click()
                 self.text_field_update(locators["repo.url_update"], new_url)
                 self.find_element(common_locators["save"]).click()
+            if new_repo_checksum:
+                self.wait_until_element(locators["repo.checksum_edit"]).click()
+                self.wait_for_ajax()
+                type_ele = self.find_element(locators["repo.checksum_update"])
+                Select(type_ele).select_by_visible_text(new_repo_checksum)
+                self.wait_until_element(common_locators["save"]).click()
             if new_gpg_key:
                 self.wait_until_element(locators["repo.gpg_key_edit"]).click()
                 self.wait_for_ajax()

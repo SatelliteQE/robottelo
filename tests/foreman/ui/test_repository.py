@@ -5,10 +5,12 @@ from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import (
+    CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
+    REPO_TYPE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
@@ -53,7 +55,6 @@ class Repos(UITestCase):
         @Assert: Repos is created
 
         """
-
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
@@ -76,7 +77,6 @@ class Repos(UITestCase):
         @Feature: Content Repos - Positive Create
 
         """
-
         org_2_name = gen_string("alpha", 10)
         # Creates new product_1
         product_1_name = entities.Product(
@@ -111,7 +111,6 @@ class Repos(UITestCase):
         @Assert: Docker-based repo is created.
 
         """
-
         # Creates new product
         repo_name = u'wordpress'
         product_name = entities.Product(
@@ -121,7 +120,8 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name, loc=self.loc_name,
                             name=repo_name, product=product_name,
-                            repo_type=u'docker', url=DOCKER_REGISTRY_HUB)
+                            repo_type=REPO_TYPE['docker'],
+                            url=DOCKER_REGISTRY_HUB)
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
@@ -134,7 +134,6 @@ class Repos(UITestCase):
         @Assert: Docker-based repo is created and synchronized.
 
         """
-
         # Creates new product
         repo_name = u'wordpress'
         product_name = entities.Product(
@@ -144,12 +143,40 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name, loc=self.loc_name,
                             name=repo_name, product=product_name,
-                            repo_type=u'docker', url=DOCKER_REGISTRY_HUB)
+                            repo_type=REPO_TYPE['docker'],
+                            url=DOCKER_REGISTRY_HUB)
             self.assertIsNotNone(self.repository.search(repo_name))
             # Synchronize it
             self.navigator.go_to_sync_status()
             synced = self.sync.sync_custom_repos(product_name, [repo_name])
             self.assertIsNotNone(synced)
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented')
+    @data(*generate_strings_list())
+    def test_create_repo_5(self, repo_name):
+        """@Test: Create repository with checksum type as sha256.
+
+        @Feature: Content Repos - Positive Create
+
+        @Assert: Repos is created with checksum type as sha256.
+
+        """
+        locator = locators['repo.fetch_checksum']
+        checksum = CHECKSUM_TYPE[u'sha256']
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id,
+        ).create()['name']
+        with Session(self.browser) as session:
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO, repo_checksum=checksum)
+            self.repository.search(repo_name).click()
+            self.repository.wait_for_ajax()
+            checksum_text = session.nav.wait_until_element(locator).text
+            self.assertEqual(checksum_text, checksum)
 
     @run_only_on('sat')
     @data("", "   ")
@@ -161,7 +188,6 @@ class Repos(UITestCase):
         @Assert: Repos is not created
 
         """
-
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
@@ -187,7 +213,6 @@ class Repos(UITestCase):
         @Assert: Repos is not created
 
         """
-
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
@@ -217,7 +242,6 @@ class Repos(UITestCase):
         @Assert: Repos is not created
 
         """
-
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
@@ -243,7 +267,6 @@ class Repos(UITestCase):
         @Assert: Repo is updated with new url
 
         """
-
         locator = locators["repo.fetch_url"]
         # Creates new product
         product_name = entities.Product(
@@ -277,7 +300,6 @@ class Repos(UITestCase):
         @Assert: Repo is updated with new gpg key
 
         """
-
         key_1_content = read_data_file(VALID_GPG_KEY_FILE)
         key_2_content = read_data_file(VALID_GPG_KEY_BETA_FILE)
         locator = locators["repo.fetch_gpgkey"]
@@ -317,6 +339,42 @@ class Repos(UITestCase):
     @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
+    def test_positive_update_3(self, repo_name):
+        """@Test: Update content repository with new checksum type
+
+        @Feature: Content Repo - Positive Update of checksum type.
+
+        @Assert: Repo is updated with new checksum type.
+
+        """
+        locator = locators["repo.fetch_checksum"]
+        checksum_default = CHECKSUM_TYPE['default']
+        checksum_update = CHECKSUM_TYPE['sha1']
+        # Creates new product
+        product_name = entities.Product(
+            organization=self.org_id,
+            location=self.loc_id
+        ).create()['name']
+
+        with Session(self.browser) as session:
+            make_repository(session, org=self.org_name, loc=self.loc_name,
+                            name=repo_name, product=product_name,
+                            url=FAKE_1_YUM_REPO)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.search(repo_name).click()
+            self.repository.wait_for_ajax()
+            checksum_text = self.repository.wait_until_element(locator).text
+            self.assertEqual(checksum_text, checksum_default)
+            self.navigator.go_to_products()
+            self.products.search(product_name).click()
+            self.repository.update(repo_name,
+                                   new_repo_checksum=checksum_update)
+            checksum_text = self.repository.wait_until_element(locator).text
+            self.assertEqual(checksum_text, checksum_update)
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented')
+    @data(*generate_strings_list())
     def test_remove_repo(self, repo_name):
         """@Test: Create content repository and remove it
 
@@ -325,7 +383,6 @@ class Repos(UITestCase):
         @Assert: Repos is Deleted
 
         """
-
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
@@ -349,7 +406,6 @@ class Repos(UITestCase):
         @Assert: Repos is discovered and created
 
         """
-
         discovered_urls = "fakerepo01/"
 
         product_name = entities.Product(
@@ -373,7 +429,6 @@ class Repos(UITestCase):
         @Assert: Repos is discovered and created
 
         """
-
         product_name = gen_string("alpha", 8)
         discovered_urls = "fakerepo01/"
         with Session(self.browser) as session:
