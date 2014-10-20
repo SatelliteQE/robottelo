@@ -636,12 +636,17 @@ class TestSmoke(CLITestCase):
         for subscription in result.stdout:
             if subscription['name'] == "Red Hat Employee Subscription":
                 subscription_id = subscription['id']
-                subscription_quantity = subscription['quantity']
+                subscription_quantity = int(subscription['quantity'])
+        self.assertGreater(
+            int(subscription_quantity), 0,
+            'Unexpected subscription quantity {0}'
+            .format(subscription_quantity)
+        )
         # Add the subscriptions to activation-key
         result = ActivationKey.add_subscription({
             u'id': activation_key['id'],
             u'subscription-id': subscription_id,
-            u'quantity': subscription_quantity,
+            u'quantity': 1,
         })
         self.assertEqual(
             result.return_code, 0,
