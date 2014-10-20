@@ -71,22 +71,21 @@ def _format_error_msg(msg):
     return u'\n'.join(['  {0}'.format(line) for line in msg.split('\n')])
 
 
-def create_object(cli_object, args):
+def create_object(cli_object, options, values):
     """
     Creates <object> with dictionary of arguments.
 
-    @param cli_object: A valid CLI object.
-    @param args: A python dictionary containing all valid
-    attributes for creating a new object.
+    :param cli_object: A valid CLI object.
+    :param dict options: The defaults options accepted by the cli_object
+        create
+    :param dict values: Custom values to override default ones.
+    :raise CLIFactoryError: Raise an exception if object cannot be created.
+    :rtype: dict
+    :return: A dictionary representing the newly created resource.
 
-    @raise CLIFactoryError: Raise an exception if object cannot be
-    created.
-
-    @rtype: dict
-    @return: A dictionary representing the newly created resource.
     """
-
-    result = cli_object.create(args)
+    update_dictionary(options, values)
+    result = cli_object.create(options)
     # Some methods require a bit of waiting
     sleep_for_seconds(5)
 
@@ -96,7 +95,7 @@ def create_object(cli_object, args):
         raise CLIFactoryError(
             'Failed to create %s with %r data due to:\n%s' % (
                 cli_object.__name__,
-                args,
+                options,
                 _format_error_msg(result.stderr),
             )
         )
@@ -155,11 +154,7 @@ def make_activation_key(options=None):
         u'unlimited-content-hosts': 'true',
     }
 
-    # Override default dictionary with updated one
-    args = update_dictionary(args, options)
-    args.update(create_object(ActivationKey, args))
-
-    return args
+    return create_object(ActivationKey, args, options)
 
 
 def make_architecture(options=None):
@@ -180,11 +175,7 @@ def make_architecture(options=None):
         u'operatingsystem-ids': None,
     }
 
-    # Override default dictionary with updated one
-    args = update_dictionary(args, options)
-    args.update(create_object(Architecture, args))
-
-    return args
+    return create_object(Architecture, args, options)
 
 
 def make_content_view(options=None):
@@ -223,11 +214,7 @@ def make_content_view(options=None):
         u'repository-ids': None
     }
 
-    # Override default dictionary with updated one
-    args = update_dictionary(args, options)
-    args.update(create_object(ContentView, args))
-
-    return args
+    return create_object(ContentView, args, options)
 
 
 def make_gpg_key(options=None):
@@ -268,13 +255,7 @@ def make_gpg_key(options=None):
     # Upload file to server
     ssh.upload_file(local_file=key_filename, remote_file=args['key'])
 
-    args = update_dictionary(args, options)
-
-    # gpg create returns a dict inside a list
-    new_obj = create_object(GPGKey, args)
-    args.update(new_obj)
-
-    return args
+    return create_object(GPGKey, args, options)
 
 
 def make_model(options=None):
@@ -298,11 +279,7 @@ def make_model(options=None):
         u'hardware-model': None,
     }
 
-    # Override default dictionary with updated one
-    args = update_dictionary(args, options)
-    args.update(create_object(Model, args))
-
-    return args
+    return create_object(Model, args, options)
 
 
 def make_partition_table(options=None):
@@ -348,10 +325,7 @@ def make_partition_table(options=None):
     # Upload file to server
     ssh.upload_file(local_file=layout, remote_file=args['file'])
 
-    args = update_dictionary(args, options)
-    args.update(create_object(PartitionTable, args))
-
-    return args
+    return create_object(PartitionTable, args, options)
 
 
 def make_product(options=None):
@@ -384,10 +358,7 @@ def make_product(options=None):
         u'sync-plan-id': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Product, args))
-
-    return args
+    return create_object(Product, args, options)
 
 
 def make_proxy(options=None):
@@ -406,20 +377,17 @@ def make_proxy(options=None):
         u'name': gen_alphanumeric(),
     }
 
-    args = update_dictionary(args, options)
-    if options and 'url' in options:
-        args.update(create_object(Proxy, args))
-    else:
+    if options is None or 'url' not in options:
         newport = random.randint(9191, 49090)
         try:
             with default_url_on_new_port(9090, newport) as url:
                 args['url'] = url
-                args.update(create_object(Proxy, args))
+                return create_object(Proxy, args, options)
         except SSHTunnelError as err:
             raise CLIFactoryError(
                 "Failed to create ssh tunnel: {0}".format(err))
 
-    return args
+    return create_object(Proxy, args, options)
 
 
 def make_repository(options=None):
@@ -471,10 +439,7 @@ def make_repository(options=None):
         u'organization-label': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Repository, args))
-
-    return args
+    return create_object(Repository, args, options)
 
 
 def make_role(options=None):
@@ -489,10 +454,8 @@ def make_role(options=None):
 
     # Assigning default values for attributes
     args = {u'name': gen_alphanumeric(6)}
-    args = update_dictionary(args, options)
-    args.update(create_object(Role, args))
 
-    return args
+    return create_object(Role, args, options)
 
 
 def make_subnet(options=None):
@@ -536,10 +499,7 @@ def make_subnet(options=None):
         u'dns-id': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Subnet, args))
-
-    return args
+    return create_object(Subnet, args, options)
 
 
 def make_sync_plan(options=None):
@@ -585,42 +545,54 @@ def make_sync_plan(options=None):
         u'interval': random.choice(SYNC_INTERVAL.values()),
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(SyncPlan, args))
-
-    return args
+    return create_object(SyncPlan, args, options)
 
 
 def make_content_host(options=None):
     """
     Usage::
 
-        hammer system create [OPTIONS]
+        hammer content-host create [OPTIONS]
 
     Options::
 
-        --content-view CONTENT_VIEW_NAME
-        --content-view-id CONTENT_VIEW_ID Specify the content view
-        --description DESCRIPTION     Description of the content host
-        --environment ENVIRONMENT_NAME
-        --environment-id ENVIRONMENT_ID Specify the environment
-        --guest-ids GUEST_IDS         IDs of the guests running on this
-                                      content host
-                                      Comma separated list of values.
-        --host-collection HOST_COLLECTION_NAME
-        --host-collection-id HOST_COLLECTION_ID Specify the host collection
-        --last-checkin LAST_CHECKIN   Last check-in time of this content host
-        --location LOCATION           Physical location of the content host
-        --name NAME                   Name of the content host
-        --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID Specify the organization
-        --organization-label ORGANIZATION_LABEL
-        --release-ver RELEASE_VER     Release version of the content host
-        --service-level SERVICE_LEVEL A service level for auto-healing process,
-                                      e.g. SELF-SUPPORT
-        -h, --help                    print help
-    """
+        --content-view CONTENT_VIEW_NAME                    Content view name
+        --content-view-id CONTENT_VIEW_ID                   content view
+                                                            numeric identifier
+        --description DESCRIPTION                           Description of the
+                                                            content host
+        --guest-ids GUEST_IDS                               IDs of the virtual
+                                                            guests running on
+                                                            this content host
+                                                            Comma separated
+                                                            list of values.
+        --host-collection-ids HOST_COLLECTION_IDS           Specify the host
+                                                            collections as an
+                                                            array
+                                                            Comma separated
+                                                            list of values.
+        --last-checkin LAST_CHECKIN                         Last check-in time
+                                                            of this content
+                                                            host
+        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME  Name to search by
+        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
+        --location LOCATION                                 Physical location
+                                                            of the content host
+        --name NAME                                         Name of the content
+                                                            host
+        --organization ORGANIZATION_NAME                    Organization name
+                                                            to search by
+        --organization-id ORGANIZATION_ID                   organization ID
+        --organization-label ORGANIZATION_LABEL             Organization label
+                                                            to search by
+        --release-ver RELEASE_VER                           Release version of
+                                                            the content host
+        --service-level SERVICE_LEVEL                       A service level for
+                                                            auto-healing
+                                                            process, e.g.
+                                                            SELF-SUPPORT
 
+    """
     # Organization ID is a required field.
     if not options:
         raise CLIFactoryError('Please provide required parameters')
@@ -640,28 +612,24 @@ def make_content_host(options=None):
             'Please provide one of {0}.'.format(', '.join(LIFECYCLE_KEYS)))
 
     args = {
+        u'content-view': None,
+        u'content-view-id': None,
+        u'description': None,
+        u'guest-ids': None,
+        u'host-collection-ids': None,
+        u'last-checkin': None,
+        u'lifecycle-environment': None,
+        u'lifecycle-environment-id': None,
+        u'location': None,
         u'name': gen_string('alpha', 20),
-        u'description': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'content-view': None,
-        u'content-view-id': None,
-        u'lifecycle-environment': None,
-        u'lifecycle-environment-id': None,
-        u'guest-ids': None,
-        u'host-collection': None,
-        u'host-collection-id': None,
-        u'last-checking': None,
-        u'location': None,
         u'release-ver': None,
         u'service-level': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(ContentHost, args))
-
-    return args
+    return create_object(ContentHost, args, options)
 
 
 def make_host(options=None):
@@ -809,10 +777,7 @@ def make_host(options=None):
         u'volume': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Host, args))
-
-    return args
+    return create_object(Host, args, options)
 
 
 def make_host_collection(options=None):
@@ -848,10 +813,7 @@ def make_host_collection(options=None):
         u'system-ids': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(HostCollection, args))
-
-    return args
+    return create_object(HostCollection, args, options)
 
 
 def make_user(options=None):
@@ -884,10 +846,7 @@ def make_user(options=None):
         u'auth-source-id': 1,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(User, args))
-
-    return args
+    return create_object(User, args, options)
 
 
 def make_compute_resource(options=None):
@@ -926,14 +885,15 @@ def make_compute_resource(options=None):
         u'server': None
     }
 
-    args = update_dictionary(args, options)
-    if args['provider'] is None:
-        args['provider'] = FOREMAN_PROVIDERS['libvirt']
-        if args['url'] is None:
-            args['url'] = "qemu+tcp://localhost:16509/system"
-    args.update(create_object(ComputeResource, args))
+    if options is None:
+        options = {}
 
-    return args
+    if options.get('provider') is None:
+        options['provider'] = FOREMAN_PROVIDERS['libvirt']
+        if options.get('url') is None:
+            options['url'] = "qemu+tcp://localhost:16509/system"
+
+    return create_object(ComputeResource, args, options)
 
 
 def make_org(options=None):
@@ -956,10 +916,7 @@ def make_org(options=None):
         u'description': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Org, args))
-
-    return args
+    return create_object(Org, args, options)
 
 
 def make_os(options=None):
@@ -999,10 +956,7 @@ def make_os(options=None):
         u'release-name': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(OperatingSys, args))
-
-    return args
+    return create_object(OperatingSys, args, options)
 
 
 def make_domain(options=None):
@@ -1024,10 +978,7 @@ def make_domain(options=None):
         u'description': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Domain, args))
-
-    return args
+    return create_object(Domain, args, options)
 
 
 def make_hostgroup(options=None):
@@ -1081,10 +1032,8 @@ def make_hostgroup(options=None):
         u'subnet': None,
         u'subnet-id': None,
     }
-    args = update_dictionary(args, options)
-    args.update(create_object(HostGroup, args))
 
-    return args
+    return create_object(HostGroup, args, options)
 
 
 def make_medium(options=None):
@@ -1128,10 +1077,7 @@ def make_medium(options=None):
         u'operatingsystem-ids': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Medium, args))
-
-    return args
+    return create_object(Medium, args, options)
 
 
 def make_environment(options=None):
@@ -1149,10 +1095,7 @@ def make_environment(options=None):
         u'name': gen_alphanumeric(6),
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Environment, args))
-
-    return args
+    return create_object(Environment, args, options)
 
 
 def make_lifecycle_environment(options=None):
@@ -1187,10 +1130,7 @@ def make_lifecycle_environment(options=None):
         u'prior': None,
     }
 
-    args = update_dictionary(args, options)
-    args.update(create_object(LifecycleEnvironment, args))
-
-    return args
+    return create_object(LifecycleEnvironment, args, options)
 
 
 def make_template(options=None):
@@ -1226,7 +1166,7 @@ def make_template(options=None):
         content = gen_alphanumeric()
 
     # Special handling for template factory
-    (file_handle, layout) = mkstemp(text=True)
+    (_, layout) = mkstemp(text=True)
     chmod(layout, 0700)
     with open(layout, "w") as ptable:
         ptable.write(content)
@@ -1234,7 +1174,4 @@ def make_template(options=None):
     ssh.upload_file(local_file=layout, remote_file=args['file'])
     # End - Special handling for template factory
 
-    args = update_dictionary(args, options)
-    args.update(create_object(Template, args))
-
-    return args
+    return create_object(Template, args, options)
