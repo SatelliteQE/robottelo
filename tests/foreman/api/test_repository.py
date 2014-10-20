@@ -293,7 +293,6 @@ class DockerRepositoryTestCase(TestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         cls.org_id = entities.Organization().create()['id']
-        cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
 
     @run_only_on('sat')
     def test_create_docker_repo(self):
@@ -306,9 +305,10 @@ class DockerRepositoryTestCase(TestCase):
         """
         name = u'wordpress'
         content_type = u'docker'
+        prod_id = entities.Product(organization=self.org_id).create()['id']
 
         repo_id = entities.Repository(
-            product=self.prod_id,
+            product=prod_id,
             content_type=content_type,
             name=name,
             url=DOCKER_REGISTRY_HUB
@@ -327,8 +327,9 @@ class DockerRepositoryTestCase(TestCase):
         @Feature: Repository
 
         """
+        prod_id = entities.Product(organization=self.org_id).create()['id']
         repo_id = entities.Repository(
-            product=self.prod_id,
+            product=prod_id,
             content_type=u'docker',
             name=u'wordpress',
             url=DOCKER_REGISTRY_HUB
