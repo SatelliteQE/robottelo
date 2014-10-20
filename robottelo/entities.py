@@ -132,7 +132,7 @@ class Architecture(
         return super(Architecture, self).create(auth, data)
 
     # NOTE: See BZ 1151240
-    def read(self, auth=None, entity=None, attrs=None):
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
@@ -201,6 +201,15 @@ class AuthSourceLDAP(
             values['attr_login'] = cls.attr_login.get_value()
             values['attr_mail'] = cls.attr_mail.get_value()
         return values
+
+    def read(
+            self,
+            auth=None,
+            entity=None,
+            attrs=None,
+            ignore=('account_password',)):
+        """Do not read the ``account_password`` attribute from the server."""
+        return super(AuthSourceLDAP, self).read(auth, entity, attrs, ignore)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1134,7 +1143,7 @@ class Media(
         return super(Media, self).create(auth, data)
 
     # NOTE: See BZ 1151240
-    def read(self, auth=None, entity=None, attrs=None):
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
@@ -1261,7 +1270,7 @@ class OperatingSystemParameter(
         )
         super(OperatingSystemParameter, self).__init__(**kwargs)
 
-    def read(self, auth=None, entity=None, attrs=None):
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
@@ -1273,7 +1282,8 @@ class OperatingSystemParameter(
         return super(OperatingSystemParameter, self).read(
             auth=auth,
             entity=OperatingSystemParameter(self.os_id),
-            attrs=attrs
+            attrs=attrs,
+            ignore=(),
         )
 
 
@@ -1878,7 +1888,7 @@ class Repository(
         return super(Repository, self).path(which)
 
     # NOTE: See BZ 1151240
-    def read(self, auth=None, entity=None, attrs=None):
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
         """Override the default implementation of
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
