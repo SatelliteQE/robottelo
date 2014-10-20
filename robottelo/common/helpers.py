@@ -176,26 +176,6 @@ def escape_search(term):
     return u'"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
 
 
-def update_dictionary(default, updates):
-    """
-    Updates default dictionary with elements from
-    optional dictionary.
-
-    @param default: A python dictionary containing the minimal
-    required arguments to create a CLI object.
-    @param updates: A python dictionary containing attributes
-    to overwrite on default dictionary.
-
-    @return default: The modified default python dictionary.
-    """
-
-    if updates:
-        for key in set(default.keys()).intersection(set(updates.keys())):
-            default[key] = updates[key]
-
-    return default
-
-
 def info_dictionary(result):
     """
     Function for converting result to dictionary, from info function in base..
