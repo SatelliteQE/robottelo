@@ -6,9 +6,7 @@ Several helper methods and functions.
 """
 
 import os
-import random
 import re
-import time
 
 from fauxfactory import gen_string, gen_integer
 from itertools import izip
@@ -176,14 +174,6 @@ def escape_search(term):
     """Wraps a search term in " and escape term's " and \\ characters"""
     strip_term = term.strip()
     return u'"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
-
-
-def sleep_for_seconds(guaranteed_sleep=1):
-    """
-    Sleeps for provided seconds + random(0,1). Defaults to 1 sec.
-    @param guaranteed_sleep: Guaranteed sleep in seconds.
-    """
-    time.sleep(random.uniform(guaranteed_sleep, guaranteed_sleep + 1))
 
 
 def update_dictionary(default, updates):
