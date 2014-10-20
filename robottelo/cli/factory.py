@@ -9,6 +9,7 @@ import datetime
 import logging
 import os
 import random
+import time
 
 from fauxfactory import (
     gen_alphanumeric, gen_integer,
@@ -48,7 +49,7 @@ from robottelo.common.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
-from robottelo.common.helpers import sleep_for_seconds, update_dictionary
+from robottelo.common.helpers import update_dictionary
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -87,7 +88,7 @@ def create_object(cli_object, options, values):
     update_dictionary(options, values)
     result = cli_object.create(options)
     # Some methods require a bit of waiting
-    sleep_for_seconds(5)
+    time.sleep(5)
 
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0:
