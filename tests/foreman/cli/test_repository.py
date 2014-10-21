@@ -53,32 +53,19 @@ class TestRepository(CLITestCase):
         if TestRepository.org is None:
             TestRepository.org = make_org()
         if TestRepository.product is None:
-            TestRepository.product = make_product(
-                {u'organization-id': TestRepository.org['id']})
+            TestRepository.product = make_product({
+                u'organization-id': TestRepository.org['id'],
+            })
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""
-
         if options is None:
             options = {}
 
-        if not options.get('product-id', None):
+        if options.get('product-id') is None:
             options[u'product-id'] = self.product['id']
 
-        new_repo = make_repository(options)
-
-        # Fetch it
-        result = Repository.info({u'id': new_repo['id']})
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        # Return the repository dictionary
-        return new_repo
+        return make_repository(options)
 
     @run_only_on('sat')
     @data(
@@ -125,7 +112,10 @@ class TestRepository(CLITestCase):
         # Generate a random, 'safe' label
         label = gen_string('alpha', 20)
 
-        new_repo = self._make_repository({u'name': name, u'label': label})
+        new_repo = self._make_repository({
+            u'name': name,
+            u'label': label,
+        })
         # Assert that name matches data passed
         self.assertEqual(new_repo['name'], name, "Names don't match")
         self.assertNotEqual(
@@ -152,9 +142,10 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository(
-            {u'url': test_data['url'],
-             u'content-type': test_data['content-type']})
+        new_repo = self._make_repository({
+            u'url': test_data['url'],
+            u'content-type': test_data['content-type'],
+        })
         # Assert that urls and content types matches data passed
         self.assertEqual(
             new_repo['url'], test_data['url'], "Urls don't match")
@@ -182,9 +173,10 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository(
-            {u'url': test_data['url'],
-             u'content-type': test_data['content-type']})
+        new_repo = self._make_repository({
+            u'url': test_data['url'],
+            u'content-type': test_data['content-type'],
+        })
         # Assert that urls and content types matches data passed
         self.assertEqual(
             new_repo['url'], test_data['url'], "Urls don't match")
@@ -211,15 +203,14 @@ class TestRepository(CLITestCase):
 
         @Assert: Repository is created and has gpg key
 
-        @BZ: 1083236
-
         """
-
         # Make a new gpg key
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
-        new_repo = self._make_repository(
-            {u'name': name, u'gpg-key-id': new_gpg_key['id']})
+        new_repo = self._make_repository({
+            u'name': name,
+            u'gpg-key-id': new_gpg_key['id'],
+        })
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -266,8 +257,10 @@ class TestRepository(CLITestCase):
         # Make a new gpg key
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
-        new_repo = self._make_repository(
-            {u'name': name, u'gpg-key': new_gpg_key['name']})
+        new_repo = self._make_repository({
+            u'name': name,
+            u'gpg-key': new_gpg_key['name'],
+        })
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -330,8 +323,7 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository(
-            {'publish-via-http': use_http})
+        new_repo = self._make_repository({'publish-via-http': use_http})
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
@@ -378,6 +370,31 @@ class TestRepository(CLITestCase):
                 content_type, new_repo['content-type'])
         )
 
+    @skip_if_bug_open('bugzilla', 1155237)
+    @run_only_on('sat')
+    @data(
+        u'sha1',
+        u'sha256',
+    )
+    def test_positive_create_10(self, checksum_type):
+        """@Test: Create a YUM repository with a checksum type
+
+        @Feature: Repository
+
+        @Assert: A YUM repository is created and contains the correct checksum
+        type
+
+        @BZ: 1155237
+
+        """
+        content_type = u'yum'
+        repository = self._make_repository({
+            u'content-type': content_type,
+            u'checksum-type': checksum_type,
+        })
+        self.assertEqual(repository['content-type'], content_type)
+        self.assertEqual(repository['checksum-type'], checksum_type)
+
     @run_only_on('sat')
     @data(
         gen_string('alpha', 300),
@@ -417,9 +434,10 @@ class TestRepository(CLITestCase):
 
         """
 
-        new_repo = self._make_repository(
-            {u'url': test_data['url'],
-             u'content-type': test_data['content-type']})
+        new_repo = self._make_repository({
+            u'url': test_data['url'],
+            u'content-type': test_data['content-type'],
+        })
         # Assertion that repo is not yet synced
         self.assertEqual(
             new_repo['sync']['status'],
@@ -492,9 +510,10 @@ class TestRepository(CLITestCase):
         new_repo = self._make_repository()
 
         # Update the url
-        result = Repository.update(
-            {u'id': new_repo['id'],
-             u'url': url})
+        result = Repository.update({
+            u'id': new_repo['id'],
+            u'url': url,
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -531,8 +550,6 @@ class TestRepository(CLITestCase):
 
         @Assert: Repository gpg key is updated
 
-        @BZ: 1083236
-
         @Status: manual
 
         """
@@ -547,11 +564,55 @@ class TestRepository(CLITestCase):
 
         @Assert: Repository publishing method is updated
 
-        @BZ: 1083256
-
         @Status: manual
 
         """
+
+    @skip_if_bug_open('bugzilla', 1155237)
+    @run_only_on('sat')
+    @data(
+        u'sha1',
+        u'sha256',
+    )
+    def test_positive_update_4(self, checksum_type):
+        """@Test: Create a YUM repository and update the checksum type
+
+        @Feature: Repository
+
+        @Assert: A YUM repository is updated and contains the correct checksum
+        type
+
+        @BZ: 1155237
+
+        """
+        content_type = u'yum'
+        repository = self._make_repository({
+            u'content-type': content_type,
+        })
+
+        self.assertEqual(repository['content-type'], content_type)
+        self.assertEqual(repository['checksum-type'], '')
+
+        # Update the url
+        result = Repository.update({
+            u'id': repository['id'],
+            u'checksum-type': checksum_type,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        # Fetch it again
+        result = Repository.info({'id': repository['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertNotEqual(
+            result.stdout['checksum-type'],
+            repository['checksum-type'],
+        )
+        self.assertEqual(
+            result.stdout['checksum-type'],
+            checksum_type,
+        )
 
     @run_only_on('sat')
     @data(
@@ -577,8 +638,7 @@ class TestRepository(CLITestCase):
         self.assertEqual(new_repo['name'], name, "Names don't match")
 
         # Delete it
-        result = Repository.delete(
-            {u'id': new_repo['id']})
+        result = Repository.delete({u'id': new_repo['id']})
         self.assertEqual(
             result.return_code,
             0,
@@ -587,11 +647,9 @@ class TestRepository(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = Repository.info(
-            {
-                u'id': new_repo['id'],
-            }
-        )
+        result = Repository.info({
+            u'id': new_repo['id'],
+        })
         self.assertNotEqual(
             result.return_code,
             0,
