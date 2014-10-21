@@ -303,7 +303,7 @@ class DockerRepositoryTestCase(TestCase):
         @Feature: Repository
 
         """
-        name = u'wordpress'
+        name = u'busybox'
         content_type = u'docker'
         prod_id = entities.Product(organization=self.org_id).create()['id']
 
@@ -331,7 +331,7 @@ class DockerRepositoryTestCase(TestCase):
         repo_id = entities.Repository(
             product=prod_id,
             content_type=u'docker',
-            name=u'wordpress',
+            name=u'busybox',
             url=DOCKER_REGISTRY_HUB
         ).create()['id']
 

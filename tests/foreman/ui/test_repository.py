@@ -112,7 +112,7 @@ class Repos(UITestCase):
 
         """
         # Creates new product
-        repo_name = u'wordpress'
+        repo_name = u'busybox'
         product_name = entities.Product(
             organization=self.org_id,
             location=self.loc_id,
@@ -135,7 +135,7 @@ class Repos(UITestCase):
 
         """
         # Creates new product
-        repo_name = u'wordpress'
+        repo_name = u'busybox'
         product_name = entities.Product(
             organization=self.org_id,
             location=self.loc_id,

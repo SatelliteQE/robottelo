@@ -352,7 +352,7 @@ class TestRepository(CLITestCase):
         """
         content_type = u'docker'
         new_repo = self._make_repository({
-            u'name': u'wordpress',
+            u'name': u'busybox',
             u'url': DOCKER_REGISTRY_HUB,
             u'content-type': content_type,
         })
@@ -473,7 +473,7 @@ class TestRepository(CLITestCase):
         """
 
         new_repo = self._make_repository({
-            u'name': u'wordpress',
+            u'name': u'busybox',
             u'url': DOCKER_REGISTRY_HUB,
             u'content-type': u'docker',
         })
