@@ -1150,7 +1150,7 @@ locators = {
     "ak.selected_cv": (
         By.XPATH,
         ("//form[@alch-edit-select='activationKey.content_view.name']"
-         "/div[@class='alch-edit']/div/span")),
+         "//div[@class='alch-edit']/div/span[2]")),
 
     # Sync Status
     "sync.prd_expander": (
