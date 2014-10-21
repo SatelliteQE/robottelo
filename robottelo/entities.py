@@ -400,6 +400,13 @@ class ConfigTemplate(
             )
         return values
 
+    # NOTE: See BZ 1151220
+    def create(self, auth=None, data=None):
+        """Wrap submitted data within an extra dict."""
+        if data is None:
+            data = {u'config_template': self.build(auth=auth)}
+        return super(ConfigTemplate, self).create(auth, data)
+
 
 class ContentUpload(orm.Entity):
     """A representation of a Content Upload entity."""
