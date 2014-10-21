@@ -13,6 +13,7 @@ from fauxfactory import gen_string, gen_integer
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.api import client
+from robottelo.common import conf
 from robottelo.common.constants import (
     ENVIRONMENT, FAKE_1_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
@@ -22,6 +23,7 @@ from robottelo.ui.factory import make_activationkey
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.test import UITestCase
+from robottelo.vm import VirtualMachine
 
 
 @ddt
@@ -521,7 +523,6 @@ class ActivationKey(UITestCase):
             self.activationkey.delete(name, True)
             self.assertIsNone(self.activationkey.search_key(name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_positive_delete_activation_key_5(self):
         """@Test: Delete an Activation key which has registered systems
 
@@ -534,10 +535,53 @@ class ActivationKey(UITestCase):
 
         @Assert: Activation key is deleted
 
-        @Status: Manual
-
         """
-        pass
+        name = gen_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 8)
+        # Helper function to create and promote CV to next environment
+        # and it returns product name to associate it with key
+        product_name = self.create_cv(cv_name, env_name)
+        with Session(self.browser) as session:
+            make_activationkey(
+                session, org=self.org_name, name=name, env=env_name,
+                description=gen_string("alpha", 16),
+                content_view=cv_name
+            )
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.associate_product(name, [product_name])
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
+            # Create VM
+            server_name = conf.properties['main.server.hostname']
+            vm = VirtualMachine(distro='rhel65')
+            vm.create()
+            # Install rpm
+            result = vm.run(
+                'rpm -i http://{0}/pub/katello-ca-consumer-'
+                '{0}-1.0-1.noarch.rpm'.format(server_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to install katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Register client with foreman server using activation-key
+            result = vm.run(
+                'subscription-manager register --activationkey {0} '
+                '--org {1} --force'
+                .format(name, self.org_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to register client:: {0} and return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Delete the activation key
+            self.activationkey.delete(name, True)
+            self.assertIsNone(self.activationkey.search_key(name))
+            # Delete the virtual machine
+            vm.destroy()
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1117753)
