@@ -49,7 +49,6 @@ from robottelo.common.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
-from robottelo.common.helpers import update_dictionary
 from tempfile import mkstemp
 
 logger = logging.getLogger("robottelo")
@@ -85,7 +84,7 @@ def create_object(cli_object, options, values):
     :return: A dictionary representing the newly created resource.
 
     """
-    update_dictionary(options, values)
+    options.update(values)
     result = cli_object.create(options)
     # Some methods require a bit of waiting
     time.sleep(5)

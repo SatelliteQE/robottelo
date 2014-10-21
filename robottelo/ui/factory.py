@@ -2,7 +2,6 @@
 
 from fauxfactory import gen_string, gen_email
 from selenium.webdriver.common.action_chains import ActionChains
-from robottelo.common.helpers import update_dictionary
 from robottelo.common.constants import REPO_TYPE, CHECKSUM_TYPE
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
@@ -51,7 +50,6 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
     :return: None.
 
     """
-    create_args = update_dictionary(create_args, kwargs)
     create_args.update(kwargs)
     if org or loc:
         set_context(session, org=org, loc=loc, force_context=force_context)
