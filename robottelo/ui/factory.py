@@ -51,8 +51,7 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
     :return: None.
 
     """
-    create_args = update_dictionary(create_args, kwargs)
-    create_args.update(kwargs)
+    update_dictionary(create_args, kwargs)
     if org or loc:
         set_context(session, org=org, loc=loc, force_context=force_context)
     page()
