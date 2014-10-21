@@ -30,6 +30,7 @@ BZ_1151240_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
     entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
+BZ_1154156_ENTITIES = (entities.Host, entities.User)
 
 
 def skip_if_sam(self, entity):
@@ -343,10 +344,8 @@ class EntityIdTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
-        if entity is entities.Host and bz_bug_is_open(1154156):
+        if entity in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
-        if entity is entities.User and bz_bug_is_open(1154803):
-            self.skipTest("Bugzilla bug 1154803 is open.")
 
         path = entity(id=entity().create()['id']).path()
         response = client.put(
@@ -468,7 +467,7 @@ class DoubleCheckTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
-        if entity is entities.Host and bz_bug_is_open(1154156):
+        if entity in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Create an entity.
@@ -532,7 +531,7 @@ class DoubleCheckTestCase(TestCase):
         skip_if_sam(self, entity)
         if entity in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
             self.skipTest("Bugzilla bug 1151240 is open.""")
-        if entity is entities.Host and bz_bug_is_open(1154156):
+        if entity in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Generate some attributes and use them to create an entity.
