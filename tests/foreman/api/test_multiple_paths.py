@@ -30,7 +30,7 @@ BZ_1151240_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
     entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
-BZ_1154156_ENTITIES = (entities.Host, entities.User)
+BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
 
 
 def skip_if_sam(self, entity):
