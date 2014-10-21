@@ -505,7 +505,7 @@ class EntityReadMixin(object):
         response.raise_for_status()
         return response.json()
 
-    def read(self, auth=None, entity=None, attrs=None):
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
         """Get information about the current entity.
 
         Call :meth:`read_json`. Use this information to populate an object of
@@ -535,6 +535,9 @@ class EntityReadMixin(object):
             returned. An object of type ``type(self)`` by default.
         :param dict attrs: Data used to populate the object's attributes. The
             response from ``read_json`` by default.
+        :param tuple ignore: Attributes which should not be read from the
+            server. This is mainly useful for attributes like a password which
+            are not returned.
         :return: An instance of type ``type(self)``.
         :rtype: robottelo.orm.Entity
 
@@ -558,6 +561,8 @@ class EntityReadMixin(object):
         # Well, that's the ideal. Unfortunately, the server often serves up
         # weirdly structured or incomplete data. (See BZ #1122267)
         for field_name, field_type in entity.get_fields().items():
+            if field_name in ignore:
+                continue
             if isinstance(field_type, OneToOneField):
                 # `OneToOneField.entity` may be either a class or a string. For
                 # examples of this, look at a couple class definitions in
