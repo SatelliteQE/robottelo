@@ -419,27 +419,23 @@ class TestSyncPlan(CLITestCase):
 
         # Set the sync date to today/right now
         today = datetime.now()
-        new_sync_plan = self._make_sync_plan(
-            {
-                u'name': test_data['name'],
-                u'sync-date': today.strftime("%Y-%m-%d %H:%M:%S")
-            })
+        new_sync_plan = self._make_sync_plan({
+            u'name': test_data['name'],
+            u'sync-date': today.strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Assert that sync date matches data passed
         self.assertEqual(
-            new_sync_plan['sync-date'],
-            today.strftime("%Y-%m-%d %H:%M:%S"),
-            "Sync dates don't match"
+            new_sync_plan['start-date'],
+            today.strftime("%Y/%m/%d %H:%M:%S"),
         )
 
         # Set sync date 5 days in the future
         future_date = today + timedelta(days=5)
         # Update sync interval
-        result = SyncPlan.update(
-            {
-                u'id': new_sync_plan['id'],
-                u'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S")
-            }
-        )
+        result = SyncPlan.update({
+            u'id': new_sync_plan['id'],
+            u'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -448,11 +444,9 @@ class TestSyncPlan(CLITestCase):
             len(result.stderr), 0, "No error was expected")
 
         # Fetch it
-        result = SyncPlan.info(
-            {
-                u'id': new_sync_plan['id'],
-            }
-        )
+        result = SyncPlan.info({
+            u'id': new_sync_plan['id'],
+        })
         self.assertEqual(
             result.return_code,
             0,
@@ -461,7 +455,7 @@ class TestSyncPlan(CLITestCase):
             len(result.stderr), 0, "No error was expected")
         self.assertNotEqual(
             result.stdout['start-date'],
-            new_sync_plan['sync-date'],
+            new_sync_plan['start-date'],
             "Sync date was not updated"
         )
         self.assertGreater(

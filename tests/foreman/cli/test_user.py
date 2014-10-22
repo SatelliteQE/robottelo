@@ -31,21 +31,21 @@ class User(CLITestCase):
 
     """
 
-    def __assert_exists(self, args):
-        """Checks if the object that passed as args parameter really exists
-        in `hammer user list --search args['login']` and has values of:
+    def __assert_exists(self, user):
+        """Checks if the object that passed as user parameter really exists
+        in `hammer user list --search user['login']` and has values of:
         Login,Name,Email
 
         """
-        result = UserObj().list({'search': 'login=\"%s\"' % args['login']})
-        self.assertTrue(result.return_code == 0,
-                        "User search - exit code %d" %
-                        result.return_code)
-        self.assertTrue(result.stdout[0]['name'] ==
-                        args['firstname'] + " " + args['lastname'],
-                        "User search - check our value 'Name'")
-        self.assertTrue(result.stdout[0]['email'] == args['mail'],
-                        "User search - check our value 'Email'")
+        result = UserObj().list({
+            'search': 'login="{0}"'.format(user['login']),
+        })
+        self.assertEqual(
+            result.return_code, 0,
+            'User search - exit code {0}'.format(result.return_code)
+        )
+        self.assertEqual(result.stdout[0]['name'], user['name'])
+        self.assertEqual(result.stdout[0]['email'], user['email'])
 
     # Issues
 
@@ -572,9 +572,9 @@ class User(CLITestCase):
         pass
 
     @data({'login': ''},
-          {'login': "space %s" % gen_string("alpha", 10)},
-          {'login': gen_string("alpha", 101)},
-          {'login': gen_string("html", 10)})
+          {'login': 'space {0}'.format(gen_string('alpha', 10))},
+          {'login': gen_string('alpha', 101)},
+          {'login': gen_string('html', 10)})
     def test_negative_create_user_1(self, opts):
         """@Test: Create User with invalid Username
 
@@ -1366,9 +1366,7 @@ class User(CLITestCase):
         # check name have not changed
         updated_user = UserObj().exists(
             tuple_search=('login', new_user['login']))
-        self.assertEqual(updated_user.stdout['name'], "%s %s" %
-                                                      (new_user['firstname'],
-                                                       new_user['lastname']))
+        self.assertEqual(updated_user.stdout['name'], new_user['name'])
 
     @data({'lastname': gen_string("alpha", 51)},
           {'lastname': gen_string("html", 10)})
@@ -1392,9 +1390,7 @@ class User(CLITestCase):
         # check name have not changed
         updated_user = UserObj().exists(
             tuple_search=('login', new_user['login']))
-        self.assertEqual(updated_user.stdout['name'], "%s %s" %
-                                                      (new_user['firstname'],
-                                                       new_user['lastname']))
+        self.assertEqual(updated_user.stdout['name'], new_user['name'])
 
     @skip_if_bug_open('bugzilla', 1070730)
     @data(
@@ -1430,7 +1426,7 @@ class User(CLITestCase):
         # check name have not changed
         updated_user = UserObj().exists(
             tuple_search=('login', new_user['login']))
-        self.assertEqual(updated_user.stdout['email'], new_user['mail'])
+        self.assertEqual(updated_user.stdout['email'], new_user['email'])
 
     @skip_if_bug_open('bugzilla', 1079649)
     @data(
@@ -1569,7 +1565,9 @@ class User(CLITestCase):
 
         user = make_user(test_data)
         self.__assert_exists(user)
-        result = UserObj.list({'search': 'login = %s' % test_data['login']})
+        result = UserObj.list({
+            'search': 'login = {0}'.format(test_data['login']),
+        })
         self.assertEqual(len(result.stdout), 1)
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
@@ -1577,7 +1575,7 @@ class User(CLITestCase):
             'name': user['name'],
             'login': user['login'],
             'id': user['id'],
-            'email': user['mail']}, result.stdout[0])
+            'email': user['email']}, result.stdout[0])
 
     @data(
         {'firstname': gen_string("latin1", 10)},
@@ -1611,15 +1609,16 @@ class User(CLITestCase):
 
         user = make_user(test_data)
         self.__assert_exists(user)
-        result = UserObj.list(
-            {'search': 'firstname = %s' % test_data['firstname']})
+        result = UserObj.list({
+            'search': 'firstname = {0}'.format(test_data['firstname']),
+        })
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
             'login': user['login'],
             'id': user['id'],
-            'email': user['mail']} in result.stdout)
+            'email': user['email']} in result.stdout)
 
     @data(
         {'lastname': gen_string("latin1", 10)},
@@ -1653,15 +1652,16 @@ class User(CLITestCase):
 
         user = make_user(test_data)
         self.__assert_exists(user)
-        result = UserObj.list(
-            {'search': 'lastname = %s' % test_data['lastname']})
+        result = UserObj.list({
+            'search': 'lastname = {0}'.format(test_data['lastname']),
+        })
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
             'login': user['login'],
             'id': user['id'],
-            'email': user['mail']} in result.stdout)
+            'email': user['email']} in result.stdout)
 
     @data(
         {'mail': gen_string("latin1", 10) + "@somemail.com"},
@@ -1688,14 +1688,16 @@ class User(CLITestCase):
         """
         user = make_user(test_data)
         self.__assert_exists(user)
-        result = UserObj.list({'search': 'mail = %s' % test_data['mail']})
+        result = UserObj.list({
+            'search': 'mail = {0}'.format(test_data['mail']),
+        })
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
             'login': user['login'],
             'id': user['id'],
-            'email': user['mail']} in result.stdout)
+            'email': user['email']} in result.stdout)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_search_user_1(self):
