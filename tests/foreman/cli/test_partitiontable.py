@@ -183,7 +183,7 @@ class TestPartitionTableDelete(CLITestCase):
                          "There should not be an exception here")
 
         result = PartitionTable.info({'id': ptable['id']})
-        self.assertIn(os['full-name'],
+        self.assertIn(os['name'],
                       result.stdout['operating-systems'])
 
         result = PartitionTable.remove_operating_system(args)

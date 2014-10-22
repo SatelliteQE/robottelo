@@ -87,30 +87,26 @@ class TestTemplate(CLITestCase):
         name = gen_string("alpha", 10)
 
         try:
-            new_obj = make_template(
-                {
-                    'name': name,
-                    'content': content,
-                }
-            )
+            new_template = make_template({
+                'name': name,
+                'content': content,
+            })
             new_os = make_os()
-        except CLIFactoryError as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
-        result = Template.add_operatingsystem(
-            {
-                "id": new_obj["id"],
-                "operatingsystem-id": new_os["id"]
-            }
-        )
+        result = Template.add_operatingsystem({
+            "id": new_template["id"],
+            "operatingsystem-id": new_os["id"],
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
 
-        result = Template.info({'id': new_obj['id']})
+        result = Template.info({'id': new_template['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        os_string = "%s %s.%s" % (
-            new_os['name'], new_os['major'], new_os['minor']
+        os_string = '{0} {1}.{2}'.format(
+            new_os['name'], new_os['major-version'], new_os['minor-version']
         )
         self.assertIn(os_string, result.stdout['operating-systems'])
 
@@ -149,25 +145,23 @@ class TestTemplate(CLITestCase):
         result = Template.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        os_string = "%s %s.%s" % (
-            new_os['name'], new_os['major'], new_os['minor']
+        os_string = '{0} {1}.{2}'.format(
+            new_os['name'], new_os['major-version'], new_os['minor-version']
         )
         self.assertIn(os_string, result.stdout['operating-systems'])
 
-        result = Template.remove_operatingsystem(
-            {
-                "id": new_obj["id"],
-                "operatingsystem-id": new_os["id"]
-            }
-        )
+        result = Template.remove_operatingsystem({
+            "id": new_obj["id"],
+            "operatingsystem-id": new_os["id"]
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
 
         result = Template.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        os_string = "%s %s.%s" % (
-            new_os['name'], new_os['major'], new_os['minor']
+        os_string = '{0} {1}.{2}'.format(
+            new_os['name'], new_os['major-version'], new_os['minor-version']
         )
         self.assertNotIn(os_string, result.stdout['operating-systems'])
 

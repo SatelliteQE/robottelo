@@ -116,7 +116,11 @@ class TestSmoke(CLITestCase):
         """
 
         # Create new user
-        new_user = make_user({u'admin': 'true'})
+        password = gen_alphanumeric()
+        new_user = make_user({u'admin': u'true', u'password': password})
+
+        # Append the password as the info command does not return it
+        new_user[u'password'] = password
 
         # Create new org as new user
         new_org = self._create(

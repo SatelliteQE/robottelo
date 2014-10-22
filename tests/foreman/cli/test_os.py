@@ -130,7 +130,7 @@ class TestOperatingSystem(CLITestCase):
             self.fail(err)
 
         # New value for major
-        major = int(os['major']) + 1
+        major = int(os['major-version']) + 1
 
         result = OperatingSys.update(
             {'id': os['id'], 'major': major})
@@ -188,8 +188,14 @@ class TestOperatingSystem(CLITestCase):
         # major and minor
         self.assertEqual(result['id'], os_info.stdout['id'])
         self.assertEqual(result['name'], os_info.stdout['name'])
-        self.assertEqual(str(result['major']), os_info.stdout['major-version'])
-        self.assertEqual(str(result['minor']), os_info.stdout['minor-version'])
+        self.assertEqual(
+            str(result['major-version']),
+            os_info.stdout['major-version']
+        )
+        self.assertEqual(
+            str(result['minor-version']),
+            os_info.stdout['minor-version']
+        )
 
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):

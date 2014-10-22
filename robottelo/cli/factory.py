@@ -52,7 +52,7 @@ from robottelo.common.constants import (
 from robottelo.common.helpers import update_dictionary
 from tempfile import mkstemp
 
-logger = logging.getLogger("robottelo")
+logger = logging.getLogger(__name__)
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
@@ -846,6 +846,10 @@ def make_user(options=None):
         u'password': gen_alphanumeric(),
         u'auth-source-id': 1,
     }
+    logger.debug(
+        'User "{0}" password not provided {1} was generated'
+        .format(args['login'], args['password'])
+    )
 
     return create_object(User, args, options)
 
