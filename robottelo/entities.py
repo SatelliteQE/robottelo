@@ -1946,9 +1946,8 @@ class Repository(
         response = client.get(
             self.path(which=None),
             auth=get_server_credentials(),
+            data={u'organization_id': org_id, u'name': name},
             verify=False,
-            data={u'organization_id': org_id,
-                  u'search': 'name={}'.format(escape_search(name))}
         )
         response.raise_for_status()
         results = response.json()['results']
