@@ -15,7 +15,7 @@ from robottelo import entities
 from robottelo.api import client
 from robottelo.common import conf
 from robottelo.common.constants import (
-    ENVIRONMENT, FAKE_1_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
+    ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     invalid_names_list, valid_data_list, get_server_credentials)
@@ -53,7 +53,7 @@ class ActivationKey(UITestCase):
             ActivationKey.org_name = org_attrs['name']
             ActivationKey.org_id = org_attrs['id']
 
-    def create_cv(self, name, env_name):
+    def create_cv(self, name, env_name, repo_url=None):
         """Create product/repo and sync it and promote to given env"""
 
         repo_name = gen_string("alpha", 8)
@@ -64,7 +64,7 @@ class ActivationKey(UITestCase):
         ).create()
         repo_attrs = entities.Repository(
             name=repo_name,
-            url=FAKE_1_YUM_REPO,
+            url=repo_url or FAKE_1_YUM_REPO,
             product=product_attrs['id'],
         ).create()
 
@@ -1055,8 +1055,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @skip_if_bug_open('bugzilla', 1078676)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @run_only_on('sat')
     def test_multiple_activation_keys_to_system(self):
         """@Test: Check if multiple Activation keys can be attached to a system
 
@@ -1068,12 +1067,71 @@ class ActivationKey(UITestCase):
 
         @Assert: Multiple Activation keys are attached to a system
 
-        @Status: Manual
-
-        @BZ: 1078676
-
         """
-        pass
+        key_1_name = gen_string("alpha", 8)
+        key_2_name = gen_string("alpha", 8)
+        cv_1_name = gen_string("alpha", 8)
+        cv_2_name = gen_string("alpha", 8)
+        env_1_name = gen_string("alpha", 8)
+        env_2_name = gen_string("alpha", 8)
+        # Helper function to create and promote CV to next environment
+        # and it returns product name to associate it with key
+        product_1_name = self.create_cv(cv_1_name, env_1_name)
+        product_2_name = self.create_cv(cv_2_name, env_2_name, FAKE_2_YUM_REPO)
+        with Session(self.browser) as session:
+            # Create activation_key_1
+            make_activationkey(
+                session, org=self.org_name, name=key_1_name, env=env_1_name,
+                description=gen_string("alpha", 16),
+                content_view=cv_1_name
+            )
+            self.assertIsNotNone(self.activationkey.search_key(key_1_name))
+            self.activationkey.associate_product(key_1_name, [product_1_name])
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
+            # Create activation_key_2
+            make_activationkey(
+                session, org=self.org_name, name=key_2_name, env=env_2_name,
+                description=gen_string("alpha", 16),
+                content_view=cv_2_name
+            )
+            self.assertIsNotNone(self.activationkey.search_key(key_2_name))
+            self.activationkey.associate_product(key_2_name, [product_2_name])
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
+            # Create VM
+            server_name = conf.properties['main.server.hostname']
+            vm = VirtualMachine(distro='rhel65')
+            vm.create()
+            vm_name = vm.run('hostname')
+            # Install rpm
+            result = vm.run(
+                'rpm -i http://{0}/pub/katello-ca-consumer-'
+                '{0}-1.0-1.noarch.rpm'.format(server_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to install katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Register client with foreman server using activation-key
+            result = vm.run(
+                'subscription-manager register --activationkey {0},{1} '
+                '--org {2} --force'
+                .format(key_1_name, key_2_name, self.org_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to register client:: {0} and return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Assert the content-host association with activation-key
+            for key_name in [key_1_name, key_2_name]:
+                host_name = self.activationkey.fetch_associated_content_host(
+                    key_name)
+                self.assertEqual(vm_name.stdout[0], host_name)
+            # Delete the virtual machine
+            vm.destroy()
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1078676)
