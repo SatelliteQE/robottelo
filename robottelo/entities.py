@@ -586,7 +586,8 @@ class ContentView(
         """
         if which in (
                 'content_view_puppet_modules', 'content_view_versions',
-                'publish', 'available_puppet_module_names'):
+                'publish', 'available_puppet_module_names',
+                'available_puppet_modules'):
             return '{0}/{1}'.format(
                 super(ContentView, self).path(which='self'),
                 which
@@ -630,6 +631,27 @@ class ContentView(
             auth=get_server_credentials(),
             verify=False,
             data={u'repository_ids': repo_ids}
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def available_puppet_modules(self):
+        """Get puppet modules available to be added to the content view."""
+        response = client.get(
+            self.path('available_puppet_modules'),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def add_puppet_module(self, author, name):
+        """Add a puppet module to the content view."""
+        response = client.post(
+            self.path('content_view_puppet_modules'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'author': author, u'name': name}
         )
         response.raise_for_status()
         return response.json()
@@ -1964,6 +1986,23 @@ class Repository(
             raise APIResponseError(
                 "The length of the results is:", len(results))
         return results[0]['id']
+
+    def upload(self, filename):
+        """Uploads content from tests/foreman/data directory to repository.
+
+        :param str filename: Name of file from tests/foreman/data directory
+
+        """
+
+        with open(get_data_file(filename), 'rb') as content:
+            response = client.post(
+                self.path('upload_content'),
+                auth=get_server_credentials(),
+                verify=False,
+                files={'content': content},
+            )
+        response.raise_for_status()
+        return response.json()
 
     class Meta(object):
         """Non-field information about this entity."""
