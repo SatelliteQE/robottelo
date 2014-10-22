@@ -73,30 +73,6 @@ class EntityTestCase(unittest.TestCase):
         """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
 
-    def test_entity_get_values(self):
-        """Test :meth:`robottelo.orm.Entity.get_values`."""
-        name = orm.StringField().get_value()
-        value = orm.IntegerField().get_value()
-
-        # First, provide a name.
-        values = SampleEntity(name=name).get_values()
-        self.assertIn('name', values.keys())
-        self.assertNotIn('value', values.keys())
-        self.assertEqual(values['name'], name)
-
-        # Second, provide a value.
-        values = SampleEntity(value=value).get_values()
-        self.assertNotIn('name', values.keys())
-        self.assertIn('value', values.keys())
-        self.assertEqual(values['value'], value)
-
-        # Third, provide a name and value.
-        values = SampleEntity(name=name, value=value).get_values()
-        self.assertIn('name', values.keys())
-        self.assertIn('value', values.keys())
-        self.assertEqual(values['name'], name)
-        self.assertEqual(values['value'], value)
-
     def test_entity_get_fields(self):
         """Test :meth:`robottelo.orm.Entity.get_fields`."""
         fields = SampleEntity().get_fields()

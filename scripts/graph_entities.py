@@ -39,12 +39,11 @@ def graph():
         for field_name, field in entity.get_fields().items():
             if (isinstance(field, orm.OneToOneField)
                     or isinstance(field, orm.OneToManyField)):
-                field_is_required = field.options.get('required', False)
                 print('{0} -> {1} [label="{2}"{3}]'.format(
                     entity_name,
                     field.entity,
                     field_name,
-                    ' color=red' if field_is_required else ''
+                    ' color=red' if field.required else ''
                 ))
         # Make entities that are not factories more... ethereal.
         if not issubclass(entity, factory.Factory):
