@@ -15,6 +15,7 @@ import httplib
 @ddt
 class ActivationKeysTestCase(TestCase):
     """Tests for the ``activation_keys`` path."""
+    _multiprocess_can_split_ = True
 
     def test_positive_create_1(self):
         """@Test: Create a plain vanilla activation key.

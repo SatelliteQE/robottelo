@@ -20,6 +20,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         )
 
     """
+    _multiprocess_can_split_ = True
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_hostgroup_1(self, test_data):

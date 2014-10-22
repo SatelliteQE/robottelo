@@ -22,6 +22,7 @@ REPEAT = 3
 @run_only_on('sat')
 class ContentViewTestCase(TestCase):
     """Tests for content views."""
+    _multiprocess_can_split_ = True
 
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
@@ -83,6 +84,7 @@ class ContentViewTestCase(TestCase):
 @ddt
 class ContentViewCreateTestCase(TestCase):
     """Tests for creating content views."""
+    _multiprocess_can_split_ = True
 
     def test_positive_create_1(self):
         """@Test: Create an empty non-composite content view.
@@ -159,6 +161,7 @@ class ContentViewCreateTestCase(TestCase):
 
 class CVPublishPromoteTestCase(TestCase):
     """Tests for publishing and promoting content views."""
+    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):
@@ -370,6 +373,8 @@ class CVPublishPromoteTestCase(TestCase):
 @ddt
 class ContentViewUpdateTestCase(TestCase):
     """Tests for updating content views."""
+    _multiprocess_can_split_ = True
+
     @classmethod
     def setUpClass(cls):
         """Create a content view."""
@@ -434,6 +439,7 @@ class ContentViewTestCaseStub(TestCase):
     # Each of these tests should be given a better name when they're
     # implemented. In the meantime, let's not worry about bad names.
     # (invalid-name) pylint:disable=C0103
+    _multiprocess_can_split_ = True
 
     @stubbed
     def test_cv_edit_rh_custom_spin(self):

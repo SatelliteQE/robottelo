@@ -21,8 +21,8 @@ class SmartProxyTestCaseStub(unittest.TestCase):
             medium name is utf-8,
         )
 
-
     """
+    _multiprocess_can_split_ = True
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_add_smartproxy_1(self, test_data):

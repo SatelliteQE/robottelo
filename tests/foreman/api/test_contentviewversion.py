@@ -7,6 +7,7 @@ from unittest import TestCase
 
 class CVVersionTestCase(TestCase):
     """Tests for content view versions."""
+    _multiprocess_can_split_ = True
 
     def test_negative_promote_1(self):
         """@Test: Promote the default content view version.

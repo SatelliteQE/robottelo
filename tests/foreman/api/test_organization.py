@@ -20,6 +20,8 @@ import sys
 @ddt.ddt
 class OrganizationTestCase(TestCase):
     """Tests for the ``organizations`` path."""
+    _multiprocess_can_split_ = True
+
     @skip_if_bug_open('bugzilla', 1116043)
     def test_create_text_plain(self):
         """@Test Create an organization using a 'text/plain' content-type.
@@ -199,6 +201,8 @@ class OrganizationTestCase(TestCase):
 @ddt.ddt
 class OrganizationUpdateTestCase(TestCase):
     """Tests for the ``organizations`` path."""
+    _multiprocess_can_split_ = True
+
     @classmethod
     def setUpClass(cls):
         """Create an organization."""

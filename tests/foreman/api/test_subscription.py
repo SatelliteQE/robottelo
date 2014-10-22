@@ -12,6 +12,7 @@ from robottelo.common import manifests
 
 class SubscriptionsTestCase(TestCase):
     """Tests for the ``subscriptions`` path."""
+    _multiprocess_can_split_ = True
 
     def test_positive_create_1(self):
         """@Test: Upload a manifest.

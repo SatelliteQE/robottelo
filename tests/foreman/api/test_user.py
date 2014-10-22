@@ -17,6 +17,8 @@ import ddt
 @ddt.ddt
 class UsersTestCase(TestCase):
     """Tests for the ``users`` path."""
+    _multiprocess_can_split_ = True
+
     @decorators.data(
         {u'admin': False},
         {u'admin': True},

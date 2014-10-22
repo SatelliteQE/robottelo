@@ -16,6 +16,8 @@ from unittest import TestCase
 @run_only_on('sat')
 class OSParameterTestCase(TestCase):
     """Tests for operating system parameters."""
+    _multiprocess_can_split_ = True
+
     def test_bz_1114640(self):
         """@Test: Create a parameter for operating system 1.
 
@@ -46,6 +48,8 @@ class OSParameterTestCase(TestCase):
 @run_only_on('sat')
 class OSTestCase(TestCase):
     """Tests for operating systems."""
+    _multiprocess_can_split_ = True
+
     def test_point_to_arch(self):
         """@Test: Create an operating system that points at an architecture.
 

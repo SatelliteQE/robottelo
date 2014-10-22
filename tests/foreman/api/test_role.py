@@ -25,6 +25,7 @@ import ddt
 @ddt.ddt
 class RoleTestCase(TestCase):
     """Tests for ``api/v2/roles``."""
+    _multiprocess_can_split_ = True
 
     @decorators.data(
         gen_alpha,

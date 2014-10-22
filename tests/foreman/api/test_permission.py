@@ -29,6 +29,8 @@ PERMISSIONS_NAME = [
 @ddt
 class PermissionsTestCase(TestCase):
     """Tests for the ``permissions`` path."""
+    _multiprocess_can_split_ = True
+
     @run_only_on('sat')
     @ddt_data(*PERMISSIONS_NAME)  # pylint:disable=W0142
     def test_search_by_name(self, permission_name):
@@ -114,6 +116,7 @@ def _permission_name(entity, which_perm):
 @ddt
 class UserRoleTestCase(TestCase):
     """Give a user various permissions and see if they are enforced."""
+    _multiprocess_can_split_ = True
 
     def setUp(self):
         """Create a set of credentials and a user."""

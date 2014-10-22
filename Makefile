@@ -40,6 +40,10 @@ test-robottelo:
 test-foreman-api:
 	nosetests -c robottelo.properties $(FOREMAN_API_TESTS_PATH)
 
+test-foreman-api-threaded:
+	nosetests -c robottelo.properties $(FOREMAN_API_TESTS_PATH)\
+	    --processes=-1 --process-timeout=300
+
 test-foreman-cli:
 	nosetests -c robottelo.properties $(FOREMAN_CLI_TESTS_PATH)
 

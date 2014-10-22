@@ -11,6 +11,8 @@ import httplib
 @run_only_on('sat')
 class GPGKeyTestCase(TestCase):
     """Tests for ``katello/api/v2/gpg_keys``."""
+    _multiprocess_can_split_ = True
+
     def test_get_all(self):
         """@Test: Get ``katello/api/v2/gpg_keys`` and specify just an
         organization ID.

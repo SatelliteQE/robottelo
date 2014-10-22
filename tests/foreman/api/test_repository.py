@@ -24,6 +24,8 @@ from unittest import TestCase
 @ddt
 class RepositoryTestCase(TestCase):
     """Tests for ``katello/api/v2/repositories``."""
+    _multiprocess_can_split_ = True
+
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
@@ -217,6 +219,8 @@ class RepositoryTestCase(TestCase):
 @ddt
 class RepositoryUpdateTestCase(TestCase):
     """Tests for updating repositories."""
+    _multiprocess_can_split_ = True
+
     @classmethod
     def setUpClass(cls):
         """Create a repository which can be repeatedly updated."""
@@ -259,6 +263,7 @@ class RepositoryUpdateTestCase(TestCase):
 
 class RepositorySyncTestCase(TestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
+    _multiprocess_can_split_ = True
 
     @run_only_on('sat')
     def test_redhat_sync_1(self):
@@ -293,6 +298,8 @@ class RepositorySyncTestCase(TestCase):
 @ddt
 class DockerRepositoryTestCase(TestCase):
     """Tests specific to using ``Docker`` repositories."""
+    _multiprocess_can_split_ = True
+
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
