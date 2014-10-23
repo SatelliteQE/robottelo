@@ -218,8 +218,6 @@ class EntityIdTestCase(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        if entity is entities.ActivationKey and bz_bug_is_open(1127335):
-            self.skipTest("Bugzilla bug 1127335 is open.""")
         try:
             entity_n = entity(id=entity().create()['id'])
         except factory.FactoryError as err:
