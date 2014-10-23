@@ -212,6 +212,7 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
 
+    @skip_if_bug_open('bugzilla', 1156195)
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_general_param_7(self, test_data):
@@ -221,6 +222,8 @@ class Settings(UITestCase):
         @Feature: Settings - Update Parameters
 
         @Assert: Parameter is updated
+
+        @BZ: 1156195
 
         """
 
