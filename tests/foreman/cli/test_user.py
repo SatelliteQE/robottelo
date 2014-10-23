@@ -2,19 +2,12 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Users CLI"""
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
 from ddt import ddt
-from fauxfactory import gen_string
-from robottelo.cli.factory import make_user
+from fauxfactory import gen_alphanumeric, gen_string
+from robottelo.cli.factory import CLIFactoryError, make_user
 from robottelo.cli.user import User as UserObj
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import bz_bug_is_open, data, skip_if_bug_open
+from robottelo.common.decorators import (
+    bz_bug_is_open, data, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
 
 
@@ -38,7 +31,7 @@ class User(CLITestCase):
 
         """
         result = UserObj().list({
-            'search': 'login="{0}"'.format(user['login']),
+            u'search': u'login="{0}"'.format(user['login']),
         })
         self.assertEqual(
             result.return_code, 0,
@@ -65,7 +58,10 @@ class User(CLITestCase):
 
         """
 
-        user = make_user()
+        try:
+            user = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
@@ -91,7 +87,10 @@ class User(CLITestCase):
 
         """
 
-        user = make_user()
+        try:
+            user = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj().delete({'id': user['id']})
         self.assertEqual(result.return_code, 0)
@@ -132,7 +131,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        args = make_user(data)
+        try:
+            args = make_user(data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(args)
 
     @data(
@@ -164,7 +166,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        args = make_user(data)
+        try:
+            args = make_user(data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(args)
 
     @data(
@@ -196,7 +201,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        args = make_user(data)
+        try:
+            args = make_user(data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(args)
 
     @data(
@@ -221,7 +229,10 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        args = make_user(data)
+        try:
+            args = make_user(data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(args)
 
     @data({'password': gen_string("latin1", 10)},
@@ -242,7 +253,10 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        args = make_user(data)
+        try:
+            args = make_user(data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(args)
 
     def test_positive_create_user_6(self):
@@ -253,10 +267,13 @@ class User(CLITestCase):
         @Assert: Admin User is created
 
         """
-        args = make_user({'admin': '1'})
+        try:
+            args = make_user({'admin': '1'})
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(args)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     @skip_if_bug_open('redmine', 2922)
     def test_positive_create_user_9(self):
         """@Test: Create User with one role
@@ -273,7 +290,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     @skip_if_bug_open('redmine', 2922)
     def test_positive_create_user_10(self):
         """@Test: Create User with multiple roles
@@ -290,7 +307,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     @skip_if_bug_open('redmine', 2922)
     def test_positive_create_user_11(self):
         """@Test: Create User and assign all available roles to it
@@ -307,7 +324,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_12(self):
         """@Test: Create User with one owned host
 
@@ -323,7 +340,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_13(self):
         """@Test: Create User with mutiple owned hosts
 
@@ -339,7 +356,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_14(self):
         """@Test: Create User with all owned hosts
 
@@ -355,7 +372,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_15(self):
         """@Test: Create User with one Domain host
 
@@ -371,7 +388,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_16(self):
         """@Test: Create User with mutiple Domain hosts
 
@@ -387,7 +404,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_17(self):
         """@Test: Create User with all Domain hosts
 
@@ -403,7 +420,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_18(self):
         """@Test: Create User with one Compute Resource
 
@@ -419,7 +436,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_19(self):
         """@Test: Create User with mutiple Compute Resources
 
@@ -435,7 +452,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_20(self):
         """@Test: Create User with all Compute Resources
 
@@ -451,7 +468,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_21(self):
         """@Test: Create User with one Host group
 
@@ -467,7 +484,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_22(self):
         """@Test: Create User with multiple Host groups
 
@@ -483,7 +500,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_23(self):
         """@Test: Create User with all Host groups
 
@@ -499,7 +516,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_24(self):
         """@Test: Create User associated to one Org
 
@@ -512,7 +529,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_25(self):
         """@Test: Create User associated to multiple Orgs
 
@@ -525,7 +542,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_26(self):
         """@Test: Create User associated to all available Orgs
 
@@ -538,7 +555,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_27(self):
         """@Test: Create User with a new Fact filter
 
@@ -554,7 +571,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_create_user_28(self):
         """@Test: Create User in supported ldap modes
 
@@ -759,7 +776,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        new_obj = make_user()
+        try:
+            new_obj = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         # Can we find the new object?
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -813,7 +833,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        new_obj = make_user()
+        try:
+            new_obj = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         # Can we find the new object?
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -865,7 +888,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        new_obj = make_user()
+        try:
+            new_obj = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         # Can we find the new object?
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -909,8 +935,10 @@ class User(CLITestCase):
         @Assert: User is updated
 
         """
-
-        new_obj = make_user()
+        try:
+            new_obj = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         # Can we find the new object?
         result = UserObj().info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -937,7 +965,7 @@ class User(CLITestCase):
             "User Email was not updated"
         )
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_5(self):
         """@Test: Update Language in User
 
@@ -954,7 +982,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_6(self):
         """@Test: Update Password/Verify fields in User
 
@@ -971,7 +999,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_7(self):
         """@Test: Convert an user from an admin user to non-admin user
 
@@ -988,7 +1016,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_8(self):
         """@Test: Convert a user to an admin user
 
@@ -1005,7 +1033,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_9(self):
         """@Test: Update User with one role
 
@@ -1022,7 +1050,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_10(self):
         """@Test: Update User with multiple roles
 
@@ -1039,7 +1067,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_11(self):
         """@Test: Update User with all roles
 
@@ -1056,7 +1084,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_12(self):
         """@Test: Update User with one owned host
 
@@ -1073,7 +1101,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_13(self):
         """@Test: Update User with multiple owned hosts
 
@@ -1090,7 +1118,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_14(self):
         """@Test: Update User with all owned hosts
 
@@ -1107,7 +1135,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_15(self):
         """@Test: Update User with one Domain host
 
@@ -1124,7 +1152,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_16(self):
         """@Test: Update User with multiple Domain hosts
 
@@ -1141,7 +1169,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_17(self):
         """@Test: Update User with all Domain hosts
 
@@ -1158,7 +1186,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_18(self):
         """@Test: Update User with one Compute Resource
 
@@ -1175,7 +1203,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_19(self):
         """@Test: Update User with multiple Compute Resources
 
@@ -1192,7 +1220,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_20(self):
         """@Test: Update User with all Compute Resources
 
@@ -1209,7 +1237,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_21(self):
         """@Test: Update User with one Host group
 
@@ -1226,7 +1254,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_22(self):
         """@Test: Update User with multiple Host groups
 
@@ -1243,7 +1271,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_23(self):
         """@Test: Update User with all Host groups
 
@@ -1259,7 +1287,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_24(self):
         """@Test: Assign a User to an Org
 
@@ -1276,7 +1304,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_25(self):
         """@Test: Assign a User to multiple Orgs
 
@@ -1293,7 +1321,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_26(self):
         """@Test: Assign a User to all available Orgs
 
@@ -1310,7 +1338,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_positive_update_user_28(self):
         """@Test: Update User with a new Fact filter
 
@@ -1327,7 +1355,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_negative_update_user_1(self):
         """@Test: Update invalid Username in an User
 
@@ -1358,7 +1386,10 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         """
-        new_user = make_user()
+        try:
+            new_user = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         result = UserObj().update({'login': new_user['login'],
                                    'firstname': opts['firstname']})
         self.assertTrue(result.stderr)
@@ -1382,7 +1413,10 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         """
-        new_user = make_user()
+        try:
+            new_user = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         result = UserObj().update({'login': new_user['login'],
                                    'lastname': opts['lastname']})
         self.assertTrue(result.stderr)
@@ -1419,7 +1453,10 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         """
-        new_user = make_user()
+        try:
+            new_user = make_user()
+        except CLIFactoryError as err:
+            self.fail(err)
         result = UserObj().update({'login': new_user['login'], 'mail': mail})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
@@ -1458,7 +1495,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        user = make_user(test_data)
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
@@ -1499,7 +1539,10 @@ class User(CLITestCase):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
         test_data.update({'admin': 'true'})
-        user = make_user(test_data)
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj().delete({'login': user['login']})
         self.assertEqual(result.return_code, 0)
@@ -1509,7 +1552,7 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    @data({'admin': 'true'},
+    @data({'admin': 'true', 'password': gen_alphanumeric()},
           {'login': 'admin', 'password': 'changeme'})
     def test_negative_delete_user_1(self, opts):
         """@Test: Attempt to delete internal admin user
@@ -1522,11 +1565,15 @@ class User(CLITestCase):
         @Assert: User is not deleted
 
         """
-        if 'login' not in opts and 'password' not in opts:
-            opts.update(make_user(opts))
+        try:
+            login = opts.get('login', make_user(opts)['login'])
+            password = opts.get('password')
+        except CLIFactoryError as err:
+            self.fail(err)
+
         user = UserObj()
-        user.katello_user = opts['login']
-        user.katello_passwd = opts['password']
+        user.katello_user = login
+        user.katello_passwd = password
         result = user.delete({'login': 'admin'})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
@@ -1563,7 +1610,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        user = make_user(test_data)
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
             'search': 'login = {0}'.format(test_data['login']),
@@ -1607,7 +1657,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        user = make_user(test_data)
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
             'search': 'firstname = {0}'.format(test_data['firstname']),
@@ -1650,7 +1703,10 @@ class User(CLITestCase):
         if bug_id is not None and bz_bug_is_open(bug_id):
             self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
 
-        user = make_user(test_data)
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
             'search': 'lastname = {0}'.format(test_data['lastname']),
@@ -1686,7 +1742,10 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        user = make_user(test_data)
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
             'search': 'mail = {0}'.format(test_data['mail']),
@@ -1699,7 +1758,7 @@ class User(CLITestCase):
             'id': user['id'],
             'email': user['email']} in result.stdout)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_search_user_1(self):
         """@Test: Search User for all variations of Username
 
@@ -1717,7 +1776,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_search_user_2(self):
         """@Test: Search User for all variations of Firstname
 
@@ -1735,7 +1794,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_search_user_3(self):
         """@Test: Search User for all variations of Surname
 
@@ -1753,7 +1812,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_search_user_4(self):
         """@Test: Search User for all variations of Email Address
 
@@ -1771,7 +1830,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_search_user_5(self):
         """@Test: Search User for all variations of Language
 
@@ -1789,7 +1848,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_info_user_1(self):
         """@Test: Get User info for all variations of Username
 
@@ -1807,7 +1866,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_info_user_2(self):
         """@Test: Search User for all variations of Firstname
 
@@ -1825,7 +1884,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_info_user_3(self):
         """@Test: Search User for all variations of Surname
 
@@ -1843,7 +1902,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_info_user_4(self):
         """@Test: Search User for all variations of Email Address
 
@@ -1861,7 +1920,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_info_user_5(self):
         """@Test: Search User for all variations of Language
 
@@ -1879,7 +1938,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_end_to_end_user_1(self):
         """@Test: Create User and perform different operations
 
@@ -1901,7 +1960,7 @@ class User(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed()
     def test_end_to_end_user_2(self):
         """@Test: Create User with no Org assigned and attempt different
 
@@ -1931,18 +1990,16 @@ class User(CLITestCase):
         @Assert: No undefined method exception
 
         """
-        users = []
-        for i in range(4):
-            users.append(make_user())
-        # existing user info
-        for user in users:
-            result = UserObj.info({'login': user['login']})
-            self.assertEqual(result.return_code, 0)
-            self.assertEqual(len(result.stderr), 0)
+        try:
+            users = [make_user() for _ in range(4)]
+        except CLIFactoryError as err:
+            self.fail(err)
+
         # non-existing user info
         result = UserObj.info({'id': 0})
         self.assertNotEqual(result.return_code, 0)
         self.assertNotRegexpMatches(str(result.stderr), 'undefined method')
+
         # list users
         result = UserObj.list()
         self.assertEqual(result.return_code, 0)
