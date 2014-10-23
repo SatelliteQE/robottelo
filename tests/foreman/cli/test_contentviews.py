@@ -5,7 +5,7 @@
 import unittest
 
 from ddt import ddt
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -948,7 +948,7 @@ class TestContentView(CLITestCase):
             'id': env1['id'],
             'name': env1['name'],
         }
-        self.assertIn(environment, result.stdout['environments'])
+        self.assertIn(environment, result.stdout['lifecycle-environments'])
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
@@ -1024,7 +1024,7 @@ class TestContentView(CLITestCase):
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][1]['id'],
+        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
                          self.env1['id'],
                          "Promotion of version not successful to the env")
 
@@ -1126,7 +1126,7 @@ class TestContentView(CLITestCase):
         result = ContentView.info({u'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][1]['id'],
+        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
                          self.env1['id'],
                          "Promotion of version not successful to the env")
 
@@ -1215,7 +1215,7 @@ class TestContentView(CLITestCase):
         result = ContentView.version_promote({
             u'id': result.stdout['versions'][0]['id'],
             u'to-lifecycle-environment-id': result.stdout[
-                'environments'][0]['id'],
+                'lifecycle-environments'][0]['id'],
         })
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
@@ -1423,7 +1423,7 @@ class TestContentView(CLITestCase):
         result = ContentView.info({u'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][0]['name'],
+        self.assertEqual(result.stdout['lifecycle-environments'][0]['name'],
                          u'Library', "version1 does not exist in Library")
         self.assertEqual(result.stdout['versions'][0]['version'], u'1',
                          "Publishing new version of CV was not successful")
@@ -1496,8 +1496,11 @@ class TestContentView(CLITestCase):
                          "ContentView version was not found")
         self.assertEqual(len(result_version.stderr), 0,
                          "No error was expected")
-        self.assertEqual(result_version.stdout['environments'][0]['label'],
-                         u'Library', "This version not in Library")
+        self.assertEqual(
+            result_version.stdout['lifecycle-environments'][0]['label'],
+            u'Library',
+            'This version not in Library'
+        )
 
         # Promotion of version1 to Dev env
         result = ContentView.version_promote({
@@ -1514,7 +1517,7 @@ class TestContentView(CLITestCase):
             {u'id': version1_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][1]['id'],
+        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
                          self.env1['id'],
                          "Promotion of version1 not successful to the env")
 
@@ -1539,8 +1542,11 @@ class TestContentView(CLITestCase):
                          "ContentView version was not found")
         self.assertEqual(len(result_version.stderr), 0,
                          "No error was expected")
-        self.assertEqual(result_version.stdout['environments'][0]['label'],
-                         u'Library', "This version not in Library")
+        self.assertEqual(
+            result_version.stdout['lifecycle-environments'][0]['label'],
+            u'Library',
+            'This version not in Library'
+        )
 
         # Promotion of version2 to Dev env
         result = ContentView.version_promote({
@@ -1556,7 +1562,7 @@ class TestContentView(CLITestCase):
         result = ContentView.version_info({u'id': version2_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][1]['id'],
+        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
                          self.env1['id'],
                          "Promotion of version2 not successful to the env")
 
@@ -1625,13 +1631,16 @@ class TestContentView(CLITestCase):
                          "ContentView version was not found")
         self.assertEqual(len(result_version.stderr), 0,
                          "No error was expected")
-        self.assertEqual(result_version.stdout['environments'][0]['label'],
-                         u'Library', "This version not in Library")
+        self.assertEqual(
+            result_version.stdout['lifecycle-environments'][0]['label'],
+            u'Library',
+            'This version not in Library'
+        )
 
         # Promotion of version1 to Dev env
         result = ContentView.version_promote({
             u'id': version1_id,
-            u'lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.env1['id'],
         })
         self.assertEqual(result.return_code, 0,
                          "Promoting version1 of CV was not successful")
@@ -1644,7 +1653,7 @@ class TestContentView(CLITestCase):
             {u'id': version1_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['environments'][1]['id'],
+        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
                          self.env1['id'],
                          "Promotion of version1 not successful to the env")
 
@@ -1661,10 +1670,13 @@ class TestContentView(CLITestCase):
         result = ContentView.version_info({u'id': version1_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(len(result.stdout['environments']), 1,
+        self.assertEqual(len(result.stdout['lifecycle-environments']), 1,
                          "Version1 may still exist in Library")
-        self.assertNotEqual(result.stdout['environments'][0]['label'],
-                            u'Library', "Version1 still exists in Library")
+        self.assertNotEqual(
+            result.stdout['lifecycle-environments'][0]['label'],
+            u'Library',
+            'Version1 still exists in Library'
+        )
 
         # Only after we publish version2 the info is populated.
         result = ContentView.info({u'id': new_cv['id']})
@@ -1677,7 +1689,7 @@ class TestContentView(CLITestCase):
         # Promotion of version2 to next env
         result = ContentView.version_promote({
             u'id': version2_id,
-            u'lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.env1['id'],
         })
         self.assertEqual(result.return_code, 0,
                          "Promoting version2 of CV was not successful")
@@ -1689,7 +1701,7 @@ class TestContentView(CLITestCase):
         result = ContentView.version_info({u'id': version1_id})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(len(result.stdout['environments']), 0,
+        self.assertEqual(len(result.stdout['lifecycle-environments']), 0,
                          "version1 still exists in the next env")
 
     @unittest.skip(NOT_IMPLEMENTED)
@@ -1812,7 +1824,9 @@ class TestContentView(CLITestCase):
 
         """
 
-        no_rights_user = make_user()
+        password = gen_alphanumeric()
+        no_rights_user = make_user({'password': password})
+        no_rights_user['password'] = password
 
         org_obj = make_org()
 
