@@ -4,7 +4,6 @@ from fauxfactory import gen_integer, gen_string
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -70,7 +69,6 @@ class ActivationKeysTestCase(TestCase):
         gen_string(str_type='cjk'),
         gen_string(str_type='latin1'),
     )
-    @skip_if_bug_open('bugzilla', 1127335)
     def test_positive_create_3(self, name):
         """@Test: Create an activation key providing the initial name.
 
@@ -99,7 +97,6 @@ class ActivationKeysTestCase(TestCase):
         gen_string(str_type='cjk'),
         gen_string(str_type='latin1'),
     )
-    @skip_if_bug_open('bugzilla', 1127335)
     def test_positive_create_4(self, description):
         """@Test: Create an activation key and provide a description.
 
@@ -175,7 +172,6 @@ class ActivationKeysTestCase(TestCase):
         gen_integer(min_value=1, max_value=30),
         gen_integer(min_value=10000, max_value=20000),
     )
-    @skip_if_bug_open('bugzilla', 1127335)
     def test_positive_update_1(self, max_content_hosts):
         """@Test: Create activation key then update it to limited content
         hosts.
@@ -219,7 +215,6 @@ class ActivationKeysTestCase(TestCase):
         -1,
         0
     )
-    @skip_if_bug_open('bugzilla', 1127335)
     def test_negative_update_1(self, max_content_hosts):
         """@Test: Create activation key then update its limit to invalid value.
 
@@ -263,7 +258,6 @@ class ActivationKeysTestCase(TestCase):
             self.assertEqual(attrs[attr], new_attrs[attr])
         self.assertTrue(new_attrs['unlimited_content_hosts'])
 
-    @skip_if_bug_open('bugzilla', 1127335)
     def test_update_max_content_hosts(self):
         """@Test: Create an activation key with ``max_content_hosts == 1``,
         then update that field with a string value.
@@ -339,7 +333,6 @@ class ActivationKeysTestCase(TestCase):
         self.assertIn('results', response.keys())
         self.assertEqual(type(response['results']), list)
 
-    @skip_if_bug_open('bugzilla', 1127335)
     def test_set_host_collection(self):
         """@Test: Associate an activation key with several host collections.
 
