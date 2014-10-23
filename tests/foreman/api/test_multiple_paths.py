@@ -296,8 +296,6 @@ class EntityIdTestCase(TestCase):
 
         """
         skip_if_sam(self, entity)
-        if entity is entities.ActivationKey and bz_bug_is_open(1127335):
-            self.skipTest("Bugzilla bug 1127335 is open.")
         try:
             entity_n = entity(id=entity().create()['id'])
         except HTTPError as err:

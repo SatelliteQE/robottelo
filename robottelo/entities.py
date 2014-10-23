@@ -17,7 +17,7 @@ from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
 from robottelo.api import client
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
-from robottelo.common.decorators import bz_bug_is_open
+from robottelo.common.decorators import rm_bug_is_open
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import factory, orm
@@ -52,12 +52,21 @@ class ActivationKey(
         server_modes = ('sat', 'sam')
 
     def read_raw(self, auth=None):
+        """Poll the server several times upon receiving a 404.
+
+        Poll the server several times upon receiving a 404, just to be _really_
+        sure that the requested activation key is non-existent. Do this because
+        elasticsearch can be slow about indexing newly created activation keys,
+        especially when the server is under load.
+
+        """
         super_read_raw = super(ActivationKey, self).read_raw
         response = super_read_raw(auth)
-        if response.status_code is 404 and bz_bug_is_open(1127335):
-            # Give elasticsearch a chance to index new activation keys.
-            sleep(5)
-            response = super_read_raw(auth)
+        if rm_bug_is_open(4638):
+            for _ in range(5):
+                if response.status_code == 404:
+                    sleep(5)
+                    response = super_read_raw(auth)
         return response
 
     def path(self, which=None):
