@@ -27,9 +27,6 @@ OSES = [
 @ddt
 class TestMedium(CLITestCase):
 
-    factory = make_medium
-    factory_obj = Medium
-
     @data({'name': gen_string("latin1", 10)},
           {'name': gen_string("utf8", 10)},
           {'name': gen_string("alpha", 10)},
@@ -44,7 +41,6 @@ class TestMedium(CLITestCase):
         @Assert: Medium is created
 
         """
-
         new_obj = make_medium(test_data)
 
         # Can we find the new object?
@@ -72,7 +68,6 @@ class TestMedium(CLITestCase):
         @Assert: Medium is deleted
 
         """
-
         new_obj = make_medium(test_data)
 
         # Can we find the new object?
@@ -104,20 +99,16 @@ class TestMedium(CLITestCase):
         @Assert: Operating system added
 
         """
-
-        name = gen_alphanumeric(6)
         try:
-            medium = make_medium({'name': name})
-        except CLIFactoryError as e:
-            self.fail(e)
-
-        try:
+            medium = make_medium({'name': gen_alphanumeric(6)})
             os = make_os()
-        except CLIFactoryError as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
-        args = {'id': medium['id'],
-                'operatingsystem-id': os['id']}
+        args = {
+            'id': medium['id'],
+            'operatingsystem-id': os['id'],
+        }
 
         result = Medium().add_operating_system(args)
         self.assertEqual(result.return_code, 0,
@@ -133,20 +124,16 @@ class TestMedium(CLITestCase):
         @Assert: Operating system removed
 
         """
-
-        name = gen_alphanumeric(6)
         try:
-            medium = make_medium({'name': name})
-        except CLIFactoryError as e:
-            self.fail(e)
-
-        try:
+            medium = make_medium({'name': gen_alphanumeric(6)})
             os = make_os()
-        except CLIFactoryError as e:
-            self.fail(e)
+        except CLIFactoryError as err:
+            self.fail(err)
 
-        args = {'id': medium['id'],
-                'operatingsystem-id': os['id']}
+        args = {
+            'id': medium['id'],
+            'operatingsystem-id': os['id'],
+        }
 
         result = Medium().add_operating_system(args)
         self.assertEqual(result.return_code, 0,
@@ -154,7 +141,7 @@ class TestMedium(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         result = Medium().info({'id': medium['id']})
-        self.assertIn(os['full-name'],
+        self.assertIn(os['name'],
                       result.stdout['operating-systems'],
                       "Operating system is not added to the media")
 
@@ -164,7 +151,7 @@ class TestMedium(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         result = Medium().info({'id': medium['id']})
-        self.assertNotIn(os['full-name'],
+        self.assertNotIn(os['name'],
                          result.stdout['operating-systems'],
                          "Operating system is not removed from the media")
 
@@ -176,16 +163,16 @@ class TestMedium(CLITestCase):
         @Assert: Medium updated
 
         """
-
-        name = gen_alphanumeric(6)
         new_name = gen_alphanumeric(6)
         try:
-            medium = make_medium({'name': name})
+            medium = make_medium({'name': gen_alphanumeric(6)})
         except CLIFactoryError as e:
             self.fail(e)
 
-        args = {'name': medium['name'],
-                'new-name': new_name}
+        args = {
+            'name': medium['name'],
+            'new-name': new_name,
+        }
 
         result = Medium().update(args)
         self.assertEqual(result.return_code, 0,
