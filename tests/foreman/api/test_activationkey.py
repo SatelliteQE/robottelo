@@ -4,6 +4,7 @@ from fauxfactory import gen_integer, gen_string
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -148,6 +149,7 @@ class ActivationKeysTestCase(TestCase):
                 max_content_hosts=max_content_hosts
             ).create()
 
+    @skip_if_bug_open('bugzilla', 1156555)
     @data(
         gen_integer(min_value=-10, max_value=-1),
         gen_integer(min_value=1, max_value=20),
