@@ -1,6 +1,13 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
-"""Test class for Users CLI"""
+"""Test class for Users CLI
+
+When testing email validation [1] and [2] should be taken into consideration.
+
+[1] http://tools.ietf.org/html/rfc3696#section-3
+[2] https://github.com/theforeman/foreman/pull/1776
+
+"""
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
@@ -208,16 +215,17 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        {'mail': gen_string("latin1", 10) + "@somemail.com"},
-        {'mail': gen_string("utf8", 10) + "@somemail.com"},
-        {'mail': gen_string("alpha", 10) + "@somemail.com"},
-        {'mail': gen_string(
-            "alphanumeric", 10) + "@somemail.com"},
-        {'mail': gen_string("numeric", 10) + "@somemail.com"},
-        {'mail': gen_string(
-            "alphanumeric", 50) + "@somem.com"}  # max 60 chars
+        u'{0}@example.com'.format(gen_string("latin1", 10)),
+        u'{0}@example.com'.format(gen_string("utf8", 10)),
+        u'{0}@example.com'.format(gen_string("alpha", 10)),
+        u'{0}@example.com'.format(gen_string("alphanumeric", 10)),
+        u'{0}@example.com'.format(gen_string("numeric", 10)),
+        u'{0}@example.com'.format(gen_string("alphanumeric", 48)),
+        u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
+        u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
+        r"!#$%&*+-/=?^`{|}~@example.com",
     )
-    def test_positive_create_user_4(self, data):
+    def test_positive_create_user_4(self, test_data):
         """@Test: Create User for all variations of Email Address
 
         @Feature: User - Positive Create
@@ -230,7 +238,7 @@ class User(CLITestCase):
 
         """
         try:
-            args = make_user(data)
+            args = make_user({'mail': test_data})
         except CLIFactoryError as err:
             self.fail(err)
         self.__assert_exists(args)
@@ -918,11 +926,14 @@ class User(CLITestCase):
             "User last name was not updated"
         )
 
-    @data({'mail': gen_string("latin1", 10)},
-          {'mail': gen_string("utf8", 10)},
-          {'mail': gen_string("alpha", 10)},
-          {'mail': gen_string("alphanumeric", 10)},
-          {'mail': gen_string("numeric", 10)},)
+    @data(
+        gen_string("alpha", 10),
+        gen_string("alphanumeric", 10),
+        gen_string("numeric", 10),
+        '{0}+{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
+        '{0}.{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
+        r"!#$%&*+-/=?^`{|}~",
+    )
     def test_positive_update_user_4(self, test_data):
         """@Test: Update Email Address in User
 
@@ -947,7 +958,7 @@ class User(CLITestCase):
         self.assertEqual(result.stdout['email'], new_obj['email'])
 
         # Update the mail
-        email = test_data['mail'] + "@example.com"
+        email = '{0}@example.com'.format(test_data)
         result = UserObj().update({'id': new_obj['id'],
                                    'mail': email})
         self.assertEqual(result.return_code, 0)
@@ -1433,7 +1444,6 @@ class User(CLITestCase):
         '@',
         'Abc.example.com',
         'A@b@c@example.com',
-        'email@brazil.b',
         '{0}@example.com'.format(gen_string(
             'alpha', 49)),  # total length 61
         '',
@@ -1552,7 +1562,7 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    @data({'admin': 'true', 'password': gen_alphanumeric()},
+    @data({'admin': 'true'},
           {'login': 'admin', 'password': 'changeme'})
     def test_negative_delete_user_1(self, opts):
         """@Test: Attempt to delete internal admin user
@@ -1565,15 +1575,16 @@ class User(CLITestCase):
         @Assert: User is not deleted
 
         """
-        try:
-            login = opts.get('login', make_user(opts)['login'])
-            password = opts.get('password')
-        except CLIFactoryError as err:
-            self.fail(err)
+        login = opts.get('login')
+        if login is None:
+            try:
+                login = make_user(opts)['login']
+            except CLIFactoryError as err:
+                self.fail(err)
 
         user = UserObj()
         user.katello_user = login
-        user.katello_passwd = password
+        user.katello_passwd = opts.get('password', gen_alphanumeric())
         result = user.delete({'login': 'admin'})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
