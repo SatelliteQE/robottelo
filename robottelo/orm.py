@@ -6,10 +6,6 @@ from fauxfactory import (
 )
 from robottelo.api import client
 from robottelo.common import helpers
-import booby
-import booby.fields
-import booby.inspection
-import booby.validators
 import httplib
 import importlib
 import inspect
@@ -18,6 +14,9 @@ import thread
 import threading
 import time
 import urlparse
+
+
+_SENTINEL = object()
 
 
 class TaskTimeout(Exception):
@@ -89,10 +88,10 @@ def _get_value(field, default):
     :return: A value appropriate for that field.
 
     """
-    if 'default' in field.options.keys():
-        return field.options['default']
-    elif 'choices' in field.options.keys():
-        return gen_choice(field.options['choices'])
+    if hasattr(field, 'default'):
+        return field.default
+    elif hasattr(field, 'choices'):
+        return gen_choice(field.choices)
     elif callable(default):
         return default()
     else:
@@ -100,33 +99,60 @@ def _get_value(field, default):
 
 
 # -----------------------------------------------------------------------------
-# Definition of individual entity fields. Wrappers for existing booby fields
-# come first, and custom fields come second.
+# Definition of individual entity fields.
 # -----------------------------------------------------------------------------
 
 
-class BooleanField(booby.fields.Boolean):
+class Field(object):
+    """Base field class to implement other fields"""
+
+    def __init__(
+            self,
+            required=False,
+            choices=None,
+            default=_SENTINEL,
+            null=False):
+        """Record this field's attributes.
+
+        :param bool required: Determines whether a value must be submitted to
+            the server when creating or updating an entity.
+        :param tuple choices: Legal values that this field may be populated
+            with.
+        :param default: A value that will be used when :meth:`
+        :param bool null: Determines whether a null value can be submitted to
+            the server when creating or updating an entity.
+
+        """
+        self.required = required
+        if choices is not None:
+            self.choices = choices
+        if default is not _SENTINEL:
+            self.default = default
+        self.null = null
+
+
+class BooleanField(Field):
     """Field that represents a boolean"""
     def get_value(self):
         """Return a value suitable for a :class:`BooleanField`."""
         return _get_value(self, gen_boolean)
 
 
-class EmailField(booby.fields.Email):
+class EmailField(Field):
     """Field that represents an email"""
     def get_value(self):
         """Return a value suitable for a :class:`EmailField`."""
         return _get_value(self, gen_email)
 
 
-class FloatField(booby.fields.Float):
+class FloatField(Field):
     """Field that represents a float"""
     def get_value(self):
         """Return a value suitable for a :class:`FloatField`."""
         return _get_value(self, random.random() * 10000)
 
 
-class IntegerField(booby.fields.Integer):
+class IntegerField(Field):
     """Field that represents an integer"""
     def __init__(self, min_val=None, max_val=None, *args, **kwargs):
         self.min_val = min_val
@@ -141,7 +167,7 @@ class IntegerField(booby.fields.Integer):
         )
 
 
-class StringField(booby.fields.String):
+class StringField(Field):
     """Field that represents a string."""
     def __init__(self, len=(1, 30), str_type=('utf8',), *args, **kwargs):
         """Constructor for a ``StringField``.
@@ -186,10 +212,6 @@ class StringField(booby.fields.String):
         )
 
 
-class Field(booby.fields.Field):
-    """Base field class to implement other fields"""
-
-
 class DateField(Field):
     """Field that represents a date"""
 
@@ -222,13 +244,6 @@ class NetmaskField(StringField):
 # FIXME: implement get_value()
 class ListField(Field):
     """Field that represents a list of strings"""
-
-    def __init__(self, *args, **kwargs):
-        super(ListField, self).__init__(
-            booby.validators.List(booby.validators.String()),
-            *args,
-            **kwargs
-        )
 
 
 class MACAddressField(StringField):
@@ -298,7 +313,11 @@ class NoSuchPathError(Exception):
     """Indicates that the requested path cannot be constructed."""
 
 
-class Entity(booby.Model):
+class NoSuchFieldError(Exception):
+    """Indicates that the assigned-to :class:`Entity` field does not exist."""
+
+
+class Entity(object):
     """A logical representation of a Foreman entity.
 
     This class is rather useless as is, and it is intended to be subclassed.
@@ -315,6 +334,16 @@ class Entity(booby.Model):
     # methods, static methods, inner classes, and so on. However, id() is *not*
     # available at the current level of lexical scoping after this point.
     id = IntegerField()  # pylint:disable=C0103
+
+    def __init__(self, **kwargs):
+        fields = self.get_fields()
+        for field_name, field_value in kwargs.items():
+            if field_name not in fields:
+                raise NoSuchFieldError(
+                    '{0} is not a valid field. Valid fields are {1}.'
+                    .format(field_name, ', '.join(fields.keys()))
+                )
+            setattr(self, field_name, field_value)
 
     class Meta(object):  # (too-few-public-methods) pylint:disable=R0903
         """Non-field information about this entity.
@@ -376,47 +405,38 @@ class Entity(booby.Model):
             helpers.get_server_url() + '/',
             self.Meta.api_path
         )
-        if which == 'base' or which is None and self.id is None:
+        if which == 'base' or (which is None and 'id' not in vars(self)):
             return base
-        elif self.id is not None and (which is None or which == 'self'):
+        elif (which == 'self' or which is None) and 'id' in vars(self):
             return urlparse.urljoin(base + '/', str(self.id))
         raise NoSuchPathError
 
     @classmethod
     def get_fields(cls):
-        """Return all defined fields as a dictionary.
+        """Find all fields attributes of class ``cls``.
 
-        :return: A dictionary mapping ``str`` field names to ``robottelo.orm``
-            field types.
+        :param cls: Any object. This method is only especially useful if that
+            class has attributes that are subclasses of :class:`Field`.
+        :return: A dict mapping attribute names to ``Field`` objects.
         :rtype: dict
 
         """
-        return booby.inspection.get_fields(cls)
-
-    # FIXME: See GitHub issue #1082.
-    def get_values(self):
-        """Return all field values as a dictionary.
-
-        All fields with a value of ``None`` are omitted from the returned dict.
-        For example, if this entity is created::
-
-            SomeEntity(name='foo', description=None)
-
-        This dict is returned::
-
-            {'name': 'foo'}
-
-        This is a bug. See GitHub issue #1082.
-
-        :return: A dictionary mapping field names to field values.
-        :rtype: dict
-
-        """
-        fields = dict(self)
-        for key, value in fields.items():
-            if value is None:
-                fields.pop(key)
-        return fields
+        # When `dir` is called on "a type or class object, the list contains
+        # the names of its attributes, and recursively of the attributes of its
+        # bases." In constrast, `vars(cls)` returns only the attributes of
+        # `cls` while ignoring all parent classes. Thus, this fails for child
+        # classes:
+        #
+        #     for key, val in vars(cls).items():
+        #         if isinstance(val, Field):
+        #             attrs[key] = val
+        #
+        attrs = {}
+        for field_name in dir(cls):
+            field = getattr(cls, field_name)
+            if isinstance(field, Field):
+                attrs[field_name] = field
+        return attrs
 
 
 class EntityDeleteMixin(object):

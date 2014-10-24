@@ -46,21 +46,6 @@ def _copy_and_update_keys(somedict, mapping):
     return copy
 
 
-def field_is_required(field_type):
-    """Tell whether ``field_type`` is required or not.
-
-    :param robottelo.orm.Field field_type: A ``Field``, or one of its more
-        specialized brethren.
-    :return: ``True`` if ``field_type.options.required`` is set and ``True``.
-        ``False`` otherwise.
-    :rtype: bool
-
-    """
-    if field_type.options.get('required', False):
-        return True
-    return False
-
-
 class Factory(object):
     """A mechanism for populating or creating Foreman entities.
 
@@ -261,13 +246,13 @@ class EntityFactoryMixin(Factory):
         The actual method implementation differs from the above description.
 
         """
-        values = self.get_values()  # explicit values provided by user
+        values = vars(self)         # explicit values provided by user
         fields = self.get_fields()  # fields from entity definition
 
         # When this loop is complete, `values` is complete. We just need to
         # adjust field names for Foreman.
         for name, field in fields.items():
-            if name not in values.keys() and field_is_required(field):
+            if name not in values.keys() and field.required:
                 values[name] = field.get_value()
 
         # If self.Meta.api_names is present, then we must use it to transform

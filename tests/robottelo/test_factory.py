@@ -29,37 +29,6 @@ class SampleEntityFactory(orm.Entity, factory.EntityFactoryMixin):
     label = orm.StringField()
 
 
-class IsRequiredTestCase(TestCase):
-    """Tests for :func:`robottelo.factory.field_is_required`."""
-    # (protected-access) pylint:disable=W0212
-    def test_field_is_required_v1(self):
-        """Do not set the ``required`` attribute at all.
-
-        Assert that :func:`robottelo.factory.field_is_required` returns
-        ``False``.
-
-        """
-        self.assertFalse(factory.field_is_required(orm.Field()))
-
-    def test_field_is_required_v2(self):
-        """Set the ``required`` attribute to ``False``.
-
-        Assert that :func:`robottelo.factory.field_is_required` returns
-        ``False``.
-
-        """
-        self.assertFalse(factory.field_is_required(orm.Field(required=False)))
-
-    def test_field_is_required_v3(self):
-        """Set the ``required`` attribute to ``True``.
-
-        Assert that :func:`robottelo.factory.field_is_required` returns
-        ``True``.
-
-        """
-        self.assertTrue(factory.field_is_required(orm.Field(required=True)))
-
-
 class CopyAndUpdateKeysTestCase(TestCase):
     """Tests for :func:`robottelo.factory._copy_and_update_keys`."""
     # (protected-access) pylint:disable=W0212

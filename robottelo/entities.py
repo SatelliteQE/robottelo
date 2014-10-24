@@ -24,7 +24,6 @@ from robottelo import factory, orm
 from time import sleep
 import httplib
 import random
-# (no-init) pylint:disable=W0232
 # (too-few-public-methods) pylint:disable=R0903
 # (too-many-lines) pylint:disable=C0302
 
@@ -449,8 +448,9 @@ class ContentViewVersion(orm.Entity, orm.EntityReadMixin):
 
         """
         if which == 'promote':
-            return super(ContentViewVersion, self).path(
-                which='self') + '/promote'
+            return '{0}/promote'.format(
+                super(ContentViewVersion, self).path(which='self')
+            )
         return super(ContentViewVersion, self).path(which)
 
     def promote(self, environment_id, synchronous=True):
@@ -495,9 +495,9 @@ class ContentViewFilterRule(orm.Entity):
     # erratum: id
     errata = orm.OneToOneField('Errata')
     # erratum: start date (YYYY-MM-DD)
-    start_date = orm.DateField(fmt='%Y-%m-%d')
+    start_date = orm.DateField()
     # erratum: end date (YYYY-MM-DD)
-    end_date = orm.DateField(fmt='%Y-%m-%d')
+    end_date = orm.DateField()
     # erratum: types (enhancement, bugfix, security)
     types = orm.ListField()
 
@@ -693,7 +693,7 @@ class Domain(
         be unique.
 
         """
-        if self.name is None:
+        if 'name' not in vars(self):
             self.name = gen_alphanumeric().lower()
         return super(Domain, self)._factory_data()
 
@@ -983,10 +983,11 @@ class Host(
         are unset.**
 
         """
-        if (self.operatingsystem is None and
-                self.architecture is None and
-                self.ptable is None and
-                self.medium is None):
+        attrs = vars(self)
+        if ('operatingsystem' not in attrs and
+                'architecture' not in attrs and
+                'ptable' not in attrs and
+                'medium' not in attrs):
             self.architecture = Architecture().create()['id']
             self.ptable = PartitionTable().create()['id']
             self.operatingsystem = OperatingSystem(
@@ -996,7 +997,7 @@ class Host(
             self.medium = Media(
                 operatingsystem=[self.operatingsystem]
             ).create()['id']
-        if self.puppet_proxy is None:
+        if 'puppet_proxy' not in attrs:
             response = client.get(
                 SmartProxy().path(),
                 auth=get_server_credentials(),
@@ -1098,9 +1099,9 @@ class LifecycleEnvironment(
            this lifecycle environment's organization is found and used.
 
         """
-        if self.organization is None:
+        if 'organization' not in vars(self):
             self.organization = Organization().create(auth=auth)['id']
-        if self.prior is None:
+        if 'prior' not in vars(self):
             query_results = client.get(
                 self.path(),
                 auth=get_server_credentials(),
@@ -1155,10 +1156,8 @@ class Media(
         unique path.
 
         """
-        if self.media_path is None:
-            self.media_path = gen_url(
-                subdomain=gen_alpha()
-            )
+        if 'media_path' not in vars(self):
+            self.media_path = gen_url(subdomain=gen_alpha())
         return super(Media, self)._factory_data()
 
     # NOTE: See BZ 1151220
@@ -1302,7 +1301,7 @@ class OperatingSystemParameter(
 
     def __init__(self, os_id, **kwargs):
         """Record ``os_id`` and set ``self.Meta.api_path``."""
-        self.os_id = os_id
+        self.Meta.os_id = os_id  # Where else to put this?
         self.Meta.api_path = '{0}/parameters'.format(
             OperatingSystem(id=os_id).path()
         )
@@ -1319,7 +1318,7 @@ class OperatingSystemParameter(
         # `read` follows the same principle.
         return super(OperatingSystemParameter, self).read(
             auth=auth,
-            entity=OperatingSystemParameter(self.os_id),
+            entity=OperatingSystemParameter(self.Meta.os_id),
             attrs=attrs,
             ignore=(),
         )
@@ -1635,9 +1634,9 @@ class Permission(orm.Entity, orm.EntityReadMixin):
 
         """
         search_terms = {u'per_page': per_page}
-        if self.name is not None:
+        if 'name' in vars(self):
             search_terms[u'name'] = self.name
-        if self.resource_type is not None:
+        if 'resource_type' in vars(self):
             search_terms[u'resource_type'] = self.resource_type
 
         response = client.get(
@@ -2208,7 +2207,7 @@ class System(
         * ``which == 'this'``.
 
         """
-        if self.uuid is not None and (which is None or which == 'self'):
+        if 'uuid' in vars(self) and (which is None or which == 'self'):
             return '{0}/{1}'.format(
                 super(System, self).path(which='base'),
                 self.uuid
