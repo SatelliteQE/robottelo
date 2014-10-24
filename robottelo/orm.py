@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Module that define the model layer used to define entities"""
 from fauxfactory import (
     gen_boolean, gen_choice, gen_email,
@@ -349,10 +350,8 @@ class Entity(object):
         """Non-field information about this entity.
 
         This class is a convenient place to store any non-field information
-        about an entity. For example, you can add the ``api_path`` and
-        ``api_names`` variables. See :meth:`robottelo.orm.Entity.path` and
-        :meth:`robottelo.factory.EntityFactoryMixin._factory_data` for
-        details on the two variables, respectively.
+        about an entity. For example, the ``api_path`` variable is used by
+        :meth:`robottelo.orm.Entity.path`.
 
         """
 
@@ -569,7 +568,7 @@ class EntityReadMixin(object):
 
         # Rename fields using entity.Meta.api_names, if present.
         if hasattr(entity.Meta, 'api_names'):
-            for local_name, remote_name in entity.Meta.api_names:
+            for local_name, remote_name in entity.Meta.api_names.items():
                 attrs[local_name] = attrs.pop(remote_name)
 
         # We must populate `entity`'s attributes from `attrs`.
@@ -601,3 +600,124 @@ class EntityReadMixin(object):
             else:
                 setattr(entity, field_name, attrs[field_name])
         return entity
+
+
+class EntityCreateMixin(object):
+    """A mixin that provides the ability to create an entity.
+
+    The methods provided by this mixin work together to create an entity. A
+    typical tree of method calls looks like this:
+
+        create
+        └── create_json
+            └── create_raw
+                ├── create_missing
+                └── create_payload
+
+    Only :meth:`create_raw` communicates with the server.
+
+    """
+
+    def create_missing(self, auth=None):
+        """Automagically populate all required instance attributes.
+
+        Iterate through the set of all required :class:`Field` defined on
+        ``type(self)`` and create a corresponding instance attribute if none
+        exists. Subclasses should override this method if there is some
+        relationship between two required fields.
+
+        :param tuple auth: Same as :meth:`create_raw`.
+        :return: Nothing. This method relies on side-effects.
+
+        """
+        for field_name, field in self.get_fields().items():
+            if field.required and field_name not in vars(self):
+                if isinstance(field, OneToOneField):
+                    value = field.get_value().create_json(auth)['id']
+                elif isinstance(field, OneToManyField):
+                    value = [field.get_value().create_json(auth)['id']]
+                else:
+                    value = field.get_value()
+                setattr(self, field_name, value)
+
+    def create_payload(self):
+        """Create a payload that can be POSTed to the server.
+
+        Make a copy of the instance attributes on ``self``. This payload will
+        be POSTed to the server. Then change the payload's keys. (The payload
+        is a dict.) Rename keys using ``self.Meta.api_names`` if it is present
+        and append "_id" and "_ids" as appropriate.
+
+        :return: A copy of the instance attributes on ``self``, with key names
+            adjusted as appropriate.
+        :rtype: dict
+
+        """
+        data = vars(self).copy()
+        api_names = getattr(self.Meta, 'api_names', {})
+        for field_name, field in type(self).get_fields().items():
+            if field_name in data:
+                if field_name in api_names:
+                    # e.g. rename filter_type to type for ContentViewFilter
+                    data[api_names[field_name]] = data.pop(field_name)
+                if isinstance(field, OneToOneField):
+                    data[field_name + '_id'] = data.pop(field_name)
+                elif isinstance(field, OneToManyField):
+                    data[field_name + '_ids'] = data.pop(field_name)
+        return data
+
+    def create_raw(self, auth=None, create_missing=True):
+        """Create an entity.
+
+        Generate values for required, unset fields by calling
+        :meth:`gen_missing`. Only do this if ``create_missing`` is true. Then
+        make an HTTP POST call to ``self.path('base')``. Return the response
+        received from the server.
+
+        :param tuple auth: A ``(username, password)`` pair to use when
+            communicating with the API. If ``None``, the credentials returned
+            by :func:`robottelo.common.helpers.get_server_credentials` are
+            used.
+        :param bool create_missing: Should :meth:`create_missing` be called? In
+            other words, should values be generated for required, empty fields?
+        :return: A ``requests.response`` object.
+
+        """
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        if create_missing:
+            self.create_missing(auth)
+        return client.post(
+            self.path('base'),
+            self.create_payload(),
+            auth=auth,
+            verify=False,
+        )
+
+    def create_json(self, auth=None, create_missing=True):
+        """Create an entity.
+
+        Call :meth:`create_raw`. Check the response status code, decode JSON
+        and return the decoded JSON as a dict.
+
+        :param tuple auth: Same as :meth:`create_raw`.
+        :return: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON can not be decoded.
+
+        """
+        response = self.create_raw(auth, create_missing)
+        response.raise_for_status()
+        return response.json()
+
+    def create(self, auth=None, create_missing=True):
+        """Call :meth:`create_json`.
+
+        This method exists for compatibility. It should be rewritten to match
+        to act like :meth:`EntityReadMixin.read` after existing code is changed
+        to use :meth:`create_json`.
+
+        """
+        return self.create_json(auth, create_missing)

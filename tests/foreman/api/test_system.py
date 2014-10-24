@@ -17,13 +17,16 @@ http://theforeman.org/api/apidoc/v2/systems.html
 """
 from requests.exceptions import HTTPError
 from robottelo.api import client
-from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System
 from unittest import TestCase
 import httplib
+import logging
 # (too-many-public-methods) pylint:disable=R0904
+
+
+logger = logging.getLogger(__name__)  # pylint:disable=C0103
 
 
 class EntityIdTestCaseClone(TestCase):
@@ -34,19 +37,14 @@ class EntityIdTestCaseClone(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        attrs = System().create()
-        path = System(uuid=attrs['uuid']).path()
+        system = System(uuid=System().create_json()['uuid'])
+        logger.debug('system uuid: {0}'.format(system.uuid))
         response = client.get(
-            path,
+            system.path(),
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = httplib.OK
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertEqual(httplib.OK, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_put_status_code(self):
@@ -55,19 +53,16 @@ class EntityIdTestCaseClone(TestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        path = System(uuid=System().create()['uuid']).path()
+        system = System(uuid=System().create_json()['uuid'])
+        logger.debug('system uuid: {0}'.format(system.uuid))
+        system.create_missing()
         response = client.put(
-            path,
-            System().attributes(),
+            system.path(),
+            system.create_payload(),
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = httplib.OK
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertEqual(httplib.OK, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_delete_status_code(self):
@@ -79,20 +74,18 @@ class EntityIdTestCaseClone(TestCase):
 
         """
         try:
-            attrs = System().create()
+            system = System(uuid=System().create_json()['uuid'])
         except HTTPError as err:
             self.fail(err)
-        path = System(uuid=attrs['uuid']).path()
+        logger.debug('system uuid: {0}'.format(system.uuid))
         response = client.delete(
-            path,
+            system.path(),
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
         self.assertIn(
             response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
+            (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
         )
 
         # According to RFC 2616, HTTP 204 responses "MUST NOT include a
@@ -110,7 +103,6 @@ class DoubleCheckTestCase(TestCase):
     action to ensure that the intended action was accomplished.
 
     """
-    longMessage = True
 
     @skip_if_bug_open('bugzilla', 1133097)
     def test_put_and_get(self):
@@ -119,29 +111,24 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The updated system has the correct attributes.
 
         """
-        path = System(uuid=System().create()['uuid']).path()
+        system = System(uuid=System().create_json()['uuid'])
+        logger.debug('system uuid: {0}'.format(system.uuid))
 
-        # Generate some attributes and use them to update a system.
-        gen_attrs = System().attributes()
+        # Generate some attributes and use them to update `system`.
+        system.create_missing()
         response = client.put(
-            path,
-            gen_attrs,
+            system.path(),
+            system.create_payload(),
             auth=get_server_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, httplib.OK, path)
+        self.assertEqual(response.status_code, httplib.OK)
 
         # Get the just-updated system and examine its attributes.
-        real_attrs = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        for key, value in gen_attrs.items():
-            self.assertIn(key, real_attrs.keys(), path)
-            self.assertEqual(
-                value, real_attrs[key], '{0} {1}'.format(key, path)
-            )
+        attrs = system.read_json()
+        for key, value in system.create_payload().items():
+            self.assertIn(key, attrs.keys())
+            self.assertEqual(value, attrs[key])
 
     @skip_if_bug_open('bugzilla', 1133097)
     def test_post_and_get(self):
@@ -150,30 +137,15 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The created system has the correct attributes.
 
         """
-        # Generate some attributes and use them to create a system.
-        gen_attrs = System().build()
-        response = client.post(
-            System().path(),
-            gen_attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        path = System(uuid=response.json()['uuid']).path()
-        self.assertIn(
-            response.status_code, (httplib.OK, httplib.CREATED), path
-        )
+        system = System()
+        system.uuid = system.create_json()['uuid']
+        logger.debug('system uuid: {0}'.format(system.uuid))
 
         # Get the just-created system and examine its attributes.
-        real_attrs = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        ).json()
-        for key, value in gen_attrs.items():
-            self.assertIn(key, real_attrs.keys(), path)
-            self.assertEqual(
-                value, real_attrs[key], '{0} {1}'.format(key, path)
-            )
+        attrs = system.read_json()
+        for key, value in system.create_payload().items():
+            self.assertIn(key, attrs.keys())
+            self.assertEqual(value, attrs[key])
 
     @skip_if_bug_open('bugzilla', 1133071)
     def test_delete_and_get(self):
@@ -183,21 +155,12 @@ class DoubleCheckTestCase(TestCase):
 
         """
         try:
-            attrs = System().create()
+            system = System(uuid=System().create_json()['uuid'])
         except HTTPError as err:
             self.fail(err)
-        System(uuid=attrs['uuid']).delete()
+        logger.debug('system uuid: {0}'.format(system.uuid))
+        system.delete()
 
         # Get the now non-existent system
-        path = System(uuid=attrs['uuid']).path()
-        response = client.get(
-            path,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        response = system.read_raw()
+        self.assertEqual(httplib.NOT_FOUND, response.status_code)

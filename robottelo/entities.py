@@ -9,7 +9,7 @@ attribute. For example, the ``Host.name`` class attribute corresponds to the
 Many of these classes contain an inner class named ``Meta``. This inner class
 contains any information about an entity that is not a field. That is, the
 inner class contains non-field information. This information is especially
-useful to :class:`robottelo.factory.EntityFactoryMixin`.
+useful to :class:`robottelo.orm.EntityCreateMixin`.
 
 """
 from datetime import datetime
@@ -20,7 +20,7 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import rm_bug_is_open
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
-from robottelo import factory, orm
+from robottelo import orm
 from time import sleep
 import httplib
 import random
@@ -34,7 +34,7 @@ class APIResponseError(Exception):
 
 class ActivationKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Activtion Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -110,7 +110,7 @@ class ActivationKey(
 
 class Architecture(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
@@ -121,23 +121,9 @@ class Architecture(
         server_modes = ('sat')
 
     # NOTE: See BZ 1151220
-    def create(self, auth=None, data=None):
-        """Extend the implementation of
-        :meth:`robottelo.factory.Factory.create`.
-
-        Clients must submit a nested hash of attributes when creating an
-        architecture. For example, this will not work correctly::
-
-            {'name': 'foo', 'operatingsystem_ids': [1, 2, 3]}
-
-        However, this will work correctly::
-
-            {'architecture': {'name': 'foo', 'operatingsystem_ids': [1, 2, 3]}}
-
-        """
-        if data is None:
-            data = {u'architecture': self.build(auth=auth)}
-        return super(Architecture, self).create(auth, data)
+    def create_payload(self):
+        """Wrap submitted data within an extra dict."""
+        return {u'architecture': super(Architecture, self).create_payload()}
 
     # NOTE: See BZ 1151240
     def read(self, auth=None, entity=None, attrs=None, ignore=()):
@@ -174,7 +160,7 @@ class Architecture(
 
 class AuthSourceLDAP(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a AuthSourceLDAP entity."""
     account = orm.StringField(null=True)
     attr_photo = orm.StringField(null=True)
@@ -192,23 +178,27 @@ class AuthSourceLDAP(
     attr_login = orm.StringField(null=True)
     attr_mail = orm.EmailField(null=True)
 
-    def _factory_data(self):
-        """Customize the data provided to :class:`robottelo.factory.Factory`.
+    def create_missing(self, auth=None):
+        """Possibly set several extra instance attributes.
 
-        If ``onthefly_register is True``, several other fields must also be
-        filled in.
+        If ``onthefly_register`` is set and is true, set the following instance
+        attributes:
+
+        * account_password
+        * account_firstname
+        * account_lastname
+        * attr_login
+        * attr_mail
 
         """
-        values = super(AuthSourceLDAP, self)._factory_data()
+        super(AuthSourceLDAP, self).create_missing(auth)
         cls = type(self)
-        if ('onthefly_register' in values.keys() and
-                values['ontheflyregister'] is True):
-            values['account_password'] = cls.account_password.get_value()
-            values['attr_firstname'] = cls.attr_firstname.get_value()
-            values['attr_lastname'] = cls.attr_lastname.get_value()
-            values['attr_login'] = cls.attr_login.get_value()
-            values['attr_mail'] = cls.attr_mail.get_value()
-        return values
+        if vars(self).get('onthefly_register', False) is True:
+            self.account_password = cls.account_password.get_value()
+            self.attr_firstname = cls.attr_firstname.get_value()
+            self.attr_lastname = cls.attr_lastname.get_value()
+            self.attr_login = cls.attr_login.get_value()
+            self.attr_mail = cls.attr_mail.get_value()
 
     def read(
             self,
@@ -274,7 +264,7 @@ class ComputeAttribute(orm.Entity):
 
 class ComputeProfile(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Compute Profile entity."""
     name = orm.StringField(required=True)
 
@@ -286,7 +276,7 @@ class ComputeProfile(
 
 class ComputeResource(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Compute Resource entity."""
     description = orm.StringField(null=True)
     # `name` cannot contain whitespace. Thus, the chosen string types.
@@ -310,28 +300,29 @@ class ComputeResource(
         api_path = 'api/v2/compute_resources'
         server_modes = ('sat')
 
-    def _factory_data(self):
-        """Customize the data provided to :class:`robottelo.factory.Factory`.
+    def create_missing(self, auth=None):
+        """Customize the process of auto-generating instance attributes.
 
         Depending upon the value of ``self.provider``, various other fields are
         filled in with values too.
 
         """
-        values = super(ComputeResource, self)._factory_data()
+        super(ComputeResource, self).create_missing(auth)
         cls = type(self)
-        provider = values['provider']
+
         # Generate required fields according to the provider. First check if
         # the field is already set by the user, if not generate a random value
+        provider = vars(self)['provider']
         if provider == 'EC2' or provider == 'Ovirt' or provider == 'Openstack':
             for field in ('name', 'password', 'user'):
-                if values.get(field) is None:
-                    values[field] = getattr(cls, field).get_value()
+                if field not in vars(self):
+                    setattr(self, field, getattr(cls, field).get_value())
         elif provider == 'GCE':
-            if values.get('name') is None:
-                values['name'] = cls.name.get_value()
-            # values['email'] = cls.email.get_value()
-            # values['key_path'] = cls.key_path.get_value()
-            # values['project'] = cls.project.get_value()
+            if 'name' not in vars(self):
+                self.name = cls.name.get_value()
+            # self.email = cls.email.get_value()
+            # self.key_path = cls.key_path.get_value()
+            # self.project = cls.project.get_value()
             #
             # FIXME: These three pieces of data are required. However, the API
             # docs don't even mention their existence!
@@ -340,8 +331,8 @@ class ComputeResource(
             # 2. Uncomment the above.
             # 3. File an issue on bugzilla asking for the docs to be expanded.
         elif provider == 'Libvirt':
-            if values.get('name') is None:
-                values['name'] = cls.name.get_value()
+            if 'name' not in vars(self):
+                self.name = cls.name.get_value()
         elif provider == 'Rackspace':
             # FIXME: Foreman always returns this error:
             #
@@ -352,9 +343,8 @@ class ComputeResource(
             pass
         elif provider == 'Vmware':
             for field in ('name', 'password', 'user', 'uuid'):
-                if values.get(field) is None:
-                    values[field] = getattr(cls, field).get_value()
-        return values
+                if field not in vars(self):
+                    setattr(self, field, getattr(cls, field).get_value())
 
 
 class ConfigGroup(orm.Entity):
@@ -369,7 +359,7 @@ class ConfigGroup(orm.Entity):
 
 class ConfigTemplate(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Config Template entity."""
     audit_comment = orm.StringField(null=True)
     locked = orm.BooleanField(null=True)
@@ -386,34 +376,31 @@ class ConfigTemplate(
         api_path = 'api/v2/config_templates'
         server_modes = ('sat')
 
-    def _factory_data(self):
-        """Customize the data provided to :class:`robottelo.factory.Factory`.
+    def create_missing(self, auth=None):
+        """Customize the process of auto-generating instance attributes.
 
         Populate ``template_kind`` if:
 
         * this template is not a snippet, and
-        * ``template_kind`` has no value.
+        * the ``template_kind`` instance attribute is unset.
 
         """
-        values = super(ConfigTemplate, self)._factory_data()
-        if 'snippet' in values.keys() and values['snippet'] is False:
+        super(ConfigTemplate, self).create_missing(auth)
+        if (vars(self).get('snippet') is False and
+                'template_kind' not in vars(self)):
             # A server is pre-populated with exactly eight template kinds. We
-            # cannot just create a new template kind on the fly, which would be
-            # preferred.
-            values.setdefault(
-                'template_kind_id',
-                random.choice(
-                    range(1, TemplateKind.Meta.NUM_CREATED_BY_DEFAULT + 1)
-                )
+            # use one of those instead of creating a new one on the fly.
+            self.template_kind = random.randint(
+                1,
+                TemplateKind.Meta.NUM_CREATED_BY_DEFAULT
             )
-        return values
 
     # NOTE: See BZ 1151220
-    def create(self, auth=None, data=None):
+    def create_payload(self):
         """Wrap submitted data within an extra dict."""
-        if data is None:
-            data = {u'config_template': self.build(auth=auth)}
-        return super(ConfigTemplate, self).create(auth, data)
+        return {
+            u'config_template': super(ConfigTemplate, self).create_payload()
+        }
 
 
 class ContentUpload(orm.Entity):
@@ -523,7 +510,7 @@ class ContentViewFilter(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('filter_type', 'type'),)
+        api_names = {'filter_type': 'type'}
         api_path = 'katello/api/v2/content_view_filters'
         # Alternative path
         #
@@ -547,7 +534,7 @@ class ContentViewPuppetModule(orm.Entity):
 
 class ContentView(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Content View entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -676,7 +663,7 @@ class CustomInfo(orm.Entity):
 
 class Domain(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Domain entity."""
     domain_parameters_attributes = orm.ListField(null=True)
     fullname = orm.StringField(null=True)
@@ -685,8 +672,8 @@ class Domain(
     # FIXME figure out related resource
     # dns = orm.OneToOneField(null=True)
 
-    def _factory_data(self):
-        """Customize the data provided to :class:`robottelo.factory.Factory`.
+    def create_missing(self, auth=None):
+        """Customize the process of auto-generating instance attributes.
 
         By default, :meth:`robottelo.orm.URLField.get_value` does not return
         especially unique values. This is problematic, as all domain names must
@@ -695,7 +682,7 @@ class Domain(
         """
         if 'name' not in vars(self):
             self.name = gen_alphanumeric().lower()
-        return super(Domain, self)._factory_data()
+        super(Domain, self).create_missing(auth)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -705,7 +692,7 @@ class Domain(
 
 class Environment(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Environment entity."""
     name = orm.StringField(
         required=True,
@@ -730,7 +717,7 @@ class Errata(orm.Entity):
 
 class Filter(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Filter entity."""
     role = orm.OneToOneField('Role', required=True)
     search = orm.StringField(null=True)
@@ -812,7 +799,7 @@ def _gpgkey_content():
 
 class GPGKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a GPG Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     location = orm.OneToOneField('Location', null=True)
@@ -865,7 +852,7 @@ class HostCollectionPackage(orm.Entity):
 
 class HostCollection(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Host Collection entity."""
     description = orm.StringField()
     max_content_hosts = orm.IntegerField()
@@ -893,7 +880,7 @@ class HostGroupClasses(orm.Entity):
         server_modes = ('sat')
 
 
-class HostGroup(orm.Entity, factory.EntityFactoryMixin):
+class HostGroup(orm.Entity, orm.EntityCreateMixin):
     """A representation of a Host Group entity."""
     name = orm.StringField(required=True)
     parent = orm.OneToOneField('HostGroup', null=True)
@@ -918,7 +905,7 @@ class HostGroup(orm.Entity, factory.EntityFactoryMixin):
 
 class Host(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Host entity."""
     architecture = orm.OneToOneField('Architecture', null=True, required=True)
     build_ = orm.BooleanField(null=True)
@@ -960,12 +947,12 @@ class Host(
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('build_', 'build'),)
+        api_names = {'build_': 'build'}
         api_path = 'api/v2/hosts'
         server_modes = ('sat')
 
-    def _factory_data(self):
-        """Extend :meth:`robottelo.factory.Factory._factory_data`.
+    def create_missing(self, auth=None):
+        """Customize the process of auto-generating instance attributes.
 
         A host's dependency graph must, in part, look like this::
 
@@ -978,9 +965,12 @@ class Host(
         This is complicated by the fact that the user might provide values for
         any number of fields, it is impossible to create a bogus smart proxy,
         some links are optional and the links are a combination of one-to-one
-        and one-to-many. This method will create a dependent architecture,
-        operating system, partition table and medium **only if all four fields
-        are unset.**
+        and one-to-many. This method will:
+
+        * create a dependent architecture, operating system, partition table
+          and medium if all four instance attributes are unset, and
+        * make this host point at an existing puppet proxy if the
+          ``puppet_proxy`` instance attribute is unset.
 
         """
         attrs = vars(self)
@@ -1005,14 +995,12 @@ class Host(
             )
             response.raise_for_status()
             self.puppet_proxy = response.json()['results'][0]['id']
-        return super(Host, self)._factory_data()
+        super(Host, self).create_missing(auth)
 
     # NOTE: See BZ 1151220
-    def create(self, auth=None, data=None):
+    def create_payload(self):
         """Wrap submitted data within an extra dict."""
-        if data is None:
-            data = {u'host': self.build(auth=auth)}
-        return super(Host, self).create(auth, data)
+        return {u'host': super(Host, self).create_payload()}
 
 
 class Image(orm.Entity):
@@ -1047,78 +1035,75 @@ class Interface(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('interface_type', 'type'),)
+        api_names = {'interface_type': 'type'}
         api_path = 'api/v2/hosts/:host_id/interfaces'
         server_modes = ('sat')
 
 
 class LifecycleEnvironment(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Lifecycle Environment entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    name = orm.StringField(required=True)
     description = orm.StringField()
-    # A prior environment in a tree of lifecycle environments. The root of the
-    # tree has name of 'Library' and no value in this field.
-    # FIXME: This field is not required. Remove `required` and update other
-    # methods to deal with the change.
-    prior = orm.OneToOneField('LifecycleEnvironment', required=True)
+    name = orm.StringField(required=True)
+    organization = orm.OneToOneField('Organization', required=True)
+    prior = orm.OneToOneField('LifecycleEnvironment')
+    # NOTE: The "prior" field is unusual. See the `create_missing` docstring.
 
-    def _factory_data(self):
-        """Extend the default implementation of
-        :meth:`robottelo.factory.EntityFactoryMixin._factory_data`.
+    def create_payload(self):
+        """Rename the payload key "prior_id" to "prior".
 
-        Since a ``LifecycleEnvironment`` can be associated to another instance
-        of a ``LifecycleEnvironment`` via the ``prior`` field, the expected
-        foreignkey is not ``prior_id`` as expected, but ``prior``. Therefore, we
-        must update the entity's fields and make sure that we have a ``prior``
-        attribute before any further actions can be performed.
+        A ``LifecycleEnvironment`` can be associated to another instance of a
+        ``LifecycleEnvironment``. Unusually, this relationship is represented
+        via the ``prior`` field, not ``prior_id``.
 
         """
-        lc_attrs = super(LifecycleEnvironment, self)._factory_data()
-        # Add ``prior`` back into the fields
-        lc_attrs['prior'] = lc_attrs.pop('prior_id')
-        return lc_attrs
+        data = super(LifecycleEnvironment, self).create_payload()
+        data['prior'] = data.pop('prior_id')
+        return data
 
-    def build(self, auth=None):
+    def create_missing(self, auth=None):
         """Extend the implementation of :meth:`robottelo.factory.Factory.build`.
 
         When a new lifecycle environment is created, it must either:
 
-        * Reference some other lifecycle environment via the "prior" field.
-        * Have a name of "Library". Note that within a given organization, there
-          can only be a single lifecycle environment with a name of "Library".
+        * Reference a parent lifecycle environment in the tree of lifecycle
+          environments via the ``prior`` field.
+        * Have a name of "Library".
 
-        This method does the following:
+        Within a given organization, there can only be a single lifecycle
+        environment with a name of 'Library'. This lifecycle environment is at
+        the root of a tree of lifecycle environments, so its ``prior`` field is
+        blank.
 
-        1. If this entity does not yet point to an organization (i.e. if
-           ``self.organization is None``), an organization is created.
-        2. If this entity does not yet point to another lifecycle entity (i.e.
-           if ``self.prior is None``), the "Library" lifecycle environment for
-           this lifecycle environment's organization is found and used.
+        This method finds the 'Library' lifecycle environment within the
+        current organization and points to it via the ``prior`` field. This is
+        not done if the current lifecycle environment has a name of 'Library'.
 
         """
-        if 'organization' not in vars(self):
-            self.organization = Organization().create(auth=auth)['id']
-        if 'prior' not in vars(self):
-            query_results = client.get(
-                self.path(),
-                auth=get_server_credentials(),
+        # Create self.name and self.organization if missing.
+        super(LifecycleEnvironment, self).create_missing(auth)
+        if auth is None:
+            auth = get_server_credentials()
+        if self.name != 'Library' and 'prior' not in vars(self):
+            response = client.get(
+                self.path('base'),
+                auth=auth,
                 verify=False,
                 data={
-                    u'name': 'Library',
+                    u'name': u'Library',
                     u'organization_id': self.organization,
                 }
-            ).json()['results']
-            if len(query_results) != 1:
+            )
+            response.raise_for_status()
+            results = response.json()['results']
+            if len(results) != 1:
                 raise APIResponseError(
                     'Could not find the "Library" lifecycle environment for '
-                    'organization {0}. Search returned {1} results.'
-                    ''.format(self.organization, len(query_results))
+                    'organization {0}. Search results: {1}'
+                    .format(self.organization, results)
                 )
-            self.prior = query_results[0]['id']
-        return super(LifecycleEnvironment, self).build(auth)
+            self.prior = results[0]['id']
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1126,7 +1111,7 @@ class LifecycleEnvironment(
         server_modes = ('sat')
 
 
-class Location(orm.Entity, factory.EntityFactoryMixin):
+class Location(orm.Entity, orm.EntityCreateMixin):
     """A representation of a Location entity."""
     name = orm.StringField(required=True)
 
@@ -1138,7 +1123,7 @@ class Location(orm.Entity, factory.EntityFactoryMixin):
 
 class Media(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Media entity."""
     media_path = orm.URLField(required=True)
     name = orm.StringField(required=True)
@@ -1148,8 +1133,8 @@ class Media(
         'Solaris', 'Suse', 'Windows',
     ), null=True)
 
-    def _factory_data(self):
-        """Customize the data provided to :class:`robottelo.factory.Factory`.
+    def create_missing(self, auth=None):
+        """Give the 'media_path' instance attribute a value if it is unset.
 
         By default, :meth:`robottelo.orm.URLField.get_value` does not return
         especially unique values. This is problematic, as all media must have a
@@ -1158,26 +1143,12 @@ class Media(
         """
         if 'media_path' not in vars(self):
             self.media_path = gen_url(subdomain=gen_alpha())
-        return super(Media, self)._factory_data()
+        return super(Media, self).create_missing(auth)
 
     # NOTE: See BZ 1151220
-    def create(self, auth=None, data=None):
-        """Extend the implementation of
-        :meth:`robottelo.factory.Factory.create`.
-
-        Clients must submit a nested hash of attributes when creating a
-        media. For example, this will not work correctly::
-
-            {'name': 'foo', 'operatingsystem_ids': [1, 2, 3]}
-
-        However, this will work correctly::
-
-            {'medium': {'name': 'foo', 'operatingsystem_ids': [1, 2, 3]}}
-
-        """
-        if data is None:
-            data = {u'medium': self.build(auth=auth)}
-        return super(Media, self).create(auth, data)
+    def create_payload(self):
+        """Wrap submitted data within an extra dict."""
+        return {u'medium': super(Media, self).create_payload()}
 
     # NOTE: See BZ 1151240
     def read(self, auth=None, entity=None, attrs=None, ignore=()):
@@ -1214,13 +1185,13 @@ class Media(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/media'
-        api_names = (('media_path', 'path'),)
+        api_names = {'media_path': 'path'}
         server_modes = ('sat')
 
 
 class Model(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Model entity."""
     name = orm.StringField(required=True)
     info = orm.StringField(null=True)
@@ -1235,7 +1206,7 @@ class Model(
 
 class OperatingSystem(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
@@ -1262,39 +1233,24 @@ class OperatingSystem(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/operatingsystems'
-        api_names = (
-            ('media_ids', 'media'),
-            ('ptable_ids', 'ptables'),
-            ('architecture_ids', 'architectures'),
-        )
+        api_names = {
+            'architecture_ids': 'architectures',
+            'media_ids': 'media',
+            'ptable_ids': 'ptables',
+        }
         server_modes = ('sat')
 
     # NOTE: See BZ 1151220
-    def create(self, auth=None, data=None):
-        """Extend the implementation of
-        :meth:`robottelo.factory.Factory.create`.
-
-        Clients must submit a nested hash of attributes when creating an
-        operating system that points to an architecture or partition table.
-        For example, this will not work correctly::
-
-            {'name': 'foo', 'ptable_ids': [1, 2], 'architecture_ids': [2, 3]}
-
-        However, this will work correctly::
-
-            {'operatingsystem': {
-                'name': 'foo', 'ptable_ids': [1, 2], 'architecture_ids': [2, 3]
-            }}
-
-        """
-        if data is None:
-            data = {u'operatingsystem': self.build(auth=auth)}
-        return super(OperatingSystem, self).create(auth, data)
+    def create_payload(self):
+        """Wrap submitted data within an extra dict."""
+        return {
+            u'operatingsystem': super(OperatingSystem, self).create_payload()
+        }
 
 
 class OperatingSystemParameter(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a parameter for an operating system."""
     name = orm.StringField(required=True)
     value = orm.StringField(required=True)
@@ -1346,7 +1302,7 @@ class OrganizationDefaultInfo(orm.Entity):
 
 class Organization(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
     label = orm.StringField(str_type=('alpha',))
@@ -1660,7 +1616,7 @@ class Ping(orm.Entity):
 
 class Product(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Product entity."""
     organization = orm.OneToOneField('Organization', required=True)
     location = orm.OneToOneField('Location', null=True)
@@ -1833,7 +1789,7 @@ class Product(
 
 class PartitionTable(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Partition Table entity."""
     name = orm.StringField(required=True)
     layout = orm.StringField(required=True)
@@ -1888,7 +1844,7 @@ class Report(orm.Entity):
 
 class Repository(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Repository entity."""
     checksum_type = orm.StringField(choices=('sha1', 'sha256'))
     content_type = orm.StringField(
@@ -2021,7 +1977,7 @@ class RoleLDAPGroups(orm.Entity):
 
 class Role(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(
@@ -2075,7 +2031,7 @@ class Status(orm.Entity):
 
 class Subnet(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a Subnet entity."""
     dns_primary = orm.IPAddressField(null=True)
     dns_secondary = orm.IPAddressField(null=True)
@@ -2096,7 +2052,7 @@ class Subnet(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/subnets'
-        api_names = (('from_', 'from'),)
+        api_names = {'from_': 'from'}
         server_modes = ('sat')
 
 
@@ -2113,7 +2069,7 @@ class Subscription(orm.Entity):
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_names = (('pool_uuid', 'id'),)
+        api_names = {'pool_uuid': 'id'}
         api_path = 'katello/api/v2/subscriptions/:id'
         # Alternative paths.
         #
@@ -2158,7 +2114,7 @@ class SystemPackage(orm.Entity):
 
 class System(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a System entity."""
     content_view = orm.OneToOneField('ContentView')
     description = orm.StringField()
@@ -2252,7 +2208,7 @@ class UserGroup(orm.Entity):
 
 class User(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        factory.EntityFactoryMixin):
+        orm.EntityCreateMixin):
     """A representation of a User entity.
 
     The LDAP authentication source with an ID of 1 is internal. It is nearly
@@ -2283,8 +2239,6 @@ class User(
         server_modes = ('sat', 'sam')
 
     # NOTE: See BZ 1151220
-    def create(self, auth=None, data=None):
+    def create_payload(self):
         """Wrap submitted data within an extra dict."""
-        if data is None:
-            data = {u'user': self.build(auth=auth)}
-        return super(User, self).create(auth, data)
+        return {u'user': super(User, self).create_payload()}
