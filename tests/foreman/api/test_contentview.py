@@ -6,6 +6,7 @@ from robottelo.api import client
 from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)
 from robottelo.common.helpers import get_server_credentials
+from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo import entities
 from unittest import TestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -209,6 +210,12 @@ class ContentViewPublishTestCase(TestCase):
         )
         self.yum_repo.sync()
 
+        self.puppet_repo = entities.Repository(
+            id=entities.Repository(product=self.product['id'],
+                                   content_type='puppet').create()['id']
+        )
+        self.puppet_repo.upload(PUPPET_MODULE_NTP_PUPPETLABS)
+
     def test_positive_publish_1(self):
         """@Test: Publish empty content view once.
 
@@ -315,6 +322,61 @@ class ContentViewPublishTestCase(TestCase):
             cv_ver = entities.ContentViewVersion(id=version['id']).read_json()
             self.assertGreater(cv_ver['package_count'], 0)
 
+    def test_positive_publish_5(self):
+        """@Test: Publish content view with one puppet module once.
+
+        @Assert: Content-view is published once and has one version and one
+        puppet module.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        puppet_module = content_view.available_puppet_modules()['results'][0]
+
+        content_view.add_puppet_module(puppet_module['author'],
+                                       puppet_module['name'])
+
+        response = _publish({'id': content_view.id})
+        self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['versions']), 1)
+        self.assertEqual(len(cv_info['puppet_modules']), 1)
+
+    def test_positive_publish_6(self):
+        """@Test: Publish content view with one puppet module random times.
+
+        @Assert: Content-view is published n-times and has n versions.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        puppet_module = content_view.available_puppet_modules()['results'][0]
+
+        content_view.add_puppet_module(puppet_module['author'],
+                                       puppet_module['name'])
+
+        repeat = gen_integer(2, 5)
+        for _ in range(0, repeat):
+            response = _publish({'id': content_view.id})
+            self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['versions']), repeat)
+        self.assertEqual(len(cv_info['puppet_modules']), 1)
+
+        for version in cv_info['versions']:
+            cv_ver = entities.ContentViewVersion(id=version['id']).read_json()
+            self.assertEqual(len(cv_ver['puppet_modules']), 1)
+
 
 @ddt
 class ContentViewPromoteTestCase(TestCase):
@@ -334,6 +396,12 @@ class ContentViewPromoteTestCase(TestCase):
             id=entities.Repository(product=self.product['id']).create()['id']
         )
         self.yum_repo.sync()
+
+        self.puppet_repo = entities.Repository(
+            id=entities.Repository(product=self.product['id'],
+                                   content_type='puppet').create()['id']
+        )
+        self.puppet_repo.upload(PUPPET_MODULE_NTP_PUPPETLABS)
 
     def test_positive_promote_1(self):
         """@Test: Publish and promote empty content view once.
@@ -489,6 +557,85 @@ class ContentViewPromoteTestCase(TestCase):
             id=cv_info['versions'][0]['id']).read_json()
         self.assertEqual(len(cv_version['environments']), repeat+1)
         self.assertGreater(cv_version['package_count'], 0)
+
+    def test_positive_promote_5(self):
+        """@Test: Publish and promote content view with one puppet module once.
+
+        @Assert: Content-view is published, and was promoted to
+        Library + 1 environment, and has one version and one puppet module.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        puppet_module = content_view.available_puppet_modules()['results'][0]
+
+        content_view.add_puppet_module(puppet_module['author'],
+                                       puppet_module['name'])
+
+        response = _publish({'id': content_view.id})
+        self.assertEqual(response, u'success')
+
+        lifecycle_env = entities.LifecycleEnvironment(
+            organization=self.org['id']
+        ).create()
+
+        response = _promote({'id': content_view.id}, lifecycle_env, 0)
+        self.assertEqual(response, u'success')
+
+        cv_info = entities.ContentView(id=content_view['id']).read_json()
+        self.assertEqual(len(cv_info['versions']), 1)
+        self.assertEqual(len(cv_info['puppet_modules']), 1)
+
+        cv_ver = entities.ContentViewVersion(
+            id=cv_info['versions'][0]['id']).read_json()
+        self.assertEqual(len(cv_ver['environments']), 2)
+        self.assertEqual(len(cv_ver['puppet_modules']), 1)
+
+    def test_positive_promote_6(self):
+        """@Test: Publish and promote content view with one puppet module
+        random times.
+
+        @Assert: Content-view is published once and promoted n-times, has one
+        version and was promoted to Library + random > 1 environments.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(
+            id=entities.ContentView(organization=self.org['id']).create()['id']
+        )
+
+        puppet_module = content_view.available_puppet_modules()['results'][0]
+
+        content_view.add_puppet_module(puppet_module['author'],
+                                       puppet_module['name'])
+
+        response = _publish({'id': content_view.id})
+        self.assertEqual(response, u'success')
+
+        # Promote it to random lifecycle
+        repeat = gen_integer(2, 5)
+        for _ in range(0, repeat):
+            # Create new lifecycle environment
+            lifecycle = entities.LifecycleEnvironment(
+                organization=self.org['id']
+            ).create()
+            # Promote
+            response = _promote({'id': content_view.id}, lifecycle, 0)
+            self.assertEqual(response, u'success')
+
+        cv_info = content_view.read_json()
+        self.assertEqual(len(cv_info['puppet_modules']), 1)
+        self.assertEqual(len(cv_info['versions']), 1)
+
+        cv_ver = entities.ContentViewVersion(
+            id=cv_info['versions'][0]['id']).read_json()
+        self.assertEqual(len(cv_ver['environments']), repeat+1)
+        self.assertEqual(len(cv_ver['puppet_modules']), 1)
 
 
 @ddt
