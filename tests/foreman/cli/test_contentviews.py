@@ -315,7 +315,6 @@ class TestContentView(CLITestCase):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here")
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
@@ -523,7 +522,6 @@ class TestContentView(CLITestCase):
         self.assertEqual(
             len(result_rl.stderr), 0, "No error was expected")
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_associate_view_custom_content(self):
         """@test: associate Red Hat content in a view
 
@@ -589,7 +587,6 @@ class TestContentView(CLITestCase):
             "Repo was not associated to CV"
         )
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
         """@test: attempt to associate puppet repos within a custom
@@ -636,7 +633,6 @@ class TestContentView(CLITestCase):
         self.assertGreater(
             len(result.stderr), 0, "Error was expected")
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_components_composite_negative(self):
         """@test: attempt to associate components in a non-composite
         content view
@@ -713,7 +709,6 @@ class TestContentView(CLITestCase):
                 }
             )
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_composite_dupe_repos_negative(self):
         """@test: attempt to associate the same repo multiple times within a
         content view
@@ -801,7 +796,6 @@ class TestContentView(CLITestCase):
                 "No new entry of same repo is expected")
 
     @skip_if_bug_open('bugzilla', 1089905)
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@test: attempt to associate duplicate puppet module(s) within a
         content view
@@ -887,6 +881,7 @@ class TestContentView(CLITestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
+    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_rh(self):
         """@test: attempt to promote a content view containing RH content
 
@@ -895,6 +890,8 @@ class TestContentView(CLITestCase):
         @setup: Multiple environments for an org; RH content synced
 
         @assert: Content view can be promoted
+
+        @bz: 1156629
 
         """
         self.create_rhel_content()
@@ -965,7 +962,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @skip_if_bug_open('bugzilla', 1127408)
+    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_custom_content(self):
         """@test: attempt to promote a content view containing custom content
 
@@ -974,6 +971,8 @@ class TestContentView(CLITestCase):
         @setup: Multiple environments for an org; custom content synced
 
         @assert: Content view can be promoted
+
+        @bz: 1156629
 
         """
 
@@ -1024,11 +1023,12 @@ class TestContentView(CLITestCase):
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
-                         self.env1['id'],
-                         "Promotion of version not successful to the env")
+        self.assertIn(
+            {u'id': self.env1['id'], u'name': self.env1['name']},
+            result.stdout['lifecycle-environments'],
+        )
 
-    @skip_if_bug_open('bugzilla', 1127408)
+    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -1043,6 +1043,8 @@ class TestContentView(CLITestCase):
         @steps: create a composite view containing multiple content types
 
         @assert: Content view can be promoted
+
+        @bz: 1156629
 
         """
 
@@ -1126,9 +1128,10 @@ class TestContentView(CLITestCase):
         result = ContentView.info({u'id': con_view['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['lifecycle-environments'][1]['id'],
-                         self.env1['id'],
-                         "Promotion of version not successful to the env")
+        self.assertIn(
+            {u'id': self.env1['id'], u'name': self.env1['name']},
+            result.stdout['lifecycle-environments'],
+        )
 
     def test_cv_promote_defaultcv_negative(self):
         """@test: attempt to promote the default content views
@@ -1164,6 +1167,7 @@ class TestContentView(CLITestCase):
                            "There should be an exception here.")
 
     @skip_if_bug_open('bugzilla', 1091494)
+    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_badenvironment_negative(self):
         """@test: attempt to promote a content view using an invalid environment
 
@@ -1171,7 +1175,7 @@ class TestContentView(CLITestCase):
 
         @assert: Content views cannot be promoted; handled gracefully
 
-        @BZ: 1091494
+        @BZ: 1091494, 1156629
 
         """
 
@@ -1282,7 +1286,6 @@ class TestContentView(CLITestCase):
 
         """
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_publish_custom_content(self):
         """@test: attempt to publish a content view containing custom content
 
@@ -1333,7 +1336,6 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.stdout['versions'][0]['version'], u'1',
                          "Publishing new version of CV was not successful")
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_publish_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -1428,7 +1430,6 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.stdout['versions'][0]['version'], u'1',
                          "Publishing new version of CV was not successful")
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_publish_version_changes_in_target_env(self):
         # Dev notes:
         # If Dev has version x, then when I promote version y into
@@ -1566,7 +1567,6 @@ class TestContentView(CLITestCase):
                          self.env1['id'],
                          "Promotion of version2 not successful to the env")
 
-    @skip_if_bug_open('bugzilla', 1127408)
     def test_cv_publish_version_changes_in_source_env(self):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
