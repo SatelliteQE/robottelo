@@ -340,8 +340,7 @@ class OperatingSys(UITestCase):
 
         os_name = entities.OperatingSystem().create()['name']
         arch_name = entities.Architecture().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             self.operatingsys.update(os_name, test_data['new_name'],
                                      test_data['new_major_version'],
                                      test_data['new_minor_version'],
@@ -366,8 +365,7 @@ class OperatingSys(UITestCase):
             media_path=path,
         ).create()
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             self.operatingsys.update(os_name, new_mediums=[medium_name])
             result_obj = self.operatingsys.get_os_entities(os_name, "medium")
             self.assertEqual(medium_name, result_obj['medium'])
@@ -390,8 +388,7 @@ class OperatingSys(UITestCase):
             layout=layout,
         ).create()
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             self.operatingsys.update(os_name, new_ptables=[ptable])
             result_obj = self.operatingsys.get_os_entities(os_name, "ptable")
             self.assertEqual(ptable, result_obj['ptable'])
@@ -413,8 +410,7 @@ class OperatingSys(UITestCase):
             name=template_name,
             operatingsystem=[os_attrs['id']]
         ).create()
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             self.operatingsys.update(os_name, template=template_name)
             result_obj = self.operatingsys.get_os_entities(os_name, "template")
             self.assertEqual(template_name, result_obj['template'])
@@ -431,8 +427,7 @@ class OperatingSys(UITestCase):
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
@@ -451,8 +446,7 @@ class OperatingSys(UITestCase):
         param_name = gen_string("alpha", 4)
         param_value = ""
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
@@ -471,8 +465,7 @@ class OperatingSys(UITestCase):
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
@@ -494,8 +487,7 @@ class OperatingSys(UITestCase):
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
@@ -520,8 +512,7 @@ class OperatingSys(UITestCase):
         param_name = " "
         param_value = " "
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
@@ -542,8 +533,7 @@ class OperatingSys(UITestCase):
         param_name = gen_string("alpha", 256)
         param_value = gen_string("alpha", 256)
         os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
                                                    param_value)
