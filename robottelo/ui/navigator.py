@@ -171,15 +171,16 @@ class Navigator(Base):
             menu_locators['menu.hosts'], menu_locators['menu.all_hosts'],
         )
 
-    def go_to_registered_systems(self):
+    def go_to_content_hosts(self):
         self.menu_click(
             menu_locators['menu.hosts'],
-            menu_locators['menu.registered_systems'],
+            menu_locators['menu.content_hosts'],
         )
 
-    def go_to_system_groups(self):
+    def go_to_host_collections(self):
         self.menu_click(
-            menu_locators['menu.hosts'], menu_locators['menu.system_groups'],
+            menu_locators['menu.hosts'],
+            menu_locators['menu.host_collections'],
         )
 
     def go_to_operating_systems(self):

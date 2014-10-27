@@ -116,14 +116,14 @@ menu_locators = {
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@id='menu_item_hosts']")),
-    "menu.registered_systems": (
+    "menu.content_hosts": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='menu_item_systems']")),
-    "menu.system_groups": (
+         "//a[@id='menu_item_content_hosts']")),
+    "menu.host_collections": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='menu_item_system_groups']")),
+         "//a[@id='menu_item_host_collections']")),
     "menu.operating_systems": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
@@ -464,6 +464,8 @@ tab_locators = {
         By.XPATH, "//button[@ng-click='addHostCollections()']"),
     "ak.host_collections.list": (
         By.XPATH, "//a[contains(@ui-sref, 'host-collections.list')]"),
+    "ak.associations": (
+        By.XPATH, "//ul/li[@class='dropdown']/a"),
 
     # Manifest / subscriptions
     "subs.tab_details": (
@@ -1151,6 +1153,12 @@ locators = {
         By.XPATH,
         ("//form[@alch-edit-select='activationKey.content_view.name']"
          "//div[@class='alch-edit']/div/span[2]")),
+    "ak.content_hosts": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'content-hosts')]"),
+    "ak.content_host_name": (
+        By.XPATH,
+        "//tr[@ng-repeat='contentHost in contentHosts']/td/a"),
 
     # Sync Status
     "sync.prd_expander": (

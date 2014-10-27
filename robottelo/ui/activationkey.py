@@ -248,3 +248,26 @@ class ActivationKey(Base):
         else:
             raise UINoSuchElementError("Couldn't find activation key '%s'" %
                                        name)
+
+    def fetch_associated_content_host(self, name):
+        """
+        Fetch associated content host from selected activation key
+        """
+
+        # find activation key
+        activation_key = self.search_key(name)
+        if not activation_key:
+            raise UINoSuchElementError(
+                'Could not find activation key {0}'.format(name))
+        activation_key.click()
+        self.wait_for_ajax()
+        self.wait_until_element(tab_locators["ak.associations"]).click()
+        self.wait_for_ajax()
+        self.wait_until_element(locators["ak.content_hosts"]).click()
+        self.wait_for_ajax()
+        if self.wait_until_element(locators["ak.content_host_name"]):
+            result = self.find_element(locators["ak.content_host_name"]).text
+            return result
+        else:
+            raise UINoSuchElementError(
+                "Couldn't get text attribute of content host locator")
