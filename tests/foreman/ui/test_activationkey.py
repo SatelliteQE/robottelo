@@ -13,7 +13,6 @@ from fauxfactory import gen_string, gen_integer
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.api import client
-from robottelo.common import conf
 from robottelo.common.constants import (
     ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
@@ -553,13 +552,12 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element
                                  (common_locators["alert.success"]))
             # Create VM
-            server_name = conf.properties['main.server.hostname']
             vm = VirtualMachine(distro='rhel65')
             vm.create()
             # Install rpm
             result = vm.run(
                 'rpm -i http://{0}/pub/katello-ca-consumer-'
-                '{0}-1.0-1.noarch.rpm'.format(server_name)
+                '{0}-1.0-1.noarch.rpm'.format(self.server_name)
             )
             self.assertEqual(
                 result.return_code, 0,
@@ -918,7 +916,8 @@ class ActivationKey(UITestCase):
                              "Please update content host limit "
                              "with valid integer value")
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @attr('ui', 'ak', 'implemented')
+    @run_only_on('sat')
     def test_usage_limit(self):
         """@Test: Test that Usage limit actually limits usage
 
@@ -932,12 +931,85 @@ class ActivationKey(UITestCase):
 
         @Assert: System Registration fails. Appropriate error shown
 
-        @Status: Manual
-
-        @BZ: 1078676
-
         """
-        pass
+        name = gen_string("alpha", 10)
+        host_limit = "1"
+        with Session(self.browser) as session:
+            make_activationkey(session, org=self.org_name,
+                               name=name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.update(name, limit=host_limit)
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
+            # Create VM1
+            vm1 = VirtualMachine(distro='rhel65')
+            vm1.create()
+            # Download and Install rpm
+            result = vm1.run(
+                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                .format(self.server_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            result = vm1.run(
+                'rpm -i katello-ca-consumer*.noarch.rpm'
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to install katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Register client1 with foreman server using activation-key
+            result = vm1.run(
+                'subscription-manager register --activationkey {0} '
+                '--org {1} --force'
+                .format(name, self.org_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to register client:: {0} and return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Create VM2
+            vm2 = VirtualMachine(distro='rhel65')
+            vm2.create()
+            # Download and Install rpm
+            result = vm2.run(
+                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                .format(self.server_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            result = vm2.run(
+                'rpm -i katello-ca-consumer*.noarch.rpm'
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to install katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Register client2 with foreman server using activation-key
+            result = vm2.run(
+                'subscription-manager register --activationkey {0} '
+                '--org {1} --force'
+                .format(name, self.org_name)
+            )
+            # Assert system registration fails for client2 and
+            # appropriate error raised
+            self.assertNotEqual(result.return_code, 0)
+            self.assertGreater(len(result.stderr), 0,
+                               "There should be an exception here.")
+            self.assertIn('Max Content Hosts ({0}) reached for activation key'
+                          .format(host_limit), result.stderr)
+            # Destroy both VM's
+            vm1.destroy()
+            vm2.destroy()
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_host(self):
@@ -1100,14 +1172,13 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element
                                  (common_locators["alert.success"]))
             # Create VM
-            server_name = conf.properties['main.server.hostname']
             vm = VirtualMachine(distro='rhel65')
             vm.create()
             vm_name = vm.run('hostname')
             # Install rpm
             result = vm.run(
                 'rpm -i http://{0}/pub/katello-ca-consumer-'
-                '{0}-1.0-1.noarch.rpm'.format(server_name)
+                '{0}-1.0-1.noarch.rpm'.format(self.server_name)
             )
             self.assertEqual(
                 result.return_code, 0,
