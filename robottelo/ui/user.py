@@ -19,8 +19,8 @@ class User(Base):
 
     def _configure_user(self, roles=None, locations=None, organizations=None,
                         new_locations=None, new_roles=None,
-                        new_organizations=None,
-                        select=None):
+                        new_organizations=None, default_org=None,
+                        default_loc=None, select=None):
         """
         Configures different entities of selected User
         """
@@ -34,20 +34,26 @@ class User(Base):
                                   entity_select=select)
         if locations or new_locations:
             self.configure_entity(locations, FILTER['user_location'],
-                                  tab_locator=loc["user.tab_locations"],
+                                  tab_locator=loc["users.tab_locations"],
                                   new_entity_list=new_locations,
                                   entity_select=select)
+            if default_loc:
+                loc_element = self.find_element(locators["users.default_loc"])
+                Select(loc_element).select_by_visible_text(default_loc)
         if organizations or new_organizations:
             self.configure_entity(organizations, FILTER['user_org'],
                                   tab_locator=loc["users.tab_organizations"],
                                   new_entity_list=new_organizations,
                                   entity_select=select)
+            if default_org:
+                org_element = self.find_element(locators["users.default_org"])
+                Select(org_element).select_by_visible_text(default_org)
 
     def create(self, username=None, email=None, password1=None,
                password2=None, authorized_by="INTERNAL",
                locale=None, first_name=None, last_name=None,
                roles=None, locations=None, organizations=None,
-               edit=False, select=True):
+               edit=False, default_org=None, default_loc=None, select=True):
         """
         Create new user from UI
         """
@@ -83,6 +89,8 @@ class User(Base):
                 if edit:
                     self._configure_user(roles=roles, locations=locations,
                                          organizations=organizations,
+                                         default_org=default_org,
+                                         default_loc=default_loc,
                                          select=select)
                 self.wait_until_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
@@ -112,7 +120,8 @@ class User(Base):
                first_name=None, last_name=None, locale=None,
                roles=None, new_roles=None, locations=None,
                new_locations=None, organizations=None,
-               new_organizations=None, select=False):
+               new_organizations=None, default_org=None,
+               default_loc=None, select=False):
         """
         Update username, email, password, firstname,
         lastname and locale from UI
@@ -142,6 +151,8 @@ class User(Base):
                                  new_locations=new_locations,
                                  organizations=organizations,
                                  new_organizations=new_organizations,
+                                 default_org=default_org,
+                                 default_loc=default_loc,
                                  select=select)
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()

@@ -306,6 +306,8 @@ def make_user(session, org=None, loc=None, force_context=False, **kwargs):
         u'organizations': None,
         u'edit': False,
         u'select': True,
+        u'default_org': None,
+        u'default_loc': None,
     }
     page = session.nav.go_to_users
     core_factory(create_args, kwargs, session, page,

@@ -12,6 +12,7 @@ else:
 from ddt import ddt
 from fauxfactory import gen_string
 from nose.plugins.attrib import attr
+from selenium.webdriver.support.select import Select
 from robottelo import entities
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
@@ -671,6 +672,62 @@ class User(UITestCase):
 
         """
         pass
+
+    @attr('ui', 'user', 'implemented')
+    def test_positive_create_user_29(self):
+        """@Test: Create User and associate a default Org
+
+        @Feature: User - Positive Create.
+
+        @Assert: User is created with default Org selected.
+
+        """
+        strategy, value = common_locators["entity_deselect"]
+        name = gen_string("alpha", 6)
+        org_name = gen_string("alpha", 6)
+        entities.Organization(name=org_name).create()
+        with Session(self.browser) as session:
+            make_user(session, username=name, organizations=[org_name],
+                      edit=True, default_org=org_name)
+            self.user.search(name, search_key).click()
+            session.nav.wait_until_element(
+                tab_locators["users.tab_organizations"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % org_name))
+            self.assertIsNotNone(element)
+            org_element = session.nav.find_element(
+                locators["users.default_org"])
+            # Fetches currently selected option in a normal select.
+            option = Select(org_element).first_selected_option
+            self.assertEqual(org_name, option.text)
+
+    @attr('ui', 'user', 'implemented')
+    def test_positive_create_user_30(self):
+        """@Test: Create User and associate a default Location.
+
+        @Feature: User - Positive Create
+
+        @Assert: User is created with default Location selected.
+
+        """
+        strategy, value = common_locators["entity_deselect"]
+        name = gen_string("alpha", 6)
+        loc_name = gen_string("alpha", 6)
+        entities.Location(name=loc_name).create()
+        with Session(self.browser) as session:
+            make_user(session, username=name, locations=[loc_name],
+                      edit=True, default_loc=loc_name)
+            self.user.search(name, search_key).click()
+            session.nav.wait_until_element(
+                tab_locators["users.tab_locations"]).click()
+            element = session.nav.wait_until_element((strategy,
+                                                      value % loc_name))
+            self.assertIsNotNone(element)
+            loc_element = session.nav.find_element(
+                locators["users.default_loc"])
+            # Fetches currently selected option in a normal select.
+            option = Select(loc_element).first_selected_option
+            self.assertEqual(loc_name, option.text)
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_negative_create_user_1(self):
