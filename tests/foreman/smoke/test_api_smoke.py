@@ -1096,10 +1096,18 @@ class TestSmoke(TestCase):
         # Create VM
         package_name = "python-kitchen"
         with VirtualMachine(distro='rhel65') as vm:
-            # Install rpm
+            # Download and Install rpm
             result = vm.run(
-                'rpm -i http://{0}/pub/katello-ca-consumer-{0}-1.0-1.no'
-                'arch.rpm'.format(conf.properties['main.server.hostname'])
+                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                .format(conf.properties['main.server.hostname'])
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            result = vm.run(
+                'rpm -i katello-ca-consumer*.noarch.rpm'
             )
             self.assertEqual(
                 result.return_code, 0,

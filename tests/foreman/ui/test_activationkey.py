@@ -554,10 +554,18 @@ class ActivationKey(UITestCase):
             # Create VM
             vm = VirtualMachine(distro='rhel65')
             vm.create()
-            # Install rpm
+            # Download and Install rpm
             result = vm.run(
-                'rpm -i http://{0}/pub/katello-ca-consumer-'
-                '{0}-1.0-1.noarch.rpm'.format(self.server_name)
+                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                .format(self.server_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            result = vm.run(
+                'rpm -i katello-ca-consumer*.noarch.rpm'
             )
             self.assertEqual(
                 result.return_code, 0,
@@ -1175,10 +1183,18 @@ class ActivationKey(UITestCase):
             vm = VirtualMachine(distro='rhel65')
             vm.create()
             vm_name = vm.run('hostname')
-            # Install rpm
+            # Download and Install rpm
             result = vm.run(
-                'rpm -i http://{0}/pub/katello-ca-consumer-'
-                '{0}-1.0-1.noarch.rpm'.format(self.server_name)
+                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                .format(self.server_name)
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            result = vm.run(
+                'rpm -i katello-ca-consumer*.noarch.rpm'
             )
             self.assertEqual(
                 result.return_code, 0,
