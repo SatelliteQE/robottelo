@@ -231,7 +231,6 @@ class TestSmoke(UITestCase):
         cv_name = gen_string("alpha", 6)
         activation_key_name = gen_string("alpha", 6)
         env_name = gen_string("alpha", 6)
-        server_name = conf.properties['main.server.hostname']
         product_name = "Red Hat Employee Subscription"
         repo_names = [
             "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
@@ -302,14 +301,23 @@ class TestSmoke(UITestCase):
                     common_locators["alert.success"]))
             # Create VM
             with VirtualMachine(distro='rhel65') as vm:
-                # Install rpm
+                # Download and Install rpm
                 result = vm.run(
-                    'rpm -i http://{0}/pub/katello-ca-consumer-'
-                    '{0}-1.0-1.noarch.rpm'.format(server_name)
+                    "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' "
+                    "http://{0}/pub/".format(self.server_name)
                 )
                 self.assertEqual(
                     result.return_code, 0,
-                    "failed to install katello-ca-consumer rpm"
+                    "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                    .format(result.stderr, result.return_code)
+                )
+                result = vm.run(
+                    'rpm -i katello-ca-consumer*.noarch.rpm'
+                )
+                self.assertEqual(
+                    result.return_code, 0,
+                    "failed to install katello-ca rpm: {0}, return code: {1}"
+                    .format(result.stderr, result.return_code)
                 )
                 # Register client with foreman server using activation-key
                 result = vm.run(
@@ -319,13 +327,15 @@ class TestSmoke(UITestCase):
                 )
                 self.assertEqual(
                     result.return_code, 0,
-                    "failed to register client"
+                    "failed to register client:: {0} and return code: {1}"
+                    .format(result.stderr, result.return_code)
                 )
                 # Install contents from sat6 server
                 result = vm.run('yum install -y {0}'.format(package_name))
                 self.assertEqual(
                     result.return_code, 0,
-                    "Package install failed"
+                    "Package install failed: {0} and return code: {1}"
+                    .format(result.stderr, result.return_code)
                 )
                 # Verify if package is installed by query it
                 result = vm.run('rpm -q {0}'.format(package_name))
