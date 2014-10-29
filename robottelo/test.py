@@ -112,6 +112,7 @@ class UITestCase(TestCase):
         cls.locale = conf.properties['main.locale']
         cls.verbosity = int(conf.properties['nosetests.verbosity'])
         cls.remote = int(conf.properties['main.remote'])
+        cls.server_name = conf.properties.get('main.server.hostname')
 
         if int(conf.properties.get('main.virtual_display', '0')):
             # Import from optional requirements
