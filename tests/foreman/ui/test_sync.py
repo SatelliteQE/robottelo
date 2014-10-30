@@ -68,7 +68,7 @@ class Sync(UITestCase):
             session.nav.go_to_sync_status()
             sync = self.sync.sync_custom_repos(product_attrs['name'],
                                                [repository_name])
-            # syn.sync_rh_repos returns boolean values and not objects
+            # syn.sync_custom_repos returns boolean values and not objects
             self.assertTrue(sync)
 
     def test_sync_rh_repos(self):
