@@ -11,17 +11,17 @@ from robottelo.ui.locators import locators
 
 
 class Sync(Base):
-    """
-    Synchronizes products and repos from UI.
-    """
+    """Synchronizes products and repos from UI."""
 
-    def assert_sync(self, repos):
+    def assert_sync(self, repos, product=None):
         """Asserts sync status of the Repositories.
 
         Asserts the sync of Repositories, loops over while cancel is visible,
         during the syncing process.
 
         :param list repos: List of repositories names to assert sync status.
+        :param str product: product is required only when syncing via
+            repository page.
         :return: Returns True if sync is successful.
         :rtype: boolean
 
@@ -29,6 +29,14 @@ class Sync(Base):
         repos_result = []
         strategy1, value1 = locators["sync.fetch_result"]
         strategy2, value2 = locators["sync.cancel"]
+        strategy3, value3 = locators["sync.prd_expander"]
+        if product:
+            prd_exp = self.wait_until_element((strategy3, value3 % product))
+            if not prd_exp:
+                raise UINoSuchElementError(
+                    "Could not find the product expander: '{0}'"
+                    .format(product))
+            prd_exp.click()
         for repo in repos:
             timeout = time.time() + 60 * 10
             sync_cancel = self.wait_until_element((strategy2,

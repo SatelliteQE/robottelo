@@ -7,6 +7,7 @@ from robottelo import entities
 from robottelo.common.constants import (
     CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,
+    FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
@@ -43,6 +44,20 @@ class Repos(UITestCase):
             Repos.org_id = org_attrs['id']
             Repos.loc_name = loc_attrs['name']
             Repos.loc_id = loc_attrs['id']
+
+    def setup_navigate_syncnow(self, session, prd_name, repo_name):
+        """Helps with Navigation for syncing via the repos page."""
+        strategy1, value1 = locators["repo.select"]
+        strategy2, value2 = locators["repo.select_checkbox"]
+        session.nav.go_to_select_org(self.org_name)
+        session.nav.go_to_products()
+        session.nav.wait_until_element(
+            (strategy1, value1 % prd_name)).click()
+        session.nav.wait_until_element(
+            (strategy2, value2 % repo_name)).click()
+        session.nav.wait_for_ajax()
+        session.nav.wait_until_element(locators["repo.sync_now"]).click()
+        session.nav.wait_for_ajax()
 
     @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
@@ -440,3 +455,95 @@ class Repos(UITestCase):
                                           product=product_name,
                                           new_product=True)
             self.assertIsNotNone(self.products.search(product_name))
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented')
+    @data(*generate_strings_list())
+    def test_syncnow_custom_repos_1(self, repository_name):
+        """@Test: Create Custom yum repos and sync it via the repos page.
+
+        @Feature: Custom yum Repos - Sync via repos page
+
+        @Assert: Whether Sync is successful
+
+        """
+        # Creates new product
+        product_attrs = entities.Product(
+            organization=self.org_id
+        ).create()
+        # Creates new repository
+        entities.Repository(
+            name=repository_name,
+            url=FAKE_1_YUM_REPO,
+            product=product_attrs['id']
+        ).create()
+        with Session(self.browser) as session:
+            self.setup_navigate_syncnow(session,
+                                        product_attrs['name'],
+                                        repository_name)
+            session.nav.go_to_sync_status()
+            # sync.assert_sync returns boolean values and not objects
+            self.assertTrue(self.sync.assert_sync
+                            ([repository_name], product=product_attrs['name']))
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented')
+    @data(*generate_strings_list())
+    def test_syncnow_custom_repos_2(self, repository_name):
+        """@Test: Create Custom puppet repos and sync it via the repos page.
+
+        @Feature: Custom puppet Repos - Sync via repos page
+
+        @Assert: Whether Sync is successful
+
+        """
+        # Creates new product
+        product_attrs = entities.Product(
+            organization=self.org_id
+        ).create()
+        # Creates new puppet repository
+        entities.Repository(
+            name=repository_name,
+            url=FAKE_0_PUPPET_REPO,
+            product=product_attrs['id'],
+            content_type=REPO_TYPE['puppet'],
+        ).create()
+        with Session(self.browser) as session:
+            self.setup_navigate_syncnow(session,
+                                        product_attrs['name'],
+                                        repository_name)
+            session.nav.go_to_sync_status()
+            # sync.assert_sync returns boolean values and not objects
+            self.assertTrue(self.sync.assert_sync
+                            ([repository_name], product=product_attrs['name']))
+
+    @run_only_on('sat')
+    @attr('ui', 'repo', 'implemented')
+    @data(*generate_strings_list())
+    def test_syncnow_custom_repos_3(self, repository_name):
+        """@Test: Create Custom docker repos and sync it via the repos page.
+
+        @Feature: Custom docker Repos - Sync via repos page
+
+        @Assert: Whether Sync is successful
+
+        """
+        # Creates new product
+        product_attrs = entities.Product(
+            organization=self.org_id
+        ).create()
+        # Creates new puppet repository
+        entities.Repository(
+            name=repository_name,
+            url=DOCKER_REGISTRY_HUB,
+            product=product_attrs['id'],
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        with Session(self.browser) as session:
+            self.setup_navigate_syncnow(session,
+                                        product_attrs['name'],
+                                        repository_name)
+            session.nav.go_to_sync_status()
+            # sync.assert_sync returns boolean values and not objects
+            self.assertTrue(self.sync.assert_sync
+                            ([repository_name], product=product_attrs['name']))

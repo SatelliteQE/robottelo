@@ -1008,6 +1008,8 @@ locators = {
         By.XPATH,
         ("//script[contains(@alch-modal,'removeRepository(repository)')]"
          "/../button[contains(@ng-show, 'repository')]")),
+    "repo.sync_now": (
+        By.XPATH, "//button[contains(@ng-click, 'syncSelectedRepositories')]"),
     "repo.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'repository')]")),
