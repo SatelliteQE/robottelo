@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Unit tests for the ``content_views`` paths."""
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
@@ -45,9 +46,9 @@ def _promote(content_view, lifecycle, version):
 
 
 @run_only_on('sat')
-@ddt
 class ContentViewTestCase(TestCase):
     """Tests for content views."""
+
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
 
@@ -57,61 +58,54 @@ class ContentViewTestCase(TestCase):
         'content_view_id' attribute.
 
         """
-        # Create an organization, lifecycle environment and content view.
-        organization = entities.Organization().create()
-        lifecycle_environment = entities.LifecycleEnvironment(
-            organization=organization['id']
-        ).create()
-        content_view = entities.ContentView(
-            organization=organization['id']
-        ).create()
+        # organization
+        # ├── lifecycle environment
+        # └── content view
+        org = entities.Organization()
+        org.id = org.create()['id']
+        lifecycle_env = entities.LifecycleEnvironment(organization=org.id)
+        lifecycle_env.id = lifecycle_env.create()['id']
+        content_view = entities.ContentView(organization=org.id)
+        content_view.id = content_view.create()['id']
 
-        # Publish the newly created content view.
-        response = _publish(content_view)
-        self.assertEqual(
-            response,
-            u'success',
-        )
+        # Publish the content view.
+        task = entities.ForemanTask(id=content_view.publish())
+        self.assertEqual('success', task.read_json()['result'])
 
-        # Fetch and promote the newly published content view version.
-        content_view_version = client.get(
+        # Get the content view version's ID.
+        response = client.get(
             entities.ContentViewVersion().path(),
             auth=get_server_credentials(),
-            data={u'content_view_id': content_view['id']},
+            data={u'content_view_id': content_view.id},
             verify=False,
-        ).json()['results'][0]
-        task_id = entities.ContentViewVersion(
-            id=content_view_version['id']
-        ).promote(environment_id=lifecycle_environment['id'])
-        self.assertEqual(
-            u'success',
-            entities.ForemanTask(id=task_id).poll()['result']
         )
+        response.raise_for_status()
+        results = response.json()['results']
+        self.assertEqual(len(results), 1)
+        cv_version = entities.ContentViewVersion(id=results[0]['id'])
+
+        # Promote the content view version.
+        task = entities.ForemanTask(
+            id=cv_version.promote(environment_id=lifecycle_env.id)
+        )
+        self.assertEqual('success', task.read_json()['result'])
 
         # Create a system that is subscribed to the published and promoted
         # content view. Associating this system with the organization and
         # environment created above is not particularly important, but doing so
         # means a shorter test where fewer entities are created, as
         # System.organization and System.environment are required attributes.
-        system = entities.System(
-            content_view=content_view['id'],
-            environment=lifecycle_environment['id'],
-            organization=organization['id'],
+        system_attrs = entities.System(
+            content_view=content_view.id,
+            environment=lifecycle_env.id,
+            organization=org.id,
         ).create()
 
-        # See bugzilla bug #1122267.
-        self.assertEqual(
-            system['content_view_id'],  # This is good.
-            content_view['id']
-        )
-        self.assertEqual(
-            system['environment']['id'],  # This is bad.
-            lifecycle_environment['id']
-        )
-        # self.assertEqual(
-        #     system['organization_id'],  # And this is unavailable.
-        #     organization['id']
-        # )
+        # See BZ #1151240
+        self.assertEqual(system_attrs['content_view_id'], content_view.id)
+        self.assertEqual(system_attrs['environment']['id'], lifecycle_env.id)
+        if not bz_bug_is_open(1158620):
+            self.assertEqual(system_attrs['organization_id'], org.id)
 
 
 @ddt
