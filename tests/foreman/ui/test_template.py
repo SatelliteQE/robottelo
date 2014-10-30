@@ -215,8 +215,7 @@ class Template(UITestCase):
         """
 
         entities.ConfigTemplate(name=template_name).create()['name']
-        with Session(self.browser) as session:
-            session.nav.go_to_provisioning_templates
+        with Session(self.browser):
             self.template.delete(template_name, True)
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["notif.success"]))
@@ -270,3 +269,30 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.search(name))
             self.template.update(name, False, new_name, new_os_list=os_list)
             self.assertIsNotNone(self.template.search(new_name))
+
+    def test_clone_template(self):
+        """@Test: Assure ability to clone a provisioning template
+
+        @Feature: Template - Clone
+
+        @Steps:
+         1.  Go to Provisioning template UI
+         2.  Choose a template and attempt to clone it
+
+        @Assert: template is cloned
+
+        """
+        name = gen_string("alpha", 6)
+        clone_name = gen_string("alpha", 6)
+        temp_type = 'provision'
+        os_list = [
+            entities.OperatingSystem().create()['name'] for _ in range(2)
+        ]
+        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        with Session(self.browser) as session:
+            make_templates(session, name=name, template_path=template_path,
+                           custom_really=True, template_type=temp_type)
+            self.assertIsNotNone(self.template.search(name))
+            self.template.clone(name, custom_really=False,
+                                clone_name=clone_name, os_list=os_list)
+            self.assertIsNotNone(self.template.search(clone_name))

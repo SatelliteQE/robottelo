@@ -775,6 +775,8 @@ locators = {
         By.XPATH,
         ("//td/a[normalize-space(.)='%s']"
          "/following::td/div/a[@data-toggle='dropdown']")),
+    "provision.template_clone": (
+        By.XPATH, "//a[contains(@href,'clone')]"),
 
     # provision.type
     "provision.template_type": (
