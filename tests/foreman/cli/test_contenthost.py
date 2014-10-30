@@ -526,3 +526,34 @@ class TestContentHost(CLITestCase):
             0,
             "Expected an error here"
         )
+
+    @skip_if_bug_open('bugzilla', 1154611)
+    def test_bugzilla_1154611(self):
+        """@test: check if Content Host creation does not allow duplicated names
+
+        @feature: Contet_Hosts
+
+        @assert: Content Hosts with the same name are not allowed
+
+        @bz: 1154611
+
+        """
+        name = gen_string('alpha', 15)
+        try:
+            result = make_content_host({
+                u'name': name,
+                u'organization-id': self.NEW_ORG['id'],
+                u'content-view-id': self.DEFAULT_CV['id'],
+                u'lifecycle-environment-id': self.LIBRARY['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(result['name'], name)
+
+        with self.assertRaises(CLIFactoryError):
+            make_content_host({
+                u'name': name,
+                u'organization-id': self.NEW_ORG['id'],
+                u'content-view-id': self.DEFAULT_CV['id'],
+                u'lifecycle-environment-id': self.LIBRARY['id'],
+            })
