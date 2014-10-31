@@ -13,8 +13,11 @@ from fauxfactory import gen_string, gen_integer
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.api import client
+from robottelo.api import utils
+from robottelo.common import manifests
 from robottelo.common.constants import (
-    ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED)
+    ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED,
+    REPO_TYPE)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     invalid_names_list, valid_data_list, get_server_credentials)
@@ -52,28 +55,47 @@ class ActivationKey(UITestCase):
             ActivationKey.org_name = org_attrs['name']
             ActivationKey.org_id = org_attrs['id']
 
-    def create_cv(self, name, env_name, repo_url=None):
+    def create_cv(self, name, env_name, product_name=None, repo_name=None,
+                  repo_url=None, repo_type=None, rh_repo=None):
         """Create product/repo and sync it and promote to given env"""
-
-        repo_name = gen_string("alpha", 8)
-
-        # Creates new product and repository via API's
-        product_attrs = entities.Product(
-            organization=self.org_id
-        ).create()
-        repo_attrs = entities.Repository(
-            name=repo_name,
-            url=repo_url or FAKE_1_YUM_REPO,
-            product=product_attrs['id'],
-        ).create()
-
+        if not rh_repo:
+            product_name = product_name or gen_string("alpha", 8)
+            repo_name = repo_name or gen_string("alpha", 8)
+            # Creates new product and repository via API's
+            product_attrs = entities.Product(
+                name=product_name,
+                organization=self.org_id
+            ).create()
+            repo_attrs = entities.Repository(
+                name=repo_name,
+                url=repo_url or FAKE_1_YUM_REPO,
+                content_type=repo_type or REPO_TYPE['yum'],
+                product=product_attrs['id'],
+            ).create()
+            repo_id = repo_attrs['id']
+        else:
+            # Upload manifest
+            manifest_path = manifests.clone()
+            task_id = entities.Organization(
+                id=self.org_id).upload_manifest(path=manifest_path)
+            task_result = entities.ForemanTask(id=task_id).poll()['result']
+            self.assertEqual(u'success', task_result)
+            # Enable RH repo and fetch repository_id
+            repo_id = utils.enable_rhrepo_and_fetchid(
+                rh_repo['basearch'],
+                self.org_id,
+                rh_repo['product'],
+                rh_repo['name'],
+                rh_repo['reposet'],
+                rh_repo['releasever'])
+            repo_name = rh_repo['name']
         # Sync repository
-        task_id = entities.Repository(id=repo_attrs['id']).sync()
+        task_id = entities.Repository(id=repo_id).sync()
         task_result = entities.ForemanTask(id=task_id).poll()['result']
         self.assertEqual(
             task_result,
             u'success',
-            u"Sync for repository {0} failed.".format(repo_attrs['name']))
+            u"Sync for repository {0} failed.".format(repo_name))
 
         # Create Life-Cycle content environment
         env_attrs = entities.LifecycleEnvironment(
@@ -91,7 +113,7 @@ class ActivationKey(UITestCase):
             entities.ContentView(id=content_view['id']).path(),
             auth=get_server_credentials(),
             verify=False,
-            data={u'repository_ids': [repo_attrs['id']]})
+            data={u'repository_ids': [repo_id]})
         response.raise_for_status()
 
         # Publish content view
@@ -112,7 +134,6 @@ class ActivationKey(UITestCase):
             u'success',
             u"Promoting {0} to {1} failed.".format(
                 content_view['name'], env_attrs['name']))
-        return product_attrs['name']
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
@@ -538,9 +559,9 @@ class ActivationKey(UITestCase):
         name = gen_string("alpha", 8)
         cv_name = gen_string("alpha", 8)
         env_name = gen_string("alpha", 8)
+        product_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        # and it returns product name to associate it with key
-        product_name = self.create_cv(cv_name, env_name)
+        self.create_cv(cv_name, env_name, product_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -1039,7 +1060,7 @@ class ActivationKey(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @run_only_on('sat')
     def test_associate_product_1(self):
         """@Test: Test that RH product can be associated to Activation Keys
 
@@ -1051,12 +1072,31 @@ class ActivationKey(UITestCase):
 
         @Assert: RH products are successfully associated to Activation key
 
-        @Status: Manual
-
-        @BZ: 1078676
-
         """
-        pass
+        name = gen_string("alpha", 8)
+        cv_name = gen_string("alpha", 8)
+        env_name = gen_string("alpha", 8)
+        rh_repo = {
+            'name': ("Red Hat Enterprise Virtualization Agents for RHEL 6 "
+                     "Server RPMs x86_64 6Server"),
+            'product': "Red Hat Enterprise Linux Server",
+            'reposet': ("Red Hat Enterprise Virtualization Agents "
+                        "for RHEL 6 Server (RPMs)"),
+            'basearch': "x86_64",
+            'releasever': "6Server",
+        }
+        product_subscription = "Red Hat Employee Subscription"
+        # Helper function to create and promote CV to next environment
+        self.create_cv(cv_name, env_name, rh_repo=rh_repo)
+        with Session(self.browser) as session:
+            make_activationkey(
+                session, org=self.org_name, name=name, env=env_name,
+                content_view=cv_name
+            )
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.associate_product(name, [product_subscription])
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @run_only_on('sat')
     def test_associate_product_2(self):
@@ -1077,9 +1117,9 @@ class ActivationKey(UITestCase):
         name = gen_string("alpha", 8)
         cv_name = gen_string("alpha", 8)
         env_name = gen_string("alpha", 8)
+        product_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        # and it returns product name to associate it with key
-        product_name = self.create_cv(cv_name, env_name)
+        self.create_cv(cv_name, env_name, product_name)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -1154,10 +1194,12 @@ class ActivationKey(UITestCase):
         cv_2_name = gen_string("alpha", 8)
         env_1_name = gen_string("alpha", 8)
         env_2_name = gen_string("alpha", 8)
+        product_1_name = gen_string("alpha", 8)
+        product_2_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        # and it returns product name to associate it with key
-        product_1_name = self.create_cv(cv_1_name, env_1_name)
-        product_2_name = self.create_cv(cv_2_name, env_2_name, FAKE_2_YUM_REPO)
+        self.create_cv(cv_1_name, env_1_name, product_1_name)
+        self.create_cv(cv_2_name, env_2_name, product_2_name,
+                       repo_url=FAKE_2_YUM_REPO)
         with Session(self.browser) as session:
             # Create activation_key_1
             make_activationkey(
