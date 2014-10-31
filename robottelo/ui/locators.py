@@ -336,6 +336,9 @@ tab_locators = {
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
     "prd.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
+    "prd.tab_tasks": (
+        By.XPATH, ("//a[@class='ng-scope' and contains(@href,'tasks')"
+                   " and contains(@ui-sref, 'products')]")),
 
     # For Orgs and Locations
     "context.tab_users": (
@@ -1015,6 +1018,11 @@ locators = {
                    "/../../td/input[contains(@ng-model,'repository')]")),
     "repo.select": (
         By.XPATH, "//a[@class='ng-binding' and contains(.,'%s')]"),
+    "repo.select_event": (
+        By.XPATH, "//a[contains(., 'Synchronize') and contains(., '%s')]"),
+    "repo.result_event": (
+        By.XPATH, ("//span[@class='ng-scope' and contains(., 'Result')]"
+                   "/../../span[contains(@class, 'info-value')]")),
     "repo.repo_discover": (
         By.XPATH, "//button[@ui-sref='products.discovery.scan']"),
     "repo.discover_url": (By.XPATH, "//input[@type='url']"),
@@ -1075,6 +1083,9 @@ locators = {
     "repo.fetch_checksum": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"
                    "/div/div/span[contains(@class,'value')]")),
+    "repo.result_spinner": (
+        By.XPATH,
+        "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
