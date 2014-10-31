@@ -6,7 +6,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_loc, make_config_groups
+from robottelo.ui.factory import make_config_groups
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -15,19 +15,6 @@ from robottelo.ui.session import Session
 @ddt
 class ConfigGroups(UITestCase):
     """Implements Config Groups tests in UI."""
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(ConfigGroups, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if (ConfigGroups.org_name is None and
-           ConfigGroups.loc_name is None):
-            ConfigGroups.org_name = gen_string("alpha", 8)
-            ConfigGroups.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=ConfigGroups.org_name)
-                make_loc(session, name=ConfigGroups.loc_name)
 
     @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=8))

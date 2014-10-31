@@ -6,7 +6,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_loc, make_puppetclasses
+from robottelo.ui.factory import make_puppetclasses
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -15,19 +15,6 @@ from robottelo.ui.session import Session
 @ddt
 class PuppetClasses(UITestCase):
     """Implements puppet classes tests in UI."""
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(PuppetClasses, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if (PuppetClasses.org_name is None and
-           PuppetClasses.loc_name is None):
-            PuppetClasses.org_name = gen_string("alpha", 8)
-            PuppetClasses.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=PuppetClasses.org_name)
-                make_loc(session, name=PuppetClasses.loc_name)
 
     @attr('ui', 'puppet-classes', 'implemented')
     @data(*generate_strings_list(len1=8))

@@ -7,7 +7,7 @@ from robottelo import entities
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_loc, make_product
+from robottelo.ui.factory import make_product
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -16,18 +16,11 @@ from robottelo.ui.session import Session
 class Products(UITestCase):
     """Implements Product tests in UI"""
 
-    org_name = None
-    loc_name = None
+    def setUpClass(cls):
+        cls.org_name = entities.Organization().create()['name']
+        cls.loc_name = entities.Location().create()['name']
 
-    def setUp(self):
-        super(Products, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if Products.org_name is None and Products.loc_name is None:
-            Products.org_name = gen_string("alpha", 8)
-            Products.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Products.org_name)
-                make_loc(session, name=Products.loc_name)
+        super(Products, cls).setUpClass()
 
     @run_only_on('sat')
     @attr('ui', 'prd', 'implemented')

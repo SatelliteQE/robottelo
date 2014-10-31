@@ -18,23 +18,6 @@ from robottelo.ui.session import Session
 @ddt
 class Subnet(UITestCase):
     """Implements Subnet tests in UI"""
-    org_name = None
-    loc_name = None
-    org_id = None
-    loc_id = None
-
-    def setUp(self):
-        super(Subnet, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if Subnet.org_name is None and Subnet.loc_name is None:
-            org_name = gen_string("alpha", 8)
-            loc_name = gen_string("alpha", 8)
-            org_attrs = entities.Organization(name=org_name).create()
-            loc_attrs = entities.Location(name=loc_name).create()
-            Subnet.org_name = org_attrs['name']
-            Subnet.org_id = org_attrs['id']
-            Subnet.loc_name = loc_attrs['name']
-            Subnet.loc_id = loc_attrs['id']
 
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))

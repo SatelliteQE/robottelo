@@ -17,18 +17,10 @@ from robottelo.ui.session import Session
 class UserGroup(UITestCase):
     """Implements UserGroup tests from UI"""
 
-    org_name = None
-    org_id = None
+    def setUpClass(cls):
+        cls.org_name = entities.Organization().create()
 
-    def setUp(self):
-        super(UserGroup, self).setUp()
-
-        # Make sure to use the Class' org_name instance
-        if UserGroup.org_name is None:
-            org_name = gen_string("alpha", 6)
-            org_attrs = entities.Organization(name=org_name).create()
-            UserGroup.org_name = org_attrs['name']
-            UserGroup.org_id = org_attrs['id']
+        super(UserGroup, cls).setUpClass()
 
     @skip_if_bug_open('bugzilla', 1142588)
     @data(*generate_strings_list())

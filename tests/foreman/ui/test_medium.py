@@ -4,7 +4,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
 from robottelo.common.constants import INSTALL_MEDIUM_URL
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
@@ -18,24 +17,6 @@ from robottelo.ui.session import Session
 @ddt
 class Medium(UITestCase):
     """Implements all Installation Media tests"""
-
-    org_name = None
-    loc_name = None
-    org_id = None
-    loc_id = None
-
-    def setUp(self):
-        super(Medium, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if (Medium.org_name is None and Medium.loc_name is None):
-            org_name = gen_string("alpha", 8)
-            loc_name = gen_string("alpha", 8)
-            org_attrs = entities.Organization(name=org_name).create()
-            loc_attrs = entities.Location(name=loc_name).create()
-            Medium.org_name = org_attrs['name']
-            Medium.org_id = org_attrs['id']
-            Medium.loc_name = loc_attrs['name']
-            Medium.loc_id = loc_attrs['id']
 
     @data(*generate_strings_list(len1=4))
     def test_positive_create_medium_1(self, name):

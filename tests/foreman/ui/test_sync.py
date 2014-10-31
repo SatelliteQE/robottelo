@@ -3,7 +3,6 @@
 from ddt import ddt
 from nose.plugins.attrib import attr
 from robottelo import entities
-from fauxfactory import gen_string, gen_integer
 from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
@@ -28,18 +27,12 @@ RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
 class Sync(UITestCase):
     """Implements Custom Sync tests in UI"""
 
-    org_name = None
-    org_id = None
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
 
-    def setUp(self):
-        super(Sync, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if Sync.org_name is None:
-            org_name = gen_string(str_type='alphanumeric',
-                                  length=gen_integer(5, 80))
-            org_attrs = entities.Organization(name=org_name).create()
-            Sync.org_name = org_attrs['name']
-            Sync.org_id = org_attrs['id']
+        super(Sync, cls).setUpClass()
 
     @run_only_on('sat')
     @attr('ui', 'sync', 'implemented')
