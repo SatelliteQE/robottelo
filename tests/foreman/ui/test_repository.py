@@ -1,5 +1,6 @@
 """Test class for Repository UI"""
 
+import time
 from ddt import ddt
 from fauxfactory import gen_string
 from nose.plugins.attrib import attr
@@ -19,7 +20,7 @@ from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -58,6 +59,29 @@ class Repos(UITestCase):
         session.nav.wait_for_ajax()
         session.nav.wait_until_element(locators["repo.sync_now"]).click()
         session.nav.wait_for_ajax()
+
+    def prd_sync_is_ok(self, repo_name):
+        """Asserts whether the sync Result is successful."""
+        strategy1, value1 = locators["repo.select_event"]
+        self.repository.wait_until_element(
+            tab_locators["prd.tab_tasks"]).click()
+        self.repository.wait_for_ajax()
+        self.repository.wait_until_element(
+            (strategy1, value1 % repo_name)).click()
+        self.repository.wait_for_ajax()
+        timeout = time.time() + 60 * 10
+        spinner = self.repository.wait_until_element(
+            locators["repo.result_spinner"], 20)
+        # Waits until result spinner is visible on the UI or times out
+        # after 10mins
+        while spinner:
+            if time.time() > timeout:
+                break
+            spinner = self.repository.wait_until_element(
+                locators["repo.result_spinner"], 3)
+        result = self.repository.wait_until_element(
+            locators["repo.result_event"]).text
+        return result == 'success'
 
     @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
@@ -481,10 +505,8 @@ class Repos(UITestCase):
             self.setup_navigate_syncnow(session,
                                         product_attrs['name'],
                                         repository_name)
-            session.nav.go_to_sync_status()
-            # sync.assert_sync returns boolean values and not objects
-            self.assertTrue(self.sync.assert_sync
-                            ([repository_name], product=product_attrs['name']))
+            # prd_sync_is_ok returns boolean values and not objects
+            self.assertTrue(self.prd_sync_is_ok(repository_name))
 
     @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
@@ -512,10 +534,8 @@ class Repos(UITestCase):
             self.setup_navigate_syncnow(session,
                                         product_attrs['name'],
                                         repository_name)
-            session.nav.go_to_sync_status()
-            # sync.assert_sync returns boolean values and not objects
-            self.assertTrue(self.sync.assert_sync
-                            ([repository_name], product=product_attrs['name']))
+            # prd_sync_is_ok returns boolean values and not objects
+            self.assertTrue(self.prd_sync_is_ok(repository_name))
 
     @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
@@ -543,7 +563,5 @@ class Repos(UITestCase):
             self.setup_navigate_syncnow(session,
                                         product_attrs['name'],
                                         repository_name)
-            session.nav.go_to_sync_status()
-            # sync.assert_sync returns boolean values and not objects
-            self.assertTrue(self.sync.assert_sync
-                            ([repository_name], product=product_attrs['name']))
+            # prd_sync_is_ok returns boolean values and not objects
+            self.assertTrue(self.prd_sync_is_ok(repository_name))
