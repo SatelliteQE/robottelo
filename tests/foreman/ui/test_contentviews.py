@@ -14,7 +14,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import gen_string, gen_integer
+from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.api import utils
 from robottelo.common import manifests
@@ -35,19 +35,12 @@ from robottelo.test import UITestCase
 class TestContentViewsUI(UITestCase):
     """Implement tests for content view via UI"""
 
-    org_name = None
-    org_id = None
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
 
-    def setUp(self):
-        super(TestContentViewsUI, self).setUp()
-
-        # Make sure to use the Class' org_name instance
-        if TestContentViewsUI.org_name is None:
-            org_name = gen_string(str_type='alphanumeric',
-                                  length=gen_integer(5, 80))
-            org_attrs = entities.Organization(name=org_name).create()
-            TestContentViewsUI.org_name = org_attrs['name']
-            TestContentViewsUI.org_id = org_attrs['id']
+        super(TestContentViewsUI, cls).setUpClass()
 
     def setup_to_create_cv(self, session, cv_name, repo_name=None,
                            repo_url=None, repo_type=None, rh_repo=None):

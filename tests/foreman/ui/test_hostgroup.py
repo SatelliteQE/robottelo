@@ -8,7 +8,7 @@ from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_loc, make_hostgroup
+from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -17,19 +17,6 @@ from robottelo.ui.session import Session
 @ddt
 class Hostgroup(UITestCase):
     """Implements HostGroup tests from UI"""
-
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(Hostgroup, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if Hostgroup.org_name is None and Hostgroup.loc_name is None:
-            Hostgroup.org_name = gen_string("alpha", 8)
-            Hostgroup.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Hostgroup.org_name)
-                make_loc(session, name=Hostgroup.loc_name)
 
     @data(*generate_strings_list(len1=4))
     def test_create_hostgroup(self, name):

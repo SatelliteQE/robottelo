@@ -9,7 +9,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import gen_string, gen_integer
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.api import client
@@ -42,18 +42,12 @@ class ActivationKey(UITestCase):
 
     """
 
-    org_name = None
-    org_id = None
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
 
-    def setUp(self):
-        super(ActivationKey, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if ActivationKey.org_name is None:
-            org_name = gen_string(str_type='alphanumeric',
-                                  length=gen_integer(5, 80))
-            org_attrs = entities.Organization(name=org_name).create()
-            ActivationKey.org_name = org_attrs['name']
-            ActivationKey.org_id = org_attrs['id']
+        super(ActivationKey, cls).setUpClass()
 
     def create_cv(self, name, env_name, product_name=None, repo_name=None,
                   repo_url=None, repo_type=None, rh_repo=None):

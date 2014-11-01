@@ -8,8 +8,7 @@ from robottelo.common.decorators import data, run_only_on
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.common.helpers import read_data_file, generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc,
-                                  make_partitiontable)
+from robottelo.ui.factory import make_partitiontable
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -18,20 +17,6 @@ from robottelo.ui.session import Session
 @ddt
 class PartitionTable(UITestCase):
     """Implements the partition table tests from UI"""
-
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(PartitionTable, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if (PartitionTable.org_name is None
-                and PartitionTable.loc_name is None):
-            PartitionTable.org_name = gen_string("alpha", 8)
-            PartitionTable.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=PartitionTable.org_name)
-                make_loc(session, name=PartitionTable.loc_name)
 
     @data(*generate_strings_list())
     def test_positive_create_partition_table(self, name):

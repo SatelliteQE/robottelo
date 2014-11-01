@@ -18,17 +18,12 @@ from robottelo.ui.session import Session
 class Syncplan(UITestCase):
     """Implements Sync Plan tests in UI"""
 
-    org_name = None
-    org_id = None
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
 
-    def setUp(self):
-        super(Syncplan, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if Syncplan.org_name is None:
-            org_name = gen_string("alpha", 10)
-            org_attrs = entities.Organization(name=org_name).create()
-            Syncplan.org_name = org_attrs['name']
-            Syncplan.org_id = org_attrs['id']
+        super(Syncplan, cls).setUpClass()
 
     @attr('ui', 'syncplan', 'implemented')
     @data({u'name': gen_string('alpha', 10),

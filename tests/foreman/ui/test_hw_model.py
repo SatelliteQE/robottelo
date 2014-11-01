@@ -6,7 +6,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_loc, make_hw_model
+from robottelo.ui.factory import make_hw_model
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -15,21 +15,6 @@ from robottelo.ui.session import Session
 @ddt
 class HardwareModelTestCase(UITestCase):
     """Implements Hardware Model tests in UI."""
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(HardwareModelTestCase, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if (HardwareModelTestCase.org_name is None and
-                HardwareModelTestCase.loc_name is None):
-            HardwareModelTestCase.org_name = gen_string(
-                "alpha", 8)
-            HardwareModelTestCase.loc_name = gen_string(
-                "alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=HardwareModelTestCase.org_name)
-                make_loc(session, name=HardwareModelTestCase.loc_name)
 
     @attr('ui', 'hardware-model', 'implemented')
     @data(*generate_strings_list(len1=8))

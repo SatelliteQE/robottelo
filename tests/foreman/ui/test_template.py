@@ -19,24 +19,6 @@ from robottelo.ui.session import Session
 class Template(UITestCase):
     """Implements Provisioning Template tests from UI"""
 
-    org_name = None
-    loc_name = None
-    org_id = None
-    loc_id = None
-
-    def setUp(self):
-        super(Template, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if Template.org_name is None and Template.loc_name is None:
-            org_name = gen_string("alpha", 8)
-            loc_name = gen_string("alpha", 8)
-            org_attrs = entities.Organization(name=org_name).create()
-            loc_attrs = entities.Location(name=loc_name).create()
-            Template.org_name = org_attrs['name']
-            Template.org_id = org_attrs['id']
-            Template.loc_name = loc_attrs['name']
-            Template.loc_id = loc_attrs['id']
-
     @data(*generate_strings_list())
     def test_positive_create_template(self, name):
         """@Test: Create new template

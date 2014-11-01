@@ -54,17 +54,6 @@ class User(UITestCase):
     Lesser than Min Length, Greater than Max DB size
 
     """
-    org_name = None
-    org_id = None
-
-    def setUp(self):
-        super(User, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if User.org_name is None:
-            org_name = gen_string("alpha", 10)
-            org_attrs = entities.Organization(name=org_name).create()
-            User.org_name = org_attrs['name']
-            User.org_id = org_attrs['id']
 
     @attr('ui', 'user', 'implemented')
     @data(*valid_strings())

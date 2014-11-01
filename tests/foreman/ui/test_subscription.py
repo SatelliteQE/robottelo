@@ -1,13 +1,12 @@
 """Test class for Subscriptions/Manifests UI"""
 
 from ddt import ddt
-from fauxfactory import gen_string
 from nose.plugins.attrib import attr
+from robottelo import entities
 from robottelo.common import manifests
 from robottelo.common.decorators import skipRemote
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -16,16 +15,10 @@ from robottelo.ui.session import Session
 class SubscriptionTestCase(UITestCase):
     """Implements subscriptions/manifests tests in UI"""
 
-    org_name = None
+    def setUpClass(cls):
+        cls.org_name = entities.Organization().create()['name']
 
-    def setUp(self):
-        super(SubscriptionTestCase, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if SubscriptionTestCase.org_name is None:
-            SubscriptionTestCase.org_name = gen_string(
-                "alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=SubscriptionTestCase.org_name)
+        super(SubscriptionTestCase, cls).setUpClass()
 
     @skipRemote
     @attr('ui', 'subs', 'implemented')

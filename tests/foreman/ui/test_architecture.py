@@ -17,24 +17,6 @@ from robottelo.ui.session import Session
 class Architecture(UITestCase):
     """Implements Architecture tests from UI"""
 
-    org_name = None
-    loc_name = None
-    org_id = None
-    loc_id = None
-
-    def setUp(self):
-        super(Architecture, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if Architecture.org_name is None and Architecture.loc_name is None:
-            org_name = gen_string("alpha", 8)
-            loc_name = gen_string("alpha", 8)
-            org_attrs = entities.Organization(name=org_name).create()
-            loc_attrs = entities.Location(name=loc_name).create()
-            Architecture.org_name = org_attrs['name']
-            Architecture.org_id = org_attrs['id']
-            Architecture.loc_name = loc_attrs['name']
-            Architecture.loc_id = loc_attrs['id']
-
     @data({u'name': gen_string('alpha', 10),
            u'os_name': gen_string('alpha', 10)},
           {u'name': gen_string('html', 10),

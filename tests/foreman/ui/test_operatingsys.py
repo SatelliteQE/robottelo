@@ -21,24 +21,6 @@ from robottelo.ui.session import Session
 class OperatingSys(UITestCase):
     """Implements Operating system tests from UI"""
 
-    org_name = None
-    loc_name = None
-    org_id = None
-    loc_id = None
-
-    def setUp(self):
-        super(OperatingSys, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if OperatingSys.org_name is None and OperatingSys.loc_name is None:
-            org_name = gen_string("alpha", 8)
-            loc_name = gen_string("alpha", 8)
-            org_attrs = entities.Organization(name=org_name).create()
-            loc_attrs = entities.Location(name=loc_name).create()
-            OperatingSys.org_name = org_attrs['name']
-            OperatingSys.org_id = org_attrs['id']
-            OperatingSys.loc_name = loc_attrs['name']
-            OperatingSys.loc_id = loc_attrs['id']
-
     def test_create_os(self):
         """@Test: Create a new OS
 

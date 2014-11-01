@@ -7,8 +7,7 @@ from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc,
-                                  make_domain)
+from robottelo.ui.factory import make_domain
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -19,18 +18,6 @@ DOMAIN = "lab.dom.%s.com"
 @ddt
 class Domain(UITestCase):
     """Implements Domain tests in UI"""
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(Domain, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if Domain.org_name is None and Domain.loc_name is None:
-            Domain.org_name = gen_string("alpha", 8)
-            Domain.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Domain.org_name)
-                make_loc(session, name=Domain.loc_name)
 
     @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))

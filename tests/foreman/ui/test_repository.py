@@ -28,23 +28,15 @@ from robottelo.ui.session import Session
 class Repos(UITestCase):
     """Implements Repos tests in UI"""
 
-    org_name = None
-    org_id = None
-    loc_name = None
-    loc_id = None
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        loc_attrs = entities.Location().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
+        cls.loc_name = loc_attrs['name']
+        cls.loc_id = loc_attrs['id']
 
-    def setUp(self):
-        super(Repos, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if Repos.org_name is None and Repos.loc_name is None:
-            org_name = gen_string("alpha", 10)
-            loc_name = gen_string("alpha", 10)
-            org_attrs = entities.Organization(name=org_name).create()
-            loc_attrs = entities.Location(name=loc_name).create()
-            Repos.org_name = org_attrs['name']
-            Repos.org_id = org_attrs['id']
-            Repos.loc_name = loc_attrs['name']
-            Repos.loc_id = loc_attrs['id']
+        super(Repos, cls).setUpClass()
 
     def setup_navigate_syncnow(self, session, prd_name, repo_name):
         """Helps with Navigation for syncing via the repos page."""

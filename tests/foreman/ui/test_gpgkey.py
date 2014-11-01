@@ -10,7 +10,7 @@ else:
     import unittest2 as unittest
 
 from ddt import ddt
-from fauxfactory import gen_string, gen_integer
+from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import (
@@ -36,19 +36,12 @@ from robottelo.ui.session import Session
 class GPGKey(UITestCase):
     """Implements tests for GPG Keys via UI"""
 
-    org_name = None
-    org_id = None
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
 
-    def setUp(self):
-        super(GPGKey, self).setUp()
-
-        # Make sure to use the Class' org_name instance
-        if GPGKey.org_name is None:
-            org_name = gen_string(str_type='alphanumeric',
-                                  length=gen_integer(5, 80))
-            org_attrs = entities.Organization(name=org_name).create()
-            GPGKey.org_name = org_attrs['name']
-            GPGKey.org_id = org_attrs['id']
+        super(GPGKey, cls).setUpClass()
 
     # Positive Create
 
@@ -66,7 +59,7 @@ class GPGKey(UITestCase):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
@@ -85,7 +78,7 @@ class GPGKey(UITestCase):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
 
@@ -105,11 +98,11 @@ class GPGKey(UITestCase):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element
@@ -129,10 +122,10 @@ class GPGKey(UITestCase):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.error"]))
@@ -150,7 +143,7 @@ class GPGKey(UITestCase):
 
         with Session(self.browser) as session:
             with self.assertRaises(Exception):
-                make_gpgkey(session, org=GPGKey.org_name,
+                make_gpgkey(session, org=self.org_name,
                             name=name)
             self.assertIsNone(self.gpgkey.search(name))
 
@@ -168,7 +161,7 @@ class GPGKey(UITestCase):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertTrue(self.gpgkey.wait_until_element
@@ -188,7 +181,7 @@ class GPGKey(UITestCase):
         name = " "
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertTrue(self.gpgkey.wait_until_element
@@ -209,7 +202,7 @@ class GPGKey(UITestCase):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.error"]))
@@ -231,7 +224,7 @@ class GPGKey(UITestCase):
 
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
@@ -252,7 +245,7 @@ class GPGKey(UITestCase):
 
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.delete(name, True)
@@ -275,7 +268,7 @@ class GPGKey(UITestCase):
         new_name = gen_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
@@ -298,7 +291,7 @@ class GPGKey(UITestCase):
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
@@ -321,7 +314,7 @@ class GPGKey(UITestCase):
         new_name = gen_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_name)
@@ -343,7 +336,7 @@ class GPGKey(UITestCase):
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_key=new_key_path)
@@ -367,7 +360,7 @@ class GPGKey(UITestCase):
         name = gen_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, upload_key=True,
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
@@ -391,7 +384,7 @@ class GPGKey(UITestCase):
         name = gen_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_name)
@@ -427,7 +420,7 @@ class GPGKey(UITestCase):
             organization=self.org_id
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -467,7 +460,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -517,7 +510,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id']
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -547,7 +540,7 @@ class GPGKey(UITestCase):
         discovered_urls = ["fakerepo01/"]
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
-            make_gpgkey(session, org=GPGKey.org_name,
+            make_gpgkey(session, org=self.org_name,
                         name=name, key_content=key_content)
             self.assertIsNotNone(self.gpgkey.search(name))
             session.nav.go_to_products()
@@ -594,7 +587,7 @@ class GPGKey(UITestCase):
             gpg_key=gpgkey_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
@@ -645,7 +638,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
@@ -708,7 +701,7 @@ class GPGKey(UITestCase):
             organization=self.org_id
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -755,7 +748,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that before update GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -814,7 +807,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that before update GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -858,7 +851,7 @@ class GPGKey(UITestCase):
             organization=self.org_id
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_products()
             # Perform repo discovery
             self.repository.discover_repo(url, discovered_urls,
@@ -910,7 +903,7 @@ class GPGKey(UITestCase):
             gpg_key=gpgkey_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
@@ -970,7 +963,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
@@ -1043,7 +1036,7 @@ class GPGKey(UITestCase):
             organization=self.org_id
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -1088,7 +1081,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -1144,7 +1137,7 @@ class GPGKey(UITestCase):
             product=product_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
@@ -1185,7 +1178,7 @@ class GPGKey(UITestCase):
             organization=self.org_id
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_products()
             # Perform repo discovery
             self.repository.discover_repo(url, discovered_urls,
@@ -1235,7 +1228,7 @@ class GPGKey(UITestCase):
             gpg_key=gpgkey_attrs['id'],
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
@@ -1293,7 +1286,7 @@ class GPGKey(UITestCase):
             # notice that we're not making this repo point to the GPG key
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(GPGKey.org_name)
+            session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo

@@ -10,8 +10,7 @@ from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_org, make_loc,
-                                  make_resource)
+from robottelo.ui.factory import make_org, make_resource
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -20,19 +19,6 @@ from robottelo.ui.session import Session
 @ddt
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(ComputeResource, self).setUp()
-        # Make sure to use the Class' org_name instance
-        if (ComputeResource.org_name is None and
-           ComputeResource.loc_name is None):
-            ComputeResource.org_name = gen_string("alpha", 8)
-            ComputeResource.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=ComputeResource.org_name)
-                make_loc(session, name=ComputeResource.loc_name)
 
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=8))

@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_loc, edit_param
+from robottelo.ui.factory import edit_param
 from robottelo.ui.locators import tab_locators, common_locators
 from robottelo.ui.session import Session
 
@@ -14,19 +14,6 @@ from robottelo.ui.session import Session
 @ddt
 class Settings(UITestCase):
     """Implements Boundary tests for Settings menu"""
-
-    org_name = None
-    loc_name = None
-
-    def setUp(self):
-        super(Settings, self).setUp()
-        #  Make sure to use the Class' org_name instance
-        if (Settings.org_name is None and Settings.loc_name is None):
-            Settings.org_name = gen_string("alpha", 8)
-            Settings.loc_name = gen_string("alpha", 8)
-            with Session(self.browser) as session:
-                make_org(session, org_name=Settings.org_name)
-                make_loc(session, name=Settings.loc_name)
 
     @data({u'param_value': "true"},
           {u'param_value': "false"})
