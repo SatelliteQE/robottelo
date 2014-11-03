@@ -18,7 +18,7 @@ if ROBOTTELO_PATH not in sys.path:
     sys.path.append(ROBOTTELO_PATH)
 
 # Proceed with normal imports.
-from robottelo import entities, factory, orm
+from robottelo import entities, orm
 import inspect
 
 
@@ -45,8 +45,8 @@ def graph():
                     field_name,
                     ' color=red' if field.required else ''
                 ))
-        # Make entities that are not factories more... ethereal.
-        if not issubclass(entity, factory.Factory):
+        # Make entities that cannot be created less visible.
+        if not issubclass(entity, orm.EntityCreateMixin):
             print('{0} [style=dotted]'.format(entity_name))
     print('}')
 
