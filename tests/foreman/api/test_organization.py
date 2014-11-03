@@ -4,13 +4,12 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/organizations.html
 
 """
+from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 from robottelo.api import client
-from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
-from fauxfactory import gen_string
 from unittest import TestCase
 import ddt
 import httplib
@@ -30,21 +29,16 @@ class OrganizationTestCase(TestCase):
         @Feature: Organization
 
         """
-        path = entities.Organization().path()
-        attrs = entities.Organization().build()
+        organization = entities.Organization()
+        organization.create_missing()
         response = client.post(
-            path,
-            attrs,
+            organization.path(),
+            organization.create_payload(),
             auth=get_server_credentials(),
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        status_code = httplib.UNSUPPORTED_MEDIA_TYPE
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertEqual(httplib.UNSUPPORTED_MEDIA_TYPE, response.status_code)
 
     def test_positive_create_1(self):
         """@Test: Create an organization and provide a name.
@@ -55,7 +49,7 @@ class OrganizationTestCase(TestCase):
         @Feature: Organization
 
         """
-        attrs = entities.Organization().create()
+        attrs = entities.Organization().create_json()
         self.assertTrue('label' in attrs.keys())
         if sys.version_info[0] is 2:
             self.assertIsInstance(attrs['label'], unicode)
@@ -75,7 +69,7 @@ class OrganizationTestCase(TestCase):
         attrs = entities.Organization(
             name=name_label,
             label=name_label,
-        ).create()
+        ).create_json()
         self.assertEqual(attrs['name'], name_label)
         self.assertEqual(attrs['label'], name_label)
 
@@ -89,7 +83,7 @@ class OrganizationTestCase(TestCase):
         """
         name = entities.Organization.name.get_value()
         label = entities.Organization.label.get_value()
-        attrs = entities.Organization(name=name, label=label).create()
+        attrs = entities.Organization(name=name, label=label).create_json()
         self.assertEqual(attrs['name'], name)
         self.assertEqual(attrs['label'], label)
 
@@ -121,7 +115,7 @@ class OrganizationTestCase(TestCase):
         attrs = entities.Organization(
             name=name,
             description=description,
-        ).create()
+        ).create_json()
         self.assertEqual(name, attrs['name'])
         self.assertEqual(description, attrs['description'])
 
@@ -148,7 +142,7 @@ class OrganizationTestCase(TestCase):
             name=name,
             label=label,
             description=description,
-        ).create()
+        ).create_json()
         self.assertEqual(attrs['name'], name)
         self.assertEqual(attrs['label'], label)
         self.assertEqual(attrs['description'], description)
@@ -167,7 +161,7 @@ class OrganizationTestCase(TestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.Organization(name=name).create()
+            entities.Organization(name=name).create_json()
 
     def test_negative_create_duplicate(self):
         """@Test: Create two organizations with identical names.
@@ -178,9 +172,9 @@ class OrganizationTestCase(TestCase):
 
         """
         name = entities.Organization.name.get_value()
-        entities.Organization(name=name).create()
+        entities.Organization(name=name).create_json()
         with self.assertRaises(HTTPError):
-            entities.Organization(name=name).create()
+            entities.Organization(name=name).create_json()
 
     def test_positive_search(self):
         """@Test: Create an organization, then search for it by name.
@@ -190,7 +184,7 @@ class OrganizationTestCase(TestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization().create()['name']
+        name = entities.Organization().create_json()['name']
         response = client.get(
             entities.Organization().path(),
             auth=get_server_credentials(),
@@ -209,7 +203,7 @@ class OrganizationUpdateTestCase(TestCase):
     def setUpClass(cls):
         """Create an organization."""
         cls.organization = entities.Organization(
-            id=entities.Organization().create()['id']
+            id=entities.Organization().create_json()['id']
         ).read()
 
     @ddt.data(

@@ -3,7 +3,6 @@ from ddt import data, ddt
 from functools import partial
 from requests.exceptions import HTTPError
 from robottelo.api import client
-from robottelo.api.utils import status_code_error
 from robottelo.common import conf
 from robottelo.common.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)
@@ -33,6 +32,13 @@ BZ_1151240_ENTITIES = (
 BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
 
 
+def _get_partial_func(obj):
+    """Return ``obj.func`` if ``obj`` is a partial, or ``obj`` otherwise."""
+    if isinstance(obj, partial):
+        return obj.func
+    return obj
+
+
 def skip_if_sam(self, entity):
     """Skip test if testing sam features and entity is unavailable in sam.
 
@@ -52,14 +58,11 @@ def skip_if_sam(self, entity):
     :returns: Either ``self.skipTest`` or ``None``.
 
     """
-    # In some places functools.partial is used, better to adjust the entity
-    # accordingly
-    entity = (entity.func if isinstance(entity, partial) else entity)
     robottelo_mode = conf.properties.get('main.project', '').lower()
     server_modes = [
         server_mode.lower()
         for server_mode
-        in entity.Meta.server_modes
+        in _get_partial_func(entity).Meta.server_modes
     ]
 
     if robottelo_mode == 'sam' and 'sam' not in server_modes:
@@ -100,20 +103,16 @@ class EntityTestCase(TestCase):
         entities.TemplateKind,
         entities.User,
     )
-    def test_get_status_code(self, entity):
+    def test_get_status_code(self, entity_cls):
         """@Test GET an entity-dependent path.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        skip_if_sam(self, entity)
-        response = entity().read_raw()
-        status_code = httplib.OK
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(entity().path(), status_code, response),
-        )
+        logger.debug('test_get_status_code arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        response = entity_cls().read_raw()
+        self.assertEqual(httplib.OK, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -142,20 +141,16 @@ class EntityTestCase(TestCase):
         entities.TemplateKind,
         entities.User,
     )
-    def test_get_unauthorized(self, entity):
+    def test_get_unauthorized(self, entity_cls):
         """@Test: GET an entity-dependent path without credentials.
 
         @Assert: HTTP 401 is returned
 
         """
-        skip_if_sam(self, entity)
-        response = entity().read_raw(auth=())
-        status_code = httplib.UNAUTHORIZED
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(entity().path(), status_code, response),
-        )
+        logger.debug('test_get_unauthorized arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        response = entity_cls().read_raw(auth=())
+        self.assertEqual(httplib.UNAUTHORIZED, response.status_code)
 
     @data(
         entities.ActivationKey,
@@ -189,31 +184,23 @@ class EntityTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_post_status_code(self, entity):
+    def test_post_status_code(self, entity_cls):
         """@Test: Issue a POST request and check the returned status code.
 
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
         """
-        skip_if_sam(self, entity)
+        logger.debug('test_post_status_code arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+
         # Some arguments are "normal" classes and others are objects produced
         # by functools.partial. Also, `partial(SomeClass).func == SomeClass`.
-        if ((entity.func if isinstance(entity, partial) else entity) in
-                BZ_1118015_ENTITIES and bz_bug_is_open(1118015)):
+        if (_get_partial_func(entity_cls) in BZ_1118015_ENTITIES and
+                bz_bug_is_open(1118015)):
             self.skipTest('Bugzilla bug 1118015 is open.')
-        path = entity().path()
-        response = client.post(
-            path,
-            entity().build(),
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        status_code = httplib.CREATED
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+
+        response = entity_cls().create_raw()
+        self.assertEqual(httplib.CREATED, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -243,20 +230,17 @@ class EntityTestCase(TestCase):
         entities.User,
     )
     @skip_if_bug_open('bugzilla', 1122257)
-    def test_post_unauthorized(self, entity):
+    def test_post_unauthorized(self, entity_cls):
         """@Test: POST to an entity-dependent path without credentials.
 
         @Assert: HTTP 401 is returned
 
         """
-        skip_if_sam(self, entity)
-        path = entity().path()
-        response = client.post(path, verify=False)
-        status_code = httplib.UNAUTHORIZED
+        logger.debug('test_post_unauthorized arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
         self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
+            httplib.UNAUTHORIZED,
+            entity_cls().create_raw(auth=(), create_missing=False).status_code
         )
 
 
@@ -289,24 +273,20 @@ class EntityIdTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_get_status_code(self, entity):
+    def test_get_status_code(self, entity_cls):
         """@Test: Create an entity and GET it.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        skip_if_sam(self, entity)
+        logger.debug('test_get_status_code arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
         try:
-            entity_n = entity(id=entity().create()['id'])
+            entity = entity_cls(id=entity_cls().create_json()['id'])
         except HTTPError as err:
             self.fail(err)
-        response = entity_n.read_raw()
-        status_code = httplib.OK
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(entity_n.path(), status_code, response),
-        )
+        response = entity.read_raw()
+        self.assertEqual(httplib.OK, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -335,29 +315,29 @@ class EntityIdTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_put_status_code(self, entity):
+    def test_put_status_code(self, entity_cls):
         """@Test Issue a PUT request and check the returned status code.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        skip_if_sam(self, entity)
-        if entity in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
+        logger.debug('test_put_status_code arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
-        path = entity(id=entity().create()['id']).path()
+        # Create an entity
+        entity = entity_cls(id=entity_cls().create_json()['id'])
+
+        # Update that entity.
+        entity.create_missing()
         response = client.put(
-            path,
-            entity().attributes(),
+            entity.path(),
+            entity.create_payload(),  # FIXME: use entity.update_payload()
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = httplib.OK
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertEqual(httplib.OK, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     @data(
@@ -386,7 +366,7 @@ class EntityIdTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_delete_status_code(self, entity):
+    def test_delete_status_code(self, entity_cls):
         """@Test Issue an HTTP DELETE request and check the returned status
         code.
 
@@ -394,24 +374,22 @@ class EntityIdTestCase(TestCase):
         content-type.
 
         """
-        skip_if_sam(self, entity)
-        if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
+        logger.debug('test_delete_status_code arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
         try:
-            attrs = entity().create()
+            entity = entity_cls(id=entity_cls().create_json()['id'])
         except HTTPError as err:
             self.fail(err)
-        path = entity(id=attrs['id']).path()
         response = client.delete(
-            path,
+            entity.path(),
             auth=get_server_credentials(),
             verify=False,
         )
-        status_code = (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
         self.assertIn(
             response.status_code,
-            status_code,
-            status_code_error(path, status_code, response),
+            (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
         )
 
         # According to RFC 2616, HTTP 204 responses "MUST NOT include a
@@ -458,41 +436,55 @@ class DoubleCheckTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_put_and_get(self, entity):
+    def test_put_and_get(self, entity_cls):
         """@Test: Issue a PUT request and GET the updated entity.
 
         @Assert: The updated entity has the correct attributes.
 
         """
-        skip_if_sam(self, entity)
-        if entity in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
+        logger.debug('test_put_and_get arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Create an entity.
-        entity_n = entity(id=entity().create()['id'])
-        logger.info('test_put_and_get path: {0}'.format(entity_n.path()))
+        entity = entity_cls(id=entity_cls().create_json()['id'])
 
-        # Generate some attributes and use them to update the entity.
-        gen_attrs = entity().attributes()
+        # Update that entity.
+        entity.create_missing()
+        payload = entity.create_payload()  # FIXME: use entity.update_payload()
         response = client.put(
-            entity_n.path(),
-            gen_attrs,
+            entity.path(),
+            payload,
             auth=get_server_credentials(),
             verify=False,
         )
         response.raise_for_status()
 
-        # Read the entity's attributes. Verify that they match `gen_attrs`.
-        # Passwords never returned by the API, so don't verify those.
-        real_attrs = entity_n.read_json()
-        if entity is entities.Host:
-            del gen_attrs['root_pass']
-            del gen_attrs['name']  # FIXME: "Foo" in, "foo.example.com" out.
-        if entity is entities.User:
-            del gen_attrs['password']
-        for key, value in gen_attrs.items():
-            self.assertIn(key, real_attrs.keys())
-            self.assertEqual(value, real_attrs[key], key)
+        # Drop the extra outer dict and sensitive params from `payload`.
+        if len(payload.keys()) == 1 and isinstance(payload.values()[0], dict):
+            payload = payload.values()[0]
+        if isinstance(entity, entities.Host):
+            del payload['root_pass']
+            del payload['name']  # FIXME: "Foo" in, "foo.example.com" out.
+        if issubclass(_get_partial_func(entity_cls), entities.User):
+            del payload['password']
+
+        # It is impossible to easily verify foreign keys.
+        if bz_bug_is_open(1151240):
+            for key in payload.keys():
+                if key.endswith('_id') or key.endswith('_ids'):
+                    del payload[key]
+            if issubclass(
+                    _get_partial_func(entity_cls),
+                    entities.LifecycleEnvironment):
+                del payload['prior']  # this foreign key is oddly named
+
+        # Compare a trimmed-down `payload` against what the server has.
+        attrs = entity.read_json()
+        for key, value in payload.items():
+            self.assertIn(key, attrs.keys())
+            self.assertEqual(value, attrs[key], key)
 
     @data(
         entities.ActivationKey,
@@ -520,41 +512,44 @@ class DoubleCheckTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_post_and_get(self, entity):
+    def test_post_and_get(self, entity_cls):
         """@Test Issue a POST request and GET the created entity.
 
         @Assert: The created entity has the correct attributes.
 
         """
-        skip_if_sam(self, entity)
-        if entity in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
+        logger.debug('test_post_and_get arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        if entity_cls in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
             self.skipTest("Bugzilla bug 1151240 is open.""")
-        if entity in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
+        if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
-        # Generate some attributes and use them to create an entity.
-        gen_attrs = entity().build()
-        response = client.post(
-            entity().path(),
-            gen_attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        entity_n = entity(id=response.json()['id'])
-        logger.info('test_post_and_get path: {0}'.format(entity_n.path()))
+        # Create an entity.
+        entity = entity_cls()
+        entity.id = entity.create_json()['id']
 
-        # Read the entity's attributes. Verify that they match `gen_attrs`.
-        # Passwords never returned by the API, so don't verify those.
-        real_attrs = entity_n.read_json()
-        if entity is entities.Host:
-            del gen_attrs['root_pass']
-            del gen_attrs['name']  # FIXME: "Foo" in, "foo.example.com" out.
-        if entity is entities.User:
-            del gen_attrs['password']
-        for key, value in gen_attrs.items():
-            self.assertIn(key, real_attrs.keys())
-            self.assertEqual(value, real_attrs[key], key)
+        # Drop the extra outer dict and sensitive params from `payload`.
+        payload = entity.create_payload()
+        if len(payload.keys()) == 1 and isinstance(payload.values()[0], dict):
+            payload = payload.values()[0]
+        if isinstance(entity, entities.Host):
+            del payload['root_pass']
+            del payload['name']  # FIXME: "Foo" in, "foo.example.com" out.
+        if isinstance(entity, entities.User):
+            del payload['password']
+
+        # It is impossible to easily verify foreign keys.
+        if bz_bug_is_open(1151240):
+            for key in payload.keys():
+                if key.endswith('_id') or key.endswith('_ids'):
+                    del payload[key]
+
+        # Compare a trimmed-down `payload` against what the server has.
+        attrs = entity.read_json()
+        for key, value in payload.items():
+            self.assertIn(key, attrs.keys())
+            self.assertEqual(value, attrs[key], key)
 
     @data(
         entities.ActivationKey,
@@ -582,32 +577,24 @@ class DoubleCheckTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
     )
-    def test_delete_and_get(self, entity):
+    def test_delete_and_get(self, entity_cls):
         """@Test: Issue an HTTP DELETE request and GET the deleted entity.
 
         @Assert: An HTTP 404 is returned when fetching the missing entity.
 
         """
-        skip_if_sam(self, entity)
-        if entity is entities.ConfigTemplate and bz_bug_is_open(1096333):
+        logger.debug('test_delete_and_get arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
 
-        # Create an entity, then delete it.
+        # Create an entity, delete it and get it.
         try:
-            entity_n = entity(id=entity().create()['id'])
+            entity = entity_cls(id=entity_cls().create_json()['id'])
         except HTTPError as err:
             self.fail(err)
-        logger.info('test_delete_and_get path: {0}'.format(entity_n.path()))
-        entity_n.delete()
-
-        # Get the now non-existent entity.
-        response = entity_n.read_raw()
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(entity_n.path(), status_code, response),
-        )
+        entity.delete()
+        self.assertEqual(httplib.NOT_FOUND, entity.read_raw().status_code)
 
 
 @ddt
@@ -651,17 +638,17 @@ class EntityReadTestCase(TestCase):
         # entities.TemplateKind,  # see comments in class definition
         # entities.User,
     )
-    def test_entity_read(self, entity):
+    def test_entity_read(self, entity_cls):
         """@Test: Create an entity and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
         @Assert: The just-read entity is an instance of the correct class.
 
         """
-        skip_if_sam(self, entity)
-        attrs = entity().create()
-        read_entity = entity(id=attrs['id']).read()
-        self.assertIsInstance(read_entity, entity)
+        logger.debug('test_entity_read arg: {0}'.format(entity_cls))
+        skip_if_sam(self, entity_cls)
+        entity_id = entity_cls().create_json()['id']
+        self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
 
     def test_architecture_read(self):
         """@Test: Create an arch that points to an OS, and read the arch.
@@ -670,8 +657,10 @@ class EntityReadTestCase(TestCase):
         succeeds, and the response contains the correct operating system ID.
 
         """
-        os_id = entities.OperatingSystem().create()['id']
-        arch_id = entities.Architecture(operatingsystem=[os_id]).create()['id']
+        os_id = entities.OperatingSystem().create_json()['id']
+        arch_id = entities.Architecture(
+            operatingsystem=[os_id]
+        ).create_json()['id']
         architecture = entities.Architecture(id=arch_id).read()
         self.assertEqual(len(architecture.operatingsystem), 1)
         self.assertEqual(architecture.operatingsystem[0].id, os_id)
@@ -684,8 +673,10 @@ class EntityReadTestCase(TestCase):
         @Assert: The just-read entity is an instance of the correct class.
 
         """
-        os_attrs = entities.OperatingSystem().create()
-        osp_attrs = entities.OperatingSystemParameter(os_attrs['id']).create()
+        os_attrs = entities.OperatingSystem().create_json()
+        osp_attrs = entities.OperatingSystemParameter(
+            os_attrs['id']
+        ).create_json()
         self.assertIsInstance(
             entities.OperatingSystemParameter(
                 os_attrs['id'],
@@ -715,8 +706,8 @@ class EntityReadTestCase(TestCase):
         @Assert: The media points at the correct operating system.
 
         """
-        os_id = entities.OperatingSystem().create()['id']
-        media_id = entities.Media(operatingsystem=[os_id]).create()['id']
+        os_id = entities.OperatingSystem().create_json()['id']
+        media_id = entities.Media(operatingsystem=[os_id]).create_json()['id']
         media = entities.Media(id=media_id).read()
         self.assertEqual(len(media.operatingsystem), 1)
         self.assertEqual(media.operatingsystem[0].id, os_id)
