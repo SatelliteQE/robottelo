@@ -865,8 +865,7 @@ class TestSmoke(TestCase):
         )
 
         # step 2.9: Publish content view
-        task_id = entities.ContentView(id=content_view['id']).publish()
-        task_status = entities.ForemanTask(id=task_id).poll()
+        task_status = entities.ContentView(id=content_view['id']).publish()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -882,10 +881,9 @@ class TestSmoke(TestCase):
             len(content_view['versions'][0]['environment_ids']),
             1,
             u"Content view should be present on 1 lifecycle only")
-        task_id = entities.ContentViewVersion(
+        task_status = entities.ContentViewVersion(
             id=content_view['versions'][0]['id']
         ).promote(le1['id'])
-        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -901,10 +899,9 @@ class TestSmoke(TestCase):
             len(content_view['versions'][0]['environment_ids']),
             2,
             u"Content view should be present on 2 lifecycles only")
-        task_id = entities.ContentViewVersion(
+        task_status = entities.ContentViewVersion(
             id=content_view['versions'][0]['id']
         ).promote(le2['id'])
-        task_status = entities.ForemanTask(id=task_id).poll()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -1050,8 +1047,7 @@ class TestSmoke(TestCase):
         response.raise_for_status()
 
         # step 6.1: Publish content view
-        task_id = entities.ContentView(id=content_view['id']).publish()
-        task_status = entities.ForemanTask(id=task_id).poll()
+        task_status = entities.ContentView(id=content_view['id']).publish()
         self.assertEqual(
             task_status['result'],
             u'success',
@@ -1061,9 +1057,9 @@ class TestSmoke(TestCase):
         # step 6.2: Promote content view to lifecycle_env
         content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(len(content_view['versions']), 1)
-        task_id = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']).promote(lifecycle_env['id'])
-        task_status = entities.ForemanTask(id=task_id).poll()
+        task_status = entities.ContentViewVersion(
+            id=content_view['versions'][0]['id']
+        ).promote(lifecycle_env['id'])
         self.assertEqual(
             task_status['result'],
             u'success',
