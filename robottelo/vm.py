@@ -16,7 +16,7 @@ import time
 from robottelo.common import conf, ssh
 
 
-BASE_IMAGES = ('rhel7', 'rhel65')
+BASE_IMAGES = ('rhel7', 'rhel65', 'rhel66')
 
 logger = logging.getLogger(__name__)
 
