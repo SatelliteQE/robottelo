@@ -15,6 +15,7 @@ from robottelo.ui.session import Session
 class SubscriptionTestCase(UITestCase):
     """Implements subscriptions/manifests tests in UI"""
 
+    @classmethod
     def setUpClass(cls):
         cls.org_name = entities.Organization().create()['name']
 

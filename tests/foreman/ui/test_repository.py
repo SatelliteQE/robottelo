@@ -28,6 +28,7 @@ from robottelo.ui.session import Session
 class Repos(UITestCase):
     """Implements Repos tests in UI"""
 
+    @classmethod
     def setUpClass(cls):
         org_attrs = entities.Organization().create()
         loc_attrs = entities.Location().create()

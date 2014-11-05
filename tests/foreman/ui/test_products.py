@@ -16,6 +16,7 @@ from robottelo.ui.session import Session
 class Products(UITestCase):
     """Implements Product tests in UI"""
 
+    @classmethod
     def setUpClass(cls):
         cls.org_name = entities.Organization().create()['name']
         cls.loc_name = entities.Location().create()['name']
