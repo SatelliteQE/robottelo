@@ -36,6 +36,7 @@ from robottelo.ui.session import Session
 class GPGKey(UITestCase):
     """Implements tests for GPG Keys via UI"""
 
+    @classmethod
     def setUpClass(cls):
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
