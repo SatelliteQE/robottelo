@@ -23,10 +23,9 @@ class SubscriptionsTestCase(TestCase):
         """
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
-        task_id = entities.Organization(id=org_id).upload_manifest(
+        task_result = entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
-        )
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        )['result']
         self.assertEqual(u'success', task_result)
 
     def test_positive_delete_1(self):
@@ -39,13 +38,13 @@ class SubscriptionsTestCase(TestCase):
         """
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
-        task_id = entities.Organization(id=org_id).upload_manifest(
-            path=cloned_manifest_path
-        )
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        task_result = entities.Organization(
+            id=org_id
+        ).upload_manifest(path=cloned_manifest_path)['result']
         self.assertEqual(u'success', task_result)
-        task_id = entities.Organization(id=org_id).delete_manifest()
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        task_result = entities.Organization(
+            id=org_id
+        ).delete_manifest()['result']
         self.assertEqual(u'success', task_result)
 
     def test_negative_create_1(self):
@@ -59,13 +58,11 @@ class SubscriptionsTestCase(TestCase):
         cloned_manifest_path = manifests.clone()
         orgid_one = entities.Organization().create()['id']
         orgid_two = entities.Organization().create()['id']
-        taskid_one = entities.Organization(id=orgid_one).upload_manifest(
-            path=cloned_manifest_path
-        )
-        task_result = entities.ForemanTask(id=taskid_one).poll()['result']
-        self.assertEqual(u'success', task_result)
-        taskid_two = entities.Organization(id=orgid_two).upload_manifest(
-            path=cloned_manifest_path
-        )
-        task_result = entities.ForemanTask(id=taskid_two).poll()['result']
-        self.assertNotEqual(u'success', task_result)
+        task_result1 = entities.Organization(
+            id=orgid_one
+        ).upload_manifest(path=cloned_manifest_path)['result']
+        self.assertEqual(u'success', task_result1)
+        task_result2 = entities.Organization(
+            id=orgid_two
+        ).upload_manifest(path=cloned_manifest_path)['result']
+        self.assertNotEqual(u'success', task_result2)

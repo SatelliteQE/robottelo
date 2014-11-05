@@ -266,9 +266,8 @@ class RepositorySyncTestCase(TestCase):
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
         repo = "Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3"
-        task_id = entities.Organization(
-            id=org_id).upload_manifest(path=cloned_manifest_path)
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        task_result = entities.Organization(
+            id=org_id).upload_manifest(path=cloned_manifest_path)['result']
         self.assertEqual(u'success', task_result)
         repo_id = utils.enable_rhrepo_and_fetchid(
             "x86_64",

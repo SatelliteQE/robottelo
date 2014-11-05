@@ -194,7 +194,7 @@ class OrganizationTestCase(TestCase):
             mocked_post.return_value = mock_response
             # See if EntityDeleteMixin.delete_manifest behaves correctly.
             response = entities.Organization(id=self.entity_id).delete_manifest()
-            self.assertIsNone(response)
+            self.assertIsNotNone(response)
 
     def test_delete_manifest_202(self):
         """Call :meth:`robottelo.entities.Organization.delete_manifest`.
@@ -208,7 +208,7 @@ class OrganizationTestCase(TestCase):
         mock_response = mock.Mock()
         mock_response.status_code = 202
         mock_response.raise_for_status.return_value = None
-        mock_response.json.return_value = {u'id': foreman_task_id}
+        mock_response.json.return_value = foreman_task_id
 
         with mock.patch.object(client, 'post') as mocked_post:
             mocked_post.return_value = mock_response
