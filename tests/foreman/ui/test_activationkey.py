@@ -41,7 +41,7 @@ class ActivationKey(UITestCase):
     Lesser than Min Length, Greater than Max DB size
 
     """
-
+    @classmethod
     def setUpClass(cls):
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
