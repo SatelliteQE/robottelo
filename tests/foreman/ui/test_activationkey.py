@@ -41,6 +41,7 @@ class ActivationKey(UITestCase):
     Lesser than Min Length, Greater than Max DB size
 
     """
+
     @classmethod
     def setUpClass(cls):
         org_attrs = entities.Organization().create()
@@ -70,9 +71,9 @@ class ActivationKey(UITestCase):
         else:
             # Upload manifest
             manifest_path = manifests.clone()
-            task_id = entities.Organization(
-                id=self.org_id).upload_manifest(path=manifest_path)
-            task_result = entities.ForemanTask(id=task_id).poll()['result']
+            task_result = entities.Organization(
+                id=self.org_id
+            ).upload_manifest(path=manifest_path)['result']
             self.assertEqual(u'success', task_result)
             # Enable RH repo and fetch repository_id
             repo_id = utils.enable_rhrepo_and_fetchid(

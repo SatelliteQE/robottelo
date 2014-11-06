@@ -35,6 +35,7 @@ from robottelo.test import UITestCase
 class TestContentViewsUI(UITestCase):
     """Implement tests for content view via UI"""
 
+    @classmethod
     def setUpClass(cls):
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
@@ -70,10 +71,10 @@ class TestContentViewsUI(UITestCase):
             # Uploads the file from the local machine to the sat6 machine.
             upload_file(manifest_path, remote_file=manifest_path)
 
-            # Uploads the manifest and returns the task_id.
-            task_id = entities.Organization(
-                id=self.org_id).upload_manifest(path=manifest_path)
-            task_result = entities.ForemanTask(id=task_id).poll()['result']
+            # Uploads the manifest and returns the result.
+            task_result = entities.Organization(
+                id=self.org_id
+            ).upload_manifest(path=manifest_path)['result']
             self.assertEqual(u'success', task_result)
 
             # Enables the RedHat repo and fetches it's Id.

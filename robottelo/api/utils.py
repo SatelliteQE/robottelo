@@ -119,12 +119,11 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
     """
     prd_id = entities.Product().fetch_rhproduct_id(name=product, org_id=org_id)
     reposet_id = entities.Product(id=prd_id).fetch_reposet_id(name=reposet)
-    task_id = entities.Product(id=prd_id).enable_rhrepo(
+    task_result = entities.Product(id=prd_id).enable_rhrepo(
         base_arch=basearch,
         release_ver=releasever,
         reposet_id=reposet_id,
-    )
-    task_result = entities.ForemanTask(id=task_id).poll()['result']
+    )['result']
     if task_result != "success":
         raise entities.APIResponseError(
             "Enabling the RedHat Repository '{0}' failed".format(repo))

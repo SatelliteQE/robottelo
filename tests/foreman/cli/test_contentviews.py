@@ -92,7 +92,7 @@ class TestContentView(CLITestCase):
         finished_task = Organization(
             id=TestContentView.rhel_content_org['id']
         ).upload_manifest(manifest)
-        if finished_task is None:
+        if finished_task['result'] != "success":
             TestContentView.rhel_content_org = None
             self.fail("Couldn't upload manifest")
 

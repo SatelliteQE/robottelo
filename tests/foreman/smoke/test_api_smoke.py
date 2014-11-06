@@ -1016,9 +1016,9 @@ class TestSmoke(TestCase):
 
         # step 2: Upload manifest
         manifest_path = manifests.clone()
-        task_id = entities.Organization(
-            id=org['id']).upload_manifest(path=manifest_path)
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        task_result = entities.Organization(
+            id=org['id']
+        ).upload_manifest(path=manifest_path)['result']
         self.assertEqual(u'success', task_result)
 
         # step 3.1: Enable RH repo and fetch repository_id

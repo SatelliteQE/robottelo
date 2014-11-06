@@ -1375,20 +1375,21 @@ class Organization(
         :param str repository_url: Optional repository URL
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :returns: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
-            202 response was received. ``None`` otherwise.
+            ``True``. Immediately return JSON response otherwise.
+        :returns: Returns information of the async task if an HTTP
+            202 response was received and synchronus set to ``True``.
+            Return JSON response otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
         :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
             received, ``synchronous is True`` and polling times out.
+        :rtype: dict
 
         """
         data = None
         if repository_url is not None:
             data = {u'repository_url': repository_url}
-
         with open(path, 'rb') as manifest:
             response = client.post(
                 self.path('subscriptions/upload'),
@@ -1398,28 +1399,26 @@ class Organization(
                 files={'content': manifest},
             )
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                ForemanTask(id=task_id).poll()
-            return task_id
-        return None
+        # Poll a task if necessary, then return the JSON response.
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
 
     def delete_manifest(self, synchronous=True):
         """Helper method that deletes an organization's manifest
 
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :returns: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
-            202 response was received. ``None`` otherwise.
+            ``True``. Immediately return JSON response otherwise.
+        :returns: Returns information of the async task if an HTTP
+            202 response was received and synchronus set to ``True``.
+            Return JSON response otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
         :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
             received, ``synchronous is True`` and polling times out.
+        :rtype: dict
 
         """
         response = client.post(
@@ -1428,28 +1427,26 @@ class Organization(
             verify=False,
         )
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                ForemanTask(id=task_id).poll()
-            return task_id
-        return None
+        # Poll a task if necessary, then return the JSON response.
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
 
     def refresh_manifest(self, synchronous=True):
         """Helper method that refreshes an organization's manifest
 
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :returns: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
-            202 response was received. ``None`` otherwise.
+            ``True``. Immediately return JSON response otherwise.
+        :returns: Returns information of the async task if an HTTP
+            202 response was received and synchronus set to ``True``.
+            Return JSON response otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
         :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
             received, ``synchronous is True`` and polling times out.
+        :rtype: dict
 
         """
         response = client.put(
@@ -1458,14 +1455,10 @@ class Organization(
             verify=False,
         )
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                ForemanTask(id=task_id).poll()
-            return task_id
-        return None
+        # Poll a task if necessary, then return the JSON response.
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
 
     def sync_plan(self, name, interval):
         """Helper for creating a sync_plan.
@@ -1476,7 +1469,6 @@ class Organization(
             an HTTP 4XX or 5XX message.
 
         """
-
         sync_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         response = client.post(
             self.path('sync_plans'),
@@ -1732,9 +1724,11 @@ class Product(
         :param str release_ver: The release version type of the repo to enable.
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :returns: A foreman task ID if an HTTP 202 (accepted) response is
-            received, or None if any other response is received.
+            ``True``. Immediately return JSON response otherwise.
+        :returns: Returns information of the async task if an HTTP
+            202 response was received and synchronus set to ``True``.
+            Return JSON response otherwise.
+        :rtype: dict
 
         """
         response = client.put(
@@ -1745,14 +1739,10 @@ class Product(
                   u'releasever': release_ver},
         )
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                ForemanTask(id=task_id).poll()
-            return task_id
-        return None
+        # Poll a task if necessary, then return the JSON response.
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
 
     def disable_rhrepo(self, base_arch,
                        release_ver, reposet_id, synchronous=True):
@@ -1764,9 +1754,11 @@ class Product(
             disable.
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :returns: A foreman task ID if an HTTP 202 (accepted) response is
-            received, or None if any other response is received.
+            ``True``. Immediately return JSON response otherwise.
+        :returns: Returns information of the async task if an HTTP
+            202 response was received and synchronus set to ``True``.
+            Return JSON response otherwise.
+        :rtype: dict
 
         """
         response = client.put(
@@ -1777,14 +1769,10 @@ class Product(
                   u'releasever': release_ver},
         )
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                ForemanTask(id=task_id).poll()
-            return task_id
-        return None
+        # Poll a task if necessary, then return the JSON response.
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
 
 
 class PartitionTable(

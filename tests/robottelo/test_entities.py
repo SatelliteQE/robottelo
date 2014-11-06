@@ -159,6 +159,7 @@ class PathTestCase(TestCase):
             self.assertRegexpMatches(gen_path, 'systems$')
 
 
+@ddt
 class OrganizationTestCase(TestCase):
     """Tests for :class:`robottelo.entities.Organization`."""
     def setUp(self):  # pylint:disable=C0103
@@ -178,45 +179,33 @@ class OrganizationTestCase(TestCase):
         """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
 
-    def test_delete_manifest_200(self):
+    @data(200, 202)
+    def test_delete_manifest(self, http_status_code):
         """Call :meth:`robottelo.entities.Organization.delete_manifest`.
 
-        Assert that ``Organization.delete_manifest`` returns ``None`` if it
-        receives an HTTP 200 response.
+        Assert that ``Organization.delete_manifest`` returns a dictionary
+        when an HTTP 202 or some other success status code is returned.
 
         """
-        # Create a mock server response object.
-        mock_response = mock.Mock()
-        mock_response.status_code = 200
-        mock_response.raise_for_status.return_value = None
+        # `client.post` will return this.
+        post_return = mock.Mock()
+        post_return.status_code = http_status_code
+        post_return.raise_for_status.return_value = None
+        post_return.json.return_value = {'id': gen_integer()}  # mock task ID
 
-        with mock.patch.object(client, 'post') as mocked_post:
-            mocked_post.return_value = mock_response
-            # See if EntityDeleteMixin.delete_manifest behaves correctly.
-            response = entities.Organization(id=self.entity_id).delete_manifest()
-            self.assertIsNone(response)
+        # Start by patching `client.post` and `ForemanTask.poll`...
+        # NOTE: Python 3 allows for better nested context managers.
+        with mock.patch.object(client, 'post') as client_post:
+            client_post.return_value = post_return
+            with mock.patch.object(entities.ForemanTask, 'poll') as ft_poll:
+                ft_poll.return_value = {}
 
-    def test_delete_manifest_202(self):
-        """Call :meth:`robottelo.entities.Organization.delete_manifest`.
-
-        Assert that ``Organization.delete_manifest`` returns a task ID if it
-        receives an HTTP 202 response.
-
-        """
-        # Create a mock server response object.
-        foreman_task_id = gen_integer()
-        mock_response = mock.Mock()
-        mock_response.status_code = 202
-        mock_response.raise_for_status.return_value = None
-        mock_response.json.return_value = {u'id': foreman_task_id}
-
-        with mock.patch.object(client, 'post') as mocked_post:
-            mocked_post.return_value = mock_response
-            # See if EntityDeleteMixin.delete_manifest behaves correctly.
-            response = entities.Organization(id=self.entity_id).delete_manifest(
-                synchronous=False
-            )
-            self.assertEqual(response, foreman_task_id)
+                # ... then see if `delete_manifest` acts correctly.
+                for synchronous in (True, False):
+                    reply = entities.Organization(
+                        id=self.entity_id
+                    ).delete_manifest(synchronous)
+                    self.assertIsInstance(reply, dict)
 
     def test_subscriptions(self):
         """Call :meth:`robottelo.entities.Organization.subscriptions`.
