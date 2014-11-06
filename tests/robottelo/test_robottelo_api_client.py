@@ -1,59 +1,14 @@
 """Unit tests for module ``robottelo.api.client``."""
+from fauxfactory import gen_alpha
 from robottelo.api import client
 from unittest import TestCase
 from urllib import urlencode
 import ddt
 import inspect
+import mock
 import requests
-
-
 # (accessing private members) pylint: disable=W0212
 # (too many public methods) pylint: disable=R0904
-
-
-# Start mock definitions ------------------------------------------------------
-
-
-class MockRequest(object):  # (too few methods) pylint: disable=R0903
-    """A mock ``requests.request`` function."""
-    def __init__(self, method, url, **kwargs):
-        # The loggers read this data.
-        self.status_code = 0
-        self.content = ''
-        # The tests look for this data.
-        self.method = method
-        self.url = url
-        self.kwargs = kwargs
-
-
-class MockHeadGetDelete(object):  # (too few methods) pylint: disable=R0903
-    """
-    A mock ``requests.head``, ``requests.get`` or ``requests.delete`` function.
-    """
-    def __init__(self, url, **kwargs):
-        # The loggers read this data.
-        self.status_code = 0
-        self.content = ''
-        # The tests look for this data.
-        self.url = url
-        self.kwargs = kwargs
-
-
-class MockPostPutPatch(object):  # (too few methods) pylint: disable=R0903
-    """
-    A mock ``requests.post``, ``requests.put`` or ``requests.patch`` function.
-    """
-    def __init__(self, url, data=None, **kwargs):
-        # The loggers read this data.
-        self.status_code = 0
-        self.content = ''
-        # The tests look for this data.
-        self.url = url
-        self.data = data
-        self.kwargs = kwargs
-
-
-# Start test case definitions -------------------------------------------------
 
 
 @ddt.ddt
@@ -130,7 +85,7 @@ class CurlArgInsecureTestCase(TestCase):
 
 class CurlArgDataTestCase(TestCase):
     """Tests for function ``_curl_arg_data``."""
-    def setUp(self):  # pylint: disable=C0103
+    def setUp(self):
         """Provide test data for use by other methods in this class."""
         self.to_encode = {'foo': 9001, 'bar': '!@#$% ^&*()'}
         self.to_ignore = {'auth': ('alice', 'password'), 'verify': True}
@@ -166,128 +121,78 @@ class CurlArgDataTestCase(TestCase):
         )
 
 
-class RequestTestCase(TestCase):
-    """Tests for :func:`robottelo.api.client.request`."""
-    def setUp(self):  # pylint: disable=C0103
-        """Backup and override ``client._call_requests_request``."""
-        self._call_requests_request = client._call_requests_request
-        client._call_requests_request = MockRequest
+class ClientTestCase(TestCase):
+    """Tests for functions in :mod:`robottelo.api.client`."""
 
-    def tearDown(self):  # pylint: disable=C0103
-        """Restore ``client._call_requests_request``."""
-        client._call_requests_request = self._call_requests_request
+    def setUp(self):
+        self.bogus_url = gen_alpha()
+        self.mock_response = mock.Mock()
 
-    def test_null(self):
-        """Do not provide any optional args."""
-        self.assertTrue(isinstance(
-            client.request('GET', 'example.com'),
-            MockRequest,
-        ))
+    def test_clients(self):
+        """Test ``delete``, ``get``, ``head``, ``patch``, ``post`` and ``put``.
 
-    def test_non_null(self):
-        """Provide optional args. Ensure they are given to wrapped function."""
-        kwargs = {'foo': 2, 'verify': False}
-        response = client.request('GET', 'example.com', **kwargs)  # flake8:noqa pylint:disable=W0142
-        self.assertTrue(isinstance(response, MockRequest))
-        self.assertEqual(response.method, 'GET')
-        self.assertEqual(response.url, 'example.com')
-        for key, val in kwargs.items():
-            self.assertIn(key, response.kwargs.keys())
-            self.assertEqual(val, response.kwargs[key])
+        Assert that:
 
+        * The outer function (e.g. ``delete``) returns whatever the inner
+          function (e.g. ``_call_requests_delete``) returns.
+        * The outer function passes the correct parameters to the inner
+          function.
 
-@ddt.ddt
-class HeadGetDeleteTestCase(TestCase):
-    """
-    Tests for :func:`robottelo.api.client.head`,
-    :func:`robottelo.api.client.get` and :func:`robottelo.api.client.delete`.
-    """
-    def setUp(self):  # pylint: disable=C0103
-        """Backup and override several objects."""
-        self._call_requests_head = client._call_requests_head
-        self._call_requests_get = client._call_requests_get
-        self._call_requests_delete = client._call_requests_delete
-        client._call_requests_head = MockHeadGetDelete
-        client._call_requests_get = MockHeadGetDelete
-        client._call_requests_delete = MockHeadGetDelete
+        """
+        for outer, inner in (
+                (client.delete, 'robottelo.api.client._call_requests_delete'),
+                (client.get, 'robottelo.api.client._call_requests_get'),
+                (client.head, 'robottelo.api.client._call_requests_head'),
+                (client.patch, 'robottelo.api.client._call_requests_patch'),
+                (client.post, 'robottelo.api.client._call_requests_post'),
+                (client.put, 'robottelo.api.client._call_requests_put')):
+            with mock.patch(
+                inner,
+                return_value=self.mock_response
+            ) as mock_inner:
+                self.assertIs(outer(self.bogus_url), self.mock_response)
+                if outer in (client.delete, client.get, client.head):
+                    mock_inner.assert_called_once_with(
+                        self.bogus_url,
+                        headers={'content-type': 'application/json'}
+                    )
+                elif outer in (client.patch, client.put):
+                    mock_inner.assert_called_once_with(
+                        self.bogus_url,
+                        None,
+                        headers={'content-type': 'application/json'}
+                    )
+                else:  # outer is client.post
+                    mock_inner.assert_called_once_with(
+                        self.bogus_url,
+                        None,
+                        None,
+                        headers={'content-type': 'application/json'}
+                    )
 
-    def tearDown(self):  # pylint: disable=C0103
-        """Restore backed-up objects."""
-        client._call_requests_head = self._call_requests_head
-        client._call_requests_get = self._call_requests_get
-        client._call_requests_delete = self._call_requests_delete
+    def test_client_request(self):
+        """Test :func:`robottelo.api.client.request`.
 
-    @ddt.data(
-        client.delete,
-        client.get,
-        client.head,
-    )
-    def test_null(self, function):
-        """Do not provide any optional args."""
-        self.assertTrue(isinstance(function('example.com'), MockHeadGetDelete))
+        Assert that:
 
-    @ddt.data(
-        client.delete,
-        client.get,
-        client.head,
-    )
-    def test_non_null(self, function):
-        """Provide optional args. Ensure they are given to wrapped function."""
-        kwargs = {'foo': 2, 'verify': False}
-        response = function('example.com', **kwargs)  # flake8:noqa pylint:disable=W0142
-        self.assertTrue(isinstance(response, MockHeadGetDelete))
-        self.assertEqual(response.url, 'example.com')
-        for key, val in kwargs.items():
-            self.assertIn(key, response.kwargs.keys())
-            self.assertEqual(val, response.kwargs[key])
+        * ``request`` returns whatever ``_call_requests_request`` returns.
+        * ``request`` passes the correct parameters to
+          ``_call_requests_request``.
 
-
-@ddt.ddt
-class PostPutPatchTestCase(TestCase):
-    """
-    Tests for :func:`robottelo.api.client.post`,
-    :func:`robottelo.api.client.put` and :func:`robottelo.api.client.patch`.
-    """
-    def setUp(self):  # pylint: disable=C0103
-        """Backup and override several objects."""
-        self._call_requests_post = client._call_requests_post
-        self._call_requests_put = client._call_requests_put
-        self._call_requests_patch = client._call_requests_patch
-        client._call_requests_post = MockPostPutPatch
-        client._call_requests_put = MockPostPutPatch
-        client._call_requests_patch = MockPostPutPatch
-
-    def tearDown(self):  # pylint: disable=C0103
-        """Restore backed-up objects."""
-        client._call_requests_post = self._call_requests_post
-        client._call_requests_put = self._call_requests_put
-        client._call_requests_patch = self._call_requests_patch
-
-    @ddt.data(
-        client.patch,
-        client.post,
-        client.put,
-    )
-    def test_null(self, function):
-        """Do not provide any optional args."""
-        self.assertTrue(isinstance(function('example.com'), MockPostPutPatch))
-
-    @ddt.data(
-        client.patch,
-        client.post,
-        client.put,
-    )
-    def test_non_null(self, function):
-        """Provide optional args. Ensure they are given to wrapped function."""
-        data = 'arbitrary value'
-        kwargs = {'foo': 2, 'verify': False}
-        response = function('example.com', data=data, **kwargs)  # flake8:noqa pylint:disable=W0142
-
-        self.assertTrue(isinstance(response, MockPostPutPatch))
-        self.assertEqual(response.url, 'example.com')
-        for key, val in kwargs.items():
-            self.assertIn(key, response.kwargs.keys())
-            self.assertEqual(val, response.kwargs[key])
+        """
+        with mock.patch(
+            'robottelo.api.client._call_requests_request',
+            return_value=self.mock_response
+        ) as mock_inner:
+            self.assertIs(
+                client.request('foo', self.bogus_url),
+                self.mock_response,
+            )
+            mock_inner.assert_called_once_with(
+                'foo',
+                self.bogus_url,
+                headers={'content-type': 'application/json'}
+            )
 
 
 @ddt.ddt
