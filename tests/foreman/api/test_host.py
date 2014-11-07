@@ -8,8 +8,10 @@ Test class for Domain  CLI
 from robottelo.api.apicrud import ApiCrud
 from robottelo.records.host import Host
 from robottelo.test import APITestCase
+import unittest
 
 
+@unittest.skip("This is an old implementation of Host tests. Okay to skip")
 class TestHost(APITestCase):
 
     def test_create(self):
