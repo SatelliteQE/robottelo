@@ -104,8 +104,7 @@ class ContentViewTestCase(TestCase):
         # See BZ #1151240
         self.assertEqual(system_attrs['content_view_id'], content_view.id)
         self.assertEqual(system_attrs['environment']['id'], lifecycle_env.id)
-        if not bz_bug_is_open(1158620):
-            self.assertEqual(system_attrs['organization_id'], org.id)
+        self.assertEqual(system_attrs['organization_id'], org.id)
 
 
 @ddt
