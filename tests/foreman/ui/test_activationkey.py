@@ -45,6 +45,8 @@ class ActivationKey(UITestCase):
     @classmethod
     def setUpClass(cls):
         org_attrs = entities.Organization().create()
+        # org label is required for subcription-manager cmd.
+        cls.org_label = org_attrs['label']
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
 
@@ -591,7 +593,7 @@ class ActivationKey(UITestCase):
             result = vm.run(
                 'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
-                .format(name, self.org_name)
+                .format(name, self.org_label)
             )
             self.assertEqual(
                 result.return_code, 0,
@@ -989,7 +991,7 @@ class ActivationKey(UITestCase):
             result = vm1.run(
                 'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
-                .format(name, self.org_name)
+                .format(name, self.org_label)
             )
             self.assertEqual(
                 result.return_code, 0,
@@ -1021,7 +1023,7 @@ class ActivationKey(UITestCase):
             result = vm2.run(
                 'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
-                .format(name, self.org_name)
+                .format(name, self.org_label)
             )
             # Assert system registration fails for client2 and
             # appropriate error raised
@@ -1241,7 +1243,7 @@ class ActivationKey(UITestCase):
             result = vm.run(
                 'subscription-manager register --activationkey {0},{1} '
                 '--org {2} --force'
-                .format(key_1_name, key_2_name, self.org_name)
+                .format(key_1_name, key_2_name, self.org_label)
             )
             self.assertEqual(
                 result.return_code, 0,
