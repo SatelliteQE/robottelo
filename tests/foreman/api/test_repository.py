@@ -204,8 +204,8 @@ class RepositoryTestCase(TestCase):
 
         """
         repo_id = entities.Repository(product=self.prod_id).create()['id']
-        task_id = entities.Repository(id=repo_id).sync()
-        entities.ForemanTask(id=task_id).poll()
+        task_result = entities.Repository(id=repo_id).sync()['result']
+        self.assertEqual(u'success', task_result)
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'rpm'], 1)
 
@@ -277,8 +277,7 @@ class RepositorySyncTestCase(TestCase):
             "Red Hat Enterprise Linux 6 Server - RH Common (RPMs)",
             "6.3",
         )
-        task_id = entities.Repository(id=repo_id).sync()
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        task_result = entities.Repository(id=repo_id).sync()['result']
         self.assertEqual(
             task_result,
             u'success',
@@ -334,9 +333,9 @@ class DockerRepositoryTestCase(TestCase):
             url=DOCKER_REGISTRY_HUB
         ).create()['id']
 
-        task_id = entities.Repository(id=repo_id).sync()
+        task_result = entities.Repository(id=repo_id).sync()['result']
         self.assertEqual(
             u'success',
-            entities.ForemanTask(id=task_id).poll()['result'])
+            task_result)
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)

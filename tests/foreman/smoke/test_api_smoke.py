@@ -1031,8 +1031,7 @@ class TestSmoke(TestCase):
             releasever="6Server",
         )
         # step 3.2: sync repository
-        task_id = entities.Repository(id=repo_id).sync()
-        task_result = entities.ForemanTask(id=task_id).poll()['result']
+        task_result = entities.Repository(id=repo_id).sync()['result']
         self.assertEqual(
             task_result,
             u'success',
