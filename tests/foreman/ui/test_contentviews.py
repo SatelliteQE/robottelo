@@ -88,10 +88,9 @@ class TestContentViewsUI(UITestCase):
             repo_name = rh_repo['name']
 
         # Sync repository
-        task_id = entities.Repository(id=repo_id).sync()
-        task_status = entities.ForemanTask(id=task_id).poll()
+        task_result = entities.Repository(id=repo_id).sync()['result']
         self.assertEqual(
-            task_status['result'],
+            task_result,
             u'success',
             u"Sync for repository {0} failed.".format(repo_name))
         make_contentview(session, org=self.org_name, name=cv_name)

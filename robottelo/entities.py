@@ -1884,9 +1884,11 @@ class Repository(
 
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :returns: A foreman task ID if an HTTP 202 (accepted) response is
-            received, or None if any other response is received.
+            ``True``. Immediately return JSON response otherwise.
+        :returns: Returns information of the async task if an HTTP
+            202 response was received and synchronus set to ``True``.
+            Return JSON response otherwise.
+        :rtype: dict
 
         """
         response = client.post(
@@ -1895,14 +1897,10 @@ class Repository(
             verify=False,
         )
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                ForemanTask(id=task_id).poll()
-            return task_id
-        return None
+        # Poll a task if necessary, then return the JSON response.
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
 
     def fetch_repoid(self, org_id, name):
         """Fetch the repository Id.
