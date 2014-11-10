@@ -1126,8 +1126,6 @@ class ActivationKey(UITestCase):
                                  (common_locators["alert.success"]))
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1078676)
-    @unittest.skip(NOT_IMPLEMENTED)
     def test_associate_product_3(self):
         """@Test: Test that RH/Custom product can be associated to Activation
         keys
@@ -1141,12 +1139,64 @@ class ActivationKey(UITestCase):
 
         @Assert: RH/Custom product is successfully associated to Activation key
 
-        @Status: Manual
-
-        @BZ: 1078676
-
         """
-        pass
+        name = gen_string("alpha", 8)
+        rh_repo = {
+            'name': ("Red Hat Enterprise Virtualization Agents for RHEL 6 "
+                     "Server RPMs x86_64 6Server"),
+            'product': "Red Hat Enterprise Linux Server",
+            'reposet': ("Red Hat Enterprise Virtualization Agents "
+                        "for RHEL 6 Server (RPMs)"),
+            'basearch': "x86_64",
+            'releasever': "6Server",
+        }
+        product_subscription = "Red Hat Employee Subscription"
+        custom_product_name = gen_string("alpha", 8)
+        repo_name = gen_string("alpha", 8)
+        # Creates new product and repository via API's
+        product_attrs = entities.Product(
+            name=custom_product_name,
+            organization=self.org_id
+        ).create()
+        repo_attrs = entities.Repository(
+            name=repo_name,
+            url=FAKE_1_YUM_REPO,
+            content_type=REPO_TYPE['yum'],
+            product=product_attrs['id'],
+        ).create()
+        custom_repo_id = repo_attrs['id']
+        # Upload manifest
+        manifest_path = manifests.clone()
+        task_result = entities.Organization(
+            id=self.org_id
+        ).upload_manifest(path=manifest_path)['result']
+        self.assertEqual(u'success', task_result)
+        # Enable RH repo and fetch repository_id
+        rhel_repo_id = utils.enable_rhrepo_and_fetchid(
+            rh_repo['basearch'],
+            self.org_id,
+            rh_repo['product'],
+            rh_repo['name'],
+            rh_repo['reposet'],
+            rh_repo['releasever']
+        )
+        # Sync repository
+        for repo_id in [rhel_repo_id, custom_repo_id]:
+            task_result = entities.Repository(id=repo_id).sync()['result']
+            self.assertEqual(
+                task_result,
+                u'success',
+                u"Sync for repository {0} failed.".format(repo_name))
+        with Session(self.browser) as session:
+            make_activationkey(
+                session, org=self.org_name, name=name, env=ENVIRONMENT,
+                content_view=DEFAULT_CV
+            )
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.associate_product(
+                name, [product_subscription, custom_product_name])
+            self.assertIsNotNone(self.activationkey.wait_until_element
+                                 (common_locators["alert.success"]))
 
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
@@ -1260,15 +1310,20 @@ class ActivationKey(UITestCase):
     @skip_if_bug_open('bugzilla', 1078676)
     @unittest.skip(NOT_IMPLEMENTED)
     def test_end_to_end_activation_key(self):
-        """@Test: Create Activation key and provision systems with it
+        """@Test: Create Activation key and provision content-host with it
+
+        Associate activation-key with host-group to auto-register the
+        content-host during provisioning itself.
 
         @Feature: Activation key - End to End
 
         @Steps:
         1. Create Activation key
-        2. Provision systems with Activation key
+        2. Associate it to host-group
+        3. Provision content-host with same Activation key
 
-        @Assert: Systems are successfully provisioned with Activation key
+        @Assert: Content-host should be successfully provisioned and registered
+        with Activation key
 
         @Status: Manual
 
