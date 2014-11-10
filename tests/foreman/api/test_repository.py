@@ -33,6 +33,8 @@ class RepositoryTestCase(TestCase):
     @run_only_on('sat')
     @data(
         {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
+        {'checksum_type': 'sha1'},
+        {'checksum_type': 'sha256'},
         {'name': gen_string('alphanumeric', randint(10, 50))},
         {'name': gen_string('alpha', randint(10, 50))},
         {'name': gen_string('cjk', randint(10, 50))},
@@ -119,6 +121,8 @@ class RepositoryTestCase(TestCase):
         {'name': gen_string('numeric', randint(10, 50))},
         {'name': gen_string('utf8', randint(10, 50))},
         {'unprotected': True},
+        {'checksum_type': 'sha1'},
+        {'checksum_type': 'sha256'},
         {'url': FAKE_2_YUM_REPO},
     )
     def test_delete(self, attrs):
@@ -228,6 +232,8 @@ class RepositoryUpdateTestCase(TestCase):
         {'name': gen_string('latin1', randint(10, 50))},
         {'name': gen_string('numeric', randint(10, 50))},
         {'name': gen_string('utf8', randint(10, 50))},
+        {'checksum_type': 'sha1'},
+        {'checksum_type': 'sha256'},
         {'unprotected': True},
         {'url': FAKE_2_YUM_REPO},
     )
