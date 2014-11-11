@@ -62,6 +62,8 @@ class TestCase(unittest.TestCase):
     def setUpClass(cls):
         super(TestCase, cls).setUpClass()
         cls.logger = logging.getLogger('robottelo')
+        # NOTE: longMessage defaults to True in Python 3.1 and above
+        cls.longMessage = True
 
 
 class APITestCase(TestCase):

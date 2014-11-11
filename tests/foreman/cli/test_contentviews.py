@@ -2,6 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 
 """Test class for Content Views"""
+import random
 import unittest
 
 from ddt import ddt
@@ -429,23 +430,17 @@ class TestContentView(CLITestCase):
         })
 
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not associated to selected CV")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Repository was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
         self.assertEqual(
-            result.return_code,
-            0,
-            "ContentView was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['repositories'][0]['name'],
-            TestContentView.rhel_repo_name,
-            "Repo was not associated to CV"
+            result.stdout['yum-repositories'][0]['name'], self.rhel_repo_name,
+            'Repo was not associated to CV'
         )
 
     def test_associate_view_rh_custom_spin(self):
@@ -477,50 +472,40 @@ class TestContentView(CLITestCase):
         })
 
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not associated to selected CV")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Repository was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
         self.assertEqual(
-            result.return_code,
-            0,
-            "ContentView was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['repositories'][0]['name'],
+            result.stdout['yum-repositories'][0]['name'],
             TestContentView.rhel_repo_name,
-            "Repo was not associated to CV"
+            'Repo was not associated to CV'
         )
 
-        name = gen_string("alphanumeric", 10)
+        name = gen_string('alphanumeric', 10)
         result_flt = ContentView.filter_create({
-            "content-view-id": new_cv['id'],
-            "type": "rpm",
-            "inclusion": "true",
-            "name": name,
+            'content-view-id': new_cv['id'],
+            'type': 'rpm',
+            'inclusion': 'true',
+            'name': name,
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Filter was not created")
-        self.assertEqual(
-            len(result_flt.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0, 'Filter was not created')
+        self.assertEqual(len(result_flt.stderr), 0, 'No error was expected')
 
         result_rl = ContentView.filter_rule_create({
-            "content-view-id": new_cv['id'],
-            "name": "walgrind",
-            "content-view-filter": name,
+            'content-view-id': new_cv['id'],
+            'name': 'walgrind',
+            'content-view-filter': name,
         })
         self.assertEqual(
-            result.return_code,
-            0,
-            "Filter rule was not created")
-        self.assertEqual(
-            len(result_rl.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Filter rule was not created'
+        )
+        self.assertEqual(len(result_rl.stderr), 0, 'No error was expected')
 
     def test_associate_view_custom_content(self):
         """@test: associate Red Hat content in a view
@@ -532,31 +517,18 @@ class TestContentView(CLITestCase):
         @assert: Custom content can be seen in a view
 
         """
-
-        # Create REPO
-        new_repo = make_repository({u'product-id': self.product['id']})
-        # Fetch it
-        result = Repository.info(
-            {
-                u'id': new_repo['id']
-            }
-        )
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_repo = make_repository({u'product-id': self.product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Sync REPO
         result = Repository.synchronize({'id': new_repo['id']})
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not synchronized")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Repository was not synchronized'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Create CV
         try:
@@ -565,26 +537,23 @@ class TestContentView(CLITestCase):
             self.fail(err)
 
         # Associate repo to CV
-        result = ContentView.add_repository({u'id': new_cv['id'],
-                                             u'repository-id': new_repo['id']})
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not associated to selected CV")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Repository was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
         self.assertEqual(
-            result.return_code,
-            0,
-            "ContentView was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['repositories'][0]['name'],
+            result.stdout['yum-repositories'][0]['name'],
             new_repo['name'],
-            "Repo was not associated to CV"
+            'Repo was not associated to CV'
         )
 
     def test_cv_associate_puppet_repo_negative(self):
@@ -718,31 +687,18 @@ class TestContentView(CLITestCase):
         @assert: User cannot add repos multiple times to the view
 
         """
-
-        # Create REPO
-        new_repo = make_repository({u'product-id': self.product['id']})
-        # Fetch it
-        result = Repository.info(
-            {
-                u'id': new_repo['id']
-            }
-        )
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            new_repo = make_repository({u'product-id': self.product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Sync REPO
         result = Repository.synchronize({'id': new_repo['id']})
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not synchronized")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Repository was not synchronized'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Create CV
         try:
@@ -751,51 +707,45 @@ class TestContentView(CLITestCase):
             self.fail(err)
 
         # Associate repo to CV
-        result = ContentView.add_repository({u'id': new_cv['id'],
-                                             u'repository-id': new_repo['id']})
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not associated to selected CV")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "ContentView was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['repositories'][0]['name'],
-            new_repo['name'],
-            "Repo was not associated to CV"
+            result.return_code, 0,
+            'Repository was not associated to selected CV'
         )
-        # Re-associate repo to CV
-        result = ContentView.add_repository({u'id': new_cv['id'],
-                                             u'repository-id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not associated to selected CV")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
         self.assertEqual(
-            result.return_code,
-            0,
-            "ContentView was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        with self.assertRaises(Exception):
-            self.assertEqual(
-                result.stdout['repositories'][1]['name'],
-                new_repo['name'],
-                "No new entry of same repo is expected")
+            result.stdout['yum-repositories'][0]['name'], new_repo['name'],
+            'Repo was not associated to CV'
+        )
+        repos_length = len(result.stdout['yum-repositories'])
 
-    @skip_if_bug_open('bugzilla', 1089905)
+        # Re-associate repo to CV
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0,
+            'Repository was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+        self.assertEqual(
+            len(result.stdout['yum-repositories']), repos_length,
+            'No new entry of same repo is expected'
+        )
+
+    @skip_if_bug_open('bugzilla', 1162799)
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@test: attempt to associate duplicate puppet module(s) within a
         content view
@@ -804,78 +754,68 @@ class TestContentView(CLITestCase):
 
         @assert: User cannot add modules multiple times to the view
 
+        @bz: 1162799
+
         """
-
-        # Create REPO
-        new_repo = make_repository({u'product-id': self.product['id'],
-                                    u'content-type': u'puppet',
-                                    u'url': FAKE_0_PUPPET_REPO})
-        # Fetch it
-        result = Repository.info(
-            {
-                u'id': new_repo['id']
-            }
-        )
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        try:
+            repository = make_repository({
+                u'product-id': self.product['id'],
+                u'content-type': u'puppet',
+                u'url': FAKE_0_PUPPET_REPO,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
+        result = Repository.synchronize({'id': repository['id']})
         self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not synchronized")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+            result.return_code, 0,
+            'Repository was not synchronized'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Create CV
         try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
+            content_view = make_content_view({
+                u'organization-id': self.org['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
         # Fetch puppet module
-        puppet_result = PuppetModule.list({u'repository-id': new_repo['id'],
-                                           u'per-page': False})
+        puppet_result = PuppetModule.list({
+            u'repository-id': repository['id'],
+            u'per-page': False,
+        })
         self.assertEqual(
             puppet_result.return_code,
             0,
-            "List of puppet modules was not generated")
+            'List of puppet modules was not generated')
         self.assertEqual(
-            len(puppet_result.stderr), 0, "No error was expected")
+            len(puppet_result.stderr), 0, 'No error was expected')
+        puppet_module = random.choice(puppet_result.stdout)
 
         # Associate puppet module to CV
-        result = ContentView.puppet_module_add(
-            {
-                u'content-view-id': new_cv['id'],
-                u'name': puppet_result.stdout[0]['name']
-            }
+        result = ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'name': puppet_module['name']
+        })
+        self.assertEqual(
+            result.return_code, 0,
+            'Puppet module was not associated'
         )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Puppet module was not associated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Re-associate same puppet module to CV
-        result = ContentView.puppet_module_add(
-            {
-                u'content-view-id': new_cv['id'],
-                u'name': puppet_result.stdout[0]['name']
-            }
-        )
+        result = ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'name': puppet_module['name'],
+        })
         self.assertNotEqual(
-            result.return_code,
-            0,
-            "Same puppet module should not be associated twice")
-        self.assertGreater(
-            len(result.stderr), 0, "Error was expected")
+            result.return_code, 0,
+            'Same puppet module should not be associated twice'
+        )
+        self.assertGreater(len(result.stderr), 0, 'Error was expected')
 
     # Content View: promotions
     # katello content view promote --label=MyView --env=Dev --org=ACME
@@ -1141,30 +1081,28 @@ class TestContentView(CLITestCase):
         @assert: Default content views cannot be promoted
 
         """
-
-        cv_list = []
-        # Fetch it
-        result = ContentView.list({u'organization-id': self.org['id']},
-                                  per_page=False)
+        result = ContentView.list(
+            {u'organization-id': self.org['id']},
+            per_page=False
+        )
         self.assertEqual(result.return_code, 0, "Content-View was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
-        for cv in result.stdout:
-            if cv['label'] == u'Default_Organization_View':
-                cv_list.append(cv)
-                break
-
-        cv_id = cv_list[0]['content-view-id']
+        content_view = random.choice([
+            cv for cv in result.stdout
+            if cv['name'] == u'Default Organization View'
+        ])
 
         # Promote the Default CV to the next env
-
         result = ContentView.version_promote({
-            u'id': cv_id,
+            u'id': content_view['content-view-id'],
             u'to-lifecycle-environment-id': self.env1['id'],
         })
         self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0,
-                           "There should be an exception here.")
+        self.assertGreater(
+            len(result.stderr), 0,
+            'There should be an exception here.'
+        )
 
     @skip_if_bug_open('bugzilla', 1091494)
     @skip_if_bug_open('bugzilla', 1156629)
@@ -1242,7 +1180,7 @@ class TestContentView(CLITestCase):
         # Create CV
         try:
             new_cv = make_content_view({
-                u'organization-id': self.rhel_content_org['id']
+                u'organization-id': self.rhel_content_org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -1250,26 +1188,34 @@ class TestContentView(CLITestCase):
         # Associate repo to CV
         result = ContentView.add_repository({
             u'id': new_cv['id'],
-            u'repository-id': TestContentView.rhel_repo['id']
+            u'repository-id': TestContentView.rhel_repo['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "Repo was not associated to selected CV")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.return_code, 0,
+            'Repo was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Publish a new version of CV
         result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Publishing a new version of CV was not successful")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(
+            result.return_code, 0,
+            'Publishing a new version of CV was not successful'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0, 'Content-View was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
         self.assertEqual(
-            result.stdout['repositories'][0]['name'],
-            TestContentView.rhel_repo['name'], "Repo was not associated to CV")
-        self.assertEqual(result.stdout['versions'][0]['version'], u'1',
-                         "Publishing new version of CV was not successful")
+            result.stdout['yum-repositories'][0]['name'],
+            self.rhel_repo['name'],
+            'Repo was not associated to CV'
+        )
+        self.assertEqual(
+            result.stdout['versions'][0]['version'], u'1',
+            'Publishing new version of CV was not successful'
+        )
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
@@ -1296,13 +1242,10 @@ class TestContentView(CLITestCase):
         @assert: Content view can be published
 
         """
-
-        # Create REPO
-        new_repo = make_repository({u'product-id': self.product['id']})
-        # Fetch it
-        result = Repository.info({u'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0, "Repository was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            new_repo = make_repository({u'product-id': self.product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Sync REPO
         result = Repository.synchronize({'id': new_repo['id']})
@@ -1316,25 +1259,35 @@ class TestContentView(CLITestCase):
             self.fail(err)
 
         # Associate repo to CV
-        result = ContentView.add_repository({u'id': new_cv['id'],
-                                             u'repository-id': new_repo['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Repo was not associated to selected CV")
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0,
+            'Repo was not associated to selected CV'
+        )
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         # Publish a new version of CV
         result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Publishing a new version of CV was not successful")
+        self.assertEqual(
+            result.return_code, 0,
+            'Publishing a new version of CV was not successful'
+        )
         self.assertEqual(len(result.stderr), 0, "No error was expected")
 
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0, "ContentView was not found")
         self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['repositories'][0]['name'],
-                         new_repo['name'], "Repo was not associated to CV")
-        self.assertEqual(result.stdout['versions'][0]['version'], u'1',
-                         "Publishing new version of CV was not successful")
+        self.assertEqual(
+            result.stdout['yum-repositories'][0]['name'], new_repo['name'],
+            'Repo was not associated to CV'
+        )
+        self.assertEqual(
+            result.stdout['versions'][0]['version'], u'1',
+            'Publishing new version of CV was not successful'
+        )
 
     def test_cv_publish_composite(self):
         # Variations:
@@ -1350,48 +1303,53 @@ class TestContentView(CLITestCase):
         @assert: Content view can be published
 
         """
-
-        # Create REPO
-        new_repo = make_repository({u'product-id': self.product['id']})
-        # Fetch it
-        result = Repository.info({u'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0, "Repository was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        try:
+            repository = make_repository({u'product-id': self.product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
 
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0, "Repo was not synchronized")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        result = Repository.synchronize({'id': repository['id']})
+        self.assertEqual(result.return_code, 0, 'Repo was not synchronized')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Create CV
         try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
+            content_view = make_content_view({
+                u'organization-id': self.org['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
         # Associate repo to CV
-        result = ContentView.add_repository({u'id': new_cv['id'],
-                                             u'repository-id': new_repo['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Repo was not associated to selected CV")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        result = ContentView.add_repository({
+            u'id': content_view['id'],
+            u'repository-id': repository['id'],
+        })
+        self.assertEqual(
+            result.return_code, 0,
+            'Repo was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Publishing a new version of CV was not successful")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        result = ContentView.publish({u'id': content_view['id']})
+        self.assertEqual(
+            result.return_code, 0,
+            'Publishing a new version of CV was not successful'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0, "ContentView was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        result = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Let us now store the version1 id
         version1_id = result.stdout['versions'][0]['id']
 
-        # Create CV
+        # Create composite CV
         try:
-            con_view = make_content_view({
+            composite_cv = make_content_view({
                 'organization-id': self.org['id'],
                 'composite': True
             })
@@ -1400,35 +1358,42 @@ class TestContentView(CLITestCase):
 
         # Associate version to composite CV
         result = ContentView.add_version({
-            u'id': con_view['id'],
+            u'id': composite_cv['id'],
             u'content-view-version-id': version1_id,
         })
         self.assertEqual(result.return_code, 0,
-                         "Repo was not associated to selected CV")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+                         'Repo was not associated to selected CV')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Assert whether version was associated to composite CV
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "Content-View was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['components'][0]['id'],
-                         version1_id,
-                         "version was not associated to composite CV")
+        result = ContentView.info({u'id': composite_cv['id']})
+        self.assertEqual(result.return_code, 0, 'Content-View was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+        self.assertEqual(
+            result.stdout['components'][0]['id'], version1_id,
+            'version was not associated to composite CV'
+        )
 
         # Publish a new version of CV
-        result = ContentView.publish({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Publishing a version of composite CV not successful")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        result = ContentView.publish({u'id': composite_cv['id']})
+        self.assertEqual(
+            result.return_code, 0,
+            'Publishing a version of composite CV not successful'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
 
         # Assert whether Version1 was created and exists in Library Env.
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0, "ContentView was not found")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
-        self.assertEqual(result.stdout['lifecycle-environments'][0]['name'],
-                         u'Library', "version1 does not exist in Library")
-        self.assertEqual(result.stdout['versions'][0]['version'], u'1',
-                         "Publishing new version of CV was not successful")
+        result = ContentView.info({u'id': composite_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+        self.assertEqual(
+            result.stdout['environments'][0]['name'], u'Library',
+            'version1 does not exist in Library'
+        )
+        self.assertEqual(
+            result.stdout['versions'][0]['version'], u'1',
+            'Publishing new version of CV was not successful'
+        )
 
     def test_cv_publish_version_changes_in_target_env(self):
         # Dev notes:
