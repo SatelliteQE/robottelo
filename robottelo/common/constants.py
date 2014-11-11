@@ -209,8 +209,12 @@ PERMISSIONS = {
     None: (
         'access_dashboard',
         'access_settings',
+        'commit_containers',
+        'create_containers',
+        'destroy_containers',
         'download_bootdisk',
         'my_organizations',
+        'view_containers',
         'view_plugins',
         'view_statistics',
         'view_tasks',
@@ -335,6 +339,9 @@ PERMISSIONS = {
         'edit_locations',
         'destroy_locations',
         'assign_locations',
+    ),
+    'MailNotification': (
+        'view_mail_notifications',
     ),
     'Medium': (
         'view_media',
