@@ -18,6 +18,8 @@ import random
 @ddt
 class EnvironmentTestCase(TestCase):
     """Tests for environments."""
+    _multiprocess_can_split_ = True
+
     @data(
         gen_string('alpha', random.randint(1, 255)),
         gen_string('numeric', random.randint(1, 255)),

@@ -9,6 +9,8 @@ from unittest import TestCase
 @run_only_on('sat')
 class ForemanTasksIdTestCase(TestCase):
     """Tests for the ``foreman_tasks/api/v2/tasks/:id`` path."""
+    _multiprocess_can_split_ = True
+
     @skip_if_bug_open('bugzilla', 1131702)
     def test_no_such_task(self):
         """@Test: Fetch a non-existent task.

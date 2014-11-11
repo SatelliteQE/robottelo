@@ -77,6 +77,8 @@ def skip_if_sam(self, entity):
 @ddt
 class EntityTestCase(TestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
+    _multiprocess_can_split_ = True
+
     @data(
         # entities.ActivationKey,  # need organization_id or environment_id
         entities.Architecture,
@@ -247,6 +249,8 @@ class EntityTestCase(TestCase):
 @ddt
 class EntityIdTestCase(TestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
+    _multiprocess_can_split_ = True
+
     @data(
         entities.ActivationKey,
         entities.Architecture,
@@ -408,6 +412,7 @@ class DoubleCheckTestCase(TestCase):
     action to ensure that the intended action was accomplished.
 
     """
+    _multiprocess_can_split_ = True
     longMessage = True
 
     @data(
@@ -603,6 +608,8 @@ class EntityReadTestCase(TestCase):
     Check that classes inheriting from :class:`robottelo.orm.EntityReadMixin`
     function correctly.
     """
+    _multiprocess_can_split_ = True
+
     # Most entities are commented-out because they do not inherit from
     # EntityReadMixin, due to issues with data returned from the API.
     #

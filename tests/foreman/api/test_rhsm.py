@@ -13,6 +13,8 @@ import httplib
 
 class RHSMTestCase(TestCase):
     """Tests for the ``/rhsm`` path."""
+    _multiprocess_can_split_ = True
+
     def test_path_exists(self):
         """@Test: Check whether the path exists.
 

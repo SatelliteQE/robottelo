@@ -12,6 +12,7 @@ from unittest import TestCase
 
 class FilterTestCase(TestCase):
     """Tests for ``api/v2/filters``."""
+    _multiprocess_can_split_ = True
 
     def test_create_filter_with_perms(self):
         """@Test: Create a filter and assign it some permissions.

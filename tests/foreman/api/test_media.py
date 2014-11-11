@@ -22,6 +22,7 @@ class MediaTestCase(unittest.TestCase):
         )
 
     """
+    _multiprocess_can_split_ = True
 
     @unittest.skip(NOT_IMPLEMENTED)
     def test_remove_medium_1(self, test_data):

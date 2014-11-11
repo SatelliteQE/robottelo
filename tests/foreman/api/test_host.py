@@ -17,6 +17,7 @@ import httplib
 @run_only_on('sat')
 class HostsTestCase(TestCase):
     """Tests for ``entities.Host().path()``."""
+    _multiprocess_can_split_ = True
 
     def test_get_search(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.

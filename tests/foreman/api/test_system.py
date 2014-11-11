@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)  # pylint:disable=C0103
 
 class EntityIdTestCaseClone(TestCase):
     """Issue HTTP requests to various ``systems/:uuid`` paths."""
+    _multiprocess_can_split_ = True
+
     def test_get_status_code(self):
         """@Test: Create a system and GET it.
 
@@ -103,6 +105,7 @@ class DoubleCheckTestCase(TestCase):
     action to ensure that the intended action was accomplished.
 
     """
+    _multiprocess_can_split_ = True
 
     @skip_if_bug_open('bugzilla', 1133097)
     def test_put_and_get(self):

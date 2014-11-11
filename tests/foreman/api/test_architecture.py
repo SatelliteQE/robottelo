@@ -10,6 +10,7 @@ from unittest import TestCase
 
 class ArchitectureTestCase(TestCase):
     """Tests for architectures."""
+    _multiprocess_can_split_ = True
 
     @skip_if_bug_open('bugzilla', 1151220)
     def test_post_hash(self):

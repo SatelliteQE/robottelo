@@ -16,6 +16,8 @@ import httplib
 @run_only_on('sat')
 class ContentViewFilterTestCase(TestCase):
     """Tests for content view filters."""
+    _multiprocess_can_split_ = True
+
     def test_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
 

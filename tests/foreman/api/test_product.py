@@ -19,6 +19,7 @@ from unittest import TestCase
 @ddt
 class ProductsTestCase(TestCase):
     """Tests for ``katello/api/v2/products``."""
+    _multiprocess_can_split_ = True
 
     @run_only_on('sat')
     @data(
@@ -83,6 +84,8 @@ class ProductsTestCase(TestCase):
 @ddt
 class ProductUpdateTestCase(TestCase):
     """Tests for updating a product."""
+    _multiprocess_can_split_ = True
+
     @classmethod
     def setUpClass(cls):
         """Create a product."""
