@@ -10,7 +10,7 @@ from itertools import chain
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.constants import PERMISSIONS
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
 from unittest import TestCase
@@ -161,6 +161,7 @@ class UserRoleTestCase(TestCase):
             verify=False,
         ).raise_for_status()
 
+    @skip_if_bug_open('bugzilla', 1162860)
     @data(
         entities.Architecture,
         entities.Domain,
@@ -180,6 +181,7 @@ class UserRoleTestCase(TestCase):
         entity_id = entity().create(auth=self.auth)['id']
         entity(id=entity_id).read_json()  # read as an admin user
 
+    @skip_if_bug_open('bugzilla', 1162860)
     @data(
         entities.Architecture,
         entities.Domain,
@@ -199,6 +201,7 @@ class UserRoleTestCase(TestCase):
         self.give_user_permission(_permission_name(entity, 'read'))
         entity_obj.read_json(auth=self.auth)
 
+    @skip_if_bug_open('bugzilla', 1162860)
     @data(
         entities.Architecture,
         entities.Domain,
@@ -220,6 +223,7 @@ class UserRoleTestCase(TestCase):
         with self.assertRaises(HTTPError):
             entity_obj.read_json()  # As admin user
 
+    @skip_if_bug_open('bugzilla', 1162860)
     @data(
         entities.Architecture,
         entities.Domain,
