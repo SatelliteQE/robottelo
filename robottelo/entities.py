@@ -665,7 +665,9 @@ class Domain(
     """A representation of a Domain entity."""
     domain_parameters_attributes = orm.ListField(null=True)
     fullname = orm.StringField(null=True)
+    location = orm.OneToManyField('Location', null=True)
     name = orm.StringField(required=True)
+    organization = orm.OneToManyField('Organization', null=True)
     # DNS Proxy to use within this domain
     # FIXME figure out related resource
     # dns = orm.OneToOneField(null=True)
@@ -681,6 +683,11 @@ class Domain(
         if 'name' not in vars(self):
             self.name = gen_alphanumeric().lower()
         super(Domain, self).create_missing(auth)
+
+    # NOTE: See BZ 1151220
+    def create_payload(self):
+        """Wrap submitted data within an extra dict."""
+        return {u'domain': super(Domain, self).create_payload()}
 
     class Meta(object):
         """Non-field information about this entity."""
