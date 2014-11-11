@@ -22,11 +22,13 @@ from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
+from robottelo.common.helpers import generate_strings_list
 from robottelo.common import manifests
 from robottelo.common.ssh import upload_file
 from robottelo.common import conf
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
+import random
 # (too many public methods) pylint: disable=R0904
 
 
@@ -532,8 +534,9 @@ class TestSmoke(CLITestCase):
             'for RHEL 6 Server '
             'RPMs x86_64 6Server'
         )
+        org_name = random.choice(generate_strings_list())
         # Create new org and environment
-        new_org = make_org()
+        new_org = make_org({u'name': org_name})
         new_env = make_lifecycle_environment({
             u'organization-id': new_org['id'],
             u'name': gen_alphanumeric(),
@@ -681,9 +684,9 @@ class TestSmoke(CLITestCase):
             )
             # Register client with foreman server using activation-key
             result = vm.run(
-                'subscription-manager register --activationkey {0} '
+                u'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
-                .format(activation_key['name'], new_org['name'])
+                .format(activation_key['name'], new_org['label'])
             )
             self.assertEqual(
                 result.return_code, 0,
