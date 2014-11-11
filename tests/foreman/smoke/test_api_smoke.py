@@ -1001,10 +1001,10 @@ class TestSmoke(TestCase):
         repo = ("Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
                 "RPMs x86_64 6Server")
         activation_key_name = gen_string('alpha')
-        org_name = gen_string('alpha')
 
         # step 1.1: Create a new organization
-        org = entities.Organization(name=org_name).create()
+        org = entities.Organization().create()
+        org_name = org['name']
 
         # step 1.2: Create new lifecycle environments
         lifecycle_env = entities.LifecycleEnvironment(
@@ -1111,9 +1111,9 @@ class TestSmoke(TestCase):
             )
             # Register client with foreman server using activation-key
             result = vm.run(
-                'subscription-manager register --activationkey {0} '
+                u'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
-                .format(activation_key_name, org_name)
+                .format(activation_key_name, org['label'])
             )
             self.assertEqual(
                 result.return_code, 0,
