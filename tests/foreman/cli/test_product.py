@@ -690,7 +690,6 @@ class TestProduct(CLITestCase):
             result.stdout['sync-plan-id'], sync_plan['id'],
             "Info should have consistent sync ids.")
 
-    @skip_if_bug_open('bugzilla', 1121136)
     @attr('cli', 'product')
     def test_remove_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
@@ -699,50 +698,49 @@ class TestProduct(CLITestCase):
 
         @Assert: Product has syncplan
 
-        @BZ: 1121136
-
         """
         try:
-            new_product = make_product(
-                {
-                    u'organization-id': self.org['id']
-                }
-            )
-            s = make_sync_plan({'organization-id': self.org['id']})
-            s_result = Product.set_sync_plan(
-                {
-                    'sync-plan-id': s['id'],
-                    'id': new_product['id']
-                }
-            )
+            product = make_product({u'organization-id': self.org['id']})
+            sync_plan = make_sync_plan({'organization-id': self.org['id']})
+            result = Product.set_sync_plan({
+                'sync-plan-id': sync_plan['id'],
+                'id': product['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
         self.assertEqual(
-            s_result.stderr, [],
-            "Running set_sync_plan should cause no errors.")
-        i_result = Product.info({'id': new_product['id'],
-                                 'organization-id': self.org['id']})
+            result.stderr, [],
+            'Running set_sync_plan should cause no errors.'
+        )
+        result = Product.info({
+            'id': product['id'],
+            'organization-id': self.org['id'],
+        })
         self.assertEqual(
-            i_result.stderr, [],
-            "Running product info should cause no errors.")
-        self.assertEqual(
-            i_result.stdout['sync-plan-id'], s['id'],
-            "Info should have consistent sync ids.")
-        r_result = Product.remove_sync_plan(
-            {
-                'sync-plan-id': s['id'],
-                'id': new_product['id']
-            }
+            result.stderr, [],
+            'Running product info should cause no errors.'
         )
         self.assertEqual(
+            result.stdout['sync-plan-id'], sync_plan['id'],
+            'Info should have consistent sync ids.'
+        )
+        r_result = Product.remove_sync_plan({
+            'id': product['id'],
+        })
+        self.assertEqual(
             r_result.stderr, [],
-            "Running product remove_sync_plan should cause no errors.")
-        i_result = Product.info({'id': new_product['id'],
-                                 'organization-id': self.org['id']})
+            'Running product remove_sync_plan should cause no errors.'
+        )
+        result = Product.info({
+            'id': product['id'],
+            'organization-id': self.org['id'],
+        })
         self.assertEqual(
-            i_result.stderr, [],
-            "Running product info should cause no errors.")
+            result.stderr, [],
+            'Running product info should cause no errors.'
+        )
         self.assertEqual(
-            len(i_result.stdout['sync-plan-id']), 0,
-            "Info should have no sync ids.")
+            len(result.stdout['sync-plan-id']), 0,
+            'Info should have no sync id.'
+        )
