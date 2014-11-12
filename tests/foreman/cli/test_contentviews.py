@@ -1072,7 +1072,7 @@ class TestContentView(CLITestCase):
         self.assertGreater(len(result.stderr), 0,
                            "There should be an exception here.")
 
-    @skip_if_bug_open('bugzilla', 1091494)
+    @unittest.skip('Note: BZ 1091494 is fixed in upstream but not downstream')
     def test_cv_promote_badenvironment_negative(self):
         """
         @test: attempt to promote a content view using an invalid environment
