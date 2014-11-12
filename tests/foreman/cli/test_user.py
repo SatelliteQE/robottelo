@@ -505,7 +505,7 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @skip_if_bug_open('bugzilla', 1070730)
+    @unittest.skip('Note: BZ 1070730 is fixed in upstream but not downstream')
     @data('foreman@',
           '@foreman',
           '@',
@@ -1099,7 +1099,7 @@ class User(CLITestCase):
                                                       (new_user['firstname'],
                                                        new_user['lastname']))
 
-    @skip_if_bug_open('bugzilla', 1070730)
+    @unittest.skip('Note: BZ 1070730 is fixed in upstream but not downstream')
     @data('foreman@',
           '@foreman',
           '@',
