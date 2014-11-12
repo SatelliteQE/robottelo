@@ -74,31 +74,6 @@ def _poll_task(task_id, poll_rate=5, timeout=180, auth=None):
         timer.cancel()
 
 
-def _get_value(field, default):
-    """Return a value for ``field``.
-
-    Use the following strategies, in order, to find a value for ``field``:
-
-    1. If ``field`` has a default value, return that value.
-    2. If ``field`` provides choices, randomly return one of those choices.
-    3. If ``default`` is callable, return ``default()``.
-    4. Finally, fall back to returning ``default``.
-
-    :param field: A :class:`Field`, or one of its more specialized brethren.
-    :param default: A callable which yields a value.
-    :return: A value appropriate for that field.
-
-    """
-    if hasattr(field, 'default'):
-        return field.default
-    elif hasattr(field, 'choices'):
-        return gen_choice(field.choices)
-    elif callable(default):
-        return default()
-    else:
-        return default
-
-
 # -----------------------------------------------------------------------------
 # Definition of individual entity fields.
 # -----------------------------------------------------------------------------
@@ -136,21 +111,21 @@ class BooleanField(Field):
     """Field that represents a boolean"""
     def get_value(self):
         """Return a value suitable for a :class:`BooleanField`."""
-        return _get_value(self, gen_boolean)
+        return gen_boolean()
 
 
 class EmailField(Field):
     """Field that represents an email"""
     def get_value(self):
         """Return a value suitable for a :class:`EmailField`."""
-        return _get_value(self, gen_email)
+        return gen_email()
 
 
 class FloatField(Field):
     """Field that represents a float"""
     def get_value(self):
         """Return a value suitable for a :class:`FloatField`."""
-        return _get_value(self, random.random() * 10000)
+        return random.random() * 10000
 
 
 class IntegerField(Field):
@@ -162,10 +137,7 @@ class IntegerField(Field):
 
     def get_value(self):
         """Return a value suitable for a :class:`IntegerField`."""
-        return _get_value(
-            self,
-            gen_integer(self.min_val, self.max_val)
-        )
+        return gen_integer(self.min_val, self.max_val)
 
 
 class StringField(Field):
@@ -204,12 +176,9 @@ class StringField(Field):
 
     def get_value(self):
         """Return a value suitable for a :class:`StringField`."""
-        return _get_value(
-            self,
-            lambda: gen_string(
-                gen_choice(self.str_type),
-                gen_integer(self.min_len, self.max_len)
-            )
+        return gen_string(
+            gen_choice(self.str_type),
+            gen_integer(self.min_len, self.max_len)
         )
 
 
@@ -225,21 +194,21 @@ class DictField(Field):
     """Field that represents a set of key-value pairs."""
     def get_value(self):
         """Return a value suitable for a :class:`DictField`."""
-        return _get_value(self, {})
+        return {}
 
 
 class IPAddressField(StringField):
     """Field that represents an IP adrress"""
     def get_value(self):
         """Return a value suitable for a :class:`IPAddressField`."""
-        return _get_value(self, gen_ipaddr)
+        return gen_ipaddr()
 
 
 class NetmaskField(StringField):
     """Field that represents an netmask"""
     def get_value(self):
         """Return a value suitable for a :class:`NetmaskField`."""
-        return _get_value(self, gen_netmask)
+        return gen_netmask()
 
 
 # FIXME: implement get_value()
@@ -251,7 +220,7 @@ class MACAddressField(StringField):
     """Field that represents a MAC adrress"""
     def get_value(self):
         """Return a value suitable for a :class:`MACAddressField`."""
-        return _get_value(self, gen_mac)
+        return gen_mac()
 
 
 class OneToOneField(Field):
@@ -272,20 +241,15 @@ class OneToManyField(Field):
         super(OneToManyField, self).__init__(*validators, **kwargs)
 
     def get_value(self):
-        """Return a set of instances of the class this field references.
-
-        :return: An iterable of class instances.
-        :rtype: list
-
-        """
-        return [_get_class(self.entity)()]
+        """Return an instance of the class that this field references."""
+        return _get_class(self.entity)()
 
 
 class URLField(StringField):
     """Field that represents an URL"""
     def get_value(self):
         """Return a value suitable for a :class:`URLField`."""
-        return _get_value(self, gen_url)
+        return gen_url()
 
 
 def _get_class(class_or_name, module='robottelo.entities'):
@@ -632,10 +596,17 @@ class EntityCreateMixin(object):
         """
         for field_name, field in self.get_fields().items():
             if field.required and field_name not in vars(self):
-                if isinstance(field, OneToOneField):
-                    value = field.get_value().create_json(auth)['id']
+                # Most `get_value` methods return a value such as an integer,
+                # string or dictionary, but OneTo{One,Many}Field.get_value
+                # returns an instance of the referenced class.
+                if hasattr(field, 'default'):
+                    value = field.default
+                elif hasattr(field, 'choices'):
+                    value = gen_choice(field.choices)
+                elif isinstance(field, OneToOneField):
+                    value = field.get_value().create_json(auth=auth)['id']
                 elif isinstance(field, OneToManyField):
-                    value = [field.get_value().create_json(auth)['id']]
+                    value = [field.get_value().create_json(auth=auth)['id']]
                 else:
                     value = field.get_value()
                 setattr(self, field_name, value)
