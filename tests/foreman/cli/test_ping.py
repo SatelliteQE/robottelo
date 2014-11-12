@@ -7,7 +7,7 @@ from robottelo.test import CLITestCase
 class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
-    @skip_if_bug_open('bugzilla', 1094826)
+    @skip_if_bug_open('redmine', 8374)
     def test_hammer_ping(self):
         """@test: hammer ping return code
 
