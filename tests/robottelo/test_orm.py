@@ -97,13 +97,13 @@ class OneToManyFieldTestCase(unittest.TestCase):
     def test_get_value(self):
         """Test :meth:`robottelo.orm.OneToManyField.get_value`.
 
-        Assert that ``get_value()`` returns a list of entity instances.
+        Assert that an object of the correct type is returned.
 
         """
-        values = orm.OneToManyField(SampleEntity).get_value()
-        self.assertIsInstance(values, list)
-        for value in values:
-            self.assertIsInstance(value, SampleEntity)
+        self.assertIsInstance(
+            orm.OneToManyField(SampleEntity).get_value(),
+            SampleEntity
+        )
 
 
 class BooleanFieldTestCase(unittest.TestCase):
@@ -237,7 +237,7 @@ class OneToOneFieldTestCase(unittest.TestCase):
     def test_get_value(self):
         """Test :meth:`robottelo.orm.OneToOneField.get_value`.
 
-        Assert that ``get_value()`` returns an entity instance.
+        Assert that an object of the correct type is returned.
 
         """
         self.assertIsInstance(
@@ -332,50 +332,6 @@ class GetClassTestCase(unittest.TestCase):
             SampleEntity,
             orm._get_class('SampleEntity', 'tests.robottelo.test_orm'),
         )
-
-
-@ddt.ddt
-class GetValueTestCase(unittest.TestCase):
-    """Tests for ``robottelo.orm._get_value``."""
-    # (protected-access) pylint:disable=W0212
-    def test_field_choices(self):
-        """Pass in a field that has a set of choices.
-
-        Assert a value from the choices is returned.
-
-        """
-        field = orm.StringField(choices=('a', 'b', 'c'))
-        self.assertIn(orm._get_value(field, None), ('a', 'b', 'c'))
-
-    @ddt.data('foo', None, True, False, 150)
-    def test_field_default(self, value):
-        """Pass in a field that has a default value of ``value``.
-
-        Assert ``value`` is returned.
-
-        """
-        field = orm.StringField(default=value)
-        self.assertEqual(orm._get_value(field, None), value)
-
-    @ddt.data('foo', None, True, False, 150)
-    def test_default(self, value):
-        """Pass in a field that has no default value or choices.
-
-        Assert the default argument to ``_get_value`` is returned.
-
-        """
-        field = orm.StringField()
-        self.assertEqual(orm._get_value(field, lambda: value), value)
-        self.assertEqual(orm._get_value(field, value), value)
-
-    def test_field_default_and_choices(self):
-        """Pass in a field that has a default and choices.
-
-        Assert the default value is returned.
-
-        """
-        field = orm.StringField(choices=('a', 'b', 'c'), default='d')
-        self.assertEqual(orm._get_value(field, None), 'd')
 
 
 class EntityDeleteMixinTestCase(unittest.TestCase):
