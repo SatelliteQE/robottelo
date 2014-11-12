@@ -599,6 +599,9 @@ class DoubleCheckTestCase(TestCase):
         except HTTPError as err:
             self.fail(err)
         entity.delete()
+
+        if entity_cls is entities.Repository and bz_bug_is_open(1163494):
+            return
         self.assertEqual(httplib.NOT_FOUND, entity.read_raw().status_code)
 
 
