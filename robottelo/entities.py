@@ -16,6 +16,7 @@ from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo import factory, orm
+from time import sleep
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
@@ -38,6 +39,16 @@ class ActivationKey(
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/activation_keys'
 
+    def read_raw(self, auth=None):
+        super_read_raw = super(ActivationKey, self).read_raw
+        response = super_read_raw(auth)
+        if response.status_code is 404:
+            # Avoid 404 on faster machines with faster connections. Give some
+            # time to server finish creating the entity
+            sleep(5)
+            response = super_read_raw(auth)
+        return response
+
     def path(self, which=None):
         """Extend the default implementation of
         :meth:`robottelo.orm.Entity.path`.
@@ -52,7 +63,8 @@ class ActivationKey(
 
 
 class Architecture(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Architecture entity."""
     name = orm.StringField(required=True)
     operatingsystems = orm.OneToManyField('OperatingSystem', null=True)
@@ -421,7 +433,9 @@ class CustomInfo(orm.Entity):
                     ':informable_id')
 
 
-class Domain(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class Domain(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Domain entity."""
     # The full DNS Domain name
     name = orm.StringField(required=True)
@@ -545,7 +559,9 @@ def _gpgkey_content():
         return handle.read()
 
 
-class GPGKey(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class GPGKey(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a GPG Key entity."""
     organization = orm.OneToOneField('Organization', required=True)
     # identifier of the gpg key
@@ -641,7 +657,7 @@ class HostGroup(orm.Entity):
         api_path = 'api/v2/hostgroups'
 
 
-class Host(orm.Entity, factory.EntityFactoryMixin):
+class Host(orm.Entity, orm.EntityReadMixin, factory.EntityFactoryMixin):
     """A representation of a Host entity."""
     name = orm.StringField(required=True)
     environment = orm.OneToOneField('Environment', null=True)
@@ -721,7 +737,8 @@ class Interface(orm.Entity):
 
 
 class LifecycleEnvironment(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Lifecycle Environment entity."""
     organization = orm.OneToOneField('Organization', required=True)
     name = orm.StringField(required=True)
@@ -828,8 +845,8 @@ class Media(orm.Entity):
 
 
 class Model(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Model entity."""
     name = orm.StringField(required=True)
     info = orm.StringField(null=True)
@@ -842,8 +859,8 @@ class Model(
 
 
 class OperatingSystem(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
@@ -865,7 +882,8 @@ class OperatingSystem(
 
 
 class OperatingSystemParameter(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a parameter for an operating system."""
     name = orm.StringField(required=True)
     value = orm.StringField(required=True)
@@ -914,8 +932,8 @@ class OrganizationDefaultInfo(orm.Entity):
 
 
 class Organization(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of an Organization entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1176,8 +1194,8 @@ class Report(orm.Entity):
 
 
 class Repository(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Repository entity."""
     name = orm.StringField(required=True)
     label = orm.StringField()
@@ -1241,8 +1259,8 @@ class RoleLDAPGroups(orm.Entity):
 
 
 class Role(
-        orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin,
-        orm.EntityReadMixin):
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = orm.StringField(
@@ -1374,7 +1392,9 @@ class SystemPackage(orm.Entity):
         api_path = 'katello/api/v2/systems/:system_id/packages'
 
 
-class System(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class System(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a System entity."""
     content_view = orm.OneToOneField('ContentView')
     description = orm.StringField()
@@ -1441,7 +1461,7 @@ class TemplateCombination(orm.Entity):
                     'template_combinations')
 
 
-class TemplateKind(orm.Entity):
+class TemplateKind(orm.Entity, orm.EntityReadMixin):
     """A representation of a Template Kind entity."""
     # FIXME figure out fields
     # The API does not support the "api/v2/template_kinds/:id" path at all.
@@ -1461,7 +1481,9 @@ class UserGroup(orm.Entity):
         api_path = 'api/v2/usergroups'
 
 
-class User(orm.Entity, factory.EntityFactoryMixin, orm.EntityDeleteMixin):
+class User(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        factory.EntityFactoryMixin):
     """A representation of a User entity.
 
     The LDAP authentication source with an ID of 1 is internal. It is nearly
