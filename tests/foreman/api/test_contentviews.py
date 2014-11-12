@@ -4,6 +4,7 @@
 """
 Test class for Host/System Unification
 Feature details:http://people.redhat.com/~dcleal/apiv2/apidoc.html"""
+import unittest
 from ddt import ddt
 from robottelo.api.apicrud import ApiCrud, ApiException
 from robottelo.common.decorators import data
@@ -338,11 +339,13 @@ class TestContentView(APITestCase):
             'errors', task.json,
             "Invalid id shouldn't be promoted")
 
+    @unittest.skip('Note: BZ 1091494 is fixed in upstream but not downstream')
     def test_cv_promote_badenvironment_negative(self):
         """
         @test: attempt to promote a content view using an invalid environment
         @feature: Content Views
         @assert: Content views cannot be promoted; handled gracefully
+        @bz: #1091494
         """
         con_view = ApiCrud.record_create_recursive(ContentViewDefinition())
         self.assertIntersects(data, con_view)

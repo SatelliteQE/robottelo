@@ -21,7 +21,7 @@ BZ_1118015_ENTITIES = (
     entities.OperatingSystem, entities.Product, entities.Repository,
     entities.Role, entities.System, entities.User,
 )
-BZ_1122267_ENTITIES = (
+BZ_1151240_ENTITIES = (
     entities.ActivationKey, entities.ContentView, entities.GPGKey,
     entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
@@ -418,9 +418,8 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The created entity has the correct attributes.
 
         """
-        if entity in BZ_1122267_ENTITIES and bz_bug_is_open(1122267):
-            self.skipTest("Bugzilla bug 1122267 is open.""")
-
+        if entity in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
+            self.skipTest("Bugzilla bug 1151240 is open.""")
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
         response = client.post(
