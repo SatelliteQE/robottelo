@@ -2,7 +2,8 @@ from fauxfactory import gen_string, gen_integer
 from robottelo.test import CLITestCase
 from robottelo.cli.factory import (
     CLIFactoryError, make_architecture, make_domain, make_environment,
-    make_host, make_medium, make_os, make_partition_table)
+    make_host, make_location, make_medium, make_org, make_os,
+    make_partition_table)
 from robottelo.cli.proxy import Proxy
 
 
@@ -31,8 +32,10 @@ class HostTestCase(CLITestCase):
             architecture = make_architecture()
             domain = make_domain()
             environment = make_environment()
+            location = make_location()
             medium = make_medium()
             ptable = make_partition_table()
+            organization = make_org()
             os = make_os({
                 u'architecture-ids': architecture['id'],
                 u'medium-ids': medium['id'],
@@ -40,12 +43,14 @@ class HostTestCase(CLITestCase):
             })
 
             host = make_host({
-                u'name': host_name,
                 u'architecture-id': architecture['id'],
                 u'domain-id': domain['id'],
                 u'environment-id': environment['id'],
+                u'location-id': location['id'],
                 u'medium-id': medium['id'],
+                u'name': host_name,
                 u'operatingsystem-id': os['id'],
+                u'organization-id': organization['id'],
                 u'partition-table-id': ptable['id'],
                 u'puppet-proxy-id': puppet_proxy['id'],
             })

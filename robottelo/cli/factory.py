@@ -28,6 +28,7 @@ from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.cli.location import Location
 from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.org import Org
@@ -257,6 +258,64 @@ def make_gpg_key(options=None):
     ssh.upload_file(local_file=key_filename, remote_file=args['key'])
 
     return create_object(GPGKey, args, options)
+
+
+def make_location(options=None):
+    """Location CLI factory
+
+    Usage::
+
+        hammer location create [OPTIONS]
+
+    Options::
+
+        --compute-resource-ids COMPUTE_RESOURCE_IDS Compute resource IDs
+                                                    Comma separated list of
+                                                    values.
+        --config-template-ids CONFIG_TEMPLATE_IDS   Provisioning template IDs
+                                                    Comma separated list of
+                                                    values.
+        --domain-ids DOMAIN_IDS                     Domain IDs
+                                                    Comma separated list of
+                                                    values.
+        --environment-ids ENVIRONMENT_IDS           Environment IDs
+                                                    Comma separated list of
+                                                    values.
+        --hostgroup-ids HOSTGROUP_IDS               Host group IDs
+                                                    Comma separated list of
+                                                    values.
+        --media-ids MEDIA_IDS                       Media IDs
+                                                    Comma separated list of
+                                                    values.
+        --name NAME
+        --realm-ids REALM_IDS                       Realm IDs
+                                                    Comma separated list of
+                                                    values.
+        --smart-proxy-ids SMART_PROXY_IDS           Smart proxy IDs
+                                                    Comma separated list of
+                                                    values.
+        --subnet-ids SUBNET_IDS                     Subnet IDs
+                                                    Comma separated list of
+                                                    values.
+        --user-ids USER_IDS                         User IDs
+                                                    Comma separated list of
+                                                    values.
+    """
+    args = {
+        u'compute-resource-ids': None,
+        u'config-template-ids': None,
+        u'domain-ids': None,
+        u'environment-ids': None,
+        u'hostgroup-ids': None,
+        u'media-ids': None,
+        u'name': gen_alphanumeric(),
+        u'realm-ids': None,
+        u'smart-proxy-ids': None,
+        u'subnet-ids': None,
+        u'user-ids': None,
+    }
+
+    return create_object(Location, args, options)
 
 
 def make_model(options=None):
