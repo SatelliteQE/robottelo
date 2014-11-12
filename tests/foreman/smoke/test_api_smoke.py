@@ -12,6 +12,7 @@ import httplib
 import random
 # (too many public methods) pylint: disable=R0904
 
+# Note: Commenting three urls below since BZ 1105773 is fixed in upstream only
 API_PATHS = frozenset((
     # pylint:disable=C0301
     u'/api',
@@ -63,7 +64,7 @@ API_PATHS = frozenset((
     u'/api/template_kinds',
     u'/api/usergroups',
     u'/api/users',
-    u'/foreman_tasks/api/tasks/:id',  # WTF
+    # u'/foreman_tasks/api/tasks/:id',  # WTF
     u'/katello/api/activation_keys',
     u'/katello/api/capsules',
     u'/katello/api/content_view_filters/:content_view_filter_id/rules',
@@ -77,7 +78,7 @@ API_PATHS = frozenset((
     u'/katello/api/organizations',
     u'/katello/api/organizations/:organization_id/content_views',
     u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/errata',  # flake8:noqa
-    u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/packages',  # flake8:noqa
+    # u'/katello/api/organizations/:organization_id/host_collections/:host_collection_id/packages',  # flake8:noqa
     u'/katello/api/organizations/:organization_id/products/:product_id/sync',
     u'/katello/api/organizations/:organization_id/subscriptions',
     u'/katello/api/organizations/:organization_id/sync_plans',
@@ -90,7 +91,7 @@ API_PATHS = frozenset((
     u'/katello/api/repositories/:repository_id/distributions',
     u'/katello/api/repositories/:repository_id/packages',
     u'/katello/api/systems',
-    u'/katello/api/systems/:system_id/errata',
+    # u'/katello/api/systems/:system_id/errata',
 ))
 
 
