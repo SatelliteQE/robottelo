@@ -1,13 +1,11 @@
 from itertools import izip
-from robottelo.common import ssh
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common import conf, ssh
 from robottelo.test import CLITestCase
 
 
 class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
-    @skip_if_bug_open('redmine', 8374)
     def test_hammer_ping(self):
         """@test: hammer ping return code
 
@@ -19,10 +17,11 @@ class PingTestCase(CLITestCase):
 
         @assert: hammer ping returns a right return code
 
-        @bz: 1094826
-
         """
-        result = ssh.command('hammer ping')
+        result = ssh.command('hammer -u {0} -p {1} ping'.format(
+            conf.properties['foreman.admin.username'],
+            conf.properties['foreman.admin.password']
+        ))
         self.assertEqual(len(result.stderr), 0)
 
         status_count = 0
