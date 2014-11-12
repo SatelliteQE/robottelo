@@ -16,27 +16,54 @@ class Base(object):
     @param command_base: base command of hammer.
     Output of recent `hammer --help`::
 
-        shell                         Interactive Shell
-        architecture                  Manipulate Foreman's architectures.
-        global_parameter              Manipulate Foreman's global parameters.
-        compute_resource              Manipulate Foreman's compute resources.
-        domain                        Manipulate Foreman's domains.
-        environment                   Manipulate Foreman's environments.
-        fact                          Search Foreman's facts.
+        activation-key                Manipulate activation keys.
+        architecture                  Manipulate architectures.
+        auth                          Foreman connection login/logout.
+        auth-source                   Manipulate auth sources.
+        capsule                       Manipulate capsule
+        compute-resource              Manipulate compute resources.
+        content-host                  Manipulate content hosts on the server
+        content-view                  Manipulate content views.
+        docker-image                  Manipulate docker images
+        domain                        Manipulate domains.
+        environment                   Manipulate environments.
+        erratum                       Manipulate errata
+        fact                          Search facts.
+        filter                        Manage permission filters.
+        global-parameter              Manipulate global parameters.
+        gpg                           Manipulate GPG Key actions on the server
+        host                          Manipulate hosts.
+        host-collection               Manipulate host collections
+        hostgroup                     Manipulate hostgroups.
+        import                        Import data exported from a Red Hat Sat..
+        lifecycle-environment         Manipulate lifecycle_environments
+        location                      Manipulate locations.
+        medium                        Manipulate installation media.
+        model                         Manipulate hardware models.
+        organization                  Manipulate organizations
+        os                            Manipulate operating system.
+        package                       Manipulate packages.
+        package-group                 Manipulate package groups
+        partition-table               Manipulate partition tables.
+        ping                          Get the status of the server
+        product                       Manipulate products.
+        proxy                         Manipulate smart proxies.
+        puppet-class                  Search puppet modules.
+        puppet-module                 View Puppet Module details.
         report                        Browse and read reports.
-        puppet_class                  Browse and read reports.
-        host                          Manipulate Foreman's hosts.
-        hostgroup                     Manipulate Foreman's hostgroups.
-        location                      Manipulate Foreman's locations.
-        medium                        Manipulate Foreman's installation media.
-        model                         Manipulate Foreman's hardware models.
-        os                            Manipulate Foreman's operating system.
-        organization                  Manipulate Foreman's organizations.
-        partition_table               Manipulate Foreman's partition tables.
-        proxy                         Manipulate Foreman's smart proxies.
-        subnet                        Manipulate Foreman's subnets.
-        template                      Manipulate Foreman's config templates.
-        user                          Manipulate Foreman's users.
+        repository                    Manipulate repositories
+        repository-set                Manipulate repository sets on the server
+        role                          Manage user roles.
+        sc-param                      Manipulate smart class parameters.
+        shell                         Interactive shell
+        subnet                        Manipulate subnets.
+        subscription                  Manipulate subscriptions.
+        sync-plan                     Manipulate sync plans
+        task                          Tasks related actions.
+        template                      Manipulate config templates.
+        user                          Manipulate users.
+        user-group                    Manage user groups.
+
 
     @since: 27.Nov.2013
     """
@@ -44,7 +71,7 @@ class Base(object):
     command_sub = None  # specific to instance, like: create, update, etc
     command_requires_org = False  # True when command requires organization-id
 
-    logger = logging.getLogger("robottelo")
+    logger = logging.getLogger('robottelo')
 
     @classmethod
     def add_operating_system(cls, options=None):
@@ -52,7 +79,7 @@ class Base(object):
         Adds OS to record.
         """
 
-        cls.command_sub = "add-operatingsystem"
+        cls.command_sub = 'add-operatingsystem'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -64,7 +91,7 @@ class Base(object):
         Creates a new record using the arguments passed via dictionary.
         """
 
-        cls.command_sub = "create"
+        cls.command_sub = 'create'
 
         if options is None:
             options = {}
@@ -83,8 +110,9 @@ class Base(object):
             if cls.command_requires_org:
                 if 'organization-id' not in options:
                     raise Exception(
-                        'organization-id option is required for %s.create' %
-                        cls.__name__)
+                        'organization-id option is required for {}.create'
+                        .format(cls.__name__)
+                    )
                 info_options[u'organization-id'] = options[u'organization-id']
 
             new_obj = cls.info(info_options)
@@ -100,7 +128,7 @@ class Base(object):
         Deletes existing record.
         """
 
-        cls.command_sub = "delete"
+        cls.command_sub = 'delete'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -112,7 +140,7 @@ class Base(object):
         Deletes parameter from record.
         """
 
-        cls.command_sub = "delete-parameter"
+        cls.command_sub = 'delete-parameter'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -124,7 +152,7 @@ class Base(object):
         Displays the content for existing partition table.
         """
 
-        cls.command_sub = "dump"
+        cls.command_sub = 'dump'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -162,13 +190,11 @@ class Base(object):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
 
-        output_csv = u""
+        output_csv = u''
 
         if expect_csv:
-            output_csv = u" --output csv"
-        shell_cmd = u"LANG=%s hammer -v -u %s -p %s %s %s"
-
-        cmd = shell_cmd % (
+            output_csv = u' --output csv'
+        cmd = u'LANG={0} hammer -v -u {1} -p {2} {3} {4}'.format(
             conf.properties['main.locale'],
             user,
             password,
@@ -190,8 +216,8 @@ class Base(object):
             options = {}
 
         if tuple_search and 'search' not in options:
-            options.update({"search": "%s=\"%s\"" %
-                            (tuple_search[0], tuple_search[1])})
+            options.update({'search': '{0}="{1}"'
+                            .format(tuple_search[0], tuple_search[1])})
 
         result = cls.list(options)
 
@@ -207,15 +233,16 @@ class Base(object):
         @param options: ID (sometimes name or id).
         """
 
-        cls.command_sub = "info"
+        cls.command_sub = 'info'
 
         if options is None:
             options = {}
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise Exception(
-                'organization-id option is required for %s.info' %
-                cls.__name__)
+                'organization-id option is required for {}.info'
+                .format(cls.__name__)
+            )
 
         result = cls.execute(cls._construct_command(options), expect_csv=False)
 
@@ -231,7 +258,7 @@ class Base(object):
         @param options: ID (sometimes name works as well) to retrieve info.
         """
 
-        cls.command_sub = "list"
+        cls.command_sub = 'list'
 
         if options is None:
             options = {}
@@ -241,8 +268,9 @@ class Base(object):
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise Exception(
-                'organization-id option is required for %s.list' %
-                cls.__name__)
+                'organization-id option is required for {}.list'
+                .format(cls.__name__)
+            )
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -254,7 +282,7 @@ class Base(object):
         Lists all puppet classes.
         """
 
-        cls.command_sub = "puppet-classes"
+        cls.command_sub = 'puppet-classes'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -266,7 +294,7 @@ class Base(object):
         Removes OS from record.
         """
 
-        cls.command_sub = "remove-operatingsystem"
+        cls.command_sub = 'remove-operatingsystem'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -278,7 +306,7 @@ class Base(object):
         Lists all smart class parameters.
         """
 
-        cls.command_sub = "sc-params"
+        cls.command_sub = 'sc-params'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -290,7 +318,7 @@ class Base(object):
         Creates or updates parameter for a record.
         """
 
-        cls.command_sub = "set-parameter"
+        cls.command_sub = 'set-parameter'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -302,7 +330,7 @@ class Base(object):
         Updates existing record.
         """
 
-        cls.command_sub = "update"
+        cls.command_sub = 'update'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -322,6 +350,7 @@ class Base(object):
             """
             foreman_admin_username = username
             foreman_admin_password = password
+
         return Wrapper
 
     @classmethod
@@ -330,7 +359,7 @@ class Base(object):
         Build a hammer cli command based on the options passed
         """
 
-        tail = u""
+        tail = u''
 
         if options is None:
             options = {}
@@ -338,10 +367,13 @@ class Base(object):
         for key, val in options.items():
             if val is not None:
                 if val is True:
-                    tail += u" --%s" % key
+                    tail += u' --{}'.format(key)
                 elif val is not False:
-                    tail += u" --%s='%s'" % (key, val)
-        cmd = u"%s %s %s" % (cls.command_base, cls.command_sub,
-                             tail.strip())
+                    tail += u' --{0}="{1}"'.format(key, val)
+        cmd = u'{0} {1} {2}'.format(
+            cls.command_base,
+            cls.command_sub,
+            tail.strip()
+        )
 
         return cmd

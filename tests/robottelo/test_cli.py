@@ -36,7 +36,7 @@ class BaseCliTestCase(unittest.TestCase):
         self.assertIn(u'basecommand', command_parts)
         self.assertIn(u'subcommand', command_parts)
         self.assertIn(u'--flag-one', command_parts)
-        self.assertIn(u'--argument=\'value\'', command_parts)
+        self.assertIn(u'--argument="value"', command_parts)
         self.assertNotIn(u'--flag-two', command_parts)
         self.assertEqual(len(command_parts), 4)
 
