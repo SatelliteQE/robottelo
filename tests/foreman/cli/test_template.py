@@ -74,6 +74,7 @@ class TestTemplate(CLITestCase):
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(updated_name, result.stdout['name'])
 
+    @skip_if_bug_open('redmine', 8376)
     def test_add_operating_system_1(self):
         """@Test: Check if Template can be assigned operating system
 
@@ -110,6 +111,7 @@ class TestTemplate(CLITestCase):
         )
         self.assertIn(os_string, result.stdout['operating-systems'])
 
+    @skip_if_bug_open('redmine', 8376)
     def test_remove_operating_system_1(self):
         """@Test: Check if OS can be removed Template
 
