@@ -121,8 +121,8 @@ class UITestCase(TestCase):
             cls.display.start()
             cls.logger.debug(
                 'Virtual display started (pid=%d, display="%s")',
-                cls.window_manager.pid,
-                cls.window_manager.display
+                cls.display.pid,
+                cls.display.display
             )
 
             window_manager_cmd = conf.properties.get(
