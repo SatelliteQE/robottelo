@@ -10,8 +10,10 @@ from robottelo.records.domain import Domain
 from robottelo.records.role import add_permission_to_user
 from robottelo.records.user import User
 from robottelo.test import APITestCase
+import unittest
 
 
+@unittest.skip('These API tests are not supported.')
 @ddt
 class TestPermission(APITestCase):
     """Testing basic positive permissions"""
