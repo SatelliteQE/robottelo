@@ -14,6 +14,7 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 """
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
+from robottelo.common.decorators import rm_bug_is_open
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo import factory, orm
 from time import sleep
@@ -40,13 +41,21 @@ class ActivationKey(
         api_path = 'katello/api/v2/activation_keys'
 
     def read_raw(self, auth=None):
+        """Poll the server several times upon receiving a 404.
+
+        Poll the server several times upon receiving a 404, just to be _really_
+        sure that the requested activation key is non-existent. Do this because
+        elasticsearch can be slow about indexing newly created activation keys,
+        especially when the server is under load.
+
+        """
         super_read_raw = super(ActivationKey, self).read_raw
         response = super_read_raw(auth)
-        if response.status_code is 404:
-            # Avoid 404 on faster machines with faster connections. Give some
-            # time to server finish creating the entity
-            sleep(5)
-            response = super_read_raw(auth)
+        if rm_bug_is_open(4638):
+            for _ in range(5):
+                if response.status_code == 404:
+                    sleep(5)
+                    response = super_read_raw(auth)
         return response
 
     def path(self, which=None):
