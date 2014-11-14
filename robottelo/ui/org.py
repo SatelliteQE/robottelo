@@ -105,14 +105,14 @@ class Org(Base):
             if edit:
                 self.wait_until_element(locators
                                         ["org.proceed_to_edit"]).click()
-                self._configure_org(users=users, proxies=proxies,
-                                    subnets=subnets, resources=resources,
-                                    medias=medias, templates=templates,
-                                    domains=domains, envs=envs,
-                                    hostgroups=hostgroups, locations=locations,
-                                    select=select)
-                self.wait_until_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
+            self._configure_org(users=users, proxies=proxies,
+                                subnets=subnets, resources=resources,
+                                medias=medias, templates=templates,
+                                domains=domains, envs=envs,
+                                hostgroups=hostgroups, locations=locations,
+                                select=select)
+            self.wait_until_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception(
                 "Unable to create the Organization '%s'" % org_name)

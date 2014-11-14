@@ -9,7 +9,8 @@ from fauxfactory import gen_string, gen_ipaddr
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import conf
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (data, run_only_on, skip_if_bug_open,
+                                         bz_bug_is_open)
 from robottelo.common.helpers import generate_strings_list, get_data_file
 from robottelo.common.constants import (
     OS_TEMPLATE_DATA_FILE, INSTALL_MEDIUM_URL)
@@ -787,15 +788,28 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
-    def test_remove_configtemplate_1(self, template):
-        """@test: Remove config template
+    @data(
+        {u'user_name': gen_string('alpha', 8)},
+        {u'user_name': gen_string('numeric', 8)},
+        {u'user_name': gen_string('alphanumeric', 8)},
+        {u'user_name': gen_string('utf8', 8), 'bugzilla': 1164247},
+        {u'user_name': gen_string('latin1', 8)},
+        {u'user_name': gen_string('html', 8)},)
+    def test_remove_configtemplate_1(self, testdata):
+        """
+        @test: Remove config template
 
         @feature: Locations
 
         @assert: configtemplate is added then removed
 
         """
+
+        bug_id = testdata.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
+        template = testdata['user_name']
         strategy, value = common_locators["all_values_selection"]
         loc_name = gen_string("alpha", 8)
         temp_type = 'provision'

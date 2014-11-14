@@ -32,7 +32,7 @@ class Login(Base):
         """Logout user from UI"""
         # Scroll to top
         self.browser.execute_script('window.scroll(0, 0)')
-        if self.find_element(locators["login.gravatar"]) is None:
+        if self.wait_until_element(locators["login.gravatar"]) is None:
             raise UINoSuchElementError(
                 "could not find login.gravatar to sign out")
         nav = Navigator(self.browser)
@@ -41,7 +41,7 @@ class Login(Base):
 
     def is_logged(self):
         """Checks whether an user is logged"""
-        if self.find_element(locators["login.gravatar"]):
+        if self.wait_until_element(locators["login.gravatar"]):
             return True
         else:
             return False

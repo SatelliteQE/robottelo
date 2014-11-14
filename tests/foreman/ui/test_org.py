@@ -14,10 +14,10 @@ from fauxfactory import gen_string, gen_ipaddr
 from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import conf
-from robottelo.common.decorators import data
+
 from robottelo.common.helpers import generate_strings_list
-from robottelo.common.decorators import (
-    run_only_on, skip_if_bug_open, stubbed, bz_bug_is_open)
+from robottelo.common.decorators import (data, run_only_on, stubbed,
+                                         skip_if_bug_open, bz_bug_is_open)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_org
 from robottelo.ui.locators import common_locators, tab_locators, locators
@@ -438,8 +438,7 @@ class Org(UITestCase):
         {u'user_name': gen_string('numeric', 8)},
         {u'user_name': gen_string('alphanumeric', 8)},
         {u'user_name': gen_string('utf8', 8), 'bugzilla': 1144162},
-        {u'user_name': gen_string('latin1', 8)},
-    )
+        {u'user_name': gen_string('latin1', 8)},)
     def test_remove_user_1(self, test_data):
         """@test: Create admin users then add user and remove it
         by using the organization name.
@@ -601,12 +600,13 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(gen_string('alpha', 8),
-          gen_string('numeric', 8),
-          gen_string('alphanumeric', 8),
-          gen_string('utf8', 8),
-          gen_string('latin1', 8))
-    def test_add_user_2(self, user_name):
+    @data(
+        {u'user_name': gen_string('alpha', 8)},
+        {u'user_name': gen_string('numeric', 8)},
+        {u'user_name': gen_string('alphanumeric', 8)},
+        {u'user_name': gen_string('utf8', 8), 'bugzilla': 1144162},
+        {u'user_name': gen_string('latin1', 8)},)
+    def test_add_user_2(self, test_data):
         """@test: Create different types of users then add user
         by using the organization name.
 
@@ -616,6 +616,11 @@ class Org(UITestCase):
 
         """
 
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
+        user_name = test_data['user_name']
         strategy, value = common_locators["entity_deselect"]
         org_name = gen_string("alpha", 8)
         password = gen_string("alpha", 8)
