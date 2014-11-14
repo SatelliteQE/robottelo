@@ -15,7 +15,7 @@ else:
     import unittest2 as unittest
 from nose.plugins.attrib import attr
 from robottelo.common import conf
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, bz_bug_is_open
 from robottelo.common.helpers import (generate_strings_list,
                                       generate_string, generate_ipaddr,
                                       generate_email_address, get_data_file)
@@ -514,19 +514,24 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'org', 'implemented')
-    @data(generate_string('alpha', 8),
-          generate_string('numeric', 8),
-          generate_string('alphanumeric', 8),
-          generate_string('utf8', 8),
-          generate_string('latin1', 8))
-    def test_add_user_2(self, name):
-        """
-        @test: Create different types of users then add user
+    @data(
+        {u'user_name': generate_string('alpha', 8)},
+        {u'user_name': generate_string('numeric', 8)},
+        {u'user_name': generate_string('alphanumeric', 8)},
+        {u'user_name': generate_string('utf8', 8), 'bugzilla': 1144162},
+        {u'user_name': generate_string('latin1', 8)},)
+    def test_add_user_2(self, test_data):
+        """@test: Create different types of users then add user
         by using the organization name.
         @feature: Organizations associate user.
         @assert: User is added to organization.
         """
 
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
+        name = test_data['user_name']
         strategy, value = common_locators["entity_deselect"]
         org_name = generate_string("alpha", 8)
         password = generate_string("alpha", 8)
