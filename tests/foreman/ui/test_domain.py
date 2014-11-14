@@ -51,7 +51,13 @@ class Domain(UITestCase):
 
     @attr('ui', 'domain', 'implemented')
     # The length of chars is in accordance with DOMAIN global variable.
-    @data(*generate_strings_list(len1=243))
+    @data(
+        generate_string('alphanumeric', 243),
+        generate_string('alpha', 243),
+        generate_string('numeric', 243),
+        generate_string('latin1', 243),
+        generate_string('utf8', 243),
+    )
     def test_create_domain_2(self, name):
         """
         @Test: Create a new domain

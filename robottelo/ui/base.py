@@ -109,7 +109,7 @@ class Base(object):
         """
         for entity in entity_list:
             strategy, value = common_locators["filter"]
-            txt_field = self.find_element((strategy, value % filter_key))
+            txt_field = self.wait_until_element((strategy, value % filter_key))
             if txt_field:
                 txt_field.clear()
                 txt_field.send_keys(entity)
