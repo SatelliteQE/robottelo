@@ -7,13 +7,6 @@ Submodules:
     :members:
     :undoc-members:
 
-:mod:`tests.robottelo.test_factory`
------------------------------------
-
-.. automodule:: tests.robottelo.test_factory
-    :members:
-    :undoc-members:
-
 :mod:`tests.robottelo.test_cli`
 -------------------------------
 

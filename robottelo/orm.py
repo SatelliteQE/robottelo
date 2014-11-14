@@ -570,7 +570,7 @@ class EntityCreateMixin(object):
     """A mixin that provides the ability to create an entity.
 
     The methods provided by this mixin work together to create an entity. A
-    typical tree of method calls looks like this:
+    typical tree of method calls looks like this::
 
         create
         └── create_json
@@ -641,9 +641,9 @@ class EntityCreateMixin(object):
         """Create an entity.
 
         Generate values for required, unset fields by calling
-        :meth:`gen_missing`. Only do this if ``create_missing`` is true. Then
-        make an HTTP POST call to ``self.path('base')``. Return the response
-        received from the server.
+        :meth:`create_missing`. Only do this if ``create_missing`` is true.
+        Then make an HTTP POST call to ``self.path('base')``. Return the
+        response received from the server.
 
         :param tuple auth: A ``(username, password)`` pair to use when
             communicating with the API. If ``None``, the credentials returned
