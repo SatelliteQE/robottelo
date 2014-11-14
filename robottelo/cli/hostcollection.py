@@ -13,11 +13,16 @@ Parameters::
 
 Subcommands::
 
-    copy
+    add-content-host              Add content host to the host collection
+    content-hosts                 List content hosts in the host collection
+    copy                          Make copy of a host collection
     create                        Create a host collection
     delete                        Destroy a host collection
     info                          Show a host collection
     list                          List host collections
+    remove-content-host           Remove content hosts from the host collection
+    update                        Update a host collection
+
 """
 
 from robottelo.cli.base import Base
@@ -28,14 +33,14 @@ class HostCollection(Base):
     Manipulates Katello engine's host-collection command.
     """
 
-    command_base = "host-collection"
+    command_base = 'host-collection'
 
     @classmethod
     def add_content_host(cls, options=None):
         """
         Associate a content-host
         """
-        cls.command_sub = "add-content-host"
+        cls.command_sub = 'add-content-host'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
@@ -43,7 +48,7 @@ class HostCollection(Base):
         """
         Remove a content-host
         """
-        cls.command_sub = "remove-content-host"
+        cls.command_sub = 'remove-content-host'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
@@ -63,5 +68,5 @@ class HostCollection(Base):
             --organization-id ORGANIZATION_ID
             --organization-label Organization label to search by
         """
-        cls.command_sub = "content-hosts"
+        cls.command_sub = 'content-hosts'
         return cls.execute(cls._construct_command(options), expect_csv=True)

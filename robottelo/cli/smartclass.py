@@ -4,7 +4,7 @@
 """
 Usage::
 
-    hammer sc_param [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer sc-param [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
 
@@ -26,4 +26,4 @@ class SmartClassParameter(Base):
     Manipulates smart class parameters in Foreman
     """
 
-    command_base = "sc-param"
+    command_base = 'sc-param'

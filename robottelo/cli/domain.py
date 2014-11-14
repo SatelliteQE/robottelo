@@ -13,13 +13,13 @@ Parameters::
 
 Subcommands::
 
-    set_parameter                 Create or update parameter for a domain.
     create                        Create a domain.
-    info                          Show a domain.
-    list                          List of domains
-    update                        Update a domain.
     delete                        Delete a domain.
     delete_parameter              Delete parameter for a domain.
+    info                          Show a domain.
+    list                          List of domains
+    set_parameter                 Create or update parameter for a domain.
+    update                        Update a domain.
 """
 
 from robottelo.cli.base import Base
@@ -30,4 +30,4 @@ class Domain(Base):
     Manipulates Foreman's domains.
     """
 
-    command_base = "domain"
+    command_base = 'domain'

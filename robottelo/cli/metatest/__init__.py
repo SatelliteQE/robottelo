@@ -55,11 +55,11 @@ class MetaCLITest(type):
             return _klass
 
         # Make sure test module has required properties
-        if not hasattr(_klass, "factory"):
-            raise AttributeError("No 'factory' attribute found.")
-        if not hasattr(_klass, "factory_obj"):
-            raise AttributeError("No 'factory_obj' attribute found.")
-        if not hasattr(_klass, "search_key"):
+        if not hasattr(_klass, 'factory'):
+            raise AttributeError('No "factory" attribute found.')
+        if not hasattr(_klass, 'factory_obj'):
+            raise AttributeError('No "factory_obj" attribute found.')
+        if not hasattr(_klass, 'search_key'):
             setattr(_klass, 'search_key', 'name')
 
         # If the factory is a "plain" function makes it a staticmethod

@@ -13,9 +13,9 @@ Parameters::
 
 Subcommands::
 
+    delete                        Delete report.
     info                          Show info for report.
     list                          List reports.
-    delete                        Delete report.
 
 """
 
@@ -27,4 +27,4 @@ class Report(Base):
     Manipulates Foreman's reports.
     """
 
-    command_base = "report"
+    command_base = 'report'

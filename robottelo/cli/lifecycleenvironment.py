@@ -28,7 +28,7 @@ class LifecycleEnvironment(Base):
     Manipulates Katello engine's lifecycle-environment command.
     """
 
-    command_base = "lifecycle-environment"
+    command_base = 'lifecycle-environment'
     command_requires_org = True
 
     @classmethod
@@ -40,5 +40,5 @@ class LifecycleEnvironment(Base):
 
     @classmethod
     def paths(cls, options=None):
-        cls.command_sub = "paths"
+        cls.command_sub = 'paths'
         return cls.execute(cls._construct_command(options))

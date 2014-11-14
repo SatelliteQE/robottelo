@@ -15,12 +15,12 @@ Parameters::
 
 Subcommands::
 
-    create                        Create a repository
-    delete                        Destroy a repository
+    available-repositories        Get list or available repositories for
+                                  the repository set
+    disable                       Disable a repository
+    enable                        Enable a repository
     info                          Show a repository
     list                          List of repositories
-    enable                        Enable a repository
-    disable                       Disable a repository
 """
 
 from robottelo.cli.base import Base
@@ -31,16 +31,16 @@ class RepositorySet(Base):
     Manipulates Katello engine's repository command.
     """
 
-    command_base = "repository-set"
+    command_base = 'repository-set'
 
     @classmethod
     def enable(cls, options):
         """Enables a repository."""
-        cls.command_sub = "enable"
+        cls.command_sub = 'enable'
         return cls.execute(cls._construct_command(options), expect_csv=True)
 
     @classmethod
     def disable(cls, options):
         """Disables a repository."""
-        cls.command_sub = "disable"
+        cls.command_sub = 'disable'
         return cls.execute(cls._construct_command(options), expect_csv=True)

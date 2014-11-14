@@ -38,7 +38,7 @@ class OperatingSys(Base):
     Manipulates Foreman's operating systems.
     """
 
-    command_base = "os"
+    command_base = 'os'
 
     @classmethod
     def add_architecture(cls, options=None):
@@ -46,7 +46,7 @@ class OperatingSys(Base):
         Adds existing architecture to OS.
         """
 
-        cls.command_sub = "add-architecture"
+        cls.command_sub = 'add-architecture'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -58,7 +58,7 @@ class OperatingSys(Base):
         Adds existing template to OS.
         """
 
-        cls.command_sub = "add-config-template "
+        cls.command_sub = 'add-config-template '
 
         result = cls.execute(cls._construct_command(options))
 
@@ -70,7 +70,7 @@ class OperatingSys(Base):
         Adds existing partitioning table to OS.
         """
 
-        cls.command_sub = "add-ptable"
+        cls.command_sub = 'add-ptable'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -82,7 +82,7 @@ class OperatingSys(Base):
         Removes architecture from OS.
         """
 
-        cls.command_sub = "remove-architecture"
+        cls.command_sub = 'remove-architecture'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -94,7 +94,7 @@ class OperatingSys(Base):
         Removes template from OS.
         """
 
-        cls.command_sub = "remove-config-template"
+        cls.command_sub = 'remove-config-template'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -106,7 +106,7 @@ class OperatingSys(Base):
         Removes partitioning table from OS.
         """
 
-        cls.command_sub = "remove-ptable "
+        cls.command_sub = 'remove-ptable '
 
         result = cls.execute(cls._construct_command(options))
 

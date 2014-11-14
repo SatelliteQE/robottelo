@@ -4,7 +4,7 @@
 """
 Usage::
 
-    hammer puppet_class [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer puppet-class [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
 
@@ -13,9 +13,9 @@ Parameters::
 
 Subcommands::
 
-    sc_params                     List all smart class parameters
     info                          Show a puppetclass
     list                          List all puppetclasses.
+    sc_params                     List all smart class parameters
 """
 
 from robottelo.cli.base import Base
@@ -26,4 +26,4 @@ class Puppet(Base):
     Search Foreman's puppet modules.
     """
 
-    command_base = "puppet-class"
+    command_base = 'puppet-class'

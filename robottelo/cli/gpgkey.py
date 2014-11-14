@@ -13,11 +13,11 @@ Parameters::
 
 Subcommands::
 
-    list                          List GPG Keys
-    info                          Show a GPG key
     create                        Create a GPG Key
-    update                        Update a GPG Key
     delete                        Destroy a GPG Key
+    info                          Show a GPG key
+    list                          List GPG Keys
+    update                        Update a GPG Key
 """
 
 from robottelo.cli.base import Base
@@ -28,7 +28,7 @@ class GPGKey(Base):
     Manipulates Foreman's GPG Keys.
     """
 
-    command_base = "gpg"
+    command_base = 'gpg'
     command_requires_org = True
 
     @classmethod
@@ -37,7 +37,7 @@ class GPGKey(Base):
         Gets information for GPG Key
         """
 
-        cls.command_sub = "info"
+        cls.command_sub = 'info'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -56,7 +56,7 @@ class GPGKey(Base):
             # Remaining items belong to content
 
             for item in result.stdout:
-                for key, val in item.items():
+                for _, val in item.items():
                     key_record['content'] += val
             # Update stdout with dictionary
             result.stdout = key_record
