@@ -20,14 +20,6 @@ Submodules:
     :members:
     :undoc-members:
 
-:mod:`robottelo.factory`
-------------------------
-
-.. automodule:: robottelo.factory
-    :members:
-    :undoc-members:
-    :private-members:
-
 :mod:`robottelo.log`
 --------------------
 

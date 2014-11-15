@@ -1068,13 +1068,13 @@ class LifecycleEnvironment(
         return data
 
     def create_missing(self, auth=None):
-        """Extend the implementation of :meth:`robottelo.factory.Factory.build`.
+        """Automatically populate additional instance attributes.
 
         When a new lifecycle environment is created, it must either:
 
         * Reference a parent lifecycle environment in the tree of lifecycle
-          environments via the ``prior`` field.
-        * Have a name of "Library".
+          environments via the ``prior`` field, or
+        * have a name of "Library".
 
         Within a given organization, there can only be a single lifecycle
         environment with a name of 'Library'. This lifecycle environment is at
