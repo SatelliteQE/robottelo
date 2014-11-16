@@ -1,17 +1,16 @@
 """Unit tests for the ``gpgkeys`` paths."""
+import httplib
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
-import httplib
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-class GPGKeyTestCase(TestCase):
+class GPGKeyTestCase(APITestCase):
     """Tests for ``katello/api/v2/gpg_keys``."""
-    _multiprocess_can_split_ = True
 
     def test_get_all(self):
         """@Test: Get ``katello/api/v2/gpg_keys`` and specify just an

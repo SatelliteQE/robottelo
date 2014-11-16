@@ -68,8 +68,7 @@ class TestCase(unittest.TestCase):
 
 class APITestCase(TestCase):
     """Test case for API tests."""
-    def assertIntersects(self, first, other, msg=None):
-        assert_intersects(first, other, msg)
+    _multiprocess_can_split_ = True
 
 
 class CLITestCase(TestCase):

@@ -7,16 +7,15 @@ References for the relevant paths can be found here:
 
 """
 from fauxfactory import gen_utf8
-from robottelo.common.decorators import run_only_on
 from robottelo import entities
-from unittest import TestCase
+from robottelo.common.decorators import run_only_on
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-class OSParameterTestCase(TestCase):
+class OSParameterTestCase(APITestCase):
     """Tests for operating system parameters."""
-    _multiprocess_can_split_ = True
 
     def test_bz_1114640(self):
         """@Test: Create a parameter for operating system 1.
@@ -46,9 +45,8 @@ class OSParameterTestCase(TestCase):
 
 
 @run_only_on('sat')
-class OSTestCase(TestCase):
+class OSTestCase(APITestCase):
     """Tests for operating systems."""
-    _multiprocess_can_split_ = True
 
     def test_point_to_arch(self):
         """@Test: Create an operating system that points at an architecture.

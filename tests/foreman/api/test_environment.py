@@ -4,21 +4,20 @@ A full API reference for environments can be found here:
 http://theforeman.org/api/apidoc/v2/environments.html
 
 """
+import random
 from ddt import ddt
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import data, run_only_on
 from robottelo import entities
-from unittest import TestCase
-import random
+from robottelo.common.decorators import data, run_only_on
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
 @ddt
-class EnvironmentTestCase(TestCase):
+class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
-    _multiprocess_can_split_ = True
 
     @data(
         gen_string('alpha', random.randint(1, 255)),

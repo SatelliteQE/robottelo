@@ -1,21 +1,20 @@
 """Unit tests for the ``activation_keys`` paths."""
+import httplib
 from ddt import data, ddt
 from fauxfactory import gen_integer, gen_string
 from requests.exceptions import HTTPError
+from robottelo import entities
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
-import httplib
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt
-class ActivationKeysTestCase(TestCase):
+class ActivationKeysTestCase(APITestCase):
     """Tests for the ``activation_keys`` path."""
-    _multiprocess_can_split_ = True
 
     def test_positive_create_1(self):
         """@Test: Create a plain vanilla activation key.

@@ -7,19 +7,18 @@ http://theforeman.org/api/apidoc/v2/products.html
 from ddt import ddt
 from fauxfactory import gen_string
 from random import randint
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.helpers import get_server_credentials, read_data_file
 from robottelo.common.decorators import data, run_only_on
-from robottelo import entities
-from unittest import TestCase
+from robottelo.common.helpers import get_server_credentials, read_data_file
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt
-class ProductsTestCase(TestCase):
+class ProductsTestCase(APITestCase):
     """Tests for ``katello/api/v2/products``."""
-    _multiprocess_can_split_ = True
 
     @run_only_on('sat')
     @data(
@@ -82,9 +81,8 @@ class ProductsTestCase(TestCase):
 
 @run_only_on('sat')
 @ddt
-class ProductUpdateTestCase(TestCase):
+class ProductUpdateTestCase(APITestCase):
     """Tests for updating a product."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):

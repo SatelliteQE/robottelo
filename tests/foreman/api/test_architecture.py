@@ -1,16 +1,15 @@
 """Unit tests for the ``architectures`` paths."""
 from fauxfactory import gen_utf8
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-class ArchitectureTestCase(TestCase):
+class ArchitectureTestCase(APITestCase):
     """Tests for architectures."""
-    _multiprocess_can_split_ = True
 
     @skip_if_bug_open('bugzilla', 1151220)
     def test_post_hash(self):

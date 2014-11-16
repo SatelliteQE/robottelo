@@ -4,19 +4,18 @@ A full API reference for content views can be found here:
 http://theforeman.org/api/apidoc/v2/content_view_filters.html
 
 """
+import httplib
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
-import httplib
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-class ContentViewFilterTestCase(TestCase):
+class ContentViewFilterTestCase(APITestCase):
     """Tests for content view filters."""
-    _multiprocess_can_split_ = True
 
     def test_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.

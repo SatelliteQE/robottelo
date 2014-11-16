@@ -1,23 +1,22 @@
 """Unit tests for the ``users`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/users.html
+Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
+tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
+import ddt
 from fauxfactory import gen_string
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.common import decorators
 from robottelo import entities
-from unittest import TestCase
-import ddt
+from robottelo.common import decorators
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt
-class UsersTestCase(TestCase):
+class UsersTestCase(APITestCase):
     """Tests for the ``users`` path."""
-    _multiprocess_can_split_ = True
 
     @decorators.data(
         {u'admin': False},

@@ -15,23 +15,22 @@ A full list of system-related URLs can be found here:
 http://theforeman.org/api/apidoc/v2/systems.html
 
 """
+import httplib
+import logging
 from requests.exceptions import HTTPError
 from robottelo.api import client
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System
-from unittest import TestCase
-import httplib
-import logging
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 logger = logging.getLogger(__name__)  # pylint:disable=C0103
 
 
-class EntityIdTestCaseClone(TestCase):
+class EntityIdTestCaseClone(APITestCase):
     """Issue HTTP requests to various ``systems/:uuid`` paths."""
-    _multiprocess_can_split_ = True
 
     def test_get_status_code(self):
         """@Test: Create a system and GET it.
@@ -97,7 +96,7 @@ class EntityIdTestCaseClone(TestCase):
             self.assertIn('application/json', response.headers['content-type'])
 
 
-class DoubleCheckTestCase(TestCase):
+class DoubleCheckTestCase(APITestCase):
     """Perform in-depth tests on URLs.
 
     Do not just assume that an HTTP response with a good status code indicates
@@ -105,7 +104,6 @@ class DoubleCheckTestCase(TestCase):
     action to ensure that the intended action was accomplished.
 
     """
-    _multiprocess_can_split_ = True
 
     @skip_if_bug_open('bugzilla', 1133097)
     def test_put_and_get(self):
