@@ -4,19 +4,18 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/environments.html
 
 """
+import httplib
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
-import httplib
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-class LifecycleEnvironmentTestCase(TestCase):
+class LifecycleEnvironmentTestCase(APITestCase):
     """Tests for ``katello/api/v2/environments``."""
-    _multiprocess_can_split_ = True
 
     def test_get_all(self):
         """@Test: Get ``katello/api/v2/environments`` and specify just an

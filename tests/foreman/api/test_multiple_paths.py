@@ -1,16 +1,16 @@
 """Data-driven unit tests for multiple paths."""
+import httplib
+import logging
 from ddt import data, ddt
 from functools import partial
 from requests.exceptions import HTTPError
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common import conf
 from robottelo.common.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
-import httplib
-import logging
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
@@ -75,9 +75,8 @@ def skip_if_sam(self, entity):
 
 
 @ddt
-class EntityTestCase(TestCase):
+class EntityTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
-    _multiprocess_can_split_ = True
 
     @data(
         # entities.ActivationKey,  # need organization_id or environment_id
@@ -247,9 +246,8 @@ class EntityTestCase(TestCase):
 
 
 @ddt
-class EntityIdTestCase(TestCase):
+class EntityIdTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
-    _multiprocess_can_split_ = True
 
     @data(
         entities.ActivationKey,
@@ -404,7 +402,7 @@ class EntityIdTestCase(TestCase):
 
 
 @ddt
-class DoubleCheckTestCase(TestCase):
+class DoubleCheckTestCase(APITestCase):
     """Perform in-depth tests on URLs.
 
     Do not just assume that an HTTP response with a good status code indicates
@@ -412,7 +410,6 @@ class DoubleCheckTestCase(TestCase):
     action to ensure that the intended action was accomplished.
 
     """
-    _multiprocess_can_split_ = True
     longMessage = True
 
     @data(
@@ -606,12 +603,11 @@ class DoubleCheckTestCase(TestCase):
 
 
 @ddt
-class EntityReadTestCase(TestCase):
+class EntityReadTestCase(APITestCase):
     """
     Check that classes inheriting from :class:`robottelo.orm.EntityReadMixin`
     function correctly.
     """
-    _multiprocess_can_split_ = True
 
     # Most entities are commented-out because they do not inherit from
     # EntityReadMixin, due to issues with data returned from the API.

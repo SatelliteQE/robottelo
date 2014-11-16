@@ -1,10 +1,10 @@
 """Tests for the ``hostgroups`` paths."""
-from robottelo.common.constants import NOT_IMPLEMENTED
-import unittest
+from robottelo.common.decorators import stubbed
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-class HostGroupTestCaseStub(unittest.TestCase):
+class HostGroupTestCaseStub(APITestCase):
     """Incomplete tests for host groups.
 
     When implemented, each of these tests should probably be data-driven. A
@@ -20,9 +20,8 @@ class HostGroupTestCaseStub(unittest.TestCase):
         )
 
     """
-    _multiprocess_can_split_ = True
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_hostgroup_1(self, test_data):
         """
         @feature: Organizations
@@ -32,7 +31,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_hostgroup_2(self, test_data):
         """
         @feature: Organizations
@@ -42,7 +41,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_hostgroup_3(self, test_data):
         """
         @feature: Organizations
@@ -52,7 +51,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_hostgroup_4(self, test_data):
         """
         @feature: Organizations
@@ -62,7 +61,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_hostgroup_1(self, test_data):
         """
         @feature: Organizations
@@ -72,7 +71,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_hostgroup_2(self, test_data):
         """
         @feature: Organizations
@@ -82,7 +81,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_hostgroup_3(self, test_data):
         """
         @feature: Organizations
@@ -92,7 +91,7 @@ class HostGroupTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_hostgroup_4(self, test_data):
         """
         @feature: Organizations

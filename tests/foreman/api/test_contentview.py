@@ -3,13 +3,13 @@
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from requests.exceptions import HTTPError
+from robottelo import entities
 from robottelo.api import client
+from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)
 from robottelo.common.helpers import get_server_credentials
-from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo import entities
-from unittest import TestCase
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
@@ -20,9 +20,8 @@ REPEAT = 3
 
 
 @run_only_on('sat')
-class ContentViewTestCase(TestCase):
+class ContentViewTestCase(APITestCase):
     """Tests for content views."""
-    _multiprocess_can_split_ = True
 
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
@@ -82,9 +81,8 @@ class ContentViewTestCase(TestCase):
 
 
 @ddt
-class ContentViewCreateTestCase(TestCase):
+class ContentViewCreateTestCase(APITestCase):
     """Tests for creating content views."""
-    _multiprocess_can_split_ = True
 
     def test_positive_create_1(self):
         """@Test: Create an empty non-composite content view.
@@ -159,9 +157,8 @@ class ContentViewCreateTestCase(TestCase):
         self.assertEqual(attrs['description'], description)
 
 
-class CVPublishPromoteTestCase(TestCase):
+class CVPublishPromoteTestCase(APITestCase):
     """Tests for publishing and promoting content views."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):
@@ -371,9 +368,8 @@ class CVPublishPromoteTestCase(TestCase):
 
 
 @ddt
-class ContentViewUpdateTestCase(TestCase):
+class ContentViewUpdateTestCase(APITestCase):
     """Tests for updating content views."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):
@@ -434,12 +430,11 @@ class ContentViewUpdateTestCase(TestCase):
 
 
 @run_only_on('sat')
-class ContentViewTestCaseStub(TestCase):
+class ContentViewTestCaseStub(APITestCase):
     """Incomplete tests for content views."""
     # Each of these tests should be given a better name when they're
     # implemented. In the meantime, let's not worry about bad names.
     # (invalid-name) pylint:disable=C0103
-    _multiprocess_can_split_ = True
 
     @stubbed
     def test_cv_edit_rh_custom_spin(self):

@@ -1,15 +1,14 @@
 """Unit tests for the ``foreman_tasks/api/v2/tasks`` paths."""
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo import entities
-from unittest import TestCase
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-class ForemanTasksIdTestCase(TestCase):
+class ForemanTasksIdTestCase(APITestCase):
     """Tests for the ``foreman_tasks/api/v2/tasks/:id`` path."""
-    _multiprocess_can_split_ = True
 
     @skip_if_bug_open('bugzilla', 1131702)
     def test_no_such_task(self):

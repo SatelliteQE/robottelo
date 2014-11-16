@@ -1,20 +1,20 @@
 """Unit tests for the ``permissions`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
+Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
+tested can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 
 """
+import re
 from ddt import data as ddt_data, ddt
 from fauxfactory import gen_alphanumeric
 from itertools import chain
 from requests.exceptions import HTTPError
+from robottelo import entities
 from robottelo.api import client
 from robottelo.common.constants import PERMISSIONS
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
-import re
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
@@ -27,9 +27,8 @@ PERMISSIONS_NAME = [
 
 
 @ddt
-class PermissionsTestCase(TestCase):
+class PermissionsTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
-    _multiprocess_can_split_ = True
 
     @run_only_on('sat')
     @ddt_data(*PERMISSIONS_NAME)  # pylint:disable=W0142
@@ -114,9 +113,8 @@ def _permission_name(entity, which_perm):
 
 # This class might better belong in module test_multiple_paths.
 @ddt
-class UserRoleTestCase(TestCase):
+class UserRoleTestCase(APITestCase):
     """Give a user various permissions and see if they are enforced."""
-    _multiprocess_can_split_ = True
 
     def setUp(self):
         """Create a set of credentials and a user."""

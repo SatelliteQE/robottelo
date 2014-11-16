@@ -4,16 +4,15 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 1112802 provides some relevant information.
 
 """
+import httplib
 from robottelo.api import client
 from robottelo.common.helpers import get_server_credentials, get_server_url
-from unittest import TestCase
-import httplib
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-class RHSMTestCase(TestCase):
+class RHSMTestCase(APITestCase):
     """Tests for the ``/rhsm`` path."""
-    _multiprocess_can_split_ = True
 
     def test_path_exists(self):
         """@Test: Check whether the path exists.

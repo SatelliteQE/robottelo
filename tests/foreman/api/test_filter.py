@@ -6,13 +6,12 @@ http://theforeman.org/api/apidoc/v2/filters.html
 """
 from requests.exceptions import HTTPError
 from robottelo import entities
-from unittest import TestCase
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-class FilterTestCase(TestCase):
+class FilterTestCase(APITestCase):
     """Tests for ``api/v2/filters``."""
-    _multiprocess_can_split_ = True
 
     def test_create_filter_with_perms(self):
         """@Test: Create a filter and assign it some permissions.

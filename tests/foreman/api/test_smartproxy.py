@@ -1,12 +1,11 @@
 """Tests for the ``smart_proxies`` paths."""
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import run_only_on
-import unittest
+from robottelo.common.decorators import run_only_on, stubbed
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
-class SmartProxyTestCaseStub(unittest.TestCase):
+class SmartProxyTestCaseStub(APITestCase):
     """Incomplete tests for smart proxies.
 
     When implemented, each of these tests should probably be data-driven. A
@@ -22,9 +21,8 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         )
 
     """
-    _multiprocess_can_split_ = True
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -33,7 +31,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_smartproxy_2(self, test_data):
         """
         @feature: Organizations
@@ -42,7 +40,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_smartproxy_3(self, test_data):
         """
         @feature: Organizations
@@ -51,7 +49,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_add_smartproxy_4(self, test_data):
         """
         @feature: Organizations
@@ -60,7 +58,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_smartproxy_1(self, test_data):
         """
         @feature: Organizations
@@ -69,7 +67,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_smartproxy_2(self, test_data):
         """
         @feature: Organizations
@@ -78,7 +76,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_smartproxy_3(self, test_data):
         """
         @feature: Organizations
@@ -87,7 +85,7 @@ class SmartProxyTestCaseStub(unittest.TestCase):
         @status: manual
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_remove_smartproxy_4(self, test_data):
         """
         @feature: Organizations

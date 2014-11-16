@@ -1,26 +1,26 @@
 """Unit tests for the ``organizations`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/organizations.html
+Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
+tested can be found here:
+http://theforeman.org/api/apidoc/v2/organizations.html
 
 """
-from fauxfactory import gen_string
-from requests.exceptions import HTTPError
-from robottelo.api import client
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
-from unittest import TestCase
 import ddt
 import httplib
 import sys
+from fauxfactory import gen_string
+from requests.exceptions import HTTPError
+from robottelo import entities
+from robottelo.api import client
+from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.helpers import get_server_credentials
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt
-class OrganizationTestCase(TestCase):
+class OrganizationTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
-    _multiprocess_can_split_ = True
 
     @skip_if_bug_open('bugzilla', 1116043)
     def test_create_text_plain(self):
@@ -199,9 +199,8 @@ class OrganizationTestCase(TestCase):
 
 
 @ddt.ddt
-class OrganizationUpdateTestCase(TestCase):
+class OrganizationUpdateTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):

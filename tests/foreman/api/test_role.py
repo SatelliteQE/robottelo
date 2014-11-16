@@ -4,6 +4,7 @@ An API reference is available here:
 http://theforeman.org/api/apidoc/v2/roles.html
 
 """
+import ddt
 from fauxfactory import (
     gen_alpha,
     gen_alphanumeric,
@@ -13,19 +14,17 @@ from fauxfactory import (
     gen_utf8,
 )
 from requests.exceptions import HTTPError
-from robottelo.api import client
-from robottelo.common.helpers import get_server_credentials
-from robottelo.common import decorators
 from robottelo import entities
-from unittest import TestCase
-import ddt
+from robottelo.api import client
+from robottelo.common import decorators
+from robottelo.common.helpers import get_server_credentials
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt
-class RoleTestCase(TestCase):
+class RoleTestCase(APITestCase):
     """Tests for ``api/v2/roles``."""
-    _multiprocess_can_split_ = True
 
     @decorators.data(
         gen_alpha,

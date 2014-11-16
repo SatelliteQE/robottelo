@@ -3,7 +3,9 @@ from ddt import ddt
 from fauxfactory import gen_string
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo import entities
 from robottelo.api import client, utils
+from robottelo.common import manifests
 from robottelo.common.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
@@ -13,18 +15,15 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_FILE,
 )
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common import manifests
 from robottelo.common.helpers import (
     get_server_credentials, get_data_file, read_data_file)
-from robottelo import entities
-from unittest import TestCase
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt
-class RepositoryTestCase(TestCase):
+class RepositoryTestCase(APITestCase):
     """Tests for ``katello/api/v2/repositories``."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):
@@ -217,9 +216,8 @@ class RepositoryTestCase(TestCase):
 
 
 @ddt
-class RepositoryUpdateTestCase(TestCase):
+class RepositoryUpdateTestCase(APITestCase):
     """Tests for updating repositories."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):
@@ -261,9 +259,8 @@ class RepositoryUpdateTestCase(TestCase):
             self.assertEqual(value, real_attrs[name])
 
 
-class RepositorySyncTestCase(TestCase):
+class RepositorySyncTestCase(APITestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
-    _multiprocess_can_split_ = True
 
     @run_only_on('sat')
     def test_redhat_sync_1(self):
@@ -296,9 +293,8 @@ class RepositorySyncTestCase(TestCase):
 
 
 @ddt
-class DockerRepositoryTestCase(TestCase):
+class DockerRepositoryTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories."""
-    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):

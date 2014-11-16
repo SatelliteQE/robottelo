@@ -5,14 +5,13 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 """
 from robottelo import entities
-from unittest import TestCase
 from robottelo.common import manifests
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-class SubscriptionsTestCase(TestCase):
+class SubscriptionsTestCase(APITestCase):
     """Tests for the ``subscriptions`` path."""
-    _multiprocess_can_split_ = True
 
     def test_positive_create_1(self):
         """@Test: Upload a manifest.

@@ -1,13 +1,12 @@
 """Unit tests for the ``content_view_versions`` paths."""
 from requests.exceptions import HTTPError
 from robottelo import entities
-from unittest import TestCase
+from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-class CVVersionTestCase(TestCase):
+class CVVersionTestCase(APITestCase):
     """Tests for content view versions."""
-    _multiprocess_can_split_ = True
 
     def test_negative_promote_1(self):
         """@Test: Promote the default content view version.
