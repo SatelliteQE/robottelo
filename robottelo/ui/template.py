@@ -46,8 +46,8 @@ class Template(Base):
                 self.wait_until_element(tab_locators
                                         ["provision.tab_type"]).click()
                 self.wait_for_ajax()
-                type_ele = self.find_element(locators
-                                             ["provision.template_type"])
+                type_ele = self.wait_until_element(locators
+                                                   ["provision.template_type"])
                 Select(type_ele).select_by_visible_text(template_type)
             elif snippet:
                 self.wait_until_element(tab_locators

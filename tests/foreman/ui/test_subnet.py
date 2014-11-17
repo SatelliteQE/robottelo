@@ -7,7 +7,7 @@ Test class for Subnet UI
 
 from ddt import ddt
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.decorators import data, skip_if_bug_open, stubbed
 from robottelo.common.helpers import (generate_ipaddr, generate_string,
                                       generate_strings_list)
 from robottelo.ui.factory import (make_org, make_loc,
@@ -102,7 +102,7 @@ class Subnet(UITestCase):
                                                       value % domain_name))
             self.assertIsNotNone(element)
 
-    @skip_if_bug_open('bugzilla', 1123815)
+    @stubbed('Note: BZ 1123815 is fixed in upstream but not downstream')
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_subnet_negative_1(self, name):
