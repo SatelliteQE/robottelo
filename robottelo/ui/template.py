@@ -45,6 +45,7 @@ class Template(Base):
             if template_type:
                 self.wait_until_element(tab_locators
                                         ["provision.tab_type"]).click()
+                self.wait_for_ajax()
                 type_ele = self.find_element(locators
                                              ["provision.template_type"])
                 Select(type_ele).select_by_visible_text(template_type)

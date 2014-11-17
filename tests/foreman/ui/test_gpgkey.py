@@ -595,6 +595,7 @@ class GPGKey(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(GPGKey.org_name)
             session.nav.go_to_gpg_keys()
+            self.gpgkey.wait_for_ajax()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
                               (name, product=True))
@@ -756,6 +757,7 @@ class GPGKey(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(GPGKey.org_name)
             session.nav.go_to_gpg_keys()
+            self.gpgkey.wait_for_ajax()
             # Assert that before update GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=True))
@@ -815,6 +817,7 @@ class GPGKey(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(GPGKey.org_name)
             session.nav.go_to_gpg_keys()
+            self.gpgkey.wait_for_ajax()
             # Assert that before update GPGKey is associated with product
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=True))
@@ -1236,6 +1239,7 @@ class GPGKey(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(GPGKey.org_name)
             session.nav.go_to_gpg_keys()
+            self.gpgkey.wait_for_ajax()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(self.gpgkey.assert_product_repo
                               (name, product=True))
