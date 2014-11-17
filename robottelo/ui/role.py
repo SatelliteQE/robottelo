@@ -65,8 +65,9 @@ class Role(Base):
                 dropdown.click()
                 self.wait_until_element(locators
                                         ["roles.add_permission"]).click()
+                self.wait_for_ajax()
                 if resource_type:
-                    Select(self.find_element
+                    Select(self.wait_until_element
                            (locators["roles.select_resource_type"])
                            ).select_by_visible_text(resource_type)
                     if permission_list:
