@@ -95,9 +95,9 @@ class Syncplan(UITestCase):
         self.configure_syncplan()
         self.syncplan.create(test_data['name'], description=test_data['desc'],
                              sync_interval=test_data['interval'])
-        self.assertIsNotNone(self.products.search(test_data['name']))
+        self.assertIsNotNone(self.syncplan.search(test_data['name']))
 
-    @skip_if_bug_open('bugzilla', 1087425)
+    @skip_if_bug_open('bugzilla', 1164671)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, name):
@@ -113,9 +113,9 @@ class Syncplan(UITestCase):
         locator = common_locators["common_haserror"]
         self.configure_syncplan()
         self.syncplan.create(name)
-        self.assertIsNotNone(self.products.search(name))
+        self.assertIsNotNone(self.syncplan.search(name))
         self.syncplan.create(name, description)
-        error = self.products.wait_until_element(locator)
+        error = self.syncplan.wait_until_element(locator)
         self.assertTrue(error)
 
     @skip_if_bug_open('bugzilla', 1131661)
@@ -143,7 +143,7 @@ class Syncplan(UITestCase):
             lstrip("0").replace(" 0", " ").rpartition(':')[0]
         self.syncplan.create(plan_name, description, start_hour=starthour,
                              start_minute=startminute)
-        self.assertIsNotNone(self.products.search(plan_name))
+        self.assertIsNotNone(self.syncplan.search(plan_name))
         self.syncplan.search(plan_name).click()
         self.syncplan.wait_for_ajax()
         # Removed the seconds info as it would be too quick to validate via UI.
@@ -172,7 +172,7 @@ class Syncplan(UITestCase):
         fetch_startdate = startdate.strftime("%b %-d, %Y %I:%M:%S %p").\
             rpartition(',')[0]
         self.syncplan.create(plan_name, description, startdate=startdate_str)
-        self.assertIsNotNone(self.products.search(plan_name))
+        self.assertIsNotNone(self.syncplan.search(plan_name))
         self.syncplan.search(plan_name).click()
         self.syncplan.wait_for_ajax()
         startdate_text = str(self.syncplan.wait_until_element(locator).text).\
@@ -190,7 +190,7 @@ class Syncplan(UITestCase):
         locator = common_locators["common_invalid"]
         self.configure_syncplan()
         self.syncplan.create(name)
-        invalid = self.products.wait_until_element(locator)
+        invalid = self.syncplan.wait_until_element(locator)
         self.assertTrue(invalid)
 
     def test_negative_create_2(self):
@@ -204,7 +204,7 @@ class Syncplan(UITestCase):
         locator = common_locators["common_invalid"]
         self.configure_syncplan()
         self.syncplan.create(name)
-        invalid = self.products.wait_until_element(locator)
+        invalid = self.syncplan.wait_until_element(locator)
         self.assertTrue(invalid)
 
     @skip_if_bug_open('bugzilla', 1087425)
@@ -222,9 +222,10 @@ class Syncplan(UITestCase):
         description = "more than 255 chars"
         self.configure_syncplan()
         self.syncplan.create(name, description)
-        error = self.products.wait_until_element(locator)
+        error = self.syncplan.wait_until_element(locator)
         self.assertTrue(error)
 
+    @skip_if_bug_open('bugzilla', 1164671)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, plan_name):
@@ -232,16 +233,19 @@ class Syncplan(UITestCase):
         @Feature: Content Sync Plan - Positive Update name
         @Test: Update Sync plan's name
         @Assert: Sync Plan's name is updated
+        @BZ: 1164671
+
         """
 
         new_plan_name = generate_string("alpha", 8)
         description = "update sync plan"
         self.configure_syncplan()
         self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
+        self.assertIsNotNone(self.synplan.search(plan_name))
         self.syncplan.update(plan_name, new_name=new_plan_name)
-        self.assertIsNotNone(self.products.search(new_plan_name))
+        self.assertIsNotNone(self.syncplan.search(new_plan_name))
 
+    @skip_if_bug_open('bugzilla', 1164671)
     @attr('ui', 'syncplan', 'implemented')
     @data({u'name': generate_string('alpha', 10),
            u'interval': SYNC_INTERVAL['hour']},
@@ -278,13 +282,15 @@ class Syncplan(UITestCase):
         @Feature: Content Sync Plan - Positive Update interval
         @Test: Update Sync plan's interval
         @Assert: Sync Plan's interval is updated
+        @BZ: 1164671
+
         """
 
         description = "delete sync plan"
         locator = locators["sp.fetch_interval"]
         self.configure_syncplan()
         self.syncplan.create(test_data['name'], description)
-        self.assertIsNotNone(self.products.search(test_data['name']))
+        self.assertIsNotNone(self.syncplan.search(test_data['name']))
         self.syncplan.update(test_data['name'],
                              new_sync_interval=test_data['interval'])
         self.navigator.go_to_sync_plans()
@@ -293,6 +299,7 @@ class Syncplan(UITestCase):
         interval_text = self.syncplan.wait_until_element(locator).text
         self.assertEqual(interval_text, test_data['interval'])
 
+    @skip_if_bug_open('bugzilla', 1164671)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_3(self, plan_name):
@@ -300,6 +307,8 @@ class Syncplan(UITestCase):
         @Feature: Content Sync Plan - Positive Update add products
         @Test: Update Sync plan and associate products
         @Assert: Sync Plan has the associated product
+        @BZ: 1164671
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -312,7 +321,7 @@ class Syncplan(UITestCase):
         self.assertIsNotNone(self.products.search(prd_name))
         self.navigator.go_to_sync_plans()
         self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
+        self.assertIsNotNone(self.syncplan.search(plan_name))
         self.syncplan.update(plan_name, add_products=[prd_name])
         self.syncplan.search(plan_name).click()
         self.syncplan.wait_for_ajax()
@@ -323,6 +332,7 @@ class Syncplan(UITestCase):
                                                         value % prd_name))
         self.assertTrue(prd_element)
 
+    @skip_if_bug_open('bugzilla', 1164671)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_4(self, plan_name):
@@ -330,6 +340,8 @@ class Syncplan(UITestCase):
         @Feature: Content Sync Plan - Positive Update remove products
         @Test: Update Sync plan and disassociate products
         @Assert: Sync Plan does not have the associated product
+        @BZ: 1164671
+
         """
 
         prd_name = generate_string("alpha", 8)
@@ -366,6 +378,7 @@ class Syncplan(UITestCase):
                                                         value % prd_name))
         self.assertTrue(prd_element)
 
+    @skip_if_bug_open('bugzilla', 1164671)
     @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, plan_name):
@@ -378,6 +391,6 @@ class Syncplan(UITestCase):
         description = "delete sync plan"
         self.configure_syncplan()
         self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.products.search(plan_name))
+        self.assertIsNotNone(self.syncplan.search(plan_name))
         self.syncplan.delete(plan_name)
-        self.assertIsNone(self.products.search(plan_name))
+        self.assertIsNone(self.syncplan.search(plan_name))
