@@ -556,6 +556,55 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV'
         )
 
+    def test_add_custom_repos_with_name(self):
+        """@test: add custom repos to cv with names
+
+        @feature: Content Views - add_repos via names
+
+        @assert: whether repos are added to cv.
+
+        """
+        try:
+            new_repo = make_repository({u'product-id': self.product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(
+            result.return_code, 0,
+            'Repository was not synchronized'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+
+        # Create CV
+        try:
+            new_cv = make_content_view({u'organization-id': self.org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        # Associate repo to CV with names.
+        result = ContentView.add_repository({
+            u'name': new_cv['name'],
+            u'repository': new_repo['name'],
+            u'organization': self.org['name'],
+            u'product': self.product['name'],
+        })
+        self.assertEqual(
+            result.return_code, 0,
+            'Repository was not associated to selected CV'
+        )
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0, 'ContentView was not found')
+        self.assertEqual(len(result.stderr), 0, 'No error was expected')
+        self.assertEqual(
+            result.stdout['yum-repositories'][0]['name'],
+            new_repo['name'],
+            'Repo was not associated to CV'
+        )
+
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
         """@test: attempt to associate puppet repos within a custom
