@@ -103,15 +103,15 @@ class Location(Base):
             if edit:
                 self.wait_until_element(
                     locators["location.proceed_to_edit"]).click()
-                self._configure_location(users=users, proxies=proxies,
-                                         subnets=subnets, resources=resources,
-                                         medias=medias, templates=templates,
-                                         domains=domains, envs=envs,
-                                         hostgroups=hostgroups,
-                                         organizations=organizations,
-                                         select=select)
-                self.wait_until_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
+            self._configure_location(users=users, proxies=proxies,
+                                     subnets=subnets, resources=resources,
+                                     medias=medias, templates=templates,
+                                     domains=domains, envs=envs,
+                                     hostgroups=hostgroups,
+                                     organizations=organizations,
+                                     select=select)
+            self.wait_until_element(common_locators["submit"]).click()
+            self.wait_for_ajax()
         else:
             raise Exception("Could not create new location.")
 
