@@ -816,9 +816,8 @@ class Settings(UITestCase):
                                                           param_name)
             self.assertNotEqual(test_data['param_value'], saved_element)
 
-    @data({'param_value': generate_string("numeric", 1)},
-          {'param_value': "0"})
-    def test_positive_update_provisioning_param_32(self, test_data):
+    @data("90", "0")
+    def test_positive_update_provisioning_param_32(self, param_value):
         """
         @Test: Updates param "token_duration"
         under Provisioning tab
@@ -830,17 +829,25 @@ class Settings(UITestCase):
         param_name = "token_duration"
         value_type = "input"
         with Session(self.browser) as session:
+            session.nav.go_to_settings()
+            default_value = self.settings.get_saved_value(
+                tab_locator, param_name)
             edit_param(session, tab_locator=tab_locator,
                        param_name=param_name,
                        value_type=value_type,
-                       param_value=test_data['param_value'])
+                       param_value=param_value)
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
             # UI automatically strips leading zeros on save,
             # e.g. If param_value = '01400' then UI saves it as '1400'
             # so using lstrip to strip leading zeros from variable
             # 'param_value' too
-            self.assertEqual(
-                test_data['param_value'].lstrip("0"),
-                saved_element
-            )
+            self.assertEqual(param_value, saved_element)
+            # This is the time in minutes as for how long installation token
+            # should be valid; '0' value is to disable it
+            # Resetting the token_duration to its default value '60'
+            if saved_element == '0':
+                edit_param(session, tab_locator=tab_locator,
+                           param_name=param_name,
+                           value_type=value_type,
+                           param_value=default_value)
