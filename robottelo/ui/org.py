@@ -122,6 +122,7 @@ class Org(Base):
         Searches existing Organization from UI
         """
         nav(self.browser).go_to_org()
+        self.wait_for_ajax()
         element = self.search_entity(name, locators["org.org_name"])
         return element
 

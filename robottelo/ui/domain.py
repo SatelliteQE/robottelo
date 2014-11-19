@@ -46,6 +46,7 @@ class Domain(Base):
         Searches existing domain from UI
         """
         Navigator(self.browser).go_to_domains()
+        self.wait_for_ajax()
         element = self.search_entity(description,
                                      locators["domain.domain_description"],
                                      timeout=timeout)
