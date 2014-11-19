@@ -45,6 +45,7 @@ class ConfigGroups(Base):
         Searches existing config-groups from UI
         """
         Navigator(self.browser).go_to_config_groups()
+        self.wait_for_ajax()
         element = self.search_entity(name,
                                      locators["config_groups.select_name"])
         return element

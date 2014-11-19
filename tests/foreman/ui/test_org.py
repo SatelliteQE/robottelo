@@ -204,7 +204,7 @@ class Org(UITestCase):
         @assert: organization is not created
         """
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name)
+            make_org(session, org_name=org_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -218,7 +218,7 @@ class Org(UITestCase):
         """
         org_name = ""
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name)
+            make_org(session, org_name=org_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -232,7 +232,7 @@ class Org(UITestCase):
         """
         org_name = "    "
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name)
+            make_org(session, org_name=org_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)

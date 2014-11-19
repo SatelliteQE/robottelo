@@ -82,6 +82,7 @@ class ComputeResource(Base):
         Searches existing compute resource from UI
         """
         Navigator(self.browser).go_to_compute_resources()
+        self.wait_for_ajax()
         element = self.search_entity(name, locators["resource.select_name"])
         return element
 
