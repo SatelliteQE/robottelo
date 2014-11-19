@@ -18,7 +18,6 @@ from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.api import utils
 from robottelo.common import manifests
-from robottelo.common.ssh import upload_file
 from robottelo.common.constants import (
     FILTER_CONTENT_TYPE, FILTER_TYPE, REPO_TYPE, FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED)
@@ -64,13 +63,9 @@ class TestContentViewsUI(UITestCase):
                 product=product_attrs['id'],
             ).create()
             repo_id = repo_attrs['id']
-        else:
+        elif rh_repo:
             # Clone the manifest and fetch it's path.
             manifest_path = manifests.clone()
-            # upload_file function should take care of uploading to sauce labs.
-            # Uploads the file from the local machine to the sat6 machine.
-            upload_file(manifest_path, remote_file=manifest_path)
-
             # Uploads the manifest and returns the result.
             task_result = entities.Organization(
                 id=self.org_id
@@ -468,14 +463,25 @@ class TestContentViewsUI(UITestCase):
 
         puppet_module = "httpd"
         module_ver = 'Latest'
-        cv_name = gen_string("alpha", 8)
+        cv_name1 = gen_string("alpha", 8)
+        cv_name2 = gen_string("alpha", 8)
         composite_name = gen_string("alpha", 8)
+        rh_repo = {
+            "name": ("Red Hat Enterprise Linux 6 Server "
+                     "- RH Common RPMs x86_64 6.3"),
+            "product": "Red Hat Enterprise Linux Server",
+            "reposet": ("Red Hat Enterprise Linux 6 Server "
+                        "- RH Common (RPMs)"),
+            "basearch": "x86_64",
+            "releasever": "6.3",
+        }
         with Session(self.browser) as session:
-            self.setup_to_create_cv(session, cv_name,
+            self.setup_to_create_cv(session, cv_name2, rh_repo=rh_repo)
+            self.setup_to_create_cv(session, cv_name1,
                                     repo_url=FAKE_0_PUPPET_REPO,
                                     repo_type=REPO_TYPE['puppet'])
             self.content_views.add_puppet_module(
-                cv_name,
+                cv_name1,
                 puppet_module,
                 filter_term=module_ver
             )
@@ -485,10 +491,12 @@ class TestContentViewsUI(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_content_views()
-            module = self.content_views.fetch_puppet_module(cv_name,
+            module = self.content_views.fetch_puppet_module(cv_name1,
                                                             puppet_module)
             self.assertIsNotNone(module)
-            self.content_views.publish(cv_name)
+            self.content_views.publish(cv_name1)
+            self.content_views.add_remove_repos(cv_name2, [rh_repo['name']])
+            self.content_views.publish(cv_name2)
             self.content_views.create(composite_name, is_composite=True)
         # UI doesn't populate the created content-view name to add it into
         # existing composite-view until we logout and navigate again to
@@ -496,10 +504,10 @@ class TestContentViewsUI(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_content_views()
-            self.content_views.add_remove_cv(composite_name, [cv_name])
+            self.content_views.add_remove_cv(composite_name,
+                                             [cv_name1, cv_name2])
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
-        # TODO: Need to add RH contents
 
     def test_associate_view_rh_1(self):
         """@test: associate Red Hat content in a view
