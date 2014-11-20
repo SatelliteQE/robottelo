@@ -25,4 +25,4 @@ class PuppetModule(Base):
     To list OR show puppet modules.
     """
 
-    command_base = "puppet-module"
+    command_base = 'puppet-module'

@@ -14,10 +14,10 @@ Parameters::
 Subcommands::
 
     create                        Create a subnet
+    delete                        Delete a subnet
     info                          Show a subnet.
     list                          List of subnets
     update                        Update a subnet
-    delete                        Delete a subnet
 
 """
 
@@ -29,4 +29,4 @@ class Subnet(Base):
     Manipulates Foreman's subnets.
     """
 
-    command_base = "subnet"
+    command_base = 'subnet'

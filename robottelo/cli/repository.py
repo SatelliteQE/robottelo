@@ -19,6 +19,7 @@ Subcommands::
     list                          List of repositories
     synchronize                   Sync a repository
     update                        Update a repository
+    upload-content                Upload content into the repository
 """
 
 from robottelo.cli.base import Base
@@ -29,7 +30,7 @@ class Repository(Base):
     Manipulates Katello engine's repository command.
     """
 
-    command_base = "repository"
+    command_base = 'repository'
     command_requires_org = True
 
     @classmethod
@@ -60,7 +61,7 @@ class Repository(Base):
         Synchronizes a repository.
         """
 
-        cls.command_sub = "synchronize"
+        cls.command_sub = 'synchronize'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -69,6 +70,6 @@ class Repository(Base):
     @classmethod
     def upload_content(cls, options):
         """Upload content to repository."""
-        cls.command_sub = "upload-content"
+        cls.command_sub = 'upload-content'
         result = cls.execute(cls._construct_command(options), expect_csv=True)
         return result

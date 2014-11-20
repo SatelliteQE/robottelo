@@ -14,10 +14,10 @@ Parameters::
 Subcommands::
 
     create                        Create a model.
+    delete                        Delete a model.
     info                          Show a model.
     list                          List all models.
     update                        Update a model.
-    delete                        Delete a model.
 """
 
 from robottelo.cli.base import Base
@@ -28,4 +28,4 @@ class Model(Base):
     Manipulates Foreman's hardware model.
     """
 
-    command_base = "model"
+    command_base = 'model'

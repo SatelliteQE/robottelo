@@ -110,7 +110,7 @@ class Base(object):
             if cls.command_requires_org:
                 if 'organization-id' not in options:
                     raise Exception(
-                        'organization-id option is required for {}.create'
+                        'organization-id option is required for {0}.create'
                         .format(cls.__name__)
                     )
                 info_options[u'organization-id'] = options[u'organization-id']
@@ -240,7 +240,7 @@ class Base(object):
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise Exception(
-                'organization-id option is required for {}.info'
+                'organization-id option is required for {0}.info'
                 .format(cls.__name__)
             )
 
@@ -268,7 +268,7 @@ class Base(object):
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise Exception(
-                'organization-id option is required for {}.list'
+                'organization-id option is required for {0}.list'
                 .format(cls.__name__)
             )
 
@@ -367,7 +367,7 @@ class Base(object):
         for key, val in options.items():
             if val is not None:
                 if val is True:
-                    tail += u' --{}'.format(key)
+                    tail += u' --{0}'.format(key)
                 elif val is not False:
                     tail += u' --{0}="{1}"'.format(key, val)
         cmd = u'{0} {1} {2}'.format(

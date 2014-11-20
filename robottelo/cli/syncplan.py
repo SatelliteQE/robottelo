@@ -28,7 +28,7 @@ class SyncPlan(Base):
     Manipulates Katello engine's sync-plan command.
     """
 
-    command_base = "sync-plan"
+    command_base = 'sync-plan'
     command_requires_org = True
 
     @classmethod

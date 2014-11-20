@@ -25,4 +25,4 @@ from robottelo.cli.base import Base
 class Role(Base):
     """Manipulates Katello engine's role command."""
 
-    command_base = "role"
+    command_base = 'role'

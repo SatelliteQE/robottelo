@@ -13,13 +13,14 @@ Parameters::
 
 Subcommands::
 
-    list                          List products in an environment
-    update                        Update a product
     create                        Create a product
     delete                        Destroy a product
     info                          Show a product
+    list                          List products in an environment
     remove_sync_plan              Delete assignment sync plan and product.
     set_sync_plan                 Assign sync plan to product.
+    synchronize                   Sync a repository
+    update                        Update a product
 """
 
 from robottelo.cli.base import Base
@@ -30,7 +31,7 @@ class Product(Base):
     Manipulates Katello engine's product command.
     """
 
-    command_base = "product"
+    command_base = 'product'
     command_requires_org = True
 
     @classmethod
@@ -39,7 +40,7 @@ class Product(Base):
         Delete assignment sync plan and product.
         """
 
-        cls.command_sub = "remove-sync-plan"
+        cls.command_sub = 'remove-sync-plan'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -51,7 +52,7 @@ class Product(Base):
         Assign sync plan to product.
         """
 
-        cls.command_sub = "set-sync-plan"
+        cls.command_sub = 'set-sync-plan'
 
         result = cls.execute(cls._construct_command(options))
 

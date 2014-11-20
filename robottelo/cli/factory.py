@@ -12,8 +12,8 @@ import random
 import time
 
 from fauxfactory import (
-    gen_alphanumeric, gen_integer,
-    gen_ipaddr, gen_mac, gen_string
+    gen_alphanumeric, gen_integer, gen_ipaddr,
+    gen_mac, gen_netmask, gen_string
 )
 from os import chmod
 from robottelo.cli.activationkey import ActivationKey
@@ -140,7 +140,7 @@ def make_activation_key(options=None):
             or not options.get('organization', None)
             and not options.get('organization-label', None)
             and not options.get('organization-id', None)):
-        raise CLIFactoryError("Please provide a valid Organization.")
+        raise CLIFactoryError('Please provide a valid Organization.')
 
     args = {
         u'content-view': None,
@@ -190,29 +190,33 @@ def make_content_view(options=None):
 
         --component-ids COMPONENT_IDS List of component content view
         version ids for composite views
-                                    Comma separated list of values.
+                                      Comma separated list of values.
         --composite                   Create a composite content view
         --description DESCRIPTION     Description for the content view
         --label LABEL                 Content view label
         --name NAME                   Name of the content view
+        --organization ORGANIZATION_NAME  Organization name to search by
         --organization-id ORGANIZATION_ID Organization identifier
+        --organization-label ORGANIZATION_LABEL Organization label to search by
         --repository-ids REPOSITORY_IDS List of repository ids
-                                    Comma separated list of values.
+                                      Comma separated list of values.
         -h, --help                    print help
 
     """
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise CLIFactoryError("Please provide a valid ORG ID.")
+        raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
-        u'name': gen_string("alpha", 10),
-        u'organization-id': None,
-        u'composite': False,
         u'component-ids': None,
-        u'label': None,
+        u'composite': False,
         u'description': None,
+        u'label': None,
+        u'name': gen_string('alpha', 10),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
         u'repository-ids': None
     }
 
@@ -227,21 +231,23 @@ def make_gpg_key(options=None):
 
     Options::
 
-        --organization-id ORGANIZATION_ID organization identifier
-        --name NAME                   identifier of the GPG Key
         --key GPG_KEY_FILE            GPG Key file
+        --name NAME                   identifier of the GPG Key
+        --organization ORGANIZATION_NAME  Organization name to search by
+        --organization-id ORGANIZATION_ID organization identifier
+        --organization-label ORGANIZATION_LABEL Organization label to search by
         -h, --help                    print help
     """
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise CLIFactoryError("Please provide a valid ORG ID.")
+        raise CLIFactoryError('Please provide a valid ORG ID.')
 
     # Create a fake gpg key file if none was provided
     if not options.get('key', None):
         (_, key_filename) = mkstemp(text=True)
         os.chmod(key_filename, 0700)
-        with open(key_filename, "w") as gpg_key_file:
+        with open(key_filename, 'w') as gpg_key_file:
             gpg_key_file.write(gen_alphanumeric(gen_integer(20, 50)))
     else:
         # If the key is provided get its local path and remove it from options
@@ -249,9 +255,11 @@ def make_gpg_key(options=None):
         key_filename = options.pop('key')
 
     args = {
+        u'key': '/tmp/{0}'.format(gen_alphanumeric()),
         u'name': gen_alphanumeric(),
-        u'key': "/tmp/%s" % gen_alphanumeric(),
+        u'organization': None,
         u'organization-id': None,
+        u'organization-label': None,
     }
 
     # Upload file to server
@@ -326,17 +334,17 @@ def make_model(options=None):
 
     Options::
 
-        --name NAME
-        --info INFO
-        --vendor-class VENDOR_CLASS
         --hardware-model HARDWARE_MODEL
+        --info INFO
+        --name NAME
+        --vendor-class VENDOR_CLASS
     """
 
     args = {
-        u'name': gen_alphanumeric(),
-        u'info': None,
-        u'vendor-class': None,
         u'hardware-model': None,
+        u'info': None,
+        u'name': gen_alphanumeric(),
+        u'vendor-class': None,
     }
 
     return create_object(Model, args, options)
@@ -346,26 +354,24 @@ def make_partition_table(options=None):
     """
     Usage::
 
-        hammer partition_table update [OPTIONS]
+        hammer partition-table update [OPTIONS]
 
     Options::
 
-        --file LAYOUT                 Path to a file that contains
-                                      the partition layout
+        --file LAYOUT         Path to a file that contains the partition layout
+        --id ID
+        --name NAME           Partition table name
+        --new-name NEW_NAME
         --os-family OS_FAMILY
-        --id ID                       resource id
-        --name NAME                   resource name
-        --new-name NEW_NAME           new name for the resource
-        -h, --help                    print help
+        -h, --help            print help
 
     Usage::
 
-        hammer partition_table create [OPTIONS]
+        hammer partition-table create [OPTIONS]
 
     Options::
 
-        --file LAYOUT                 Path to a file that contains
-                                      the partition layout
+        --file LAYOUT         Path to a file that contains the partition layout
         --name NAME
         --os-family OS_FAMILY
     """
@@ -373,12 +379,12 @@ def make_partition_table(options=None):
         options = {}
     (_, layout) = mkstemp(text=True)
     os.chmod(layout, 0700)
-    with open(layout, "w") as ptable:
+    with open(layout, 'w') as ptable:
         ptable.write(options.get('content', 'default ptable content'))
 
     args = {
+        u'file': '/tmp/{0}'.format(gen_alphanumeric()),
         u'name': gen_alphanumeric(),
-        u'file': "/tmp/%s" % gen_alphanumeric(),
         u'os-family': random.choice(OPERATING_SYSTEMS)
     }
 
@@ -397,24 +403,32 @@ def make_product(options=None):
     Options::
 
         --description DESCRIPTION     Product description
+        --gpg-key GPG_KEY_NAME        Name to search by
         --gpg-key-id GPG_KEY_ID       Identifier of the GPG key
         --label LABEL
         --name NAME
-        --organization-id ORGANIZATION_ID ID of the organization
-        --sync-plan-id SYNC_PLAN_ID   Plan numeric identifier
-        -h, --help                    print help
+        --organization ORGANIZATION_NAME        Organization name to search by
+        --organization-id ORGANIZATION_ID       ID of the organization
+        --organization-label ORGANIZATION_LABEL Organization label to search by
+        --sync-plan SYNC_PLAN_NAME              Sync plan name to search by
+        --sync-plan-id SYNC_PLAN_ID             Plan numeric identifier
+        -h, --help                              print help
     """
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise CLIFactoryError("Please provide a valid ORG ID.")
+        raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
-        u'name': gen_string('alpha', 20),
-        u'label': gen_string('alpha', 20),
         u'description': gen_string('alpha', 20),
-        u'organization-id': None,
+        u'gpg-key': None,
         u'gpg-key-id': None,
+        u'label': gen_string('alpha', 20),
+        u'name': gen_string('alpha', 20),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
+        u'sync-plan': None,
         u'sync-plan-id': None,
     }
 
@@ -429,8 +443,14 @@ def make_proxy(options=None):
 
     Options::
 
+        --location-ids LOCATION_IDS     REPLACE locations with given ids
+                                        Comma separated list of values.
         --name NAME
-        --url URL
+        --organization-ids              ORGANIZATION_IDS REPLACE organizations
+                                        with given ids.
+                                        Comma separated list of values.
+        -h, --help                      print help
+
     """
 
     args = {
@@ -445,7 +465,7 @@ def make_proxy(options=None):
                 return create_object(Proxy, args, options)
         except SSHTunnelError as err:
             raise CLIFactoryError(
-                "Failed to create ssh tunnel: {0}".format(err))
+                'Failed to create ssh tunnel: {0}'.format(err))
 
     return create_object(Proxy, args, options)
 
@@ -476,27 +496,28 @@ def make_repository(options=None):
         --publish-via-http ENABLE               Publish Via HTTP
                                                 One of true/false, yes/no, 1/0.
         --url URL                               repository source url
+        -h, --help                              print help
 
     """
 
     # Product ID is a required field.
     if not options or not options.get('product-id', None):
-        raise CLIFactoryError("Please provide a valid Product ID.")
+        raise CLIFactoryError('Please provide a valid Product ID.')
 
     args = {
-        u'name': gen_string('alpha', 15),
-        u'label': None,
         u'checksum-type': None,
         u'content-type': u'yum',
+        u'gpg-key': None,
+        u'gpg-key-id': None,
+        u'label': None,
+        u'name': gen_string('alpha', 15),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
         u'product': None,
         u'product-id': None,
         u'publish-via-http': u'true',
         u'url': FAKE_1_YUM_REPO,
-        u'gpg-key': None,
-        u'gpg-key-id': None,
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
     }
 
     return create_object(Repository, args, options)
@@ -526,37 +547,50 @@ def make_subnet(options=None):
 
     Options::
 
-        --name NAME                   Subnet name
-        --network NETWORK             Subnet network
-        --mask MASK                   Netmask for this subnet
-        --gateway GATEWAY             Primary DNS for this subnet
+        --dhcp-id DHCP_ID             DHCP Proxy to use within this subnet
+        --dns-id DNS_ID               DNS Proxy to use within this subnet
         --dns-primary DNS_PRIMARY     Primary DNS for this subnet
-        --dns-secondary DNS_SECONDARY Secondary DNS for this subnet
-        --from FROM                   Starting IP Address for IP auto
-                                      suggestion
-        --to TO                       Ending IP Address for IP auto suggestion
-        --vlanid VLANID               VLAN ID for this subnet
+        --dns-secondary DNS_SECONDARY Secondary DNS for this subnet suggestion
         --domain-ids DOMAIN_IDS       Domains in which this subnet is part
                                       Comma separated list of values.
-        --dhcp-id DHCP_ID             DHCP Proxy to use within this subnet
+        --from FROM                   Starting IP Address for IP auto
+        --gateway GATEWAY             Primary DNS for this subnet
+        --ipam IPAM                   IP Address auto suggestion mode for this
+                                      subnet, valid values are
+                                      'DHCP', 'Internal DB', 'None'
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+                                      Comma separated list of values.
+
+        --mask MASK                   Netmask for this subnet
+        --name NAME                   Subnet name
+        --network NETWORK             Subnet network
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with given
+                                            ids. Comma separated list of values
+
         --tftp-id TFTP_ID             TFTP Proxy to use within this subnet
-        --dns-id DNS_ID               DNS Proxy to use within this subnet
+        --to TO                       Ending IP Address for IP auto suggestion
+        --vlanid VLANID               VLAN ID for this subnet
+        -h, --help                    print help
+
     """
 
     args = {
-        u'name': gen_alphanumeric(8),
-        u'network': gen_ipaddr(ip3=True),
-        u'mask': u'255.255.255.0',
-        u'gateway': None,
+        u'dhcp-id': None,
+        u'dns-id': None,
         u'dns-primary': None,
         u'dns-secondary': None,
+        u'domain-ids': None,
         u'from': None,
+        u'gateway': None,
+        u'ipam': None,
+        u'location-ids': None,
+        u'mask': gen_netmask(),
+        u'name': gen_alphanumeric(8),
+        u'network': gen_ipaddr(ip3=True),
+        u'organization-ids': None,
+        u'tftp-id': None,
         u'to': None,
         u'vlanid': None,
-        u'domain-ids': None,
-        u'dhcp-id': None,
-        u'tftp-id': None,
-        u'dns-id': None,
     }
 
     return create_object(Subnet, args, options)
@@ -587,22 +621,23 @@ def make_sync_plan(options=None):
                                                 Date and time in YYYY-MM-DD
                                                 HH:MM:SS or ISO 8601 format
                                                 Default: "2014-10-07 08:50:35"
+        -h, --help                              print help
 
     """
 
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
-        raise CLIFactoryError("Please provide a valid ORG ID.")
+        raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
-        u'name': gen_string('alpha', 20),
         u'description': gen_string('alpha', 20),
         u'enabled': 'true',
+        u'interval': random.choice(SYNC_INTERVAL.values()),
+        u'name': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'sync-date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        u'interval': random.choice(SYNC_INTERVAL.values()),
+        u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     }
 
     return create_object(SyncPlan, args, options)
@@ -651,6 +686,7 @@ def make_content_host(options=None):
                                                             auto-healing
                                                             process, e.g.
                                                             SELF-SUPPORT
+        -h, --help                                          print help
 
     """
     # Organization ID is a required field.
@@ -704,9 +740,9 @@ def make_host(options=None):
         --architecture-id ARCHITECTURE_ID
         --ask-root-password ASK_ROOT_PW One of true/false, yes/no, 1/0.
         --build BUILD                 One of true/false, yes/no, 1/0.
-                                    Default: "true"
+                                      Default: 'true'
         --compute-attributes COMPUTE_ATTRS Compute resource attributes.
-                                    Comma-separated list of key=value.
+                                      Comma-separated list of key=value.
         --compute-profile COMPUTE_PROFILE_NAME Name to search by
         --compute-profile-id COMPUTE_PROFILE_ID
         --compute-resource COMPUTE_RESOURCE_NAME Compute resource name
@@ -714,7 +750,7 @@ def make_host(options=None):
         --domain DOMAIN_NAME          Domain name
         --domain-id DOMAIN_ID
         --enabled ENABLED             One of true/false, yes/no, 1/0.
-                                    Default: "true"
+                                      Default: 'true'
         --environment ENVIRONMENT_NAME Environment name
         --environment-id ENVIRONMENT_ID
         --hostgroup HOSTGROUP_NAME    Hostgroup name
@@ -729,12 +765,13 @@ def make_host(options=None):
         --location-id LOCATION_ID
         --mac MAC                     not required if its a virtual machine
         --managed MANAGED             One of true/false, yes/no, 1/0.
-                                    Default: "true"
+                                      Default: 'true'
         --medium MEDIUM_NAME          Medium name
         --medium-id MEDIUM_ID
         --model MODEL_NAME            Model name
         --model-id MODEL_ID
         --name NAME
+        --operatingsystem OPERATINGSYSTEM_TITLE  Operating system title
         --operatingsystem-id OPERATINGSYSTEM_ID
         --organization ORGANIZATION_NAME Organization name
         --organization-id ORGANIZATION_ID
@@ -815,6 +852,7 @@ def make_host(options=None):
         u'model': None,
         u'model-id': None,
         u'name': gen_string('alpha', 10),
+        u'operatingsystem': None,
         u'operatingsystem-id': None,
         u'organization': None,
         u'organization-id': None,
@@ -848,29 +886,45 @@ def make_host_collection(options=None):
 
     Options::
 
+        --content-host-ids CONTENT_HOST_IDS  List of content host uuids to be
+                                             in the host collection
         --description DESCRIPTION
+        --host-collection-ids HOST_COLLECTION_IDS  Array of content host ids to
+                                                   replace the content hosts in
+                                                   host collection
+                                                   Comma separated list of vals
+
         --max-content-hosts MAX_CONTENT_HOSTS Maximum number of content hosts
                                               in the host collection
-        --name NAME                   Host Collection name
+        --name NAME                           Host Collection name
         --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID organization identifier
+        --organization-id ORGANIZATION_ID     organization identifier
         --organization-label ORGANIZATION_LABEL
-        --system-ids SYSTEM_IDS       List of system uuids to be in the
-                                      host collection
-                                      Comma separated list of values.
+        --unlimited-content-hosts UNLIMITED_CONTENT_HOSTS Whether or not the
+                                                          host collection may
+                                                          have unlimited
+                                                          content hosts
+                                                          One of true/false,
+                                                          yes/no, 1/0.
+         -h, --help                                       print help
+
     """
 
     # Organization ID is required
     if not options or not options.get('organization-id', None):
-        raise CLIFactoryError("Please provide a valid ORGANIZATION_ID.")
+        raise CLIFactoryError('Please provide a valid ORGANIZATION_ID.')
 
     # Assigning default values for attributes
     args = {
+        u'content-host-ids': None,
         u'description': None,
+        u'host-collection-ids': None,
         u'max-content-hosts': None,
         u'name': gen_string('alpha', 15),
+        u'organization': None,
         u'organization-id': None,
-        u'system-ids': None,
+        u'organization-label': None,
+        u'unlimited-content-hosts': None,
     }
 
     return create_object(HostCollection, args, options)
@@ -884,26 +938,39 @@ def make_user(options=None):
 
     Options::
 
-        --login LOGIN
+        --admin ADMIN                       Is an admin account?
+        --auth-source-id AUTH_SOURCE_ID
+        --default-location-id DEFAULT_LOCATION_ID
+        --default-organization-id DEFAULT_ORGANIZATION_ID
         --firstname FIRSTNAME
         --lastname LASTNAME
+        --location-ids LOCATION_IDS         REPLACE locations with given ids
+                                            Comma separated list of values.
+        --login LOGIN
         --mail MAIL
-        --admin ADMIN                 Is an admin account?
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with
+                                            given ids.
+                                            Comma separated list of values.
         --password PASSWORD
-        --auth-source-id AUTH_SOURCE_ID
+        -h, --help                          print help
+
     """
 
     login = gen_alphanumeric(6)
 
     # Assigning default values for attributes
     args = {
-        u'login': login,
+        u'admin': None,
+        u'auth-source-id': 1,
+        u'default-location-id': None,
+        u'default-organization-id': None,
         u'firstname': gen_alphanumeric(),
         u'lastname': gen_alphanumeric(),
-        u'mail': "%s@example.com" % login,
-        u'admin': None,
+        u'location-ids': None,
+        u'login': login,
+        u'mail': '{0}@example.com'.format(login),
+        u'organization-ids': None,
         u'password': gen_alphanumeric(),
-        u'auth-source-id': 1,
     }
     logger.debug(
         'User "{0}" password not provided {1} was generated'
@@ -917,36 +984,47 @@ def make_compute_resource(options=None):
     """
     Usage::
 
-        hammer compute_resource create [OPTIONS]
+        hammer compute-resource create [OPTIONS]
 
     Options::
 
-        --name NAME
-        --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
-            Vmware, Openstack, Rackspace, GCE
-        --url URL                     URL for Libvirt, Ovirt, and Openstack
         --description DESCRIPTION
-        --user USER                   Username for Ovirt, EC2, Vmware,
-            Openstack. Access Key for EC2.
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+        --name NAME
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with
+                                            given ids.
+                                            Comma separated list of values.
         --password PASSWORD           Password for Ovirt, EC2, Vmware,
-            Openstack. Secret key for EC2
-        --uuid UUID                   for Ovirt, Vmware Datacenter
+                                      Openstack. Access Key for EC2.
+        --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
+                                      Vmware, Openstack, Rackspace, GCE
         --region REGION               for EC2 only
-        --tenant TENANT               for Openstack only
         --server SERVER               for Vmware
+        --set-console-password SET_CONSOLE_PASSWORD for Libvirt and Vmware only
+                                                    One of true/false,
+                                                    yes/no, 1/0.
+        --tenant TENANT               for Openstack only
+        --url URL                     URL for Libvirt, Ovirt, and Openstack
+        --user USER                   Username for Ovirt, EC2, Vmware,
+                                      Openstack. Secret key for EC2
+        --uuid UUID                   for Ovirt, Vmware Datacenter
         -h, --help                    print help
+
     """
     args = {
-        u'name': gen_alphanumeric(8),
-        u'provider': None,
-        u'url': None,
         u'description': None,
-        u'user': None,
+        u'location-ids': None,
+        u'name': gen_alphanumeric(8),
+        u'organization-ids': None,
         u'password': None,
-        u'uuid': None,
+        u'provider': None,
         u'region': None,
+        u'server': None,
+        u'set-console-password': None,
         u'tenant': None,
-        u'server': None
+        u'url': None,
+        u'user': None,
+        u'uuid': None,
     }
 
     if options is None:
@@ -955,7 +1033,7 @@ def make_compute_resource(options=None):
     if options.get('provider') is None:
         options['provider'] = FOREMAN_PROVIDERS['libvirt']
         if options.get('url') is None:
-            options['url'] = "qemu+tcp://localhost:16509/system"
+            options['url'] = 'qemu+tcp://localhost:16509/system'
 
     return create_object(ComputeResource, args, options)
 
@@ -968,16 +1046,58 @@ def make_org(options=None):
 
     Options::
 
-        --name NAME                   name
-        --label LABEL                 unique label
-        --description DESCRIPTION     description
+        --compute-resource-ids COMPUTE_RESOURCE_IDS Compute resource IDs
+                                                    Comma separated list
+                                                    of values.
+        --config-template-ids CONFIG_TEMPLATE_IDS   Provisioning template IDs
+                                                    Comma separated list
+                                                    of values.
+        --description DESCRIPTION                   description
+        --domain-ids DOMAIN_IDS                     Domain IDs
+                                                    Comma separated list
+                                                    of values.
+        --environment-ids ENVIRONMENT_IDS           Environment IDs
+                                                    Comma separated list
+                                                    of values.
+        --hostgroup-ids HOSTGROUP_IDS               Host group IDs
+                                                    Comma separated list
+                                                    of values.
+        --label LABEL                               unique label
+        --media-ids MEDIA_IDS                       Media IDs
+                                                    Comma separated list
+                                                    of values.
+        --name NAME                                 name
+        --realm-ids REALM_IDS                       Realm IDs
+                                                    Comma separated list
+                                                    of values.
+        --smart-proxy-ids SMART_PROXY_IDS           Smart proxy IDs
+                                                    Comma separated list
+                                                    of values.
+        --subnet-ids SUBNET_IDS                     Subnet IDs
+                                                    Comma separated list
+                                                    of values.
+        --user-ids USER_IDS                         User IDs
+                                                    Comma separated list
+                                                    of values.
+        -h, --help                                  print help
+
     """
 
     # Assigning default values for attributes
     args = {
-        u'name': gen_alphanumeric(6),
-        u'label': None,
+        u'compute-resource-ids': None,
+        u'config-template-ids': None,
         u'description': None,
+        u'domain-ids': None,
+        u'environment-ids': None,
+        u'hostgroup-ids': None,
+        u'label': None,
+        u'media-ids': None,
+        u'name': gen_alphanumeric(6),
+        u'realm-ids': None,
+        u'smart-proxy-ids': None,
+        u'subnet-ids': None,
+        u'user-ids': None,
     }
 
     return create_object(Org, args, options)
@@ -992,19 +1112,23 @@ def make_os(options=None):
     Options::
 
         --architecture-ids ARCH_IDS   set associated architectures
-                                    Comma separated list of values.
+                                      Comma separated list of values.
         --config-template-ids CONFIG_TPL_IDS set associated templates
-                                    Comma separated list of values.
+                                             Comma separated list of values.
         --description DESCRIPTION
         --family FAMILY
         --major MAJOR
         --medium-ids MEDIUM_IDS       set associated installation media
-                                    Comma separated list of values.
+                                      Comma separated list of values.
         --minor MINOR
         --name NAME
+        --password-hash PASSWORD_HASH Root password hash function to use,
+                                      one of MD5, SHA256, SHA512
         --ptable-ids PTABLE_IDS       set associated partition tables
-                                    Comma separated list of values.
+                                      Comma separated list of values.
         --release-name RELEASE_NAME
+        -h, --help                    print help
+
     """
     # Assigning default values for attributes
     args = {
@@ -1016,6 +1140,7 @@ def make_os(options=None):
         u'medium-ids': None,
         u'minor': random.randint(0, 10),
         u'name': gen_alphanumeric(6),
+        u'password-hash': None,
         u'ptable-ids': None,
         u'release-name': None,
     }
@@ -1031,15 +1156,24 @@ def make_domain(options=None):
 
     Options::
 
-        --name NAME                   The full DNS Domain name
-        --dns-id DNS_ID               DNS Proxy to use within this domain
         --description DESC            Full name describing the domain
+        --dns-id DNS_ID               DNS Proxy to use within this domain
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+                                      Comma separated list of values.
+        --name NAME                   The full DNS Domain name
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with
+                                            given ids.
+                                            Comma separated list of values.
+        -h, --help                          print help
+
     """
     # Assigning default values for attributes
     args = {
-        u'name': gen_alphanumeric().lower(),
-        u'dns-id': None,
         u'description': None,
+        u'dns-id': None,
+        u'location-ids': None,
+        u'name': gen_alphanumeric().lower(),
+        u'organization-ids': None,
     }
 
     return create_object(Domain, args, options)
@@ -1059,20 +1193,30 @@ def make_hostgroup(options=None):
         --domain-id DOMAIN_ID         May be numerical id or domain name
         --environment ENVIRONMENT_NAME Environment name
         --environment-id ENVIRONMENT_ID
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+                                      Comma separated list of values.
         --medium MEDIUM_NAME          Medium name
         --medium-id MEDIUM_ID
         --name NAME
+        --operatingsystem OPERATINGSYSTEM_TITLE Operating system title
         --operatingsystem-id OPERATINGSYSTEM_ID
+        --organization-ids ORGANIZATION_IDS     REPLACE organizations with
+                                                given ids.
+                                                Comma separated list of values.
         --parent-id PARENT_ID
-        --ptable PTABLE_NAME          Partition table name
+        --ptable PTABLE_NAME                    Partition table name
         --ptable-id PTABLE_ID
+        --puppet-ca-proxy PUPPET_CA_PROXY_NAME  Name of puppet CA proxy
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
+        --puppet-proxy PUPPET_CA_PROXY_NAME     Name of puppet proxy
         --puppet-proxy-id PUPPET_PROXY_ID
-        --puppetclass-ids PUPPETCLASS_IDS Comma separated list of values.
-        --realm REALM_NAME            Name to search by
-        --realm-id REALM_ID           May be numerical id or realm name
-        --subnet SUBNET_NAME          Subnet name
+        --puppetclass-ids PUPPETCLASS_IDS  Comma separated list of values.
+        --realm REALM_NAME                 Name to search by
+        --realm-id REALM_ID                May be numerical id or realm name
+        --subnet SUBNET_NAME               Subnet name
         --subnet-id SUBNET_ID
+        -h, --help                         print help
+
     """
     # Assigning default values for attributes
     args = {
@@ -1081,14 +1225,20 @@ def make_hostgroup(options=None):
         u'domain': None,
         u'domain-id': None,
         u'environment': None,
+        u'environment-id': None,
+        u'location-ids': None,
         u'medium': None,
         u'medium-id': None,
         u'name': gen_alphanumeric(6),
+        u'operatingsystem': None,
         u'operatingsystem-id': None,
+        u'organization-ids': None,
         u'parent-id': None,
         u'ptable': None,
         u'ptable-id': None,
+        u'puppet-ca-proxy': None,
         u'puppet-ca-proxy-id': None,
+        u'puppet-proxy': None,
         u'puppet-proxy-id': None,
         u'puppetclass-ids': None,
         u'realm': None,
@@ -1108,16 +1258,15 @@ def make_medium(options=None):
 
     Options::
 
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+                                      Comma separated list of values.
         --name NAME             Name of media
-        --path PATH             The path to the medium, can be a URL or a valid
-                                NFS server (exclusive of the architecture)
-                                for example http://mirror.centos.org/centos/
-                                $version/os/$arch where $arch will be
-                                substituted for the host’s actual OS
-                                architecture and $version, $major and $minor
-                                will be substituted for the version of the
-                                operating system.
-                                Solaris and Debian media may also use $release.
+        --operatingsystem-ids OPERATINGSYSTEM_IDS REPLACE organizations with
+                                                          given ids.
+                                                          Comma separated list
+                                                          of values.
+        --organization-ids ORGANIZATION_IDS               Comma separated list
+                                                          of values.
         --os-family OS_FAMILY   The family that the operating system belongs
                                 to. Available families:
                                 Archlinux
@@ -1127,18 +1276,26 @@ def make_medium(options=None):
                                 Solaris
                                 Suse
                                 Windows
-        --operatingsystem-ids OPERATINGSYSTEM_IDS
-                                Comma separated list of values.
-        --operatingsystem-ids OSIDS os ids
-                                Comma separated list of values.
+        --path PATH             The path to the medium, can be a URL or a valid
+                                NFS server (exclusive of the architecture)
+                                for example http://mirror.centos.org/centos/
+                                $version/os/$arch where $arch will be
+                                substituted for the host’s actual OS
+                                architecture and $version, $major and $minor
+                                will be substituted for the version of the
+                                operating system.
+                                Solaris and Debian media may also use $release.
+        -h, --help                         print help
 
     """
     # Assigning default values for attributes
     args = {
+        u'location-ids': None,
         u'name': gen_alphanumeric(6),
-        u'path': 'http://%s' % (gen_string('alpha', 6)),
-        u'os-family': None,
         u'operatingsystem-ids': None,
+        u'organization-ids': None,
+        u'os-family': None,
+        u'path': 'http://{0}'.format((gen_string('alpha', 6))),
     }
 
     return create_object(Medium, args, options)
@@ -1152,11 +1309,20 @@ def make_environment(options=None):
 
     Options::
 
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+                                      Comma separated list of values.
         --name NAME
+        --organization-ids ORGANIZATION_IDS   REPLACE organizations with
+                                              given ids.
+                                              Comma separated list of values.
+        -h, --help                            print help
+
     """
     # Assigning default values for attributes
     args = {
+        u'location-ids': None,
         u'name': gen_alphanumeric(6),
+        u'organization-ids': None,
     }
 
     return create_object(Environment, args, options)
@@ -1170,27 +1336,34 @@ def make_lifecycle_environment(options=None):
 
     Options::
 
-        --organization-id ORGANIZATION_ID name of organization
-        --name NAME                 name of the environment
         --description DESCRIPTION   description of the environment
+        --label LABEL               label of the environment
+        --name NAME                 name of the environment
+        --organization ORGANIZATION_NAME        Organization name to search by
+        --organization-id ORGANIZATION_ID       organization ID
+        --organization-label ORGANIZATION_LABEL Organization label to search by
         --prior PRIOR               Name of an environment that is prior to
                                     the new environment in the chain. It has to
                                     be either ‘Library’ or an environment at
                                     the end of a chain.
+        -h, --help                  print help
 
     """
 
     # Organization ID is required
     if not options or not options.get('organization-id', None):
-        raise CLIFactoryError("Please provide a valid ORG ID.")
+        raise CLIFactoryError('Please provide a valid ORG ID.')
     if not options.get('prior', None):
         options['prior'] = 'Library'
 
     # Assigning default values for attributes
     args = {
-        u'organization-id': None,
-        u'name': gen_alphanumeric(6),
         u'description': None,
+        u'label': None,
+        u'name': gen_alphanumeric(6),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
         u'prior': None,
     }
 
@@ -1205,22 +1378,34 @@ def make_template(options=None):
 
     Options::
 
-        --file TEMPLATE     Path to a file that contains the template
-        --type TYPE         Template type. Eg. snippet, script, provision
-        --name NAME         template name
         --audit-comment AUDIT_COMMENT
+        --file TEMPLATE     Path to a file that contains the template
+        --location-ids LOCATION_IDS   REPLACE locations with given ids
+                                      Comma separated list of values.
+        --locked LOCKED               Whether or not the template is locked
+                                      for editing
+                                      One of true/false, yes/no, 1/0.
+        --name NAME         template name
         --operatingsystem-ids OPERATINGSYSTEM_IDS
                             Array of operating systems ID to associate the
                             template with Comma separated list of values.
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with
+                                            given ids.
+                                            Comma separated list of values.
+        --type TYPE         Template type. Eg. snippet, script, provision
+        -h, --help                  print help
 
     """
     # Assigning default values for attribute
     args = {
-        u'file': "/tmp/%s" % gen_alphanumeric(),
-        u'type': random.choice(TEMPLATE_TYPES),
-        u'name': gen_alphanumeric(6),
         u'audit-comment': None,
+        u'file': '/tmp/{0}'.format(gen_alphanumeric()),
+        u'location-ids': None,
+        u'locked': None,
+        u'name': gen_alphanumeric(6),
         u'operatingsystem-ids': None,
+        u'organization-ids': None,
+        u'type': random.choice(TEMPLATE_TYPES),
     }
 
     # Write content to file or random text
@@ -1232,7 +1417,7 @@ def make_template(options=None):
     # Special handling for template factory
     (_, layout) = mkstemp(text=True)
     chmod(layout, 0700)
-    with open(layout, "w") as ptable:
+    with open(layout, 'w') as ptable:
         ptable.write(content)
     # Upload file to server
     ssh.upload_file(local_file=layout, remote_file=args['file'])

@@ -4,7 +4,7 @@
 """
 Usage::
 
-    hammer model [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer organization [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
 
@@ -13,29 +13,29 @@ Parameters::
 
 Subcommands::
 
-    add-subnet                    Associate a resource
-    update                        Update an organization
-    add-domain                    Associate a resource
-    add-user                      Associate a resource
-    add-hostgroup                 Associate a resource
-    remove_computeresource        Disassociate a resource
-    remove_medium                 Disassociate a resource
-    remove_configtemplate         Disassociate a resource
-    delete                        Delete an organization
-    remove_environment            Disassociate a resource
-    remove_smartproxy             Disassociate a resource
     add-computeresource           Associate a resource
-    add-medium                    Associate a resource
     add-configtemplate            Associate a resource
-    create                        Create an organization
+    add-domain                    Associate a resource
     add-environment               Associate a resource
-    info                          Show an organization
-    remove_subnet                 Disassociate a resource
-    remove_domain                 Disassociate a resource
-    remove_user                   Disassociate a resource
-    remove_hostgroup              Disassociate a resource
+    add-hostgroup                 Associate a resource
+    add-medium                    Associate a resource
     add-smartproxy                Associate a resource
+    add-subnet                    Associate a resource
+    add-user                      Associate a resource
+    create                        Create an organization
+    delete                        Delete an organization
+    info                          Show an organization
     list                          List all organizations
+    remove_computeresource        Disassociate a resource
+    remove_configtemplate         Disassociate a resource
+    remove_domain                 Disassociate a resource
+    remove_environment            Disassociate a resource
+    remove_hostgroup              Disassociate a resource
+    remove_medium                 Disassociate a resource
+    remove_smartproxy             Disassociate a resource
+    remove_subnet                 Disassociate a resource
+    remove_user                   Disassociate a resource
+    update                        Update an organization
 """
 
 from robottelo.cli.base import Base
@@ -46,7 +46,7 @@ class Org(Base):
     Manipulates Foreman's Organizations
     """
 
-    command_base = "organization"
+    command_base = 'organization'
 
     @classmethod
     def add_subnet(cls, options=None):
@@ -54,7 +54,7 @@ class Org(Base):
         Adds existing subnet to an org
         """
 
-        cls.command_sub = "add-subnet"
+        cls.command_sub = 'add-subnet'
 
         return cls.execute(cls._construct_command(options))
 
@@ -64,7 +64,7 @@ class Org(Base):
         Removes a subnet from an org
         """
 
-        cls.command_sub = "remove-subnet"
+        cls.command_sub = 'remove-subnet'
 
         return cls.execute(cls._construct_command(options))
 
@@ -74,7 +74,7 @@ class Org(Base):
         Adds a domain to an org
         """
 
-        cls.command_sub = "add-domain"
+        cls.command_sub = 'add-domain'
 
         return cls.execute(cls._construct_command(options))
 
@@ -84,7 +84,7 @@ class Org(Base):
         Removes a domain from an org
         """
 
-        cls.command_sub = "remove-domain"
+        cls.command_sub = 'remove-domain'
 
         return cls.execute(cls._construct_command(options))
 
@@ -94,7 +94,7 @@ class Org(Base):
         Adds an user to an org
         """
 
-        cls.command_sub = "add-user"
+        cls.command_sub = 'add-user'
 
         return cls.execute(cls._construct_command(options))
 
@@ -104,7 +104,7 @@ class Org(Base):
         Removes an user from an org
         """
 
-        cls.command_sub = "remove-user"
+        cls.command_sub = 'remove-user'
 
         return cls.execute(cls._construct_command(options))
 
@@ -114,7 +114,7 @@ class Org(Base):
         Adds a hostgroup to an org
         """
 
-        cls.command_sub = "add-hostgroup"
+        cls.command_sub = 'add-hostgroup'
 
         return cls.execute(cls._construct_command(options))
 
@@ -124,7 +124,7 @@ class Org(Base):
         Removes a hostgroup from an org
         """
 
-        cls.command_sub = "remove-hostgroup"
+        cls.command_sub = 'remove-hostgroup'
 
         return cls.execute(cls._construct_command(options))
 
@@ -134,7 +134,7 @@ class Org(Base):
         Adds a computeresource to an org
         """
 
-        cls.command_sub = "add-compute-resource"
+        cls.command_sub = 'add-compute-resource'
 
         return cls.execute(cls._construct_command(options))
 
@@ -144,7 +144,7 @@ class Org(Base):
         Removes a computeresource from an org
         """
 
-        cls.command_sub = "remove-compute-resource"
+        cls.command_sub = 'remove-compute-resource'
 
         return cls.execute(cls._construct_command(options))
 
@@ -154,7 +154,7 @@ class Org(Base):
         Adds a medium to an org
         """
 
-        cls.command_sub = "add-medium"
+        cls.command_sub = 'add-medium'
 
         return cls.execute(cls._construct_command(options))
 
@@ -164,7 +164,7 @@ class Org(Base):
         Removes a medium from an org
         """
 
-        cls.command_sub = "remove-medium"
+        cls.command_sub = 'remove-medium'
 
         return cls.execute(cls._construct_command(options))
 
@@ -174,7 +174,7 @@ class Org(Base):
         Adds a configtemplate to an org
         """
 
-        cls.command_sub = "add-config-template"
+        cls.command_sub = 'add-config-template'
 
         return cls.execute(cls._construct_command(options))
 
@@ -184,7 +184,7 @@ class Org(Base):
         Removes a configtemplate from an org
         """
 
-        cls.command_sub = "remove-config-template"
+        cls.command_sub = 'remove-config-template'
 
         return cls.execute(cls._construct_command(options))
 
@@ -194,7 +194,7 @@ class Org(Base):
         Adds an environment to an org
         """
 
-        cls.command_sub = "add-environment"
+        cls.command_sub = 'add-environment'
 
         return cls.execute(cls._construct_command(options))
 
@@ -204,7 +204,7 @@ class Org(Base):
         Removes an environment from an org
         """
 
-        cls.command_sub = "remove-environment"
+        cls.command_sub = 'remove-environment'
 
         return cls.execute(cls._construct_command(options))
 
@@ -214,7 +214,7 @@ class Org(Base):
         Adds a smartproxy to an org
         """
 
-        cls.command_sub = "add-smart-proxy"
+        cls.command_sub = 'add-smart-proxy'
 
         return cls.execute(cls._construct_command(options))
 
@@ -224,6 +224,6 @@ class Org(Base):
         Removes a smartproxy from an org
         """
 
-        cls.command_sub = "remove-smart-proxy"
+        cls.command_sub = 'remove-smart-proxy'
 
         return cls.execute(cls._construct_command(options))

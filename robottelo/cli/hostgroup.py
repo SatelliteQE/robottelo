@@ -13,15 +13,15 @@ Parameters::
 
 Subcommands::
 
-    set_parameter                 Create or update parameter for a hostgroup.
     create                        Create an hostgroup.
-    puppet_classes                List all puppetclasses.
-    info                          Show a hostgroup.
-    list                          List all hostgroups.
-    update                        Update an hostgroup.
-    sc_params                     List all smart class parameters
     delete                        Delete an hostgroup.
     delete_parameter              Delete parameter for a hostgroup.
+    info                          Show a hostgroup.
+    list                          List all hostgroups.
+    puppet_classes                List all puppetclasses.
+    sc_params                     List all smart class parameters
+    set_parameter                 Create or update parameter for a hostgroup.
+    update                        Update an hostgroup.
 """
 
 from robottelo.cli.base import Base
@@ -32,4 +32,4 @@ class HostGroup(Base):
     Manipulates Foreman's hostgroups.
     """
 
-    command_base = "hostgroup"
+    command_base = 'hostgroup'

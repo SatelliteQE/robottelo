@@ -14,11 +14,12 @@ Parameters::
 Subcommands::
 
     create                        Create a smart proxy.
+    delete                        Delete a smart_proxy.
+    import_classes                Import puppet classes from puppet proxy.
     info                          Show a smart proxy.
     list                          List all smart_proxies.
+    refresh-features              Refresh smart proxy features
     update                        Update a smart proxy.
-    import_classes                Import puppet classes from puppet proxy.
-    delete                        Delete a smart_proxy.
 """
 
 from robottelo.cli.base import Base
@@ -33,7 +34,7 @@ class SSHTunnelError(Exception):
 
 @contextlib.contextmanager
 def default_url_on_new_port(oldport, newport):
-    """Creates context where the default smart-proxy is forwarded on a new port.
+    """Creates context where the default smart-proxy is forwarded on a new port
 
     :param int oldport: Port to be forwarded.
     :param int newport: New port to be used to forward `oldport`.
@@ -53,13 +54,13 @@ def default_url_on_new_port(oldport, newport):
         command = u'ssh -i {0} -L {1}:{2}:{3} {4}@{5}'.format(
             '/tmp/dsa_{0}'.format(newport),
             newport, domain, oldport, user, domain)
-        logger.debug('Creating tunnel %s', command)
+        logger.debug('Creating tunnel {0}'.format(command))
         # Run command and timeout in 30 seconds.
         _, _, stderr = connection.exec_command(command, 30)
 
         stderr = stderr.read()
         if len(stderr) > 0:
-            logger.debug('Tunnel failed: %s', stderr)
+            logger.debug('Tunnel failed: {0}'.format(stderr))
             # Something failed, so raise an exception.
             raise SSHTunnelError(stderr)
         yield 'https://{0}:{1}'.format(domain, newport)

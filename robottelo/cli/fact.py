@@ -24,4 +24,4 @@ class Fact(Base):
     Searches Foreman's facts.
     """
 
-    command_base = "fact"
+    command_base = 'fact'

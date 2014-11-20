@@ -40,7 +40,7 @@ class Host(Base):
     Manipulates Foreman's hosts.
     """
 
-    command_base = "host"
+    command_base = 'host'
 
     @classmethod
     def facts(cls, options=None):
@@ -51,15 +51,15 @@ class Host(Base):
             hammer host facts [OPTIONS]
 
         Options:
-            --search SEARCH               filter results
+            --id ID                       resource id
+            --name NAME                   resource name
             --order ORDER                 sort results
             --page PAGE                   paginate results
             --per-page PER_PAGE           number of entries per request
-            --id ID                       resource id
-            --name NAME                   resource name
+            --search SEARCH               filter results
             -h, --help                    print help
         """
-        cls.command_sub = "facts"
+        cls.command_sub = 'facts'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -84,7 +84,7 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        cls.command_sub = "puppetrun"
+        cls.command_sub = 'puppetrun'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -104,7 +104,7 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        cls.command_sub = "reboot"
+        cls.command_sub = 'reboot'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -119,15 +119,16 @@ class Host(Base):
             hammer host reports [OPTIONS]
 
         Options:
+            --id ID                       resource id
+            --name NAME                   resource name
             --order ORDER                 sort results
             --page PAGE                   paginate results
             --per-page PER_PAGE           number of entries per request
-            --id ID                       resource id
-            --name NAME                   resource name
+            --search SEARCH               filter results
             -h, --help                    print help
         """
 
-        cls.command_sub = "reports"
+        cls.command_sub = 'reports'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
@@ -152,7 +153,7 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        cls.command_sub = "stop"
+        cls.command_sub = 'start'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -164,7 +165,7 @@ class Host(Base):
         Get status of host
 
         Usage:
-            hammer host start [OPTIONS]
+            hammer host status [OPTIONS]
 
         Options:
             --id ID                       resource id
@@ -172,7 +173,7 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        cls.command_sub = "status"
+        cls.command_sub = 'status'
 
         result = cls.execute(cls._construct_command(options))
 
@@ -193,7 +194,7 @@ class Host(Base):
             -h, --help                    print help
         """
 
-        cls.command_sub = "stop"
+        cls.command_sub = 'stop'
 
         result = cls.execute(cls._construct_command(options))
 

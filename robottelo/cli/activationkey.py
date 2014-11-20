@@ -15,11 +15,13 @@ Subcommands::
 
     add-host-collection           Associate a resource
     add-subscription              Add subscription
+    copy                          Copy an activation key
     create                        Create an activation key
+    delete                        Destroy an activation key
     host-collections              List associated host collections
     info                          Show an activation key
     list                          List activation keys
-    remove-repository             Disassociate a resource
+    remove-host-collection        Disassociate a resource
     remove-subscription           Remove subscription
     subscriptions                 List associated subscriptions
     update                        Update an activation key
@@ -33,7 +35,7 @@ class ActivationKey(Base):
     Manipulates Katello's activation-key.
     """
 
-    command_base = "activation-key"
+    command_base = 'activation-key'
 
     @classmethod
     def add_host_collection(cls, options=None):
@@ -41,7 +43,7 @@ class ActivationKey(Base):
         Associate a resource
         """
 
-        cls.command_sub = "add-host-collection"
+        cls.command_sub = 'add-host-collection'
 
         return cls.execute(cls._construct_command(options))
 
@@ -51,7 +53,7 @@ class ActivationKey(Base):
         Remove the associated resource
         """
 
-        cls.command_sub = "remove-host-collection"
+        cls.command_sub = 'remove-host-collection'
 
         return cls.execute(cls._construct_command(options))
 
@@ -61,7 +63,7 @@ class ActivationKey(Base):
         Add subscription
         """
 
-        cls.command_sub = "add-subscription"
+        cls.command_sub = 'add-subscription'
 
         return cls.execute(cls._construct_command(options))
 
@@ -71,7 +73,7 @@ class ActivationKey(Base):
         List associated host collections
         """
 
-        cls.command_sub = "host-collections"
+        cls.command_sub = 'host-collections'
 
         return cls.execute(cls._construct_command(options))
 
@@ -81,7 +83,7 @@ class ActivationKey(Base):
         Disassociate a resource
         """
 
-        cls.command_sub = "remove-repository"
+        cls.command_sub = 'remove-repository'
 
         return cls.execute(cls._construct_command(options))
 
@@ -91,7 +93,7 @@ class ActivationKey(Base):
         Remove subscription
         """
 
-        cls.command_sub = "remove-subscription"
+        cls.command_sub = 'remove-subscription'
 
         return cls.execute(cls._construct_command(options))
 
@@ -101,6 +103,6 @@ class ActivationKey(Base):
         List associated subscriptions
         """
 
-        cls.command_sub = "subscriptions"
+        cls.command_sub = 'subscriptions'
 
         return cls.execute(cls._construct_command(options))

@@ -14,11 +14,11 @@ Parameters::
 Subcommands::
 
     create                        Create an environment.
+    delete                        Delete an environment.
     info                          Show an environment.
     list                          List all environments.
-    update                        Update an environment.
     sc_params                     List all smart class parameters
-    delete                        Delete an environment.
+    update                        Update an environment.
 """
 
 from robottelo.cli.base import Base
@@ -29,4 +29,4 @@ class Environment(Base):
     Manipulates Foreman's environments.
     """
 
-    command_base = "environment"
+    command_base = 'environment'

@@ -15,8 +15,11 @@ Subcommands::
 
     create                        Register a system
     delete                        Unregister a system
+    errata                        Manage errata on your content hosts
     info                          Show a system
     list                          List systems
+    package                       Manage packages on your content hosts
+    package-group                 Manage package-groups on your content hosts
     tasks                         List async tasks for the system
     update                        Update system information
 """
@@ -29,7 +32,7 @@ class ContentHost(Base):
     Manipulates Katello engine's content-host command.
     """
 
-    command_base = "content-host"
+    command_base = 'content-host'
 
     @classmethod
     def tasks(cls, options=None):
@@ -37,7 +40,7 @@ class ContentHost(Base):
         Lists async tasks for a content host
         """
 
-        cls.command_sub = "tasks"
+        cls.command_sub = 'tasks'
 
         result = cls.execute(cls._construct_command(options), expect_csv=True)
 
