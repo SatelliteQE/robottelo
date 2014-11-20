@@ -9,7 +9,6 @@ from robottelo.api import client
 from robottelo.common import conf, helpers
 from robottelo import entities, orm
 from sys import version_info
-import ddt
 import mock
 import socket
 import unittest
@@ -267,7 +266,7 @@ class StringFieldTestCase(unittest.TestCase):
         Assert the length of generated string specified by ``len``.
 
         """
-        string = orm.StringField(len=(1,20)).get_value()
+        string = orm.StringField(len=(1, 20)).get_value()
         self.assertGreater(len(string), 0)
         self.assertLessEqual(len(string), 20)
 
@@ -361,44 +360,39 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
     def test_delete_200(self):
         """Test :meth:`robottelo.orm.EntityDeleteMixin.delete`.
 
-        Assert that ``EntityDeleteMixin.delete`` returns ``None`` if it
-        receives an HTTP 200 response.
+        Assert that ``delete`` returns a JSON-decoded response from the server
+        when an HTTP 200 status code is returned.
 
         """
-        # Create a mock server response object.
-        mock_response = mock.Mock()
-        mock_response.status_code = 200
-        mock_response.raise_for_status.return_value = None
-
-        # Make `client.delete` return the above object.
-        client.delete = mock.Mock(return_value=mock_response)
-
-        # See if EntityDeleteMixin.delete behaves correctly.
-        response = EntityWithDelete(id=self.entity_id).delete()
-        self.assertIsNone(response)
+        delete_return = mock.Mock()
+        delete_return.status_code = 200
+        delete_return.json.return_value = {'9501743': '14697417'}  # arbitrary
+        with mock.patch.object(client, 'delete') as client_delete:
+            client_delete.return_value = delete_return
+            self.assertEqual(
+                EntityWithDelete(id=self.entity_id).delete(),
+                delete_return.json.return_value
+            )
 
     def test_delete_202(self):
         """Test :meth:`robottelo.orm.EntityDeleteMixin.delete`.
 
-        Assert that ``EntityDeleteMixin.delete`` returns a task ID if it
-        receives an HTTP 202 response.
+        Assert that ``delete`` returns information about a foreman task when an
+        HTTP 202 status code is returned.
 
         """
-        # Create a mock server response object.
-        foreman_task_id = gen_integer()
-        mock_response = mock.Mock()
-        mock_response.status_code = 202
-        mock_response.raise_for_status.return_value = None
-        mock_response.json.return_value = {u'id': foreman_task_id}
+        delete_return = mock.Mock()
+        delete_return.status_code = 202
+        delete_return.json.return_value = {'id': gen_integer()}  # mock task ID
+        with mock.patch.object(client, 'delete') as client_delete:
+            client_delete.return_value = delete_return
+            with mock.patch.object(orm, '_poll_task') as poller:
+                poller.return_value = {'324171': '59601212'}  # arbitrary
+                self.assertEqual(
+                    EntityWithDelete(id=self.entity_id).delete(),
+                    poller.return_value
+                )
 
-        # Make `client.delete` return the above object.
-        client.delete = mock.Mock(return_value=mock_response)
-
-        # See if EntityDeleteMixin.delete behaves correctly.
-        response = EntityWithDelete(id=self.entity_id).delete(
-            synchronous=False
-        )
-        self.assertEqual(response, foreman_task_id)
 
     def test_read(self):
         """Test :meth:`robottelo.orm.EntityReadMixin.read`  and

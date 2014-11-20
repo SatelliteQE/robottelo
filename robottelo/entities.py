@@ -763,7 +763,7 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
             )
         return super(ForemanTask, self).path(which='self')
 
-    def poll(self, poll_rate=5, timeout=120, auth=None):
+    def poll(self, poll_rate=None, timeout=None, auth=None):
         """Return the status of a task or timeout.
 
         There are several API calls that trigger asynchronous tasks, such as
@@ -773,8 +773,10 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
         task completion, returns information about that task.
 
         :param int poll_rate: Delay between the end of one task check-up and
-            the start of the next check-up.
+            the start of the next check-up. Defaults to
+            :data:`robottelo.orm.TASK_POLL_RATE`.
         :param int timeout: Maximum number of seconds to wait until timing out.
+            Defaults to :data:`robottelo.orm.TASK_TIMEOUT`.
         :param tuple auth: A ``(username, password)`` tuple used when accessing
             the API. If ``None``, the credentials provided by
             :func:`robottelo.common.helpers.get_server_credentials` are used.
@@ -787,7 +789,8 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
 
         """
         # (protected-access) pylint:disable=W0212
-        # See docstring for orm._poll_task for an explanation.
+        # See docstring for orm._poll_task for an explanation of why a private
+        # method is called.
         return orm._poll_task(self.id, poll_rate, timeout, auth)
 
 
