@@ -21,18 +21,11 @@ from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-@ddt
-class RepositoryTestCase(APITestCase):
-    """Tests for ``katello/api/v2/repositories``."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        cls.org_id = entities.Organization().create()['id']
-        cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
-
-    @run_only_on('sat')
-    @data(
+# FIXME: Use unittest's subTest context manager instead of this and @ddt.data.
+# Only available in Python 3.2 and above.
+def _test_data():
+    """Return a tuple of dicts. The dicts can be used to make products."""
+    return (
         {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
         {'checksum_type': 'sha1'},
         {'checksum_type': 'sha256'},
@@ -45,6 +38,20 @@ class RepositoryTestCase(APITestCase):
         {'unprotected': True},
         {'url': FAKE_2_YUM_REPO},
     )
+
+
+@ddt
+class RepositoryTestCase(APITestCase):
+    """Tests for ``katello/api/v2/repositories``."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        cls.org_id = entities.Organization().create()['id']
+        cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
+
+    @run_only_on('sat')
+    @data(*_test_data())  # (star-args) pylint:disable=W0142
     def test_create_attrs(self, attrs):
         """@Test: Create a repository and provide valid attributes.
 
@@ -53,7 +60,7 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo_id = entities.Repository(
+        repo_id = entities.Repository(  # (star-args) pylint:disable=W0142
             product=self.prod_id,
             **attrs
         ).create()['id']
@@ -113,19 +120,7 @@ class RepositoryTestCase(APITestCase):
             self.assertEqual(attrs['name'], name)
 
     @run_only_on('sat')
-    @data(
-        {'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO},
-        {'name': gen_string('alphanumeric', randint(10, 50))},
-        {'name': gen_string('alpha', randint(10, 50))},
-        {'name': gen_string('cjk', randint(10, 50))},
-        {'name': gen_string('latin1', randint(10, 50))},
-        {'name': gen_string('numeric', randint(10, 50))},
-        {'name': gen_string('utf8', randint(10, 50))},
-        {'unprotected': True},
-        {'checksum_type': 'sha1'},
-        {'checksum_type': 'sha256'},
-        {'url': FAKE_2_YUM_REPO},
-    )
+    @data(*_test_data())  # (star-args) pylint:disable=W0142
     def test_delete(self, attrs):
         """@Test: Create a repository with attributes ``attrs`` and delete it.
 
@@ -134,7 +129,7 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo_id = entities.Repository(
+        repo_id = entities.Repository(  # (star-args) pylint:disable=W0142
             product=self.prod_id,
             **attrs
         ).create()['id']
@@ -227,18 +222,7 @@ class RepositoryUpdateTestCase(APITestCase):
         )
 
     @run_only_on('sat')
-    @data(
-        {'name': gen_string('alphanumeric', randint(10, 50))},
-        {'name': gen_string('alpha', randint(10, 50))},
-        {'name': gen_string('cjk', randint(10, 50))},
-        {'name': gen_string('latin1', randint(10, 50))},
-        {'name': gen_string('numeric', randint(10, 50))},
-        {'name': gen_string('utf8', randint(10, 50))},
-        {'checksum_type': 'sha1'},
-        {'checksum_type': 'sha256'},
-        {'unprotected': True},
-        {'url': FAKE_2_YUM_REPO},
-    )
+    @data(*_test_data())  # (star-args) pylint:disable=W0142
     def test_update(self, attrs):
         """@Test: Create a repository and update its attributes.
 
