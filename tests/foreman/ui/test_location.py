@@ -76,7 +76,7 @@ class Location(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name)
+            make_loc(session, name=loc_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -92,7 +92,7 @@ class Location(UITestCase):
 
         loc_name = ""
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name)
+            make_loc(session, name=loc_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -108,7 +108,7 @@ class Location(UITestCase):
 
         loc_name = "    "
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name)
+            make_loc(session, name=loc_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -128,7 +128,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_loc(session, name=loc_name)
+            make_loc(session, name=loc_name, edit=False)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)

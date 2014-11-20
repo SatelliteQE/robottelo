@@ -51,6 +51,7 @@ class Medium(Base):
         Searches existing medium from UI
         """
         Navigator(self.browser).go_to_installation_media()
+        self.wait_for_ajax()
         element = self.search_entity(name, locators["medium.medium_name"])
         return element
 
