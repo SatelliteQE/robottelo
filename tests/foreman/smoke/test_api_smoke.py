@@ -627,14 +627,20 @@ class TestAvailableURLs(TestCase):
         )
         response.raise_for_status()
         # See below for an explanation of this transformation.
-        all_paths = response.json()['links']
-        for category, path_pairs in all_paths.items():
-            all_paths[category] = tuple(path_pairs.values())
+        api_paths = response.json()['links']
+        for group, path_pairs in api_paths.items():
+            api_paths[group] = tuple(path_pairs.values())
 
-        for category, paths in all_paths.items():
-            self.assertIn(category, API_PATHS)
-            self.assertEqual(frozenset(paths), frozenset(API_PATHS[category]))
-            self.assertEqual(len(paths), len(API_PATHS[category]))
+        self.assertEqual(
+            frozenset(api_paths.keys()),
+            frozenset(API_PATHS.keys())
+        )
+        for group in api_paths.keys():
+            self.assertEqual(
+                frozenset(api_paths[group]),
+                frozenset(API_PATHS[group])
+            )
+            self.assertEqual(len(api_paths[group]), len(API_PATHS[group]))
 
         # (line-too-long) pylint:disable=C0301
         # response.json()['links'] is a dict like this:
