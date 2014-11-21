@@ -5,7 +5,7 @@ from nose.plugins.attrib import attr
 from robottelo.api import client, utils
 from robottelo.api.utils import status_code_error
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import conf
 from robottelo.common import helpers
@@ -25,8 +25,13 @@ API_PATHS = {
         u'/katello/api/activation_keys/:id',
         u'/katello/api/activation_keys/:id',
         u'/katello/api/activation_keys/:id',
+        u'/katello/api/activation_keys/:id/add_subscriptions',
+        u'/katello/api/activation_keys/:id/content_override',
+        u'/katello/api/activation_keys/:id/copy',
         u'/katello/api/activation_keys/:id/host_collections/available',
+        u'/katello/api/activation_keys/:id/product_content',
         u'/katello/api/activation_keys/:id/releases',
+        u'/katello/api/activation_keys/:id/remove_subscriptions',
     ),
     u'api': (),
     u'architectures': (
@@ -187,6 +192,14 @@ API_PATHS = {
         u'/katello/api/repositories/:repository_id/distributions',
         u'/katello/api/repositories/:repository_id/distributions/:id',
     ),
+    u'docker_images': (
+        u'/katello/api/docker_images',
+        u'/katello/api/docker_images/:id',
+    ),
+    u'docker_tags': (
+        u'/katello/api/docker_tags',
+        u'/katello/api/docker_tags/:id',
+    ),
     u'domains': (
         u'/api/domains',
         u'/api/domains',
@@ -204,6 +217,7 @@ API_PATHS = {
     ),
     u'errata': (
         u'/katello/api/errata',
+        u'/katello/api/errata/compare',
         u'/katello/api/errata/:id',
     ),
     u'external_usergroups': (
@@ -311,6 +325,10 @@ API_PATHS = {
         u'/api/locations/:id',
         u'/api/locations/:id',
         u'/api/locations/:id',
+    ),
+    u'mail_notifications': (
+        u'/api/mail_notifications',
+        u'/api/mail_notifications/:id',
     ),
     u'media': (
         u'/api/media',
@@ -629,7 +647,17 @@ class TestAvailableURLs(TestCase):
         # See below for an explanation of this transformation.
         api_paths = response.json()['links']
         for group, path_pairs in api_paths.items():
-            api_paths[group] = tuple(path_pairs.values())
+            api_paths[group] = path_pairs.values()
+
+        if bz_bug_is_open(1166875):
+            # The server returns incorrect paths.
+            api_paths['docker_images'].append(u'/katello/api/docker_images')
+            api_paths['docker_images'].remove(u'/katello/api/compare')
+            api_paths['docker_tags'].append(u'/katello/api/docker_tags')
+            api_paths['docker_tags'].remove(u'/katello/api/compare')
+            api_paths['errata'].append(u'/katello/api/errata')
+            api_paths['errata'].append(u'/katello/api/errata/compare')
+            api_paths['errata'].remove(u'/katello/api/compare')
 
         self.assertEqual(
             frozenset(api_paths.keys()),
@@ -655,12 +683,12 @@ class TestAvailableURLs(TestCase):
         # We don't care about prose descriptions. It doesn't matter if those
         # change. Transform it before running any assertions:
         #
-        #     {u'content_views': (
+        #     {u'content_views': [
         #          u'/katello/api/content_views/:id',
         #          u'/katello/api/content_views/:id/available_puppet_modules',
         #          u'/katello/api/organizations/:organization_id/content_views',
         #          u'/katello/api/organizations/:organization_id/content_views',
-        #     ), …}
+        #     ], …}
 
 
 class TestSmoke(TestCase):
