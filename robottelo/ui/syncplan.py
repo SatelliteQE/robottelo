@@ -31,7 +31,7 @@ class Syncplan(Base):
 
     def create(self, name, description=None, startdate=None,
                sync_interval=None, start_hour=None,
-               start_minute=None):
+               start_minute=None, submit_validate=True):
         """
         Creates new Sync Plans from UI
         """
@@ -50,8 +50,8 @@ class Syncplan(Base):
         if startdate:
             self.text_field_update(locators["sp.start_date"], startdate)
             self.wait_for_ajax()
-        self.wait_until_element(common_locators["create"]).click()
-        self.wait_for_ajax()
+        self.submit_and_validate(common_locators["create"],
+                                 validation=submit_validate)
 
     def update(self, name, new_name=None, new_desc=None,
                new_sync_interval=None, add_products=None,
