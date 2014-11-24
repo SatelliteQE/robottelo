@@ -20,6 +20,10 @@ class UINoSuchElementError(Exception):
     """
 
 
+class UIPageSubmitionFailed(Exception):
+    """Indicates that UI Page submition Failed."""
+
+
 class Base(object):
     """
     Base class for UI
@@ -362,3 +366,17 @@ class Base(object):
         selected = self.find_element((strategy,
                                       value % context)).is_selected()
         return selected
+
+    def submit_and_validate(self, locator, validation=True):
+        """
+        Submit the page and validate.
+
+        :param str locator: The locator used to submit the page.
+        :param boolean validation: Helps enable or disable validation.
+            Needs to be set to False for the negative tests.
+
+        """
+        self.wait_until_element(locator).click()
+        self.wait_for_ajax()
+        if self.wait_until_element(locator) and validation:
+            raise UIPageSubmitionFailed("Page submission failed.")

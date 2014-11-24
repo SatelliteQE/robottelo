@@ -80,7 +80,6 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan is created
 
         """
-
         with Session(self.browser) as session:
             make_syncplan(session, org=self.org_name,
                           name=test_data['name'],
@@ -88,33 +87,9 @@ class Syncplan(UITestCase):
                           sync_interval=test_data['interval'])
             self.assertIsNotNone(self.syncplan.search(test_data['name']))
 
-    @attr('ui', 'syncplan', 'implemented')
-    @data(*generate_strings_list())
-    def test_positive_create_2(self, name):
-        """@Test: Create Sync Plan with an existing name
-
-        @Feature: Content Sync Plan - Positive Create
-
-        @Assert: Sync Plan cannot be created with existing name
-
-        @BZ: 1087425
-
-        """
-
-        description = "with same name"
-        # TODO: Due to bug 1087425 using common_haserror instead of name_error
-        locator = common_locators["common_haserror"]
-        with Session(self.browser) as session:
-            make_syncplan(session, org=self.org_name, name=name)
-            self.assertIsNotNone(self.syncplan.search(name))
-            make_syncplan(session, org=self.org_name, name=name,
-                          description=description)
-            error = self.syncplan.wait_until_element(locator)
-            self.assertIsNotNone(error)
-
     @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
-    def test_positive_create_3(self):
+    def test_positive_create_2(self):
         """@Test: Create Sync plan with specified start time
 
         @Feature: Content Sync Plan - Positive Create
@@ -124,7 +99,6 @@ class Syncplan(UITestCase):
         @BZ: 1131661
 
         """
-
         locator = locators["sp.fetch_startdate"]
         plan_name = gen_string("alpha", 8)
         description = "sync plan create with start date"
@@ -153,7 +127,7 @@ class Syncplan(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1131661)
     @attr('ui', 'syncplan', 'implemented')
-    def test_positive_create_4(self):
+    def test_positive_create_3(self):
         """@Test: Create Sync plan with specified start date
 
         @Feature: Content Sync Plan - Positive Create
@@ -163,7 +137,6 @@ class Syncplan(UITestCase):
         @BZ: 1131661
 
         """
-
         locator = locators["sp.fetch_startdate"]
         plan_name = gen_string("alpha", 8)
         description = "sync plan create with start date"
@@ -191,10 +164,10 @@ class Syncplan(UITestCase):
 
         @Assert: Sync Plan is not created
         """
-
         locator = common_locators["common_invalid"]
         with Session(self.browser) as session:
-            make_syncplan(session, org=self.org_name, name=name)
+            make_syncplan(session, org=self.org_name, name=name,
+                          submit_validate=False)
             invalid = self.syncplan.wait_until_element(locator)
             self.assertIsNotNone(invalid)
 
@@ -211,12 +184,34 @@ class Syncplan(UITestCase):
         @BZ: 1087425
 
         """
-
         locator = common_locators["common_haserror"]
         description = "more than 255 chars"
         with Session(self.browser) as session:
             make_syncplan(session, org=self.org_name, name=name,
-                          description=description)
+                          description=description, submit_validate=False)
+            error = self.syncplan.wait_until_element(locator)
+            self.assertIsNotNone(error)
+
+    @attr('ui', 'syncplan', 'implemented')
+    @data(*generate_strings_list())
+    def test_negative_create_3(self, name):
+        """@Test: Create Sync Plan with an existing name
+
+        @Feature: Content Sync Plan - Positive Create
+
+        @Assert: Sync Plan cannot be created with existing name
+
+        @BZ: 1087425
+
+        """
+        description = "with same name"
+        # TODO: Due to bug 1087425 using common_haserror instead of name_error
+        locator = common_locators["common_haserror"]
+        with Session(self.browser) as session:
+            make_syncplan(session, org=self.org_name, name=name)
+            self.assertIsNotNone(self.syncplan.search(name))
+            make_syncplan(session, org=self.org_name, name=name,
+                          description=description, submit_validate=False)
             error = self.syncplan.wait_until_element(locator)
             self.assertIsNotNone(error)
 
@@ -230,7 +225,6 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan's name is updated
 
         """
-
         new_plan_name = gen_string("alpha", 8)
         entities.Organization(id=self.org_id).sync_plan(
             name=plan_name,
@@ -281,7 +275,6 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan's interval is updated
 
         """
-
         locator = locators["sp.fetch_interval"]
         entities.Organization(id=self.org_id).sync_plan(
             name=test_data['name'],
@@ -309,7 +302,6 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan has the associated product
 
         """
-
         strategy, value = locators["sp.prd_select"]
         product_name = entities.Product(
             organization=self.org_id
@@ -342,7 +334,6 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan does not have the associated product
 
         """
-
         strategy, value = locators["sp.prd_select"]
         product_name = entities.Product(
             organization=self.org_id
