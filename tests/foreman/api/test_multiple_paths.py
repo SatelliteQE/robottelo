@@ -384,11 +384,7 @@ class EntityIdTestCase(APITestCase):
             entity = entity_cls(id=entity_cls().create_json()['id'])
         except HTTPError as err:
             self.fail(err)
-        response = client.delete(
-            entity.path(),
-            auth=get_server_credentials(),
-            verify=False,
-        )
+        response = entity.delete_raw()
         self.assertIn(
             response.status_code,
             (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)

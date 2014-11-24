@@ -19,29 +19,36 @@ import urlparse
 
 _SENTINEL = object()
 
+# Used by the _poll_task function.
+TASK_POLL_RATE = 5
+TASK_TIMEOUT = 180
+
 
 class TaskTimeout(Exception):
     """Indicates that a task did not finish before the timout limit."""
 
 
-def _poll_task(task_id, poll_rate=5, timeout=180, auth=None):
+def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
     """Implement :meth:`robottelo.entities.ForemanTask.poll`.
 
-    :meth:`robottelo.entities.ForemanTask.poll` calls this function, as does
-    :class:`robottelo.orm.EntityDeleteMixin`. Other mixins which have yet to be
-    implemented, such as ``EntityCreateMixin``, may also call this function.
+    See :meth:`robottelo.entities.ForemanTask.poll` for a full description of
+    how this method acts. Other methods may also call this method, such as
+    :meth:`robottelo.orm.EntityDeleteMixin.delete`.
 
     This function has been placed in this module to keep the import tree sane.
-    This function could also be placed in ``robottelo.api.utils``. However,
+    This function could also be placed in :mod:`robottelo.api.utils`. However,
     doing so precludes :mod:`robottelo.api.utils` from importing
     :mod:`robottelo.entities`, which may be desirable in the future.
 
     This function is private because only entity mixins should use this.
-    ``ForemanTask`` is, for obvious reasons, an exception.
-
-    :raises robottelo.orm.TaskTimeout: when ``timeout`` expires
+    :class:`robottelo.entities.ForemanTask` is, for obvious reasons, an
+    exception.
 
     """
+    if poll_rate is None:
+        poll_rate = TASK_POLL_RATE
+    if timeout is None:
+        timeout = TASK_TIMEOUT
     if auth is None:
         auth = helpers.get_server_credentials()
 
@@ -404,25 +411,40 @@ class Entity(object):
 
 class EntityDeleteMixin(object):
     """A mixin that adds the ability to delete an entity."""
-    # FIXME: Define `delete_raw`. Call from `delete`. Drop pylint directive.
-    #
-    # (too-few-public-methods) pylint:disable=R0903
-    # It's OK that this class has only one public method. It's a targeted
-    # mixin, not a standalone class.
+
+    def delete_raw(self, auth=None):
+        """Delete the current entity.
+
+        Send an HTTP DELETE request to :meth:`Entity.path`. Return the
+        response. Do not check the response for any errors, such as an HTTP 4XX
+        or 5XX status code.
+
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :return: A ``requests.response`` object.
+
+        """
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        return client.delete(self.path(which='self'), auth=auth, verify=False)
 
     def delete(self, auth=None, synchronous=True):
         """Delete the current entity.
 
-        Send an HTTP DELETE request to ``self.path(which='self')``.
+        Call :meth:`delete_raw` and check for an HTTP 4XX or 5XX response.
+        Return either the JSON-decoded response or information about a
+        completed foreman task.
 
         :param tuple auth: A ``(username, password)`` tuple used when accessing
             the API. If ``None``, the credentials provided by
             :func:`robottelo.common.helpers.get_server_credentials` are used.
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
-            ``True``. Immediately return a task ID otherwise.
-        :return: The ID of a :class:`robottelo.entities.ForemanTask` if an HTTP
-            202 response was received. ``None`` otherwise.
+            ``True``. Immediately return a response otherwise.
+        :returns: Either the JSON-decoded response or information about a
+            foreman task.
+        :rtype: dict
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If an HTTP 202 response is received and the
@@ -431,23 +453,11 @@ class EntityDeleteMixin(object):
             ``synchronous is True`` and the task times out.
 
         """
-        # Delete this entity and check the status code of the response.
-        if auth is None:
-            auth = helpers.get_server_credentials()
-        response = client.delete(
-            self.path(which='self'),
-            auth=auth,
-            verify=False,
-        )
+        response = self.delete_raw(auth)
         response.raise_for_status()
-
-        # Return either a ForemanTask ID or None.
-        if response.status_code is httplib.ACCEPTED:
-            task_id = response.json()['id']
-            if synchronous is True:
-                _poll_task(task_id)
-            return task_id
-        return None
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return _poll_task(response.json()['id'], auth=auth)
+        return response.json()
 
 
 class EntityReadMixin(object):
