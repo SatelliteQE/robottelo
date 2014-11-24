@@ -131,7 +131,7 @@ class TestSmoke(UITestCase):
         # Once #1152 is fixed; need to pass user_name and password to Session
         with Session(self.browser) as session:
             # Create New organization
-            make_org(session, org_name=org_name)
+            make_org(session, org_name=org_name, edit=False)
             self.assertIsNotNone(self.org.search(org_name))
 
             # Create New Lifecycle environment1
@@ -245,7 +245,7 @@ class TestSmoke(UITestCase):
         upload_file(cloned_manifest_path, remote_file=cloned_manifest_path)
         with Session(self.browser) as session:
             # Create New organization
-            make_org(session, org_name=org_name)
+            make_org(session, org_name=org_name, edit=False)
             self.assertIsNotNone(self.org.search(org_name))
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
