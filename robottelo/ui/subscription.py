@@ -30,7 +30,7 @@ class Subscriptions(Base):
         browse_element.send_keys(path)
         self.wait_until_element(locators["subs.upload"]).click()
         # Waits till the below locator is visible or until 120 seconds.
-        self.wait_until_element(locators["subs.manifest_exists"], 120)
+        self.wait_until_element(locators["subs.manifest_exists"], 180)
 
     def delete(self):
         """Uploads Manifest/subscriptions via UI."""

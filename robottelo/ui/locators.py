@@ -1207,32 +1207,30 @@ locators = {
     "sp.start_date": (By.ID, "startDate"),
     "sp.start_hour": (By.XPATH, "//input[@ng-model='hours']"),
     "sp.start_minutes": (By.XPATH, "//input[@ng-model='minutes']"),
-    "sp.remove": (
-        By.XPATH, ("//script[contains(@alch-modal,'removeSyncPlan')]"
-                   "/../button[contains(@ng-click,'openModal')]")),
+    "sp.remove": (By.XPATH, "//button[contains(@ng-click,'openModal')]"),
     "sp.name_edit": (
         By.XPATH,
-        ("//form[@alch-edit-text='syncPlan.name']"
+        ("//form[@bst-edit-text='syncPlan.name']"
          "//i[contains(@class,'icon-edit')]")),
     "sp.name_update": (
         By.XPATH,
-        ("//form[@alch-edit-text='syncPlan.name']"
+        ("//form[@bst-edit-text='syncPlan.name']"
          "/div/input")),
     "sp.desc_edit": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='syncPlan.description']"
+        ("//form[@bst-edit-textarea='syncPlan.description']"
          "//i[contains(@class,'icon-edit')]")),
     "sp.desc_update": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='syncPlan.description']"
+        ("//form[@bst-edit-textarea='syncPlan.description']"
          "/div/input")),
     "sp.sync_interval_edit": (
         By.XPATH,
-        ("//form[@alch-edit-select='syncPlan.interval']"
+        ("//form[@bst-edit-select='syncPlan.interval']"
          "//i[contains(@class,'icon-edit')]")),
     "sp.sync_interval_update": (
         By.XPATH,
-        ("//form[@alch-edit-select='syncPlan.interval']"
+        ("//form[@bst-edit-select='syncPlan.interval']"
          "/div/select")),
     "sp.add_selected": (
         By.XPATH, "//button[contains(@ng-click, 'addProducts')]"),
@@ -1240,8 +1238,8 @@ locators = {
         By.XPATH, "//button[contains(@ng-click, 'removeProducts')]"),
     "sp.fetch_interval": (
         By.XPATH,
-        ("//form[@alch-edit-select='syncPlan.interval']"
-         "/div[@class='alch-edit']/div/"
+        ("//form[@bst-edit-select='syncPlan.interval']"
+         "/div[@class='bst-edit']/div/"
          "span[contains(@class,'editable-value')]")),
     "sp.fetch_startdate": (
         By.XPATH,
