@@ -1844,7 +1844,7 @@ class Repository(
     """A representation of a Repository entity."""
     checksum_type = orm.StringField(choices=('sha1', 'sha256'))
     content_type = orm.StringField(
-        choices=('puppet', 'yum', 'file'),
+        choices=('puppet', 'yum', 'file', 'docker'),
         default='yum',
         required=True,
     )
