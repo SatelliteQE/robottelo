@@ -593,7 +593,7 @@ class DoubleCheckTestCase(APITestCase):
             self.fail(err)
         entity.delete()
 
-        if entity_cls is entities.Repository and bz_bug_is_open(1163494):
+        if entity_cls is entities.Repository and bz_bug_is_open(1166365):
             return
         self.assertEqual(httplib.NOT_FOUND, entity.read_raw().status_code)
 
