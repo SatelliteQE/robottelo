@@ -16,7 +16,7 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository
@@ -157,6 +157,7 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1167837)
     @attr('ui', 'repo', 'implemented', 'docker')
     def test_create_repo_4(self):
         """@Test: Create and sync a Docker-based repository
@@ -181,7 +182,7 @@ class Repos(UITestCase):
             # Synchronize it
             self.navigator.go_to_sync_status()
             synced = self.sync.sync_custom_repos(product_name, [repo_name])
-            self.assertIsNotNone(synced)
+            self.assertTrue(synced)
 
     @run_only_on('sat')
     @attr('ui', 'repo', 'implemented')
@@ -531,8 +532,13 @@ class Repos(UITestCase):
             self.assertTrue(self.prd_sync_is_ok(repository_name))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1167837)
     @attr('ui', 'repo', 'implemented')
-    @data(*generate_strings_list())
+    @data(gen_string('alpha', 8).lower(),
+          gen_string('numeric', 8),
+          gen_string('alphanumeric', 8).lower(),
+          gen_string('html', 8),
+          gen_string('utf8', 8))
     def test_syncnow_custom_repos_3(self, repository_name):
         """@Test: Create Custom docker repos and sync it via the repos page.
 
