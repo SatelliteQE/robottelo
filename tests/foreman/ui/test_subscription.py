@@ -7,7 +7,7 @@ from robottelo.common import manifests
 from robottelo.common.decorators import skipRemote
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -65,3 +65,29 @@ class SubscriptionTestCase(UITestCase):
             self.subscriptions.delete()
             success_ele = self.subscriptions.wait_until_element(alert_loc)
             self.assertTrue(success_ele)
+
+    @skipRemote
+    @attr('ui', 'subs', 'implemented')
+    def test_assert_delete_button(self):
+        """@Test: Upload and delete a manifest
+
+        @Feature: Manifest/Subscription - Positive Delete
+
+        @Assert: Manifest is Deleted. Delete button is asserted . Subscriptions
+        is asserted
+
+        """
+        alert_loc = common_locators['alert.success']
+        del_mf = locators['subs.delete_manifest']
+        manifest_path = manifests.clone()
+        # upload_file function should take care of uploading to sauce labs.
+        upload_file(manifest_path, remote_file=manifest_path)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_red_hat_subscriptions()
+            self.subscriptions.upload(manifest_path)
+            self.subscriptions.delete()
+            self.assertTrue(self.subscriptions.wait_until_element(alert_loc))
+            self.assertTrue(self.subscriptions.wait_until_element(del_mf))
+            self.assertIsNone(
+                self.subscriptions.search("Red Hat Employee Subscription"))

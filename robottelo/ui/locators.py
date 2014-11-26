@@ -1585,6 +1585,9 @@ locators = {
                    "//div/input")),
     "subs.manifest_exists": (
         By.XPATH, "//a[contains(@href,'distributors')]"),
+    "subs.subscription_search": (
+        By.XPATH,
+        "//input[@class='form-control ng-scope ng-pristine ng-valid']"),
 
     # Settings
     "settings.param": (

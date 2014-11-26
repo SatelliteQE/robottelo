@@ -4,6 +4,7 @@ Implements Subscriptions/Manifest handling for the UI
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators
+from robottelo.common.helpers import escape_search
 
 
 class Subscriptions(Base):
@@ -47,3 +48,16 @@ class Subscriptions(Base):
         self.wait_for_ajax()
         self.wait_until_element(locators["subs.refresh_manifest"]).click()
         self.wait_for_ajax()
+
+    def search(self, element_name):
+        """Searches existing Subscription from UI"""
+
+        strategy = locators["subs.subscription_search"][0]
+        value = locators["subs.subscription_search"][1]
+        searchbox = self.wait_until_element(common_locators["kt_search"])
+        if searchbox:
+            searchbox.clear()
+            searchbox.send_keys(escape_search(element_name))
+            self.find_element(common_locators["kt_search_button"]).click()
+            self.wait_for_ajax()
+            return self.wait_until_element((strategy, value))
