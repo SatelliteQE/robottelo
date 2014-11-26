@@ -1028,7 +1028,7 @@ locators = {
     "repo.discover_url": (By.XPATH, "//input[@type='url']"),
     "repo.discover_button": (By.XPATH, "//button[@type='submit']"),
     "repo.discovered_url_checkbox": (
-        By.XPATH, ("//table[@alch-table='discoveryTable']"
+        By.XPATH, ("//table[@bst-table='discoveryTable']"
                    "//td[contains(., '%s')]"
                    "/../td/input[@type='checkbox']")),
     "repo.cancel_discover": (
@@ -1050,15 +1050,15 @@ locators = {
     "repo.new_discover_name": (
         By.XPATH, "//input[@ng-model='repo.name']"),
     "repo.url_edit": (
-        By.XPATH, ("//form[@alch-edit-text='repository.url']"
+        By.XPATH, ("//form[@bst-edit-text='repository.url']"
                    "//i[contains(@class,'icon-edit')]")),
     "repo.url_update": (
-        By.XPATH, "//form[@alch-edit-text='repository.url']/div/input"),
+        By.XPATH, "//form[@bst-edit-text='repository.url']/div/input"),
     "repo.via_http_edit": (
-        By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
+        By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
                    "//i[contains(@class,'icon-edit')]")),
     "repo.via_http_toggle": (
-        By.XPATH, ("//form[@alch-edit-checkbox='repository.unprotected']"
+        By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
                    "/div/input")),
     "repo.gpg_key_edit": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
@@ -1074,12 +1074,12 @@ locators = {
     "repo.checksum_update": (
         By.XPATH, ("//form[@selector='repository.checksum_type']/div/select")),
     "repo.fetch_url": (
-        By.XPATH, ("//form[@alch-edit-text='repository.url']"
-                   "/div[@class='alch-edit']"
+        By.XPATH, ("//form[@bst-edit-text='repository.url']"
+                   "/div[@class='bst-edit']"
                    "/div/span[contains(@class,'editable-value')]")),
     "repo.fetch_gpgkey": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
-                   "/div[@class='alch-edit']/div/span")),
+                   "/div[@class='bst-edit']/div/span")),
     "repo.fetch_checksum": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"
                    "/div/div/span[contains(@class,'value')]")),
