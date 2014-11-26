@@ -69,19 +69,16 @@ class SubscriptionTestCase(UITestCase):
     @skipRemote
     @attr('ui', 'subs', 'implemented')
     def test_assert_delete_button(self):
-        """@Test: Upload a manifest and
-                 delete the manifest. Check the delete button is there
+        """@Test: Upload and delete a manifest
 
         @Feature: Manifest/Subscription - Positive Delete
 
-        @Assert: Manifest is Deleted . Delete button is asserted .
-                 Subscriptions is asserted
+        @Assert: Manifest is Deleted. Delete button is asserted . Subscriptions
+        is asserted
 
         """
-
         alert_loc = common_locators['alert.success']
         del_mf = locators['subs.delete_manifest']
-        subscription_name = "Red Hat Employee Subscription"
         manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
         upload_file(manifest_path, remote_file=manifest_path)
@@ -90,8 +87,7 @@ class SubscriptionTestCase(UITestCase):
             session.nav.go_to_red_hat_subscriptions()
             self.subscriptions.upload(manifest_path)
             self.subscriptions.delete()
-            success_ele = self.subscriptions.wait_until_element(alert_loc)
-            self.assertTrue(success_ele)
-            success_del = self.subscriptions.wait_until_element(del_mf)
-            self.assertTrue(success_del)
-            self.assertIsNone(self.subscriptions.search(subscription_name))
+            self.assertTrue(self.subscriptions.wait_until_element(alert_loc))
+            self.assertTrue(self.subscriptions.wait_until_element(del_mf))
+            self.assertIsNone(
+                self.subscriptions.search("Red Hat Employee Subscription"))
