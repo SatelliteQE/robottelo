@@ -971,15 +971,15 @@ locators = {
                                       "/div/select")),
     "prd.gpg_key": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
                                "//div/span")),
-    "prd.name_edit": (By.XPATH, ("//form[@alch-edit-text='product.name']"
+    "prd.name_edit": (By.XPATH, ("//form[@bst-edit-text='product.name']"
                                  "//i[contains(@class,'icon-edit')]")),
-    "prd.name_update": (By.XPATH, ("//form[@alch-edit-text='product.name']"
+    "prd.name_update": (By.XPATH, ("//form[@bst-edit-text='product.name']"
                                    "/div/input")),
     "prd.desc_edit": (
-        By.XPATH, ("//form[@alch-edit-textarea='product.description']"
+        By.XPATH, ("//form[@bst-edit-textarea='product.description']"
                    "//i[contains(@class,'icon-edit')]")),
     "prd.desc_update": (
-        By.XPATH, ("//form[@alch-edit-textarea='product.description']"
+        By.XPATH, ("//form[@bst-edit-textarea='product.description']"
                    "/div/textarea")),
     "prd.sync_plan_edit": (
         By.XPATH, ("//form[@selector='product.sync_plan_id']"
@@ -1009,7 +1009,7 @@ locators = {
     "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
     "repo.remove": (
         By.XPATH,
-        ("//script[contains(@alch-modal,'removeRepository(repository)')]"
+        ("//script[contains(@bst-modal,'removeRepository(repository)')]"
          "/../button[contains(@ng-show, 'repository')]")),
     "repo.sync_now": (
         By.XPATH, "//button[contains(@ng-click, 'syncSelectedRepositories')]"),
@@ -1115,40 +1115,40 @@ locators = {
         By.XPATH,
         "//input[@ng-model='activationKey.selected']"),
     "ak.edit_name": (
-        By.XPATH, "//form[@alch-edit-text='activationKey.name']//div/span/i"),
+        By.XPATH, "//form[@bst-edit-text='activationKey.name']//div/span/i"),
     "ak.edit_name_text": (
         By.XPATH,
-        "//form[@alch-edit-text='activationKey.name']/div/input"),
+        "//form[@bst-edit-text='activationKey.name']/div/input"),
     "ak.save_name": (
         By.XPATH,
-        ("//form[@alch-edit-text='activationKey.name']"
+        ("//form[@bst-edit-text='activationKey.name']"
          "//button[@ng-click='save()']")),
     "ak.edit_description": (
         By.XPATH,
-        "//form[@alch-edit-textarea='activationKey.description']//div/span/i"),
+        "//form[@bst-edit-textarea='activationKey.description']//div/span/i"),
     "ak.edit_description_text": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='activationKey.description']"
+        ("//form[@bst-edit-textarea='activationKey.description']"
          "/div/textarea")),
     "ak.save_description": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='activationKey.description']"
+        ("//form[@bst-edit-textarea='activationKey.description']"
          "//button[@ng-click='save()']")),
     "ak.edit_limit": (
         By.XPATH,
-        ("//div[@alch-edit-custom='activationKey.max_content_hosts']"
+        ("//div[@bst-edit-custom='activationKey.max_content_hosts']"
          "//div/span/i")),
     "ak.save_limit": (
         By.XPATH,
-        ("//div[@alch-edit-custom='activationKey.max_content_hosts']"
+        ("//div[@bst-edit-custom='activationKey.max_content_hosts']"
          "//button[@ng-click='save()']")),
     "ak.edit_content_view": (
         By.XPATH,
-        ("//form[@alch-edit-select='activationKey.content_view.name']"
+        ("//form[@bst-edit-select='activationKey.content_view.name']"
          "//div//span/i")),
     "ak.edit_content_view_select": (
         By.XPATH,
-        ("//form[@alch-edit-select='activationKey.content_view.name']"
+        ("//form[@bst-edit-select='activationKey.content_view.name']"
          "/div/select")),
     "ak.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
@@ -1157,7 +1157,7 @@ locators = {
                    "//button[@ng-click='cancel()']")),
     "ak.save_cv": (
         By.XPATH,
-        ("//form[@alch-edit-select='activationKey.content_view.name']"
+        ("//form[@bst-edit-select='activationKey.content_view.name']"
          "//button[@ng-click='save()']")),
     "ak.select_subscription": (
         By.XPATH,
@@ -1168,8 +1168,8 @@ locators = {
         By.XPATH, "//button[@ng-click='addSelected()']"),
     "ak.selected_cv": (
         By.XPATH,
-        ("//form[@alch-edit-select='activationKey.content_view.name']"
-         "//div[@class='alch-edit']/div/span[2]")),
+        ("//form[@bst-edit-select='activationKey.content_view.name']"
+         "//div[@class='bst-edit']/div/span[2]")),
     "ak.content_hosts": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'content-hosts')]"),
@@ -1284,25 +1284,25 @@ locators = {
          "/following::li/label[@ng-click='initiateCreateEnvironment()']/i")),
     "content_env.edit_name": (
         By.XPATH,
-        "//form[@alch-edit-text='workingOn.environment.name']//div/span/i"),
+        "//form[@bst-edit-text='workingOn.environment.name']//div/span/i"),
     "content_env.edit_name_text": (
         By.XPATH,
-        "//form[@alch-edit-text='workingOn.environment.name']/div/input"),
+        "//form[@bst-edit-text='workingOn.environment.name']/div/input"),
     "content_env.save_name": (
         By.XPATH,
-        ("//form[@alch-edit-text='workingOn.environment.name']"
+        ("//form[@bst-edit-text='workingOn.environment.name']"
          "//button[@ng-click='save()']")),
     "content_env.edit_description": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+        ("//form[@bst-edit-textarea='workingOn.environment.description']"
          "//div/span/i")),
     "content_env.edit_description_text": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+        ("//form[@bst-edit-textarea='workingOn.environment.description']"
          "/div/textarea")),
     "content_env.save_description": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='workingOn.environment.description']"
+        ("//form[@bst-edit-textarea='workingOn.environment.description']"
          "//button[@ng-click='save()']")),
 
     # GPG Key
@@ -1318,13 +1318,13 @@ locators = {
     "gpgkey.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
     "gpgkey.edit_name": (
-        By.XPATH, "//form[@alch-edit-text='gpgKey.name']//div/span/i"),
+        By.XPATH, "//form[@bst-edit-text='gpgKey.name']//div/span/i"),
     "gpgkey.edit_name_text": (
         By.XPATH,
-        "//form[@alch-edit-text='gpgKey.name']/div/input"),
+        "//form[@bst-edit-text='gpgKey.name']/div/input"),
     "gpgkey.save_name": (
         By.XPATH,
-        ("//form[@alch-edit-text='gpgKey.name']"
+        ("//form[@bst-edit-text='gpgKey.name']"
          "//button[@ng-click='save()']")),
     "gpgkey.upload_button": (
         By.XPATH, "//button[@ng-click='progress.uploading = true']"),
@@ -1342,24 +1342,24 @@ locators = {
         "//tr[@row-select='contentView']"
         "/td[2]/a[contains(., '%s')]"),
     "contentviews.edit_name": (
-        By.XPATH, "//form[@alch-edit-text='contentView.name']//div/span/i"),
+        By.XPATH, "//form[@bst-edit-text='contentView.name']//div/span/i"),
     "contentviews.edit_name_text": (
         By.XPATH,
-        "//form[@alch-edit-text='contentView.name']/div/input"),
+        "//form[@bst-edit-text='contentView.name']/div/input"),
     "contentviews.save_name": (
         By.XPATH,
-        ("//form[@alch-edit-text='contentView.name']"
+        ("//form[@bst-edit-text='contentView.name']"
          "//button[@ng-click='save()']")),
     "contentviews.edit_description": (
         By.XPATH,
-        "//form[@alch-edit-textarea='contentView.description']//div/span/i"),
+        "//form[@bst-edit-textarea='contentView.description']//div/span/i"),
     "contentviews.edit_description_text": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='contentView.description']"
+        ("//form[@bst-edit-textarea='contentView.description']"
          "/div/textarea")),
     "contentviews.save_description": (
         By.XPATH,
-        ("//form[@alch-edit-textarea='contentView.description']"
+        ("//form[@bst-edit-textarea='contentView.description']"
          "//button[@ng-click='save()']")),
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
@@ -1403,7 +1403,7 @@ locators = {
         "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
     "contentviews.select_repo": (
         By.XPATH,
-        ("//div[@alch-table='repositoriesTable']"
+        ("//div[@bst-table='repositoriesTable']"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
@@ -1415,7 +1415,7 @@ locators = {
         By.XPATH, "//input[@ng-model='repositorySearch']"),
     "contentviews.promote_button": (
         By.XPATH,
-        ("//table[@alch-table='table']//tr/td[contains(., '%s')]"
+        ("//table[@bst-table='table']//tr/td[contains(., '%s')]"
          "/following-sibling::td[@class='col-sm-2']/button")),
     "contentviews.env_to_promote": (
         By.XPATH,
@@ -1440,7 +1440,7 @@ locators = {
         By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]"),
     "contentviews.select_cv": (
         By.XPATH,
-        ("//div[@alch-table='detailsTable']//tr[@row-select='contentView']"
+        ("//div[@bst-table='detailsTable']//tr[@row-select='contentView']"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
@@ -1537,33 +1537,33 @@ locators = {
         By.XPATH, "//a[contains(@href,'system-groups') and contains(.,'%s')]"),
 
     "system-groups.update_name": (
-        By.XPATH, "//form[@alch-edit-text='group.name']//div/span/i"),
+        By.XPATH, "//form[@bst-edit-text='group.name']//div/span/i"),
     "system-groups.update_name_field": (
-        By.XPATH, "//form[@alch-edit-text='group.name']/div/input"),
+        By.XPATH, "//form[@bst-edit-text='group.name']/div/input"),
     "system-groups.update_name_save": (
-        By.XPATH, "//form[@alch-edit-text='group.name']"
+        By.XPATH, "//form[@bst-edit-text='group.name']"
                   "//button[@ng-click='save()']"),
 
     "system-groups.update_description": (
-        By.XPATH, "//form[@alch-edit-textarea='group.description']"
+        By.XPATH, "//form[@bst-edit-textarea='group.description']"
                   "//div/span/i"),
     "system-groups.update_description_field": (
-        By.XPATH, "//form[@alch-edit-textarea='group.description']"
+        By.XPATH, "//form[@bst-edit-textarea='group.description']"
                   "//div/textarea"),
     "system-groups.update_description_save": (
-        By.XPATH, "//form[@alch-edit-textarea='group.description']"
+        By.XPATH, "//form[@bst-edit-textarea='group.description']"
                   "//button[@ng-click='save()']"),
 
     "system-groups.update_limit": (
-        By.XPATH, "//div[@alch-edit-custom='group.max_systems']//div/span/i"),
+        By.XPATH, "//div[@bst-edit-custom='group.max_systems']//div/span/i"),
     "system-groups.update_limit_checkbox": (
-        By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
+        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
                   "//div/input[@type='checkbox']"),
     "system-groups.update_limit_field": (
-        By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
+        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
                   "//div/input[@type='number']"),
     "system-groups.update_limit_save": (
-        By.XPATH, "//div[@alch-edit-custom='group.max_systems']"
+        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
                   "//button[@ng-click='save()']"),
 
     # Manifests / subscriptions
@@ -1574,14 +1574,14 @@ locators = {
     "subs.manage_manifest": (
         By.XPATH, "//button[contains(@ui-sref,'manifest.import')]"),
     "subs.repo_url_edit": (
-        By.XPATH, ("//form[contains(@alch-edit-text,'redhat_repository_url')]"
+        By.XPATH, ("//form[contains(@bst-edit-text,'redhat_repository_url')]"
                    "//i[contains(@class,'icon-edit')]")),
     "subs.file_path": (
         By.XPATH, ("//input[@name='content']")),
     "subs.upload": (
         By.XPATH, "//div[@class='control-button']/button[@class='primary']"),
     "subs.repo_url_update": (
-        By.XPATH, ("//form[contains(@alch-edit-text,'redhat_repository_url')]"
+        By.XPATH, ("//form[contains(@bst-edit-text,'redhat_repository_url')]"
                    "//div/input")),
     "subs.manifest_exists": (
         By.XPATH, "//a[contains(@href,'distributors')]"),
