@@ -17,6 +17,7 @@ from robottelo.ui.session import Session
 class UserGroup(UITestCase):
     """Implements UserGroup tests from UI"""
 
+    @classmethod
     def setUpClass(cls):
         cls.org_name = entities.Organization().create()
 
