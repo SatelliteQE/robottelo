@@ -16,6 +16,7 @@ from robottelo.ui.session import Session
 class ContentEnvironment(UITestCase):
     """Implements Life cycle content environment tests in UI"""
 
+    @classmethod
     def setUpClass(cls):
         cls.org_name = entities.Organization().create()['name']
 
