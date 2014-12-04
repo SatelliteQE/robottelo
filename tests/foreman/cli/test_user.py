@@ -11,7 +11,7 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
-from robottelo.cli.factory import CLIFactoryError, make_user
+from robottelo.cli.factory import CLIFactoryError, make_user, make_role
 from robottelo.cli.user import User as UserObj
 from robottelo.common.decorators import (
     bz_bug_is_open, data, skip_if_bug_open, stubbed)
@@ -2017,3 +2017,91 @@ class User(CLITestCase):
         self.assertEqual(len(result.stderr), 0)
         for user in users:
             self.assertNotEqual(str(result.stdout).find(user['login']), -1)
+
+    @data(
+        {'name': gen_string("latin1", 10)},
+        {'name': gen_string("utf8", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("alphanumeric", 100)},
+    )
+    def test_user_add_role_1(self, data):
+        """@Test: Add role to User for all variations of role names
+
+        @Feature: User - Add role
+
+        @Steps:
+        1. Create role and add it to the user
+
+        @Assert: Role is added to user
+
+        """
+        try:
+            user = make_user()
+            role = make_role(data)
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.__assert_exists(user)
+        result = UserObj.add_role({
+            'login': user['login'],
+            'role': role['name']
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an error here")
+        result = UserObj.info({'id': user['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an error here")
+        self.assertIn(role['name'], result.stdout['roles'])
+
+    @data(
+        {'name': gen_string("latin1", 10)},
+        {'name': gen_string("utf8", 10)},
+        {'name': gen_string("alpha", 10)},
+        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("alphanumeric", 100)},
+    )
+    def test_user_remove_role_1(self, data):
+        """@Test: Remove role to User for all variations of role names
+
+        @Feature: User - Remove role
+
+        @Steps:
+        1. Create role and add it to the user . Try to remove the role
+
+        @Assert: Role is removed
+
+        """
+        try:
+            user = make_user()
+            role = make_role(data)
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.__assert_exists(user)
+        result = UserObj.add_role({
+            'login': user['login'],
+            'role': role['name']
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an error here")
+        result = UserObj.info({'id': user['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an error here")
+        self.assertIn(role['name'], result.stdout['roles'])
+        result = UserObj.remove_role({
+            'login': user['login'],
+            'role': role['name']
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an error here")
+        result = UserObj.info({'id': user['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0,
+                         "There should not be an error here")
+        self.assertNotIn(role['name'], result.stdout['roles'])
