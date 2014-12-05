@@ -31,3 +31,15 @@ class User(Base):
     """
 
     command_base = 'user'
+
+    @classmethod
+    def add_role(cls, options=None):
+        """Add a role to a user."""
+        cls.command_sub = 'add-role'
+        return cls.execute(cls._construct_command(options), expect_csv=True)
+
+    @classmethod
+    def remove_role(cls, options=None):
+        """Remove a role from user."""
+        cls.command_sub = 'remove-role'
+        return cls.execute(cls._construct_command(options), expect_csv=True)
