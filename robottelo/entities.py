@@ -1504,31 +1504,6 @@ class Organization(
         response.raise_for_status()
         return response.json()['results']
 
-    def fetch_rhproduct_id(self, name):
-        """Fetches the RedHat Product Id for a given Product name.
-
-        To be used for the Products created when manifest is imported.
-        RedHat Product Id could vary depending upon other custom products.
-        So, we use the product name to fetch the RH Product Id.
-
-        :param str name: The RedHat product's name who's ID is to be fetched.
-        :returns: The RedHat Product Id is returned.
-
-        """
-        response = client.get(
-            self.path('products'),
-            auth=get_server_credentials(),
-            verify=False,
-            data={u'search': 'name={}'.format(escape_search(name))},
-        )
-        response.raise_for_status()
-        results = response.json()['results']
-        if len(results) != 1:
-            raise APIResponseError(
-                "The length of the results is:", len(results))
-        else:
-            return results[0]['id']
-
 
 class OSDefaultTemplate(orm.Entity):
     """A representation of a OS Default Template entity."""
