@@ -457,6 +457,11 @@ class EntityDeleteMixin(object):
         response.raise_for_status()
         if synchronous is True and response.status_code is httplib.ACCEPTED:
             return _poll_task(response.json()['id'], auth=auth)
+        if response.status_code == httplib.NO_CONTENT:
+            # "The server successfully processed the request, but is not
+            # returning any content. Usually used as a response to a successful
+            # delete request."
+            return
         return response.json()
 
 
