@@ -229,6 +229,7 @@ class ContentViews(Base):
 
         if element:
             element.click()
+            self.wait_for_ajax()
             self.find_element(tab_locators["contentviews.tab_content"]).click()
             self.find_element(locators["contentviews.content_repo"]).click()
             self.wait_for_ajax()

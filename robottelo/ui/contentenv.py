@@ -19,8 +19,7 @@ class ContentEnvironment(Base):
         Creates new life cycle environment
         """
         if prior:
-            strategy = locators["content_env.env_link"][0]
-            value = locators["content_env.env_link"][1]
+            strategy, value = locators["content_env.env_link"]
             element = self.wait_until_element((strategy, value % prior))
             if element:
                 element.click()

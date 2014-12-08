@@ -1272,16 +1272,15 @@ locators = {
     "content_env.create_initial": (
         By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
     "content_env.select_name": (
-        By.XPATH,
-        ("//div[contains(., '%s')]/parent::label"
-         "[@ng-click='selectEnvironment(env)']")),
+        By.XPATH, ("//a[contains(@ui-sref, 'environment.details')"
+                   " and contains(.,'%s')]")),
     "content_env.remove": (
         By.XPATH,
         "//button[@ng-click='openModal()']"),
     "content_env.env_link": (
         By.XPATH,
-        ("//li/label/div[contains(., '%s')]"
-         "/following::li/label[@ng-click='initiateCreateEnvironment()']/i")),
+        ("//a[contains(@ui-sref, 'environment.details') and contains(.,'%s')]"
+         "/../../../../../div/div/a[contains(@href, 'new')]")),
     "content_env.edit_name": (
         By.XPATH,
         "//form[@bst-edit-text='workingOn.environment.name']//div/span/i"),
@@ -1408,9 +1407,10 @@ locators = {
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
     "contentviews.add_repo": (
-        By.XPATH, "//button[contains(@ng-show, 'repositories.available')]"),
+        By.XPATH,
+        "//button[contains(@ng-show, 'repositories.yum.available')]"),
     "contentviews.remove_repo": (
-        By.XPATH, "//button[contains(@ng-show, 'repositories.list')]"),
+        By.XPATH, "//button[contains(@ng-show, 'repositories.yum.list')]"),
     "contentviews.repo_search": (
         By.XPATH, "//input[@ng-model='repositorySearch']"),
     "contentviews.promote_button": (
