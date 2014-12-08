@@ -50,6 +50,7 @@ class GPGKey(Base):
         Uses the search box to locate an element from a list of elements.
         """
         Navigator(self.browser).go_to_gpg_keys()
+        self.wait_for_ajax()
         element = None
         strategy = locators["gpgkey.key_name"][0]
         value = locators["gpgkey.key_name"][1]
@@ -139,6 +140,7 @@ class GPGKey(Base):
 
         nav = Navigator(self.browser)
         nav.go_to_products()
+        self.wait_for_ajax()
         prd_element = self.search_entity(product, locators["prd.select"],
                                          katello=True)
         if prd_element:

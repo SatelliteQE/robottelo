@@ -458,7 +458,8 @@ class ContentViews(Base):
 
         if element:
             element.click()
-            self.find_element(tab_locators["contentviews.tab_content"]).click()
+            self.wait_until_element(
+                tab_locators["contentviews.tab_content"]).click()
             self.wait_until_element(locators
                                     ["contentviews.content_filters"]).click()
             self.wait_until_element(locators
