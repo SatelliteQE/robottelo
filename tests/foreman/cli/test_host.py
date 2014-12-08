@@ -35,7 +35,7 @@ class HostTestCase(CLITestCase):
             location = make_location()
             medium = make_medium()
             ptable = make_partition_table()
-            organization = make_org()
+            organization = make_org(cached=True)
             os = make_os({
                 u'architecture-ids': architecture['id'],
                 u'medium-ids': medium['id'],

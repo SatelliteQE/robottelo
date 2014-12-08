@@ -6,10 +6,10 @@ Implements various decorators
 """
 
 import bugzilla
-import functools
 import logging
 import random
 import requests
+from functools import wraps
 
 import sys
 if sys.hexversion >= 0x2070000:
@@ -28,6 +28,7 @@ from xmlrpclib import Fault
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 BUGZILLA_OPEN_BUG_STATUSES = ('NEW', 'ASSIGNED', 'POST', 'MODIFIED')
 REDMINE_URL = 'http://projects.theforeman.org'
+OBJECT_CACHE = {}
 
 # A dict mapping bug IDs to python-bugzilla bug objects.
 _bugzilla = {}
@@ -69,6 +70,26 @@ def stubbed(reason=None):
     if reason is None:
         reason = NOT_IMPLEMENTED
     return unittest.skip(reason)
+
+
+def cacheable(func):
+    """Decorator that makes an optional object cache available"""
+
+    @wraps(func)
+    def cacheable_function(options=None, cached=False):
+        """
+        This is the function being returned.
+        Requires input function's name start with 'make_'
+        """
+        object_key = func.__name__.replace('make_', '')
+        if cached is True and object_key in OBJECT_CACHE:
+            return OBJECT_CACHE[object_key]
+        new_object = func(options)
+        if cached is True:
+            OBJECT_CACHE[object_key] = new_object
+        return new_object
+
+    return cacheable_function
 
 
 class ProjectModeError(Exception):
@@ -329,7 +350,7 @@ class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
         :param func: The function being decorated.
 
         """
-        @functools.wraps(func)
+        @wraps(func)
         def wrapper_func(*args, **kwargs):
             """Run ``func`` or skip it by raising an exception.
 

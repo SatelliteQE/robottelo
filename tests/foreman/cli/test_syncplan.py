@@ -24,7 +24,7 @@ class TestSyncPlan(CLITestCase):
         super(TestSyncPlan, self).setUp()
 
         if TestSyncPlan.org is None:
-            TestSyncPlan.org = make_org()
+            TestSyncPlan.org = make_org(cached=True)
 
     def _make_sync_plan(self, options=None):
         """Make a sync plan and asserts its success"""

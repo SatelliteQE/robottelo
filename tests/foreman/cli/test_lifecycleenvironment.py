@@ -24,7 +24,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         super(TestLifeCycleEnvironment, self).setUp()
 
         if TestLifeCycleEnvironment.org is None:
-            TestLifeCycleEnvironment.org = make_org()
+            TestLifeCycleEnvironment.org = make_org(cached=True)
 
     # Issues validation
 
@@ -434,7 +434,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
         """
         try:
-            org = make_org()
+            org = make_org(cached=True)
             payload = {
                 'organization-id': org['id'],
             }

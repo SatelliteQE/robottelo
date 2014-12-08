@@ -937,9 +937,10 @@ class TestOrg(CLITestCase):
         """
 
         new_obj = make_org()
-        env_result = make_lifecycle_environment({
-            'organization-id': new_obj['id'],
-        })
+        env_result = make_lifecycle_environment(
+            {'organization-id': new_obj['id']},
+            cached=True
+        )
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list({
@@ -967,9 +968,10 @@ class TestOrg(CLITestCase):
         """
 
         new_obj = make_org()
-        env_result = make_lifecycle_environment({
-            'organization-id': new_obj['id'],
-        })
+        env_result = make_lifecycle_environment(
+            {'organization-id': new_obj['id']},
+            cached=True
+        )
 
         # Can we list the new environment?
         environment = LifecycleEnvironment.list({

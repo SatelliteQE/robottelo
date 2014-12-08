@@ -51,11 +51,11 @@ class TestRepository(CLITestCase):
         super(TestRepository, self).setUp()
 
         if TestRepository.org is None:
-            TestRepository.org = make_org()
+            TestRepository.org = make_org(cached=True)
         if TestRepository.product is None:
-            TestRepository.product = make_product({
-                u'organization-id': TestRepository.org['id'],
-            })
+            TestRepository.product = make_product(
+                {u'organization-id': TestRepository.org['id']},
+                cached=True)
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""

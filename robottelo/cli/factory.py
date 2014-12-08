@@ -50,6 +50,7 @@ from robottelo.common.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
+from robottelo.common.decorators import cacheable
 from robottelo.common.helpers import update_dictionary
 from tempfile import mkstemp
 
@@ -110,6 +111,7 @@ def create_object(cli_object, options, values):
     return result.stdout
 
 
+@cacheable
 def make_activation_key(options=None):
     """
     Usage::
@@ -133,7 +135,6 @@ def make_activation_key(options=None):
                                                           key have unlimited
                                                           content hosts
     """
-
     # Organization Name, Label or ID is a required field.
     if (
             not options
@@ -159,6 +160,7 @@ def make_activation_key(options=None):
     return create_object(ActivationKey, args, options)
 
 
+@cacheable
 def make_architecture(options=None):
     """
     Usage::
@@ -171,7 +173,6 @@ def make_architecture(options=None):
         --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
                                       Comma separated list of values.
     """
-
     args = {
         u'name': gen_alphanumeric(),
         u'operatingsystem-ids': None,
@@ -180,6 +181,7 @@ def make_architecture(options=None):
     return create_object(Architecture, args, options)
 
 
+@cacheable
 def make_content_view(options=None):
     """
     Usage::
@@ -203,7 +205,6 @@ def make_content_view(options=None):
         -h, --help                    print help
 
     """
-
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
@@ -223,6 +224,7 @@ def make_content_view(options=None):
     return create_object(ContentView, args, options)
 
 
+@cacheable
 def make_gpg_key(options=None):
     """
     Usage::
@@ -238,7 +240,6 @@ def make_gpg_key(options=None):
         --organization-label ORGANIZATION_LABEL Organization label to search by
         -h, --help                    print help
     """
-
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
@@ -268,6 +269,7 @@ def make_gpg_key(options=None):
     return create_object(GPGKey, args, options)
 
 
+@cacheable
 def make_location(options=None):
     """Location CLI factory
 
@@ -326,6 +328,7 @@ def make_location(options=None):
     return create_object(Location, args, options)
 
 
+@cacheable
 def make_model(options=None):
     """
     Usage::
@@ -339,7 +342,6 @@ def make_model(options=None):
         --name NAME
         --vendor-class VENDOR_CLASS
     """
-
     args = {
         u'hardware-model': None,
         u'info': None,
@@ -350,6 +352,7 @@ def make_model(options=None):
     return create_object(Model, args, options)
 
 
+@cacheable
 def make_partition_table(options=None):
     """
     Usage::
@@ -394,6 +397,7 @@ def make_partition_table(options=None):
     return create_object(PartitionTable, args, options)
 
 
+@cacheable
 def make_product(options=None):
     """
     Usage::
@@ -414,7 +418,6 @@ def make_product(options=None):
         --sync-plan-id SYNC_PLAN_ID             Plan numeric identifier
         -h, --help                              print help
     """
-
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
@@ -435,6 +438,7 @@ def make_product(options=None):
     return create_object(Product, args, options)
 
 
+@cacheable
 def make_proxy(options=None):
     """
     Usage::
@@ -452,7 +456,6 @@ def make_proxy(options=None):
         -h, --help                      print help
 
     """
-
     args = {
         u'name': gen_alphanumeric(),
     }
@@ -470,6 +473,7 @@ def make_proxy(options=None):
     return create_object(Proxy, args, options)
 
 
+@cacheable
 def make_repository(options=None):
     """
     Usage::
@@ -499,7 +503,6 @@ def make_repository(options=None):
         -h, --help                              print help
 
     """
-
     # Product ID is a required field.
     if not options or not options.get('product-id', None):
         raise CLIFactoryError('Please provide a valid Product ID.')
@@ -523,6 +526,7 @@ def make_repository(options=None):
     return create_object(Repository, args, options)
 
 
+@cacheable
 def make_role(options=None):
     """Usage::
 
@@ -532,13 +536,13 @@ def make_role(options=None):
 
         --name NAME
     """
-
     # Assigning default values for attributes
     args = {u'name': gen_alphanumeric(6)}
 
     return create_object(Role, args, options)
 
 
+@cacheable
 def make_subnet(options=None):
     """
     Usage::
@@ -573,7 +577,6 @@ def make_subnet(options=None):
         -h, --help                    print help
 
     """
-
     args = {
         u'dhcp-id': None,
         u'dns-id': None,
@@ -596,6 +599,7 @@ def make_subnet(options=None):
     return create_object(Subnet, args, options)
 
 
+@cacheable
 def make_sync_plan(options=None):
     """
     Usage::
@@ -624,7 +628,6 @@ def make_sync_plan(options=None):
         -h, --help                              print help
 
     """
-
     # Organization ID is a required field.
     if not options or not options.get('organization-id', None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
@@ -643,6 +646,7 @@ def make_sync_plan(options=None):
     return create_object(SyncPlan, args, options)
 
 
+@cacheable
 def make_content_host(options=None):
     """
     Usage::
@@ -728,6 +732,7 @@ def make_content_host(options=None):
     return create_object(ContentHost, args, options)
 
 
+@cacheable
 def make_host(options=None):
     """
     Usage::
@@ -878,6 +883,7 @@ def make_host(options=None):
     return create_object(Host, args, options)
 
 
+@cacheable
 def make_host_collection(options=None):
     """
     Usage::
@@ -909,7 +915,6 @@ def make_host_collection(options=None):
          -h, --help                                       print help
 
     """
-
     # Organization ID is required
     if not options or not options.get('organization-id', None):
         raise CLIFactoryError('Please provide a valid ORGANIZATION_ID.')
@@ -930,6 +935,7 @@ def make_host_collection(options=None):
     return create_object(HostCollection, args, options)
 
 
+@cacheable
 def make_user(options=None):
     """
     Usage::
@@ -955,7 +961,6 @@ def make_user(options=None):
         -h, --help                          print help
 
     """
-
     login = gen_alphanumeric(6)
 
     # Assigning default values for attributes
@@ -980,6 +985,7 @@ def make_user(options=None):
     return create_object(User, args, options)
 
 
+@cacheable
 def make_compute_resource(options=None):
     """
     Usage::
@@ -1038,6 +1044,7 @@ def make_compute_resource(options=None):
     return create_object(ComputeResource, args, options)
 
 
+@cacheable
 def make_org(options=None):
     """
     Usage::
@@ -1082,7 +1089,6 @@ def make_org(options=None):
         -h, --help                                  print help
 
     """
-
     # Assigning default values for attributes
     args = {
         u'compute-resource-ids': None,
@@ -1103,6 +1109,7 @@ def make_org(options=None):
     return create_object(Org, args, options)
 
 
+@cacheable
 def make_os(options=None):
     """
     Usage::
@@ -1148,6 +1155,7 @@ def make_os(options=None):
     return create_object(OperatingSys, args, options)
 
 
+@cacheable
 def make_domain(options=None):
     """
     Usage::
@@ -1179,6 +1187,7 @@ def make_domain(options=None):
     return create_object(Domain, args, options)
 
 
+@cacheable
 def make_hostgroup(options=None):
     """
     Usage::
@@ -1250,6 +1259,7 @@ def make_hostgroup(options=None):
     return create_object(HostGroup, args, options)
 
 
+@cacheable
 def make_medium(options=None):
     """
     Usage::
@@ -1301,6 +1311,7 @@ def make_medium(options=None):
     return create_object(Medium, args, options)
 
 
+@cacheable
 def make_environment(options=None):
     """
     Usage::
@@ -1328,6 +1339,7 @@ def make_environment(options=None):
     return create_object(Environment, args, options)
 
 
+@cacheable
 def make_lifecycle_environment(options=None):
     """
     Usage::
@@ -1349,7 +1361,6 @@ def make_lifecycle_environment(options=None):
         -h, --help                  print help
 
     """
-
     # Organization ID is required
     if not options or not options.get('organization-id', None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
@@ -1370,6 +1381,7 @@ def make_lifecycle_environment(options=None):
     return create_object(LifecycleEnvironment, args, options)
 
 
+@cacheable
 def make_template(options=None):
     """
     Usage::

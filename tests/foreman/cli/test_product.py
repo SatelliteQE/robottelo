@@ -24,7 +24,7 @@ class TestProduct(CLITestCase):
         super(TestProduct, self).setUp()
 
         if TestProduct.org is None:
-            TestProduct.org = make_org()
+            TestProduct.org = make_org(cached=True)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1096320)
