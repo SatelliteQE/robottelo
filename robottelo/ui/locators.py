@@ -402,7 +402,7 @@ tab_locators = {
         By.XPATH,
         "//a[@class='ng-scope' and contains(@ui-sref, 'details.versions')]"),
     "contentviews.tab_content": (
-        By.XPATH, "//ul/li[@class='dropdown']/a"),
+        By.XPATH, "//ul/li/a[@class='dropdown-toggle']/i"),
     "contentviews.tab_content_views": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'content-views')]"),
@@ -415,7 +415,7 @@ tab_locators = {
         By.XPATH, "//a[@class='ng-scope' and contains(@href, 'tasks')]"),
     "contentviews.tab_repo_add": (
         By.XPATH,
-        "//a[contains(@ui-sref, 'repositories.available')]"),
+        "//a[contains(@ui-sref, 'repositories.yum.available')]"),
     "contentviews.tab_repo_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'repositories.list')]"),
     "contentviews.tab_cv_add": (
@@ -1268,7 +1268,7 @@ locators = {
 
     # Lifecycle Envionments
     "content_env.new": (
-        By.XPATH, "//button[@ng-click='initiateCreatePath()']"),
+        By.XPATH, "//a[contains(@ui-sref, 'environments.new')]"),
     "content_env.create_initial": (
         By.XPATH, "//label[@ng-click='initiateCreateEnvironment()']"),
     "content_env.select_name": (

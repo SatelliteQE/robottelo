@@ -103,33 +103,37 @@ class ActivationKey(UITestCase):
         content_view = entities.ContentView(
             name=name,
             organization=self.org_id
-        ).create()
+        )
+        content_view.id = content_view.create()['id']
+
         # Associate YUM repo to created CV
         response = client.put(
-            entities.ContentView(id=content_view['id']).path(),
+            entities.ContentView(id=content_view.id).path(),
             auth=get_server_credentials(),
             verify=False,
             data={u'repository_ids': [repo_id]})
         response.raise_for_status()
 
         # Publish content view
-        task_id = entities.ContentView(id=content_view['id']).publish()
-        task_status = entities.ForemanTask(id=task_id).poll()
+        self.assertEqual(u'success', content_view.publish()['result'])
+
+        # Get the content view version's ID.
+        response = client.get(
+            entities.ContentViewVersion().path(),
+            auth=get_server_credentials(),
+            data={u'content_view_id': content_view.id},
+            verify=False,
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        self.assertEqual(len(results), 1)
+        cv_version = entities.ContentViewVersion(id=results[0]['id'])
+
+        # Promote the content view version.
         self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Publishing {0} failed.".format(content_view['name']))
-        # Promote the Version 1 to selected environment
-        content_view = entities.ContentView(id=content_view['id']).read_json()
-        task_id = entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']
-        ).promote(env_attrs['id'])
-        task_status = entities.ForemanTask(id=task_id).poll()
-        self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Promoting {0} to {1} failed.".format(
-                content_view['name'], env_attrs['name']))
+            'success',
+            cv_version.promote(environment_id=env_attrs['id'])['result']
+        )
 
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
