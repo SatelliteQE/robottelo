@@ -53,6 +53,13 @@ Submodules:
     :members:
     :undoc-members:
 
+:mod:`robottelo.cli.docker`
+---------------------------
+
+.. automodule:: robottelo.cli.docker
+    :members:
+    :undoc-members:
+
 :mod:`robottelo.cli.domain`
 ---------------------------
 
