@@ -265,6 +265,7 @@ class TestHostCollection(CLITestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1084240)
+    @skip_if_bug_open('bugzilla', 1171669)
     @data(
         {'description': gen_string('alpha', 15)},
         {'description': gen_string('alphanumeric', 15)},
@@ -281,7 +282,7 @@ class TestHostCollection(CLITestCase):
 
         @Assert: Host collection is created and description is updated
 
-        @BZ: 1084240
+        @BZ: 1084240, 1171669
 
         """
 
@@ -338,6 +339,7 @@ class TestHostCollection(CLITestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1084240)
+    @skip_if_bug_open('bugzilla', 1171669)
     @data('3', '6', '9', '12', '15', '17', '19')
     @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):
@@ -347,7 +349,7 @@ class TestHostCollection(CLITestCase):
 
         @Assert: Host collection limits is updated
 
-        @BZ: 1084240
+        @BZ: 1084240, 1171669
 
         """
 
