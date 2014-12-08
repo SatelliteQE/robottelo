@@ -15,7 +15,7 @@ from robottelo.ui.factory import (make_user, make_org,
                                   make_repository, make_contentview,
                                   make_resource, make_subnet, make_domain,
                                   make_hostgroup, make_activationkey)
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -131,18 +131,19 @@ class TestSmoke(UITestCase):
         # Once #1152 is fixed; need to pass user_name and password to Session
         with Session(self.browser) as session:
             # Create New organization
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
             # Create New Lifecycle environment1
             make_lifecycle_environment(session, org=org_name, name=env_1_name)
-            self.assertTrue(self.contentenv.wait_until_element
-                            (common_locators["alert.success"]))
+            strategy, value = locators["content_env.select_name"]
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 ((strategy, value % env_1_name)))
             # Create New  Lifecycle environment2
             make_lifecycle_environment(session, org=org_name, name=env_2_name,
                                        prior=env_1_name)
-            self.assertTrue(self.contentenv.wait_until_element
-                            (common_locators["alert.success"]))
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 ((strategy, value % env_2_name)))
 
             # Create custom product
             make_product(session, org=org_name,
@@ -232,6 +233,7 @@ class TestSmoke(UITestCase):
         activation_key_name = gen_string("alpha", 6)
         env_name = gen_string("alpha", 6)
         product_name = "Red Hat Employee Subscription"
+        repo_name = "rhel-6-server-rhev-agent-rpms"
         repo_names = [
             "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
             "RPMs x86_64 6.5",
@@ -245,13 +247,13 @@ class TestSmoke(UITestCase):
         upload_file(cloned_manifest_path, remote_file=cloned_manifest_path)
         with Session(self.browser) as session:
             # Create New organization
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
-            self.assertIsNotNone(
-                self.contentenv.wait_until_element(
-                    common_locators["alert.success"]))
+            strategy, value = locators["content_env.select_name"]
+            self.assertIsNotNone(self.contentenv.wait_until_element
+                                 ((strategy, value % env_name)))
             # Navigate UI to select org and redhat subscription page
             session.nav.go_to_select_org(org_name)
             session.nav.go_to_red_hat_subscriptions()
@@ -328,6 +330,17 @@ class TestSmoke(UITestCase):
                 self.assertEqual(
                     result.return_code, 0,
                     "failed to register client:: {0} and return code: {1}"
+                    .format(result.stderr, result.return_code)
+                )
+                # FIXME:- The below step needs to be automated via UI.
+                # Enable Red Hat Enterprise Virtualization Agents repo via cli
+                result = vm.run(
+                    'yum-config-manager --enable {0}'
+                    .format(repo_name)
+                )
+                self.assertEqual(
+                    result.return_code, 0,
+                    "Enabling repo failed: {0} and return code: {1}"
                     .format(result.stderr, result.return_code)
                 )
                 # Install contents from sat6 server
