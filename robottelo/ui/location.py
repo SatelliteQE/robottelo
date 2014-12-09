@@ -13,9 +13,7 @@ from selenium.webdriver.support.select import Select
 
 
 class Location(Base):
-    """
-    Implements CRUD functions for UI
-    """
+    """Implements CRUD functions for UI"""
 
     def _configure_location(self, users=None, proxies=None, subnets=None,
                             resources=None, medias=None, templates=None,
@@ -26,9 +24,7 @@ class Location(Base):
                             new_templates=None, new_domains=None,
                             new_envs=None, new_hostgroups=None,
                             new_organizations=None, select=None):
-        """
-        Configures different entities of selected location
-        """
+        """Configures different entities of selected location."""
 
         loc = tab_locators
 
@@ -86,10 +82,8 @@ class Location(Base):
     def create(self, name, parent=None, users=None, proxies=None,
                subnets=None, resources=None, medias=None, templates=None,
                domains=None, envs=None, hostgroups=None, organizations=None,
-               edit=False, select=True):
-        """
-        Creates new Location from UI
-        """
+               select=True):
+        """Creates new Location from UI."""
 
         self.wait_until_element(locators["location.new"]).click()
 
@@ -100,7 +94,7 @@ class Location(Base):
                     locators["location.parent"])
                     ).select_by_visible_text(parent)
             self.wait_until_element(common_locators["submit"]).click()
-            if edit:
+            if self.wait_until_element(locators["location.proceed_to_edit"]):
                 self.wait_until_element(
                     locators["location.proceed_to_edit"]).click()
             self._configure_location(users=users, proxies=proxies,
@@ -116,9 +110,7 @@ class Location(Base):
             raise Exception("Could not create new location.")
 
     def search(self, name):
-        """
-        Searches existing location from UI
-        """
+        """Searches existing location from UI."""
         nav(self.browser).go_to_loc()
         self.wait_for_ajax()
         element = self.search_entity(name, locators["location.select_name"])
@@ -132,9 +124,7 @@ class Location(Base):
                new_resources=None, new_medias=None, new_templates=None,
                new_domains=None, new_envs=None, new_hostgroups=None,
                select=False):
-        """
-        Update Location in UI
-        """
+        """Update Location in UI. """
         org_object = self.search(loc_name)
         self.wait_for_ajax()
         if org_object:
@@ -166,9 +156,7 @@ class Location(Base):
                 "Unable to find the location '%s' for update." % loc_name)
 
     def delete(self, name, really):
-        """
-        Deletes a location.
-        """
+        """Deletes a location."""
 
         self.delete_entity(name, really, locators["location.select_name"],
                            locators['location.delete'],
