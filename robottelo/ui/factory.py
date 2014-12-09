@@ -412,6 +412,7 @@ def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
         u'template_path': None,
         u'custom_really': None,
         u'template_type': None,
+        u'audit_comment': None,
         u'snippet': None,
         u'os_list': None,
     }

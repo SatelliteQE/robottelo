@@ -104,6 +104,7 @@ class User(Base):
         """
 
         Navigator(self.browser).go_to_users()
+        self.wait_for_ajax()
         element = self.search_entity(name, locators["users.user"],
                                      search_key=search_key)
         return element
