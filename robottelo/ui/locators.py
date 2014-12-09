@@ -469,6 +469,8 @@ tab_locators = {
         By.XPATH, "//a[contains(@ui-sref, 'host-collections.list')]"),
     "ak.associations": (
         By.XPATH, "//ul/li[@class='dropdown']/a"),
+    "ak.tab_prd_content": (
+        By.XPATH, "//a[contains(@ui-sref, 'details.products')]/span/span"),
 
     # Manifest / subscriptions
     "subs.tab_details": (
@@ -1176,6 +1178,13 @@ locators = {
     "ak.content_host_name": (
         By.XPATH,
         "//tr[@ng-repeat='contentHost in contentHosts']/td/a"),
+    "ak.prd_content.edit_repo": (
+        By.XPATH,
+        ("//u[contains(.,'%s')]/../../div/form/div/div/span/"
+         "i[contains(@class,'icon-edit')]")),
+    "ak.prd_content.select_repo": (
+        By.XPATH,
+        "//u[contains(.,'%s')]/../../div/form/div/select"),
 
     # Sync Status
     "sync.prd_expander": (

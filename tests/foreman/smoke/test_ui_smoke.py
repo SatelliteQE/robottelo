@@ -7,7 +7,7 @@ from robottelo.common import conf
 from robottelo.common import manifests
 from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO, REPO_TYPE, FOREMAN_PROVIDERS,
-    DOMAIN, DEFAULT_ORG, DEFAULT_LOC, RHVA_REPO_TREE)
+    DOMAIN, DEFAULT_ORG, DEFAULT_LOC, RHVA_REPO_TREE, REPOSET)
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_user, make_org,
@@ -233,7 +233,6 @@ class TestSmoke(UITestCase):
         activation_key_name = gen_string("alpha", 6)
         env_name = gen_string("alpha", 6)
         product_name = "Red Hat Employee Subscription"
-        repo_name = "rhel-6-server-rhev-agent-rpms"
         repo_names = [
             "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
             "RPMs x86_64 6.5",
@@ -298,6 +297,8 @@ class TestSmoke(UITestCase):
             self.activationkey.associate_product(
                 activation_key_name, [product_name]
             )
+            self.activationkey.enable_repos(activation_key_name,
+                                            [REPOSET['rhva6']])
             self.assertIsNotNone(
                 self.activationkey.wait_until_element(
                     common_locators["alert.success"]))
@@ -332,11 +333,12 @@ class TestSmoke(UITestCase):
                     "failed to register client:: {0} and return code: {1}"
                     .format(result.stderr, result.return_code)
                 )
-                # FIXME:- The below step needs to be automated via UI.
+                # FIXME:- Required for rhel65 clients as sub-man < 1.10
+                # The below block needs to be removed when rhel65 testing stops
                 # Enable Red Hat Enterprise Virtualization Agents repo via cli
                 result = vm.run(
-                    'yum-config-manager --enable {0}'
-                    .format(repo_name)
+                    'subscription-manager repos --enable '
+                    'rhel-6-server-rhev-agent-rpms'
                 )
                 self.assertEqual(
                     result.return_code, 0,
