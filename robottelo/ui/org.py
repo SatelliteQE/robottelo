@@ -13,9 +13,7 @@ from selenium.webdriver.support.select import Select
 
 
 class Org(Base):
-    """
-    Provides the CRUD functionality for Organization
-    """
+    """Provides the CRUD functionality for Organization."""
 
     def _configure_org(self, users=None, proxies=None, subnets=None,
                        resources=None, medias=None, templates=None,
@@ -25,9 +23,7 @@ class Org(Base):
                        new_templates=None, new_domains=None,
                        new_envs=None, new_hostgroups=None, new_locations=None,
                        select=None):
-        """
-        Configures different entities of selected organization
-        """
+        """Configures different entities of selected organization."""
 
         loc = tab_locators
 
@@ -85,12 +81,11 @@ class Org(Base):
     def create(self, org_name=None, parent_org=None, label=None, desc=None,
                users=None, proxies=None, subnets=None, resources=None,
                medias=None, templates=None, domains=None, envs=None,
-               hostgroups=None, locations=None, edit=False, select=True):
-        """
-        Create Organization in UI
-        """
-        if self.wait_until_element(locators["org.new"]):
-            self.wait_until_element(locators["org.new"]).click()
+               hostgroups=None, locations=None, select=True):
+        """Create Organization in UI."""
+        new_org_locator = self.wait_until_element(locators["org.new"])
+        if new_org_locator:
+            new_org_locator.click()
             if parent_org:
                 type_ele = self.wait_until_element(locators["org.parent"])
                 Select(type_ele).select_by_visible_text(parent_org)
@@ -102,9 +97,10 @@ class Org(Base):
                 self.field_update("org.desc", desc)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
-            if edit:
-                self.wait_until_element(locators
-                                        ["org.proceed_to_edit"]).click()
+            edit_locator = self.wait_until_element(
+                locators["org.proceed_to_edit"])
+            if edit_locator:
+                edit_locator.click()
             self._configure_org(users=users, proxies=proxies,
                                 subnets=subnets, resources=resources,
                                 medias=medias, templates=templates,
@@ -118,9 +114,7 @@ class Org(Base):
                 "Unable to create the Organization '%s'" % org_name)
 
     def search(self, name):
-        """
-        Searches existing Organization from UI
-        """
+        """Searches existing Organization from UI."""
         nav(self.browser).go_to_org()
         self.wait_for_ajax()
         element = self.search_entity(name, locators["org.org_name"])
@@ -134,9 +128,7 @@ class Org(Base):
                new_resources=None, new_medias=None, new_templates=None,
                new_domains=None, new_envs=None, new_hostgroups=None,
                select=False, new_desc=None):
-        """
-        Update Organization in UI
-        """
+        """Update Organization in UI."""
         org_object = self.search(org_name)
         self.wait_for_ajax()
         if org_object:
@@ -174,9 +166,7 @@ class Org(Base):
                 "Unable to find the organization '%s' for update." % org_name)
 
     def remove(self, org_name, really):
-        """
-        Remove Organization in UI
-        """
+        """Remove Organization in UI."""
 
         searched = self.search(org_name)
         if searched:
