@@ -44,3 +44,32 @@ class RepositorySet(Base):
         """Disables a repository."""
         cls.command_sub = 'disable'
         return cls.execute(cls._construct_command(options), expect_csv=True)
+
+    @classmethod
+    def available_repositories(cls, options):
+        """Lists the available repositories.
+
+        hammer repository-set available-repositories --help
+
+        Usage::
+
+            hammer repository-set available-repositories [OPTIONS]
+
+        Options::
+
+            --id ID                                 ID of the repository set
+            --name NAME                             Repository set
+                                                    name to search by
+            --organization ORGANIZATION_NAME        Organization
+                                                    name to search by
+            --organization-id ORGANIZATION_ID       organization ID
+            --organization-label ORGANIZATION_LABEL Organization label
+                                                    to search by
+            --product PRODUCT_NAME                  Product name
+                                                    to search by
+            --product-id PRODUCT_ID                 product numeric identifier
+            -h, --help                              print help
+
+        """
+        cls.command_sub = 'available-repositories'
+        return cls.execute(cls._construct_command(options), expect_csv=True)
