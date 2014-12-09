@@ -223,7 +223,7 @@ class User(CLITestCase):
         u'{0}@example.com'.format(gen_string("alphanumeric", 48)),
         u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
         u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
-        r"!#$%&*+-/=?^`{|}~@example.com",
+        r"!#$%&*+-/=?^\`{|}~@example.com",
     )
     def test_positive_create_user_4(self, test_data):
         """@Test: Create User for all variations of Email Address

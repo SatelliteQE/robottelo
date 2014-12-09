@@ -1436,7 +1436,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0, 'ContentView was not found')
         self.assertEqual(len(result.stderr), 0, 'No error was expected')
         self.assertEqual(
-            result.stdout['environments'][0]['name'], u'Library',
+            result.stdout['lifecycle-environments'][0]['name'], u'Library',
             'version1 does not exist in Library'
         )
         self.assertEqual(
