@@ -21,7 +21,7 @@ class TestSubscription(CLITestCase):
         """Tests for content-view via Hammer CLI"""
 
         super(TestSubscription, self).setUp()
-        self.org = make_org()
+        self.org = make_org(cached=True)
         self.manifest = manifests.clone()
 
     def test_manifest_upload(self):

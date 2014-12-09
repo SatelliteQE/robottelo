@@ -39,18 +39,19 @@ class TestActivationKey(CLITestCase):
         super(TestActivationKey, self).setUp()
 
         if TestActivationKey.org is None:
-            TestActivationKey.org = make_org()
+            TestActivationKey.org = make_org(cached=True)
         if TestActivationKey.env1 is None:
             TestActivationKey.env1 = make_lifecycle_environment(
-                {u'organization-id': TestActivationKey.org['id']})
+                {u'organization-id': TestActivationKey.org['id']},
+                cached=True)
         if TestActivationKey.env2 is None:
             TestActivationKey.env2 = make_lifecycle_environment(
                 {u'organization-id': TestActivationKey.org['id'],
                  u'prior': TestActivationKey.env1['label']})
         if TestActivationKey.product is None:
             TestActivationKey.product = make_product(
-                {u'organization-id': TestActivationKey.org['id']})
-
+                {u'organization-id': TestActivationKey.org['id']},
+                cached=True)
         if TestActivationKey.library is None:
             TestActivationKey.library = LifecycleEnvironment.info(
                 {'organization-id': TestActivationKey.org['id'],
@@ -244,7 +245,7 @@ class TestActivationKey(CLITestCase):
         """
 
         try:
-            org_obj = make_org()
+            org_obj = make_org(cached=True)
             con_view = make_content_view({
                 u'organization-id': org_obj['id'],
                 u'name': test_data['content-view']
@@ -1313,7 +1314,7 @@ class TestActivationKey(CLITestCase):
 
         """
         try:
-            org = make_org()
+            org = make_org(cached=True)
             activation_key = self._make_activation_key({
                 u'organization-id': org['id'],
             })
@@ -1388,7 +1389,7 @@ class TestActivationKey(CLITestCase):
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
         try:
-            org = make_org()
+            org = make_org(cached=True)
             activation_key = self._make_activation_key({
                 u'organization-id': org['id'],
             })

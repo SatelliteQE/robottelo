@@ -36,11 +36,11 @@ class TestContentHost(CLITestCase):
         super(TestContentHost, self).setUp()
 
         if TestContentHost.NEW_ORG is None:
-            TestContentHost.NEW_ORG = make_org()
+            TestContentHost.NEW_ORG = make_org(cached=True)
         if TestContentHost.NEW_LIFECYCLE is None:
             TestContentHost.NEW_LIFECYCLE = make_lifecycle_environment(
-                {u'organization-id': TestContentHost.NEW_ORG['id']}
-            )
+                {u'organization-id': TestContentHost.NEW_ORG['id']},
+                cached=True)
         if TestContentHost.LIBRARY is None:
             library_result = LifecycleEnvironment.info(
                 {u'organization-id': TestContentHost.NEW_ORG['id'],

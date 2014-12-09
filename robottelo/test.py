@@ -73,6 +73,7 @@ class APITestCase(TestCase):
 
 class CLITestCase(TestCase):
     """Test case for CLI tests."""
+    _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):

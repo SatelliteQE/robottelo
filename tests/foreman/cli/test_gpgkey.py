@@ -62,18 +62,7 @@ class TestGPGKey(CLITestCase):
 
         """
         CLITestCase.setUpClass()
-        cls.org = cls.create_org()
-
-    @classmethod
-    def create_org(cls):
-        """Creates and returns an organization"""
-        label = gen_alphanumeric(6)
-        org = make_org({'label': label})
-        result = Org.exists(tuple_search=('id', org['id']))
-
-        org.update(result.stdout)
-
-        return org
+        cls.org = make_org(cached=True)
 
     def create_gpg_key_file(self, content=None):
         """Creates a fake GPG Key file and returns its path or None if an error

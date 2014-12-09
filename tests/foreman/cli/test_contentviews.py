@@ -88,7 +88,7 @@ class TestContentView(CLITestCase):
         if TestContentView.rhel_content_org is not None:
             return
 
-        TestContentView.rhel_content_org = make_org()
+        TestContentView.rhel_content_org = make_org(cached=True)
         manifest = manifests.clone()
         finished_task = Organization(
             id=TestContentView.rhel_content_org['id']
@@ -135,17 +135,19 @@ class TestContentView(CLITestCase):
         super(TestContentView, self).setUp()
 
         if TestContentView.org is None:
-            TestContentView.org = make_org()
+            TestContentView.org = make_org(cached=True)
         if TestContentView.env1 is None:
             TestContentView.env1 = make_lifecycle_environment(
-                {u'organization-id': TestContentView.org['id']})
+                {u'organization-id': TestContentView.org['id']},
+                cached=True)
         if TestContentView.env2 is None:
             TestContentView.env2 = make_lifecycle_environment(
                 {u'organization-id': TestContentView.org['id'],
                  u'prior': TestContentView.env1['label']})
         if TestContentView.product is None:
             TestContentView.product = make_product(
-                {u'organization-id': TestContentView.org['id']})
+                {u'organization-id': TestContentView.org['id']},
+                cached=True)
 
     @data(*positive_create_data())
     def test_cv_create_cli(self, test_data):
@@ -158,7 +160,7 @@ class TestContentView(CLITestCase):
         @assert: content views are created
 
         """
-        org_obj = make_org()
+        org_obj = make_org(cached=True)
 
         result = Org.info({'id': org_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
@@ -189,7 +191,7 @@ class TestContentView(CLITestCase):
 
         """
 
-        org_obj = make_org()
+        org_obj = make_org(cached=True)
 
         result = Org.info({'id': org_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
@@ -231,7 +233,7 @@ class TestContentView(CLITestCase):
 
         """
 
-        org_obj = make_org()
+        org_obj = make_org(cached=True)
 
         result = Org.info({'id': org_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
@@ -286,7 +288,7 @@ class TestContentView(CLITestCase):
 
         """
 
-        org_obj = make_org()
+        org_obj = make_org(cached=True)
 
         result = Org.info({'id': org_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")
@@ -1842,7 +1844,7 @@ class TestContentView(CLITestCase):
         no_rights_user = make_user({'password': password})
         no_rights_user['password'] = password
 
-        org_obj = make_org()
+        org_obj = make_org(cached=True)
 
         result = Org.info({'id': org_obj['id']})
         self.assertEqual(result.return_code, 0, "Failed to create object")

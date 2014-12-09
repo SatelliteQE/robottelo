@@ -33,11 +33,11 @@ class TestHostCollection(CLITestCase):
         super(TestHostCollection, self).setUp()
 
         if TestHostCollection.org is None:
-            TestHostCollection.org = make_org()
+            TestHostCollection.org = make_org(cached=True)
         if TestHostCollection.new_lifecycle is None:
             TestHostCollection.new_lifecycle = make_lifecycle_environment(
-                {u'organization-id': TestHostCollection.org['id']}
-            )
+                {u'organization-id': TestHostCollection.org['id']},
+                cached=True)
         if TestHostCollection.library is None:
             library_result = LifecycleEnvironment.info(
                 {u'organization-id': TestHostCollection.org['id'],
