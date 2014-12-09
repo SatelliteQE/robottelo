@@ -246,7 +246,7 @@ class Org(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -262,7 +262,7 @@ class Org(UITestCase):
         """
         org_name = ""
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -278,7 +278,7 @@ class Org(UITestCase):
         """
         org_name = "    "
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -413,8 +413,7 @@ class Org(UITestCase):
         domain = entities.Domain(name=domain_name).create()
         self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, domains=[domain_name],
-                     edit=True)
+            make_org(session, org_name=org_name, domains=[domain_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
@@ -464,7 +463,7 @@ class Org(UITestCase):
             password=password).create()
         self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, users=[user_name], edit=True)
+            make_org(session, org_name=org_name, users=[user_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_users"]).click()
@@ -499,8 +498,7 @@ class Org(UITestCase):
         host_grp = entities.HostGroup(name=host_grp_name).create()
         self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, hostgroups=[host_grp_name],
-                     edit=True)
+            make_org(session, org_name=org_name, hostgroups=[host_grp_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
@@ -719,8 +717,7 @@ class Org(UITestCase):
         ).create()
         self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, resources=[resource_name],
-                     edit=True)
+            make_org(session, org_name=org_name, resources=[resource_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_resources"]).click()
@@ -761,7 +758,7 @@ class Org(UITestCase):
         self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name,
-                     medias=[medium_name], edit=True)
+                     medias=[medium_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
@@ -798,8 +795,7 @@ class Org(UITestCase):
         org_name = gen_string("alpha", 8)
         entities.ConfigTemplate(name=template_name).create()
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, templates=[template_name],
-                     edit=True)
+            make_org(session, org_name=org_name, templates=[template_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
@@ -980,8 +976,7 @@ class Org(UITestCase):
         env = entities.Environment(name=env_name).create()
         self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, envs=[env_name],
-                     edit=True)
+            make_org(session, org_name=org_name, envs=[env_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
@@ -1021,8 +1016,7 @@ class Org(UITestCase):
         ).create()
         self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, subnets=[subnet_name],
-                     edit=True)
+            make_org(session, org_name=org_name, subnets=[subnet_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_subnets"]).click()

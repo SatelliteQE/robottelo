@@ -76,7 +76,7 @@ class Location(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -92,7 +92,7 @@ class Location(UITestCase):
 
         loc_name = ""
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -108,7 +108,7 @@ class Location(UITestCase):
 
         loc_name = "    "
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -128,7 +128,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -541,7 +541,7 @@ class Location(UITestCase):
         env = entities.Environment(name=env_name).create()
         self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, envs=[env_name], edit=True)
+            make_loc(session, name=loc_name, envs=[env_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
@@ -580,7 +580,7 @@ class Location(UITestCase):
         ).create()
         self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, subnets=[subnet_name], edit=True)
+            make_loc(session, name=loc_name, subnets=[subnet_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_subnets"]).click()
@@ -615,7 +615,7 @@ class Location(UITestCase):
         domain = entities.Domain(name=domain_name).create()
         self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, domains=[domain_name], edit=True)
+            make_loc(session, name=loc_name, domains=[domain_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
@@ -658,7 +658,7 @@ class Location(UITestCase):
             password=password).create()
         self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, users=[user_name], edit=True)
+            make_loc(session, name=loc_name, users=[user_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_users"]).click()
@@ -691,7 +691,7 @@ class Location(UITestCase):
         host_grp = entities.HostGroup(name=host_grp_name).create()
         self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=True)
+            make_loc(session, name=loc_name)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
@@ -731,8 +731,7 @@ class Location(UITestCase):
         ).create()
         self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, resources=[resource_name],
-                     edit=True)
+            make_loc(session, name=loc_name, resources=[resource_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_resources"]).click()
@@ -770,7 +769,7 @@ class Location(UITestCase):
         ).create()
         self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, medias=[medium_name], edit=True)
+            make_loc(session, name=loc_name, medias=[medium_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
@@ -818,7 +817,7 @@ class Location(UITestCase):
             make_templates(session, name=template, template_path=template_path,
                            template_type=temp_type, custom_really=True)
             self.assertIsNotNone(self.template.search(template))
-            make_loc(session, name=loc_name, edit=True)
+            make_loc(session, name=loc_name)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
