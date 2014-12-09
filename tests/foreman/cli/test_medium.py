@@ -142,7 +142,7 @@ class TestMedium(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         result = Medium().info({'id': medium['id']})
-        self.assertIn(os['name'],
+        self.assertIn(os['title'],
                       result.stdout['operating-systems'],
                       "Operating system is not added to the media")
 

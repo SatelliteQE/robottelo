@@ -202,6 +202,7 @@ class TestGPGKey(CLITestCase):
 
     # Positive Create
 
+    @skip_if_bug_open('bugzilla', 1172009)
     @data(*positive_create_data())
     def test_positive_create_1(self, data):
         """@test: Create gpg key with valid name and valid gpg key via file
@@ -210,6 +211,8 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is created
+
+        @BZ: 1172009
 
         """
 
@@ -239,6 +242,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(
             new_obj[self.search_key], result.stdout[self.search_key])
 
+    @skip_if_bug_open('bugzilla', 1172009)
     @data(*positive_create_data())
     def test_positive_create_2(self, data):
         """@test: Create gpg key with valid name and valid gpg key via file
@@ -247,6 +251,8 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is created
+
+        @BZ: 1172009
 
         """
 
@@ -273,6 +279,7 @@ class TestGPGKey(CLITestCase):
 
     # Negative Create
 
+    @skip_if_bug_open('bugzilla', 1172009)
     @data(*positive_create_data())
     def test_negative_create_1(self, data):
         """@test: Create gpg key with valid name and valid gpg key via file
@@ -281,6 +288,8 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is not created
+
+        @BZ: 1172009
 
         """
 
