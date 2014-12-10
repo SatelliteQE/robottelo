@@ -341,6 +341,7 @@ class User(UITestCase):
             make_user(session, username=name, roles=[role1, role2],
                       edit=True)
             self.user.search(name, search_key).click()
+            self.user.wait_for_ajax()
             self.user.wait_until_element(
                 tab_locators["users.tab_roles"]).click()
             for role in [role1, role2]:

@@ -162,7 +162,7 @@ class Template(UITestCase):
                            custom_really=True, audit_comment=audit_comment,
                            template_type=temp_type)
             self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["alert.error"]))
+                                 (common_locators["haserror"]))
             self.assertIsNone(self.template.search(name))
 
     @data(*generate_strings_list())
