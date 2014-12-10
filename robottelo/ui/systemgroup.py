@@ -44,19 +44,17 @@ class SystemGroup(Base):
             self.wait_for_ajax()
 
             if new_name:  # update name
-                self.edit_entity("system-groups.update_name",
-                                 "system-groups.update_name_field",
+                self.edit_entity(locators["system-groups.update_name"],
+                                 locators["system-groups.update_name_field"],
                                  new_name,
-                                 "system-groups.update_name_save")
-                self.wait_for_ajax()
-
+                                 locators["system-groups.update_name_save"])
             if new_description:  # update description
-                self.edit_entity("system-groups.update_description",
-                                 "system-groups.update_description_field",
-                                 new_description,
-                                 "system-groups.update_description_save")
-                self.wait_for_ajax()
-
+                self.edit_entity(
+                    locators["system-groups.update_description"],
+                    locators["system-groups.update_description_field"],
+                    new_description,
+                    locators["system-groups.update_description_save"]
+                )
             if limit:  # update limit
                 self.wait_until_element(
                     locators["system-groups.update_limit"]).click()
