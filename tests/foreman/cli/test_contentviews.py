@@ -88,7 +88,7 @@ class TestContentView(CLITestCase):
         if TestContentView.rhel_content_org is not None:
             return
 
-        TestContentView.rhel_content_org = make_org(cached=True)
+        TestContentView.rhel_content_org = make_org()
         manifest = manifests.clone()
         finished_task = Organization(
             id=TestContentView.rhel_content_org['id']
@@ -138,8 +138,7 @@ class TestContentView(CLITestCase):
             TestContentView.org = make_org(cached=True)
         if TestContentView.env1 is None:
             TestContentView.env1 = make_lifecycle_environment(
-                {u'organization-id': TestContentView.org['id']},
-                cached=True)
+                {u'organization-id': TestContentView.org['id']})
         if TestContentView.env2 is None:
             TestContentView.env2 = make_lifecycle_environment(
                 {u'organization-id': TestContentView.org['id'],
@@ -323,7 +322,7 @@ class TestContentView(CLITestCase):
         # It shouldn't work - and that is tested in a different case.
         # Individual modules from a puppet repo, however, are a valid
         # variation.
-        """@test: create a composite content views
+        """@test: create a composite content view
 
         @feature: Content Views
 
