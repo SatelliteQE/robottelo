@@ -18,9 +18,10 @@ from robottelo.cli.factory import (
     make_user,
 )
 from robottelo.common import manifests
+from robottelo.common.ssh import upload_file
 from robottelo.cli.repository import Repository
+from robottelo.cli.subscription import Subscription
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.entities import Organization
 from robottelo.cli.org import Org
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
@@ -90,12 +91,14 @@ class TestContentView(CLITestCase):
 
         TestContentView.rhel_content_org = make_org()
         manifest = manifests.clone()
-        finished_task = Organization(
-            id=TestContentView.rhel_content_org['id']
-        ).upload_manifest(manifest)
-        if finished_task['result'] != "success":
-            TestContentView.rhel_content_org = None
-            self.fail("Couldn't upload manifest")
+        upload_file(manifest, remote_file=manifest)
+        result = Subscription.upload({
+            'file': manifest,
+            'organization-id': TestContentView.rhel_content_org['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         "return code must be 0, instead got {0}".
+                         format(result.return_code))
 
         result = RepositorySet.enable({
             'name': (
