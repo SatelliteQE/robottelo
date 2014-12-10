@@ -191,6 +191,33 @@ class ActivationKey(Base):
             raise Exception(
                 "Couldn't find the selected activation key '%s'" % name)
 
+    def enable_repos(self, name, repos, enable=True):
+        """Enables repository via product_content tab of the activation_key."""
+
+        element = self.search_key(name)
+        strategy, value = locators["ak.prd_content.edit_repo"]
+        strategy1, value1 = locators["ak.prd_content.select_repo"]
+        if element is None:
+            raise UINoSuchElementError(
+                "Couldn't find the selected activation key {0}".format(name))
+        element.click()
+        self.wait_for_ajax()
+        self.wait_until_element(tab_locators["ak.tab_prd_content"]).click()
+        self.wait_for_ajax()
+        for repo in repos:
+            repo_edit = self.wait_until_element((strategy, value % repo))
+            if repo_edit is None:
+                raise Exception("Couldn't find the repo: {0}".format(repo))
+            repo_edit.click()
+            self.wait_for_ajax()
+            repo_select = self.wait_until_element((strategy1, value1 % repo))
+            if enable:
+                Select(repo_select).select_by_visible_text("Override to Yes")
+            else:
+                Select(repo_select).select_by_visible_text("Override to No")
+            self.wait_until_element(common_locators['save']).click()
+            self.wait_for_ajax()
+
     def get_attribute(self, name, locator):
         """
         Get the attribute of selected locator
