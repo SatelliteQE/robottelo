@@ -92,8 +92,9 @@ class GPGKey(Base):
             element.click()
             self.wait_for_ajax()
             if new_name:
-                self.edit_entity("gpgkey.edit_name", "gpgkey.edit_name_text",
-                                 new_name, "gpgkey.save_name")
+                self.edit_entity(locators["gpgkey.edit_name"],
+                                 locators["gpgkey.edit_name_text"],
+                                 new_name, locators["gpgkey.save_name"])
                 self.wait_for_ajax()
             if new_key:
                 self.wait_until_element(locators["gpgkey.file_path"]

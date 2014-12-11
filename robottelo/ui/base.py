@@ -44,6 +44,7 @@ class Base(object):
         """
         try:
             _webelement = self.browser.find_element(*locator)
+            self.wait_for_ajax()
             if _webelement.is_displayed():
                 return _webelement
             else:
@@ -193,6 +194,7 @@ class Base(object):
             element = WebDriverWait(self.browser, delay).until(
                 EC.visibility_of_element_located(locator)
             )
+            self.wait_for_ajax()
             return element
         except TimeoutException as e:
             logging.debug("%s: Timed out waiting for element '%s' to display.",
@@ -300,9 +302,9 @@ class Base(object):
         Function to edit the selected entity's  text and save it
         """
 
-        self.wait_until_element(locators[edit_loc]).click()
-        self.field_update(edit_text_loc, entity_value)
-        self.wait_until_element(locators[save_loc]).click()
+        self.wait_until_element(edit_loc).click()
+        self.text_field_update(edit_text_loc, entity_value)
+        self.wait_until_element(save_loc).click()
         self.wait_for_ajax()
 
     def auto_complete_search(self, go_to_page, entity_locator, partial_name,

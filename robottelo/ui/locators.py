@@ -1285,33 +1285,32 @@ locators = {
                    " and contains(.,'%s')]")),
     "content_env.remove": (
         By.XPATH,
-        "//button[@ng-click='openModal()']"),
+        "//button[contains(@ng-click,'remove')]"),
     "content_env.env_link": (
         By.XPATH,
         ("//a[contains(@ui-sref, 'environment.details') and contains(.,'%s')]"
          "/../../../../../div/div/a[contains(@href, 'new')]")),
     "content_env.edit_name": (
         By.XPATH,
-        "//form[@bst-edit-text='workingOn.environment.name']//div/span/i"),
+        ("//form[@bst-edit-text='environment.name']"
+         "//i[contains(@class,'icon-edit')]")),
     "content_env.edit_name_text": (
         By.XPATH,
-        "//form[@bst-edit-text='workingOn.environment.name']/div/input"),
-    "content_env.save_name": (
+        "//form[@bst-edit-text='environment.name']/div/input"),
+    "content_env.edit_name_text.save": (
         By.XPATH,
-        ("//form[@bst-edit-text='workingOn.environment.name']"
-         "//button[@ng-click='save()']")),
+        "//form[@bst-edit-text='environment.name']//button"),
     "content_env.edit_description": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='workingOn.environment.description']"
-         "//div/span/i")),
-    "content_env.edit_description_text": (
+        ("//form[@bst-edit-textarea='environment.description']"
+         "//i[contains(@class,'icon-edit')]")),
+    "content_env.edit_description_textarea": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='workingOn.environment.description']"
+        ("//form[@bst-edit-textarea='environment.description']"
          "/div/textarea")),
-    "content_env.save_description": (
+    "content_env.edit_description_textarea.save": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='workingOn.environment.description']"
-         "//button[@ng-click='save()']")),
+        "//form[@bst-edit-textarea='environment.description']//button"),
 
     # GPG Key
     "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpgKeys.new']"),

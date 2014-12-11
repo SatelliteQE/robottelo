@@ -101,12 +101,13 @@ class ActivationKey(Base):
             element.click()
             self.wait_for_ajax()
             if new_name:
-                self.edit_entity("ak.edit_name", "ak.edit_name_text",
-                                 new_name, "ak.save_name")
+                self.edit_entity(locators["ak.edit_name"],
+                                 locators["ak.edit_name_text"],
+                                 new_name, locators["ak.save_name"])
             if description:
-                self.edit_entity("ak.edit_description",
-                                 "ak.edit_description_text",
-                                 description, "ak.save_description")
+                self.edit_entity(locators["ak.edit_description"],
+                                 locators["ak.edit_description_text"],
+                                 description, locators["ak.save_description"])
             if limit:
                 self.find_element(locators["ak.edit_limit"]).click()
                 self.set_limit(limit)

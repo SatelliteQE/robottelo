@@ -196,26 +196,26 @@ class ContentViews(Base):
 
         element = self.search(name)
 
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            self.find_element(tab_locators['contentviews.tab_details']).click()
+        if element is None:
+            raise UINoSuchElementError(
+                'Could not update the content view {0}'.format(name))
+        element.click()
+        self.wait_for_ajax()
+        self.find_element(tab_locators['contentviews.tab_details']).click()
 
-            if new_name:
-                self.edit_entity(
-                    "contentviews.edit_name",
-                    "contentviews.edit_name_text", new_name,
-                    "contentviews.save_name")
-                self.wait_for_ajax()
-
-            if new_description:
-                self.edit_entity(
-                    "contentviews.edit_description",
-                    "contentviews.edit_description_text", new_description,
-                    "contentviews.save_description")
-                self.wait_for_ajax()
-        else:
-            raise Exception("Could not update the content view '%s'" % name)
+        if new_name:
+            self.edit_entity(
+                locators["contentviews.edit_name"],
+                locators["contentviews.edit_name_text"], new_name,
+                locators["contentviews.save_name"]
+            )
+        if new_description:
+            self.edit_entity(
+                locators["contentviews.edit_description"],
+                locators["contentviews.edit_description_text"],
+                new_description,
+                locators["contentviews.save_description"]
+            )
 
     def add_remove_repos(self, cv_name, repo_names, add_repo=True):
         """
