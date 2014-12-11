@@ -53,7 +53,7 @@ class HardwareModel(Base):
             raise UINoSuchElementError(
                 "Could not find hardware-model '%s'" % old_name)
 
-    def search(self, name):
+    def search(self, name, timeout=None):
         """Searches existing Hardware-Models from UI.
 
         :param str name: Hardware-Model's name to search.
@@ -61,7 +61,8 @@ class HardwareModel(Base):
         """
         Navigator(self.browser).go_to_hardware_models()
         element = self.search_entity(name,
-                                     locators["hwmodels.select_name"])
+                                     locators["hwmodels.select_name"],
+                                     timeout=timeout)
         return element
 
     def delete(self, name, really):

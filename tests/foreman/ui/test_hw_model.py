@@ -143,6 +143,4 @@ class HardwareModelTestCase(UITestCase):
             search = self.hardwaremodel.search(name)
             self.assertIsNotNone(search)
             self.hardwaremodel.delete(name, True)
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 (common_locators["notif.success"]))
-            self.assertIsNone(self.hardwaremodel.search(name))
+            self.assertIsNone(self.hardwaremodel.search(name, timeout=3))
