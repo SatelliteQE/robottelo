@@ -120,7 +120,7 @@ class UITestCase(TestCase):
             # Import from optional requirements
             from pyvirtualdisplay import Display
             from easyprocess import EasyProcess, EasyProcessError
-            cls.display = Display(size=(1024, 768))
+            cls.display = Display(size=(1920, 1080))
             cls.display.start()
             cls.logger.debug(
                 'Virtual display started (pid=%d, display="%s")',
