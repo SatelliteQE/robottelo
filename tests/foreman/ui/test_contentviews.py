@@ -522,12 +522,12 @@ class TestContentViewsUI(UITestCase):
         cv_name = gen_string("alpha", 8)
         rh_repo = {
             'name': ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.5"),
+                     "- RH Common RPMs x86_64 6.3"),
             'product': "Red Hat Enterprise Linux Server",
             'reposet': ("Red Hat Enterprise Linux 6 Server "
                         "- RH Common (RPMs)"),
             'basearch': "x86_64",
-            'releasever': "6.5"
+            'releasever': "6.3"
         }
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, cv_name, rh_repo=rh_repo)
@@ -675,12 +675,12 @@ class TestContentViewsUI(UITestCase):
         cv_name = gen_string("alpha", 8)
         rh_repo = {
             'name': ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.5"),
+                     "- RH Common RPMs x86_64 6.3"),
             'product': "Red Hat Enterprise Linux Server",
             'reposet': ("Red Hat Enterprise Linux 6 Server "
                         "- RH Common (RPMs)"),
             'basearch': "x86_64",
-            'releasever': "6.5"
+            'releasever': "6.3"
         }
         env_name = gen_string("alpha", 8)
         publish_version = "Version 1"
@@ -791,12 +791,12 @@ class TestContentViewsUI(UITestCase):
         cv_name = gen_string("alpha", 8)
         rh_repo = {
             'name': ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.5"),
+                     "- RH Common RPMs x86_64 6.3"),
             'product': "Red Hat Enterprise Linux Server",
             'reposet': ("Red Hat Enterprise Linux 6 Server "
                         "- RH Common (RPMs)"),
             'basearch': "x86_64",
-            'releasever': "6.5"
+            'releasever': "6.3"
         }
         with Session(self.browser) as session:
             self.setup_to_create_cv(session, cv_name, rh_repo=rh_repo)
