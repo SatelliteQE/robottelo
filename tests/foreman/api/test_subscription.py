@@ -23,10 +23,12 @@ class SubscriptionsTestCase(APITestCase):
         """
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
-        task_result = entities.Organization(id=org_id).upload_manifest(
+        task = entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
-        )['result']
-        self.assertEqual(u'success', task_result)
+        )
+        self.assertEqual(
+            u'success', task['result'], task['humanized']['errors']
+        )
 
     def test_positive_delete_1(self):
         """@Test: Delete an Uploaded manifest.
@@ -38,14 +40,18 @@ class SubscriptionsTestCase(APITestCase):
         """
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
-        task_result = entities.Organization(
+        task = entities.Organization(
             id=org_id
-        ).upload_manifest(path=cloned_manifest_path)['result']
-        self.assertEqual(u'success', task_result)
-        task_result = entities.Organization(
+        ).upload_manifest(path=cloned_manifest_path)
+        self.assertEqual(
+            u'success', task['result'], task['humanized']['errors']
+        )
+        task = entities.Organization(
             id=org_id
-        ).delete_manifest()['result']
-        self.assertEqual(u'success', task_result)
+        ).delete_manifest()
+        self.assertEqual(
+            u'success', task['result'], task['humanized']['errors']
+        )
 
     def test_negative_create_1(self):
         """@Test: Upload same manifest to 2 different Organizations.
@@ -58,11 +64,15 @@ class SubscriptionsTestCase(APITestCase):
         cloned_manifest_path = manifests.clone()
         orgid_one = entities.Organization().create()['id']
         orgid_two = entities.Organization().create()['id']
-        task_result1 = entities.Organization(
+        task1 = entities.Organization(
             id=orgid_one
-        ).upload_manifest(path=cloned_manifest_path)['result']
-        self.assertEqual(u'success', task_result1)
-        task_result2 = entities.Organization(
+        ).upload_manifest(path=cloned_manifest_path)
+        self.assertEqual(
+            u'success', task1['result'], task1['humanized']['errors']
+        )
+        task2 = entities.Organization(
             id=orgid_two
-        ).upload_manifest(path=cloned_manifest_path)['result']
-        self.assertNotEqual(u'success', task_result2)
+        ).upload_manifest(path=cloned_manifest_path)
+        self.assertEqual(
+            u'success', task2['result'], task2['humanized']['errors']
+        )

@@ -67,11 +67,12 @@ class TestContentViewsUI(UITestCase):
             # Clone the manifest and fetch it's path.
             manifest_path = manifests.clone()
             # Uploads the manifest and returns the result.
-            task_result = entities.Organization(
+            task = entities.Organization(
                 id=self.org_id
-            ).upload_manifest(path=manifest_path)['result']
-            self.assertEqual(u'success', task_result)
-
+            ).upload_manifest(path=manifest_path)
+            self.assertEqual(
+                u'success', task['result'], task['humanized']['errors']
+            )
             # Enables the RedHat repo and fetches it's Id.
             repo_id = utils.enable_rhrepo_and_fetchid(
                 rh_repo['basearch'],

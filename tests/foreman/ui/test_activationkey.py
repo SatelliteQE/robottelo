@@ -73,10 +73,12 @@ class ActivationKey(UITestCase):
         else:
             # Upload manifest
             manifest_path = manifests.clone()
-            task_result = entities.Organization(
+            task = entities.Organization(
                 id=self.org_id
-            ).upload_manifest(path=manifest_path)['result']
-            self.assertEqual(u'success', task_result)
+            ).upload_manifest(path=manifest_path)
+            self.assertEqual(
+                u'success', task['result'], task['humanized']['errors']
+            )
             # Enable RH repo and fetch repository_id
             repo_id = utils.enable_rhrepo_and_fetchid(
                 rh_repo['basearch'],
@@ -1173,10 +1175,12 @@ class ActivationKey(UITestCase):
         custom_repo_id = repo_attrs['id']
         # Upload manifest
         manifest_path = manifests.clone()
-        task_result = entities.Organization(
+        task = entities.Organization(
             id=self.org_id
-        ).upload_manifest(path=manifest_path)['result']
-        self.assertEqual(u'success', task_result)
+        ).upload_manifest(path=manifest_path)
+        self.assertEqual(
+            u'success', task['result'], task['humanized']['errors']
+        )
         # Enable RH repo and fetch repository_id
         rhel_repo_id = utils.enable_rhrepo_and_fetchid(
             rh_repo['basearch'],

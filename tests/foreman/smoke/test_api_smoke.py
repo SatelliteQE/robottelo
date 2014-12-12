@@ -1047,11 +1047,12 @@ class TestSmoke(TestCase):
 
         # step 2: Upload manifest
         manifest_path = manifests.clone()
-        task_result = entities.Organization(
+        task = entities.Organization(
             id=org['id']
-        ).upload_manifest(path=manifest_path)['result']
-        self.assertEqual(u'success', task_result)
-
+        ).upload_manifest(path=manifest_path)
+        self.assertEqual(
+            u'success', task['result'], task['humanized']['errors']
+        )
         # step 3.1: Enable RH repo and fetch repository_id
         repo_id = utils.enable_rhrepo_and_fetchid(
             basearch="x86_64",
