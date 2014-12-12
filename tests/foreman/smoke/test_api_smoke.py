@@ -6,7 +6,7 @@ from robottelo.api import client, utils
 from robottelo.api.utils import status_code_error
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import get_server_credentials, get_server_url
 from robottelo.common import conf
 from robottelo.common import helpers
 from robottelo.common import manifests
@@ -637,6 +637,9 @@ class TestAvailableURLs(TestCase):
         @Assert: The paths returned are equal to ``API_PATHS``.
 
         """
+        if bz_bug_is_open(1173742) and 'qe-sat6-rhel' in get_server_url():
+            self.skipTest('BZ bug 1173742 is open.')
+
         # Did the server give us any paths at all?
         response = client.get(
             self.path,
