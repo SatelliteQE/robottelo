@@ -10,7 +10,7 @@ server.hostname=
 
 server.ssh.key_private=/home/whoami/.ssh/id_hudson_dsa
 server.ssh.username=root
-# Enter only 'sat' for Satellite and 'sam' for SAM 
+# Enter only 'sat' for Satellite and 'sam' for SAM
 project=sat
 locale=en_US.UTF-8
 remote=0
@@ -48,8 +48,6 @@ driver=firefox
 
 [nosetests]
 verbosity=2
-nocapture=1
-nologcapture=1
 with-xunit=1
 xunit-file=foreman-results.xml
 # NOTE: nosetests --with-xunit does not work with
