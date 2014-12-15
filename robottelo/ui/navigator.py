@@ -5,50 +5,49 @@
 Implements Navigator UI
 """
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import menu_locators
 from selenium.webdriver.common.action_chains import ActionChains
 
 
 class Navigator(Base):
-    """
-    Quickly navigate through menus and tabs.
-    """
+    """Quickly navigate through menus and tabs."""
 
     def menu_click(self, top_menu_locator, sub_menu_locator,
                    tertiary_menu_locator=None, entity=None):
         menu_element = self.wait_until_element(top_menu_locator)
 
-        if menu_element:
-            ActionChains(self.browser).move_to_element(menu_element).perform()
-            submenu_element = self.wait_until_element(sub_menu_locator)
-            if submenu_element and not tertiary_menu_locator:
-                submenu_element.click()
-            elif submenu_element and tertiary_menu_locator:
-                ActionChains(self.browser).move_to_element(submenu_element).\
-                    perform()
-                if entity:
-                    strategy = tertiary_menu_locator[0]
-                    value = tertiary_menu_locator[1]
-                    tertiary_element = self.\
-                        wait_until_element((strategy,
-                                            value % entity))
-                else:
-                    tertiary_element = self.\
-                        wait_until_element(tertiary_menu_locator)
-                if tertiary_element:
-                    self.browser.execute_script("arguments[0].click();",
-                                                tertiary_element)
-                else:
-                    raise Exception(
-                        "tertiary_menu_locator not found: '%s'" % str(
-                            tertiary_menu_locator))
-            elif submenu_element is None:
-                raise Exception(
-                    "sub_menu_locator not found: '%s'" % str(sub_menu_locator))
-        else:
-            raise Exception(
-                "top_menu_locator not found: '%s'" % str(top_menu_locator))
+        if menu_element is None:
+            raise UINoSuchElementError(
+                u'top_menu_locator not found: {0}'.format(top_menu_locator))
+        ActionChains(
+            self.browser
+        ).move_to_element(menu_element).perform()
+        submenu_element = self.wait_until_element(sub_menu_locator)
+        if submenu_element is None:
+            raise UINoSuchElementError(
+                u'sub_menu_locator not found: {0}'.format(sub_menu_locator))
+        elif submenu_element and not tertiary_menu_locator:
+            submenu_element.click()
+        elif submenu_element and tertiary_menu_locator:
+            ActionChains(
+                self.browser
+            ).move_to_element(submenu_element).perform()
+            if entity:
+                strategy, value = tertiary_menu_locator
+                tertiary_element = self.wait_until_element(
+                    (strategy, value % entity))
+            else:
+                tertiary_element = self.wait_until_element(
+                    tertiary_menu_locator)
+            if tertiary_element is None:
+                raise UINoSuchElementError(
+                    u'Tertiary_menu_locator not found: {0}'
+                    .format(tertiary_menu_locator))
+            self.browser.execute_script(
+                "arguments[0].click();",
+                tertiary_element,
+            )
 
     def go_to_dashboard(self):
         self.menu_click(
@@ -359,7 +358,7 @@ class Navigator(Base):
             return org
         else:
             raise Exception(
-                "Could not select the organization: '{0}'".format(org))
+                u'Could not select the organization: {0}'.format(org))
 
     def go_to_select_loc(self, loc):
         """Selects the specified location.
@@ -383,4 +382,4 @@ class Navigator(Base):
             return loc
         else:
             raise Exception(
-                "Could not select the location: '{0}'".format(loc))
+                u'Could not select the location: {0}'.format(loc))

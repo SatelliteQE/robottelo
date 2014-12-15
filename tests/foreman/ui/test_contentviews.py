@@ -160,12 +160,13 @@ class TestContentViewsUI(UITestCase):
         env_name = gen_string("alpha", 8)
         name = gen_string("alpha", 8)
         publish_version = "Version 1"
+        strategy, value = locators["content_env.select_name"]
         with Session(self.browser) as session:
             # Create Life-cycle environment
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 ((strategy, value % env_name)))
             # Creates a CV along with product and sync'ed repository
             self.setup_to_create_cv(session, name, repo_name=repo_name)
             # Add repository to selected CV
@@ -685,11 +686,12 @@ class TestContentViewsUI(UITestCase):
         }
         env_name = gen_string("alpha", 8)
         publish_version = "Version 1"
+        strategy, value = locators["content_env.select_name"]
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 ((strategy, value % env_name)))
             self.setup_to_create_cv(session, cv_name, rh_repo=rh_repo)
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element
@@ -726,16 +728,16 @@ class TestContentViewsUI(UITestCase):
         @assert: Content view can be promoted
 
         """
-
         repo_name = gen_string("alpha", 8)
         env_name = gen_string("alpha", 8)
         publish_version = "Version 1"
         name = gen_string("alpha", 8)
+        strategy, value = locators["content_env.select_name"]
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 ((strategy, value % env_name)))
             self.setup_to_create_cv(session, name, repo_name=repo_name)
             self.content_views.add_remove_repos(name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element
@@ -837,11 +839,12 @@ class TestContentViewsUI(UITestCase):
         repo_name = gen_string("alpha", 8)
         env_name = gen_string("alpha", 8)
         name = gen_string("alpha", 8)
+        strategy, value = locators["content_env.select_name"]
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org=self.org_name,
                                        name=env_name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(session.nav.wait_until_element
+                                 ((strategy, value % env_name)))
             self.setup_to_create_cv(session, name, repo_name=repo_name)
             self.content_views.add_remove_repos(name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element

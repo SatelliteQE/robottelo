@@ -90,7 +90,8 @@ class Base(object):
             if timeout:
                 element = self.wait_until_element(
                     (element_locator[0], element_locator[1] % element_name),
-                    delay=timeout)
+                    timeout=timeout,
+                )
             else:
                 element = self.wait_until_element(
                     (element_locator[0], element_locator[1] % element_name))
@@ -185,16 +186,16 @@ class Base(object):
         else:
             raise Exception("Could not search the entity '%s'" % name)
 
-    def wait_until_element(self, locator, delay=12):
+    def wait_until_element(self, locator, timeout=12, poll_frequency=0.5):
         """
         Wrapper around Selenium's WebDriver that allows you to pause your test
         until an element in the web page is present.
         """
         try:
-            element = WebDriverWait(self.browser, delay).until(
-                EC.visibility_of_element_located(locator)
-            )
-            self.wait_for_ajax()
+            element = WebDriverWait(
+                self.browser, timeout, poll_frequency
+            ).until(EC.visibility_of_element_located(locator))
+            self.wait_for_ajax(poll_frequency=poll_frequency)
             return element
         except TimeoutException as e:
             logging.debug("%s: Timed out waiting for element '%s' to display.",
@@ -227,13 +228,10 @@ class Base(object):
 
         return not (jquery_active or angular_active)
 
-    def wait_for_ajax(self, timeout=30):
-        """
-        Waits for an ajax call to complete until timeout.
-        """
-
+    def wait_for_ajax(self, timeout=30, poll_frequency=0.5):
+        """Waits for an ajax call to complete until timeout."""
         WebDriverWait(
-            self.browser, timeout
+            self.browser, timeout, poll_frequency
         ).until(
             self.ajax_complete, "Timeout waiting for page to load"
         )

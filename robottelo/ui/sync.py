@@ -39,15 +39,21 @@ class Sync(Base):
             prd_exp.click()
         for repo in repos:
             timeout = time.time() + 60 * 10
-            sync_cancel = self.wait_until_element((strategy2,
-                                                   value2 % repo), 3)
+            sync_cancel = self.wait_until_element(
+                (strategy2, value2 % repo),
+                timeout=6,
+                poll_frequency=2,
+            )
             # Waits until sync "cancel" is visible on the UI or times out
             # after 10mins
             while sync_cancel:
                 if time.time() > timeout:
                     break
-                sync_cancel = self.wait_until_element((strategy2,
-                                                       value2 % repo), 3)
+                sync_cancel = self.wait_until_element(
+                    (strategy2, value2 % repo),
+                    timeout=6,
+                    poll_frequency=2,
+                )
             result = self.wait_until_element((strategy1,
                                               value1 % repo), 5).text
             # Updates the result of every sync repo to the repos_result list.
@@ -169,13 +175,19 @@ class Sync(Base):
                     # the below code loops for over 2 mins till the spinner is
                     # visible.
                     rs_spinner = self.wait_until_element(
-                        (strategy4, value4 % REPOSET[reposet]), 3)
+                        (strategy4, value4 % REPOSET[reposet]),
+                        timeout=6,
+                        poll_frequency=2,
+                    )
                     timeout = time.time() + 60 * 2
                     while rs_spinner:
                         if time.time() > timeout:
                             break
                         rs_spinner = self.wait_until_element(
-                            (strategy4, value4 % REPOSET[reposet]), 3)
+                            (strategy4, value4 % REPOSET[reposet]),
+                            timeout=6,
+                            poll_frequency=2,
+                        )
                 for repo in repos_tree[prd][reposet]:
                     repo_values = repos_tree[prd][reposet][repo]
                     repo_name = repo_values['repo_name']
@@ -190,13 +202,19 @@ class Sync(Base):
                             "".format(repo_name))
                     # Similar to above reposet checkbox spinner
                     repo_spinner = self.wait_until_element(
-                        (strategy5, value5 % repo_name), 3)
-                    timeout = time.time() + 30
+                        (strategy5, value5 % repo_name),
+                        timeout=6,
+                        poll_frequency=2,
+                    )
+                    timeout = time.time() + 60
                     while repo_spinner:
                         if time.time() > timeout:
                             break
                         repo_spinner = self.wait_until_element(
-                            (strategy5, value5 % repo_name), 3)
+                            (strategy5, value5 % repo_name),
+                            timeout=6,
+                            poll_frequency=2,
+                        )
 
     def sync_rh_repos(self, repos_tree):
         """Syncs RedHat repositories.
