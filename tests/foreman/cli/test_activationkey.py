@@ -1415,3 +1415,66 @@ class TestActivationKey(CLITestCase):
             len(result.stderr), 0, 'There should not be an error here')
         self.assertIn("Subscription added to activation key",
                       result.stdout)
+
+    @data(
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
+    )
+    def test_positive_copy_activation_key_1(self, new_name):
+        """@Test: Copy Activation key for all valid Activation Key name
+           variations
+
+        @Feature: Activation key copy
+
+        @Steps:
+        1. Copy Activation key for all valid Activation Key name variations
+
+        @Assert: Activation key is sucessfully copied
+
+        """
+        org_id = make_org(cached=True)['id']
+        parent_id = make_activation_key(
+            {u'organization-id': org_id}, cached=True)['id']
+
+        try:
+            result = ActivationKey.copy({
+                u'id': parent_id,
+                u'new-name': new_name,
+                u'organization-id': org_id
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout[0], u'Activation key copied')
+
+    def test_positive_copy_activation_key_2(self):
+        """@Test: Copy Activation key by passing name of parent
+
+        @Feature: Activation key copy
+
+        @Steps:
+        1. Copy Activation key by passing name of parent
+
+        @Assert: Activation key is sucessfully copied
+
+        """
+        org_id = make_org(cached=True)['id']
+        parent_name = make_activation_key(
+            {u'organization-id': org_id}, cached=True)['name']
+
+        try:
+            result = ActivationKey.copy({
+                u'name': parent_name,
+                u'new-name': gen_string('alpha'),
+                u'organization-id': org_id
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout[0], u'Activation key copied')

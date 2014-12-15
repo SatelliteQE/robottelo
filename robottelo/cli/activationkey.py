@@ -68,6 +68,16 @@ class ActivationKey(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def copy(cls, options=None):
+        """
+        Copy an activation key
+        """
+
+        cls.command_sub = 'copy'
+
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def host_collection(cls, options=None):
         """
         List associated host collections
