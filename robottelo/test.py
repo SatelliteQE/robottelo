@@ -13,6 +13,8 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 
+from automation_tools import product_install
+from fabric.api import execute, settings
 from robottelo.cli.metatest import MetaCLITest
 from robottelo.common.helpers import get_server_url
 from robottelo.common import conf
@@ -48,6 +50,7 @@ from robottelo.ui.systemgroup import SystemGroup
 from robottelo.ui.template import Template
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
+from robottelo.vm import VirtualMachine
 from selenium_factory.SeleniumFactory import SeleniumFactory
 from selenium import webdriver
 
@@ -243,3 +246,27 @@ class UITestCase(TestCase):
                 cls.display.pid,
                 cls.display.display
             )
+
+
+class InstallerTestCase(TestCase):
+    vm_cpu = 2
+    vm_ram = 6144
+    vm_os = 'rhel7'
+
+    @classmethod
+    def setUpClass(cls):
+        super(InstallerTestCase, cls).setUpClass()
+        cls.vm = VirtualMachine(cls.vm_cpu, cls.vm_ram, cls.vm_os)
+        cls.vm.create()
+        key_filename = conf.properties.get('main.server.ssh.key_private')
+        with settings(key_filename=key_filename, user='root', warn_only=True):
+            execute(
+                product_install,
+                'upstream',
+                host=cls.vm.ip_addr
+            )
+
+    @classmethod
+    def tearDownClass(cls):
+        super(InstallerTestCase, cls).tearDownClass()
+        cls.vm.destroy()

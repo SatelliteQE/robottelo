@@ -10,6 +10,9 @@ rstr
 # For CLI tests.
 paramiko
 
+# For Installer tests.
+git+https://github.com/SatelliteQE/automation-tools.git
+
 # For UI tests.
 selenium
 git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFactory
