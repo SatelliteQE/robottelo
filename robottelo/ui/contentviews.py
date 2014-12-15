@@ -271,13 +271,18 @@ class ContentViews(Base):
         Checks the status of progress bar while publishing and
         promoting the CV to next environment
         """
-
         strategy, value = locators["contentviews.publish_progress"]
-        check_progress = self.wait_until_element((strategy,
-                                                  value % version))
+        check_progress = self.wait_until_element(
+            (strategy, value % version),
+            timeout=6,
+            poll_frequency=2,
+        )
         while check_progress:
-            check_progress = self.wait_until_element((strategy,
-                                                      value % version))
+            check_progress = self.wait_until_element(
+                (strategy, value % version),
+                timeout=6,
+                poll_frequency=2,
+            )
 
     def publish(self, cv_name, comment=None):
         """
