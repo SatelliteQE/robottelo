@@ -5,7 +5,7 @@
 Implements Locations UI
 """
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator as nav
 from robottelo.common.constants import FILTER
@@ -84,30 +84,29 @@ class Location(Base):
                domains=None, envs=None, hostgroups=None, organizations=None,
                select=True):
         """Creates new Location from UI."""
-
         self.wait_until_element(locators["location.new"]).click()
-
-        if self.wait_until_element(locators["location.name"]):
-            self.field_update("location.name", name)
-            if parent:
-                Select(self.find_element(
-                    locators["location.parent"])
-                    ).select_by_visible_text(parent)
-            self.wait_until_element(common_locators["submit"]).click()
-            if self.wait_until_element(locators["location.proceed_to_edit"]):
-                self.wait_until_element(
-                    locators["location.proceed_to_edit"]).click()
-            self._configure_location(users=users, proxies=proxies,
-                                     subnets=subnets, resources=resources,
-                                     medias=medias, templates=templates,
-                                     domains=domains, envs=envs,
-                                     hostgroups=hostgroups,
-                                     organizations=organizations,
-                                     select=select)
+        if self.wait_until_element(locators["location.name"]) is None:
+            raise UINoSuchElementError('Could not create new location.')
+        self.field_update("location.name", name)
+        if parent:
+            Select(self.find_element(
+                locators["location.parent"])).select_by_visible_text(parent)
+        self.wait_until_element(common_locators["submit"]).click()
+        edit_locator = self.wait_until_element(
+            locators["location.proceed_to_edit"])
+        if edit_locator:
+            edit_locator.click()
+            self._configure_location(
+                users=users, proxies=proxies,
+                subnets=subnets, resources=resources,
+                medias=medias, templates=templates,
+                domains=domains, envs=envs,
+                hostgroups=hostgroups,
+                organizations=organizations,
+                select=select,
+            )
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
-        else:
-            raise Exception("Could not create new location.")
 
     def search(self, name):
         """Searches existing location from UI."""
@@ -127,33 +126,32 @@ class Location(Base):
         """Update Location in UI. """
         org_object = self.search(loc_name)
         self.wait_for_ajax()
-        if org_object:
-            org_object.click()
-            if new_name:
-                if self.wait_until_element(locators["location.name"]):
-                    self.field_update("location.name", new_name)
-            self._configure_location(users=users, proxies=proxies,
-                                     subnets=subnets, resources=resources,
-                                     medias=medias, templates=templates,
-                                     domains=domains, envs=envs,
-                                     hostgroups=hostgroups,
-                                     organizations=organizations,
-                                     new_organizations=new_organizations,
-                                     new_users=new_users,
-                                     new_proxies=new_proxies,
-                                     new_subnets=new_subnets,
-                                     new_resources=new_resources,
-                                     new_medias=new_medias,
-                                     new_templates=new_templates,
-                                     new_domains=new_domains,
-                                     new_envs=new_envs,
-                                     new_hostgroups=new_hostgroups,
-                                     select=select)
-            self.wait_until_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
-        else:
-            raise Exception(
-                "Unable to find the location '%s' for update." % loc_name)
+        if org_object is None:
+            raise UINoSuchElementError(
+                'Unable to find the location {0} for update.'.format(loc_name))
+        org_object.click()
+        if new_name:
+            if self.wait_until_element(locators["location.name"]):
+                self.field_update("location.name", new_name)
+        self._configure_location(users=users, proxies=proxies,
+                                 subnets=subnets, resources=resources,
+                                 medias=medias, templates=templates,
+                                 domains=domains, envs=envs,
+                                 hostgroups=hostgroups,
+                                 organizations=organizations,
+                                 new_organizations=new_organizations,
+                                 new_users=new_users,
+                                 new_proxies=new_proxies,
+                                 new_subnets=new_subnets,
+                                 new_resources=new_resources,
+                                 new_medias=new_medias,
+                                 new_templates=new_templates,
+                                 new_domains=new_domains,
+                                 new_envs=new_envs,
+                                 new_hostgroups=new_hostgroups,
+                                 select=select)
+        self.wait_until_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def delete(self, name, really):
         """Deletes a location."""
