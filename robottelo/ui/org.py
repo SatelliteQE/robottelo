@@ -5,7 +5,7 @@
 Implements Org UI
 """
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator as nav
 from robottelo.common.constants import FILTER
@@ -83,22 +83,25 @@ class Org(Base):
                medias=None, templates=None, domains=None, envs=None,
                hostgroups=None, locations=None, select=True):
         """Create Organization in UI."""
-        if self.wait_until_element(locators["org.new"]):
-            self.wait_until_element(locators["org.new"]).click()
-            if parent_org:
-                type_ele = self.wait_until_element(locators["org.parent"])
-                Select(type_ele).select_by_visible_text(parent_org)
-            if self.wait_until_element(locators["org.name"]):
-                self.field_update("org.name", org_name)
-            if label:
-                self.field_update("org.label", label)
-            if desc:
-                self.field_update("org.desc", desc)
-            self.wait_until_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
-            if self.wait_until_element(locators["org.proceed_to_edit"]):
-                self.wait_until_element(
-                    locators["org.proceed_to_edit"]).click()
+        new_org_locator = self.wait_until_element(locators["org.new"])
+        if new_org_locator is None:
+            raise UINoSuchElementError(
+                'Unable to create the Organization {0}'.format(org_name))
+        new_org_locator.click()
+        if parent_org:
+            type_ele = self.wait_until_element(locators["org.parent"])
+            Select(type_ele).select_by_visible_text(parent_org)
+        if self.wait_until_element(locators["org.name"]):
+            self.field_update("org.name", org_name)
+        if label:
+            self.field_update("org.label", label)
+        if desc:
+            self.field_update("org.desc", desc)
+        self.wait_until_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
+        edit_locator = self.wait_until_element(locators["org.proceed_to_edit"])
+        if edit_locator:
+            edit_locator.click()
             self._configure_org(users=users, proxies=proxies,
                                 subnets=subnets, resources=resources,
                                 medias=medias, templates=templates,
@@ -107,9 +110,6 @@ class Org(Base):
                                 select=select)
             self.wait_until_element(common_locators["submit"]).click()
             self.wait_for_ajax()
-        else:
-            raise Exception(
-                "Unable to create the Organization '%s'" % org_name)
 
     def search(self, name):
         """Searches existing Organization from UI."""
@@ -129,57 +129,53 @@ class Org(Base):
         """Update Organization in UI."""
         org_object = self.search(org_name)
         self.wait_for_ajax()
-        if org_object:
-            org_object.click()
-            self.wait_for_ajax()
-            if new_name:
-                if self.wait_until_element(locators["org.name"]):
-                    self.field_update("org.name", new_name)
-            if new_parent_org:
-                type_ele = self.find_element(locators["org.parent"])
-                Select(type_ele).select_by_visible_text(new_parent_org)
-            if new_desc:
-                self.field_update("org.desc", new_desc)
-            self._configure_org(users=users, proxies=proxies,
-                                subnets=subnets, resources=resources,
-                                medias=medias, templates=templates,
-                                domains=domains, envs=envs,
-                                hostgroups=hostgroups,
-                                locations=locations,
-                                new_locations=new_locations,
-                                new_users=new_users,
-                                new_proxies=new_proxies,
-                                new_subnets=new_subnets,
-                                new_resources=new_resources,
-                                new_medias=new_medias,
-                                new_templates=new_templates,
-                                new_domains=new_domains,
-                                new_envs=new_envs,
-                                new_hostgroups=new_hostgroups,
-                                select=select)
-            self.wait_until_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
-        else:
-            raise Exception(
-                "Unable to find the organization '%s' for update." % org_name)
+        if org_object is None:
+            raise UINoSuchElementError(
+                'Unable to find the Organization {0}'.format(org_name))
+        org_object.click()
+        self.wait_for_ajax()
+        if new_name:
+            if self.wait_until_element(locators["org.name"]):
+                self.field_update("org.name", new_name)
+        if new_parent_org:
+            type_ele = self.find_element(locators["org.parent"])
+            Select(type_ele).select_by_visible_text(new_parent_org)
+        if new_desc:
+            self.field_update("org.desc", new_desc)
+        self._configure_org(
+            users=users, proxies=proxies,
+            subnets=subnets, resources=resources,
+            medias=medias, templates=templates,
+            domains=domains, envs=envs,
+            hostgroups=hostgroups,
+            locations=locations,
+            new_locations=new_locations,
+            new_users=new_users,
+            new_proxies=new_proxies,
+            new_subnets=new_subnets,
+            new_resources=new_resources,
+            new_medias=new_medias,
+            new_templates=new_templates,
+            new_domains=new_domains,
+            new_envs=new_envs,
+            new_hostgroups=new_hostgroups,
+            select=select,
+        )
+        self.wait_until_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def remove(self, org_name, really):
         """Remove Organization in UI."""
-
         searched = self.search(org_name)
-        if searched:
-            strategy = locators["org.dropdown"][0]
-            value = locators["org.dropdown"][1]
-            dropdown = self.wait_until_element((strategy, value % org_name))
-            dropdown.click()
-            strategy1 = locators['org.delete'][0]
-            value1 = locators['org.delete'][1]
-            element = self.wait_until_element((strategy1, value1 % org_name))
-            if element:
-                element.click()
-                self.handle_alert(really)
-            else:
-                raise Exception(
-                    "Could not select entity '%s' for deletion." % org_name)
-        else:
-            raise Exception("Could not search the entity '%s'" % org_name)
+        if searched is None:
+            raise UINoSuchElementError(
+                'Could not search the entity {0}'.format(org_name))
+        strategy, value = locators["org.dropdown"]
+        self.wait_until_element((strategy, value % org_name)).click()
+        strategy1, value1 = locators['org.delete']
+        element = self.wait_until_element((strategy1, value1 % org_name))
+        if element is None:
+            raise UINoSuchElementError(
+                'Could not select entity {0} for deletion.'.format(org_name))
+        element.click()
+        self.handle_alert(really)
