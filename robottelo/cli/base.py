@@ -206,18 +206,23 @@ class Base(object):
             cmd.encode('utf-8'), expect_csv=expect_csv, timeout=timeout)
 
     @classmethod
-    def exists(cls, options=None, tuple_search=None):
-        """
-        Search for record by given: ('name', '<search_value>')
-        @return: CSV parsed structure[0] of the list.
+    def exists(cls, options=None, search=None):
+        """Search for an entity using the query ``seach[0]="seach[1]"``
+
+        Will be used the ``list`` command with the ``--search`` option to do
+        the search.
+
+        If ``options`` argument already have a search key, then the ``search``
+        argument will not be evaluated. Which allows different search query.
+
         """
 
         if options is None:
             options = {}
 
-        if tuple_search and 'search' not in options:
-            options.update({'search': '{0}="{1}"'
-                            .format(tuple_search[0], tuple_search[1])})
+        if search is not None and u'search' not in options:
+            options.update({u'search': u'{0}=\\"{1}\\"'.format(
+                search[0], search[1])})
 
         result = cls.list(options)
 
