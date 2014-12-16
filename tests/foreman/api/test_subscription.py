@@ -54,25 +54,27 @@ class SubscriptionsTestCase(APITestCase):
         )
 
     def test_negative_create_1(self):
-        """@Test: Upload same manifest to 2 different Organizations.
+        """@Test: Upload the same manifest to two organizations.
 
-        @Assert: Manifest is not uploaded in the second Organization.
+        @Assert: The manifest is not uploaded to the second organization.
 
         @Feature: Subscriptions
 
         """
-        cloned_manifest_path = manifests.clone()
-        orgid_one = entities.Organization().create()['id']
-        orgid_two = entities.Organization().create()['id']
-        task1 = entities.Organization(
-            id=orgid_one
-        ).upload_manifest(path=cloned_manifest_path)
+        manifest_path = manifests.clone()
+
+        # Upload the manifest to one organization.
+        org_id = entities.Organization().create_json()['id']
+        task = entities.Organization(id=org_id).upload_manifest(manifest_path)
         self.assertEqual(
-            u'success', task1['result'], task1['humanized']['errors']
+            'success', task['result'], task['humanized']['errors']
         )
-        task2 = entities.Organization(
-            id=orgid_two
-        ).upload_manifest(path=cloned_manifest_path)
-        self.assertEqual(
-            u'success', task2['result'], task2['humanized']['errors']
+
+        # Upload the manifest to a second organization.
+        org = entities.Organization()
+        org.id = org.create_json()['id']
+        self.assertNotEqual(
+            'success',
+            org.upload_manifest(manifest_path)['result']
         )
+        self.assertEqual([], org.subscriptions())
