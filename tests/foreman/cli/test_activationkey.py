@@ -102,7 +102,8 @@ class TestActivationKey(CLITestCase):
     )
     @attr('cli', 'activation-key')
     def test_positive_create_activation_key_1(self, test_data):
-        """@Test: Create Activation key for all variations of Activation key name
+        """@Test: Create Activation key for all variations of
+            Activation key name
 
         @Feature: Activation key
 
@@ -620,7 +621,7 @@ class TestActivationKey(CLITestCase):
         {'name': gen_string('html', 15)},
     )
     def test_positive_update_activation_key_1(self, test_data):
-        """@Test: Update Activation Key Name in an Activation key searching by ID
+        """@Test: Update Activation Key Name in Activation key searching by ID
 
         @Feature: Activation key - Positive Update
 
@@ -1038,7 +1039,7 @@ class TestActivationKey(CLITestCase):
     @run_only_on('sat')
     @stubbed
     def test_associate_product_3(self):
-        """@Test: Test that RH/Custom product can be associated to Activation keys
+        """@Test: Test if RH/Custom product can be associated to Activation key
 
         @Feature: Activation key - Product
 
@@ -1126,7 +1127,8 @@ class TestActivationKey(CLITestCase):
 
     @stubbed
     def test_search_activation_keys_1(self):
-        """@Test: Search Activation key for all variations of Activation key name
+        """@Test: Search Activation key for all variations of
+            Activation key name
 
         @Feature: Activation key - search
 
@@ -1478,3 +1480,98 @@ class TestActivationKey(CLITestCase):
 
         self.assertEqual(result.return_code, 0)
         self.assertEqual(result.stdout[0], u'Activation key copied')
+
+    def test_negative_copy_activation_key(self):
+        """@Test: Copy activation key with duplicate name
+
+        @Feature: Activation key copy
+
+        @Steps:
+        1. Attempt to copy an activation key with a duplicate name
+
+        @Assert: Activation key not sucessfully copied
+
+        """
+        org_id = make_org(cached=True)['id']
+        parent_name = make_activation_key(
+            {u'organization-id': org_id}, cached=True)['name']
+
+        try:
+            result = ActivationKey.copy({
+                u'name': parent_name,
+                u'new-name': parent_name,
+                u'organization-id': org_id,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 65)
+        self.assertIn(u'Name has already been taken', result.stderr)
+
+    def test_positive_copy_subscription(self):
+        """@Test: Copy Activation key and verify contents
+
+        @Feature: Activation key copy
+
+        @Steps:
+        1. Create parent key and add content
+        2. Copy Activation key by passing id of parent
+        3. Verify content was sucessfully copied
+
+        @Assert: Activation key is sucessfully copied
+
+        """
+        # Begin test setup
+        org_id = make_org(cached=True)['id']
+        parent_id = make_activation_key(
+            {u'organization-id': org_id})['id']
+
+        manifest = manifests.clone()
+        upload_file(manifest, remote_file=manifest)
+        try:
+            result = Subscription.upload({
+                'file': manifest,
+                'organization-id': org_id,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        subscription_result = Subscription.list(
+            {'organization-id': org_id}, per_page=False)
+
+        result = ActivationKey.add_subscription({
+            u'id': parent_id,
+            u'subscription-id': subscription_result.stdout[0]['id'],
+        })
+        self.assertEqual(result.return_code, 0,
+                         'Test failed during setup. Return code: {0}'
+                         ', expected 0'.format(result.return_code))
+        # End test setup
+
+        new_name = gen_string('utf8')
+        try:
+            result = ActivationKey.copy({
+                u'id': parent_id,
+                u'new-name': new_name,
+                u'organization-id': org_id,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout[0], u'Activation key copied')
+
+        try:
+            result = ActivationKey.subscriptions({
+                u'name': new_name,
+                u'organization-id': org_id,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 0)
+        # Verify that the subscription copied over
+        self.assertIn(
+            subscription_result.stdout[0]['name'],  # subscription name
+            result.stdout[3]  # subscription list
+        )
