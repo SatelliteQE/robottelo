@@ -207,7 +207,7 @@ class Base(object):
 
     @classmethod
     def exists(cls, options=None, search=None):
-        """Search for an entity using the query ``seach[0]="seach[1]"``
+        """Search for an entity using the query ``search[0]="search[1]"``
 
         Will be used the ``list`` command with the ``--search`` option to do
         the search.
