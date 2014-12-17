@@ -2,7 +2,7 @@
 import mock
 from ddt import data, ddt, unpack
 from fauxfactory import gen_integer
-from robottelo.api import client
+from nailgun import client
 from robottelo.common import conf
 from robottelo import entities, orm
 from unittest import TestCase

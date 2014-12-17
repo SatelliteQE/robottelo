@@ -6,7 +6,7 @@ http://theforeman.org/api/apidoc/v2/content_view_filters.html
 """
 import httplib
 from robottelo import entities
-from robottelo.api import client
+from nailgun import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase

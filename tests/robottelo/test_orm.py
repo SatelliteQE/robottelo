@@ -5,7 +5,7 @@
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import gen_integer
-from robottelo.api import client
+from nailgun import client
 from robottelo.common import conf, helpers
 from robottelo import entities, orm
 from sys import version_info

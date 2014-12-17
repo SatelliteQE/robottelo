@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
 from fauxfactory import gen_string
+from nailgun import client
 from nose.plugins.attrib import attr
-from robottelo.api import client, utils
+from robottelo.api import utils
 from robottelo.api.utils import status_code_error
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open

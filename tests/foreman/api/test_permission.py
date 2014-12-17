@@ -8,9 +8,9 @@ import re
 from ddt import data as ddt_data, ddt
 from fauxfactory import gen_alphanumeric
 from itertools import chain
+from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
-from robottelo.api import client
 from robottelo.common.constants import PERMISSIONS
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import get_server_credentials

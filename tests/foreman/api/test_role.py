@@ -13,9 +13,9 @@ from fauxfactory import (
     gen_numeric_string,
     gen_utf8,
 )
+from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
-from robottelo.api import client
 from robottelo.common import decorators
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase

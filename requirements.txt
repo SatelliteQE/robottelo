@@ -1,6 +1,7 @@
 # For all tests.
-fauxfactory
 ddt
+fauxfactory
+nailgun
 python-bugzilla
 
 # For API tests.

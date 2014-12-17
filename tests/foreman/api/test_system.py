@@ -17,8 +17,8 @@ http://theforeman.org/api/apidoc/v2/systems.html
 """
 import httplib
 import logging
+from nailgun import client
 from requests.exceptions import HTTPError
-from robottelo.api import client
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.entities import System

@@ -49,13 +49,6 @@ Submodules:
     :members:
     :undoc-members:
 
-:mod:`tests.robottelo.test_robottelo_api_client`
-------------------------------------------------
-
-.. automodule:: tests.robottelo.test_robottelo_api_client
-    :members:
-    :undoc-members:
-
 :mod:`tests.robottelo.test_robottelo_api_inspect`
 -------------------------------------------------
 

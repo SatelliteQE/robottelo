@@ -5,7 +5,7 @@ from fauxfactory import (
     gen_integer, gen_ipaddr, gen_mac, gen_netmask,
     gen_string, gen_url
 )
-from robottelo.api import client
+from nailgun import client
 from robottelo.common import helpers
 import httplib
 import importlib
