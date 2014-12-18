@@ -14,7 +14,7 @@ useful to :class:`robottelo.orm.EntityCreateMixin`.
 """
 from datetime import datetime
 from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
-from robottelo.api import client
+from nailgun import client
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
 from robottelo.common.decorators import rm_bug_is_open

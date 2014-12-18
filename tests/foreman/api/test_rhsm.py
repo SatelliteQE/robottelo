@@ -5,7 +5,7 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 
 """
 import httplib
-from robottelo.api import client
+from nailgun import client
 from robottelo.common.helpers import get_server_credentials, get_server_url
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904

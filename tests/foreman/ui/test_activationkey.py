@@ -10,9 +10,9 @@ else:
 
 from ddt import ddt
 from fauxfactory import gen_string
+from nailgun import client
 from nose.plugins.attrib import attr
 from robottelo import entities
-from robottelo.api import client
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (

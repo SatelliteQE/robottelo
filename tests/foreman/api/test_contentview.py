@@ -2,9 +2,9 @@
 """Unit tests for the ``content_views`` paths."""
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
+from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
-from robottelo.api import client
 from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)

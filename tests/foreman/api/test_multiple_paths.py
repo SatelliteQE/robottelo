@@ -3,9 +3,9 @@ import httplib
 import logging
 from ddt import data, ddt
 from functools import partial
+from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
-from robottelo.api import client
 from robottelo.common import conf
 from robottelo.common.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)

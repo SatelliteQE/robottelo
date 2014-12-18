@@ -1,9 +1,9 @@
 """Unit tests for the ``gpgkeys`` paths."""
 import httplib
-from robottelo import entities
-from robottelo.api import client
+from nailgun import client
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
+from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 

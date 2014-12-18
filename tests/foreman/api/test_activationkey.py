@@ -2,12 +2,12 @@
 import httplib
 from ddt import data, ddt
 from fauxfactory import gen_integer, gen_string
+from nailgun import client
 from requests.exceptions import HTTPError
-from robottelo import entities
-from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
+from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
