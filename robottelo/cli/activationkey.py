@@ -31,88 +31,50 @@ from robottelo.cli.base import Base
 
 
 class ActivationKey(Base):
-    """
-    Manipulates Katello's activation-key.
-    """
-
+    """Manipulates Katello's activation-key."""
     command_base = 'activation-key'
 
     @classmethod
     def add_host_collection(cls, options=None):
-        """
-        Associate a resource
-        """
-
+        """Associate a resource"""
         cls.command_sub = 'add-host-collection'
-
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_host_collection(cls, options=None):
-        """
-        Remove the associated resource
-        """
-
-        cls.command_sub = 'remove-host-collection'
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def add_subscription(cls, options=None):
-        """
-        Add subscription
-        """
-
+        """Add subscription"""
         cls.command_sub = 'add-subscription'
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def copy(cls, options=None):
-        """
-        Copy an activation key
-        """
-
+        """Copy an activation key"""
         cls.command_sub = 'copy'
-
-        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def host_collection(cls, options=None):
-        """
-        List associated host collections
-        """
-
+        """List associated host collections"""
         cls.command_sub = 'host-collections'
 
+    @classmethod
+    def remove_host_collection(cls, options=None):
+        """Remove the associated resource"""
+        cls.command_sub = 'remove-host-collection'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_repository(cls, options=None):
-        """
-        Disassociate a resource
-        """
-
+        """Disassociate a resource"""
         cls.command_sub = 'remove-repository'
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_subscription(cls, options=None):
-        """
-        Remove subscription
-        """
-
+        """Remove subscription"""
         cls.command_sub = 'remove-subscription'
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def subscriptions(cls, options=None):
-        """
-        List associated subscriptions
-        """
-
+        """List associated subscriptions"""
         cls.command_sub = 'subscriptions'
-
-        return cls.execute(cls._construct_command(options))
