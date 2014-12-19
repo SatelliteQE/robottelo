@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-"""
-Implements Subnet UI
-"""
+"""Implements Subnet UI"""
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
@@ -11,15 +9,11 @@ from robottelo.common.constants import FILTER
 
 
 class Subnet(Base):
-    """
-    Provides the CRUD functionality for Subnet
-    """
+    """Provides the CRUD functionality for Subnet."""
     def _configure_subnet(self, subnet_network, subnet_mask, domains=None,
                           subnet_gateway=None, subnet_primarydns=None,
                           subnet_secondarydns=None):
-        """
-        Configures the subnet.
-        """
+        """Configures the subnet."""
         domain_tablocator = tab_locators['subnet.tab_domain']
         if subnet_network:
             if self.wait_until_element(locators["subnet.network"]):
@@ -49,10 +43,7 @@ class Subnet(Base):
                subnet_network=None, subnet_mask=None, subnet_gateway=None,
                subnet_primarydns=None, subnet_secondarydns=None,
                domains=None, org_select=True):
-        """
-        Create Subnet from UI
-        """
-
+        """Create Subnet from UI"""
         self.wait_until_element(locators["subnet.new"]).click()
 
         if self.wait_until_element(locators["subnet.name"]):
@@ -68,25 +59,17 @@ class Subnet(Base):
         self.wait_for_ajax()
 
     def delete(self, subnet_name, really):
-        """
-        Remove subnet from UI
-        """
-
+        """Remove subnet from UI."""
         self.delete_entity(subnet_name, really,
                            locators["subnet.display_name"],
                            locators['subnet.delete'])
 
     def search_subnet(self, subnet_name, timeout=None):
-        """
-        Search Subnet name, network and mask to validate results
-        """
-
+        """Search Subnet name, network and mask to validate results."""
         result = None
-
         subnet_object = self.search_entity(subnet_name,
                                            locators['subnet.display_name'],
                                            timeout=timeout)
-
         if subnet_object:
             subnet_object.click()
             if self.wait_until_element(locators["subnet.name"]):
@@ -106,10 +89,7 @@ class Subnet(Base):
     def update(self, subnet_name, orgs=None, new_orgs=None, org_select=False,
                new_subnet_name=None, new_subnet_network=None,
                new_subnet_mask=None):
-        """
-        Update subnet name, network and mask from UI
-        """
-
+        """Update subnet name, network and mask from UI."""
         subnet_object = self.search_entity(subnet_name,
                                            locators["subnet.display_name"])
 
