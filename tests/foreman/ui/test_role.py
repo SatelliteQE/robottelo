@@ -17,14 +17,14 @@ class Role(UITestCase):
     """Implements Roles tests from UI"""
 
     @data(
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("numeric", 10)},
-        {'name': gen_string("alphanumeric", 255)},
-        {'name': gen_string("utf8", 10),
+        {'name': gen_string("alpha")},
+        {'name': gen_string("numeric")},
+        {'name': gen_string("alphanumeric")},
+        {'name': gen_string("utf8"),
          u'bz-bug': 1112657},
-        {'name': gen_string("latin1", 10),
+        {'name': gen_string("latin1"),
          u'bz-bug': 1112657},
-        {'name': gen_string("html", 10),
+        {'name': gen_string("html"),
          u'bz-bug': 1112657}
     )
     def test_create_role(self, test_data):
@@ -60,14 +60,14 @@ class Role(UITestCase):
             self.assertIsNotNone(error)
 
     @data(
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("numeric", 10)},
-        {'name': gen_string("alphanumeric", 255)},
-        {'name': gen_string("utf8", 10),
+        {'name': gen_string("alpha", 256)},
+        {'name': gen_string("numeric", 256)},
+        {'name': gen_string("alphanumeric", 256)},
+        {'name': gen_string("utf8", 256),
          u'bz-bug': 1112657},
-        {'name': gen_string("latin1", 10),
+        {'name': gen_string("latin1", 256),
          u'bz-bug': 1112657},
-        {'name': gen_string("html", 10),
+        {'name': gen_string("html", 256),
          u'bz-bug': 1112657}
     )
     def test_negative_create_role_2(self, test_data):
@@ -87,17 +87,16 @@ class Role(UITestCase):
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
-            self.assertIsNone(self.role.search(test_data['name']))
 
     @data(
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("numeric", 10)},
-        {'name': gen_string("alphanumeric", 255)},
-        {'name': gen_string("utf8", 10),
+        {'name': gen_string("alpha")},
+        {'name': gen_string("numeric")},
+        {'name': gen_string("alphanumeric")},
+        {'name': gen_string("utf8"),
          u'bz-bug': 1112657},
-        {'name': gen_string("latin1", 10),
+        {'name': gen_string("latin1"),
          u'bz-bug': 1112657},
-        {'name': gen_string("html", 10),
+        {'name': gen_string("html"),
          u'bz-bug': 1112657}
     )
     def test_remove_role(self, test_data):
@@ -116,25 +115,23 @@ class Role(UITestCase):
             make_role(session, name=test_data['name'])
             self.assertIsNotNone(self.role.search(test_data['name']))
             self.role.remove(test_data['name'], True)
-            self.assertIsNotNone(self.role.wait_until_element(
-                common_locators["notif.success"]))
             self.assertIsNone(self.role.search(test_data['name']))
 
     @data(
-        {'name': gen_string('alpha', 10),
-         'new_name': gen_string('alpha', 10)},
-        {'name': gen_string('numeric', 10),
-         'new_name': gen_string('numeric', 10)},
-        {'name': gen_string('alphanumeric', 10),
-         'new_name': gen_string('alphanumeric', 10)},
-        {'name': gen_string('utf8', 10),
-         'new_name': gen_string('utf8', 10),
+        {'name': gen_string('alpha'),
+         'new_name': gen_string('alpha')},
+        {'name': gen_string('numeric'),
+         'new_name': gen_string('numeric')},
+        {'name': gen_string('alphanumeric'),
+         'new_name': gen_string('alphanumeric')},
+        {'name': gen_string('utf8'),
+         'new_name': gen_string('utf8'),
          u'bz-bug': 1112657},
-        {'name': gen_string('latin1', 10),
-         'new_name': gen_string('latin1', 10),
+        {'name': gen_string('latin1'),
+         'new_name': gen_string('latin1'),
          u'bz-bug': 1112657},
-        {'name': gen_string('html', 10),
-         'new_name': gen_string('html', 10),
+        {'name': gen_string('html'),
+         'new_name': gen_string('html'),
          u'bz-bug': 1112657},
     )
     def test_update_role_name(self, test_data):
