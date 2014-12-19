@@ -264,6 +264,7 @@ def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
         u'subnet_primarydns': None,
         u'subnet_secondarydns': None,
         u'org_select': False,
+        u'domains': None
     }
     page = session.nav.go_to_subnets
     core_factory(create_args, kwargs, session, page,

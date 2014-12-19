@@ -68,7 +68,8 @@ class Subnet(UITestCase):
         @Assert: Subnet is created with domain associated
 
         """
-        strategy, value = common_locators["entity_deselect"]
+        strategy1, value1 = common_locators["entity_deselect"]
+        strategy2, value2 = common_locators["entity_checkbox"]
         name = gen_string("alpha", 4)
         network = gen_ipaddr(ip3=True)
         mask = gen_netmask()
@@ -82,8 +83,17 @@ class Subnet(UITestCase):
             session.nav.wait_until_element(
                 tab_locators["subnet.tab_domain"]).click()
             element = session.nav.wait_until_element(
-                (strategy, value % domain_name))
-            self.assertIsNotNone(element)
+                (strategy1, value1 % domain_name))
+            checkbox_element = session.nav.wait_until_element(
+                (strategy2, value2 % domain_name))
+            # Depending upon the number of domains either, checkbox or
+            # selection list appears.
+            if element:
+                self.assertIsNotNone(element)
+            elif checkbox_element:
+                self.assertTrue(checkbox_element.is_selected())
+            else:
+                self.assertIsNotNone()
 
     @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
@@ -96,12 +106,14 @@ class Subnet(UITestCase):
         @Assert: Subnet is not created with 256 chars
 
         """
+        locator = common_locators["haserror"]
         network = gen_ipaddr(ip3=True)
         mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
-            self.assertIsNone(self.subnet.search_subnet(subnet_name=name))
+            error_element = session.nav.wait_until_element(locator)
+            self.assertIsNotNone(error_element)
 
     @data("", " ")
     def test_create_subnet_negative_2(self, name):
@@ -112,13 +124,14 @@ class Subnet(UITestCase):
         @Assert: Subnet is not created.
 
         """
-
+        locator = common_locators["haserror"]
         network = gen_ipaddr(ip3=True)
         mask = gen_netmask()
         with Session(self.browser) as session:
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
-            self.assertIsNone(self.subnet.search_subnet(subnet_name=name))
+            error_element = session.nav.wait_until_element(locator)
+            self.assertIsNotNone(error_element)
 
     def test_create_subnet_negative_4(self):
         """@Test: Create new subnet with negative values
@@ -139,21 +152,21 @@ class Subnet(UITestCase):
                         subnet_mask=mask, subnet_gateway=gateway,
                         subnet_primarydns=primarydns,
                         subnet_secondarydns=secondarydns)
-            network = session.nav.wait_until_element(
+            network_element = session.nav.wait_until_element(
                 locators["subnet.network_haserror"])
-            mask = session.nav.wait_until_element(
+            mask_element = session.nav.wait_until_element(
                 locators["subnet.mask_haserror"])
-            gateway = session.nav.wait_until_element(
+            gateway_element = session.nav.wait_until_element(
                 locators["subnet.gateway_haserror"])
-            primarydns = session.nav.wait_until_element(
+            primarydns_element = session.nav.wait_until_element(
                 locators["subnet.dnsprimary_haserror"])
-            secondarydns = session.nav.wait_until_element(
+            secondarydns_element = session.nav.wait_until_element(
                 locators["subnet.dnssecondary_haserror"])
-            self.assertIsNotNone(network)
-            self.assertIsNotNone(mask)
-            self.assertIsNotNone(gateway)
-            self.assertIsNotNone(primarydns)
-            self.assertIsNotNone(secondarydns)
+            self.assertIsNotNone(network_element)
+            self.assertIsNotNone(mask_element)
+            self.assertIsNotNone(gateway_element)
+            self.assertIsNotNone(primarydns_element)
+            self.assertIsNotNone(secondarydns_element)
 
     @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
@@ -171,8 +184,6 @@ class Subnet(UITestCase):
             make_subnet(session, subnet_name=name, subnet_network=network,
                         subnet_mask=mask)
             self.subnet.delete(name, True)
-            self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators["notif.success"]))
             self.assertIsNone(self.subnet.search_subnet(
                 subnet_name=name, timeout=5))
 
@@ -276,16 +287,3 @@ class Subnet(UITestCase):
             self.assertEqual(name, result_object['name'])
             self.assertEqual(network, result_object['network'])
             self.assertEqual(mask, result_object['mask'])
-
-    def test_search_subnet_2(self):
-        """@Test: Search for a non-existent subnet name
-
-        @Feature: Subnet - Negative Search
-
-        @Assert: Subnet name is not found
-
-        """
-        subnet_name = gen_string("alpha", 8)
-        with Session(self.browser) as session:
-            session.nav.go_to_subnets()  # go to subnet page
-            self.assertIsNone(self.subnet.search_subnet(subnet_name))

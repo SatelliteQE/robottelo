@@ -533,7 +533,7 @@ common_locators = {
         "//div[@class='ms-selection']//span[contains(.,'%s')]"),
     "entity_checkbox": (
         By.XPATH,
-        "//ul[@class='inputs-list']/li/label[normalize-space(.)='%s']"),
+        "//label[normalize-space(.)='%s']/input[@type='checkbox']"),
     "name_haserror": (
         By.XPATH,
         ("//label[@for='name']/../../"
