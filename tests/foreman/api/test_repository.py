@@ -233,6 +233,8 @@ class RepositoryUpdateTestCase(APITestCase):
         @Feature: Repository
 
         """
+        if 'content_type' in attrs:
+            self.skipTest('Cannot update the content_type of a repository.')
         client.put(
             self.repository.path(),
             attrs,
