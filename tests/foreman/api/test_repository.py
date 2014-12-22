@@ -233,8 +233,6 @@ class RepositoryUpdateTestCase(APITestCase):
         @Feature: Repository
 
         """
-        if 'content_type' in attrs:
-            self.skipTest('Cannot update the content_type of a repository.')
         client.put(
             self.repository.path(),
             attrs,
@@ -244,7 +242,14 @@ class RepositoryUpdateTestCase(APITestCase):
         real_attrs = self.repository.read_json()
         for name, value in attrs.items():
             self.assertIn(name, real_attrs.keys())
-            self.assertEqual(value, real_attrs[name])
+            if name == 'content_type':
+                # Cannot update a repository's content type.
+                self.assertEqual(
+                    entities.Repository.content_type.default,
+                    real_attrs[name]
+                )
+            else:
+                self.assertEqual(value, real_attrs[name])
 
 
 class RepositorySyncTestCase(APITestCase):
