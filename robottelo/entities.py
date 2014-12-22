@@ -17,7 +17,7 @@ from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
 from nailgun import client
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
-from robottelo.common.decorators import rm_bug_is_open
+from robottelo.common.decorators import bz_bug_is_open, rm_bug_is_open
 from robottelo.common.helpers import (
     get_data_file, get_server_credentials, escape_search)
 from robottelo import orm
@@ -1898,17 +1898,24 @@ class Repository(
         :raises: ``APIResponseError`` If the API does not return any results.
 
         """
-        response = client.get(
-            self.path(which=None),
-            auth=get_server_credentials(),
-            data={u'organization_id': org_id, u'name': name},
-            verify=False,
-        )
-        response.raise_for_status()
-        results = response.json()['results']
+        for _ in range(5 if bz_bug_is_open(1176708) else 1):
+            response = client.get(
+                self.path(which=None),
+                auth=get_server_credentials(),
+                data={u'organization_id': org_id, u'name': name},
+                verify=False,
+            )
+            response.raise_for_status()
+            results = response.json()['results']
+            if len(results) == 0 and bz_bug_is_open(1176708):
+                sleep(5)
+            else:
+                break
         if len(results) != 1:
             raise APIResponseError(
-                "The length of the results is:", len(results))
+                'Found {0} repositories named {1} in organization {2}: {3} '
+                .format(len(results), name, org_id, results)
+            )
         return results[0]['id']
 
     def upload(self, filename):
