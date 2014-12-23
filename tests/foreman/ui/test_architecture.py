@@ -17,14 +17,14 @@ from robottelo.ui.session import Session
 class Architecture(UITestCase):
     """Implements Architecture tests from UI"""
 
-    @data({u'name': gen_string('alpha', 10),
-           u'os_name': gen_string('alpha', 10)},
-          {u'name': gen_string('html', 10),
-           u'os_name': gen_string('html', 10)},
-          {u'name': gen_string('utf8', 10),
-           u'os_name': gen_string('utf8', 10)},
-          {u'name': gen_string('alphanumeric', 255),
-           u'os_name': gen_string('alphanumeric', 255)})
+    @data({u'name': gen_string('alpha'),
+           u'os_name': gen_string('alpha')},
+          {u'name': gen_string('html'),
+           u'os_name': gen_string('html')},
+          {u'name': gen_string('utf8'),
+           u'os_name': gen_string('utf8')},
+          {u'name': gen_string('alphanumeric'),
+           u'os_name': gen_string('alphanumeric')})
     def test_positive_create_arch_1(self, test_data):
         """@Test: Create a new Architecture with OS
 
@@ -61,12 +61,10 @@ class Architecture(UITestCase):
         @Assert: Architecture is not created
 
         """
-
         with Session(self.browser) as session:
             make_arch(session, name=name)
             self.assertIsNotNone(self.architecture.wait_until_element
                                  (common_locators["name_haserror"]))
-            self.assertIsNone(self.architecture.search(name))
 
     @data("", "  ")
     def test_negative_create_arch_2(self, name):
@@ -77,7 +75,6 @@ class Architecture(UITestCase):
         @Assert: Architecture is not created
 
         """
-
         with Session(self.browser) as session:
             make_arch(session, name=name)
             self.assertIsNotNone(self.architecture.wait_until_element
@@ -92,7 +89,6 @@ class Architecture(UITestCase):
         @Assert: Architecture is not created
 
         """
-
         with Session(self.browser) as session:
             make_arch(session, name=name)
             self.assertIsNotNone(self.architecture.search(name))
@@ -101,14 +97,14 @@ class Architecture(UITestCase):
                                  (common_locators["name_haserror"]))
 
     @skip_if_bug_open('bugzilla', 1123388)
-    @data({u'name': gen_string('alpha', 10),
-           u'os_name': gen_string('alpha', 10)},
-          {u'name': gen_string('html', 10),
-           u'os_name': gen_string('html', 10)},
-          {u'name': gen_string('utf8', 10),
-           u'os_name': gen_string('utf8', 10)},
-          {u'name': gen_string('alphanumeric', 255),
-           u'os_name': gen_string('alphanumeric', 255)})
+    @data({u'name': gen_string('alpha'),
+           u'os_name': gen_string('alpha')},
+          {u'name': gen_string('html'),
+           u'os_name': gen_string('html')},
+          {u'name': gen_string('utf8'),
+           u'os_name': gen_string('utf8')},
+          {u'name': gen_string('alphanumeric'),
+           u'os_name': gen_string('alphanumeric')})
     def test_remove_arch(self, test_data):
         """@Test: Delete an existing Architecture
 
@@ -119,7 +115,6 @@ class Architecture(UITestCase):
         @BZ: 1131815
 
         """
-
         entities.OperatingSystem(name=test_data['os_name']).create()
         with Session(self.browser) as session:
             make_arch(session, name=test_data['name'],
@@ -129,18 +124,18 @@ class Architecture(UITestCase):
             self.assertIsNone(self.architecture.search(test_data['name']))
 
     @skip_if_bug_open('bugzilla', 1123388)
-    @data({u'old_name': gen_string('alpha', 10),
-           u'new_name': gen_string('alpha', 10),
-           u'os_name': gen_string('alpha', 10)},
-          {u'old_name': gen_string('html', 10),
-           u'new_name': gen_string('html', 10),
-           u'os_name': gen_string('html', 10)},
-          {u'old_name': gen_string('utf8', 10),
-           u'new_name': gen_string('utf8', 10),
-           u'os_name': gen_string('utf8', 10)},
-          {u'old_name': gen_string('alphanumeric', 255),
-           u'new_name': gen_string('alphanumeric', 255),
-           u'os_name': gen_string('alphanumeric', 255)})
+    @data({u'old_name': gen_string('alpha'),
+           u'new_name': gen_string('alpha'),
+           u'os_name': gen_string('alpha')},
+          {u'old_name': gen_string('html'),
+           u'new_name': gen_string('html'),
+           u'os_name': gen_string('html')},
+          {u'old_name': gen_string('utf8'),
+           u'new_name': gen_string('utf8'),
+           u'os_name': gen_string('utf8')},
+          {u'old_name': gen_string('alphanumeric'),
+           u'new_name': gen_string('alphanumeric'),
+           u'os_name': gen_string('alphanumeric')})
     def test_update_arch(self, test_data):
         """@Test: Update Architecture with new name and OS
 

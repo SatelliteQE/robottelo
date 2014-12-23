@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 from robottelo.common.constants import FILTER
@@ -9,17 +9,13 @@ from robottelo.ui.navigator import Navigator
 
 
 class ComputeResource(Base):
-    """
-    Provides the CRUD functionality for Compute Resources.
-    """
+    """Provides the CRUD functionality for Compute Resources."""
 
     def _configure_resource(self, provider_type, url,
                             user, password, region,
                             libvirt_display, tenant,
                             libvirt_set_passwd, description=None):
-        """
-        Configures the compute resource.
-        """
+        """Configures the compute resource."""
         if description:
             description_element = self.wait_until_element(
                 locators['resource.description'])
@@ -44,7 +40,6 @@ class ComputeResource(Base):
                     tenant = self.find_element(
                         locators["resource.rhos_tenant"])
                     Select(tenant).select_by_visible_text(tenant)
-
             if provider_type == "Libvirt":
                 if self.wait_until_element(locators["resource.url"]):
                     self.find_element(locators["resource.url"]).send_keys(url)
@@ -61,9 +56,7 @@ class ComputeResource(Base):
                provider_type=None, url=None, user=None,
                password=None, region=None, libvirt_display=None,
                libvirt_set_passwd=True, tenant=None):
-        """
-        Creates a compute resource.
-        """
+        """Creates a compute resource."""
         self.wait_until_element(locators["resource.new"]).click()
         if self.wait_until_element(locators["resource.name"]):
             self.find_element(locators["resource.name"]).send_keys(name)
@@ -78,9 +71,7 @@ class ComputeResource(Base):
         self.wait_for_ajax()
 
     def search(self, name):
-        """
-        Searches existing compute resource from UI
-        """
+        """Searches existing compute resource from UI."""
         Navigator(self.browser).go_to_compute_resources()
         self.wait_for_ajax()
         element = self.search_entity(name, locators["resource.select_name"])
@@ -90,35 +81,30 @@ class ComputeResource(Base):
                provider_type=None, url=None, user=None, password=None,
                region=None, libvirt_display=None, libvirt_set_passwd=True,
                tenant=None, new_description=None):
-        """
-        Updates a compute resource.
-        """
+        """Updates a compute resource."""
         element = self.search(oldname)
-        if element:
-            strategy, value = locators["resource.edit"]
-            edit = self.wait_until_element((strategy, value % oldname.lower()))
-            edit.click()
-            if self.wait_until_element(locators["resource.name"]) and newname:
-                self.field_update("resource.name", newname)
-            self._configure_resource(provider_type, url, user, password,
-                                     region, libvirt_display, tenant,
-                                     libvirt_set_passwd,
-                                     description=new_description)
-            if orgs is not None or new_orgs is not None:
-                self.configure_entity(orgs, FILTER['cr_org'],
-                                      tab_locator=tab_locators["tab_org"],
-                                      new_entity_list=new_orgs,
-                                      entity_select=org_select)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
-        else:
-            raise Exception("Could not update the resource '%s'" % oldname)
+        if element is None:
+            raise UINoSuchElementError(
+                'Could not update the resource {0}'.format(oldname))
+        strategy, value = locators["resource.edit"]
+        edit = self.wait_until_element((strategy, value % oldname))
+        edit.click()
+        if self.wait_until_element(locators["resource.name"]) and newname:
+            self.field_update("resource.name", newname)
+        self._configure_resource(provider_type, url, user, password,
+                                 region, libvirt_display, tenant,
+                                 libvirt_set_passwd,
+                                 description=new_description)
+        if orgs is not None or new_orgs is not None:
+            self.configure_entity(orgs, FILTER['cr_org'],
+                                  tab_locator=tab_locators["tab_org"],
+                                  new_entity_list=new_orgs,
+                                  entity_select=org_select)
+        self.find_element(common_locators["submit"]).click()
+        self.wait_for_ajax()
 
     def delete(self, name, really):
-        """
-        Removes the compute resource info.
-        """
-
+        """Removes the compute resource info."""
         self.delete_entity(name, really, locators["resource.select_name"],
                            locators['resource.delete'],
                            drop_locator=locators["resource.dropdown"])

@@ -6,13 +6,14 @@ from fauxfactory import gen_string
 from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.common.decorators import run_only_on
 from robottelo.common.decorators import data
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org, make_resource
+from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+from robottelo import entities
 
 
 @run_only_on('sat')
@@ -39,7 +40,6 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(
         gen_string('alphanumeric', 255),
@@ -54,8 +54,6 @@ class ComputeResource(UITestCase):
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is created
-
-        @BZ: 1120271
 
         """
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -95,7 +93,6 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_1(self, name):
@@ -105,8 +102,6 @@ class ComputeResource(UITestCase):
 
         @Assert: A libvirt Compute Resource is not created
 
-        @BZ: 1120271
-
         """
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
@@ -114,10 +109,10 @@ class ComputeResource(UITestCase):
         with Session(self.browser) as session:
             make_resource(session, name=name,
                           provider_type=provider_type, url=url)
-            search = self.compute_resource.search(name)
-            self.assertIsNone(search)
+            self.assertIsNotNone(self.compute_resource.wait_until_element(
+                common_locators["name_haserror"]
+            ))
 
-    @skip_if_bug_open('bugzilla', 1120271)
     @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_2(self, description):
@@ -128,8 +123,6 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created with 256 char
         description.
 
-        @BZ: 1120271
-
         """
         name = gen_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
@@ -139,9 +132,9 @@ class ComputeResource(UITestCase):
             make_resource(session, name=name,
                           description=description,
                           provider_type=provider_type, url=url)
-            error = session.nav.wait_until_element(
+            error_element = session.nav.wait_until_element(
                 common_locators["haserror"])
-            self.assertIsNotNone(error)
+            self.assertIsNotNone(error_element)
 
     @data("", "  ")
     def test_create_resource_negative_3(self, name):
@@ -152,31 +145,29 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created
 
         """
-
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
             make_resource(session, name=name,
                           provider_type=provider_type, url=url)
-            error = session.nav.wait_until_element(
+            error_element = session.nav.wait_until_element(
                 common_locators["name_haserror"])
-            self.assertIsNotNone(error)
+            self.assertIsNotNone(error_element)
 
-    @skip_if_bug_open('bugzilla', 1123352)
     @attr('ui', 'resource', 'implemented')
-    @data({'name': gen_string('alpha', 10),
-           'newname': gen_string('alpha', 10)},
-          {'name': gen_string('numeric', 10),
-           'newname': gen_string('numeric', 10)},
-          {'name': gen_string('alphanumeric', 10),
-           'newname': gen_string('alphanumeric', 10)},
-          {'name': gen_string('utf8', 10),
-           'newname': gen_string('utf8', 10)},
-          {'name': gen_string('latin1', 10),
-           'newname': gen_string('latin1', 10)},
-          {'name': gen_string('html', 10),
-           'newname': gen_string('html', 10)})
+    @data({'name': gen_string('alpha'),
+           'newname': gen_string('alpha')},
+          {'name': gen_string('numeric'),
+           'newname': gen_string('numeric')},
+          {'name': gen_string('alphanumeric'),
+           'newname': gen_string('alphanumeric')},
+          {'name': gen_string('utf8'),
+           'newname': gen_string('utf8')},
+          {'name': gen_string('latin1'),
+           'newname': gen_string('latin1')},
+          {'name': gen_string('html'),
+           'newname': gen_string('html')})
     def test_update_resource(self, testdata):
         """@Test: Update a libvirt Compute Resource's Organization
 
@@ -184,23 +175,26 @@ class ComputeResource(UITestCase):
 
         @Assert: The libvirt Compute Resource is updated
 
-        @BZ: 1123352
-
         """
         name = testdata['name']
         newname = testdata['newname']
-        org_name = gen_string("alpha", 8)
-        new_org = gen_string("alpha", 8)
+        org_name1 = entities.Organization(
+            name=gen_string("alpha", 8)
+        ).create_json()['name']
+        org_name2 = entities.Organization(
+            name=gen_string("alpha", 8)
+        ).create_json()['name']
         libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
         url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name],
-                          provider_type=provider_type, url=url)
+            make_resource(session, name=name, orgs=[org_name1],
+                          provider_type=provider_type, url=url,
+                          org_select=True)
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
-            make_org(session, org_name=new_org)
-            self.compute_resource.update(name, newname, [org_name], [new_org],
+            self.compute_resource.update(name, newname,
+                                         [org_name1], [org_name2],
                                          libvirt_set_passwd=False)
             search = self.compute_resource.search(newname)
             self.assertIsNotNone(search)
