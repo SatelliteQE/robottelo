@@ -44,6 +44,7 @@ class ActivationKey(
     unlimited_content_hosts = orm.BooleanField()
     max_content_hosts = orm.IntegerField()
     host_collection = orm.OneToManyField('HostCollection')
+    auto_attach = orm.BooleanField()
 
     class Meta(object):
         """Non-field information about this entity."""

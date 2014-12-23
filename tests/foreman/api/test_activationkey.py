@@ -404,3 +404,29 @@ class ActivationKeysTestCase(APITestCase):
         # Verify that the association succeeded.
         act_key = entities.ActivationKey(id=act_key['id']).read_json()
         self.assertEqual(act_key['host_collections'], [])
+
+    def test_update_auto_attach(self):
+        """@Test: Create an activation key, then update the auto_attach
+        field with the inverse boolean value.
+
+        @Feature: ActivationKey
+
+        @Assert:
+        1. The update succeeds with an HTTP 200 return code.
+        2. The value was changed.
+
+        """
+        attrs = entities.ActivationKey().create_json()
+        activation_key = entities.ActivationKey(id=attrs['id'])
+        client.put(
+            activation_key.path(),
+            {'auto_attach': not attrs['auto_attach']},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+
+        # Status code is OK. Was `auto_attach` changed?
+        self.assertNotEqual(
+            activation_key.read_json()['auto_attach'],
+            attrs['auto_attach'],
+        )
