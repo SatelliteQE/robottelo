@@ -27,7 +27,6 @@ class Hostgroup(UITestCase):
         @Assert: Hostgroup is created
 
         """
-
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
@@ -43,26 +42,24 @@ class Hostgroup(UITestCase):
         @Assert: Hostgroup is deleted
 
         """
-
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
             self.hostgroup.delete(name, really=True)
             self.assertIsNone(self.hostgroup.search(name))
 
-    @skip_if_bug_open('bugzilla', 1121755)
-    @data({u'name': gen_string('alpha', 10),
-           u'new_name': gen_string('alpha', 10)},
-          {u'name': gen_string('latin1', 10),
-           u'new_name': gen_string('latin1', 10)},
-          {u'name': gen_string('numeric', 10),
-           u'new_name': gen_string('numeric', 10)},
-          {u'name': gen_string('html', 10),
-           u'new_name': gen_string('html', 10)},
-          {u'name': gen_string('utf8', 10),
-           u'new_name': gen_string('utf8', 10)},
-          {u'name': gen_string('alphanumeric', 255),
-           u'new_name': gen_string('alphanumeric', 255)})
+    @data({u'name': gen_string('alpha'),
+           u'new_name': gen_string('alpha')},
+          {u'name': gen_string('latin1'),
+           u'new_name': gen_string('latin1')},
+          {u'name': gen_string('numeric'),
+           u'new_name': gen_string('numeric')},
+          {u'name': gen_string('html'),
+           u'new_name': gen_string('html')},
+          {u'name': gen_string('utf8'),
+           u'new_name': gen_string('utf8')},
+          {u'name': gen_string('alphanumeric'),
+           u'new_name': gen_string('alphanumeric')})
     def test_update_hostgroup(self, test_data):
         """@Test: Update hostgroup with a new name
 
@@ -71,7 +68,6 @@ class Hostgroup(UITestCase):
         @Assert: Hostgroup is updated
 
         """
-
         with Session(self.browser) as session:
             make_hostgroup(session, name=test_data['name'])
             self.assertIsNotNone(self.hostgroup.search(test_data['name']))
@@ -88,12 +84,10 @@ class Hostgroup(UITestCase):
         @Assert: Hostgroup is not created
 
         """
-
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.wait_until_element
                                  (common_locators["name_haserror"]))
-            self.assertIsNone(self.hostgroup.search(name))
 
     @data(*generate_strings_list(len1=6))
     def test_negative_create_hostgroup_2(self, name):
@@ -104,7 +98,6 @@ class Hostgroup(UITestCase):
         @Assert: Hostgroup is not created
 
         """
-
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
@@ -112,9 +105,8 @@ class Hostgroup(UITestCase):
             self.assertIsNotNone(self.hostgroup.wait_until_element
                                  (common_locators["name_haserror"]))
 
-    @ddt_data({u'name': ""},
-              {u'name': "  "})
-    def test_negative_create_hostgroup_3(self, test_data):
+    @ddt_data("", "  ")
+    def test_negative_create_hostgroup_3(self, name):
         """@Test: Create new hostgroup with whitespaces in name
 
         @Feature: Hostgroup - Negative Create
@@ -122,8 +114,7 @@ class Hostgroup(UITestCase):
         @Assert: Hostgroup is not created
 
         """
-
         with Session(self.browser) as session:
-            make_hostgroup(session, name=test_data['name'])
+            make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.wait_until_element
                                  (common_locators["name_haserror"]))

@@ -45,7 +45,7 @@ class Sync(Base):
                 poll_frequency=2,
             )
             # Waits until sync "cancel" is visible on the UI or times out
-            # after 10mins
+            # after 10 mins
             while sync_cancel:
                 if time.time() > timeout:
                     break
@@ -159,7 +159,7 @@ class Sync(Base):
                 prd_element.click()
             else:
                 raise UINoSuchElementError(
-                    "Could not select the repo: '{0}'".format(PRDS[prd]))
+                    "Could not select the product: '{0}'".format(PRDS[prd]))
             for reposet in repos_tree[prd]:
                 rs_exp = self.wait_until_element(
                     (strategy1, value1 % REPOSET[reposet]), 5)

@@ -99,16 +99,16 @@ class HardwareModelTestCase(UITestCase):
             self.assertIsNotNone(error)
 
     @attr('ui', 'hardware-model', 'implemented')
-    @data({'name': gen_string('alpha', 10),
-           'new_name': gen_string('alpha', 10)},
-          {'name': gen_string('numeric', 10),
-           'new_name': gen_string('numeric', 10)},
-          {'name': gen_string('alphanumeric', 10),
-           'new_name': gen_string('alphanumeric', 10)},
-          {'name': gen_string('utf8', 10),
-           'new_name': gen_string('utf8', 10)},
-          {'name': gen_string('latin1', 20),
-           'new_name': gen_string('latin1', 10)})
+    @data({'name': gen_string('alpha'),
+           'new_name': gen_string('alpha')},
+          {'name': gen_string('numeric'),
+           'new_name': gen_string('numeric')},
+          {'name': gen_string('alphanumeric'),
+           'new_name': gen_string('alphanumeric')},
+          {'name': gen_string('utf8'),
+           'new_name': gen_string('utf8')},
+          {'name': gen_string('latin1'),
+           'new_name': gen_string('latin1')})
     def test_update_positive_1(self, testdata):
         """@test: Updates the Hardware-Model
 
