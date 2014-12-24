@@ -52,55 +52,57 @@ class ActivationKey(UITestCase):
 
         super(ActivationKey, cls).setUpClass()
 
-    def create_cv(self, name, env_name, product_name=None, repo_name=None,
-                  repo_url=None, repo_type=None, rh_repo=None):
-        """Create product/repo and sync it and promote to given env"""
-        if not rh_repo:
-            product_name = product_name or gen_string("alpha", 8)
-            repo_name = repo_name or gen_string("alpha", 8)
-            # Creates new product and repository via API's
-            product_attrs = entities.Product(
-                name=product_name,
-                organization=self.org_id
-            ).create()
-            repo_attrs = entities.Repository(
-                name=repo_name,
-                url=repo_url or FAKE_1_YUM_REPO,
-                content_type=repo_type or REPO_TYPE['yum'],
-                product=product_attrs['id'],
-            ).create()
-            repo_id = repo_attrs['id']
-        else:
-            # Upload manifest
-            manifest_path = manifests.clone()
-            task = entities.Organization(
-                id=self.org_id
-            ).upload_manifest(path=manifest_path)
-            self.assertEqual(
-                u'success', task['result'], task['humanized']['errors']
-            )
-            # Enable RH repo and fetch repository_id
-            repo_id = utils.enable_rhrepo_and_fetchid(
-                rh_repo['basearch'],
-                self.org_id,
-                rh_repo['product'],
-                rh_repo['name'],
-                rh_repo['reposet'],
-                rh_repo['releasever'])
-            repo_name = rh_repo['name']
+    def create_sync_custom_repo(self, product_name=None, repo_name=None,
+                                repo_url=None, repo_type=None):
+        """Create product/repo, sync it and returns repo_id"""
+        product_name = product_name or gen_string("alpha", 8)
+        repo_name = repo_name or gen_string("alpha", 8)
+        # Creates new product and repository via API's
+        product_attrs = entities.Product(
+            name=product_name,
+            organization=self.org_id
+        ).create()
+        repo_attrs = entities.Repository(
+            name=repo_name,
+            url=repo_url or FAKE_1_YUM_REPO,
+            content_type=repo_type or REPO_TYPE['yum'],
+            product=product_attrs['id'],
+        ).create()
+        repo_id = repo_attrs['id']
         # Sync repository
         task_result = entities.Repository(id=repo_id).sync()['result']
         self.assertEqual(
             task_result,
             u'success',
             u"Sync for repository {0} failed.".format(repo_name))
+        return repo_id
 
+    def enable_sync_redhat_repo(self, rh_repo):
+        """Enable the RedHat repo, sync it and returns repo_id"""
+        # Enable RH repo and fetch repository_id
+        repo_id = utils.enable_rhrepo_and_fetchid(
+            rh_repo['basearch'],
+            self.org_id,
+            rh_repo['product'],
+            rh_repo['name'],
+            rh_repo['reposet'],
+            rh_repo['releasever'])
+        repo_name = rh_repo['name']
+        # Sync repository
+        task_result = entities.Repository(id=repo_id).sync()['result']
+        self.assertEqual(
+            task_result,
+            u'success',
+            u"Sync for repository {0} failed.".format(repo_name))
+        return repo_id
+
+    def cv_publish_promote(self, name, env_name, repo_id):
+        """Create, publish and promote CV to selected environment"""
         # Create Life-Cycle content environment
         env_attrs = entities.LifecycleEnvironment(
             name=env_name,
             organization=self.org_id
         ).create()
-
         # Create content view(CV)
         content_view = entities.ContentView(
             name=name,
@@ -204,8 +206,10 @@ class ActivationKey(UITestCase):
 
         name = gen_string("alpha", 8)
         cv_name = gen_string("alpha", 8)
+        # Helper function to create and sync custom repository
+        repo_id = self.create_sync_custom_repo()
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name)
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -235,7 +239,8 @@ class ActivationKey(UITestCase):
         name = gen_string("alpha", 8)
         env_name = gen_string("alpha", 6)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name)
+        repo_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -379,6 +384,7 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.activationkey.search_key(name))
 
+    @skip_if_bug_open('bugzilla', 1177158)
     def test_negative_create_activation_key_2(self):
         """@Test: Create Activation key with invalid Description
 
@@ -389,6 +395,8 @@ class ActivationKey(UITestCase):
         using valid Name, Environment, Content View, Usage limit
 
         @Assert: Activation key is not created. Appropriate error shown.
+
+        @BZ: 1177158
 
         """
 
@@ -503,7 +511,8 @@ class ActivationKey(UITestCase):
         name = gen_string("alpha", 8)
         cv_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name)
+        repo_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -534,7 +543,8 @@ class ActivationKey(UITestCase):
         name = gen_string("alpha", 8)
         env_name = gen_string("alpha", 6)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name)
+        repo_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -563,7 +573,8 @@ class ActivationKey(UITestCase):
         env_name = gen_string("alpha", 8)
         product_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name, product_name)
+        repo_id = self.create_sync_custom_repo(product_name=product_name)
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -633,7 +644,8 @@ class ActivationKey(UITestCase):
         env_name = gen_string("alpha", 6)
         cv_name = gen_string("alpha", 6)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name)
+        repo_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -674,6 +686,7 @@ class ActivationKey(UITestCase):
             self.activationkey.delete(name, really=False)
             self.assertIsNotNone(self.activationkey.search_key(name))
 
+    @skip_if_bug_open('bugzilla', 1177330)
     @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_1(self, new_name):
@@ -687,7 +700,7 @@ class ActivationKey(UITestCase):
 
         @Assert: Activation key is updated
 
-        @BZ: 1078676
+        @BZ: 1177330
 
         """
 
@@ -748,7 +761,8 @@ class ActivationKey(UITestCase):
         name = gen_string("alpha", 8)
         cv_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name)
+        repo_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=ENVIRONMENT,
@@ -788,8 +802,10 @@ class ActivationKey(UITestCase):
         env2_name = gen_string("alpha", 8)
         cv1_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv1_name, env1_name)
-        self.create_cv(cv2_name, env2_name)
+        repo1_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv1_name, env1_name, repo1_id)
+        repo2_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv2_name, env2_name, repo2_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env1_name,
@@ -890,6 +906,7 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.activationkey.search_key(new_name))
 
+    @skip_if_bug_open('bugzilla', 1177158)
     def test_negative_update_activation_key_2(self):
         """@Test: Update invalid Description in an activation key
 
@@ -901,7 +918,7 @@ class ActivationKey(UITestCase):
 
         @Assert: Activation key is not updated.  Appropriate error shown.
 
-        @BZ: 1078676
+        @BZ: 1177158
 
         """
 
@@ -1088,8 +1105,17 @@ class ActivationKey(UITestCase):
             'releasever': "6Server",
         }
         product_subscription = "Red Hat Employee Subscription"
+        # Upload manifest
+        manifest_path = manifests.clone()
+        task = entities.Organization(
+            id=self.org_id
+        ).upload_manifest(path=manifest_path)
+        self.assertEqual(
+            u'success', task['result'], task['humanized']['errors']
+        )
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name, rh_repo=rh_repo)
+        repo_id = self.enable_sync_redhat_repo(rh_repo)
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -1121,7 +1147,8 @@ class ActivationKey(UITestCase):
         env_name = gen_string("alpha", 8)
         product_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_name, env_name, product_name)
+        repo_id = self.create_sync_custom_repo(product_name=product_name)
+        self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=self.org_name, name=name, env=env_name,
@@ -1251,9 +1278,11 @@ class ActivationKey(UITestCase):
         product_1_name = gen_string("alpha", 8)
         product_2_name = gen_string("alpha", 8)
         # Helper function to create and promote CV to next environment
-        self.create_cv(cv_1_name, env_1_name, product_1_name)
-        self.create_cv(cv_2_name, env_2_name, product_2_name,
-                       repo_url=FAKE_2_YUM_REPO)
+        repo_1_id = self.create_sync_custom_repo(product_name=product_1_name)
+        self.cv_publish_promote(cv_1_name, env_1_name, repo_1_id)
+        repo_2_id = self.create_sync_custom_repo(product_name=product_2_name,
+                                                 repo_url=FAKE_2_YUM_REPO)
+        self.cv_publish_promote(cv_2_name, env_2_name, repo_2_id)
         with Session(self.browser) as session:
             # Create activation_key_1
             make_activationkey(

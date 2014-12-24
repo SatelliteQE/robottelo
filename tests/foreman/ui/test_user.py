@@ -23,7 +23,7 @@ from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
 
-def valid_strings(len1=100):
+def valid_strings(len1=10):
     """Generates a list of all the input strings, (excluding html)"""
     return [
         gen_string("alpha", 5),
@@ -55,6 +55,7 @@ class User(UITestCase):
 
     """
 
+    @skip_if_bug_open('bugzilla', 1177097)
     @attr('ui', 'user', 'implemented')
     @data(*valid_strings())
     def test_delete_user(self, user_name):
@@ -63,6 +64,8 @@ class User(UITestCase):
         @Feature: User - Delete
 
         @Assert: User is deleted
+
+        @BZ: 1177097
 
         """
         with Session(self.browser) as session:
@@ -143,7 +146,7 @@ class User(UITestCase):
             self.assertIsNotNone(self.user.search(user_name, search_key))
 
     @attr('ui', 'user', 'implemented')
-    @data(*valid_strings(50))
+    @data(*valid_strings())
     def test_positive_create_user_2(self, first_name):
         """@Test: Create User for all variations of First Name
 
