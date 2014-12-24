@@ -868,7 +868,9 @@ locators = {
     # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
     "arch.name": (By.ID, "architecture_name"),
-    "arch.delete": (By.XPATH, "//a[contains(@href, '/architectures/%s')]"),
+    "arch.delete": (
+        By.XPATH,
+        "//a[contains(@href, '%s') and @class='delete']"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
 
     # Medium
