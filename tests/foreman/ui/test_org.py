@@ -204,7 +204,7 @@ class Org(UITestCase):
         @assert: organization is not created
         """
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -218,7 +218,7 @@ class Org(UITestCase):
         """
         org_name = ""
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -232,7 +232,7 @@ class Org(UITestCase):
         """
         org_name = "    "
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name, edit=False)
+            make_org(session, org_name=org_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -350,8 +350,7 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_domain(session, name=domain)
             self.assertIsNotNone(self.domain.search(domain))
-            make_org(session, org_name=org_name, domains=[domain],
-                     edit=True)
+            make_org(session, org_name=org_name, domains=[domain])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
@@ -394,7 +393,7 @@ class Org(UITestCase):
                       last_name=user_name, email=email,
                       password1=password, password2=password)
             self.assertIsNotNone(self.user.search(user_name, search_key))
-            make_org(session, org_name=org_name, users=[user_name], edit=True)
+            make_org(session, org_name=org_name, users=[user_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_users"]).click()
@@ -426,8 +425,7 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_hostgroup(session, name=host_grp)
             self.assertIsNotNone(self.hostgroup.search(host_grp))
-            make_org(session, org_name=org_name, hostgroups=[host_grp],
-                     edit=True)
+            make_org(session, org_name=org_name, hostgroups=[host_grp])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
@@ -619,8 +617,7 @@ class Org(UITestCase):
             make_resource(session, name=resource_name, provider_type="Libvirt",
                           url=url)
             self.assertIsNotNone(self.compute_resource.search(resource_name))
-            make_org(session, org_name=org_name, resources=[resource_name],
-                     edit=True)
+            make_org(session, org_name=org_name, resources=[resource_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_resources"]).click()
@@ -654,7 +651,7 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_media(session, name=medium, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(medium))
-            make_org(session, org_name=org_name, medias=[medium], edit=True)
+            make_org(session, org_name=org_name, medias=[medium])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
@@ -692,8 +689,7 @@ class Org(UITestCase):
             make_templates(session, name=template, template_path=template_path,
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.search(template))
-            make_org(session, org_name=org_name, templates=[template],
-                     edit=True)
+            make_org(session, org_name=org_name, templates=[template])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
@@ -857,8 +853,7 @@ class Org(UITestCase):
             make_env(session, name=env)
             search = self.environment.search(env)
             self.assertIsNotNone(search)
-            make_org(session, org_name=org_name, envs=[env],
-                     edit=True)
+            make_org(session, org_name=org_name, envs=[env])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
@@ -892,8 +887,7 @@ class Org(UITestCase):
             make_subnet(session, subnet_name=subnet_name,
                         subnet_network=subnet_network, subnet_mask=subnet_mask)
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
-            make_org(session, org_name=org_name, subnets=[subnet_name],
-                     edit=True)
+            make_org(session, org_name=org_name, subnets=[subnet_name])
             self.org.search(org_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_subnets"]).click()

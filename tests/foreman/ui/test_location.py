@@ -77,7 +77,7 @@ class Location(UITestCase):
         @BZ: 1123818
         """
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -91,7 +91,7 @@ class Location(UITestCase):
 
         loc_name = ""
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -105,7 +105,7 @@ class Location(UITestCase):
 
         loc_name = "    "
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -123,7 +123,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-            make_loc(session, name=loc_name, edit=False)
+            make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
@@ -466,7 +466,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_env(session, name=env, orgs=None)
             self.assertIsNotNone(self.environment.search(env))
-            make_loc(session, name=loc_name, envs=[env], edit=True)
+            make_loc(session, name=loc_name, envs=[env])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_env"]).click()
@@ -500,7 +500,7 @@ class Location(UITestCase):
             make_subnet(session, subnet_name=subnet_name,
                         subnet_network=subnet_network, subnet_mask=subnet_mask)
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
-            make_loc(session, name=loc_name, subnets=[subnet_name], edit=True)
+            make_loc(session, name=loc_name, subnets=[subnet_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_subnets"]).click()
@@ -533,7 +533,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_domain(session, name=domain)
             self.assertIsNotNone(self.domain.search(domain))
-            make_loc(session, name=loc_name, domains=[domain], edit=True)
+            make_loc(session, name=loc_name, domains=[domain])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_domains"]).click()
@@ -575,7 +575,7 @@ class Location(UITestCase):
                       last_name=user_name, email=email,
                       password1=password, password2=password)
             self.assertIsNotNone(self.user.search(user_name, search_key))
-            make_loc(session, name=loc_name, users=[user_name], edit=True)
+            make_loc(session, name=loc_name, users=[user_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_users"]).click()
@@ -606,7 +606,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_hostgroup(session, name=host_grp)
             self.assertIsNotNone(self.hostgroup.search(host_grp))
-            make_loc(session, name=loc_name, edit=True)
+            make_loc(session, name=loc_name)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_hostgrps"]).click()
@@ -641,8 +641,7 @@ class Location(UITestCase):
             make_resource(session, name=resource_name, provider_type="Libvirt",
                           url=url)
             self.assertIsNotNone(self.compute_resource.search(resource_name))
-            make_loc(session, name=loc_name, resources=[resource_name],
-                     edit=True)
+            make_loc(session, name=loc_name, resources=[resource_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_resources"]).click()
@@ -675,7 +674,7 @@ class Location(UITestCase):
         with Session(self.browser) as session:
             make_media(session, name=medium, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(medium))
-            make_loc(session, name=loc_name, medias=[medium], edit=True)
+            make_loc(session, name=loc_name, medias=[medium])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_media"]).click()
@@ -720,7 +719,7 @@ class Location(UITestCase):
             make_templates(session, name=template, template_path=template_path,
                            template_type=temp_type, custom_really=True)
             self.assertIsNotNone(self.template.search(template))
-            make_loc(session, name=loc_name, edit=True)
+            make_loc(session, name=loc_name)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
                 tab_locators["context.tab_template"]).click()
