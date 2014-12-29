@@ -40,7 +40,6 @@ class Org(UITestCase):
         @assert: Created organization can be auto search by its partial name
 
         """
-
         org_name = gen_string("alpha", 8)
         part_string = org_name[:3]
         with Session(self.browser) as session:
@@ -71,24 +70,24 @@ class Org(UITestCase):
 
     @unittest.skip("parent_org feature is disabled currently")
     @attr('ui', 'org', 'implemented')
-    @data({'label': gen_string('alpha', 10),
-           'name': gen_string('alpha', 10),
-           'desc': gen_string('alpha', 10)},
-          {'label': gen_string('numeric', 10),
-           'name': gen_string('numeric', 10),
-           'desc': gen_string('numeric', 10)},
-          {'label': gen_string('alphanumeric', 10),
-           'name': gen_string('alphanumeric', 10),
-           'desc': gen_string('alphanumeric', 10)},
-          {'label': gen_string('alpha', 10),
-           'name': gen_string('utf8', 10),
-           'desc': gen_string('utf8', 10)},
-          {'label': gen_string('alpha', 10),
-           'name': gen_string('latin1', 20),
-           'desc': gen_string('latin1', 10)},
-          {'label': gen_string('alpha', 10),
-           'name': gen_string('html', 20),
-           'desc': gen_string('html', 10)})
+    @data({'label': gen_string('alpha'),
+           'name': gen_string('alpha'),
+           'desc': gen_string('alpha')},
+          {'label': gen_string('numeric'),
+           'name': gen_string('numeric'),
+           'desc': gen_string('numeric')},
+          {'label': gen_string('alphanumeric'),
+           'name': gen_string('alphanumeric'),
+           'desc': gen_string('alphanumeric')},
+          {'label': gen_string('alpha'),
+           'name': gen_string('utf8'),
+           'desc': gen_string('utf8')},
+          {'label': gen_string('alpha'),
+           'name': gen_string('latin1'),
+           'desc': gen_string('latin1')},
+          {'label': gen_string('alpha'),
+           'name': gen_string('html'),
+           'desc': gen_string('html')})
     def test_positive_create_2(self, test_data):
         """@test: Create organization with valid name, label, parent_org, desc.
 
@@ -108,12 +107,12 @@ class Org(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
 
     @attr('ui', 'org', 'implemented')
-    @data({'name': gen_string('alpha', 10),
-           'label': gen_string('alpha', 10)},
-          {'name': gen_string('numeric', 10),
-           'label': gen_string('numeric', 10)},
-          {'name': gen_string('alphanumeric', 10),
-           'label': gen_string('alphanumeric', 10)})
+    @data({'name': gen_string('alpha'),
+           'label': gen_string('alpha')},
+          {'name': gen_string('numeric'),
+           'label': gen_string('numeric')},
+          {'name': gen_string('alphanumeric'),
+           'label': gen_string('alphanumeric')})
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_3(self, test_data):
         """@test: Create organization with valid unmatching name and label only
@@ -138,9 +137,9 @@ class Org(UITestCase):
             self.assertNotEqual(name, label)
 
     @attr('ui', 'org', 'implemented')
-    @data(gen_string('alpha', 10),
-          gen_string('numeric', 10),
-          gen_string('alphanumeric', 10))
+    @data(gen_string('alpha'),
+          gen_string('numeric'),
+          gen_string('alphanumeric'))
     # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
     def test_positive_create_4(self, org_label):
         """@test: Create organization with valid matching name and label only.
@@ -165,18 +164,18 @@ class Org(UITestCase):
     @skip_if_bug_open('bugzilla', 1079482)
     @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
-    @data({'name': gen_string('alpha', 10),
-           'desc': gen_string('alpha', 10)},
-          {'name': gen_string('numeric', 10),
-           'desc': gen_string('numeric', 10)},
-          {'name': gen_string('alphanumeric', 10),
-           'desc': gen_string('alphanumeric', 10)},
-          {'name': gen_string('utf8', 10),
-           'desc': gen_string('utf8', 10)},
-          {'name': gen_string('latin1', 20),
-           'desc': gen_string('latin1', 10)},
-          {'name': gen_string('html', 20),
-           'desc': gen_string('html', 10)})
+    @data({'name': gen_string('alpha'),
+           'desc': gen_string('alpha')},
+          {'name': gen_string('numeric'),
+           'desc': gen_string('numeric')},
+          {'name': gen_string('alphanumeric'),
+           'desc': gen_string('alphanumeric')},
+          {'name': gen_string('utf8'),
+           'desc': gen_string('utf8')},
+          {'name': gen_string('latin1'),
+           'desc': gen_string('latin1')},
+          {'name': gen_string('html'),
+           'desc': gen_string('html')})
     def test_positive_create_5(self, test_data):
         """@test: Create organization with valid name and description only.
 
@@ -202,18 +201,18 @@ class Org(UITestCase):
             self.assertIsNotNone(label_value)
 
     @attr('ui', 'org', 'implemented')
-    @data({'org_name': gen_string('alpha', 10),
-           'loc_name': gen_string('alpha', 10)},
-          {'org_name': gen_string('numeric', 10),
-           'loc_name': gen_string('numeric', 10)},
-          {'org_name': gen_string('alphanumeric', 10),
-           'loc_name': gen_string('alphanumeric', 10)},
-          {'org_name': gen_string('utf8', 10),
-           'loc_name': gen_string('utf8', 10)},
-          {'org_name': gen_string('latin1', 20),
-           'loc_name': gen_string('latin1', 10)},
-          {'org_name': gen_string('html', 20),
-           'loc_name': gen_string('html', 10)})
+    @data({'org_name': gen_string('alpha'),
+           'loc_name': gen_string('alpha')},
+          {'org_name': gen_string('numeric'),
+           'loc_name': gen_string('numeric')},
+          {'org_name': gen_string('alphanumeric'),
+           'loc_name': gen_string('alphanumeric')},
+          {'org_name': gen_string('utf8'),
+           'loc_name': gen_string('utf8')},
+          {'org_name': gen_string('latin1'),
+           'loc_name': gen_string('latin1')},
+          {'org_name': gen_string('html'),
+           'loc_name': gen_string('html')})
     def test_positive_create_6(self, test_data):
         """@test: Select both organization and location.
 
@@ -285,7 +284,7 @@ class Org(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_negative_create_3(self, org_name):
         """@test: Create organization with valid values, then create a new one
         with same values.
@@ -309,7 +308,7 @@ class Org(UITestCase):
 
     @stubbed('Organization deletion is disabled')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_positive_delete_1(self, org_name):
         """@test: Create organization with valid values then delete it.
 
@@ -330,7 +329,7 @@ class Org(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_positive_update_1(self, new_name):
         """@test: Create organization with valid values then update its name.
 
@@ -341,7 +340,6 @@ class Org(UITestCase):
         @BZ: 1131469
 
         """
-
         org_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
@@ -353,7 +351,7 @@ class Org(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_negative_update_1(self, org_name):
         """@test: Create organization with valid values then fail to update
         its name.
@@ -378,7 +376,7 @@ class Org(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1131469)
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_search_key_1(self, org_name):
         """@test: Create organization and search/find it.
 
@@ -397,7 +395,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_domain_1(self, domain_name):
         """@test: Add a domain to an organization and remove it by organization
         name and domain name.
@@ -482,7 +480,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup name.
@@ -541,7 +539,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_subnet_1(self, subnet_name):
         """@test: Add a subnet by using organization name and subnet name.
 
@@ -573,7 +571,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_domain_1(self, domain_name):
         """@test: Add a domain to an organization.
 
@@ -641,7 +639,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup by using the organization
         name and hostgroup name.
@@ -668,7 +666,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_location_1(self, location_name):
         """@test: Add a location by using the organization
         name and location name.
@@ -695,7 +693,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_computeresource_1(self, resource_name):
         """@test: Remove computeresource by using the organization
         name and computeresource name.
@@ -737,7 +735,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_medium_1(self, medium_name):
         """@test: Remove medium by using organization name and medium name.
 
@@ -779,7 +777,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_configtemplate_1(self, template_name):
         """@test: Remove config template.
 
@@ -866,7 +864,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_computeresource_1(self, resource_name):
         """@test: Add compute resource using the organization
         name and computeresource name.
@@ -899,7 +897,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_medium_1(self, medium_name):
         """@test: Add medium by using the organization name and medium name.
 
@@ -930,7 +928,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_configtemplate_1(self, template_name):
         """@test: Add config template by using organization name and
         configtemplate name.
@@ -995,7 +993,7 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @attr('ui', 'org', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_subnet_1(self, subnet_name):
         """@test: Remove subnet by using organization name and subnet name.
 
