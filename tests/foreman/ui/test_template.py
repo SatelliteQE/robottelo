@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_data_file, generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_templates
@@ -19,7 +19,7 @@ from robottelo.ui.session import Session
 class Template(UITestCase):
     """Implements Provisioning Template tests from UI"""
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_positive_create_template(self, name):
         """@Test: Create new template
 
@@ -28,10 +28,7 @@ class Template(UITestCase):
         @Assert: New provisioning template of type 'provision'
         should be created successfully
 
-        @BZ: 1129612
-
         """
-
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -46,10 +43,7 @@ class Template(UITestCase):
 
         @Assert: Template is not created
 
-        @BZ: 1121521 1129612
-
         """
-
         name = gen_string("alpha", 256)
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -58,7 +52,6 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["name_haserror"]))
-            self.assertIsNone(self.template.search(name))
 
     @data(" ", "")
     def test_negative_create_template_2(self, name):
@@ -68,8 +61,6 @@ class Template(UITestCase):
 
         @Assert: Template is not created
 
-        @BZ: 1129612
-
         """
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
@@ -78,7 +69,6 @@ class Template(UITestCase):
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["name_haserror"]))
-            self.assertIsNone(self.template.search(name))
 
     def test_negative_create_template_4(self):
         """@Test: Template - Create a new template with same name
@@ -86,8 +76,6 @@ class Template(UITestCase):
         @Feature: Template - Negative Create
 
         @Assert: Template is not created
-
-        @BZ: 1129612
 
         """
         name = gen_string("alpha", 16)
@@ -109,8 +97,6 @@ class Template(UITestCase):
 
         @Assert: Template is not created
 
-        @BZ: 1129612
-
         """
         name = gen_string("alpha", 16)
         temp_type = ""
@@ -130,8 +116,6 @@ class Template(UITestCase):
 
         @Assert: Template is not created
 
-        @BZ: 1129612
-
         """
         name = gen_string("alpha", 16)
         temp_type = 'PXELinux'
@@ -150,8 +134,6 @@ class Template(UITestCase):
 
         @Assert: Template is not created
 
-        @BZ: 1129612
-
         """
         name = gen_string("alpha", 16)
         audit_comment = gen_string("alpha", 256)
@@ -163,9 +145,8 @@ class Template(UITestCase):
                            template_type=temp_type)
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["haserror"]))
-            self.assertIsNone(self.template.search(name))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_positive_create_snippet_template(self, name):
         """@Test: Create new template of type snippet
 
@@ -174,17 +155,15 @@ class Template(UITestCase):
         @Assert: New provisioning template of type 'snippet'
         should be created successfully
 
-        @BZ: 1129612
-
         """
-
         template_path = get_data_file(SNIPPET_DATA_FILE)
         with Session(self.browser) as session:
             make_templates(session, name=name, template_path=template_path,
                            custom_really=True, snippet=True)
             self.assertIsNotNone(self.template.search(name))
 
-    @data(*generate_strings_list())
+    @skip_if_bug_open('bugzilla', 1177756)
+    @data(*generate_strings_list(len1=8))
     def test_remove_template(self, template_name):
         """@Test: Remove a template
 
@@ -192,16 +171,14 @@ class Template(UITestCase):
 
         @Assert: Template removed successfully
 
-        @BZ: 1096333
+        @BZ: 1177756
 
         """
-
-        entities.ConfigTemplate(name=template_name).create()['name']
+        entities.ConfigTemplate(name=template_name).create_json()
         with Session(self.browser):
             self.template.delete(template_name, True)
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators["notif.success"]))
-            self.assertIsNone(self.template.search(template_name))
 
     def test_update_template(self):
         """@Test: Update template name and template type
@@ -210,10 +187,7 @@ class Template(UITestCase):
 
         @Assert: The template name and type should be updated successfully
 
-        @BZ: 1129612
-
         """
-
         name = gen_string("alpha", 6)
         new_name = gen_string("alpha", 6)
         temp_type = 'provision'
@@ -235,15 +209,13 @@ class Template(UITestCase):
         @Assert: The template should be updated with newly created OS's
         successfully
 
-        @BZ: 1129612
-
         """
         name = gen_string("alpha", 6)
         new_name = gen_string("alpha", 6)
         temp_type = 'provision'
-        os_1_name = entities.OperatingSystem().create()['name']
-        os_2_name = entities.OperatingSystem().create()['name']
-        os_list = [os_1_name, os_2_name]
+        os_list = [
+            entities.OperatingSystem().create_json()['name'] for _ in range(2)
+        ]
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
             make_templates(session, name=name, template_path=template_path,
@@ -268,7 +240,7 @@ class Template(UITestCase):
         clone_name = gen_string("alpha", 6)
         temp_type = 'provision'
         os_list = [
-            entities.OperatingSystem().create()['name'] for _ in range(2)
+            entities.OperatingSystem().create_json()['name'] for _ in range(2)
         ]
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
