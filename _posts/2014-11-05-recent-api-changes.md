@@ -3,6 +3,7 @@ layout: post
 title: "Recent API Changes"
 date: 2014-11-05 15:12:15
 categories: update
+author: Jeremy Audet
 ---
 
 Robottelo's API abstraction layer received a major update in [pull request

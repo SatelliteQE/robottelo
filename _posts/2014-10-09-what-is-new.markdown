@@ -1,8 +1,9 @@
 ---
 layout: post
-title:  "What's New"
-date:   2014-10-09 16:13:58
+title: "What's New"
+date: 2014-10-09 16:13:58
 categories: update
+author: Og Maciel
 ---
 
 First off, we're starting a brand, spanking new blog to keep anyone
