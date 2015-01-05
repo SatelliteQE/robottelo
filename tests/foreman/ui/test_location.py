@@ -229,7 +229,7 @@ class Location(UITestCase):
             self.assertIsNotNone(self.location.search(loc_name))
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_subnet_1(self, subnet_name):
         """@test: Add a subnet by using location name and subnet name
 
@@ -260,7 +260,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_domain_1(self, domain_name):
         """@test: Add a domain to a Location
 
@@ -338,7 +338,7 @@ class Location(UITestCase):
             self.assertIsNotNone(selected)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup by using the location
         name and hostgroup name
@@ -363,7 +363,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_org_1(self, org_name):
         """@test: Add a organization by using the location
         name
@@ -416,7 +416,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_computeresource_1(self, resource_name):
         """@test: Add compute resource using the location
         name and computeresource name
@@ -448,7 +448,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_medium_1(self, medium_name):
         """@test: Add medium by using the location name and medium name
 
@@ -496,7 +496,7 @@ class Location(UITestCase):
             self.assertIsNotNone(selected)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_add_configtemplate_1(self, template):
         """@test: Add config template by using location name and
         configtemplate name.
@@ -559,7 +559,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_subnet_1(self, subnet_name):
         """@test: Remove subnet by using location name and subnet name
 
@@ -598,7 +598,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_domain_1(self, domain_name):
         """@test: Add a domain to an location and remove it by location
         name and domain name
@@ -676,7 +676,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup and remove it by using the location
         name and hostgroup name
@@ -709,7 +709,7 @@ class Location(UITestCase):
             self.assertIsNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_computeresource_1(self, resource_name):
         """@test: Remove computeresource by using the location
         name and computeresource name
@@ -749,7 +749,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @attr('ui', 'location', 'implemented')
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(len1=8))
     def test_remove_medium_1(self, medium_name):
         """@test: Remove medium by using location name and medium name
 
