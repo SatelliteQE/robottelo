@@ -115,6 +115,8 @@ class Base(object):
         """
         for entity in entity_list:
             strategy, value = common_locators["filter"]
+            # Scroll to top
+            self.browser.execute_script('window.scroll(0, 0)')
             txt_field = self.wait_until_element((strategy, value % filter_key))
             if txt_field:
                 txt_field.clear()
