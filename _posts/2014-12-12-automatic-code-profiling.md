@@ -3,6 +3,7 @@ layout: post
 title: "Automatic Code Profiling"
 date: 2014-12-12 17:08:00
 categories: update
+author: Jeremy Audet
 ---
 
 [Pull request #1766](https://github.com/SatelliteQE/robottelo/pull/1766) added

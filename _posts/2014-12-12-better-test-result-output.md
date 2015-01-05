@@ -3,6 +3,7 @@ layout: post
 title: "Better test result output"
 date: 2014-12-12 14:50:00
 categories: update
+author: Elyézer Rezende
 ---
 
 [Pull request 1773](https://github.com/SatelliteQE/robottelo/pull/1773) removed the `nocapture` and `nologcapture` nose options from the `robottelo.properties.sample` file. This change was made to provide better test result output.

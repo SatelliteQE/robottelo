@@ -1,30 +1,27 @@
 ---
 layout: null
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
+<?xml version='1.0' encoding='utf-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom'>
+    <id>{{ site.url | xml_escape }}</id>
     <title>{{ site.title | xml_escape }}</title>
-    <description>{{ site.description | xml_escape }}</description>
-    <link>{{ site.url }}{{ site.baseurl }}/</link>
-    <atom:link href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}" rel="self" type="application/rss+xml" />
-    <pubDate>{{ site.time | date_to_rfc822 }}</pubDate>
-    <lastBuildDate>{{ site.time | date_to_rfc822 }}</lastBuildDate>
-    <generator>Jekyll v{{ jekyll.version }}</generator>
+    <subtitle>{{ site.description | strip_newlines | xml_escape }}</subtitle>
+    <link href='{{ site.url | xml_escape }}feed.xml' rel='self' />
+    <updated>{{ site.posts[0].date | date_to_xmlschema }}</updated>
+    <!-- NOTE: The author tag has been omitted, so each entry MUST have an author. -->
+    {% comment %}
+    `date_to_rfc3339` does not produce RFC 3339 dates. `date_to_xmlschema` does.
+    {% endcomment %}
+
     {% for post in site.posts limit:10 %}
-      <item>
+    {% assign post_url = site.url | append:post.url | xml_escape %}
+    <entry>
+        <id>{{ post_url }}</id>
         <title>{{ post.title | xml_escape }}</title>
-        <description>{{ post.content | xml_escape }}</description>
-        <pubDate>{{ post.date | date_to_rfc822 }}</pubDate>
-        <link>{{ post.url | prepend: site.baseurl | prepend: site.url }}</link>
-        <guid isPermaLink="true">{{ post.url | prepend: site.baseurl | prepend: site.url }}</guid>
-        {% for tag in post.tags %}
-        <category>{{ tag | xml_escape }}</category>
-        {% endfor %}
-        {% for cat in post.categories %}
-        <category>{{ cat | xml_escape }}</category>
-        {% endfor %}
-      </item>
+        <link href='{{ post_url }}' />
+        <author><name>{{ post.author | xml_escape }}</name></author>
+        <summary>{{ post.content | strip_html | truncate:140, '…' | xml_escape }}</summary>
+        <updated>{{ post.date | date_to_xmlschema }}</updated>
+    </entry>
     {% endfor %}
-  </channel>
-</rss>
+</feed>
