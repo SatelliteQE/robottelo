@@ -217,7 +217,12 @@ class CVPublishPromoteTestCase(APITestCase):
         # Publish the content view several times and check that each version
         # has some software packages.
         for _ in range(REPEAT):
-            self.assertEqual('success', content_view.publish()['result'])
+            response = content_view.publish()
+            self.assertEqual(
+                response['result'],
+                'success',
+                response['humanized']['errors']
+            )
         for cvv_id in (  # content view version ID
                 version['id']
                 for version
@@ -278,7 +283,12 @@ class CVPublishPromoteTestCase(APITestCase):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
-            self.assertEqual(cvv.promote(lc_env_id)['result'], 'success')
+            response = cvv.promote(lc_env_id)
+            self.assertEqual(
+                response['result'],
+                'success',
+                response['humanized']['errors']
+            )
 
         # Does it show up in the correct number of lifecycle environments?
         self.assertEqual(
@@ -310,7 +320,12 @@ class CVPublishPromoteTestCase(APITestCase):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
-            self.assertEqual(cvv.promote(lc_env_id)['result'], 'success')
+            response = cvv.promote(lc_env_id)
+            self.assertEqual(
+                response['result'],
+                'success',
+                response['humanized']['errors']
+            )
 
         # Everything's done - check some content view attributes...
         cv_attrs = content_view.read_json()
