@@ -6,7 +6,7 @@ layout: null
     <id>{{ site.url | xml_escape }}</id>
     <title>{{ site.title | xml_escape }}</title>
     <subtitle>{{ site.description | strip_newlines | xml_escape }}</subtitle>
-    <link href='{{ site.url | xml_escape }}feed.xml' rel='self' />
+    <link href='{{ site.url | xml_escape }}/feed.xml' rel='self' />
     <updated>{{ site.posts[0].date | date_to_xmlschema }}</updated>
     <!-- NOTE: The author tag has been omitted, so each entry MUST have an author. -->
     {% comment %}
