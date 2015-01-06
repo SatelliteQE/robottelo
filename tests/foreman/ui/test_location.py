@@ -27,12 +27,15 @@ class Location(UITestCase):
 
     # Auto Search
 
+    @skip_if_bug_open('bugzilla', 1177610)
     def test_auto_search(self):
         """@test: Can auto-complete search for location by partial name
 
         @feature: Locations
 
         @assert: Created location can be auto search by its partial name
+
+        @BZ: 1177610
 
         """
         loc_name = gen_string("alpha", 8)

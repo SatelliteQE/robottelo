@@ -32,6 +32,7 @@ class Org(UITestCase):
 
     # Tests for issues
 
+    @skip_if_bug_open('bugzilla', 1177610)
     def test_auto_search(self):
         """@test: Can auto-complete search for an organization by partial name
 
@@ -39,8 +40,9 @@ class Org(UITestCase):
 
         @assert: Created organization can be auto search by its partial name
 
-        """
+        @BZ: 1177610
 
+        """
         org_name = gen_string("alpha", 8)
         part_string = org_name[:3]
         with Session(self.browser) as session:
@@ -71,24 +73,24 @@ class Org(UITestCase):
 
     @unittest.skip("parent_org feature is disabled currently")
     @attr('ui', 'org', 'implemented')
-    @data({'label': gen_string('alpha', 10),
-           'name': gen_string('alpha', 10),
-           'desc': gen_string('alpha', 10)},
-          {'label': gen_string('numeric', 10),
-           'name': gen_string('numeric', 10),
-           'desc': gen_string('numeric', 10)},
-          {'label': gen_string('alphanumeric', 10),
-           'name': gen_string('alphanumeric', 10),
-           'desc': gen_string('alphanumeric', 10)},
-          {'label': gen_string('alpha', 10),
-           'name': gen_string('utf8', 10),
-           'desc': gen_string('utf8', 10)},
-          {'label': gen_string('alpha', 10),
-           'name': gen_string('latin1', 20),
-           'desc': gen_string('latin1', 10)},
-          {'label': gen_string('alpha', 10),
-           'name': gen_string('html', 20),
-           'desc': gen_string('html', 10)})
+    @data({'label': gen_string('alpha'),
+           'name': gen_string('alpha'),
+           'desc': gen_string('alpha')},
+          {'label': gen_string('numeric'),
+           'name': gen_string('numeric'),
+           'desc': gen_string('numeric')},
+          {'label': gen_string('alphanumeric'),
+           'name': gen_string('alphanumeric'),
+           'desc': gen_string('alphanumeric')},
+          {'label': gen_string('alpha'),
+           'name': gen_string('utf8'),
+           'desc': gen_string('utf8')},
+          {'label': gen_string('alpha'),
+           'name': gen_string('latin1'),
+           'desc': gen_string('latin1')},
+          {'label': gen_string('alpha'),
+           'name': gen_string('html'),
+           'desc': gen_string('html')})
     def test_positive_create_2(self, test_data):
         """@test: Create organization with valid name, label, parent_org, desc.
 
