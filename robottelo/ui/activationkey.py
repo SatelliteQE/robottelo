@@ -299,3 +299,18 @@ class ActivationKey(Base):
         else:
             raise UINoSuchElementError(
                 "Couldn't get text attribute of content host locator")
+
+    def copy(self, name, new_name=None):
+        """Copies an existing activation key"""
+
+        element = self.search_key(name)
+
+        if element and new_name:
+            element.click()
+            self.wait_for_ajax()
+            self.edit_entity(locators['ak.copy'],
+                             locators['ak.copy_name'],
+                             new_name, locators['ak.copy_create'])
+        else:
+            raise Exception('Could not copy activation key "{0}"'
+                            .format(name))

@@ -1156,6 +1156,12 @@ locators = {
          "/div/select")),
     "ak.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
+    "ak.copy": (
+        By.XPATH, "//button[@ng-click='showCopy = true']"),
+    "ak.copy_name": (
+        By.XPATH, "//input[@ng-model='copyName']"),
+    "ak.copy_create": (
+        By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "ak.cancel": (
         By.XPATH, ("//div[@class='modal-dialog']"
                    "//button[@ng-click='cancel()']")),
