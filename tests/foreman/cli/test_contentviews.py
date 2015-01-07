@@ -1123,6 +1123,7 @@ class TestContentView(CLITestCase):
             result.stdout['lifecycle-environments'],
         )
 
+    @skip_if_bug_open('bugzilla', 1179581)
     def test_cv_promote_defaultcv_negative(self):
         """@test: attempt to promote the default content views
 
