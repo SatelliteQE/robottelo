@@ -20,7 +20,8 @@ from robottelo.common.constants import (
     REPO_TYPE)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
-    invalid_names_list, valid_data_list, get_server_credentials)
+    valid_names_list, invalid_names_list,
+    valid_data_list, get_server_credentials)
 from robottelo.ui.factory import make_activationkey
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
@@ -1370,3 +1371,27 @@ class ActivationKey(UITestCase):
 
         """
         pass
+
+    @run_only_on('sat')
+    @attr('ui', 'ak', 'implemented')
+    @data(*valid_names_list())
+    def test_positive_copy_activation_key(self, new_name):
+        """@Test: Create Activation key and copy it
+
+        @Feature: Activation key - Positive Copy
+
+        @Steps:
+        1. Create Activation key
+        2. Copy the Activation key with a valid name
+
+        @Assert: Activation Key copy exists
+
+        """
+
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_activationkey(
+                session, org=self.org_name, name=name, env='Library')
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.activationkey.copy(name, new_name)
+            self.assertIsNotNone(self.activationkey.search_key(new_name))
