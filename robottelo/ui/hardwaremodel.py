@@ -60,9 +60,13 @@ class HardwareModel(Base):
 
         """
         Navigator(self.browser).go_to_hardware_models()
-        element = self.search_entity(name,
-                                     locators["hwmodels.select_name"],
-                                     timeout=timeout)
+        if len(name) <= 30:
+            element = self.search_entity(
+                name, locators["hwmodels.select_name"], timeout=timeout)
+        else:
+            element = self.search_entity(
+                name, common_locators["select_filtered_entity"],
+                timeout=timeout)
         return element
 
     def delete(self, name, really):

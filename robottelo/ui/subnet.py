@@ -67,9 +67,14 @@ class Subnet(Base):
     def search_subnet(self, subnet_name, timeout=None):
         """Search Subnet name, network and mask to validate results."""
         result = None
-        subnet_object = self.search_entity(subnet_name,
-                                           locators['subnet.display_name'],
-                                           timeout=timeout)
+        if len(subnet_name) <= 30:
+            subnet_object = self.search_entity(
+                subnet_name, locators['subnet.display_name'],
+                timeout=timeout)
+        else:
+            subnet_object = self.search_entity(
+                subnet_name, common_locators['select_filtered_entity'],
+                timeout=timeout)
         if subnet_object:
             subnet_object.click()
             if self.wait_until_element(locators["subnet.name"]):

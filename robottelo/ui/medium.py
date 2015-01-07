@@ -52,7 +52,11 @@ class Medium(Base):
         """
         Navigator(self.browser).go_to_installation_media()
         self.wait_for_ajax()
-        element = self.search_entity(name, locators["medium.medium_name"])
+        if len(name) <= 30:
+            element = self.search_entity(name, locators["medium.medium_name"])
+        else:
+            element = self.search_entity(
+                name, common_locators["select_filtered_entity"])
         return element
 
     def delete(self, name, really):
