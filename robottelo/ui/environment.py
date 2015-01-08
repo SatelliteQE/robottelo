@@ -52,8 +52,11 @@ class Environment(Base):
         Searches existing env from UI
         """
         Navigator(self.browser).go_to_environments()
-        element = self.search_entity(name,
-                                     locators["env.env_name"])
+        if len(name) <= 30:
+            element = self.search_entity(name, locators["env.env_name"])
+        else:
+            element = self.search_entity(
+                name, common_locators["select_filtered_entity"])
         return element
 
     def delete(self, name, really):

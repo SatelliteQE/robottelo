@@ -47,9 +47,14 @@ class Domain(Base):
         """
         Navigator(self.browser).go_to_domains()
         self.wait_for_ajax()
-        element = self.search_entity(description,
-                                     locators["domain.domain_description"],
-                                     timeout=timeout)
+        if len(description) <= 30:
+            element = self.search_entity(
+                description, locators["domain.domain_description"],
+                timeout=timeout)
+        else:
+            element = self.search_entity(
+                description, common_locators["select_filtered_entity"],
+                timeout=timeout)
         return element
 
     def delete(self, description, really):

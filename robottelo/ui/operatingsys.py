@@ -96,9 +96,14 @@ class OperatingSys(Base):
         Searches existing operating system from UI
         """
         Navigator(self.browser).go_to_operating_systems()
-        element = self.search_entity(
-            name, locators['operatingsys.operatingsys_name'],
-            search_key)
+        if len(name) <= 30:
+            element = self.search_entity(
+                name, locators['operatingsys.operatingsys_name'],
+                search_key)
+        else:
+            element = self.search_entity(
+                name, common_locators['select_filtered_entity'],
+                search_key)
         return element
 
     def delete(self, os_name, really):
