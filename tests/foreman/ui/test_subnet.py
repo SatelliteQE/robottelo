@@ -6,7 +6,8 @@ from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from robottelo import entities
 from nose.plugins.attrib import attr
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, bz_bug_is_open)
 from robottelo.common.helpers import generate_strings_list
 from robottelo.ui.factory import make_subnet
 from robottelo.test import UITestCase
@@ -39,13 +40,14 @@ class Subnet(UITestCase):
     @skip_if_bug_open('bugzilla', 1123815)
     @attr('ui', 'subnet', 'implemented')
     @data(
-        gen_string('alphanumeric', 255),
-        gen_string('alpha', 255),
-        gen_string('numeric', 255),
-        gen_string('latin1', 255),
-        gen_string('utf8', 255)
+        {'name': gen_string('alphanumeric', 255)},
+        {'name': gen_string('alpha', 255)},
+        {'name': gen_string('numeric', 255)},
+        {'name': gen_string('latin1', 255)},
+        {'name': gen_string('utf8', 255),
+         u'bz-bug': 1180066}
     )
-    def test_create_subnet_2(self, name):
+    def test_create_subnet_2(self, test_data):
         """@Test: Create new subnet with 255 characters in name
 
         @Feature: Subnet - Positive Create
@@ -53,12 +55,17 @@ class Subnet(UITestCase):
         @Assert: Subnet is created with 255 chars
 
         """
+        bug_id = test_data.pop('bz-bug', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         network = gen_ipaddr(ip3=True)
         mask = gen_netmask()
         with Session(self.browser) as session:
-            make_subnet(session, subnet_name=name, subnet_network=network,
-                        subnet_mask=mask)
-            self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
+            make_subnet(session, subnet_name=test_data['name'],
+                        subnet_network=network, subnet_mask=mask)
+            self.assertIsNotNone(
+                self.subnet.search_subnet(subnet_name=test_data['name']))
 
     def test_create_subnet_3(self):
         """@Test: Create new subnet and associate domain with it
