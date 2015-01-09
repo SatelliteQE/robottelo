@@ -22,7 +22,7 @@ from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import (
     valid_names_list, invalid_names_list,
     valid_data_list, get_server_credentials)
-from robottelo.ui.factory import make_activationkey
+from robottelo.ui.factory import make_activationkey, set_context
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.test import UITestCase
@@ -50,6 +50,8 @@ class ActivationKey(UITestCase):
         cls.org_label = org_attrs['label']
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
+        cls.base_key_name = entities.ActivationKey(
+            organization=cls.org_id).create_json()['name']
 
         super(ActivationKey, cls).setUpClass()
 
@@ -1387,11 +1389,33 @@ class ActivationKey(UITestCase):
         @Assert: Activation Key copy exists
 
         """
-
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_activationkey(
-                session, org=self.org_name, name=name, env='Library')
-            self.assertIsNotNone(self.activationkey.search_key(name))
-            self.activationkey.copy(name, new_name)
+            set_context(session, org=self.org_name)
+            self.navigator.go_to_activation_keys()
+            self.assertIsNotNone(
+                self.activationkey.search_key(self.base_key_name))
+            self.activationkey.copy(self.base_key_name, new_name)
             self.assertIsNotNone(self.activationkey.search_key(new_name))
+
+    @run_only_on('sat')
+    @attr('ui', 'ak', 'implemented')
+    @data(*invalid_names_list())
+    def test_negative_copy_activation_key(self, new_name):
+        """@Test: Create Activation key and fail copying it
+
+        @Feature: Activation key -Negative Copy
+
+        @Steps:
+        1. Create Activation key
+        2. Copy the Activation key with an invalid name
+
+        @Assert: Activation Key copy does not exist
+
+        """
+        with Session(self.browser) as session:
+            set_context(session, org=self.org_name)
+            self.navigator.go_to_activation_keys()
+            self.assertIsNotNone(
+                self.activationkey.search_key(self.base_key_name))
+            self.activationkey.copy(self.base_key_name, new_name)
+            self.assertIsNone(self.activationkey.search_key(new_name))
