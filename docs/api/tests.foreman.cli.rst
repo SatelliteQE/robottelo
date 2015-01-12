@@ -19,6 +19,20 @@
     :members:
     :undoc-members:
 
+:mod:`tests.foreman.cli.test_capsule`
+-------------------------------------
+
+.. automodule:: tests.foreman.cli.test_capsule
+    :members:
+    :undoc-members:
+
+:mod:`tests.foreman.cli.test_capsule_installer`
+-----------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_capsule_installer
+    :members:
+    :undoc-members:
+
 :mod:`tests.foreman.cli.test_computeresource`
 ---------------------------------------------
 
