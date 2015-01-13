@@ -14,6 +14,7 @@ else:
     import unittest2 as unittest
 
 from automation_tools import product_install
+from datetime import datetime
 from fabric.api import execute, settings
 from robottelo.cli.metatest import MetaCLITest
 from robottelo.common.helpers import get_server_url
@@ -211,9 +212,42 @@ class UITestCase(TestCase):
         self.user = User(self.browser)
         self.usergroup = UserGroup(self.browser)
 
+    def take_screenshot(self, testmethodname):
+        """Takes screenshot of the UI and saves it to the disk by creating
+        a directory same as that of the test method name."""
+        filename = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+        # testmethodname varies so trying to handle various scenarios.
+        # pop depending on ddt, normal test or ddt's 1st job.
+        # For ddt tests with maps.
+        if "___" in testmethodname:
+            parts = testmethodname.split("___")
+        # For ddt tests with utf8, html, etc.
+        elif "__" in testmethodname:
+            parts = testmethodname.split("__")
+        # For ddt test with alpha, numeric, etc.
+        else:
+            testmethodname = testmethodname.split('_')
+            # Do Nothing for Non DDT Tests.
+            if len(testmethodname[-2]) == 1:
+                for _ in range(2):
+                    testmethodname.pop()
+        if "___" in testmethodname or "__" in testmethodname:
+            testmethodname = parts[0]
+            testmethodname = testmethodname.split('_')
+            testmethodname.pop()
+        testmethodname = "_".join(testmethodname)
+        # Creates dir_structure depending upon the testmethodname.
+        directory = testmethodname
+        if not os.path.exists("/tmp/screenshots/" + directory):
+            os.makedirs("/tmp/screenshots/" + directory)
+        self.browser.save_screenshot('/tmp/screenshots/{dir}/'
+                                     'screenshot-{date}.png'
+                                     .format(dir=directory, date=filename))
+
     def tearDown(self):
         """Make sure to close the browser after each test."""
-
+        if sys.exc_info()[0] is not None:
+            self.take_screenshot(self._testMethodName)
         self.browser.quit()
         self.browser = None
 

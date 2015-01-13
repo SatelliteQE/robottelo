@@ -28,7 +28,8 @@ class Session(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.logout()
+        if exc_type is None:
+            self.logout()
 
     def login(self):
         """Utility funtion to call Login instance login method"""
