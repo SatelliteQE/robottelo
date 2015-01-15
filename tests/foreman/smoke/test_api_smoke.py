@@ -172,6 +172,7 @@ API_PATHS = {
         u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id/promote',
+        u'/katello/api/content_view_versions/incremental_update',
     ),
     u'dashboard': (
         u'/api/dashboard',
@@ -224,7 +225,6 @@ API_PATHS = {
     u'external_usergroups': (
         u'/api/usergroups/:usergroup_id/external_usergroups',
         u'/api/usergroups/:usergroup_id/external_usergroups',
-        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
@@ -553,6 +553,7 @@ API_PATHS = {
     u'systems_bulk_actions': (
         u'/katello/api/systems/bulk/add_host_collections',
         u'/katello/api/systems/bulk/applicable_errata',
+        u'/katello/api/systems/bulk/available_incremental_updates',
         u'/katello/api/systems/bulk/destroy',
         u'/katello/api/systems/bulk/environment_content_view',
         u'/katello/api/systems/bulk/install_content',
@@ -609,6 +610,8 @@ API_PATHS = {
 
 class TestAvailableURLs(TestCase):
     """Tests for ``api/v2``."""
+    longMessage = True
+
     def setUp(self):
         """Define commonly-used variables."""
         self.path = '{0}/api/v2'.format(helpers.get_server_url())
@@ -667,9 +670,14 @@ class TestAvailableURLs(TestCase):
         for group in api_paths.keys():
             self.assertEqual(
                 frozenset(api_paths[group]),
-                frozenset(API_PATHS[group])
+                frozenset(API_PATHS[group]),
+                group
             )
-            self.assertEqual(len(api_paths[group]), len(API_PATHS[group]))
+            self.assertEqual(
+                len(api_paths[group]),
+                len(API_PATHS[group]),
+                group
+            )
 
         # (line-too-long) pylint:disable=C0301
         # response.json()['links'] is a dict like this:
