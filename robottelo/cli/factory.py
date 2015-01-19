@@ -82,7 +82,8 @@ def create_object(cli_object, options, values):
     :param dict options: The defaults options accepted by the cli_object
         create
     :param dict values: Custom values to override default ones.
-    :raise CLIFactoryError: Raise an exception if object cannot be created.
+    :raise robottelo.cli.factory.CLIFactoryError: Raise an exception if object
+        cannot be created.
     :rtype: dict
     :return: A dictionary representing the newly created resource.
 

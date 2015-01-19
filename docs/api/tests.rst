@@ -9,5 +9,3 @@ Submodules:
     tests.robottelo
 
 .. automodule:: tests
-    :members:
-    :undoc-members:

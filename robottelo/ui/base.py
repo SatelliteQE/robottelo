@@ -353,7 +353,7 @@ class Base(object):
         :param entity_locator: The locator of the entity.
         :param tab_locator: The tab locator to switch to the entity's tab.
         :return: Returns whether the element is checked/selected or not.
-        :rtype: boolean value
+        :rtype: bool
         :raises robottelo.ui.base.UINoSuchElementError: If the entity is not
             found via search.
 
@@ -374,8 +374,8 @@ class Base(object):
         Submit the page and validate.
 
         :param str locator: The locator used to submit the page.
-        :param boolean validation: Helps enable or disable validation.
-            Needs to be set to False for the negative tests.
+        :param bool validation: Helps enable or disable validation. Needs to be
+            set to False for the negative tests.
 
         """
         self.wait_until_element(locator).click()

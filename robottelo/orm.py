@@ -19,8 +19,9 @@ import urlparse
 
 _SENTINEL = object()
 
-# Used by the _poll_task function.
+#: Default for ``poll_rate`` argument to :func:`robottelo.orm._poll_task`.
 TASK_POLL_RATE = 5
+#: Default for ``timeout`` argument to :func:`robottelo.orm._poll_task`.
 TASK_TIMEOUT = 180
 
 

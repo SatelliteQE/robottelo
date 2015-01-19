@@ -12,5 +12,3 @@ Submodules:
     tests.foreman.ui
 
 .. automodule:: tests.foreman
-    :members:
-    :undoc-members:

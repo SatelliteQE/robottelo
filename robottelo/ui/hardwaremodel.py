@@ -73,7 +73,7 @@ class HardwareModel(Base):
         """Deletes the Hardware-Models.
 
         :param str name: Hardware-Model's name to search.
-        :param boolean really: Value required for negative tests.
+        :param bool really: Value required for negative tests.
 
         """
 
