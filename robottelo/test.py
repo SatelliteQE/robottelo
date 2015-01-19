@@ -119,6 +119,7 @@ class UITestCase(TestCase):
         cls.verbosity = int(conf.properties['nosetests.verbosity'])
         cls.remote = int(conf.properties['main.remote'])
         cls.server_name = conf.properties.get('main.server.hostname')
+        cls.screenshots_dir = conf.properties.get('main.screenshots.base_path')
 
         if int(conf.properties.get('main.virtual_display', '0')):
             # Import from optional requirements
@@ -215,7 +216,6 @@ class UITestCase(TestCase):
     def take_screenshot(self, testmethodname):
         """Takes screenshot of the UI and saves it to the disk by creating
         a directory same as that of the test method name."""
-        filename = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
         # testmethodname varies so trying to handle various scenarios.
         # pop depending on ddt, normal test or ddt's 1st job.
         # For ddt tests with maps.
@@ -238,11 +238,17 @@ class UITestCase(TestCase):
         testmethodname = "_".join(testmethodname)
         # Creates dir_structure depending upon the testmethodname.
         directory = testmethodname
-        if not os.path.exists("/tmp/screenshots/" + directory):
-            os.makedirs("/tmp/screenshots/" + directory)
-        self.browser.save_screenshot('/tmp/screenshots/{dir}/'
-                                     'screenshot-{date}.png'
-                                     .format(dir=directory, date=filename))
+        dir_structure = os.path.join(
+            self.screenshots_dir,
+            datetime.now().strftime('%Y-%m-%d'),
+            directory,
+        )
+        if not os.path.exists(dir_structure):
+            os.makedirs(dir_structure)
+        filename = 'screenshot-{0}.png'.format(
+            datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
+        )
+        self.browser.save_screenshot(os.path.join(dir_structure, filename))
 
     def tearDown(self):
         """Make sure to close the browser after each test."""
