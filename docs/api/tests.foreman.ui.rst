@@ -19,6 +19,13 @@
     :members:
     :undoc-members:
 
+:mod:`tests.foreman.ui.test_capsule`
+------------------------------------
+
+.. automodule:: tests.foreman.ui.test_capsule
+    :members:
+    :undoc-members:
+
 :mod:`tests.foreman.ui.test_computeresource`
 --------------------------------------------
 

@@ -37,7 +37,7 @@ class CapsuleTestCase(UITestCase):
 
         @Steps:
 
-         1. attempt to push an RPM install onto client connected to
+        1. attempt to push an RPM install onto client connected to
         isolated capsule - this is a satellite-initiated action.
 
         @Assert: Package is installed
