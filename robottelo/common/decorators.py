@@ -138,32 +138,31 @@ def run_only_on(project):
         mode is specified in ``robottelo.properties`` file
 
     """
-    ALLOWED_PROJECT_MODES = ('sat', 'sam')
+    allowed_project_modes = ('sat', 'sam')
 
     # Validate project value
     project = project.lower()
-    if project not in ALLOWED_PROJECT_MODES:
+    if project not in allowed_project_modes:
         raise ProjectModeError(
-            '"{0}" is not a project mode. Did you mean any of these '
-            '{1}?'.format(project, ALLOWED_PROJECT_MODES)
+            '"{0}" is not a project mode. The allowed project modes are: {1}'
+            .format(project, allowed_project_modes)
         )
 
-    # validate robottelo_mode
+    # Validate `robottelo_mode`. Step 1: Did the user supply a value?
     robottelo_mode = conf.properties.get('main.project')
-    # Step 1: Validate if robottelo_mode is none
     if robottelo_mode is None:
         raise ProjectModeError(
             'Please specify "main.project" in robottelo.properties file'
         )
-    else:
-        robottelo_mode = robottelo_mode.lower()
-        # Step 2: Validate robottelo_mode value
-        if robottelo_mode not in ALLOWED_PROJECT_MODES:
-            raise ProjectModeError(
-                '"{0}" is not an acceptable "main.project" value in'
-                ' robottelo.properties file. Did you mean any of these'
-                ' "{1}"?'.format(robottelo_mode, ALLOWED_PROJECT_MODES)
-            )
+
+    # Step 2: Is the value sane?
+    robottelo_mode = robottelo_mode.lower()
+    if robottelo_mode not in allowed_project_modes:
+        raise ProjectModeError(
+            '"{0}" is not an acceptable "main.project" value in '
+            'robottelo.properties file. The allowed project modes are: {1}'
+            .format(robottelo_mode, allowed_project_modes)
+        )
 
     # Preconditions PASS.  Now skip the test if modes does not match
     return unittest.skipIf(
