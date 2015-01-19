@@ -10,6 +10,9 @@ server.hostname=
 
 server.ssh.key_private=/home/whoami/.ssh/id_hudson_dsa
 server.ssh.username=root
+# The directory where screenshots will be saved.
+# Note:- Content under /tmp may be deleted after a reboot.
+screenshots.base_path=/tmp/robottelo/screenshots/
 # Enter only 'sat' for Satellite and 'sam' for SAM
 project=sat
 locale=en_US.UTF-8
