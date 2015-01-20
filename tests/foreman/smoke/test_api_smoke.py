@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
+from automation_tools import distro_info
+from fabric.api import execute, settings
 from fauxfactory import gen_string
 from nailgun import client
 from nose.plugins.attrib import attr
@@ -225,6 +227,7 @@ API_PATHS = {
     u'external_usergroups': (
         u'/api/usergroups/:usergroup_id/external_usergroups',
         u'/api/usergroups/:usergroup_id/external_usergroups',
+        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
@@ -608,6 +611,19 @@ API_PATHS = {
 }
 
 
+def _bz_1184170_affects_server():
+    """Check whether the system being tested is affected by BZ 1184170."""
+    if bz_bug_is_open(1184170):
+        with settings(
+            key_filename=conf.properties['main.server.ssh.key_private'],
+            user=conf.properties['main.server.ssh.username'],
+        ):
+            hostname = conf.properties['main.server.hostname']
+            if execute(distro_info, host=hostname)[hostname][1] == 7:
+                return True
+    return False
+
+
 class TestAvailableURLs(TestCase):
     """Tests for ``api/v2``."""
     longMessage = True
@@ -673,6 +689,8 @@ class TestAvailableURLs(TestCase):
                 frozenset(API_PATHS[group]),
                 group
             )
+            if group == 'external_usergroups' and _bz_1184170_affects_server():
+                self.skipTest('BZ 1184170 is open.')
             self.assertEqual(
                 len(api_paths[group]),
                 len(API_PATHS[group]),
