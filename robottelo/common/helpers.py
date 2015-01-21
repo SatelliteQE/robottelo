@@ -8,6 +8,8 @@ Several helper methods and functions.
 import os
 import re
 
+from automation_tools import distro_info
+from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from itertools import izip
 from robottelo.common import conf
@@ -65,6 +67,21 @@ def get_server_url():
         return urlunsplit((
             scheme, '{0}:{1}'.format(hostname, port), '', '', ''
         ))
+
+
+def get_distro_info():
+    """Get a tuple of information about the RHEL distribution on the server.
+
+    :return: A tuple of information in this format: ``('rhel', 6, 6)``.
+    :rtype: tuple
+
+    """
+    with settings(
+        key_filename=conf.properties['main.server.ssh.key_private'],
+        user=conf.properties['main.server.ssh.username'],
+    ):
+        hostname = conf.properties['main.server.hostname']
+        return execute(distro_info, host=hostname)[hostname]
 
 
 def valid_names_list():
