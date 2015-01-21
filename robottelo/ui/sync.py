@@ -23,7 +23,7 @@ class Sync(Base):
         :param str product: product is required only when syncing via
             repository page.
         :return: Returns True if sync is successful.
-        :rtype: boolean
+        :rtype: bool
 
         """
         repos_result = []
@@ -223,7 +223,7 @@ class Sync(Base):
 
         :param repos_tree: Repositories to choose which is a List of dictionary
         :return: Returns True if the sync was successful.
-        :rtype: boolean
+        :rtype: bool
 
         """
         strategy, value = locators["sync.prd_expander"]
