@@ -218,6 +218,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
+    @skip_if_bug_open('bugzilla', 1184444)
     def test_bugzilla_1076568_2(self):
         """@test: Delete organization by ID
 
