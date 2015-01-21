@@ -1032,7 +1032,6 @@ class TestSmoke(TestCase):
 
         # step 1.1: Create a new organization
         org = entities.Organization().create()
-        org_name = org['name']
 
         # step 1.2: Create new lifecycle environments
         lifecycle_env = entities.LifecycleEnvironment(
@@ -1098,24 +1097,26 @@ class TestSmoke(TestCase):
                     task_status['result']))
 
         # step 7: Create activation key
-        activation_key = entities.ActivationKey(
+        ak_id = entities.ActivationKey(
             name=activation_key_name,
             environment=lifecycle_env['id'],
             organization=org['id'],
             content_view=content_view['id'],
-        ).create()
+        ).create_json()['id']
 
-        # Fetch subscription_id and quantity
-        results = entities.Organization(id=org['id']).subscriptions()
-        # Get the subscription ID from subscriptions list
-        for subscription in results:
+        # Walk through the list of subscriptions. Find the "Red Hat Employee
+        # Subscription" and attach it to the just-created activation key.
+        for subscription in entities.Organization(id=org['id']).subscriptions():
             if subscription['product_name'] == "Red Hat Employee Subscription":
-                sub_id = subscription['id']
-                sub_quantity = subscription['quantity']
-
-        # Add subscription to activation_key
-        response = entities.ActivationKey(
-            id=activation_key['id']).add_subsciptions(sub_id, sub_quantity)
+                # 'quantity' must be 1, not subscription['quantity']. Greater
+                # values produce this error: "RuntimeError: Error: Only pools
+                # with multi-entitlement product subscriptions can be added to
+                # the activation key with a quantity greater than one."
+                entities.ActivationKey(id=ak_id).add_subscriptions({
+                    'quantity': 1,
+                    'subscription_id': subscription['id'],
+                })
+                break
 
         # Create VM
         package_name = "python-kitchen"

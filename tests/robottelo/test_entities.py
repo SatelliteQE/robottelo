@@ -48,6 +48,8 @@ class PathTestCase(TestCase):
 
     @data(
         (entities.ActivationKey, '/activation_keys', 'releases'),
+        (entities.ActivationKey, '/activation_keys', 'add_subscriptions'),
+        (entities.ActivationKey, '/activation_keys', 'remove_subscriptions'),
         (entities.ContentView, '/content_views', 'available_puppet_module_names'),  # flake8:noqa pylint:disable=C0301
         (entities.ContentView, '/content_views', 'content_view_puppet_modules'),  # flake8:noqa pylint:disable=C0301
         (entities.ContentView, '/content_views', 'content_view_versions'),

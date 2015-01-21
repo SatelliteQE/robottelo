@@ -77,34 +77,38 @@ class ActivationKey(
 
         releases
             /activation_keys/<id>/releases
-        subscriptions
-            /activation_keys/<id>/subscriptions
+        add_subscriptions
+            /activation_keys/<id>/add_subscriptions
+        remove_subscriptions
+            /activation_keys/<id>/remove_subscriptions
 
         ``super`` is called otherwise.
 
         """
-        if which in ('releases', 'subscriptions',):
+        if which in ('releases', 'add_subscriptions', 'remove_subscriptions'):
             return '{0}/{1}'.format(
                 super(ActivationKey, self).path(which='self'),
                 which
             )
         return super(ActivationKey, self).path(which)
 
-    def add_subsciptions(self, subscription_id, quantity):
+    def add_subscriptions(self, params):
         """Helper for adding subscriptions to activation key.
 
+        :param dict params: Parameters that are encoded to JSON and passed in
+            with the request. See the API documentation page for a list of
+            parameters and their descriptions.
         :returns: The server's response, with all JSON decoded.
         :rtype: dict
         :raises: ``requests.exceptions.HTTPError`` If the server responds with
             an HTTP 4XX or 5XX message.
 
         """
-        response = client.post(
-            self.path('subscriptions'),
+        response = client.put(
+            self.path('add_subscriptions'),
+            params,
             auth=get_server_credentials(),
             verify=False,
-            data={u'id': subscription_id,
-                  u'quantity': quantity,}
         )
         response.raise_for_status()
         return response.json()
