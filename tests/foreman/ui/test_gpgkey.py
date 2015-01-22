@@ -45,7 +45,7 @@ class GPGKey(UITestCase):
 
     # Positive Create
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_positive_create_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         via file import
@@ -63,7 +63,7 @@ class GPGKey(UITestCase):
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_positive_create_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string
@@ -73,7 +73,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is created
 
         """
-
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=self.org_name,
@@ -82,7 +81,7 @@ class GPGKey(UITestCase):
 
     # Negative Create
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_negative_create_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key via
         file import then try to create new one with same name
@@ -105,7 +104,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.wait_until_element
                                  (common_locators["alert.error"]))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_negative_create_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
@@ -126,7 +125,7 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.error"]))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_negative_create_3(self, name):
         """@test: Create gpg key with valid name and no gpg key
 
@@ -135,7 +134,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
 
         """
-
         with Session(self.browser) as session:
             with self.assertRaises(Exception):
                 make_gpgkey(session, org=self.org_name,
@@ -152,7 +150,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
 
         """
-
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=self.org_name,
@@ -191,7 +188,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
 
         """
-
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=self.org_name,
@@ -212,7 +208,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is deleted
 
         """
-
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=self.org_name,
@@ -232,7 +227,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is deleted
 
         """
-
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
             make_gpgkey(session, org=self.org_name,
@@ -252,7 +246,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is updated
 
         """
-
         name = gen_string("alpha", 6)
         new_name = gen_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
@@ -274,7 +267,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is updated
 
         """
-
         name = gen_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
@@ -296,7 +288,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is updated
 
         """
-
         name = gen_string("alpha", 6)
         new_name = gen_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -317,7 +308,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is updated
 
         """
-
         name = gen_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
@@ -341,7 +331,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is not updated
 
         """
-
         name = gen_string("alpha", 6)
         key_path = get_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
@@ -364,7 +353,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is not updated
 
         """
-
         name = gen_string("alpha", 6)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         with Session(self.browser) as session:
@@ -376,9 +364,162 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(new_name))
 
-    # Product association
+    @unittest.skip(NOT_IMPLEMENTED)
+    @data("""DATADRIVENGOESHERE
+        name is alpha
+        name is numeric
+        name is alphanumeric
+        name is utf-8
+        name is latin1
+        name is html
+        gpg key file is valid always
+""")
+    def test_consume_content_1(self):
+        """@test: Hosts can install packages using gpg key associated with
+        single custom repository
 
-    @data(*generate_strings_list())
+        @feature: GPG Keys
+
+        @assert: host can install package from custom repository
+
+        @status: manual
+
+        """
+
+        pass
+
+    @unittest.skip(NOT_IMPLEMENTED)
+    @data("""DATADRIVENGOESHERE
+        name is alpha
+        name is numeric
+        name is alphanumeric
+        name is utf-8
+        name is latin1
+        name is html
+        gpg key file is valid always
+""")
+    def test_consume_content_2(self):
+        """@test: Hosts can install packages using gpg key associated with
+        multiple custom repositories
+
+        @feature: GPG Keys
+
+        @assert: host can install package from custom repositories
+
+        @status: manual
+
+        """
+
+        pass
+
+    @unittest.skip(NOT_IMPLEMENTED)
+    @data("""DATADRIVENGOESHERE
+        name is alpha
+        name is numeric
+        name is alphanumeric
+        name is utf-8
+        name is latin1
+        name is html
+        gpg key file is valid always
+""")
+    def test_consume_content_3(self):
+        """@test: Hosts can install packages using different gpg keys
+        associated with multiple custom repositories
+
+        @feature: GPG Keys
+
+        @assert: host can install package from custom repositories
+
+        @status: manual
+
+        """
+
+        pass
+
+    @unittest.skip(NOT_IMPLEMENTED)
+    @data("""DATADRIVENGOESHERE
+        name is alpha
+        name is numeric
+        name is alphanumeric
+        name is utf-8
+        name is latin1
+        name is html
+        gpg key file is valid always
+""")
+    def test_list_key_1(self):
+        """@test: Create gpg key and list it
+
+        @feature: GPG Keys
+
+        @assert: gpg key is displayed/listed
+
+        @status: manual
+
+        """
+
+        pass
+
+    @unittest.skip(NOT_IMPLEMENTED)
+    @data("""DATADRIVENGOESHERE
+        name is alpha
+        name is numeric
+        name is alphanumeric
+        name is utf-8
+        name is latin1
+        name is html
+        gpg key file is valid always
+""")
+    def test_search_key_1(self):
+        """@test: Create gpg key and search/find it
+
+        @feature: GPG Keys
+
+        @assert: gpg key can be found
+
+        @status: manual
+
+        """
+
+        pass
+
+    @unittest.skip(NOT_IMPLEMENTED)
+    @data("""DATADRIVENGOESHERE
+        name is alpha
+        name is numeric
+        name is alphanumeric
+        name is utf-8
+        name is latin1
+        name is html
+        gpg key file is valid always
+""")
+    def test_info_key_1(self):
+        """@test: Create single gpg key and get its info
+
+        @feature: GPG Keys
+
+        @assert: specific information for gpg key matches the creation values
+
+        @status: manual
+
+        """
+
+        pass
+
+
+@run_only_on('sat')
+@ddt
+class GPGKeyProductAssociate(UITestCase):
+    """Implements Product Association tests for GPG Keys via UI"""
+
+    @classmethod
+    def setUpClass(cls):
+        org_attrs = entities.Organization().create()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
+
+        super(GPGKeyProductAssociate, cls).setUpClass()
+
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom product
@@ -388,7 +529,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is associated with product
 
         """
-
         product_name = gen_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
         gpgkey_attrs = entities.GPGKey(
@@ -409,7 +549,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=True))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
@@ -451,7 +591,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=False))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_3(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one repository
@@ -501,7 +641,7 @@ class GPGKey(UITestCase):
                                  (name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085035)
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_4(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery method
@@ -533,7 +673,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=False))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_5(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
@@ -575,7 +715,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=False))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_6(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
@@ -652,7 +792,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_8(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then update the key
@@ -662,7 +802,6 @@ class GPGKey(UITestCase):
         @assert: gpg key is associated with product before/after update
 
         """
-        name = gen_string("alpha", 8)
         new_name = gen_string("alpha", 8)
         product_name = gen_string("alpha", 8)
         key_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -689,7 +828,7 @@ class GPGKey(UITestCase):
             self.assertEqual(product_name, self.gpgkey.assert_product_repo
                              (new_name, product=True))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_9(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
@@ -740,7 +879,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_10(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one
@@ -798,8 +937,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @skip_if_bug_open('bugzilla', 1085035)
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_11(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery
@@ -841,7 +979,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_12(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
@@ -893,7 +1031,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_13(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
@@ -980,7 +1118,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_15(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom
@@ -1018,7 +1156,7 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, product_name))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_16(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with custom product that has one repository then delete it
@@ -1065,7 +1203,7 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, product_name))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_17(self, name):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has
@@ -1121,7 +1259,7 @@ class GPGKey(UITestCase):
                               (name, product_name))
 
     @skip_if_bug_open('bugzilla', 1085035)
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_18(self, name):
         """@test: Create gpg key with valid name and valid gpg then associate
         it with custom product using Repo discovery method then delete it
@@ -1161,7 +1299,7 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, prd_name))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_19(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
@@ -1209,7 +1347,7 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, product_name, repository_name))
 
-    @data(*generate_strings_list())
+    @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_20(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
@@ -1292,151 +1430,6 @@ class GPGKey(UITestCase):
         @status: manual
 
         @BZ: 1085924
-
-        """
-
-        pass
-
-    # Content
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_consume_content_1(self):
-        """@test: Hosts can install packages using gpg key associated with
-        single custom repository
-
-        @feature: GPG Keys
-
-        @assert: host can install package from custom repository
-
-        @status: manual
-
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_consume_content_2(self):
-        """@test: Hosts can install packages using gpg key associated with
-        multiple custom repositories
-
-        @feature: GPG Keys
-
-        @assert: host can install package from custom repositories
-
-        @status: manual
-
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_consume_content_3(self):
-        """@test: Hosts can install packages using different gpg keys
-        associated with multiple custom repositories
-
-        @feature: GPG Keys
-
-        @assert: host can install package from custom repositories
-
-        @status: manual
-
-        """
-
-        pass
-
-    # Miscelaneous
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_list_key_1(self):
-        """@test: Create gpg key and list it
-
-        @feature: GPG Keys
-
-        @assert: gpg key is displayed/listed
-
-        @status: manual
-
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_search_key_1(self):
-        """@test: Create gpg key and search/find it
-
-        @feature: GPG Keys
-
-        @assert: gpg key can be found
-
-        @status: manual
-
-        """
-
-        pass
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_info_key_1(self):
-        """@test: Create single gpg key and get its info
-
-        @feature: GPG Keys
-
-        @assert: specific information for gpg key matches the creation values
-
-        @status: manual
 
         """
 
