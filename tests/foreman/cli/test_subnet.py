@@ -3,7 +3,6 @@
 """Test class for Subnet CLI"""
 
 from ddt import ddt
-from nose.plugins.attrib import attr
 from fauxfactory import gen_string, gen_integer, gen_ipaddr
 from robottelo.cli.factory import make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
@@ -24,7 +23,6 @@ class TestSubnet(CLITestCase):
         gen_string(str_type='latin1'),
         gen_string(str_type='utf8'),
     )
-    @attr('cli', 'subnet')
     def test_positive_create_1(self, test_name):
         """@Test: Check if Subnet can be created with random names
 
@@ -128,7 +126,6 @@ class TestSubnet(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_subnet(opts)
 
-    @attr('cli', 'subnet')
     def test_list(self):
         """@Test: Check if Subnet can be listed
 
@@ -162,7 +159,6 @@ class TestSubnet(CLITestCase):
         gen_string(str_type='latin1'),
         gen_string(str_type='utf8'),
     )
-    @attr('cli', 'subnet')
     def test_positive_update_1(self, test_name):
         """@Test: Check if Subnet name can be updated
 
@@ -352,7 +348,6 @@ class TestSubnet(CLITestCase):
         gen_string(str_type='latin1'),
         gen_string(str_type='utf8'),
     )
-    @attr('cli', 'subnet')
     def test_positive_delete_1(self, test_name):
         """@Test: Check if Subnet can be deleted
 

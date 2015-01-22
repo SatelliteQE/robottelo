@@ -4,7 +4,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
@@ -100,7 +99,6 @@ class TestActivationKey(CLITestCase):
         {'name': gen_string('utf8', 15)},
         {'name': gen_string('html', 15)},
     )
-    @attr('cli', 'activation-key')
     def test_positive_create_activation_key_1(self, test_data):
         """@Test: Create Activation key for all variations of
             Activation key name
@@ -131,7 +129,6 @@ class TestActivationKey(CLITestCase):
         {'description': gen_string('utf8', 15)},
         {'description': gen_string('html', 15)},
     )
-    @attr('cli', 'activation-key')
     def test_positive_create_activation_key_2(self, test_data):
         """@Test: Create Activation key for all variations of Description
 
@@ -163,7 +160,6 @@ class TestActivationKey(CLITestCase):
         {'name': gen_string('utf8', 15)},
         {'name': gen_string('html', 15)},
     )
-    @attr('cli', 'activation-key')
     def test_positive_create_associate_environ_1(self, test_data):
         """@Test: Create Activation key and associate with Library environment
 
@@ -196,7 +192,6 @@ class TestActivationKey(CLITestCase):
         {'name': gen_string('utf8', 15)},
         {'name': gen_string('html', 15)},
     )
-    @attr('cli', 'activation-key')
     def test_positive_create_associate_environ_2(self, test_data):
         """@Test: Create Activation key and associate with environment
 
@@ -231,7 +226,6 @@ class TestActivationKey(CLITestCase):
         {'name': gen_string("html", 10),
          'content-view': gen_string("alpha", 10)},
     )
-    @attr('cli', 'activation-key')
     def test_positive_create_activation_key_4(self, test_data):
         """@Test: Create Activation key for all variations of Content Views
 

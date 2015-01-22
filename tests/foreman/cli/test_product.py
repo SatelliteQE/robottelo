@@ -7,7 +7,6 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import (
     CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
 from robottelo.cli.product import Product
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
@@ -36,7 +35,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_create_1(self, test_name):
         """@Test: Check if product can be created with random names
 
@@ -86,7 +84,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('html', 15),
          u'label': gen_string('numeric', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_create_2(self, test_name):
         """@Test: Check if product can be created with random labels
 
@@ -137,7 +134,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('html', 15),
          u'description': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_create_3(self, test_name):
         """@Test: Check if product can be created with random description
 
@@ -184,7 +180,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_create_4(self, test_name):
         """@Test: Check if product can be created with gpg key
 
@@ -233,7 +228,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_create_5(self, test_name):
         """@Test: Check if product can be created with sync plan
 
@@ -279,7 +273,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 300)},
         {u'name': gen_string('html', 300)},
     )
-    @attr('cli', 'product')
     def test_negative_create_1(self, test_name):
         """@Test: Check that only valid names can be used
 
@@ -306,7 +299,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('html', 15),
          u'label': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_negative_create_2(self, test_name):
         """@Test: Check that only valid labels can be used
 
@@ -335,7 +327,6 @@ class TestProduct(CLITestCase):
         {u'description': gen_string('utf8', 15)},
         {u'description': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_update_1(self, test_data):
         """@Test: Update the description of a product
 
@@ -399,7 +390,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_update_2(self, test_name):
         """@Test: Update product's gpg keys
 
@@ -497,7 +487,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_update_3(self, test_name):
         """@Test: Update product's sync plan
 
@@ -596,7 +585,6 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'product')
     def test_positive_delete_1(self, test_name):
         """@Test: Check if product can be deleted
 
@@ -649,7 +637,6 @@ class TestProduct(CLITestCase):
         self.assertGreater(
             len(result.stderr), 0, "Error was expected")
 
-    @attr('cli', 'product')
     def test_add_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
 
@@ -690,7 +677,6 @@ class TestProduct(CLITestCase):
             result.stdout['sync-plan-id'], sync_plan['id'],
             "Info should have consistent sync ids.")
 
-    @attr('cli', 'product')
     def test_remove_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
 

@@ -25,6 +25,8 @@ manifest.fake_url=http://example.org/valid-redhat-manifest.zip
 manifest.key_url=http://example.org/fake_manifest.key
 manifest.cert_url=http://example.org/fake_manifest.crt
 
+verbosity=2
+
 # Virtual display controls if PyVirtualDisplay should be used to run UI tests
 # when setting it to 1 then make sure to install required dependencies
 virtual_display=0
@@ -48,14 +50,5 @@ admin.password=changeme
 
 [saucelabs]
 driver=firefox
-
-[nosetests]
-verbosity=2
-with-xunit=1
-xunit-file=foreman-results.xml
-# NOTE: nosetests --with-xunit does not work with
-# 'processes' property enabled.
-# processes=1
-# process-timeout=120
 
 # NOTE: Candlepin url accepts just the hostname.

@@ -89,7 +89,7 @@ class CLITestCase(TestCase):
         cls.key_filename = conf.properties['main.server.ssh.key_private']
         cls.root = conf.properties['main.server.ssh.username']
         cls.locale = conf.properties['main.locale']
-        cls.verbosity = int(conf.properties['nosetests.verbosity'])
+        cls.verbosity = int(conf.properties['main.verbosity'])
 
     def setUp(self):
         """Log test class and method name before each test."""
@@ -116,7 +116,7 @@ class UITestCase(TestCase):
         cls.katello_passwd = conf.properties['foreman.admin.password']
         cls.driver_name = conf.properties['saucelabs.driver']
         cls.locale = conf.properties['main.locale']
-        cls.verbosity = int(conf.properties['nosetests.verbosity'])
+        cls.verbosity = int(conf.properties['main.verbosity'])
         cls.remote = int(conf.properties['main.remote'])
         cls.server_name = conf.properties.get('main.server.hostname')
         cls.screenshots_dir = conf.properties.get('main.screenshots.base_path')

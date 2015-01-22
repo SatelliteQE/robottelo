@@ -3,7 +3,6 @@
 import time
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import (
     CHECKSUM_TYPE,
@@ -77,7 +76,6 @@ class Repos(UITestCase):
         return result == 'success'
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_1(self, repo_name):
         """@Test: Create repository with minimal input parameters
@@ -99,7 +97,6 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_2(self, repo_name):
         """@Test: Create repository in two different orgs with same name
@@ -134,7 +131,6 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented', 'docker')
     def test_create_repo_3(self):
         """@Test: Create a Docker-based repository
 
@@ -158,7 +154,6 @@ class Repos(UITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1167837)
-    @attr('ui', 'repo', 'implemented', 'docker')
     def test_create_repo_4(self):
         """@Test: Create and sync a Docker-based repository
 
@@ -185,7 +180,6 @@ class Repos(UITestCase):
             self.assertTrue(synced)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_create_repo_5(self, repo_name):
         """@Test: Create repository with checksum type as sha256.
@@ -236,7 +230,6 @@ class Repos(UITestCase):
             self.assertIsNotNone(invalid)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_2(self, repo_name):
         """@Test: Create repository with same name
@@ -265,7 +258,6 @@ class Repos(UITestCase):
             self.assertTrue(invalid)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_3(self, repo_name):
         """@Test: Create content repository with 256 characters in name
@@ -290,7 +282,6 @@ class Repos(UITestCase):
             self.assertTrue(error)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, repo_name):
         """@Test: Update content repository with new URL
@@ -323,7 +314,6 @@ class Repos(UITestCase):
             self.assertEqual(url_text, FAKE_2_YUM_REPO)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_2(self, repo_name):
         """@Test: Update content repository with new gpg-key
@@ -370,7 +360,6 @@ class Repos(UITestCase):
             self.assertEqual(gpgkey_2_text, gpgkey_2_name)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_3(self, repo_name):
         """@Test: Update content repository with new checksum type
@@ -406,7 +395,6 @@ class Repos(UITestCase):
             self.assertEqual(checksum_text, checksum_update)
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_remove_repo(self, repo_name):
         """@Test: Create content repository and remove it
@@ -475,7 +463,6 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.products.search(product_name))
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_syncnow_custom_repos_1(self, repository_name):
         """@Test: Create Custom yum repos and sync it via the repos page.
@@ -503,7 +490,6 @@ class Repos(UITestCase):
             self.assertTrue(self.prd_sync_is_ok(repository_name))
 
     @run_only_on('sat')
-    @attr('ui', 'repo', 'implemented')
     @data(*generate_strings_list())
     def test_syncnow_custom_repos_2(self, repository_name):
         """@Test: Create Custom puppet repos and sync it via the repos page.
@@ -533,7 +519,6 @@ class Repos(UITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1167837)
-    @attr('ui', 'repo', 'implemented')
     @data(gen_string('alpha', 8).lower(),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8).lower(),

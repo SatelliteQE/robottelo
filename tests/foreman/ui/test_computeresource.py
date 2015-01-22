@@ -3,7 +3,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.common.decorators import run_only_on
@@ -21,7 +20,6 @@ from robottelo import entities
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
 
-    @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_resource_1(self, name):
         """@Test: Create a new libvirt Compute Resource
@@ -40,7 +38,6 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'resource', 'implemented')
     @data(
         gen_string('alphanumeric', 255),
         gen_string('alpha', 255),
@@ -65,7 +62,6 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'resource', 'implemented')
     @data(
         gen_string('alphanumeric', 255),
         gen_string('alpha', 255),
@@ -93,7 +89,6 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_1(self, name):
         """@Test: Create a new libvirt Compute Resource with 256 char name
@@ -113,7 +108,6 @@ class ComputeResource(UITestCase):
                 common_locators["name_haserror"]
             ))
 
-    @attr('ui', 'resource', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_resource_negative_2(self, description):
         """@Test: Create libvirt Compute Resource with 256 char description.
@@ -155,7 +149,6 @@ class ComputeResource(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error_element)
 
-    @attr('ui', 'resource', 'implemented')
     @data({'name': gen_string('alpha'),
            'newname': gen_string('alpha')},
           {'name': gen_string('numeric'),
@@ -199,7 +192,6 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(newname)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_remove_resource(self, name):
         """@Test: Delete a Compute Resource

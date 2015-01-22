@@ -2,7 +2,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
-from nose.plugins.attrib import attr
 from robottelo.common import conf
 from robottelo.common import manifests
 from robottelo.common.constants import (
@@ -24,7 +23,6 @@ from robottelo.vm import VirtualMachine
 class TestSmoke(UITestCase):
     """End-to-end tests using the ``WebUI``."""
 
-    @attr('smoke')
     def test_find_default_org(self):
         """@Test: Check if :data:`robottelo.common.constants.DEFAULT_ORG`
         is present
@@ -39,7 +37,6 @@ class TestSmoke(UITestCase):
             selected_org = session.nav.go_to_select_org(DEFAULT_ORG)
             self.assertEqual(selected_org, DEFAULT_ORG)
 
-    @attr('smoke')
     def test_find_default_location(self):
         """@Test: Check if :data:`robottelo.common.constants.DEFAULT_LOC`
         is present
@@ -54,7 +51,6 @@ class TestSmoke(UITestCase):
             selected_loc = session.nav.go_to_select_loc(DEFAULT_LOC)
             self.assertEqual(selected_loc, DEFAULT_LOC)
 
-    @attr('smoke')
     def test_find_admin_user(self):
         """@Test: Check if Admin User is present
 
@@ -71,7 +67,6 @@ class TestSmoke(UITestCase):
             is_admin_role_selected = self.user.admin_role_to_user("admin")
             self.assertTrue(is_admin_role_selected)
 
-    @attr('smoke')
     def test_smoke(self):
         """@Test: Check that basic content can be created
 

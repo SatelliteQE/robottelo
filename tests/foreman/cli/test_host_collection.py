@@ -5,7 +5,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
@@ -104,7 +103,6 @@ class TestHostCollection(CLITestCase):
         {'name': gen_string('utf8', 15)},
         {'name': gen_string('html', 15)},
     )
-    @attr('cli', 'hostcollection')
     def test_positive_create_1(self, test_data):
         """@Test: Check if host collection can be created with random names
 
@@ -130,7 +128,6 @@ class TestHostCollection(CLITestCase):
         {'description': gen_string('utf8', 15)},
         {'description': gen_string('html', 15)},
     )
-    @attr('cli', 'hostcollection')
     def test_positive_create_2(self, test_data):
         """@Test: Check if host collection can be created with random description
 
@@ -150,7 +147,6 @@ class TestHostCollection(CLITestCase):
         )
 
     @data('1', '3', '5', '10', '20')
-    @attr('cli', 'hostcollection')
     def test_positive_create_3(self, test_data):
         """@Test: Check if host collection can be created with random limits
 
@@ -178,7 +174,6 @@ class TestHostCollection(CLITestCase):
         {'name': gen_string('utf8', 300)},
         {'name': gen_string('html', 300)},
     )
-    @attr('cli', 'hostcollection')
     def test_negative_create_1(self, test_data):
         """@Test: Check if host collection can be created with random names
 
@@ -200,7 +195,6 @@ class TestHostCollection(CLITestCase):
         {'name': gen_string('utf8', 15)},
         {'name': gen_string('html', 15)},
     )
-    @attr('cli', 'hostcollection')
     def test_positive_update_1(self, test_data):
         """@Test: Check if host collection name can be updated
 
@@ -274,7 +268,6 @@ class TestHostCollection(CLITestCase):
         {'description': gen_string('utf8', 15)},
         {'description': gen_string('html', 15)},
     )
-    @attr('cli', 'hostcollection')
     def test_positive_update_2(self, test_data):
         """@Test: Check if host collection description can be updated
 
@@ -341,7 +334,6 @@ class TestHostCollection(CLITestCase):
     @skip_if_bug_open('bugzilla', 1084240)
     @skip_if_bug_open('bugzilla', 1171669)
     @data('3', '6', '9', '12', '15', '17', '19')
-    @attr('cli', 'hostcollection')
     def test_positive_update_3(self, test_data):
         """@Test: Check if host collection limits be updated
 
@@ -402,7 +394,6 @@ class TestHostCollection(CLITestCase):
         {'name': gen_string('utf8', 15)},
         {'name': gen_string('html', 15)},
     )
-    @attr('cli', 'hostcollection')
     def test_positive_delete_1(self, test_data):
         """@Test: Check if host collection can be created and deleted
 

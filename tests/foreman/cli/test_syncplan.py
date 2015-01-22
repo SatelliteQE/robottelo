@@ -5,7 +5,6 @@
 from datetime import datetime, timedelta
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.cli.factory import make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.common.decorators import data
@@ -62,7 +61,6 @@ class TestSyncPlan(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'syncplan')
     def test_positive_create_1(self, test_data):
         """@Test: Check if syncplan can be created with random names
 
@@ -88,7 +86,6 @@ class TestSyncPlan(CLITestCase):
         {u'description': gen_string('utf8', 15)},
         {u'description': gen_string('html', 15)},
     )
-    @attr('cli', 'syncplan')
     def test_positive_create_2(self, test_data):
         """@Test: Check if syncplan can be created with random description
 
@@ -181,7 +178,6 @@ class TestSyncPlan(CLITestCase):
             u'interval': u'weekly'
         },
     )
-    @attr('cli', 'syncplan')
     def test_positive_create_3(self, test_data):
         """@Test: Check if syncplan can be created with varied intervals
 
@@ -214,7 +210,6 @@ class TestSyncPlan(CLITestCase):
         {u'name': gen_string('utf8', 300)},
         {u'name': gen_string('html', 300)},
     )
-    @attr('cli', 'syncplan')
     def test_negative_create_1(self, test_data):
         """@Test: Check if syncplan can be created with random names
 
@@ -235,7 +230,6 @@ class TestSyncPlan(CLITestCase):
         {u'description': gen_string('utf8', 15)},
         {u'description': gen_string('html', 15)},
     )
-    @attr('cli', 'syncplan')
     def test_positive_update_1(self, test_data):
         """@Test: Check if syncplan description can be updated
 
@@ -334,7 +328,6 @@ class TestSyncPlan(CLITestCase):
         {u'name': gen_string('html', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
     )
-    @attr('cli', 'syncplan')
     def test_positive_update_2(self, test_data):
         """@Test: Check if syncplan interval be updated
 
@@ -407,7 +400,6 @@ class TestSyncPlan(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'syncplan')
     def test_positive_update_3(self, test_data):
         """@Test: Check if syncplan sync date can be updated
 
@@ -476,7 +468,6 @@ class TestSyncPlan(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'syncplan')
     def test_positive_delete_1(self, test_data):
         """@Test: Check if syncplan can be created and deleted
 
