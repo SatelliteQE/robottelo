@@ -1575,3 +1575,109 @@ class TestActivationKey(CLITestCase):
             subscription_result.stdout[0]['name'],  # subscription name
             result.stdout[3]  # subscription list
         )
+
+    def test_positive_update_auto_attach(self):
+        """@Test: Update Activation key with inverse auto-attach value
+
+        @Feature: Activation key update / info
+
+        @Steps:
+
+        1. Get the key's current auto attach value.
+        2. Update the key with the value's inverse.
+        3. Verify key was updated.
+
+        @Assert: Activation key is sucessfully copied
+
+        """
+        org_id = make_org(cached=True)['id']
+        key_id = make_activation_key(
+            {u'organization-id': org_id}, cached=True)['id']
+        try:
+            attach_value = ActivationKey.info({
+                u'id': key_id,
+                u'organization-id': org_id,
+            }).stdout['auto-attach']
+        except CLIFactoryError as err:
+            self.fail(err)
+        # invert value
+        new_value = u'false' if attach_value == u'true' else u'true'
+        try:
+            result = ActivationKey.update({
+                u'auto-attach': new_value,
+                u'id': key_id,
+                u'organization-id': org_id,
+            })
+            self.assertEqual(result.return_code, 0)
+            attach_value = ActivationKey.info({
+                u'id': key_id,
+                u'organization-id': org_id,
+            }).stdout['auto-attach']
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(attach_value, new_value)
+
+    @data(
+        u'1',
+        u'0',
+        u'true',
+        u'false',
+        u'yes',
+        u'no',
+    )
+    def test_positive_update_auto_attach_2(self, new_value):
+        """@Test: Update Activation key with valid auto-attach values
+
+        @Feature: Activation key update / info
+
+        @Steps:
+
+        1. Update the key with a valid value
+        2. Verify key was updated.
+
+        @Assert: Activation key is sucessfully copied
+
+        """
+        org_id = make_org(cached=True)['id']
+        key_id = make_activation_key(
+            {u'organization-id': org_id}, cached=True)['id']
+        try:
+            result = ActivationKey.update({
+                u'auto-attach': new_value,
+                u'id': key_id,
+                u'organization-id': org_id,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            u'Activation key updated', result.stdout[0]['message'])
+
+    def test_negative_update_auto_attach(self):
+        """@Test: Attempt to update Activation key with bad auto-attach value
+
+        @Feature: Activation key update / info
+
+        @Steps:
+
+        1. Attempt to update a key with incorrect auto-attach value
+        2. Verify that an appropriate error message was returned
+
+        @Assert: Activation key is sucessfully copied
+
+        """
+        org_id = make_org(cached=True)['id']
+        key_id = make_activation_key(
+            {u'organization-id': org_id}, cached=True)['id']
+        try:
+            result = ActivationKey.update({
+                u'auto-attach': gen_string('utf8'),
+                u'id': key_id,
+                u'organization-id': org_id,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn("'--auto-attach': value must be one of", result.stderr)

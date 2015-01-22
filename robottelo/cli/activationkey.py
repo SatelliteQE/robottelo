@@ -15,12 +15,14 @@ Subcommands::
 
     add-host-collection           Associate a resource
     add-subscription              Add subscription
+    content-override              Override product content defaults
     copy                          Copy an activation key
     create                        Create an activation key
     delete                        Destroy an activation key
     host-collections              List associated host collections
     info                          Show an activation key
     list                          List activation keys
+    product-content               List associated products
     remove-host-collection        Disassociate a resource
     remove-subscription           Remove subscription
     subscriptions                 List associated subscriptions
@@ -47,14 +49,28 @@ class ActivationKey(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def content_override(cls, options=None):
+        """Override product content defaults"""
+        cls.command_sub = 'content-override'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def copy(cls, options=None):
         """Copy an activation key"""
         cls.command_sub = 'copy'
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def host_collection(cls, options=None):
         """List associated host collections"""
         cls.command_sub = 'host-collections'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def product_content(cls, options=None):
+        """List associated products"""
+        cls.command_sub = 'product-content'
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_host_collection(cls, options=None):
@@ -78,3 +94,4 @@ class ActivationKey(Base):
     def subscriptions(cls, options=None):
         """List associated subscriptions"""
         cls.command_sub = 'subscriptions'
+        return cls.execute(cls._construct_command(options))
