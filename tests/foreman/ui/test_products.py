@@ -2,7 +2,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
@@ -24,7 +23,6 @@ class Products(UITestCase):
         super(Products, cls).setUpClass()
 
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, prd_name):
         """@Test: Create Content Product minimal input parameters
@@ -41,7 +39,6 @@ class Products(UITestCase):
             self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, prd_name):
         """@Test: Create Content Product with same name but in another org
@@ -65,7 +62,6 @@ class Products(UITestCase):
             self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_1(self, prd_name):
         """@Test: Create Content Product with too long input parameters
@@ -120,7 +116,6 @@ class Products(UITestCase):
             self.assertIsNotNone(invalid)
 
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_4(self, prd_name):
         """@Test: Create Content Product with same name input parameter
@@ -141,7 +136,6 @@ class Products(UITestCase):
             self.assertIsNotNone(error)
 
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, prd_name):
         """@Test: Update Content Product with minimal input parameters
@@ -161,7 +155,6 @@ class Products(UITestCase):
             self.assertIsNotNone(self.products.search(new_prd_name))
 
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, prd_name):
         """@Test: Update Content Product with too long input parameters
@@ -184,7 +177,6 @@ class Products(UITestCase):
 
     @skip_if_bug_open('redmine', 7845)
     @run_only_on('sat')
-    @attr('ui', 'prd', 'implemented')
     @data(*generate_strings_list())
     def test_remove_prd(self, prd_name):
         """@Test: Delete Content Product

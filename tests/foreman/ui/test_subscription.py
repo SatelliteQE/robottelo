@@ -1,7 +1,6 @@
 """Test class for Subscriptions/Manifests UI"""
 
 from ddt import ddt
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import manifests
 from robottelo.common.decorators import skipRemote
@@ -22,7 +21,6 @@ class SubscriptionTestCase(UITestCase):
         super(SubscriptionTestCase, cls).setUpClass()
 
     @skipRemote
-    @attr('ui', 'subs', 'implemented')
     def test_positive_upload_1(self):
         """@Test: Upload a manifest with minimal input parameters
 
@@ -44,7 +42,6 @@ class SubscriptionTestCase(UITestCase):
             self.assertTrue(success_ele)
 
     @skipRemote
-    @attr('ui', 'subs', 'implemented')
     def test_positive_delete_1(self):
         """@Test: Upload a manifest and delete the manifest.
 
@@ -67,7 +64,6 @@ class SubscriptionTestCase(UITestCase):
             self.assertTrue(success_ele)
 
     @skipRemote
-    @attr('ui', 'subs', 'implemented')
     def test_assert_delete_button(self):
         """@Test: Upload and delete a manifest
 

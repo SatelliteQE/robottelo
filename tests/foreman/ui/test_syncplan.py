@@ -3,7 +3,6 @@
 from ddt import ddt
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import SYNC_INTERVAL
 from robottelo.common.decorators import data, skip_if_bug_open
@@ -26,7 +25,6 @@ class Syncplan(UITestCase):
 
         super(Syncplan, cls).setUpClass()
 
-    @attr('ui', 'syncplan', 'implemented')
     @data({u'name': gen_string('alpha', 10),
            u'desc': gen_string('alpha', 10),
            u'interval': SYNC_INTERVAL['hour']},
@@ -88,7 +86,6 @@ class Syncplan(UITestCase):
             self.assertIsNotNone(self.syncplan.search(test_data['name']))
 
     @skip_if_bug_open('bugzilla', 1131661)
-    @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_2(self):
         """@Test: Create Sync plan with specified start time
 
@@ -126,7 +123,6 @@ class Syncplan(UITestCase):
             self.assertEqual(saved_starttime, starttime)
 
     @skip_if_bug_open('bugzilla', 1131661)
-    @attr('ui', 'syncplan', 'implemented')
     def test_positive_create_3(self):
         """@Test: Create Sync plan with specified start date
 
@@ -172,7 +168,6 @@ class Syncplan(UITestCase):
             self.assertIsNotNone(invalid)
 
     @skip_if_bug_open('bugzilla', 1087425)
-    @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_2(self, name):
         """@Test: Create Sync Plan with 256 characters in name
@@ -192,7 +187,6 @@ class Syncplan(UITestCase):
             error = self.syncplan.wait_until_element(locator)
             self.assertIsNotNone(error)
 
-    @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, name):
         """@Test: Create Sync Plan with an existing name
@@ -215,7 +209,6 @@ class Syncplan(UITestCase):
             error = self.syncplan.wait_until_element(locator)
             self.assertIsNotNone(error)
 
-    @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, plan_name):
         """@Test: Update Sync plan's name
@@ -236,7 +229,6 @@ class Syncplan(UITestCase):
             self.syncplan.update(plan_name, new_name=new_plan_name)
             self.assertIsNotNone(self.syncplan.search(new_plan_name))
 
-    @attr('ui', 'syncplan', 'implemented')
     @data({u'name': gen_string('alpha', 10),
            u'interval': SYNC_INTERVAL['hour']},
           {u'name': gen_string('numeric', 10),
@@ -292,7 +284,6 @@ class Syncplan(UITestCase):
             interval_text = self.syncplan.wait_until_element(locator).text
             self.assertEqual(interval_text, test_data['interval'])
 
-    @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_3(self, plan_name):
         """@Test: Update Sync plan and associate products
@@ -324,7 +315,6 @@ class Syncplan(UITestCase):
                 (strategy, value % product_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_4(self, plan_name):
         """@Test: Update Sync plan and disassociate products
@@ -369,7 +359,6 @@ class Syncplan(UITestCase):
                 (strategy, value % product_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'syncplan', 'implemented')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, plan_name):
         """@Test: Delete a Sync plan

@@ -1,7 +1,7 @@
 # Travis runs tests and checks code quality using these modules.
 flake8
 mock
-nose
+pytest
 testimony
 
 # Voluntary (recommended!) tool for checking code quality.

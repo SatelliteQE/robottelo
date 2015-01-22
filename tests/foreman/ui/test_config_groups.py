@@ -2,7 +2,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -16,7 +15,6 @@ from robottelo.ui.session import Session
 class ConfigGroups(UITestCase):
     """Implements Config Groups tests in UI."""
 
-    @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_positive_1(self, name):
         """@Test: Create new Config-Group
@@ -31,7 +29,6 @@ class ConfigGroups(UITestCase):
             search = self.configgroups.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'config-groups', 'implemented')
     @data(
         gen_string('alphanumeric', 255),
         gen_string('alpha', 255),
@@ -52,7 +49,6 @@ class ConfigGroups(UITestCase):
             search = self.configgroups.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_negative_1(self, name):
         """@Test: Create new config-groups with 256 chars
@@ -86,7 +82,6 @@ class ConfigGroups(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'config-group', 'implemented')
     @data({'name': gen_string('alpha', 10),
            'new_name': gen_string('alpha', 10)},
           {'name': gen_string('numeric', 10),
@@ -115,7 +110,6 @@ class ConfigGroups(UITestCase):
             search = self.configgroups.search(new_name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'config-groups', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):
         """@Test: Create new config-groups
