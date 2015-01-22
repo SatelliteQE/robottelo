@@ -194,7 +194,12 @@ class CVPublishPromoteTestCase(APITestCase):
         content_view = entities.ContentView()
         content_view.id = content_view.create_json()['id']
         for _ in range(REPEAT):
-            self.assertEqual(content_view.publish()['result'], 'success')
+            response = content_view.publish()
+            self.assertEqual(
+                response['result'],
+                'success',
+                response['humanized']['errors']
+            )
         self.assertEqual(len(content_view.read_json()['versions']), REPEAT)
 
     def test_positive_publish_2(self):
@@ -254,7 +259,12 @@ class CVPublishPromoteTestCase(APITestCase):
         # Publish the content view several times and check that each version
         # has the puppet module added above.
         for _ in range(REPEAT):
-            self.assertEqual('success', content_view.publish()['result'])
+            response = content_view.publish()
+            self.assertEqual(
+                response['result'],
+                'success',
+                response['humanized']['errors']
+            )
         for cvv_id in (  # content view version ID
                 version['id']
                 for version
@@ -273,7 +283,12 @@ class CVPublishPromoteTestCase(APITestCase):
         """
         content_view = entities.ContentView(organization=self.org.id)
         content_view.id = content_view.create_json()['id']
-        self.assertEqual(content_view.publish()['result'], 'success')
+        response = content_view.publish()
+        self.assertEqual(
+            response['result'],
+            'success',
+            response['humanized']['errors']
+        )
 
         # Promote the content view version several times.
         cvv = entities.ContentViewVersion(
@@ -310,7 +325,12 @@ class CVPublishPromoteTestCase(APITestCase):
         content_view = entities.ContentView(organization=self.org.id)
         content_view.id = content_view.create_json()['id']
         content_view.set_repository_ids([self.yum_repo.id])
-        self.assertEqual(content_view.publish()['result'], 'success')
+        response = content_view.publish()
+        self.assertEqual(
+            response['result'],
+            'success',
+            response['humanized']['errors']
+        )
 
         # Promote the content view version.
         cvv = entities.ContentViewVersion(
@@ -357,7 +377,12 @@ class CVPublishPromoteTestCase(APITestCase):
             puppet_module['author'],
             puppet_module['name']
         )
-        self.assertEqual(content_view.publish()['result'], u'success')
+        response = content_view.publish()
+        self.assertEqual(
+            response['result'],
+            'success',
+            response['humanized']['errors']
+        )
 
         # Promote the content view version.
         cvv = entities.ContentViewVersion(
@@ -367,7 +392,12 @@ class CVPublishPromoteTestCase(APITestCase):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
-            self.assertEqual(cvv.promote(lc_env_id)['result'], 'success')
+            response = cvv.promote(lc_env_id)
+            self.assertEqual(
+                response['result'],
+                'success',
+                response['humanized']['errors']
+            )
 
         # Everything's done. Check some content view attributes...
         cv_attrs = content_view.read_json()
