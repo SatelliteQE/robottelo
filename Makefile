@@ -5,7 +5,8 @@ FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
 FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
-NOSETESTS=python -m cProfile -o $@.pstats $$(which nosetests)
+PYTEST=python -m cProfile -o $@.pstats $$(which py.test)
+PYTESTOPTS=--junit-xml=foreman-results.xml
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 
 # Commands --------------------------------------------------------------------
@@ -38,30 +39,29 @@ test-docstrings:
 	testimony validate_docstring tests/foreman/ui
 
 test-robottelo:
-	$(NOSETESTS) -c robottelo.properties $(ROBOTTELO_TESTS_PATH)
+	$(PYTEST) $(ROBOTTELO_TESTS_PATH)
 
 test-foreman-api:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_API_TESTS_PATH)
+	$(PYTEST) $(PYTESTOPTS) $(FOREMAN_API_TESTS_PATH)
 
 test-foreman-api-threaded:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_API_TESTS_PATH)\
-	    --processes=-1 --process-timeout=300
+	$(PYTEST) $(PYTESTOPTS) $(FOREMAN_API_TESTS_PATH)\
+		--processes=-1 --process-timeout=300
 
 test-foreman-cli:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_CLI_TESTS_PATH)
+	$(PYTEST) $(PYTESTOPTS) $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-cli-threaded:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_CLI_TESTS_PATH)\
-	    --processes=-1 --process-timeout=300
+	$(PYTEST) $(PYTESTOPTS) $(FOREMAN_CLI_TESTS_PATH) --processes=-1 --process-timeout=300
 
 test-foreman-ui:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
+	$(PYTEST) $(PYTESTOPTS) $(FOREMAN_UI_TESTS_PATH)
 
 test-foreman-ui-xvfb:
-	xvfb-run nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
+	xvfb-run py.test $(PYTESTOPTS) $(FOREMAN_UI_TESTS_PATH)
 
 test-foreman-smoke:
-	$(NOSETESTS) -c robottelo.properties $(FOREMAN_SMOKE_TESTS_PATH)
+	$(PYTEST) $(PYTESTOPTS) $(FOREMAN_SMOKE_TESTS_PATH)
 
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
