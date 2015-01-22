@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Unit tests for the ``permissions`` paths.
 
 Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
@@ -18,10 +19,10 @@ from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-PERMISSIONS_RESOURCE_TYPE = [
-    key for key in PERMISSIONS.keys() if key is not None
-]
-PERMISSIONS_NAME = [
+#: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
+PERMISSION_RESOURCE_TYPES = [key for key in PERMISSIONS.keys()]
+#: e.g. ['view_architectures', 'create_architectures', 'edit_architectures', …]
+PERMISSION_NAMES = [
     value for value in chain.from_iterable(PERMISSIONS.values())
 ]
 BZ_1184644_PERMS = (
@@ -37,13 +38,14 @@ class PermissionsTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
 
     @run_only_on('sat')
-    @ddt_data(*PERMISSIONS_NAME)  # pylint:disable=W0142
+    @ddt_data(*PERMISSION_NAMES)  # pylint:disable=W0142
     def test_search_by_name(self, permission_name):
-        """@test: permissions can be searched by name
+        """@test: Search for a permission by name.
 
         @feature: Permissions
 
-        @assert: Searched permission name match the query name
+        @assert: Only one permission is returned, and the permission returned
+        is the one searched for.
 
         """
         if (
@@ -53,40 +55,54 @@ class PermissionsTestCase(APITestCase):
         ):
             self.skipTest('BZ 1184644 is open and affects the server.')
         result = entities.Permission(name=permission_name).search()
-        self.assertEqual(len(result), 1)
+        self.assertEqual(len(result), 1, permission_name)
         self.assertEqual(permission_name, result[0]['name'])
 
     @run_only_on('sat')
-    @ddt_data(*PERMISSIONS_RESOURCE_TYPE)  # pylint:disable=W0142
+    @ddt_data(*PERMISSION_RESOURCE_TYPES)  # pylint:disable=W0142
     def test_search_by_resource_type(self, resource_type):
-        """@test: permissions can be searched by resource type
+        """@test: Search for permissions by resource type.
 
-        @feature: Permissions - Search
+        @feature: Permissions
 
-        @assert: Search returns a list of all expected resource_type's
-        permissions
+        @assert: The permissions returned are equal to what is listed for that
+        resource type in :data:`robottelo.common.constants.PERMISSIONS`.
 
         """
-        result = entities.Permission(resource_type=resource_type).search()
-        permissions = PERMISSIONS[resource_type]
-        result_permissions = [permission['name'] for permission in result]
-        self.assertEqual(len(result), len(permissions))
-        self.assertItemsEqual(permissions, result_permissions)
+        if resource_type is None:
+            self.skipTest(
+                "Can't search for permissions that have a resource_type of nil"
+            )
+        perm_group = entities.Permission(resource_type=resource_type).search()
+        self.assertItemsEqual(
+            PERMISSIONS[resource_type],
+            [perm['name'] for perm in perm_group],
+        )
+        self.assertEqual(len(perm_group), len(PERMISSIONS[resource_type]))
 
     @run_only_on('sat')
     def test_search_permissions(self):
         """@test: search with no parameters return all permissions
 
-        @feature: Permission - Search
+        @feature: Permission
 
         @assert: Search returns a list of all expected permissions
 
         """
-        result = entities.Permission().search()
-        result_name = [permission['name'] for permission in result]
+        perms = entities.Permission().search()
+        perm_names = [perm['name'] for perm in perms]
+        perm_resource_types = [perm['resource_type'] for perm in perms]
         if bz_bug_is_open(1184644) and get_distro_info()[1] == 6:
-            result_name.extend(BZ_1184644_PERMS)
-        self.assertItemsEqual(PERMISSIONS_NAME, result_name)
+            perm_names.extend(BZ_1184644_PERMS)
+
+        self.assertEqual(
+            frozenset(PERMISSION_RESOURCE_TYPES),
+            frozenset(perm_resource_types),
+        )
+        self.assertEqual(
+            frozenset(PERMISSION_NAMES),
+            frozenset(perm_names),
+        )
 
 
 # FIXME: This method is a hack. This information should somehow be tied
@@ -146,7 +162,7 @@ class UserRoleTestCase(APITestCase):
         This method creates a role and filter to accomplish the above goal.
         When complete, the relevant relationhips look like this:
 
-            user -> role <- filter -> permission
+            user → role ← filter → permission
 
         :param str perm_name: The name of a permission. For example:
             'create_architectures'.

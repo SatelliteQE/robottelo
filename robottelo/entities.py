@@ -1556,16 +1556,23 @@ class Permission(orm.Entity, orm.EntityReadMixin):
         """Searches for permissions using the values for instance name and
         resource_type
 
-        Usage::
+        Example usage::
 
-            result = Permission(resource_type='Architecture').search()
-            result = Permission(name='create_architectures').search()
+            >>> entities.Permission(resource_type='Domain').search()
+            [
+                {u'name': u'view_domains', u'resource_type': u'Domain', u'id': 39},
+                {u'name': u'create_domains', u'resource_type': u'Domain', u'id': 40},
+                {u'name': u'edit_domains', u'resource_type': u'Domain', u'id': 41},
+                {u'name': u'destroy_domains', u'resource_type': u'Domain', u'id': 42}
+            ]
+            >>> entities.Permission(name='view_domains').search()
+            [{u'name': u'view_domains', u'resource_type': u'Domain', u'id': 39}]
 
-        If you search by using both name and resource_type then the default
-        server behavior is to search by resource_type.
+        If both ``name`` and ``resource_type`` are provided, ``name`` is
+        ignored.
 
         :param int per_page: number of results per page to return
-        :returns: A list with the found results
+        :returns: A list of matching permissions.
         :rtype: list
 
         """
