@@ -11,7 +11,6 @@ else:
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import client
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.api import utils
 from robottelo.common import manifests
@@ -142,7 +141,6 @@ class ActivationKey(UITestCase):
             cv_version.promote(environment_id=env_attrs['id'])['result']
         )
 
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
         """@Test: Create Activation key for all variations of Activation
@@ -166,7 +164,6 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_2(self, description):
         """@Test: Create Activation key for all variations of Description
@@ -190,7 +187,6 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_3(self, env_name):
         """@Test: Create Activation key for all variations of Environments
@@ -222,7 +218,6 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_4(self, cv_name):
         """@Test: Create Activation key for all variations of Content Views
@@ -252,7 +247,6 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_create_activation_key_5(self, hc_name):
         """@Test: Create Activation key for all variations of Host Collections
@@ -293,7 +287,6 @@ class ActivationKey(UITestCase):
                 strategy, value % host_col['name']))
             self.assertIsNotNone(host_collection)
 
-    @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_6(self):
         """@Test: Create Activation key with default Usage limit (Unlimited)
 
@@ -317,7 +310,6 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_7(self):
         """@Test: Create Activation key with finite Usage limit
 
@@ -343,7 +335,6 @@ class ActivationKey(UITestCase):
                                description=description)
             self.assertIsNotNone(self.activationkey.search_key(name))
 
-    @attr('ui', 'ak', 'implemented')
     def test_positive_create_activation_key_8(self):
         """@Test: Create Activation key with minimal input parameters
 
@@ -441,7 +432,6 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.activationkey.search_key(name))
 
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_1(self, name):
         """@Test: Create Activation key and delete it for all variations of
@@ -467,7 +457,6 @@ class ActivationKey(UITestCase):
             self.activationkey.delete(name, True)
             self.assertIsNone(self.activationkey.search_key(name))
 
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_2(self, description):
         """@Test: Create Activation key and delete it for all variations of
@@ -494,7 +483,6 @@ class ActivationKey(UITestCase):
             self.assertIsNone(self.activationkey.search_key(name))
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_3(self, env_name):
         """@Test: Create Activation key and delete it for all variations of
@@ -526,7 +514,6 @@ class ActivationKey(UITestCase):
             self.assertIsNone(self.activationkey.search_key(name))
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_delete_activation_key_4(self, cv_name):
         """@Test: Create Activation key and delete it for all variations of
@@ -690,7 +677,6 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     @skip_if_bug_open('bugzilla', 1177330)
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_1(self, new_name):
         """@Test: Update Activation Key Name in an Activation key
@@ -715,7 +701,6 @@ class ActivationKey(UITestCase):
             self.activationkey.update(name, new_name)
             self.assertIsNotNone(self.activationkey.search_key(new_name))
 
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_2(self, new_description):
         """@Test: Update Description in an Activation key
@@ -744,7 +729,6 @@ class ActivationKey(UITestCase):
                                  (common_locators["alert.success"]))
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_3(self, env_name):
         """@Test: Update Environment in an Activation key
@@ -782,7 +766,6 @@ class ActivationKey(UITestCase):
             self.assertEqual(env_name, selected_env)
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_data_list())
     def test_positive_update_activation_key_4(self, cv2_name):
         """@Test: Update Content View in an Activation key
@@ -827,7 +810,6 @@ class ActivationKey(UITestCase):
             self.assertEqual(cv2_name, selected_cv)
             # TODO: Need to check for RH Product too
 
-    @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_5(self):
         """@Test: Update Usage limit from Unlimited to a finite number
 
@@ -854,7 +836,6 @@ class ActivationKey(UITestCase):
                                  (common_locators["alert.success"]))
 
     @skip_if_bug_open('bugzilla', 1127090)
-    @attr('ui', 'ak', 'implemented')
     def test_positive_update_activation_key_6(self):
         """@Test: Update Usage limit from definite number to Unlimited
 
@@ -967,7 +948,6 @@ class ActivationKey(UITestCase):
                              "Please update content host limit "
                              "with valid integer value")
 
-    @attr('ui', 'ak', 'implemented')
     @run_only_on('sat')
     def test_usage_limit(self):
         """@Test: Test that Usage limit actually limits usage
@@ -1375,7 +1355,6 @@ class ActivationKey(UITestCase):
         pass
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*valid_names_list())
     def test_positive_copy_activation_key(self, new_name):
         """@Test: Create Activation key and copy it
@@ -1398,7 +1377,6 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(new_name))
 
     @run_only_on('sat')
-    @attr('ui', 'ak', 'implemented')
     @data(*invalid_names_list())
     def test_negative_copy_activation_key(self, new_name):
         """@Test: Create Activation key and fail copying it

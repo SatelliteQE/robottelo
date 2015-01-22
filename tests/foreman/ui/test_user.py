@@ -11,7 +11,6 @@ else:
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from selenium.webdriver.support.select import Select
 from robottelo import entities
 from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
@@ -56,7 +55,6 @@ class User(UITestCase):
     """
 
     @skip_if_bug_open('bugzilla', 1177097)
-    @attr('ui', 'user', 'implemented')
     @data(*valid_strings())
     def test_delete_user(self, user_name):
         """@Test: Delete a User
@@ -77,7 +75,6 @@ class User(UITestCase):
             self.assertIsNone(self.user.search(user_name, search_key))
 
     @skip_if_bug_open('bugzilla', 1139616)
-    @attr('ui', 'user', 'implemented')
     def test_update_password(self):
         """@Test: Update password for a user
 
@@ -98,7 +95,6 @@ class User(UITestCase):
             self.login.login(user_name, new_password)
             self.assertTrue(self.login.is_logged())
 
-    @attr('ui', 'user', 'implemented')
     def test_update_role(self):
         """@Test: Update role for a user
 
@@ -127,7 +123,6 @@ class User(UITestCase):
                                                      value % role_name))
             self.assertIsNotNone(element2)
 
-    @attr('ui', 'user', 'implemented')
     @data(*valid_strings())
     def test_positive_create_user_1(self, user_name):
         """@Test: Create User for all variations of Username
@@ -145,7 +140,6 @@ class User(UITestCase):
             make_user(session, username=user_name)
             self.assertIsNotNone(self.user.search(user_name, search_key))
 
-    @attr('ui', 'user', 'implemented')
     @data(*valid_strings())
     def test_positive_create_user_2(self, first_name):
         """@Test: Create User for all variations of First Name
@@ -172,7 +166,6 @@ class User(UITestCase):
                 ).get_attribute('value')
             )
 
-    @attr('ui', 'user', 'implemented')
     @data(*valid_strings(50))
     def test_positive_create_user_3(self, last_name):
         """@Test: Create User for all variations of Surname
@@ -217,7 +210,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     @data(*LANGUAGES)
     def test_positive_create_user_5(self, language):
         """@Test: Create User for all variations of Language
@@ -261,7 +253,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     @data(
         u'foo@!#$^&*( ) {0}'.format(gen_string("alpha", 2)),
         u'bar+{{}}|\"?hi {0}'.format(gen_string("alpha", 2)),
@@ -298,7 +289,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     def test_positive_create_user_9(self):
         """@Test: Create User with one role
 
@@ -322,7 +312,6 @@ class User(UITestCase):
                                                     value % role_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'user', 'implemented')
     def test_positive_create_user_10(self):
         """@Test: Create User with multiple roles
 
@@ -569,7 +558,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     def test_positive_create_user_24(self):
         """@Test: Create User associated to one Org
 
@@ -592,7 +580,6 @@ class User(UITestCase):
                                                     value % org_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'user', 'implemented')
     def test_positive_create_user_25(self):
         """@Test: Create User associated to multiple Orgs
 
@@ -666,7 +653,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     def test_positive_create_user_29(self):
         """@Test: Create User and associate a default Org
 
@@ -694,7 +680,6 @@ class User(UITestCase):
             option = Select(org_element).first_selected_option
             self.assertEqual(org_name, option.text)
 
-    @attr('ui', 'user', 'implemented')
     def test_positive_create_user_30(self):
         """@Test: Create User and associate a default Location.
 
@@ -740,7 +725,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_user_2(self, user_name):
         """@Test: Create User with invalid User Name
@@ -759,7 +743,6 @@ class User(UITestCase):
             error = self.user.wait_until_element(common_locators["haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'user', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_user_3(self, first_name):
         """@Test: Create User with invalid FirstName
@@ -779,7 +762,6 @@ class User(UITestCase):
             error = self.user.wait_until_element(common_locators["haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'user', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_user_4(self, last_name):
         """@Test: Create User with invalid Surname
@@ -816,7 +798,6 @@ class User(UITestCase):
         """
         pass
 
-    @attr('ui', 'user', 'implemented')
     def test_negative_create_user_6(self):
         """@Test: Create User with blank Authorized by
 
@@ -835,7 +816,6 @@ class User(UITestCase):
             error = self.user.wait_until_element(common_locators["haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'user', 'implemented')
     def test_negative_create_user_8(self):
         """@Test: Create User with non-matching values in Password and verify
 
@@ -859,7 +839,6 @@ class User(UITestCase):
             self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1139616)
-    @attr('ui', 'user', 'implemented')
     @data(*valid_strings())
     def test_positive_update_user_1(self, new_username):
         """@Test: Update Username in User

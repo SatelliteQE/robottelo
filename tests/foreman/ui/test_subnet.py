@@ -5,7 +5,6 @@
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from robottelo import entities
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, bz_bug_is_open)
 from robottelo.common.helpers import generate_strings_list
@@ -20,7 +19,6 @@ from robottelo.ui.session import Session
 class Subnet(UITestCase):
     """Implements Subnet tests in UI"""
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_subnet_1(self, name):
         """@Test: Create new subnet
@@ -38,7 +36,6 @@ class Subnet(UITestCase):
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
 
     @skip_if_bug_open('bugzilla', 1123815)
-    @attr('ui', 'subnet', 'implemented')
     @data(
         {'name': gen_string('alphanumeric', 255)},
         {'name': gen_string('alpha', 255)},
@@ -103,7 +100,6 @@ class Subnet(UITestCase):
                 self.assertIsNotNone()
 
     @skip_if_bug_open('bugzilla', 1123815)
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_subnet_negative_1(self, name):
         """@Test: Create new subnet with 256 characters in name
@@ -175,7 +171,6 @@ class Subnet(UITestCase):
             self.assertIsNotNone(primarydns_element)
             self.assertIsNotNone(secondarydns_element)
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_remove_subnet_1(self, name):
         """@Test: Delete a subnet
@@ -194,7 +189,6 @@ class Subnet(UITestCase):
             self.assertIsNone(self.subnet.search_subnet(
                 subnet_name=name, timeout=5))
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_remove_subnet_2(self, name):
         """@Test: Delete subnet.
@@ -215,7 +209,6 @@ class Subnet(UITestCase):
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name,
                                                            timeout=5))
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_update_subnet_1(self, name):
         """@Test: Update Subnet name
@@ -235,7 +228,6 @@ class Subnet(UITestCase):
             result_object = self.subnet.search_subnet(new_name)
             self.assertEqual(new_name, result_object['name'])
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_update_subnet_2(self, name):
         """@Test: Update Subnet network
@@ -255,7 +247,6 @@ class Subnet(UITestCase):
             result_object = self.subnet.search_subnet(name)
             self.assertEqual(new_network, result_object['network'])
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_update_subnet_3(self, name):
         """@Test: Update Subnet mask
@@ -275,7 +266,6 @@ class Subnet(UITestCase):
             result_object = self.subnet.search_subnet(name)
             self.assertEqual(new_mask, result_object['mask'])
 
-    @attr('ui', 'subnet', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_search_subnet_1(self, name):
         """@Test: Search Subnet with Subnet name

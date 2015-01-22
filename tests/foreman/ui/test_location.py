@@ -6,7 +6,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import (data, run_only_on, skip_if_bug_open,
@@ -50,7 +49,6 @@ class Location(UITestCase):
 
     # Positive Create
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, loc_name):
         """@test: Create Location with valid name only
@@ -66,7 +64,6 @@ class Location(UITestCase):
             self.assertIsNotNone(self.location.search(loc_name))
 
     @skip_if_bug_open('bugzilla', 1123818)
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list(len1=247))
     def test_negative_create_1(self, loc_name):
         """@test: Create location with name as too long
@@ -116,7 +113,6 @@ class Location(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_4(self, loc_name):
         """@test: Create location with valid values, then create a new one
@@ -136,7 +132,6 @@ class Location(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'location', 'implemented')
     @data({'org_name': gen_string('alpha', 10),
            'loc_name': gen_string('alpha', 10)},
           {'org_name': gen_string('numeric', 10),
@@ -171,7 +166,6 @@ class Location(UITestCase):
 
     # Positive Update
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
         """@test: Create Location with valid values then update its name
@@ -192,7 +186,6 @@ class Location(UITestCase):
     # Negative Update
 
     @skip_if_bug_open('bugzilla', 1123818)
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, loc_name):
         """@test: Create Location with valid values then fail to update
@@ -217,7 +210,6 @@ class Location(UITestCase):
 
     # Miscellaneous
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_search_key_1(self, loc_name):
         """@test: Create location and search/find it
@@ -231,7 +223,6 @@ class Location(UITestCase):
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
         """@test: Add a subnet by using location name and subnet name
@@ -262,7 +253,6 @@ class Location(UITestCase):
                                                       value % subnet_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain_name):
         """@test: Add a domain to a Location
@@ -287,7 +277,6 @@ class Location(UITestCase):
                                                       value % domain_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(gen_string('alpha', 8),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8),
@@ -340,7 +329,6 @@ class Location(UITestCase):
                 tab_locators["context.tab_hostgrps"], context="location")
             self.assertIsNotNone(selected)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup by using the location
@@ -365,7 +353,6 @@ class Location(UITestCase):
                                                       value % host_grp_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_org_1(self, org_name):
         """@test: Add a organization by using the location
@@ -391,7 +378,6 @@ class Location(UITestCase):
                                                       value % org_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(gen_string('alpha', 8),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8))
@@ -418,7 +404,6 @@ class Location(UITestCase):
                                                       value % env_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
         """@test: Add compute resource using the location
@@ -450,7 +435,6 @@ class Location(UITestCase):
                                                       value % resource_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium_name):
         """@test: Add medium by using the location name and medium name
@@ -498,7 +482,6 @@ class Location(UITestCase):
                 tab_locators["context.tab_template"], context="location")
             self.assertIsNotNone(selected)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template):
         """@test: Add config template by using location name and
@@ -526,7 +509,6 @@ class Location(UITestCase):
                                                       value % template))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(gen_string('alpha', 8),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8))
@@ -561,7 +543,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
         """@test: Remove subnet by using location name and subnet name
@@ -600,7 +581,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain_name):
         """@test: Add a domain to an location and remove it by location
@@ -635,7 +615,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(gen_string('alpha', 8),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8),
@@ -678,7 +657,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup and remove it by using the location
@@ -711,7 +689,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
         """@test: Remove computeresource by using the location
@@ -751,7 +728,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium_name):
         """@test: Remove medium by using location name and medium name
@@ -789,7 +765,6 @@ class Location(UITestCase):
             # Item is listed in 'All Items' list and not 'Selected Items' list.
             self.assertIsNotNone(element)
 
-    @attr('ui', 'location', 'implemented')
     @data(
         {u'user_name': gen_string('alpha', 8)},
         {u'user_name': gen_string('numeric', 8)},

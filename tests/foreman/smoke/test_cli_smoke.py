@@ -1,7 +1,6 @@
 """Smoke tests for the ``CLI`` end-to-end scenario."""
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_ipaddr
-from nose.plugins.attrib import attr
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -36,7 +35,6 @@ import random
 class TestSmoke(CLITestCase):
     """End-to-end tests using the ``CLI`` path."""
 
-    @attr('smoke')
     def test_find_default_org(self):
         """
         @Test: Check if 'Default Organization' is present
@@ -52,7 +50,6 @@ class TestSmoke(CLITestCase):
             u"Could not find the Default Organization"
         )
 
-    @attr('smoke')
     def test_find_default_location(self):
         """
         @Test: Check if 'Default Location' is present
@@ -68,7 +65,6 @@ class TestSmoke(CLITestCase):
             u"Could not find the 'Default Location'"
         )
 
-    @attr('smoke')
     def test_find_admin_user(self):
         """
         @Test: Check if Admin User is present
@@ -91,7 +87,6 @@ class TestSmoke(CLITestCase):
                 result.stdout['admin'])
         )
 
-    @attr('smoke')
     def test_smoke(self):
         """
         @Test: Check that basic content can be created

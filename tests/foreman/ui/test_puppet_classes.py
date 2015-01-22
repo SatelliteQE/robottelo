@@ -7,7 +7,6 @@ else:
     import unittest2 as unittest
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -22,7 +21,6 @@ from robottelo.ui.session import Session
 class PuppetClasses(UITestCase):
     """Implements puppet classes tests in UI."""
 
-    @attr('ui', 'puppet-classes', 'implemented')
     @data({'name': gen_string('alpha', 10),
            'new_name': gen_string('alpha', 10)},
           {'name': gen_string('numeric', 10),
@@ -50,7 +48,6 @@ class PuppetClasses(UITestCase):
             self.puppetclasses.update(name, new_name)
 
     @skip_if_bug_open('bugzilla', 1126473)
-    @attr('ui', 'puppet-classes', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):
         """@Test: Create new puppet-class

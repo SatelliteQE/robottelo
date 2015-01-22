@@ -4,7 +4,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.cli.factory import (
     make_gpg_key,
     make_org,
@@ -76,7 +75,6 @@ class TestRepository(CLITestCase):
         gen_string('utf8', 15),
         gen_string('html', 15),
     )
-    @attr('cli', 'repository')
     def test_positive_create_1(self, name):
         """@Test: Check if repository can be created with random names
 
@@ -99,7 +97,6 @@ class TestRepository(CLITestCase):
         gen_string('utf8', 15),
         gen_string('html', 15),
     )
-    @attr('cli', 'repository')
     def test_positive_create_2(self, name):
         """@Test: Check if repository can be created with random names and labels
 
@@ -132,7 +129,6 @@ class TestRepository(CLITestCase):
         {u'url': FAKE_2_YUM_REPO, u'content-type': u'yum'},
         {u'url': FAKE_1_YUM_REPO, u'content-type': u'yum'},
     )
-    @attr('cli', 'repository')
     def test_positive_create_3(self, test_data):
         """@Test: Create YUM repository
 
@@ -163,7 +159,6 @@ class TestRepository(CLITestCase):
         {u'url': FAKE_4_PUPPET_REPO, u'content-type': u'puppet'},
         {u'url': FAKE_5_PUPPET_REPO, u'content-type': u'puppet'},
     )
-    @attr('cli', 'repository')
     def test_positive_create_4(self, test_data):
         """@Test: Create Puppet repository
 
@@ -195,7 +190,6 @@ class TestRepository(CLITestCase):
         gen_string('utf8', 15),
         gen_string('html', 15),
     )
-    @attr('cli', 'repository')
     def test_positive_create_5(self, name):
         """@Test: Check if repository can be created with gpg key ID
 
@@ -242,7 +236,6 @@ class TestRepository(CLITestCase):
         gen_string('utf8', 15),
         gen_string('html', 15),
     )
-    @attr('cli', 'repository')
     def test_positive_create_6(self, name):
         """@Test: Check if repository can be created with gpg key name
 
@@ -284,7 +277,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @data(u'true', u'yes', u'1')
-    @attr('cli', 'repository')
     def test_positive_create_7(self, test_data):
         """@Test: Create repository published via http
 
@@ -313,7 +305,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @data(u'false', u'no', u'0')
-    @attr('cli', 'repository')
     def test_positive_create_8(self, use_http):
         """@Test: Create repository not published via http
 
@@ -341,7 +332,6 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @attr('cli', 'repository', 'docker')
     def test_positive_create_9(self):
         """@Test: Create a Docker repository
 
@@ -404,7 +394,6 @@ class TestRepository(CLITestCase):
         gen_string('utf8', 300),
         gen_string('html', 300),
     )
-    @attr('cli', 'repository')
     def test_negative_create_1(self, name):
         """@Test: Repository name cannot be 300-characters long
 
@@ -424,7 +413,6 @@ class TestRepository(CLITestCase):
         {u'url': FAKE_1_YUM_REPO, u'content-type': u'yum'},
     )
     @skip_if_bug_open('bugzilla', 1152237)
-    @attr('cli', 'repository')
     def test_positive_synchronize_1(self, test_data):
         """@Test: Check if repository can be created and synced
 
@@ -462,7 +450,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
-    @attr('cli', 'repository', 'docker')
     def test_positive_synchronize_2(self):
         """@Test: Check if Docker repository can be created and synced
 
@@ -497,7 +484,6 @@ class TestRepository(CLITestCase):
         FAKE_3_PUPPET_REPO,
         FAKE_2_YUM_REPO,
     )
-    @attr('cli', 'repository')
     def test_positive_update_1(self, url):
         """@Test: Update the original url for a repository
 
@@ -542,7 +528,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @stubbed
-    @attr('cli', 'repository')
     def test_positive_update_2(self, test_data):
         """@Test: Update the original gpg key
 
@@ -556,7 +541,6 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @stubbed
-    @attr('cli', 'repository')
     def test_positive_update_3(self, test_data):
         """@Test: Update the original publishing method
 
@@ -623,7 +607,6 @@ class TestRepository(CLITestCase):
         gen_string('utf8', 15),
         gen_string('html', 15),
     )
-    @attr('cli', 'repository')
     def test_positive_delete_1(self, name):
         """@Test: Check if repository can be created and deleted
 

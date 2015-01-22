@@ -3,7 +3,6 @@
 """Test class for Domain UI"""
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -19,7 +18,6 @@ DOMAIN = "lab.dom.%s.com"
 class Domain(UITestCase):
     """Implements Domain tests in UI"""
 
-    @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_create_domain_1(self, name):
         """@Test: Create a new domain
@@ -35,7 +33,6 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
 
-    @attr('ui', 'domain', 'implemented')
     # The length of chars is in accordance with DOMAIN global variable.
     @data(
         gen_string('alphanumeric', 243),
@@ -58,7 +55,6 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
 
-    @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_remove_domain(self, name):
         """@Test: Delete a domain
@@ -79,7 +75,6 @@ class Domain(UITestCase):
                 common_locators["notif.success"]))
             self.assertIsNone(self.domain.search(description, timeout=5))
 
-    @attr('ui', 'domain', 'implemented')
     @data({'name': gen_string('alpha', 10),
            'newname': gen_string('alpha', 10)},
           {'name': gen_string('numeric', 10),
@@ -109,7 +104,6 @@ class Domain(UITestCase):
             self.domain.update(domain_name, new_name, new_description)
             self.assertIsNotNone(self.domain.search(new_description))
 
-    @attr('ui', 'domain', 'implemented')
     # The length of chars is in accordance with DOMAIN global variable.
     @data(*generate_strings_list(len1=244))
     def test_negative_create_domain_1(self, name):
@@ -142,7 +136,6 @@ class Domain(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_positive_set_domain_parameter_1(self, name):
         """@Test: Set parameter name and value for domain
@@ -262,7 +255,6 @@ class Domain(UITestCase):
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators["common_param_error"]))
 
-    @attr('ui', 'domain', 'implemented')
     @data(*generate_strings_list(len1=4))
     def test_remove_domain_parameter(self, name):
         """@Test: Remove a selected domain paramter

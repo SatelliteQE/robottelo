@@ -7,7 +7,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.cli.factory import (
     CLIFactoryError, make_org, make_content_view,
     make_lifecycle_environment, make_content_host)
@@ -79,7 +78,6 @@ class TestContentHost(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'content-host')
     def test_positive_create_1(self, test_data):
         """@Test: Check if content host can be created with random names
 
@@ -110,7 +108,6 @@ class TestContentHost(CLITestCase):
         {u'description': gen_string('utf8', 15)},
         {u'description': gen_string('html', 15)},
     )
-    @attr('cli', 'content-host')
     def test_positive_create_2(self, test_data):
         """@Test: Check if content host can be created with random description
 
@@ -133,7 +130,6 @@ class TestContentHost(CLITestCase):
             "Descriptions don't match"
         )
 
-    @attr('cli', 'content-host')
     def test_positive_create_3(self):
         """@Test: Check if content host can be created with organization name
 
@@ -160,7 +156,6 @@ class TestContentHost(CLITestCase):
             self.LIBRARY['name'],
             "Environments don't match")
 
-    @attr('cli', 'content-host')
     def test_positive_create_4(self):
         """@Test: Check if content host can be created with organization label
 
@@ -188,7 +183,6 @@ class TestContentHost(CLITestCase):
             "Environments don't match")
 
     @run_only_on('sat')
-    @attr('cli', 'content-host')
     def test_positive_create_5(self):
         """@Test: Check if content host can be created with content view name
 
@@ -213,7 +207,6 @@ class TestContentHost(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1107319)
-    @attr('cli', 'content-host')
     def test_positive_create_6(self):
         """@Test: Check if content host can be created with lifecycle name
 
@@ -237,7 +230,6 @@ class TestContentHost(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1114046)
-    @attr('cli', 'content-host')
     def test_positive_create_7(self):
         """@Test: Check if content host can be created with new lifecycle
 
@@ -263,7 +255,6 @@ class TestContentHost(CLITestCase):
         )
 
     @run_only_on('sat')
-    @attr('cli', 'content-host')
     def test_positive_create_8(self):
         """@Test: Check if content host can be created with new content view
 
@@ -297,7 +288,6 @@ class TestContentHost(CLITestCase):
         {u'name': gen_string('utf8', 300)},
         {u'name': gen_string('html', 300)},
     )
-    @attr('cli', 'content-host')
     def test_negative_create_1(self, test_data):
         """@Test: Check if content host can be created with random long names
 
@@ -316,7 +306,6 @@ class TestContentHost(CLITestCase):
             })
 
     @run_only_on('sat')
-    @attr('cli', 'content-host')
     def test_negative_create_2(self):
         """@Test: Check if content host can be created with new content view
 
@@ -345,7 +334,6 @@ class TestContentHost(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'content-host')
     def test_positive_update_1(self, test_data):
         """@Test: Check if content host name can be updated
 
@@ -414,7 +402,6 @@ class TestContentHost(CLITestCase):
         {u'description': gen_string('utf8', 15)},
         {u'description': gen_string('html', 15)},
     )
-    @attr('cli', 'content-host')
     def test_positive_update_2(self, test_data):
         """@Test: Check if content host description can be updated
 
@@ -482,7 +469,6 @@ class TestContentHost(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    @attr('cli', 'content-host')
     def test_positive_delete_1(self, test_data):
         """@Test: Check if content host can be created and deleted
 

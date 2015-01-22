@@ -2,7 +2,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -16,7 +15,6 @@ from robottelo.ui.session import Session
 class HardwareModelTestCase(UITestCase):
     """Implements Hardware Model tests in UI."""
 
-    @attr('ui', 'hardware-model', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_create_positive_1(self, name):
         """@test: Create new Hardware-Model
@@ -31,7 +29,6 @@ class HardwareModelTestCase(UITestCase):
             search = self.hardwaremodel.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'hardware-model', 'implemented')
     @data(
         gen_string('alphanumeric', 255),
         gen_string('alpha', 255),
@@ -52,7 +49,6 @@ class HardwareModelTestCase(UITestCase):
             search = self.hardwaremodel.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'hardware-model', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_create_negative_1(self, name):
         """@test: Create new Hardware-Model with 256 chars
@@ -98,7 +94,6 @@ class HardwareModelTestCase(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
-    @attr('ui', 'hardware-model', 'implemented')
     @data({'name': gen_string('alpha'),
            'new_name': gen_string('alpha')},
           {'name': gen_string('numeric'),
@@ -127,7 +122,6 @@ class HardwareModelTestCase(UITestCase):
             search = self.hardwaremodel.search(new_name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'hardware-model', 'implemented')
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):
         """@test: Deletes the Hardware-Model
