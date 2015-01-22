@@ -54,7 +54,8 @@ class Discovery(UITestCase):
         """
 
     def test_provision_discovered_host_1(self):
-        """@Test: Provision the selected discovered host
+        """@Test: Provision the selected discovered host by selecting
+        'provision' button
 
         @Feature: Foreman Discovery
 
@@ -68,7 +69,8 @@ class Discovery(UITestCase):
         """
 
     def test_provision_discovered_host_2(self):
-        """@Test: Provision the selected discovered host from facts page
+        """@Test: Provision the selected discovered host from facts page by
+        clicking 'provision'
 
         @Feature: Foreman Discovery
 
@@ -122,7 +124,7 @@ class Discovery(UITestCase):
         """
 
     def test_refresh_discovered_host_facts(self):
-        """@Test: Delete the selected discovered host from facts page
+        """@Test: Refresh the facts of discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -168,7 +170,7 @@ class Discovery(UITestCase):
     def test_create_discovery_rule_1(self):
         """@Test: Create a new discovery rule
 
-        Set query as (e.g IP=IP_of_discivered_host)
+        Set query as (e.g IP=IP_of_discovered_host)
 
         @Feature: Foreman Discovery
 
@@ -181,8 +183,9 @@ class Discovery(UITestCase):
         """
 
     def test_create_discovery_rule_2(self):
-        """@Test: Create a new discovery rule that applies to multi hosts
-        Set query as (e.g  subnet=subnet_of discovered_hosts) OR mem > 500
+        """@Test: Create a new discovery rule with (host_limit = 0)
+        that applies to multi hosts.
+        Set query as cpu_count = 1 OR mem > 500
 
         @Feature: Foreman Discovery
 
@@ -199,7 +202,7 @@ class Discovery(UITestCase):
 
         @Feature: Foreman Discovery
 
-        @Setup: Host should already be discovered
+        @Setup: Multiple hosts should already be discovered
 
         @Assert: Host with lower count have higher priority
         and that rule should be executed first
@@ -216,7 +219,7 @@ class Discovery(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: User should get proper validation error message
+        @Assert: Host should not be rebooted automatically
 
         @Status: Manual
 
@@ -230,8 +233,63 @@ class Discovery(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Rule should automatically be skipped or handled with some
-        warning message.
+        @Assert: Rule should automatically be skipped on clicking
+        'Auto provision'. UI Should raise 'No matching rule found'
+
+        @Status: Manual
+
+        """
+
+    def test_create_discovery_rule_6(self):
+        """@Test: Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
+        provision more than one host with same rule
+
+        @Feature: Foreman Discovery
+
+        @Setup: Host with two CPUs should already be discovered
+
+        @Assert: Rule should only be applied to one discovered host and for
+        other rule should already be skipped.
+
+        @Status: Manual
+
+        """
+
+    def test_rule_with_invalid_host_limit(self):
+        """@Test: Create a discovery rule with invalid(-ve/text value) host
+        limit
+
+        @Feature: Foreman Discovery
+
+        @Setup: Host with two CPUs should already be discovered
+
+        @Assert: Validation error should be raised
+
+        @Status: Manual
+
+        """
+
+    def test_rule_with_invalid_priority(self):
+        """@Test: Create a discovery rule with invalid(text value) priority
+
+        @Feature: Foreman Discovery
+
+        @Setup: Host with two CPUs should already be discovered
+
+        @Assert: Validation error should be raised
+
+        @Status: Manual
+
+        """
+
+    def test_create_rule_with_long_name(self):
+        """@Test: Create a discovery rule with more than 255 char
+
+        @Feature: Foreman Discovery
+
+        @Setup: Host with two CPUs should already be discovered
+
+        @Assert: Validation error should be raised
 
         @Status: Manual
 
@@ -275,14 +333,98 @@ class Discovery(UITestCase):
 
         """
 
-    def test_update_discovery_rule_3(self):
-        """@Test: Update the discovered host name with blank or long name
+    def test_update_discovery_prefix(self):
+        """@Test: Update the discovery_prefix parameter other than mac
 
         @Feature: Foreman Discovery
 
+        @Steps:
+
+        1. Goto settings &#8592; Discovered tab -> discovery_prefix
+
+        2. Edit discovery_prefix using any text that must start with a letter
+
         @Setup: Host should already be discovered
 
-        @Assert: User should get a validation error
+        @Assert: discovery_prefix is updated and provisioned host has same
+        prefix in its hostname
+
+        @Status: Manual
+
+        """
+
+    def test_auto_provision_all(self):
+        """@Test: Discover a bunch of hosts and auto-provision all
+
+        @Feature: Foreman Discovery
+
+        @Assert: All host should be successfully rebooted and provisioned
+
+        @Status: Manual
+
+        """
+
+    def test_add_new_discovery_fact(self):
+        """@Test: Add a new fact column to display on discovered host page
+
+        @Feature: Foreman Discovery
+
+        @Steps:
+
+        1. Goto settings -> Discovered tab -> discovery_fact_coloumn
+
+        2. Edit discovery_fact_coloumn
+
+        3. Add uuid or os
+
+        @Assert: The added fact should be displayed on 'discovered_host' page
+        after successful discovery
+
+        @Status: Manual
+
+        """
+
+    def test_add_invalid_discovery_fact(self):
+        """@Test: Add a new fact column with invalid fact to display on
+        discovered host page
+
+        @Feature: Foreman Discovery
+
+        @Steps:
+
+        1. Goto settings -> Discovered tab -> discovery_fact_coloumn
+
+        2. Edit discovery_fact_coloumn
+
+        3. Add 'test'
+
+        @Assert: The added fact should be displayed on 'discovered_host' page
+        after successful discovery and shows 'N/A'
+
+        @Status: Manual
+
+        """
+
+    def test_discovery_manager_role(self):
+        """@Test: Assign 'Discovery_ Manager" role to a normal user
+
+        @Feature: Foreman Discovery
+
+        @Assert: User should be able to view, provision, edit and destroy one
+        or more discovered host as well view, create_new, edit, execute and
+        delete discovery rules.
+
+        @Status: Manual
+
+        """
+
+    def test_discovery_role(self):
+        """@Test: Assign 'Discovery" role to a normal user
+
+        @Feature: Foreman Discovery
+
+        @Assert: User should be able to view, provision, edit and destroy one
+        or more discovered host
 
         @Status: Manual
 
