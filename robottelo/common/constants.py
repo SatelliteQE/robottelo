@@ -203,8 +203,8 @@ REPO_DISCOVERY_URL = "http://omaciel.fedorapeople.org/"
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 
-# All satellite permissions
-# API test_permission_v2 ensures that this will not get obsolete
+#: All permissions exposed by the server.
+#: :mod:`tests.foreman.api.test_permission` makes use of this.
 PERMISSIONS = {
     None: (
         'access_dashboard',
