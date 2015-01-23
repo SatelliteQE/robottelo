@@ -38,7 +38,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
             make_partition_table(self.args)
         except CLIFactoryError as err:
             self.fail(err)
-        result = PartitionTable().exists(tuple_search=('name', self.name))
+        result = PartitionTable().exists(search=('name', self.name))
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
@@ -56,7 +56,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
             make_partition_table(self.args)
         except CLIFactoryError as err:
             self.fail(err)
-        result = PartitionTable().exists(tuple_search=('name', self.name))
+        result = PartitionTable().exists(search=('name', self.name))
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
@@ -69,7 +69,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         self.assertFalse(
-            PartitionTable().exists(tuple_search=('new-name', nw_nm)).stdout)
+            PartitionTable().exists(search=('new-name', nw_nm)).stdout)
 
 
 class TestPartitionTableDelete(CLITestCase):
@@ -88,7 +88,7 @@ class TestPartitionTableDelete(CLITestCase):
         name = gen_alphanumeric(6)
         make_partition_table({'name': name, 'content': content})
 
-        ptable = PartitionTable().exists(tuple_search=('name', name)).stdout
+        ptable = PartitionTable().exists(search=('name', name)).stdout
 
         args = {'id': ptable['id']}
 
@@ -109,7 +109,7 @@ class TestPartitionTableDelete(CLITestCase):
         name = gen_alphanumeric(6)
         make_partition_table({'name': name, 'content': content})
 
-        ptable = PartitionTable().exists(tuple_search=('name', name)).stdout
+        ptable = PartitionTable().exists(search=('name', name)).stdout
 
         args = {'id': ptable['id']}
 
@@ -118,7 +118,7 @@ class TestPartitionTableDelete(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
         self.assertFalse(
-            PartitionTable().exists(tuple_search=('name', name)).stdout)
+            PartitionTable().exists(search=('name', name)).stdout)
 
     def test_addoperatingsystem_ptable(self):
         """@Test: Check if Partition Table can be associated
@@ -136,7 +136,7 @@ class TestPartitionTableDelete(CLITestCase):
             make_partition_table({'name': name, 'content': content})
         except CLIFactoryError as err:
             self.fail(err)
-        result = PartitionTable().exists(tuple_search=('name', name))
+        result = PartitionTable().exists(search=('name', name))
         self.assertEqual(result.return_code, 0, "Failed to create object")
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
