@@ -7,6 +7,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.common import conf
+from robottelo import entities
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
@@ -169,7 +170,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
         # Can we find the new object?
         result = Org.exists(tuple_search=('label', new_obj['label']))
 
@@ -266,7 +267,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org()
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -497,7 +498,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
 
@@ -519,7 +520,7 @@ class TestOrg(CLITestCase):
         """
 
         test_data['label'] = test_data['name']
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -571,7 +572,7 @@ class TestOrg(CLITestCase):
         """
 
         test_data['label'] = ""
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -597,7 +598,7 @@ class TestOrg(CLITestCase):
         """
 
         test_data['label'] = gen_string('alpha', 10)
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -1123,12 +1124,8 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({'label': test_data, 'description': test_data,
-                             'name': test_data})
-        self.assertFalse(result.stderr)
-        self.assertEqual(result.return_code, 0)
-        result = Org.create({'label': test_data, 'description': test_data,
-                             'name': test_data})
+        result = entities.Organization().create()
+
         self.assertGreater(
             len(result.stderr), 0, "There should be an exception here.")
         self.assertNotEqual(result.return_code, 0)
@@ -1146,7 +1143,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -1180,7 +1177,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -1214,7 +1211,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org(test_data)
+        new_obj = entities.Organization().create()
 
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
@@ -1259,7 +1256,8 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org()
+        new_obj = entities.Organization().create()
+
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
@@ -1404,7 +1402,7 @@ class TestOrg(CLITestCase):
 
         """
 
-        new_obj = make_org()
+        new_obj = entities.Organization().create()
         # Can we find the new object?
         result = Org.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
