@@ -1407,7 +1407,7 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
         updated_user = UserObj().exists(
-            tuple_search=('login', new_user['login']))
+            search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], new_user['name'])
 
     @data({'lastname': gen_string("alpha", 51)},
@@ -1434,7 +1434,7 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
         updated_user = UserObj().exists(
-            tuple_search=('login', new_user['login']))
+            search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], new_user['name'])
 
     @skip_if_bug_open('bugzilla', 1070730)
@@ -1472,7 +1472,7 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         # check name have not changed
         updated_user = UserObj().exists(
-            tuple_search=('login', new_user['login']))
+            search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['email'])
 
     @skip_if_bug_open('bugzilla', 1079649)
@@ -1588,7 +1588,7 @@ class User(CLITestCase):
         result = user.delete({'login': 'admin'})
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
-        result = UserObj().exists(tuple_search=('login', 'admin'))
+        result = UserObj().exists(search=('login', 'admin'))
         self.assertTrue(result.stdout)
 
     @data(
