@@ -935,24 +935,21 @@ class TestOrg(CLITestCase):
         @BZ: 1099655
 
         """
+        # Create a lifecycle environment.
+        org_id = make_org()['id']
+        lc_env_name = make_lifecycle_environment(
+            {'organization-id': org_id},
+            cached=True,
+        )['name']
 
-        new_obj = make_org()
-        env_result = make_lifecycle_environment(
-            {'organization-id': new_obj['id']},
-            cached=True
-        )
-
-        # Can we list the new environment?
-        environment = LifecycleEnvironment.list({
-            'name': env_result['name'],
-            'organization-id': new_obj['id'],
+        # Read back information about the lifecycle environment. Verify the
+        # sanity of that information.
+        response = LifecycleEnvironment.list({
+            'name': lc_env_name,
+            'organization-id': org_id,
         })
-        # Result is a list of one item
-        new_env = environment.stdout[0]
-
-        self.assertEqual(
-            environment.return_code, 0, "Could not fetch list of environments")
-        self.assertEqual(new_env['name'], env_result['name'])
+        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(response.stdout[0]['name'], lc_env_name)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1099655)
@@ -966,44 +963,31 @@ class TestOrg(CLITestCase):
         @BZ: 1099655
 
         """
+        # Create a lifecycle environment.
+        org_id = make_org()['id']
+        lc_env_name = make_lifecycle_environment(
+            {'organization-id': org_id},
+            cached=True,
+        )['name']
+        lc_env_attrs = {
+            'name': lc_env_name,
+            'organization-id': org_id,
+        }
 
-        new_obj = make_org()
-        env_result = make_lifecycle_environment(
-            {'organization-id': new_obj['id']},
-            cached=True
-        )
+        # Read back information about the lifecycle environment. Verify the
+        # sanity of that information.
+        response = LifecycleEnvironment.list(lc_env_attrs)
+        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(response.stdout[0]['name'], lc_env_name)
 
-        # Can we list the new environment?
-        environment = LifecycleEnvironment.list({
-            'name': env_result['name'],
-            'organization-id': new_obj['id'],
-        })
-        # Result is a list of one item
-        new_env = environment.stdout[0]
+        # Delete it.
+        response = LifecycleEnvironment.delete(lc_env_attrs)
+        self.assertEqual(response.return_code, 0, response.stderr)
 
-        self.assertEqual(
-            environment.return_code, 0, "Could not fetch list of environments")
-        self.assertEqual(new_env['name'], env_result['name'])
-
-        # Delete it now
-        return_value = LifecycleEnvironment.delete({
-            'organization-id': new_obj['id'],
-            'id': env_result['id']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add Environment - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here.")
-
-        # Can we list the new environment?
-        environment = LifecycleEnvironment.list(
-            {
-                'name': env_result['name'],
-                'organization-id': new_obj['id'],
-            })
-        self.assertEqual(
-            environment.return_code, 0, "Could not fetch list of environments")
-        self.assertEqual(
-            len(environment.stdout), 0, "Environment was not removed")
+        # We should get a zero-length response when searcing for the LC env.
+        response = LifecycleEnvironment.list(lc_env_attrs)
+        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(len(response.stdout), 0, response.stdout)
 
     @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
