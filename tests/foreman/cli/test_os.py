@@ -440,22 +440,31 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is updated with ptable
 
         """
+        # Create a partition table.
+        ptable_name = make_partition_table()['name']
+        response = PartitionTable.info({'name': ptable_name})
+        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(len(response.stderr), 0, response.stderr)
 
-        ptable_obj = make_partition_table()
+        # Create an operating system.
+        os_id = make_os()['id']
+        response = OperatingSys.info({'id': os_id})
+        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(len(response.stderr), 0, response.stderr)
 
-        result = PartitionTable.info({'id': ptable_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(ptable_obj['name'], result.stdout['name'])
+        # Add the partition table to the operating system.
+        response = OperatingSys.add_ptable({
+            'id': os_id,
+            'partition-table': ptable_name,
+        })
+        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(len(response.stderr), 0, response.stderr)
 
-        new_obj = make_os()
-        result = OperatingSys.add_ptable({'id': new_obj['id'],
-                                          'ptable': ptable_obj['name']})
-        self.assertEqual(result.return_code, 0, "Failed to add ptable")
+        # Verify that the operating system has a partition table.
+        response = OperatingSys.info({'id': os_id})
         self.assertEqual(
-            len(result.stderr), 0, "Should not have gotten an error")
-
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to find object")
-        self.assertEqual(len(result.stdout['partition-tables']), 1)
-        self.assertIn(ptable_obj['name'], result.stdout['partition-tables'][0])
+            len(response.stdout['partition-tables']),
+            1,
+            response.stdout['partition-tables']
+        )
+        self.assertEqual(response.stdout['partition-tables'][0], ptable_name)
