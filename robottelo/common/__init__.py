@@ -32,7 +32,7 @@ class Configs(object):
 
         # Configure logging using a value from the config file, if available.
         try:
-            _configure_logging(int(self.properties['nosetests.verbosity']))
+            _configure_logging(int(self.properties['main.verbosity']))
         except KeyError:
             _configure_logging()
 
@@ -87,9 +87,8 @@ def _configure_logging(verbosity=2):
     custom logging output format is set, and default values are used for all
     other logging options.
 
-    :param int verbosity: A nosetests-style verbosity value. Useful values are
-        in the range 1-5 inclusive, and higher numbers produce more verbose
-        logging.
+    :param int verbosity: Useful values are in the range 1-5 inclusive, and
+        higher numbers produce more verbose logging.
     :rtype: None
 
     """
@@ -100,7 +99,7 @@ def _configure_logging(verbosity=2):
             format='%(levelname)s %(module)s:%(lineno)d: %(message)s'
         )
 
-    # Translate from nosetests verbosity values to logging verbosity values.
+    # Translate from robottelo verbosity values to logging verbosity values.
     # This code is inspired by method `Config.configureLogging` in module
     # `nose.config` in the nose source code.
     if verbosity >= 5:

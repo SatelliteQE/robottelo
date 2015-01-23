@@ -2,7 +2,6 @@
 """Smoke tests for the ``API`` end-to-end scenario."""
 from fauxfactory import gen_string
 from nailgun import client
-from nose.plugins.attrib import attr
 from robottelo.api import utils
 from robottelo.api.utils import status_code_error
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
@@ -710,7 +709,6 @@ class TestAvailableURLs(TestCase):
 class TestSmoke(TestCase):
     """End-to-end tests using the ``API`` path."""
 
-    @attr('smoke')
     def test_find_default_org(self):
         """
         @Test: Check if 'Default Organization' is present
@@ -720,7 +718,6 @@ class TestSmoke(TestCase):
         query = u'Default_Organization'
         self._search(entities.Organization, query)
 
-    @attr('smoke')
     def test_find_default_location(self):
         """
         @Test: Check if 'Default Location' is present
@@ -730,7 +727,6 @@ class TestSmoke(TestCase):
         query = u'Default_Location'
         self._search(entities.Location, query)
 
-    @attr('smoke')
     def test_find_admin_user(self):
         """
         @Test: Check if Admin User is present
@@ -740,7 +736,6 @@ class TestSmoke(TestCase):
         query = u'admin'
         self._search(entities.User, query)
 
-    @attr('smoke')
     def test_ping(self):
         """
         @Test: Check if all services are running
@@ -769,7 +764,6 @@ class TestSmoke(TestCase):
         )
 
     # FIXME: This test is still being developed and is not complete yet.
-    @attr('smoke')
     def test_smoke(self):
         """
         @Test: Check that basic content can be created
@@ -1007,7 +1001,6 @@ class TestSmoke(TestCase):
 
         return response.json()
 
-    @attr('smoke')
     def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 

@@ -1,7 +1,6 @@
 """Test class for Custom Sync UI"""
 
 from ddt import ddt
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
@@ -35,7 +34,6 @@ class Sync(UITestCase):
         super(Sync, cls).setUpClass()
 
     @run_only_on('sat')
-    @attr('ui', 'sync', 'implemented')
     @data(*generate_strings_list())
     def test_sync_custom_repos(self, repository_name):
         """@Test: Create Content Custom Sync with minimal input parameters

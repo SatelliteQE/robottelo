@@ -4,7 +4,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
@@ -21,7 +20,6 @@ class Environment(UITestCase):
 
     """
 
-    @attr('ui', 'environment', 'implemented')
     @data(
         gen_string('alpha', 8),
         gen_string('numeric', 8),
@@ -40,7 +38,6 @@ class Environment(UITestCase):
             search = self.environment.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'environment', 'implemented')
     @data(
         gen_string('alpha', 255),
         gen_string('numeric', 255),
@@ -59,7 +56,6 @@ class Environment(UITestCase):
             search = self.environment.search(name)
             self.assertIsNotNone(search)
 
-    @attr('ui', 'environment', 'implemented')
     @data(
         gen_string('alpha', 256),
         gen_string('numeric', 256),
@@ -94,7 +90,6 @@ class Environment(UITestCase):
             self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1126033)
-    @attr('ui', 'environment', 'implemented')
     @data({'name': gen_string('alpha', 8),
            'new_name': gen_string('alpha', 8)},
           {'name': gen_string('numeric', 8),
@@ -120,7 +115,6 @@ class Environment(UITestCase):
             self.assertIsNotNone(search)
 
     @skip_if_bug_open('bugzilla', 1126033)
-    @attr('ui', 'environment', 'implemented')
     @data(
         gen_string('alpha', 8),
         gen_string('numeric', 8),

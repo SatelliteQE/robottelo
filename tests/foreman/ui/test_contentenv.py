@@ -3,7 +3,6 @@
 """Test class for Life cycle environments UI"""
 
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
@@ -22,7 +21,6 @@ class ContentEnvironment(UITestCase):
 
         super(ContentEnvironment, cls).setUpClass()
 
-    @attr('ui', 'contentenv', 'implemented')
     def test_positive_create_content_environment_1(self):
         """@Test: Create content environment with minimal input parameters
 
@@ -40,7 +38,6 @@ class ContentEnvironment(UITestCase):
             self.assertIsNotNone(self.contentenv.wait_until_element
                                  ((strategy, value % name)))
 
-    @attr('ui', 'contentenv', 'implemented')
     def test_positive_create_content_environment_2(self):
         """@Test: Create Content Environment in a chain
 
@@ -63,7 +60,6 @@ class ContentEnvironment(UITestCase):
             self.assertIsNotNone(self.contentenv.wait_until_element
                                  ((strategy, value % env2_name)))
 
-    @attr('ui', 'contentenv', 'implemented')
     def test_positive_delete_content_environment_1(self):
         """@Test: Create Content Environment and delete it
 
@@ -85,7 +81,6 @@ class ContentEnvironment(UITestCase):
             self.assertIsNone(self.contentenv.wait_until_element
                               ((strategy, value % name), 3))
 
-    @attr('ui', 'contentenv', 'implemented')
     def test_positive_update_content_environment_1(self):
         """@Test: Create Content Environment and update it
 

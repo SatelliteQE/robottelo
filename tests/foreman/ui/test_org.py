@@ -11,7 +11,6 @@ if sys.hexversion >= 0x2070000:
 else:
     import unittest2 as unittest
 from fauxfactory import gen_string, gen_ipaddr
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common import conf
 
@@ -55,7 +54,6 @@ class Org(UITestCase):
 
     # Positive Create
 
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, org_name):
         """@test: Create organization with valid name only.
@@ -72,7 +70,6 @@ class Org(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
 
     @unittest.skip("parent_org feature is disabled currently")
-    @attr('ui', 'org', 'implemented')
     @data({'label': gen_string('alpha'),
            'name': gen_string('alpha'),
            'desc': gen_string('alpha')},
@@ -109,7 +106,6 @@ class Org(UITestCase):
                      desc=desc, parent_org=parent)
             self.assertIsNotNone(self.org.search(org_name))
 
-    @attr('ui', 'org', 'implemented')
     @data({'name': gen_string('alpha', 10),
            'label': gen_string('alpha', 10)},
           {'name': gen_string('numeric', 10),
@@ -139,7 +135,6 @@ class Org(UITestCase):
                 label_loc).get_attribute("value")
             self.assertNotEqual(name, label)
 
-    @attr('ui', 'org', 'implemented')
     @data(gen_string('alpha', 10),
           gen_string('numeric', 10),
           gen_string('alphanumeric', 10))
@@ -166,7 +161,6 @@ class Org(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1079482)
     @skip_if_bug_open('bugzilla', 1131469)
-    @attr('ui', 'org', 'implemented')
     @data({'name': gen_string('alpha', 10),
            'desc': gen_string('alpha', 10)},
           {'name': gen_string('numeric', 10),
@@ -203,7 +197,6 @@ class Org(UITestCase):
             label_value = label_ele.get_attribute("value")
             self.assertIsNotNone(label_value)
 
-    @attr('ui', 'org', 'implemented')
     @data({'org_name': gen_string('alpha', 10),
            'loc_name': gen_string('alpha', 10)},
           {'org_name': gen_string('numeric', 10),
@@ -236,7 +229,6 @@ class Org(UITestCase):
             self.assertEqual(organization, org_name)
             self.assertEqual(location, loc_name)
 
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list(len1=256))
     def test_negative_create_0(self, org_name):
         """@test: Create organization with valid label and description, name is
@@ -286,7 +278,6 @@ class Org(UITestCase):
             self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1131469)
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, org_name):
         """@test: Create organization with valid values, then create a new one
@@ -310,7 +301,6 @@ class Org(UITestCase):
     # Positive Delete
 
     @stubbed('Organization deletion is disabled')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, org_name):
         """@test: Create organization with valid values then delete it.
@@ -331,7 +321,6 @@ class Org(UITestCase):
     # Positive Update
 
     @skip_if_bug_open('bugzilla', 1131469)
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_positive_update_1(self, new_name):
         """@test: Create organization with valid values then update its name.
@@ -354,7 +343,6 @@ class Org(UITestCase):
     # Negative Update
 
     @skip_if_bug_open('bugzilla', 1131469)
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_negative_update_1(self, org_name):
         """@test: Create organization with valid values then fail to update
@@ -379,7 +367,6 @@ class Org(UITestCase):
     # Miscellaneous
 
     @skip_if_bug_open('bugzilla', 1131469)
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_search_key_1(self, org_name):
         """@test: Create organization and search/find it.
@@ -398,7 +385,6 @@ class Org(UITestCase):
     # Associations
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_domain_1(self, domain_name):
         """@test: Add a domain to an organization and remove it by organization
@@ -433,7 +419,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     #  Note: HTML username is invalid as per the UI msg.
-    @attr('ui', 'org', 'implemented')
     @data(
         {u'user_name': gen_string('alpha', 8)},
         {u'user_name': gen_string('numeric', 8)},
@@ -483,7 +468,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup and remove it by using the organization
@@ -542,7 +526,6 @@ class Org(UITestCase):
         pass
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_subnet_1(self, subnet_name):
         """@test: Add a subnet by using organization name and subnet name.
@@ -574,7 +557,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_domain_1(self, domain_name):
         """@test: Add a domain to an organization.
@@ -599,7 +581,6 @@ class Org(UITestCase):
                                                       value % domain_name))
             self.assertIsNotNone(element)
 
-    @attr('ui', 'org', 'implemented')
     @data(
         {u'user_name': gen_string('alpha', 8)},
         {u'user_name': gen_string('numeric', 8)},
@@ -642,7 +623,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_hostgroup_1(self, host_grp_name):
         """@test: Add a hostgroup by using the organization
@@ -669,7 +649,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_location_1(self, location_name):
         """@test: Add a location by using the organization
@@ -696,7 +675,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_computeresource_1(self, resource_name):
         """@test: Remove computeresource by using the organization
@@ -738,7 +716,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_medium_1(self, medium_name):
         """@test: Remove medium by using organization name and medium name.
@@ -780,7 +757,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_configtemplate_1(self, template_name):
         """@test: Remove config template.
@@ -815,7 +791,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(gen_string('alpha', 8),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8))
@@ -867,7 +842,6 @@ class Org(UITestCase):
         pass
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_computeresource_1(self, resource_name):
         """@test: Add compute resource using the organization
@@ -900,7 +874,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_medium_1(self, medium_name):
         """@test: Add medium by using the organization name and medium name.
@@ -931,7 +904,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_add_configtemplate_1(self, template_name):
         """@test: Add config template by using organization name and
@@ -960,7 +932,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(gen_string('alpha', 8),
           gen_string('numeric', 8),
           gen_string('alphanumeric', 8))
@@ -996,7 +967,6 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @attr('ui', 'org', 'implemented')
     @data(*generate_strings_list())
     def test_remove_subnet_1(self, subnet_name):
         """@test: Remove subnet by using organization name and subnet name.

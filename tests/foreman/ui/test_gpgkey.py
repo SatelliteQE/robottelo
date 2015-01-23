@@ -11,7 +11,6 @@ else:
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nose.plugins.attrib import attr
 from robottelo import entities
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO,
@@ -46,7 +45,6 @@ class GPGKey(UITestCase):
 
     # Positive Create
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -65,7 +63,6 @@ class GPGKey(UITestCase):
                         key_path=key_path)
             self.assertIsNotNone(self.gpgkey.search(name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_positive_create_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key text via
@@ -85,7 +82,6 @@ class GPGKey(UITestCase):
 
     # Negative Create
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key via
@@ -109,7 +105,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.wait_until_element
                                  (common_locators["alert.error"]))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key text via
@@ -131,7 +126,6 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.error"]))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_negative_create_3(self, name):
         """@test: Create gpg key with valid name and no gpg key
@@ -148,7 +142,6 @@ class GPGKey(UITestCase):
                             name=name)
             self.assertIsNone(self.gpgkey.search(name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_4(self, name):
         """@test: Create gpg key with invalid name and valid gpg key via
@@ -169,7 +162,6 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     def test_negative_create_5(self):
         """@test: Create gpg key with blank name and valid gpg key via
         file import
@@ -189,7 +181,6 @@ class GPGKey(UITestCase):
                             (common_locators["haserror"]))
             self.assertIsNone(self.gpgkey.search(name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_create_6(self, name):
         """@test: Create gpg key with invalid name and valid gpg key text via
@@ -211,7 +202,6 @@ class GPGKey(UITestCase):
 
     # Positive Delete
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*valid_names_list())
     def test_positive_delete_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key via file
@@ -232,7 +222,6 @@ class GPGKey(UITestCase):
             self.gpgkey.delete(name, True)
             self.assertIsNone(self.gpgkey.search(name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*valid_names_list())
     def test_positive_delete_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key text via
@@ -254,7 +243,6 @@ class GPGKey(UITestCase):
 
     # Positive Update
 
-    @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its name
@@ -277,7 +265,6 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.success"]))
 
-    @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
@@ -300,7 +287,6 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.success"]))
 
-    @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_3(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its name
@@ -322,7 +308,6 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.success"]))
 
-    @attr('ui', 'gpgkey', 'implemented')
     def test_positive_update_4(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
@@ -346,7 +331,6 @@ class GPGKey(UITestCase):
 
     # Negative Update
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_update_1(self, new_name):
         """@test: Create gpg key with valid name and valid gpg key via file
@@ -370,7 +354,6 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(new_name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*invalid_names_list())
     def test_negative_update_2(self, new_name):
         """@test: Create gpg key with valid name and valid gpg key text via
@@ -395,7 +378,6 @@ class GPGKey(UITestCase):
 
     # Product association
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -427,7 +409,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=True))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -470,7 +451,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=False))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_3(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -521,7 +501,6 @@ class GPGKey(UITestCase):
                                  (name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085035)
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_4(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -554,7 +533,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=False))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_5(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -597,7 +575,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (name, product=False))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_6(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -675,7 +652,6 @@ class GPGKey(UITestCase):
 
         pass
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_8(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -713,7 +689,6 @@ class GPGKey(UITestCase):
             self.assertEqual(product_name, self.gpgkey.assert_product_repo
                              (new_name, product=True))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_9(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -765,7 +740,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_10(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -825,7 +799,6 @@ class GPGKey(UITestCase):
                                  (new_name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085035)
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_11(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -868,7 +841,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_12(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -921,7 +893,6 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_13(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -1009,7 +980,6 @@ class GPGKey(UITestCase):
 
         pass
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_15(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -1048,7 +1018,6 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, product_name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_16(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -1096,7 +1065,6 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, product_name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_17(self, name):
         """@test: Create gpg key with valid name and valid gpg key
@@ -1153,7 +1121,6 @@ class GPGKey(UITestCase):
                               (name, product_name))
 
     @skip_if_bug_open('bugzilla', 1085035)
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_18(self, name):
         """@test: Create gpg key with valid name and valid gpg then associate
@@ -1194,7 +1161,6 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, prd_name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_19(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
@@ -1243,7 +1209,6 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.assert_key_from_product
                               (name, product_name, repository_name))
 
-    @attr('ui', 'gpgkey', 'implemented')
     @data(*generate_strings_list())
     def test_key_associate_20(self, name):
         """@test: Create gpg key with valid name and valid gpg key then
