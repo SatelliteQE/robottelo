@@ -55,14 +55,14 @@ class ActivationKey(UITestCase):
         super(ActivationKey, cls).setUpClass()
 
     def create_sync_custom_repo(self, product_name=None, repo_name=None,
-                                repo_url=None, repo_type=None):
+                                repo_url=None, repo_type=None, org_id=None):
         """Create product/repo, sync it and returns repo_id"""
         product_name = product_name or gen_string("alpha", 8)
         repo_name = repo_name or gen_string("alpha", 8)
         # Creates new product and repository via API's
         product_attrs = entities.Product(
             name=product_name,
-            organization=self.org_id
+            organization=org_id or self.org_id
         ).create()
         repo_attrs = entities.Repository(
             name=repo_name,
@@ -79,12 +79,12 @@ class ActivationKey(UITestCase):
             u"Sync for repository {0} failed.".format(repo_name))
         return repo_id
 
-    def enable_sync_redhat_repo(self, rh_repo):
+    def enable_sync_redhat_repo(self, rh_repo, org_id=None):
         """Enable the RedHat repo, sync it and returns repo_id"""
         # Enable RH repo and fetch repository_id
         repo_id = utils.enable_rhrepo_and_fetchid(
             rh_repo['basearch'],
-            self.org_id,
+            org_id or self.org_id,
             rh_repo['product'],
             rh_repo['name'],
             rh_repo['reposet'],
@@ -98,17 +98,17 @@ class ActivationKey(UITestCase):
             u"Sync for repository {0} failed.".format(repo_name))
         return repo_id
 
-    def cv_publish_promote(self, name, env_name, repo_id):
+    def cv_publish_promote(self, name, env_name, repo_id, org_id=None):
         """Create, publish and promote CV to selected environment"""
         # Create Life-Cycle content environment
         env_attrs = entities.LifecycleEnvironment(
             name=env_name,
-            organization=self.org_id
+            organization=org_id or self.org_id
         ).create()
         # Create content view(CV)
         content_view = entities.ContentView(
             name=name,
-            organization=self.org_id
+            organization=org_id or self.org_id
         )
         content_view.id = content_view.create()['id']
 
@@ -1088,20 +1088,23 @@ class ActivationKey(UITestCase):
             'releasever': "6Server",
         }
         product_subscription = "Red Hat Employee Subscription"
+        # Create new org to import manifest
+        org_attrs = entities.Organization().create()
+        org_id = org_attrs['id']
         # Upload manifest
         manifest_path = manifests.clone()
         task = entities.Organization(
-            id=self.org_id
+            id=org_id
         ).upload_manifest(path=manifest_path)
         self.assertEqual(
             u'success', task['result'], task['humanized']['errors']
         )
         # Helper function to create and promote CV to next environment
-        repo_id = self.enable_sync_redhat_repo(rh_repo)
-        self.cv_publish_promote(cv_name, env_name, repo_id)
+        repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org_id)
+        self.cv_publish_promote(cv_name, env_name, repo_id, org_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
+                session, org=org_attrs['name'], name=name, env=env_name,
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -1171,10 +1174,13 @@ class ActivationKey(UITestCase):
         product_subscription = "Red Hat Employee Subscription"
         custom_product_name = gen_string("alpha", 8)
         repo_name = gen_string("alpha", 8)
+        # Create new org to import manifest
+        org_attrs = entities.Organization().create()
+        org_id = org_attrs['id']
         # Creates new product and repository via API's
         product_attrs = entities.Product(
             name=custom_product_name,
-            organization=self.org_id
+            organization=org_id
         ).create()
         repo_attrs = entities.Repository(
             name=repo_name,
@@ -1186,7 +1192,7 @@ class ActivationKey(UITestCase):
         # Upload manifest
         manifest_path = manifests.clone()
         task = entities.Organization(
-            id=self.org_id
+            id=org_id
         ).upload_manifest(path=manifest_path)
         self.assertEqual(
             u'success', task['result'], task['humanized']['errors']
@@ -1194,7 +1200,7 @@ class ActivationKey(UITestCase):
         # Enable RH repo and fetch repository_id
         rhel_repo_id = utils.enable_rhrepo_and_fetchid(
             rh_repo['basearch'],
-            self.org_id,
+            org_id,
             rh_repo['product'],
             rh_repo['name'],
             rh_repo['reposet'],
@@ -1209,7 +1215,7 @@ class ActivationKey(UITestCase):
                 u"Sync for repository {0} failed.".format(repo_name))
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=ENVIRONMENT,
+                session, org=org_attrs['name'], name=name, env=ENVIRONMENT,
                 content_view=DEFAULT_CV
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
