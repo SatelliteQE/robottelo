@@ -116,6 +116,9 @@ def _configure_logging(verbosity=2):
     for name in ('root', 'robottelo'):
         logging.getLogger(name).setLevel(log_level)
 
+    # All output should be made by the logging module, including warnings
+    logging.captureWarnings(True)
+
 
 def _configure_third_party_logging():
     """Increase the level of third party packages logging
@@ -124,9 +127,11 @@ def _configure_third_party_logging():
 
     """
     loggers = (
+        'bugzilla',
         'easyprocess',
         'paramiko',
         'pyvirtualdisplay',
+        'requests.packages.urllib3.connectionpool',
         'selenium.webdriver.remote.remote_connection',
     )
 
