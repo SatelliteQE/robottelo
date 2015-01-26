@@ -43,11 +43,6 @@ _redmine = {
     'issues': {},
 }
 
-# Increase the level of third party packages logging
-logging.getLogger('bugzilla').setLevel(logging.WARNING)
-logging.getLogger(
-    'requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
-
 
 def data(*values):
     """

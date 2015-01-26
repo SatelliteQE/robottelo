@@ -75,9 +75,6 @@ def _get_connection(
     :rtype: paramiko.SSHClient
 
     """
-    # Hide base logger from paramiko
-    logging.getLogger('paramiko').setLevel(logging.ERROR)
-
     if hostname is None:
         hostname = conf.properties['main.server.hostname']
     if username is None:
