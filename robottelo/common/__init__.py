@@ -113,7 +113,7 @@ def _configure_logging(verbosity=2):
     else:
         log_level = logging.CRITICAL
 
-    for name in ('root', 'robottelo'):
+    for name in ('nailgun', 'root', 'robottelo'):
         logging.getLogger(name).setLevel(log_level)
 
     # All output should be made by the logging module, including warnings
