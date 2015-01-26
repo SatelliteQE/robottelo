@@ -23,6 +23,11 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource
 
+:mod:`tests.foreman.ui.test_config_groups`
+------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_config_groups
+
 :mod:`tests.foreman.ui.test_contentenv`
 ---------------------------------------
 
@@ -33,25 +38,35 @@
 
 .. automodule:: tests.foreman.ui.test_contentviews
 
+:mod:`tests.foreman.ui.test_discovery`
+--------------------------------------
+
+.. automodule:: tests.foreman.ui.test_discovery
+
 :mod:`tests.foreman.ui.test_domain`
 -----------------------------------
 
 .. automodule:: tests.foreman.ui.test_domain
+
+:mod:`tests.foreman.ui.test_email`
+----------------------------------
+
+.. automodule:: tests.foreman.ui.test_email
 
 :mod:`tests.foreman.ui.test_environment`
 ----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_environment
 
+:mod:`tests.foreman.ui.test_errata`
+-----------------------------------
+
+.. automodule:: tests.foreman.ui.test_errata
+
 :mod:`tests.foreman.ui.test_gpgkey`
 -----------------------------------
 
 .. automodule:: tests.foreman.ui.test_gpgkey
-
-:mod:`tests.foreman.ui.test_hostgroup`
---------------------------------------
-
-.. automodule:: tests.foreman.ui.test_hostgroup
 
 :mod:`tests.foreman.ui.test_host`
 ---------------------------------
@@ -62,6 +77,21 @@
 ----------------------------------------------------
 
 .. automodule:: tests.foreman.ui.test_host_system_unification
+
+:mod:`tests.foreman.ui.test_hostgroup`
+--------------------------------------
+
+.. automodule:: tests.foreman.ui.test_hostgroup
+
+:mod:`tests.foreman.ui.test_hw_model`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_hw_model
+
+:mod:`tests.foreman.ui.test_location`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_location
 
 :mod:`tests.foreman.ui.test_login`
 ----------------------------------
@@ -98,6 +128,11 @@
 
 .. automodule:: tests.foreman.ui.test_products
 
+:mod:`tests.foreman.ui.test_puppet_classes`
+-------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_puppet_classes
+
 :mod:`tests.foreman.ui.test_repository`
 ---------------------------------------
 
@@ -107,6 +142,11 @@
 ---------------------------------
 
 .. automodule:: tests.foreman.ui.test_role
+
+:mod:`tests.foreman.ui.test_settings`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_settings
 
 :mod:`tests.foreman.ui.test_sso`
 --------------------------------
@@ -123,27 +163,32 @@
 
 .. automodule:: tests.foreman.ui.test_subscription
 
+:mod:`tests.foreman.ui.test_sync`
+---------------------------------
+
+.. automodule:: tests.foreman.ui.test_sync
+
 :mod:`tests.foreman.ui.test_syncplan`
 -------------------------------------
 
 .. automodule:: tests.foreman.ui.test_syncplan
 
-:mod:`tests.foreman.ui.test_sync`
----------------------------------
+:mod:`tests.foreman.ui.test_system_registration`
+------------------------------------------------
 
-.. automodule:: tests.foreman.ui.test_sync
+.. automodule:: tests.foreman.ui.test_system_registration
 
 :mod:`tests.foreman.ui.test_template`
 -------------------------------------
 
 .. automodule:: tests.foreman.ui.test_template
 
-:mod:`tests.foreman.ui.test_usergroup`
---------------------------------------
-
-.. automodule:: tests.foreman.ui.test_usergroup
-
 :mod:`tests.foreman.ui.test_user`
 ---------------------------------
 
 .. automodule:: tests.foreman.ui.test_user
+
+:mod:`tests.foreman.ui.test_usergroup`
+--------------------------------------
+
+.. automodule:: tests.foreman.ui.test_usergroup

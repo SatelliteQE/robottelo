@@ -8,6 +8,11 @@
 
 .. automodule:: tests.foreman.api.test_activationkey
 
+:mod:`tests.foreman.api.test_architecture`
+------------------------------------------
+
+.. automodule:: tests.foreman.api.test_architecture
+
 :mod:`tests.foreman.api.test_contentview`
 -----------------------------------------
 
@@ -23,10 +28,20 @@
 
 .. automodule:: tests.foreman.api.test_contentviewversion
 
+:mod:`tests.foreman.api.test_email`
+-----------------------------------
+
+.. automodule:: tests.foreman.api.test_email
+
 :mod:`tests.foreman.api.test_environment`
 -----------------------------------------
 
 .. automodule:: tests.foreman.api.test_environment
+
+:mod:`tests.foreman.api.test_errata`
+------------------------------------
+
+.. automodule:: tests.foreman.api.test_errata
 
 :mod:`tests.foreman.api.test_filter`
 ------------------------------------
@@ -43,15 +58,15 @@
 
 .. automodule:: tests.foreman.api.test_gpgkey
 
-:mod:`tests.foreman.api.test_hostgroup`
----------------------------------------
-
-.. automodule:: tests.foreman.api.test_hostgroup
-
 :mod:`tests.foreman.api.test_host`
 ----------------------------------
 
 .. automodule:: tests.foreman.api.test_host
+
+:mod:`tests.foreman.api.test_hostgroup`
+---------------------------------------
+
+.. automodule:: tests.foreman.api.test_hostgroup
 
 :mod:`tests.foreman.api.test_lifecycleenvironment`
 --------------------------------------------------
