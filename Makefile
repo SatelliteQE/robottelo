@@ -6,7 +6,7 @@ FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
 FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
 NOSETESTS=python -m cProfile -o $@.pstats $$(which nosetests)
-NOSETESTS_OPTS=--logging-filter=robottelo --with-xunit\
+NOSETESTS_OPTS=--logging-filter=nailgun,robottelo --with-xunit\
 			   --xunit-file=foreman-results.xml
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 
