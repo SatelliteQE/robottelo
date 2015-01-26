@@ -179,10 +179,21 @@ API_PATHS = {
     u'discovered_hosts': (
         u'/api/v2/discovered_hosts',
         u'/api/v2/discovered_hosts',
+        u'/api/v2/discovered_hosts/auto_provision_all',
         u'/api/v2/discovered_hosts/facts',
         u'/api/v2/discovered_hosts/:id',
         u'/api/v2/discovered_hosts/:id',
         u'/api/v2/discovered_hosts/:id',
+        u'/api/v2/discovered_hosts/:id/auto_provision',
+        u'/api/v2/discovered_hosts/:id/reboot',
+        u'/api/v2/discovered_hosts/:id/refresh_facts',
+    ),
+    u'discovery_rules': (
+        u'/api/v2/discovery_rules',
+        u'/api/v2/discovery_rules',
+        u'/api/v2/discovery_rules/:id',
+        u'/api/v2/discovery_rules/:id',
+        u'/api/v2/discovery_rules/:id',
     ),
     u'disks': (
         u'/bootdisk/api',
