@@ -668,22 +668,13 @@ class TestAvailableURLs(TestCase):
             frozenset(API_PATHS.keys())
         )
         for group in api_paths.keys():
-            self.assertEqual(
-                frozenset(api_paths[group]),
-                frozenset(API_PATHS[group]),
-                group
-            )
             if (
                     group == 'external_usergroups'
                     and bz_bug_is_open(1184170)
-                    and get_distro_info[1] == 7
+                    and get_distro_info()[1] == 7
             ):
-                self.skipTest('BZ 1184170 is open and affects the server.')
-            self.assertEqual(
-                len(api_paths[group]),
-                len(API_PATHS[group]),
-                group
-            )
+                continue  # BZ 1184170 is open and affects the server.
+            self.assertItemsEqual(api_paths[group], API_PATHS[group], group)
 
         # (line-too-long) pylint:disable=C0301
         # response.json()['links'] is a dict like this:
