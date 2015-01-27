@@ -105,7 +105,9 @@ class EntityTestCase(APITestCase):
         entities.User,
     )
     def test_get_status_code(self, entity_cls):
-        """@Test GET an entity-dependent path.
+        """@Test: GET an entity-dependent path.
+
+        @Feature: Test multiple API paths
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
@@ -144,6 +146,8 @@ class EntityTestCase(APITestCase):
     )
     def test_get_unauthorized(self, entity_cls):
         """@Test: GET an entity-dependent path without credentials.
+
+        @Feature: Test multiple API paths
 
         @Assert: HTTP 401 is returned
 
@@ -187,6 +191,8 @@ class EntityTestCase(APITestCase):
     )
     def test_post_status_code(self, entity_cls):
         """@Test: Issue a POST request and check the returned status code.
+
+        @Feature: Test multiple API paths
 
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
@@ -234,6 +240,8 @@ class EntityTestCase(APITestCase):
     def test_post_unauthorized(self, entity_cls):
         """@Test: POST to an entity-dependent path without credentials.
 
+        @Feature: Test multiple API paths
+
         @Assert: HTTP 401 is returned
 
         """
@@ -278,6 +286,8 @@ class EntityIdTestCase(APITestCase):
     def test_get_status_code(self, entity_cls):
         """@Test: Create an entity and GET it.
 
+        @Feature: Test multiple API paths
+
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
@@ -319,6 +329,8 @@ class EntityIdTestCase(APITestCase):
     )
     def test_put_status_code(self, entity_cls):
         """@Test Issue a PUT request and check the returned status code.
+
+        @Feature: Test multiple API paths
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
@@ -371,6 +383,8 @@ class EntityIdTestCase(APITestCase):
     def test_delete_status_code(self, entity_cls):
         """@Test Issue an HTTP DELETE request and check the returned status
         code.
+
+        @Feature: Test multiple API paths
 
         @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
         content-type.
@@ -436,6 +450,8 @@ class DoubleCheckTestCase(APITestCase):
     )
     def test_put_and_get(self, entity_cls):
         """@Test: Issue a PUT request and GET the updated entity.
+
+        @Feature: Test multiple API paths
 
         @Assert: The updated entity has the correct attributes.
 
@@ -513,6 +529,8 @@ class DoubleCheckTestCase(APITestCase):
     def test_post_and_get(self, entity_cls):
         """@Test Issue a POST request and GET the created entity.
 
+        @Feature: Test multiple API paths
+
         @Assert: The created entity has the correct attributes.
 
         """
@@ -577,6 +595,8 @@ class DoubleCheckTestCase(APITestCase):
     )
     def test_delete_and_get(self, entity_cls):
         """@Test: Issue an HTTP DELETE request and GET the deleted entity.
+
+        @Feature: Test multiple API paths
 
         @Assert: An HTTP 404 is returned when fetching the missing entity.
 
@@ -644,6 +664,8 @@ class EntityReadTestCase(APITestCase):
         """@Test: Create an entity and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
+        @Feature: Test multiple API paths
+
         @Assert: The just-read entity is an instance of the correct class.
 
         """
@@ -654,6 +676,8 @@ class EntityReadTestCase(APITestCase):
 
     def test_architecture_read(self):
         """@Test: Create an arch that points to an OS, and read the arch.
+
+        @Feature: Test multiple API paths
 
         @Assert: The call to :meth:`robottelo.entities.Architecture.read`
         succeeds, and the response contains the correct operating system ID.
@@ -671,6 +695,8 @@ class EntityReadTestCase(APITestCase):
     def test_osparameter_read(self):
         """@Test: Create an OperatingSystemParameter and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        @Feature: Test multiple API paths
 
         @Assert: The just-read entity is an instance of the correct class.
 
@@ -692,6 +718,8 @@ class EntityReadTestCase(APITestCase):
         """@Test: Create an Permission entity and get it using
         :meth:`robottelo.orm.EntityReadMixin.read`.
 
+        @Feature: Test multiple API paths
+
         @Assert: The just-read entity is an instance of the correct class and
         name and resource_type fields are populated
 
@@ -704,6 +732,8 @@ class EntityReadTestCase(APITestCase):
 
     def test_media_read(self):
         """@Test: Create a media pointing at an OS and read the media.
+
+        @Feature: Test multiple API paths
 
         @Assert: The media points at the correct operating system.
 
