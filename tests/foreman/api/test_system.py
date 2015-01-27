@@ -35,6 +35,8 @@ class EntityIdTestCaseClone(APITestCase):
     def test_get_status_code(self):
         """@Test: Create a system and GET it.
 
+        @Feature: System APIs
+
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
@@ -49,7 +51,9 @@ class EntityIdTestCaseClone(APITestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_put_status_code(self):
-        """@Test Issue a PUT request and check the returned status code.
+        """@Test: Issue a PUT request and check the returned status code.
+
+        @Feature: System APIs
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
@@ -67,8 +71,10 @@ class EntityIdTestCaseClone(APITestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_delete_status_code(self):
-        """@Test Issue an HTTP DELETE request and check the returned status
+        """@Test: Issue an HTTP DELETE request and check the returned status
         code.
+
+        @Feature: System APIs
 
         @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
         content-type.
@@ -109,6 +115,8 @@ class DoubleCheckTestCase(APITestCase):
     def test_put_and_get(self):
         """@Test: Issue a PUT request and GET the updated system.
 
+        @Feature: System APIs
+
         @Assert: The updated system has the correct attributes.
 
         """
@@ -135,6 +143,8 @@ class DoubleCheckTestCase(APITestCase):
     def test_post_and_get(self):
         """@Test Issue a POST request and GET the created system.
 
+        @Feature: System APIs
+
         @Assert: The created system has the correct attributes.
 
         """
@@ -151,6 +161,8 @@ class DoubleCheckTestCase(APITestCase):
     @skip_if_bug_open('bugzilla', 1133071)
     def test_delete_and_get(self):
         """@Test: Issue an HTTP DELETE request and GET the deleted system.
+
+        @Feature: System APIs
 
         @Assert: An HTTP 404 is returned when fetching the missing system.
 
