@@ -25,7 +25,6 @@ from robottelo.common.ssh import upload_file
 @ddt
 class TestActivationKey(CLITestCase):
     """Activation Key CLI tests"""
-
     org = None
     library = None
     product = None
@@ -34,7 +33,6 @@ class TestActivationKey(CLITestCase):
 
     def setUp(self):
         """Tests for activation keys via Hammer CLI"""
-
         super(TestActivationKey, self).setUp()
 
         if TestActivationKey.org is None:
@@ -58,173 +56,167 @@ class TestActivationKey(CLITestCase):
 
     def _make_activation_key(self, options=None):
         """Make a new activation key and assert its success"""
-
         if options is None:
             options = {}
 
         # Use default organization if None are provided
-        if (
-                not options.get('organization', None)
-                and not options.get('organization-label', None)
-                and not options.get('organization-id', None)):
+        if (not options.get('organization', None) and
+                not options.get('organization-label', None) and
+                not options.get('organization-id', None)):
             options['organization-id'] = self.org['id']
 
         # Create activation key
         ackey = make_activation_key(options)
 
         # Fetch it
-        result = ActivationKey.info(
-            {
-                'id': ackey['id']
-            }
-        )
+        result = ActivationKey.info({'id': ackey['id']})
 
         self.assertEqual(
             result.return_code,
             0,
-            "Activation key was not found: %s" % str(result.stderr))
+            'Activation key was not found: {0}'.format(result.stderr))
         self.assertEqual(
             len(result.stderr),
             0,
-            "No error was expected %s" % str(result.stderr))
+            'No error was expected {0}'.format(result.stderr))
 
         # Return the activation key dictionary
         return ackey
 
     @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_create_activation_key_1(self, test_data):
+    def test_positive_create_activation_key_1(self, name):
         """@Test: Create Activation key for all variations of
             Activation key name
 
         @Feature: Activation key
 
         @Steps:
+
         1. Create Activation key for all valid Activation Key name variation
 
         @Assert: Activation key is created with chosen name
 
         """
-
-        new_ackey = self._make_activation_key({u'name': test_data['name']})
+        new_ackey_name = self._make_activation_key({u'name': name})['name']
         # Name should match passed data
         self.assertEqual(
-            new_ackey['name'],
-            test_data['name'],
-            ("Names don't match: '%s' != '%s'" %
-             (new_ackey['name'], test_data['name']))
+            new_ackey_name,
+            name,
+            'Names don\'t match: "{0}" != "{1}"'.format(new_ackey_name, name)
         )
 
     @data(
-        {'description': gen_string('alpha', 15)},
-        {'description': gen_string('alphanumeric', 15)},
-        {'description': gen_string('numeric', 15)},
-        {'description': gen_string('latin1', 15)},
-        {'description': gen_string('utf8', 15)},
-        {'description': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_create_activation_key_2(self, test_data):
+    def test_positive_create_activation_key_2(self, description):
         """@Test: Create Activation key for all variations of Description
 
         @Feature: Activation key
 
         @Steps:
+
         1. Create Activation key for all valid Description variation
 
         @Assert: Activation key is created with chosen description
 
         """
-
-        new_ackey = self._make_activation_key(
-            {u'description': test_data['description']})
+        new_ackey_description = self._make_activation_key(
+            {u'description': description})['description']
         # Description should match passed data
         self.assertEqual(
-            new_ackey['description'],
-            test_data['description'],
-            ("Descriptions don't match: '%s' != '%s'" %
-             (new_ackey['description'], test_data['description']))
+            new_ackey_description,
+            description,
+            'Descriptions don\'t match: "{0}" != "{1}"'.format(
+                new_ackey_description, description)
         )
 
     @run_only_on('sat')
     @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_create_associate_environ_1(self, test_data):
+    def test_positive_create_associate_environ_1(self, name):
         """@Test: Create Activation key and associate with Library environment
 
         @Feature: Activation key
 
         @Steps:
+
         1. Create Activation key for variations of Name / associated to Library
 
         @Assert: Activation key is created and associated to Library
 
         """
-
-        new_ackey = self._make_activation_key(
-            {u'name': test_data['name'],
-             u'lifecycle-environment-id': self.library['id']})
+        new_ackey_env = self._make_activation_key(
+            {u'name': name,
+             u'lifecycle-environment-id': self.library['id']}
+        )['lifecycle-environment']
         # Description should match passed data
         self.assertEqual(
-            new_ackey['lifecycle-environment'],
+            new_ackey_env,
             self.library['name'],
-            ("Environments don't match: '%s' != '%s'" %
-             (new_ackey['lifecycle-environment'], self.library['name']))
+            'Environments don\'t match: "{0}" != "{1}"'.format(
+                new_ackey_env, self.library['name'])
         )
 
     @run_only_on('sat')
     @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_create_associate_environ_2(self, test_data):
+    def test_positive_create_associate_environ_2(self, name):
         """@Test: Create Activation key and associate with environment
 
         @Feature: Activation key
 
         @Steps:
+
         1. Create Activation key for variations of Name / associated to environ
 
         @Assert: Activation key is created and associated to environment
 
         """
-
-        new_ackey = self._make_activation_key(
-            {u'name': test_data['name'],
-             u'lifecycle-environment-id': self.env1['id']})
+        new_ackey_env = self._make_activation_key({
+            u'name': name,
+            u'lifecycle-environment-id': self.env1['id']
+        })['lifecycle-environment']
         # Description should match passed data
         self.assertEqual(
-            new_ackey['lifecycle-environment'],
+            new_ackey_env,
             self.env1['name'],
-            ("Environments don't match: '%s' != '%s'" %
-             (new_ackey['lifecycle-environment'], self.env1['name']))
+            'Environments don\'t match: "{0}" != "{1}"'.format(
+                new_ackey_env, self.env1['name'])
         )
 
     @data(
-
-        {'name': gen_string("alpha", 10),
-         'content-view': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10),
-         'content-view': gen_string("alpha", 10)},
-        {'name': gen_string("numeric", 10),
-         'content-view': gen_string("alpha", 10)},
-        {'name': gen_string("html", 10),
-         'content-view': gen_string("alpha", 10)},
+        {'name': gen_string('alpha'),
+         'content-view': gen_string('alpha')},
+        {'name': gen_string('alphanumeric'),
+         'content-view': gen_string('alpha')},
+        {'name': gen_string('numeric'),
+         'content-view': gen_string('alpha')},
+        {'name': gen_string('html'),
+         'content-view': gen_string('alpha')},
     )
     def test_positive_create_activation_key_4(self, test_data):
         """@Test: Create Activation key for all variations of Content Views
@@ -232,13 +224,13 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Create
 
         @Steps:
+
         1. Create Activation key for all valid Content views in [1]
         using valid Name, Description, Environment and Usage limit
 
         @Assert: Activation key is created
 
         """
-
         try:
             org_obj = make_org(cached=True)
             con_view = make_content_view({
@@ -258,15 +250,15 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             new_ackey['name'],
             test_data['name'],
-            ("Names don't match: '%s' != '%s'" %
-             (new_ackey['name'], test_data['name']))
+            'Names don\'t match: "{0}" != "{1}"'.format(
+                new_ackey['name'], test_data['name'])
         )
         # ContentView should match passed data
         self.assertEqual(
             new_ackey['content-view'],
             test_data['content-view'],
-            ("Content View don't match: '%s' != '%s'" %
-             (new_ackey['content-view'], test_data['content-view']))
+            'Content Views don\'t match: "{0}" != "{1}"'.format(
+                new_ackey['content-view'], test_data['content-view'])
         )
 
     @stubbed
@@ -276,6 +268,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Create
 
         @Steps:
+
         1. Create Activation key for all valid System Groups in [1]
         using valid Name, Description, Environment, Content View, Usage limit
 
@@ -293,6 +286,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Create
 
         @Steps:
+
         1. Create Activation key with default Usage Limit (Unlimited)
         using valid Name, Description, Environment and Content View
 
@@ -310,6 +304,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Create
 
         @Steps:
+
         1. Create Activation key with finite Usage Limit (Not Unlimited)
         using valid Name, Description, Environment and Content View
 
@@ -327,6 +322,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Create
 
         @Steps:
+
         1. Create Activation key by entering Activation Key Name alone
         leaving Description, Content View and Usage Limit as default values
 
@@ -344,6 +340,7 @@ class TestActivationKey(CLITestCase):
         @feature: Activation key - Positive Create
 
         @steps:
+
         1. Create Activation key by entering its name, a content view and a
         environment name.
 
@@ -370,6 +367,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Negative Create
 
         @Steps:
+
         1. Create Activation key for all invalid Activation Key Names in [2]
         using valid Description, Environment, Content View, Usage limit
 
@@ -387,6 +385,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Negative Create
 
         @Steps:
+
         1. Create Activation key for all invalid Description in [2]
         using valid Name, Environment, Content View, Usage limit
 
@@ -404,6 +403,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Negative Create
 
         @Steps:
+
         1. Create Activation key for all invalid Usage Limit in [2]
         using valid Name, Description, Environment, Content View
 
@@ -415,20 +415,21 @@ class TestActivationKey(CLITestCase):
         pass
 
     @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_delete_activation_key_1(self, test_data):
+    def test_positive_delete_activation_key_1(self, name):
         """@Test: Create Activation key and delete it for all variations of
         Activation key name
 
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create Activation key for all valid Activation Key names in [1]
         using valid Description, Environment, Content View, Usage limit
         2. Delete the Activation key
@@ -437,21 +438,21 @@ class TestActivationKey(CLITestCase):
 
         """
         try:
-            activation_key = self._make_activation_key({
-                u'name': test_data['name'],
+            activation_key_id = self._make_activation_key({
+                u'name': name,
                 u'organization-id': self.org['id'],
-            })
+            })['id']
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = ActivationKey.delete({'id': activation_key['id']})
+        result = ActivationKey.delete({'id': activation_key_id})
         self.assertEqual(
             result.return_code, 0, 'Failed to delete activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         # Can we find the object?
-        result = ActivationKey.info({'id': activation_key['id']})
+        result = ActivationKey.info({'id': activation_key_id})
         self.assertNotEqual(
             result.return_code, 0, 'Activation key should be deleted')
         self.assertGreater(
@@ -460,20 +461,21 @@ class TestActivationKey(CLITestCase):
             len(result.stdout), 0, 'Output should be blank')
 
     @data(
-        {'description': gen_string('alpha', 15)},
-        {'description': gen_string('alphanumeric', 15)},
-        {'description': gen_string('numeric', 15)},
-        {'description': gen_string('latin1', 15)},
-        {'description': gen_string('utf8', 15)},
-        {'description': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_delete_activation_key_2(self, test_data):
+    def test_positive_delete_activation_key_2(self, description):
         """@Test: Create Activation key and delete it for all variations of
         Description
 
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create Activation key for all valid Description in [1]
         using valid Name, Environment, Content View, Usage limit
         2. Delete the Activation key
@@ -482,21 +484,21 @@ class TestActivationKey(CLITestCase):
 
         """
         try:
-            activation_key = self._make_activation_key({
-                u'description': test_data['description'],
+            activation_key_id = self._make_activation_key({
+                u'description': description,
                 u'organization-id': self.org['id'],
-            })
+            })['id']
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = ActivationKey.delete({'id': activation_key['id']})
+        result = ActivationKey.delete({'id': activation_key_id})
         self.assertEqual(
             result.return_code, 0, 'Failed to delete activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         # Can we find the object?
-        result = ActivationKey.info({'id': activation_key['id']})
+        result = ActivationKey.info({'id': activation_key_id})
         self.assertNotEqual(
             result.return_code, 0, 'Activation key should be deleted')
         self.assertGreater(
@@ -512,6 +514,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create Activation key for all valid Environments in [1]
         using valid Name, Description, Content View, Usage limit
         2. Delete the Activation key
@@ -531,6 +534,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create Activation key for all valid Content Views in [1]
         using valid Name, Description, Environment, Usage limit
         2. Delete the Activation key
@@ -549,6 +553,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create an Activation key
         2. Register systems to it
         3. Delete the Activation key
@@ -568,6 +573,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create an Activation key with a Content View
         2. Delete the Content View
 
@@ -585,6 +591,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Delete
 
         @Steps:
+
         1. Create an Activation key
         2. Attempt to remove an Activation Key
         3. Click Cancel in the confirmation dialog box
@@ -597,19 +604,20 @@ class TestActivationKey(CLITestCase):
         pass  # Skip for CLI as this is UI only
 
     @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_update_activation_key_1(self, test_data):
+    def test_positive_update_activation_key_1(self, name):
         """@Test: Update Activation Key Name in Activation key searching by ID
 
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
 
@@ -625,7 +633,7 @@ class TestActivationKey(CLITestCase):
 
         result = ActivationKey.update({
             u'id': activation_key['id'],
-            u'new-name': test_data['name'],
+            u'new-name': name,
             u'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0,
@@ -640,24 +648,25 @@ class TestActivationKey(CLITestCase):
                          'Failed to get info for activation key')
         self.assertEqual(len(result.stderr), 0,
                          'There should not be an error here')
-        self.assertEqual(result.stdout['name'], test_data['name'],
+        self.assertEqual(result.stdout['name'], name,
                          'Activation key name was not updated')
 
     @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_update_activation_key_2(self, test_data):
+    def test_positive_update_activation_key_2(self, name):
         """@Test: Update Activation Key Name in an Activation key searching by
         name
 
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Activation key name for all variations in [1]
 
@@ -673,7 +682,7 @@ class TestActivationKey(CLITestCase):
 
         result = ActivationKey.update({
             u'name': activation_key['name'],
-            u'new-name': test_data['name'],
+            u'new-name': name,
             u'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0,
@@ -688,23 +697,24 @@ class TestActivationKey(CLITestCase):
                          'Failed to get info for activation key')
         self.assertEqual(len(result.stderr), 0,
                          'There should not be an error here')
-        self.assertEqual(result.stdout['name'], test_data['name'],
+        self.assertEqual(result.stdout['name'], name,
                          'Activation key name was not updated')
 
     @data(
-        {'description': gen_string('alpha', 15)},
-        {'description': gen_string('alphanumeric', 15)},
-        {'description': gen_string('numeric', 15)},
-        {'description': gen_string('latin1', 15)},
-        {'description': gen_string('utf8', 15)},
-        {'description': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_update_activation_key_3(self, test_data):
+    def test_positive_update_activation_key_3(self, description):
         """@Test: Update Description in an Activation key
 
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Description for all variations in [1]
 
@@ -720,13 +730,13 @@ class TestActivationKey(CLITestCase):
 
         result = ActivationKey.update({
             u'name': activation_key['name'],
-            u'description': test_data['description'],
+            u'description': description,
             u'organization-id': self.org['id'],
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to update activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         result = ActivationKey.info({
             u'id': activation_key['id'],
@@ -734,9 +744,9 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             result.return_code, 0, 'Failed to get info for activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
         self.assertEqual(
-            result.stdout['description'], test_data['description'],
+            result.stdout['description'], description,
             'Activation key description was not updated')
 
     @run_only_on('sat')
@@ -747,6 +757,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Environment for all variations in [1]
 
@@ -760,19 +771,20 @@ class TestActivationKey(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109649)
     @data(
-        {'content-view': gen_string('alpha', 15)},
-        {'content-view': gen_string('alphanumeric', 15)},
-        {'content-view': gen_string('numeric', 15)},
-        {'content-view': gen_string('latin1', 15)},
-        {'content-view': gen_string('utf8', 15)},
-        {'content-view': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_positive_update_activation_key_5(self, test_data):
+    def test_positive_update_activation_key_5(self, content_view):
         """@Test: Update Content View in an Activation key
 
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Content View for all variations in [1] and include both
         RH and custom products
@@ -786,7 +798,7 @@ class TestActivationKey(CLITestCase):
             })
             con_view = make_content_view({
                 u'organization-id': self.org['id'],
-                u'name': test_data['content-view']
+                u'name': content_view
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -799,7 +811,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             result.return_code, 0, 'Failed to update activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         result = ActivationKey.info({
             u'id': activation_key['id'],
@@ -807,9 +819,9 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             result.return_code, 0, 'Failed to get info for activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
         self.assertEqual(
-            result.stdout['content-view'], test_data['content-view'],
+            result.stdout['content-view'], content_view,
             'Activation key content-view was not updated')
 
     @stubbed
@@ -819,6 +831,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Usage limit from Unlimited to a definite number
 
@@ -836,6 +849,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Usage limit from definite number to Unlimited
 
@@ -853,6 +867,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Negative Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Activation key name for all variations in [2]
 
@@ -870,6 +885,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Negative Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Description for all variations in [2]
 
@@ -887,6 +903,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Negative Update
 
         @Steps:
+
         1. Create Activation key
         2. Update Usage Limit for all variations in [2]
 
@@ -904,6 +921,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Usage limit
 
         @Steps:
+
         1. Create Activation key
         2. Update Usage Limit to a finite number
         3. Register Systems to match the Usage Limit
@@ -918,19 +936,20 @@ class TestActivationKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1110476)
     @data(
-        {'host-col': gen_string('alpha', 15)},
-        {'host-col': gen_string('alphanumeric', 15)},
-        {'host-col': gen_string('numeric', 15)},
-        {'host-col': gen_string('latin1', 15)},
-        {'host-col': gen_string('utf8', 15)},
-        {'host-col': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_associate_host(self, test_data):
+    def test_associate_host(self, host_col):
         """@Test: Test that hosts can be associated to Activation Keys
 
         @Feature: Activation key - Host
 
         @Steps:
+
         1. Create Activation key
         2. Create different hosts
         3. Associate the hosts to Activation key
@@ -938,33 +957,32 @@ class TestActivationKey(CLITestCase):
         @Assert: Hosts are successfully associated to Activation key
 
         """
-
         try:
             activation_key = self._make_activation_key({
                 u'organization-id': self.org['id'],
             })
-            new_host_col = make_host_collection({
-                'name': test_data['host-col']
-            })
+            new_host_col_name = make_host_collection({
+                'name': host_col
+            })['name']
         except CLIFactoryError as err:
             self.fail(err)
 
         # Assert that name matches data passed
             self.assertEqual(
-                new_host_col['name'],
-                test_data['host-col'],
-                "Names don't match"
+                new_host_col_name,
+                host_col,
+                'Names don\'t match'
             )
 
         result = ActivationKey.add_host_collection({
             u'name': activation_key['name'],
-            u'host-collection': new_host_col['name'],
+            u'host-collection': new_host_col_name,
             u'organization-id': self.org['id'],
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to add host-col activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         result = ActivationKey.info({
             u'id': activation_key['id'],
@@ -972,9 +990,9 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             result.return_code, 0, 'Failed to get info for activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
         self.assertEqual(
-            result.stdout['host-collection'], test_data['host-col'],
+            result.stdout['host-collection'], host_col,
             'Activation key host-collection added')
 
     @stubbed
@@ -984,6 +1002,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Product
 
         @Steps:
+
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
 
@@ -1002,6 +1021,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Product
 
         @Steps:
+
         1. Create Activation key
         2. Associate custom product(s) to Activation Key
 
@@ -1020,6 +1040,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Product
 
         @Steps:
+
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
@@ -1038,6 +1059,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Manifest
 
         @Steps:
+
         1. Create Activation key
         2. Associate a manifest to the Activation Key
         3. Delete the manifest
@@ -1056,6 +1078,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - System
 
         @Steps:
+
         1. Create multiple Activation keys
         2. Attach all the created Activation keys to a System
 
@@ -1073,6 +1096,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - list
 
         @Steps:
+
         1. Create Activation key for all valid Activation Key name variation
         in [1]
         2. List Activation key
@@ -1091,6 +1115,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - list
 
         @Steps:
+
         1. Create Activation key for all valid Description variation in [1]
         2. List Activation key
 
@@ -1109,6 +1134,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - search
 
         @Steps:
+
         1. Create Activation key for all valid Activation Key name variation
         in [1]
         2. Search/find Activation key
@@ -1127,6 +1153,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - search
 
         @Steps:
+
         1. Create Activation key for all valid Description variation in [1]
         2. Search/find Activation key
 
@@ -1145,6 +1172,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - info
 
         @Steps:
+
         1. Create Activation key for all valid Activation Key name variation
         in [1]
         2. Get info of the Activation key
@@ -1163,6 +1191,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - info
 
         @Steps:
+
         1. Create Activation key for all valid Description variation in [1]
         2. Get info of the Activation key
 
@@ -1181,6 +1210,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - End to End
 
         @Steps:
+
         1. Create Activation key
         2. Provision systems with Activation key
 
@@ -1198,6 +1228,7 @@ class TestActivationKey(CLITestCase):
         @feature: Activation key - Positive Create
 
         @steps:
+
         1. Create an activation key
         2. Rename it
         3. Create another activation key with the same name from step 1
@@ -1205,7 +1236,7 @@ class TestActivationKey(CLITestCase):
         @assert: Activation key is created
 
         """
-        name = gen_string('utf8', 15)
+        name = gen_string('utf8')
 
         try:
             activation_key = self._make_activation_key({
@@ -1215,7 +1246,7 @@ class TestActivationKey(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        new_name = gen_string('utf8', 15)
+        new_name = gen_string('utf8')
         result = ActivationKey.update({
             u'id': activation_key['id'],
             u'new-name': new_name,
@@ -1243,8 +1274,8 @@ class TestActivationKey(CLITestCase):
             })
         except CLIFactoryError as err:
             self.fail(
-                ('Failed to create an activation key with a previous name of'
-                 'another activation key: {0}').format(err))
+                'Failed to create an activation key with a previous name of'
+                'another activation key: {0}'.format(err))
 
         result = ActivationKey.info({
             u'id': new_activation_key['id'],
@@ -1259,25 +1290,26 @@ class TestActivationKey(CLITestCase):
         )
         self.assertEqual(
             result.stdout['name'], name,
-            u"Activation key names don't not match {0} != {1}".format(
+            u'Activation key names don\'t not match {0} != {1}'.format(
                 result.stdout['name'], name
             )
         )
 
     @data(
-        {'host-col': gen_string('alpha', 15)},
-        {'host-col': gen_string('alphanumeric', 15)},
-        {'host-col': gen_string('numeric', 15)},
-        {'host-col': gen_string('latin1', 15)},
-        {'host-col': gen_string('utf8', 15)},
-        {'host-col': gen_string('html', 15)},
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
     )
-    def test_remove_host(self, test_data):
+    def test_remove_host(self, host_col):
         """@Test: Test that hosts associated to Activation Keys can be removed
 
         @Feature: Activation key - Host
 
         @Steps:
+
         1. Create Activation key
         2. Create different hosts
         3. Associate the hosts to Activation key
@@ -1288,31 +1320,31 @@ class TestActivationKey(CLITestCase):
 
         """
         try:
-            org = make_org(cached=True)
+            org_id = make_org(cached=True)['id']
             activation_key = self._make_activation_key({
-                u'organization-id': org['id'],
+                u'organization-id': org_id,
             })
-            new_host_col = make_host_collection({
-                u'name': test_data['host-col'],
-                u'organization-id': org['id'],
-            })
+            new_host_col_name = make_host_collection({
+                u'name': host_col,
+                u'organization-id': org_id,
+            })['name']
         except CLIFactoryError as err:
             self.fail(err)
 
         # Assert that name matches data passed
-        self.assertEqual(new_host_col['name'],
-                         test_data['host-col'],
-                         "Names don't match")
+        self.assertEqual(new_host_col_name,
+                         host_col,
+                         'Names don\'t match')
 
         result = ActivationKey.add_host_collection({
             u'name': activation_key['name'],
-            u'host-collection': new_host_col['name'],
-            u'organization-id': org['id'],
+            u'host-collection': new_host_col_name,
+            u'organization-id': org_id,
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to add host-col activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         result = ActivationKey.info({
             u'id': activation_key['id'],
@@ -1320,21 +1352,21 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             result.return_code, 0, 'Failed to get info for activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
         self.assertEqual(
             result.stdout['host-collections'][0]['name'],
-            test_data['host-col'],
+            host_col,
             'Activation key host-collection added')
 
         result = ActivationKey.remove_host_collection({
             u'name': activation_key['name'],
-            u'host-collection': new_host_col['name'],
-            u'organization-id': org['id'],
+            u'host-collection': new_host_col_name,
+            u'organization-id': org_id,
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to remove host-col activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
 
         result = ActivationKey.info({
             u'id': activation_key['id'],
@@ -1342,7 +1374,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             result.return_code, 0, 'Failed to get info for activation key')
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
+            len(result.stderr), 0, result.stderr)
         self.assertEqual(
             len(result.stdout['host-collections']), 0,
             'Activation key host-collection removed')
@@ -1353,6 +1385,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key - Host
 
         @Steps:
+
         1. Create Activation key
         2. Upload manifest and add subscription
         3. Associate the activation key to subscription
@@ -1363,31 +1396,31 @@ class TestActivationKey(CLITestCase):
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
         try:
-            org = make_org(cached=True)
-            activation_key = self._make_activation_key({
-                u'organization-id': org['id'],
-            })
+            org_id = make_org(cached=True)['id']
+            activation_key_id = self._make_activation_key({
+                u'organization-id': org_id,
+            })['id']
             result = Subscription.upload({
                 'file': manifest,
-                'organization-id': self.org['id'],
+                'organization-id': org_id,
             })
         except CLIFactoryError as err:
             self.fail(err)
 
         subs_id = Subscription.list(
-            {'organization-id': self.org['id']},
+            {'organization-id': org_id},
             per_page=False)
 
         result = ActivationKey.add_subscription({
-            u'id': activation_key['id'],
+            u'id': activation_key_id,
             u'subscription-id': subs_id.stdout[0]['id'],
         })
         self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
+                         'return code must be 0, instead got {0}'
+                         .format(result.return_code))
         self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
-        self.assertIn("Subscription added to activation key",
+            len(result.stderr), 0, result.stderr)
+        self.assertIn('Subscription added to activation key',
                       result.stdout)
 
     @data(
@@ -1405,6 +1438,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key copy
 
         @Steps:
+
         1. Copy Activation key for all valid Activation Key name variations
 
         @Assert: Activation key is sucessfully copied
@@ -1432,6 +1466,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key copy
 
         @Steps:
+
         1. Copy Activation key by passing name of parent
 
         @Assert: Activation key is sucessfully copied
@@ -1459,6 +1494,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key copy
 
         @Steps:
+
         1. Attempt to copy an activation key with a duplicate name
 
         @Assert: Activation key not sucessfully copied
@@ -1486,6 +1522,7 @@ class TestActivationKey(CLITestCase):
         @Feature: Activation key copy
 
         @Steps:
+
         1. Create parent key and add content
         2. Copy Activation key by passing id of parent
         3. Verify content was sucessfully copied
