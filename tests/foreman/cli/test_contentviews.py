@@ -1154,7 +1154,6 @@ class TestContentView(CLITestCase):
             'There should be an exception here.'
         )
 
-    @skip_if_bug_open('bugzilla', 1091494)
     @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_badenvironment_negative(self):
         """@test: attempt to promote a content view using an invalid environment
@@ -1163,7 +1162,7 @@ class TestContentView(CLITestCase):
 
         @assert: Content views cannot be promoted; handled gracefully
 
-        @BZ: 1091494, 1156629
+        @BZ: 1156629
 
         """
 

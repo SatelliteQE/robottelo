@@ -186,7 +186,6 @@ class TestHostCollection(CLITestCase):
         with self.assertRaises(Exception):
             self._new_host_collection({'name': test_data['name']})
 
-    @skip_if_bug_open('bugzilla', 1084240)
     @data(
         {'name': gen_string('alpha', 15)},
         {'name': gen_string('alphanumeric', 15)},
@@ -201,8 +200,6 @@ class TestHostCollection(CLITestCase):
         @Feature: Host Collection
 
         @Assert: Host collection is created and name is updated
-
-        @BZ: 1084240
 
         """
 
@@ -258,7 +255,6 @@ class TestHostCollection(CLITestCase):
             "Names should not match"
         )
 
-    @skip_if_bug_open('bugzilla', 1084240)
     @skip_if_bug_open('bugzilla', 1171669)
     @data(
         {'description': gen_string('alpha', 15)},
@@ -275,7 +271,7 @@ class TestHostCollection(CLITestCase):
 
         @Assert: Host collection is created and description is updated
 
-        @BZ: 1084240, 1171669
+        @BZ: 1171669
 
         """
 
@@ -331,7 +327,6 @@ class TestHostCollection(CLITestCase):
             "Descriptions should not match"
         )
 
-    @skip_if_bug_open('bugzilla', 1084240)
     @skip_if_bug_open('bugzilla', 1171669)
     @data('3', '6', '9', '12', '15', '17', '19')
     def test_positive_update_3(self, test_data):
@@ -341,7 +336,7 @@ class TestHostCollection(CLITestCase):
 
         @Assert: Host collection limits is updated
 
-        @BZ: 1084240, 1171669
+        @BZ: 1171669
 
         """
 

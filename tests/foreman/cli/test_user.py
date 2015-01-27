@@ -14,7 +14,7 @@ from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.factory import CLIFactoryError, make_user, make_role
 from robottelo.cli.user import User as UserObj
 from robottelo.common.decorators import (
-    bz_bug_is_open, data, skip_if_bug_open, stubbed)
+    bz_bug_is_open, data, stubbed)
 from robottelo.test import CLITestCase
 
 
@@ -48,8 +48,6 @@ class User(CLITestCase):
         self.assertEqual(result.stdout[0]['email'], user['email'])
 
     # Issues
-
-    @skip_if_bug_open('bugzilla', 1079649)
     def test_bugzilla_1079649_1(self):
         """@Test: Delete a user by it's name
 
@@ -60,8 +58,6 @@ class User(CLITestCase):
         2. Delete the User
 
         @Assert: User is deleted
-
-        @BZ: 1079649
 
         """
 
@@ -78,7 +74,6 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    @skip_if_bug_open('bugzilla', 1079649)
     def test_bugzilla_1079649_2(self):
         """@Test: Delete a user by it's ID
 
@@ -282,7 +277,6 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @stubbed()
-    @skip_if_bug_open('redmine', 2922)
     def test_positive_create_user_9(self):
         """@Test: Create User with one role
 
@@ -299,7 +293,6 @@ class User(CLITestCase):
         pass
 
     @stubbed()
-    @skip_if_bug_open('redmine', 2922)
     def test_positive_create_user_10(self):
         """@Test: Create User with multiple roles
 
@@ -316,7 +309,6 @@ class User(CLITestCase):
         pass
 
     @stubbed()
-    @skip_if_bug_open('redmine', 2922)
     def test_positive_create_user_11(self):
         """@Test: Create User and assign all available roles to it
 
@@ -673,7 +665,6 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
 
-    @skip_if_bug_open('bugzilla', 1070730)
     @data(
         'foreman@',
         '@foreman',
@@ -1437,7 +1428,6 @@ class User(CLITestCase):
             search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['name'], new_user['name'])
 
-    @skip_if_bug_open('bugzilla', 1070730)
     @data(
         'foreman@',
         '@foreman',
@@ -1475,7 +1465,6 @@ class User(CLITestCase):
             search=('login', new_user['login']))
         self.assertEqual(updated_user.stdout['email'], new_user['email'])
 
-    @skip_if_bug_open('bugzilla', 1079649)
     @data(
         {'login': gen_string("latin1", 10)},
         {
@@ -1498,8 +1487,6 @@ class User(CLITestCase):
 
         @Assert: User is deleted
 
-        @BZ: 1079649, 1144162
-
         """
         bug_id = test_data.pop('bugzilla', None)
         if bug_id is not None and bz_bug_is_open(bug_id):
@@ -1518,7 +1505,6 @@ class User(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    @skip_if_bug_open('bugzilla', 1079649)
     @data(
         {'login': gen_string("latin1", 10)},
         {
@@ -1540,8 +1526,6 @@ class User(CLITestCase):
         2. Delete the User
 
         @Assert: User is deleted
-
-        @BZ: 1079649, 1144162
 
         """
         bug_id = test_data.pop('bugzilla', None)

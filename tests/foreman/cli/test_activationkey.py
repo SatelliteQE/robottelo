@@ -338,7 +338,6 @@ class TestActivationKey(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1109648)
     def test_positive_create_9(self):
         """@test: Create Activation key with environment name
 
@@ -349,8 +348,6 @@ class TestActivationKey(CLITestCase):
         environment name.
 
         @assert: Activation key is created
-
-        @bz: 1109648
 
         """
         content_view = make_content_view({
@@ -417,7 +414,6 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bug_open('bugzilla', 1109650)
     @data(
         {'name': gen_string('alpha', 15)},
         {'name': gen_string('alphanumeric', 15)},
@@ -438,8 +434,6 @@ class TestActivationKey(CLITestCase):
         2. Delete the Activation key
 
         @Assert: Activation key is deleted
-
-        @bz: 1109650
 
         """
         try:
@@ -465,7 +459,6 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, 'Output should be blank')
 
-    @skip_if_bug_open('bugzilla', 1109650)
     @data(
         {'description': gen_string('alpha', 15)},
         {'description': gen_string('alphanumeric', 15)},
@@ -486,8 +479,6 @@ class TestActivationKey(CLITestCase):
         2. Delete the Activation key
 
         @Assert: Activation key is deleted
-
-        @bz: 1109650
 
         """
         try:
@@ -605,7 +596,6 @@ class TestActivationKey(CLITestCase):
         """
         pass  # Skip for CLI as this is UI only
 
-    @skip_if_bug_open('bugzilla', 1114109)
     @data(
         {'name': gen_string('alpha', 15)},
         {'name': gen_string('alphanumeric', 15)},
@@ -624,8 +614,6 @@ class TestActivationKey(CLITestCase):
         2. Update Activation key name for all variations in [1]
 
         @Assert: Activation key is updated
-
-        @bz: 1114109
 
         """
         try:
@@ -655,7 +643,6 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.stdout['name'], test_data['name'],
                          'Activation key name was not updated')
 
-    @skip_if_bug_open('bugzilla', 1109649)
     @data(
         {'name': gen_string('alpha', 15)},
         {'name': gen_string('alphanumeric', 15)},
@@ -675,8 +662,6 @@ class TestActivationKey(CLITestCase):
         2. Update Activation key name for all variations in [1]
 
         @Assert: Activation key is updated
-
-        @bz: 1109649
 
         """
         try:
@@ -706,7 +691,6 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.stdout['name'], test_data['name'],
                          'Activation key name was not updated')
 
-    @skip_if_bug_open('bugzilla', 1109649)
     @data(
         {'description': gen_string('alpha', 15)},
         {'description': gen_string('alphanumeric', 15)},
@@ -725,8 +709,6 @@ class TestActivationKey(CLITestCase):
         2. Update Description for all variations in [1]
 
         @Assert: Activation key is updated
-
-        @bz: 1109649
 
         """
         try:
@@ -1209,7 +1191,6 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @skip_if_bug_open('bugzilla', 1111723)
     def test_bugzilla_1111723(self):
         """@test: Create activation key, rename it and create another with the
         initial name
@@ -1222,8 +1203,6 @@ class TestActivationKey(CLITestCase):
         3. Create another activation key with the same name from step 1
 
         @assert: Activation key is created
-
-        @bz: 1111723
 
         """
         name = gen_string('utf8', 15)
@@ -1285,7 +1264,6 @@ class TestActivationKey(CLITestCase):
             )
         )
 
-    @skip_if_bug_open('bugzilla', 1110467)
     @data(
         {'host-col': gen_string('alpha', 15)},
         {'host-col': gen_string('alphanumeric', 15)},
