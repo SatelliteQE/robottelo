@@ -52,14 +52,15 @@ class GPGKey(Base):
         Navigator(self.browser).go_to_gpg_keys()
         self.wait_for_ajax()
         element = None
-        strategy = locators["gpgkey.key_name"][0]
-        value = locators["gpgkey.key_name"][1]
+        strategy, value = locators["gpgkey.key_name"]
         searchbox = self.wait_until_element(common_locators["kt_search"])
         if searchbox:
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
             self.wait_for_ajax()
-            self.find_element(common_locators["kt_search_button"]).click()
+            self.wait_until_element(
+                common_locators["kt_search_button"]
+            ).click()
             element = self.wait_until_element((strategy, value % element_name))
             return element
 

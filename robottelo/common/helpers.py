@@ -13,6 +13,7 @@ from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from itertools import izip
 from robottelo.common import conf
+from robottelo.common.decorators import bz_bug_is_open
 from urllib2 import urlopen, Request, URLError
 from urlparse import urlunsplit
 
@@ -148,7 +149,7 @@ class STR:
     utf8 = "utf8"
 
 
-def generate_strings_list(len1=None):
+def generate_strings_list(len1=None, remove_str=None, bug_id=None):
     """Generates a list of all the input strings.
 
     :param int len1: Specifies the length of the strings to be
@@ -160,12 +161,17 @@ def generate_strings_list(len1=None):
     """
     if len1 is None:
         len1 = gen_integer(3, 30)
-    return [
-        gen_string(str_type, len1)
+    strings = {
+        str_type: gen_string(str_type, len1)
         for str_type
-        in ('alpha', 'numeric', 'alphanumeric',
-            'latin1', 'utf8', 'cjk', 'html')
-    ]
+        in (u'alpha', u'numeric', u'alphanumeric',
+            u'latin1', u'utf8', u'cjk', u'html')
+    }
+    # Handle No bug_id, If some entity doesn't support a str_type.
+    # Remove str_type from dictionary only if bug is open.
+    if remove_str and (bug_id is None or bz_bug_is_open(bug_id)):
+        del strings[remove_str]
+    return list(strings.values())
 
 
 def csv_to_dictionary(data):
