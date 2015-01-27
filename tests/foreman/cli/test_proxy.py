@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on
 from robottelo.test import CLITestCase
 import random
 
@@ -19,7 +19,6 @@ class TestProxy(CLITestCase):
         """Skipping tests until we can create ssh tunnels"""
         self.skipTest('Skipping tests until we can create ssh tunnels')
 
-    @skip_if_bug_open('redmine', 3875)
     def test_redmine_3875(self):
         """@Test: Proxy creation with random URL
 

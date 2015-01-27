@@ -13,8 +13,6 @@ from robottelo.cli.role import Role
 @ddt
 class TestRole(CLITestCase):
 
-    @skip_if_bug_open('bugzilla', 1046206)
-    @skip_if_bug_open('bugzilla', 1138551)
     @skip_if_bug_open('bugzilla', 1138553)
     @data(
         gen_string('alpha', 15),
@@ -39,7 +37,6 @@ class TestRole(CLITestCase):
             role['name'],
             data, "Input and output name should be consistent")
 
-    @skip_if_bug_open('bugzilla', 1046208)
     @skip_if_bug_open('bugzilla', 1138559)
     def test_create_role_permission_1(self):
         """@test: Create new roles Use different set of permission

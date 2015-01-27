@@ -136,7 +136,6 @@ class TestOrg(CLITestCase):
                          result.stdout['name'])
 
     @run_only_on('sat')
-    @skip_if_bug_open('redmine', 4295)
     def test_remove_domain(self):
         """@Test: Check if a Domain can be removed from an Org
 
@@ -156,7 +155,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(return_value.stderr), 0, "There should not be an error here")
 
-    @skip_if_bug_open('bugzilla', 1079587)
     @data(*positive_create_data_1())
     def test_bugzilla_1079587(self, test_data):
         """@test: Search for an organization by label
@@ -164,8 +162,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is created and can be searched by label
-
-        @bz: 1079587
 
         """
 
@@ -296,15 +292,12 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    @skip_if_bug_open('bugzilla', 1076541)
     def test_bugzilla_1076541(self):
         """@test: Cannot update organization name via CLI
 
         @feature: Organizations
 
         @assert: Organization name is updated
-
-        @bz: 1076541
 
         """
 
@@ -334,7 +327,6 @@ class TestOrg(CLITestCase):
             "Org name was not updated"
         )
 
-    @skip_if_bug_open('bugzilla', 1075163)
     def test_bugzilla_1075163(self):
         """@Test: Add --label as a valid argument to organization info command
 
@@ -342,8 +334,6 @@ class TestOrg(CLITestCase):
 
         @Assert: Organization is created and info can be obtained by its label
         graciously
-
-        @bz: 1075163
 
         """
 
@@ -355,7 +345,6 @@ class TestOrg(CLITestCase):
 
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
-    @skip_if_bug_open('bugzilla', 1075156)
     def test_bugzilla_1075156(self):
         """@Test: Cannot use CLI info for organizations by name
 
@@ -363,8 +352,6 @@ class TestOrg(CLITestCase):
 
         @Assert: Organization is created and info can be obtained by its name
         graciously
-
-        @bz: 1075156
 
         """
 
@@ -924,15 +911,12 @@ class TestOrg(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1099655)
     def test_add_environment(self):
         """@Test: Check if an environment can be added to an Org
 
         @Feature: Org - Environment
 
         @Assert: Environment is added to the org
-
-        @BZ: 1099655
 
         """
         # Create a lifecycle environment.
@@ -952,15 +936,12 @@ class TestOrg(CLITestCase):
         self.assertEqual(response.stdout[0]['name'], lc_env_name)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1099655)
     def test_remove_environment(self):
         """@Test: Check if an Environment can be removed from an Org
 
         @Feature: Org - Environment
 
         @Assert: Environment is removed from the org
-
-        @BZ: 1099655
 
         """
         # Create a lifecycle environment.
@@ -1221,11 +1202,6 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
-    # Negative Delete
-
-    # Positive Update
-
-    @skip_if_bug_open('bugzilla', 1076541)
     @data({'name': gen_string("latin1", 10)},
           {'name': gen_string("utf8", 10)},
           {'name': gen_string("alpha", 10)},
@@ -1238,8 +1214,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization name is updated
-
-        @bz: 1076541
 
         """
 
@@ -1310,7 +1284,6 @@ class TestOrg(CLITestCase):
             "Org desc was not updated"
         )
 
-    @skip_if_bug_open('bugzilla', 1076541)
     @skip_if_bug_open('bugzilla', 1114136)
     @data({'description': gen_string("latin1", 10),
            'name': gen_string("latin1", 10)},
@@ -1331,7 +1304,7 @@ class TestOrg(CLITestCase):
 
         @assert: organization name and description are updated
 
-        @bz: 1076541, 1114136
+        @bz: 1114136
 
         """
 
@@ -1368,7 +1341,6 @@ class TestOrg(CLITestCase):
 
     # Negative Update
 
-    @skip_if_bug_open('bugzilla', 1076541)
     @data({'name': ' '},
           {'name': gen_string('alpha', 300)},
           {'name': gen_string('numeric', 300)},

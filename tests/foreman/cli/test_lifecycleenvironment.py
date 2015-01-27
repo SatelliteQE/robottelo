@@ -7,7 +7,7 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import (
     make_lifecycle_environment, make_org, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on
 from robottelo.test import CLITestCase
 
 
@@ -27,8 +27,6 @@ class TestLifeCycleEnvironment(CLITestCase):
             TestLifeCycleEnvironment.org = make_org(cached=True)
 
     # Issues validation
-
-    @skip_if_bug_open('bugzilla', 1077386)
     def test_bugzilla_1077386(self):
         """@Test: List subcommand returns standard output
 
@@ -57,16 +55,12 @@ class TestLifeCycleEnvironment(CLITestCase):
             len(result.stdout), 0, "No output was returned"
         )
 
-    @skip_if_bug_open('bugzilla', 1077333)
-    @skip_if_bug_open('bugzilla', 1099655)
     def test_bugzilla_1077333(self):
         """@Test: Search lifecycle environment via its name containing UTF-8 chars
 
         @Feature: Lifecycle Environment
 
         @Assert: Can get info for lifecycle by its name
-
-        @BZ: 1077333, 1099655
 
         """
 
@@ -102,8 +96,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         )
 
     # CRUD
-
-    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': gen_string("alpha", 15)},
         {'name': gen_string("alphanumeric", 15)},
@@ -118,8 +110,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created with Library as prior
-
-        @BZ: 1099655
 
         """
 
@@ -154,7 +144,6 @@ class TestLifeCycleEnvironment(CLITestCase):
             "Could not find lifecycle environment \'%s\'" % new_obj['name']
         )
 
-    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': gen_string("alpha", 15)},
         {'name': gen_string("alphanumeric", 15)},
@@ -170,8 +159,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created with Library as prior
-
-        @BZ: 1099655
 
         """
 
@@ -212,7 +199,6 @@ class TestLifeCycleEnvironment(CLITestCase):
             "Descriptions don't match"
         )
 
-    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': gen_string("alpha", 15)},
         {'name': gen_string("alphanumeric", 15)},
@@ -227,8 +213,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is deleted
-
-        @BZ: 1099655
 
         """
 
@@ -287,8 +271,6 @@ class TestLifeCycleEnvironment(CLITestCase):
             len(result.stderr), 0, "There should be an error here"
         )
 
-    @skip_if_bug_open('bugzilla', 1095937)
-    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'name': gen_string("alpha", 15)},
         {'name': gen_string("alphanumeric", 15)},
@@ -303,8 +285,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment name is updated
-
-        @BZ: 1095937, 1099655
 
         """
 
@@ -356,8 +336,6 @@ class TestLifeCycleEnvironment(CLITestCase):
             "Name should have been updated"
         )
 
-    @skip_if_bug_open('bugzilla', 1095937)
-    @skip_if_bug_open('bugzilla', 1099655)
     @data(
         {'description': gen_string("alpha", 15)},
         {'description': gen_string("alphanumeric", 15)},
@@ -372,8 +350,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment description is updated
-
-        @BZ: 1095937, 1099655
 
         """
 

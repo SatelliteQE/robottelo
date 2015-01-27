@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on
 from robottelo.cli.factory import make_medium, make_os
 from robottelo.cli.medium import Medium
 
@@ -116,7 +116,6 @@ class TestMedium(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
 
-    @skip_if_bug_open('redmine', 8376)
     def test_removeoperatingsystem_medium(self):
         """@Test: Check if operating system can be removed from media
 

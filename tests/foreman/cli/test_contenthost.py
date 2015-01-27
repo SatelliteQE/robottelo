@@ -28,7 +28,6 @@ class TestContentHost(CLITestCase):
     LIBRARY = None
     DEFAULT_CV = None
 
-    @skip_if_bug_open('bugzilla', 1127629)  # skip entire class
     def setUp(self):
         """Tests for Content Host via Hammer CLI"""
 
@@ -206,7 +205,6 @@ class TestContentHost(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1107319)
     def test_positive_create_6(self):
         """@Test: Check if content host can be created with lifecycle name
 
@@ -229,15 +227,12 @@ class TestContentHost(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1114046)
     def test_positive_create_7(self):
         """@Test: Check if content host can be created with new lifecycle
 
         @Feature: Content Hosts
 
         @Assert: Content host is created using new lifecycle
-
-        @BZ: 1114046
 
         """
 
@@ -408,8 +403,6 @@ class TestContentHost(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created and description is updated
-
-        @BZ: 1082157
 
         """
 

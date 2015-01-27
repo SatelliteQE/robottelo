@@ -7,7 +7,7 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment
-from robottelo.common.decorators import run_only_on, data, skip_if_bug_open
+from robottelo.common.decorators import run_only_on, data
 from robottelo.test import MetaCLITestCase
 
 
@@ -135,29 +135,3 @@ class TestEnvironment(MetaCLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(result.stdout['name'], updates_dict['new-name'])
-
-    @skip_if_bug_open('bugzilla', 1176600)
-    def test_bugzilla_1176600(self):
-        """@Test: hammer cli - trying to update environment with utf8
-
-        @Feature: Environment - positive update
-
-        @Assert: Environment is updated and handled graciously
-
-        @BZ: 1176600
-
-        """
-        name = gen_string('alphanumeric')
-        new_name = gen_string('utf8')
-        try:
-            make_environment({'name': name})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = Environment.update({
-            'name': name,
-            'new-name': new_name
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['name'], new_name)

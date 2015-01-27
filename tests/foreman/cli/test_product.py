@@ -7,7 +7,7 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import (
     CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
 from robottelo.cli.product import Product
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import data, run_only_on
 from robottelo.test import CLITestCase
 
 
@@ -26,7 +26,6 @@ class TestProduct(CLITestCase):
             TestProduct.org = make_org(cached=True)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15)},
         {u'name': gen_string('alphanumeric', 15)},
@@ -41,8 +40,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product is created and has random name
-
-        @BZ: 1096320
 
         """
 
@@ -69,7 +66,6 @@ class TestProduct(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15),
          u'label': gen_string('alpha', 15)},
@@ -90,8 +86,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product is created and has random label
-
-        @BZ: 1096320
 
         """
 
@@ -119,7 +113,6 @@ class TestProduct(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15),
          u'description': gen_string('alpha', 15)},
@@ -140,8 +133,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product is created and has random description
-
-        @BZ: 1096320
 
         """
 
@@ -171,7 +162,6 @@ class TestProduct(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15)},
         {u'name': gen_string('alphanumeric', 15)},
@@ -186,8 +176,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product is created and has gpg key
-
-        @BZ: 1096320
 
         """
 
@@ -219,7 +207,6 @@ class TestProduct(CLITestCase):
             "GPG Keys don't match")
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15)},
         {u'name': gen_string('alphanumeric', 15)},
@@ -234,8 +221,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product is created and has random sync plan
-
-        @BZ: 1096320
 
         """
 
@@ -318,7 +303,6 @@ class TestProduct(CLITestCase):
             )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'description': gen_string('alpha', 15)},
         {u'description': gen_string('alphanumeric', 15)},
@@ -333,8 +317,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product description is updated
-
-        @BZ: 1096320
 
         """
 
@@ -381,7 +363,6 @@ class TestProduct(CLITestCase):
         )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15)},
         {u'name': gen_string('alphanumeric', 15)},
@@ -396,8 +377,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product gpg key is updated
-
-        @BZ: 1096320
 
         """
 
@@ -478,7 +457,6 @@ class TestProduct(CLITestCase):
             "GPG Keys should not match")
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15)},
         {u'name': gen_string('alphanumeric', 15)},
@@ -493,8 +471,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product sync plan is updated
-
-        @BZ: 1096320
 
         """
 
@@ -576,7 +552,6 @@ class TestProduct(CLITestCase):
             "Sync plans should not match")
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1096320)
     @data(
         {u'name': gen_string('alpha', 15)},
         {u'name': gen_string('alphanumeric', 15)},
@@ -591,8 +566,6 @@ class TestProduct(CLITestCase):
         @Feature: Product
 
         @Assert: Product is deleted
-
-        @BZ: 1096320
 
         """
 

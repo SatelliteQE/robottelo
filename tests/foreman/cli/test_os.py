@@ -15,12 +15,12 @@ from robottelo.test import CLITestCase
 
 
 POSITIVE_CREATE_DATA = (
-    {'name': gen_string("latin1", 10)},
-    {'name': gen_string("utf8", 10)},
-    {'name': gen_string("alpha", 10)},
-    {'name': gen_string("alphanumeric", 10)},
-    {'name': gen_string("numeric", 10)},
-    {'name': gen_string("html", 10)},
+    {'name': gen_string("latin1")},
+    {'name': gen_string("utf8")},
+    {'name': gen_string("alpha")},
+    {'name': gen_string("alphanumeric")},
+    {'name': gen_string("numeric")},
+    {'name': gen_string("html")},
 )
 
 NEGATIVE_CREATE_DATA = (
@@ -34,47 +34,47 @@ NEGATIVE_CREATE_DATA = (
 )
 
 POSITIVE_UPDATE_DATA = (
-    ({'name': gen_string("latin1", 10)},
-     {'name': gen_string("latin1", 10)}),
-    ({'name': gen_string("utf8", 10)},
-     {'name': gen_string("utf8", 10)}),
-    ({'name': gen_string("alpha", 10)},
-     {'name': gen_string("alpha", 10)}),
-    ({'name': gen_string("alphanumeric", 10)},
-     {'name': gen_string("alphanumeric", 10)}),
-    ({'name': gen_string("numeric", 10)},
-     {'name': gen_string("numeric", 10)}),
-    ({'name': gen_string("utf8", 10)},
+    ({'name': gen_string("latin1")},
+     {'name': gen_string("latin1")}),
+    ({'name': gen_string("utf8")},
+     {'name': gen_string("utf8")}),
+    ({'name': gen_string("alpha")},
+     {'name': gen_string("alpha")}),
+    ({'name': gen_string("alphanumeric")},
+     {'name': gen_string("alphanumeric")}),
+    ({'name': gen_string("numeric")},
+     {'name': gen_string("numeric")}),
+    ({'name': gen_string("utf8")},
      {'name': gen_string("html", 6)}),
 )
 
 NEGATIVE_UPDATE_DATA = (
-    ({'name': gen_string("latin1", 10)},
+    ({'name': gen_string("latin1")},
      {'name': gen_string("latin1", 300)}),
-    ({'name': gen_string("utf8", 10)},
+    ({'name': gen_string("utf8")},
      {'name': gen_string("utf8", 300)}),
-    ({'name': gen_string("alpha", 10)},
+    ({'name': gen_string("alpha")},
      {'name': gen_string("alpha", 300)}),
-    ({'name': gen_string("alphanumeric", 10)},
+    ({'name': gen_string("alphanumeric")},
      {'name': gen_string("alphanumeric", 300)}),
-    ({'name': gen_string("numeric", 10)},
+    ({'name': gen_string("numeric")},
      {'name': gen_string("numeric", 300)}),
-    ({'name': gen_string("utf8", 10)},
+    ({'name': gen_string("utf8")},
      {'name': " "}),
-    ({'name': gen_string("utf8", 10)},
+    ({'name': gen_string("utf8")},
      {'name': gen_string("html", 300)}),
 )
 
 POSITIVE_DELETE_DATA = (
-    {'name': gen_string("latin1", 10)},
-    {'name': gen_string("utf8", 10)},
-    {'name': gen_string("alpha", 10)},
-    {'name': gen_string("alphanumeric", 10)},
-    {'name': gen_string("numeric", 10)},
+    {'name': gen_string("latin1")},
+    {'name': gen_string("utf8")},
+    {'name': gen_string("alpha")},
+    {'name': gen_string("alphanumeric")},
+    {'name': gen_string("numeric")},
 )
 
 NEGATIVE_DELETE_DATA = (
-    {'id': gen_string("alpha", 10)},
+    {'id': gen_string("alpha")},
     {'id': None},
     {'id': ""},
     {},
@@ -112,15 +112,12 @@ class TestOperatingSystem(CLITestCase):
         self.assertGreater(len(result.stdout), length)
         self.assertEqual(result.return_code, 0)
 
-    @skip_if_bug_open('bugzilla', 1051557)
     def test_bugzilla_1051557(self):
         """@test: Update an Operating System's major version.
 
         @feature: Operating System - Update
 
         @assert: Operating System major version is updated
-
-        @bz: 1021557
 
         """
 

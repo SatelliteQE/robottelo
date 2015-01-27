@@ -7,7 +7,7 @@ from robottelo.cli.factory import (
     CLIFactoryError, make_partition_table, make_os)
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.common.decorators import run_only_on
 
 
 @run_only_on('sat')
@@ -156,7 +156,6 @@ class TestPartitionTableDelete(CLITestCase):
         self.assertEqual(len(result.stderr), 0,
                          "There should not be an exception here")
 
-    @skip_if_bug_open('redmine', 8376)
     def test_removeoperatingsystem_ptable(self):
         """@Test: Check if associated operating system can be removed
 
