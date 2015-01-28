@@ -406,7 +406,7 @@ class Discovery(UITestCase):
         """
 
     def test_discovery_manager_role(self):
-        """@Test: Assign 'Discovery_ Manager" role to a normal user
+        """@Test: Assign 'Discovery_Manager' role to a normal user
 
         @Feature: Foreman Discovery
 
