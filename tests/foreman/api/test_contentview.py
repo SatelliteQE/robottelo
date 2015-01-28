@@ -91,10 +91,10 @@ class ContentViewTestCase(APITestCase):
         cv_version = entities.ContentViewVersion(id=results[0]['id'])
 
         # Promote the content view version.
-        self.assertEqual(
-            'success',
-            cv_version.promote(environment_id=lifecycle_env.id)['result']
-        )
+        response = cv_version.promote(environment_id=lifecycle_env.id)
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual('success', response['result'], humanized_errors)
 
         # Create a system that is subscribed to the published and promoted
         # content view. Associating this system with the organization and
@@ -324,11 +324,9 @@ class CVPublishPromoteTestCase(APITestCase):
                 organization=self.org.id
             ).create_json()['id']
             response = cvv.promote(lc_env_id)
-            self.assertEqual(
-                response['result'],
-                'success',
-                response['humanized']['errors']
-            )
+            humanized_errors = response['humanized']['errors']
+            _check_bz_1186432(humanized_errors)
+            self.assertEqual(response['result'], 'success', humanized_errors)
 
         # Does it show up in the correct number of lifecycle environments?
         self.assertEqual(
@@ -364,11 +362,9 @@ class CVPublishPromoteTestCase(APITestCase):
                 organization=self.org.id
             ).create_json()['id']
             response = cvv.promote(lc_env_id)
-            self.assertEqual(
-                response['result'],
-                'success',
-                response['humanized']['errors']
-            )
+            humanized_errors = response['humanized']['errors']
+            _check_bz_1186432(humanized_errors)
+            self.assertEqual(response['result'], 'success', humanized_errors)
 
         # Everything's done - check some content view attributes...
         cv_attrs = content_view.read_json()
@@ -414,11 +410,9 @@ class CVPublishPromoteTestCase(APITestCase):
                 organization=self.org.id
             ).create_json()['id']
             response = cvv.promote(lc_env_id)
-            self.assertEqual(
-                response['result'],
-                'success',
-                response['humanized']['errors']
-            )
+            humanized_errors = response['humanized']['errors']
+            _check_bz_1186432(humanized_errors)
+            self.assertEqual(response['result'], 'success', humanized_errors)
 
         # Everything's done. Check some content view attributes...
         cv_attrs = content_view.read_json()
