@@ -547,7 +547,7 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_19(self, test_data):
-        """@Test: Updates param "require_ssl_puppetmasters"
+        """@Test: Updates param "require_ssl_smart_proxies"
         under Auth tab
 
         @Feature: Settings - Update Parameters
@@ -557,9 +557,12 @@ class Settings(UITestCase):
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "require_ssl_puppetmasters"
+        param_name = "require_ssl_smart_proxies"
         value_type = "dropdown"
         with Session(self.browser) as session:
+            session.nav.go_to_settings()
+            default_value = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
             edit_param(session, tab_locator=tab_locator,
                        param_name=param_name,
                        value_type=value_type,
@@ -567,11 +570,15 @@ class Settings(UITestCase):
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
+            edit_param(session, tab_locator=tab_locator,
+                       param_name=param_name,
+                       value_type=value_type,
+                       param_value=default_value)
 
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_20(self, test_data):
-        """@Test: Updates param "restrict_registered_puppetmasters"
+        """@Test: Updates param "restrict_registered_smart_proxies"
         under Auth tab
 
         @Feature: Settings - Update Parameters
@@ -581,9 +588,12 @@ class Settings(UITestCase):
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "restrict_registered_puppetmasters"
+        param_name = "restrict_registered_smart_proxies"
         value_type = "dropdown"
         with Session(self.browser) as session:
+            session.nav.go_to_settings()
+            default_value = self.settings.get_saved_value(tab_locator,
+                                                          param_name)
             edit_param(session, tab_locator=tab_locator,
                        param_name=param_name,
                        value_type=value_type,
@@ -591,101 +601,10 @@ class Settings(UITestCase):
             saved_element = self.settings.get_saved_value(tab_locator,
                                                           param_name)
             self.assertEqual(test_data['param_value'], saved_element)
-
-    @data({u'param_value': "true"},
-          {u'param_value': "false"})
-    def test_positive_update_auth_param_21(self, test_data):
-        """@Test: Updates param "signo_sso"
-        under Auth tab
-
-        @Feature: Settings - Update Parameters
-
-        @Assert: Parameter is updated
-
-        """
-
-        tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "signo_sso"
-        value_type = "dropdown"
-        with Session(self.browser) as session:
             edit_param(session, tab_locator=tab_locator,
                        param_name=param_name,
                        value_type=value_type,
-                       param_value=test_data['param_value'])
-            saved_element = self.settings.get_saved_value(tab_locator,
-                                                          param_name)
-            self.assertEqual(test_data['param_value'], saved_element)
-            # This is to revert the signo_sso to default value 'false'
-            if saved_element == 'true':
-                edit_param(session, tab_locator=tab_locator,
-                           param_name=param_name,
-                           value_type=value_type,
-                           param_value='false')
-
-    @data(
-        {u'param_value': "http://" + gen_string(
-            "alpha", 10) + ".dom.com"},
-        {u'param_value': "https://" + gen_string(
-            "alphanumeric", 10) + ".dom.com"},
-        {u'param_value': "http://" + gen_string(
-            "numeric", 10) + ".dom.com"}
-    )
-    def test_positive_update_auth_param_22(self, test_data):
-        """@Test: Updates param "signo_url" under Auth tab
-
-        @Feature: Settings - Update Parameters
-
-        @Assert: Parameter is updated
-
-        """
-
-        tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "signo_url"
-        value_type = "input"
-        with Session(self.browser) as session:
-            edit_param(session, tab_locator=tab_locator,
-                       param_name=param_name,
-                       value_type=value_type,
-                       param_value=test_data['param_value'])
-            saved_element = self.settings.get_saved_value(tab_locator,
-                                                          param_name)
-            self.assertEqual(test_data['param_value'], saved_element)
-
-    @skip_if_bug_open('bugzilla', 1125156)
-    @data(
-        {u'param_value': "http://\\" + gen_string(
-            "alpha", 10) + ".dom.com"},
-        {u'param_value': "http://" + gen_string(
-            "utf8", 10) + ".dom.com"},
-        {u'param_value': "http://" + gen_string(
-            "latin1", 10) + ".dom.com"},
-        {u'param_value': "http://" + gen_string(
-            "html", 10) + ".dom.com"}
-    )
-    def test_negative_update_auth_param_23(self, test_data):
-        """@Test: Updates param "signo_url" under Auth tab
-
-        @Feature: Settings - Negative update Parameters
-
-        @Assert: Parameter is not updated
-
-        @BZ: 1125156
-
-        """
-
-        tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "signo_url"
-        value_type = "input"
-        with Session(self.browser) as session:
-            edit_param(session, tab_locator=tab_locator,
-                       param_name=param_name,
-                       value_type=value_type,
-                       param_value=test_data['param_value'])
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 (common_locators["notif.error"]))
-            saved_element = self.settings.get_saved_value(tab_locator,
-                                                          param_name)
-            self.assertNotEqual(test_data['param_value'], saved_element)
+                       param_value=default_value)
 
     @data(
         {u'param_value': "[ " + gen_string(
@@ -695,7 +614,7 @@ class Settings(UITestCase):
         {u'param_value': "[ " + gen_string(
             "numeric", 10) + " ]"}
     )
-    def test_positive_update_auth_param_24(self, test_data):
+    def test_positive_update_auth_param_21(self, test_data):
         """@Test: Updates param
         "trusted_puppetmaster_hosts"
         under Auth tab
@@ -723,7 +642,7 @@ class Settings(UITestCase):
           {u'param_value': "-1"},
           {u'param_value': "text"},
           {u'param_value': "0"})
-    def test_negative_update_auth_param_25(self, test_data):
+    def test_negative_update_auth_param_22(self, test_data):
         """@Test: Updates param "trusted_puppetmaster_hosts" under Auth tab
 
         @Feature: Settings - Negative update Parameters
@@ -750,7 +669,7 @@ class Settings(UITestCase):
 
     @data({u'param_value': "true"},
           {u'param_value': "false"})
-    def test_positive_update_provisioning_param_26(self, test_data):
+    def test_positive_update_provisioning_param_23(self, test_data):
         """@Test: Updates param "ignore_puppet_facts_for_provisioning"
         under Provisioning tab
 
@@ -775,7 +694,7 @@ class Settings(UITestCase):
     @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
-    def test_positive_update_provisioning_param_27(self, test_data):
+    def test_positive_update_provisioning_param_24(self, test_data):
         """@Test: Updates param "ignore_puppet_facts_for_provisioning"
         under Provisioning tab
 
@@ -800,7 +719,7 @@ class Settings(UITestCase):
     @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
-    def test_positive_update_provisioning_param_28(self, test_data):
+    def test_positive_update_provisioning_param_25(self, test_data):
         """@Test: Updates param "manage_puppetca"
         under Provisioning tab
 
@@ -825,7 +744,7 @@ class Settings(UITestCase):
     @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
-    def test_positive_update_provisioning_param_29(self, test_data):
+    def test_positive_update_provisioning_param_26(self, test_data):
         """@Test: Updates param "query_local_nameservers"
         under Provisioning tab
 
@@ -850,7 +769,7 @@ class Settings(UITestCase):
     @run_only_on('sat')
     @data({u'param_value': "true"},
           {u'param_value': "false"})
-    def test_positive_update_provisioning_param_30(self, test_data):
+    def test_positive_update_provisioning_param_27(self, test_data):
         """@Test: Updates param "safemode_render"
         under Provisioning tab
 
@@ -877,7 +796,7 @@ class Settings(UITestCase):
     @data({u'param_value': " "},
           {u'param_value': "-1"},
           {u'param_value': "text"})
-    def test_negative_update_provisioning_param_31(self, test_data):
+    def test_negative_update_provisioning_param_28(self, test_data):
         """@Test: Updates param "token_duration"
         under Provisioning tab with invalid values
 
@@ -905,7 +824,7 @@ class Settings(UITestCase):
 
     @run_only_on('sat')
     @data("90", "0")
-    def test_positive_update_provisioning_param_32(self, param_value):
+    def test_positive_update_provisioning_param_29(self, param_value):
         """@Test: Updates param "token_duration" under Provisioning tab
 
         @Feature: Settings - Positive Update Parameters
