@@ -30,6 +30,7 @@ BZ_1151240_ENTITIES = (
     entities.LifecycleEnvironment, entities.Product, entities.Repository
 )
 BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
+BZ_1187366_ENTITIES = (entities.LifecycleEnvironment, entities.Organization)
 
 
 def _get_partial_func(obj):
@@ -399,6 +400,8 @@ class EntityIdTestCase(APITestCase):
         except HTTPError as err:
             self.fail(err)
         response = entity.delete_raw()
+        if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
+            self.skipTest('BZ 1187366 is open.')
         self.assertIn(
             response.status_code,
             (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
@@ -611,6 +614,8 @@ class DoubleCheckTestCase(APITestCase):
             entity = entity_cls(id=entity_cls().create_json()['id'])
         except HTTPError as err:
             self.fail(err)
+        if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
+            self.skipTest('BZ 1187366 is open.')
         entity.delete()
 
         if entity_cls is entities.Repository and bz_bug_is_open(1166365):
