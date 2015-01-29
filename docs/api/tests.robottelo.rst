@@ -30,15 +30,25 @@ Submodules:
 
 .. automodule:: tests.robottelo.test_orm
 
+:mod:`tests.robottelo.test_robottelo_api_inspect`
+-------------------------------------------------
+
+.. automodule:: tests.robottelo.test_robottelo_api_inspect
+
+:mod:`tests.robottelo.test_robottelo_api_utils`
+-----------------------------------------------
+
+.. automodule:: tests.robottelo.test_robottelo_api_utils
+
 :mod:`tests.robottelo.test_ssh`
 -------------------------------
 
 .. automodule:: tests.robottelo.test_ssh
 
-:mod:`tests.robottelo.test_robottelo_api_inspect`
--------------------------------------------------
+:mod:`tests.robottelo.test_tests_foreman`
+-----------------------------------------
 
-.. automodule:: tests.robottelo.test_robottelo_api_inspect
+.. automodule:: tests.robottelo.test_tests_foreman
 
 :mod:`tests.robottelo.test_vm`
 -----------------------------------
