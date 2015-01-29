@@ -32,7 +32,6 @@ class TestSmoke(UITestCase):
         @Assert: 'Default Organization' is found
 
         """
-
         with Session(self.browser) as session:
             selected_org = session.nav.go_to_select_org(DEFAULT_ORG)
             self.assertEqual(selected_org, DEFAULT_ORG)
@@ -46,7 +45,6 @@ class TestSmoke(UITestCase):
         @Assert: 'Default Location' is found
 
         """
-
         with Session(self.browser) as session:
             selected_loc = session.nav.go_to_select_loc(DEFAULT_LOC)
             self.assertEqual(selected_loc, DEFAULT_LOC)
@@ -59,7 +57,6 @@ class TestSmoke(UITestCase):
         @Assert: Admin User is found and has Admin role
 
         """
-
         with Session(self.browser) as session:
             session.nav.go_to_users()
             element = self.user.search("admin", search_key="login")
@@ -93,7 +90,6 @@ class TestSmoke(UITestCase):
         @Assert: All entities are created and associated.
 
         """
-
         user_name = gen_string("alpha", 6)
         password = gen_string("alpha", 6)
         org_name = gen_string("alpha", 6)
