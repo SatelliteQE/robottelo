@@ -20,7 +20,8 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.common.constants import FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO
+from robottelo.common.constants import (
+    DEFAULT_LOC, DEFAULT_ORG, FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO)
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common import manifests
 from robottelo.common.ssh import upload_file
@@ -36,48 +37,51 @@ class TestSmoke(CLITestCase):
     """End-to-end tests using the ``CLI`` path."""
 
     def test_find_default_org(self):
-        """
-        @Test: Check if 'Default Organization' is present
-        @Feature: Smoke Test
-        @Assert: 'Default Organization' is found
-        """
+        """@Test: Check if 'Default Organization' is present
 
-        query = {u'name': u'Default_Organization'}
+        @Feature: Smoke Test
+
+        @Assert: 'Default Organization' is found
+
+        """
+        query = {u'name': DEFAULT_ORG}
         result = self._search(Org, query)
         self.assertEqual(
             result.stdout['name'],
-            'Default_Organization',
-            u"Could not find the Default Organization"
+            DEFAULT_ORG,
+            u'Could not find the "Default Organization"'
         )
 
     def test_find_default_location(self):
-        """
-        @Test: Check if 'Default Location' is present
-        @Feature: Smoke Test
-        @Assert: 'Default Location' is found
-        """
+        """@Test: Check if 'Default Location' is present
 
-        query = {u'name': u'Default_Location'}
+        @Feature: Smoke Test
+
+        @Assert: 'Default Location' is found
+
+        """
+        query = {u'name': DEFAULT_LOC}
         result = self._search(Location, query)
         self.assertEqual(
             result.stdout['name'],
-            'Default_Location',
-            u"Could not find the 'Default Location'"
+            DEFAULT_LOC,
+            u'Could not find the "Default Location"'
         )
 
     def test_find_admin_user(self):
-        """
-        @Test: Check if Admin User is present
-        @Feature: Smoke Test
-        @Assert: Admin User is found and has Admin role
-        """
+        """@Test: Check if Admin User is present
 
+        @Feature: Smoke Test
+
+        @Assert: Admin User is found and has Admin role
+
+        """
         query = {u'login': u'admin'}
         result = self._search(User, query)
         self.assertEqual(
             result.stdout['login'],
             'admin',
-            u"Admin User login does not match: 'admin' != '{0}'".format(
+            u'Admin User login does not match: "admin" != "{0}"'.format(
                 result.stdout['login'])
         )
         self.assertEqual(
@@ -88,8 +92,8 @@ class TestSmoke(CLITestCase):
         )
 
     def test_smoke(self):
-        """
-        @Test: Check that basic content can be created
+        """@Test: Check that basic content can be created
+
         * Create a new user with admin permissions
         * Using the new user from above:
 
@@ -109,9 +113,10 @@ class TestSmoke(CLITestCase):
             * Create a new hostgroup and associate previous entities to it
 
         @Feature: Smoke Test
-        @Assert: All entities are created and associated.
-        """
 
+        @Assert: All entities are created and associated.
+
+        """
         # Create new user
         password = gen_alphanumeric()
         new_user = make_user({u'admin': u'true', u'password': password})
@@ -439,8 +444,7 @@ class TestSmoke(CLITestCase):
                 new_hg['name'], new_org['name'], result.stderr))
 
     def _create(self, user, entity, attrs):
-        """
-        Creates a Foreman entity and returns it.
+        """Creates a Foreman entity and returns it.
 
         :param dict user: A python dictionary representing a User
         :param obj entity: A valid CLI entity.
@@ -448,6 +452,7 @@ class TestSmoke(CLITestCase):
             creating entity.
         :return: A ``dict`` representing the Foreman entity.
         :rtype: dict
+
         """
 
         # Create new entity as new user
@@ -471,15 +476,15 @@ class TestSmoke(CLITestCase):
         return result.stdout
 
     def _search(self, entity, attrs):
-        """
-        Looks up for a Foreman entity by specifying using its ``Info``
-        CLI subcommand with ``attrs`` arguments.
+        """Looks up for a Foreman entity by specifying using its ``Info`` CLI
+        subcommand with ``attrs`` arguments.
 
         :param robottelo.cli.Base entity: A logical representation of a
             Foreman CLI entity.
         :param string query: A ``search`` parameter.
         :return: A ``SSHCommandResult`` instance.
         :rtype: robottelo.common.ssh.SSHCommandResult
+
         """
         result = entity.info(attrs)
         self.assertEqual(

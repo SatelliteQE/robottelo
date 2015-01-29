@@ -169,8 +169,8 @@ RHVA_REPO_TREE = [
     ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server')
 ]
 
-DEFAULT_ORG = "Default_Organization"
-DEFAULT_LOC = "Default_Location"
+DEFAULT_ORG = "Default Organization"
+DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
 
 LANGUAGES = ["en", "en_GB",
