@@ -13,8 +13,8 @@ from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
 from robottelo.common.constants import PERMISSIONS
-from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
-from robottelo.common.helpers import get_distro_info, get_server_credentials
+from robottelo.common.decorators import data, run_only_on
+from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
@@ -25,12 +25,6 @@ PERMISSION_RESOURCE_TYPES = [key for key in PERMISSIONS.keys()]
 PERMISSION_NAMES = [
     value for value in chain.from_iterable(PERMISSIONS.values())
 ]
-BZ_1184644_PERMS = (
-    'destroy_abrt_reports',
-    'forward_abrt_reports',
-    'upload_abrt_reports',
-    'view_abrt_reports',
-)
 
 
 @ddt
@@ -48,12 +42,6 @@ class PermissionsTestCase(APITestCase):
         is the one searched for.
 
         """
-        if (
-                permission_name in BZ_1184644_PERMS
-                and bz_bug_is_open(1184644)
-                and get_distro_info()[1] == 6
-        ):
-            self.skipTest('BZ 1184644 is open and affects the server.')
         result = entities.Permission(name=permission_name).search()
         self.assertEqual(len(result), 1, permission_name)
         self.assertEqual(permission_name, result[0]['name'])
@@ -92,8 +80,6 @@ class PermissionsTestCase(APITestCase):
         perms = entities.Permission().search()
         perm_names = [perm['name'] for perm in perms]
         perm_resource_types = [perm['resource_type'] for perm in perms]
-        if bz_bug_is_open(1184644) and get_distro_info()[1] == 6:
-            perm_names.extend(BZ_1184644_PERMS)
 
         self.assertEqual(
             frozenset(PERMISSION_RESOURCE_TYPES),
