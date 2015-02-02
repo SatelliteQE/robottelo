@@ -316,7 +316,7 @@ def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
         'name': None,
         'orgs': None,
         'description': None,
-        'org_select': False,
+        'org_select': True,
         'provider_type': None,
         'url': None,
         'user': None,
