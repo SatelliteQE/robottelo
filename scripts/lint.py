@@ -10,18 +10,17 @@ import os
 def lint():
     """Search for Python source files and lint them with Pylint."""
     # Let's do some prep work before finding files to lint.
-    this_file = os.path.realpath(__file__)
-    this_dir = os.path.dirname(this_file)
+    this_dir = os.path.dirname(os.path.realpath(__file__))
     search_paths = (
-        os.path.join(this_dir, 'robottelo'),
-        os.path.join(this_dir, 'tests'),
+        this_dir,
+        os.path.abspath(os.path.join(this_dir, os.pardir, 'robottelo')),
+        os.path.abspath(os.path.join(this_dir, os.pardir, 'tests')),
     )
 
-    # Prep work done. Time to find files! Yeah, this is a stupid amount of
-    # nested logic.
-    targets = [this_file]
+    # Compile a list of files that need to be linted.
+    targets = []
     for search_path in search_paths:
-        for root, dirs, files in os.walk(search_path):  # pylint: disable=W0612
+        for root, _, files in os.walk(search_path):
             for file_ in files:
                 if file_.endswith('.py'):
                     targets.append(os.path.join(root, file_))

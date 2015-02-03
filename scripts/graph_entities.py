@@ -22,26 +22,34 @@ from robottelo import entities, factory, orm
 import inspect
 
 
-# Compile a dict of `orm.Entity` subclasses.
-entities_ = {}
-for name, klass in inspect.getmembers(entities, inspect.isclass):
-    if issubclass(klass, orm.Entity):
-        entities_[name] = klass
+def graph():
+    """Read through ``robottelo/entities.py`` and graph their relationships."""
+    # Compile a dict of `orm.Entity` subclasses.
+    entities_ = {}
+    for name, klass in inspect.getmembers(entities, inspect.isclass):
+        if issubclass(klass, orm.Entity):
+            entities_[name] = klass
+    # Generate DOT-formatted output.
+    #
+    # Ignore superfluous parentheses, as Python 3 requires them for print().
+    # (superfluous-parens) pylint:disable=C0325
+    print('digraph dependencies {')
+    for entity_name, entity in entities_.items():
+        # Graph out which entities this entity depends on.
+        for field_name, field in entity.get_fields().items():
+            if (isinstance(field, orm.OneToOneField)
+                    or isinstance(field, orm.OneToManyField)):
+                field_is_required = field.options.get('required', False)
+                print('{0} -> {1} [label="{2}"{3}]'.format(
+                    entity_name,
+                    field.entity,
+                    field_name,
+                    ' color=red' if field_is_required else ''
+                ))
+        # Make entities that are not factories more... ethereal.
+        if not issubclass(entity, factory.Factory):
+            print('{0} [style=dotted]'.format(entity_name))
+    print('}')
 
-# Generate DOT-formatted output.
-print('digraph dependencies {')  # (superfluous-parens) pylint:disable=C0325
-for entity_name, entity in entities_.items():
-    # Graph out which entities this entity depends on.
-    for field_name, field in entity.get_fields().items():
-        if (isinstance(field, orm.OneToOneField)
-                or isinstance(field, orm.OneToManyField)):
-            print('{0} -> {1} [label="{2}"{3}]'.format(
-                entity_name,
-                field.entity,
-                field_name,
-                ' color=red' if field.options.get('required', False) else ''
-            ))
-    # Make entities that are not factories more... ethereal.
-    if not issubclass(entity, factory.Factory):
-        print('{0} [style=dotted]'.format(entity_name))
-print('}')  # (superfluous-parens) pylint:disable=C0325
+if __name__ == '__main__':
+    graph()

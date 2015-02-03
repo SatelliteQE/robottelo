@@ -1,11 +1,14 @@
 # Variables -------------------------------------------------------------------
 
-ROBOTTELO_TESTS_PATH=tests/robottelo/
-FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
-FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
+FOREMAN_TESTS_PATH=tests/foreman/
+FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
+NOSETESTS=python -m cProfile -o $@.pstats $$(which nosetests)
+NOSETESTS_OPTS=--logging-filter=robottelo --with-xunit\
+			   --xunit-file=foreman-results.xml
+ROBOTTELO_TESTS_PATH=tests/robottelo/
 
 # Commands --------------------------------------------------------------------
 
@@ -21,6 +24,7 @@ help:
 	@echo "  test-foreman-ui-xvfb  to test a Foreman deployment UI using xvfb-run"
 	@echo "  test-foreman-smoke    to perform a generic smoke test"
 	@echo "  graph-entities        to graph entity relationships"
+	@echo "  lint                  to run pylint on the entire codebase"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -34,28 +38,31 @@ test-docstrings:
 	testimony validate_docstring tests/foreman/ui
 
 test-robottelo:
-	nosetests -c robottelo.properties $(ROBOTTELO_TESTS_PATH)
+	$(NOSETESTS) $(ROBOTTELO_TESTS_PATH)
 
 test-foreman-api:
-	nosetests -c robottelo.properties $(FOREMAN_API_TESTS_PATH)
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_API_TESTS_PATH)
 
 test-foreman-cli:
-	nosetests -c robottelo.properties $(FOREMAN_CLI_TESTS_PATH)
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-ui:
-	nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_UI_TESTS_PATH)
 
 test-foreman-ui-xvfb:
-	xvfb-run nosetests -c robottelo.properties $(FOREMAN_UI_TESTS_PATH)
+	xvfb-run nosetests $(NOSETESTS_OPTS) $(FOREMAN_UI_TESTS_PATH)
 
 test-foreman-smoke:
-	nosetests -c robottelo.properties $(FOREMAN_SMOKE_TESTS_PATH)
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_SMOKE_TESTS_PATH)
 
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
+
+lint:
+	scripts/lint.py
 
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
         test-foreman-api test-foreman-cli test-foreman-ui \
-        test-foreman-ui-xvfb test-foreman-smoke graph-entities
+        test-foreman-ui-xvfb test-foreman-smoke graph-entities lint
