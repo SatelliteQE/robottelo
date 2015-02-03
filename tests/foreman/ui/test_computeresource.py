@@ -210,6 +210,4 @@ class ComputeResource(UITestCase):
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
             self.compute_resource.delete(name, really=True)
-            notif = session.nav.wait_until_element(
-                common_locators["notif.success"])
-            self.assertIsNotNone(notif)
+            self.assertIsNone(self.compute_resource.search(name))
