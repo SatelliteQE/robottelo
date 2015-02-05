@@ -253,14 +253,14 @@ class UserRoleTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             client.put(
                 entity_obj.path(),
-                {u'name': entity.name.get_value()},
+                {u'name': entity.name.gen_value()},
                 auth=self.auth,
                 verify=False,
             ).raise_for_status()
         self.give_user_permission(_permission_name(entity, 'update'))
         client.put(
             entity_obj.path(),
-            {u'name': entity.name.get_value()},
+            {u'name': entity.name.gen_value()},
             auth=self.auth,
             verify=False,
         ).raise_for_status()

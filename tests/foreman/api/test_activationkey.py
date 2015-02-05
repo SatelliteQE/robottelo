@@ -192,7 +192,7 @@ class ActivationKeysTestCase(APITestCase):
             self.fail(err)
 
         # Update the activation key.
-        description = entities.ActivationKey.description.get_value()
+        description = entities.ActivationKey.description.gen_value()
         response = client.put(
             activation_key.path(),
             {

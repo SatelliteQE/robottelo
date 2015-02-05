@@ -1,23 +1,21 @@
 # -*- encoding: utf-8 -*-
 """Module that define the model layer used to define entities"""
-from fauxfactory import (
-    gen_boolean, gen_choice, gen_email,
-    gen_integer, gen_ipaddr, gen_mac, gen_netmask,
-    gen_string, gen_url
-)
+from fauxfactory import gen_choice
 from nailgun import client
+from nailgun.entity_fields import (
+    Field,
+    _get_class,
+    IntegerField,
+    OneToManyField,
+    OneToOneField,
+)
 from robottelo.common import helpers
 import httplib
-import importlib
-import inspect
-import random
 import thread
 import threading
 import time
 import urlparse
 
-
-_SENTINEL = object()
 
 #: Default for ``poll_rate`` argument to :func:`robottelo.orm._poll_task`.
 TASK_POLL_RATE = 5
@@ -80,201 +78,6 @@ def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
         raise TaskTimeout("Timed out polling task {0}".format(task_id))
     finally:
         timer.cancel()
-
-
-# -----------------------------------------------------------------------------
-# Definition of individual entity fields.
-# -----------------------------------------------------------------------------
-
-
-class Field(object):
-    """Base field class to implement other fields"""
-
-    def __init__(
-            self,
-            required=False,
-            choices=None,
-            default=_SENTINEL,
-            null=False):
-        """Record this field's attributes.
-
-        :param bool required: Determines whether a value must be submitted to
-            the server when creating or updating an entity.
-        :param tuple choices: Legal values that this field may be populated
-            with.
-        :param default: A value that will be used when :meth:`
-        :param bool null: Determines whether a null value can be submitted to
-            the server when creating or updating an entity.
-
-        """
-        self.required = required
-        if choices is not None:
-            self.choices = choices
-        if default is not _SENTINEL:
-            self.default = default
-        self.null = null
-
-
-class BooleanField(Field):
-    """Field that represents a boolean"""
-    def get_value(self):
-        """Return a value suitable for a :class:`BooleanField`."""
-        return gen_boolean()
-
-
-class EmailField(Field):
-    """Field that represents an email"""
-    def get_value(self):
-        """Return a value suitable for a :class:`EmailField`."""
-        return gen_email()
-
-
-class FloatField(Field):
-    """Field that represents a float"""
-    def get_value(self):
-        """Return a value suitable for a :class:`FloatField`."""
-        return random.random() * 10000
-
-
-class IntegerField(Field):
-    """Field that represents an integer"""
-    def __init__(self, min_val=None, max_val=None, *args, **kwargs):
-        self.min_val = min_val
-        self.max_val = max_val
-        super(IntegerField, self).__init__(*args, **kwargs)
-
-    def get_value(self):
-        """Return a value suitable for a :class:`IntegerField`."""
-        return gen_integer(self.min_val, self.max_val)
-
-
-class StringField(Field):
-    """Field that represents a string."""
-    def __init__(self, len=(1, 30), str_type=('utf8',), *args, **kwargs):
-        """Constructor for a ``StringField``.
-
-        The default ``len`` of string fields is short for two reasons:
-
-        1. Foreman's database backend limits many fields to 255 bytes in
-           length. As a result, ``len`` should be no longer than 85
-           characters long, as 85 unicode characters may be up to 255 bytes
-           long.
-        2. Humans have to read through the error messages produced by
-           Robottelo. Long error messages are hard to read through, and that
-           hurts productivity. Thus, a ``len`` even shorter than 85 chars
-           is desirable.
-
-        :param len: Either a ``(min_len, max_len)`` tuple or an ``exact_len``
-            integer.
-        :param sequence str_type: The types of characters to generate when
-            :meth:`get-value` is called. Any argument which can be passed to
-            ``gen_string`` can be provided in the sequence.
-
-        """
-        if isinstance(len, tuple):
-            self.min_len, self.max_len = len
-        else:
-            self.min_len = self.max_len = len
-        # Adjust str_type if a string is provided
-        if isinstance(str_type, (str, unicode)):  # FIXME: python3
-            self.str_type = (str_type,)
-        else:
-            self.str_type = str_type
-        super(StringField, self).__init__(*args, **kwargs)
-
-    def get_value(self):
-        """Return a value suitable for a :class:`StringField`."""
-        return gen_string(
-            gen_choice(self.str_type),
-            gen_integer(self.min_len, self.max_len)
-        )
-
-
-class DateField(Field):
-    """Field that represents a date"""
-
-
-class DateTimeField(Field):
-    """Field that represents a datetime"""
-
-
-class DictField(Field):
-    """Field that represents a set of key-value pairs."""
-    def get_value(self):
-        """Return a value suitable for a :class:`DictField`."""
-        return {}
-
-
-class IPAddressField(StringField):
-    """Field that represents an IP adrress"""
-    def get_value(self):
-        """Return a value suitable for a :class:`IPAddressField`."""
-        return gen_ipaddr()
-
-
-class NetmaskField(StringField):
-    """Field that represents an netmask"""
-    def get_value(self):
-        """Return a value suitable for a :class:`NetmaskField`."""
-        return gen_netmask()
-
-
-# FIXME: implement get_value()
-class ListField(Field):
-    """Field that represents a list of strings"""
-
-
-class MACAddressField(StringField):
-    """Field that represents a MAC adrress"""
-    def get_value(self):
-        """Return a value suitable for a :class:`MACAddressField`."""
-        return gen_mac()
-
-
-class OneToOneField(Field):
-    """Field that represents a reference to another entity."""
-    def __init__(self, entity, *validators, **kwargs):
-        self.entity = entity
-        super(OneToOneField, self).__init__(*validators, **kwargs)
-
-    def get_value(self):
-        """Return an instance of the class that this field references."""
-        return _get_class(self.entity)()
-
-
-class OneToManyField(Field):
-    """Field that represents a reference to zero or more other entities."""
-    def __init__(self, entity, *validators, **kwargs):
-        self.entity = entity
-        super(OneToManyField, self).__init__(*validators, **kwargs)
-
-    def get_value(self):
-        """Return an instance of the class that this field references."""
-        return _get_class(self.entity)()
-
-
-class URLField(StringField):
-    """Field that represents an URL"""
-    def get_value(self):
-        """Return a value suitable for a :class:`URLField`."""
-        return gen_url()
-
-
-def _get_class(class_or_name, module='robottelo.entities'):
-    """Return a class object.
-
-    If ``class_or_name`` is a class, it is returned untouched. Otherwise,
-    ``class_or_name`` is assumed to be a string. In this case, ``module`` is
-    searched for a class by that name and returned.
-
-    :param class_or_name: Either a class or the name of a class.
-    :param str module: A dotted module name.
-    :return: Either the class passed in or a class from ``module``.
-
-    """
-    if inspect.isclass(class_or_name):
-        return class_or_name
-    return getattr(importlib.import_module(module), class_or_name)
 
 
 # -----------------------------------------------------------------------------
@@ -387,7 +190,7 @@ class Entity(object):
         """Find all fields attributes of class ``cls``.
 
         :param cls: Any object. This method is only especially useful if that
-            class has attributes that are subclasses of :class:`Field`.
+            class has attributes that are subclasses of class ``Field``.
         :return: A dict mapping attribute names to ``Field`` objects.
         :rtype: dict
 
@@ -566,11 +369,11 @@ class EntityReadMixin(object):
                 # `OneToOneField.entity` may be either a class or a string. For
                 # examples of this, look at a couple class definitions in
                 # module `robottelo.entities`. `_get_class` returns a class.
-                other_cls = _get_class(field_type.entity)
+                other_cls = _get_class(field_type.entity, 'robottelo.entities')
                 entity_id = attrs[field_name + '_id']
                 setattr(entity, field_name, other_cls(id=entity_id))
             elif isinstance(field_type, OneToManyField):
-                other_cls = _get_class(field_type.entity)  # see above
+                other_cls = _get_class(field_type.entity, 'robottelo.entities')
                 entity_ids = attrs[field_name + '_ids']
                 setattr(
                     entity,
@@ -601,7 +404,7 @@ class EntityCreateMixin(object):
     def create_missing(self, auth=None):
         """Automagically populate all required instance attributes.
 
-        Iterate through the set of all required :class:`Field` defined on
+        Iterate through the set of all required class ``Field`` defined on
         ``type(self)`` and create a corresponding instance attribute if none
         exists. Subclasses should override this method if there is some
         relationship between two required fields.
@@ -612,19 +415,19 @@ class EntityCreateMixin(object):
         """
         for field_name, field in self.get_fields().items():
             if field.required and field_name not in vars(self):
-                # Most `get_value` methods return a value such as an integer,
-                # string or dictionary, but OneTo{One,Many}Field.get_value
+                # Most `gen_value` methods return a value such as an integer,
+                # string or dictionary, but OneTo{One,Many}Field.gen_value
                 # returns an instance of the referenced class.
                 if hasattr(field, 'default'):
                     value = field.default
                 elif hasattr(field, 'choices'):
                     value = gen_choice(field.choices)
                 elif isinstance(field, OneToOneField):
-                    value = field.get_value().create_json(auth=auth)['id']
+                    value = field.gen_value().create_json(auth=auth)['id']
                 elif isinstance(field, OneToManyField):
-                    value = [field.get_value().create_json(auth=auth)['id']]
+                    value = [field.gen_value().create_json(auth=auth)['id']]
                 else:
-                    value = field.get_value()
+                    value = field.gen_value()
                 setattr(self, field_name, value)
 
     def create_payload(self):

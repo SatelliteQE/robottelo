@@ -439,8 +439,8 @@ class ContentViewUpdateTestCase(APITestCase):
         )
 
     @data(
-        {u'name': entities.ContentView.name.get_value()},
-        {u'description': entities.ContentView.description.get_value()},
+        {u'name': entities.ContentView.name.gen_value()},
+        {u'description': entities.ContentView.description.gen_value()},
     )
     def test_positive_update(self, attrs):
         """@Test: Update a content view and provide valid attributes.

@@ -67,7 +67,7 @@ class OrganizationTestCase(APITestCase):
 
         """
         # A label has a more restrictive allowable charset than a name.
-        name_label = entities.Organization.label.get_value()
+        name_label = entities.Organization.label.gen_value()
         attrs = entities.Organization(
             name=name_label,
             label=name_label,
@@ -83,8 +83,8 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization.name.get_value()
-        label = entities.Organization.label.get_value()
+        name = entities.Organization.name.gen_value()
+        label = entities.Organization.label.gen_value()
         attrs = entities.Organization(name=name, label=label).create_json()
         self.assertEqual(attrs['name'], name)
         self.assertEqual(attrs['label'], label)
@@ -137,9 +137,9 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization.name.get_value()
-        label = entities.Organization.label.get_value()
-        description = entities.Organization.description.get_value()
+        name = entities.Organization.name.gen_value()
+        label = entities.Organization.label.gen_value()
+        description = entities.Organization.description.gen_value()
         attrs = entities.Organization(
             name=name,
             label=label,
@@ -173,7 +173,7 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization.name.get_value()
+        name = entities.Organization.name.gen_value()
         entities.Organization(name=name).create_json()
         with self.assertRaises(HTTPError):
             entities.Organization(name=name).create_json()
@@ -223,8 +223,8 @@ class OrganizationUpdateTestCase(APITestCase):
         {'name': gen_string(str_type='numeric')},
         {'name': gen_string(str_type='utf8')},
         {  # can we update two attrs at once?
-            'description': entities.Organization.description.get_value(),
-            'name': entities.Organization.name.get_value(),
+            'description': entities.Organization.description.gen_value(),
+            'name': entities.Organization.name.gen_value(),
         },
     )
     def test_positive_update(self, attrs):
