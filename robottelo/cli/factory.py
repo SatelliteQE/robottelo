@@ -489,6 +489,8 @@ def make_repository(options=None):
         --content-type CONTENT_TYPE             type of repo (either 'yum',
                                                 'puppet' or 'docker', defaults
                                                 to 'yum')
+        --docker-upstream-name DOCKER_UPSTREAM_NAME name of the upstream docker
+                                                repository
         --gpg-key GPG_KEY_NAME                  Name to search by
         --gpg-key-id GPG_KEY_ID                 gpg key numeric identifier
         --label LABEL
@@ -511,6 +513,7 @@ def make_repository(options=None):
     args = {
         u'checksum-type': None,
         u'content-type': u'yum',
+        u'docker-upstream-name': None,
         u'gpg-key': None,
         u'gpg-key-id': None,
         u'label': None,

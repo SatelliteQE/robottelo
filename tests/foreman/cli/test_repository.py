@@ -331,42 +331,13 @@ class TestRepository(CLITestCase):
             "Publishing methods don't match"
         )
 
-    @run_only_on('sat')
-    def test_positive_create_9(self):
-        """@Test: Create a Docker repository
-
-        @Feature: Repository
-
-        @Assert: Docker repository is created and contains correct values.
-
-        """
-        content_type = u'docker'
-        new_repo = self._make_repository({
-            u'name': u'busybox',
-            u'url': DOCKER_REGISTRY_HUB,
-            u'content-type': content_type,
-        })
-        # Assert that urls and content types matches data passed
-        self.assertEqual(
-            new_repo['url'],
-            DOCKER_REGISTRY_HUB,
-            "Expected URL {0} but received {1}".format(
-                DOCKER_REGISTRY_HUB, new_repo['url'])
-        )
-        self.assertEqual(
-            new_repo['content-type'],
-            content_type,
-            "Expected content type {0} but received {1}".format(
-                content_type, new_repo['content-type'])
-        )
-
     @skip_if_bug_open('bugzilla', 1155237)
     @run_only_on('sat')
     @data(
         u'sha1',
         u'sha256',
     )
-    def test_positive_create_10(self, checksum_type):
+    def test_positive_create_9(self, checksum_type):
         """@Test: Create a YUM repository with a checksum type
 
         @Feature: Repository
@@ -384,6 +355,56 @@ class TestRepository(CLITestCase):
         })
         self.assertEqual(repository['content-type'], content_type)
         self.assertEqual(repository['checksum-type'], checksum_type)
+
+    @run_only_on('sat')
+    def test_positive_create_docker_repo_1(self):
+        """@Test: Create a Docker repository with upstream name.
+
+        @Feature: Repository
+
+        @Assert: Docker repository is created and contains correct values.
+
+        """
+        content_type = u'docker'
+        new_repo = self._make_repository({
+            u'name': u'busybox',
+            u'docker-upstream-name': u'busybox',
+            u'url': DOCKER_REGISTRY_HUB,
+            u'content-type': content_type,
+        })
+        # Assert that urls and content types matches data passed
+        self.assertEqual(new_repo['url'], DOCKER_REGISTRY_HUB)
+        self.assertEqual(new_repo['content-type'], content_type)
+        self.assertEqual(new_repo['name'], u'busybox')
+
+    @run_only_on('sat')
+    @data(
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
+    )
+    def test_positive_create_docker_repo_2(self, name):
+        """@Test: Create a Docker repository with a randon name.
+
+        @Feature: Repository
+
+        @Assert: Docker repository is created and contains correct values.
+
+        """
+        content_type = u'docker'
+        new_repo = self._make_repository({
+            u'name': name,
+            u'docker-upstream-name': u'busybox',
+            u'url': DOCKER_REGISTRY_HUB,
+            u'content-type': content_type,
+        })
+        # Assert that urls, content types and name matches data passed
+        self.assertEqual(new_repo['url'], DOCKER_REGISTRY_HUB)
+        self.assertEqual(new_repo['content-type'], content_type)
+        self.assertEqual(new_repo['name'], name)
 
     @run_only_on('sat')
     @data(
