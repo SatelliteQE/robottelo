@@ -1838,6 +1838,7 @@ class Repository(
     gpg_key = orm.OneToOneField('GPGKey')
     label = orm.StringField()
     name = orm.StringField(required=True)
+    docker_upstream_name = orm.StringField()
     product = orm.OneToOneField('Product', required=True)
     unprotected = orm.BooleanField()
     url = orm.URLField(required=True, default=FAKE_1_YUM_REPO)

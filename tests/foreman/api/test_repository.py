@@ -297,7 +297,15 @@ class DockerRepositoryTestCase(APITestCase):
         cls.org_id = entities.Organization().create()['id']
 
     @run_only_on('sat')
-    def test_create_docker_repo(self):
+    @data(
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
+    )
+    def test_create_docker_repo(self, name):
         """@Test: Create a Docker-type repository
 
         @Assert: A repository is created with a Docker repository.
@@ -305,7 +313,7 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        name = u'busybox'
+        upstream_name = u'busybox'
         content_type = u'docker'
         prod_id = entities.Product(organization=self.org_id).create()['id']
 
@@ -313,10 +321,12 @@ class DockerRepositoryTestCase(APITestCase):
             product=prod_id,
             content_type=content_type,
             name=name,
+            docker_upstream_name=upstream_name,
             url=DOCKER_REGISTRY_HUB
         ).create()['id']
         real_attrs = entities.Repository(id=repo_id).read_json()
         self.assertEqual(real_attrs['name'], name)
+        self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
         self.assertEqual(real_attrs['content_type'], content_type)
 
     @run_only_on('sat')
@@ -334,6 +344,7 @@ class DockerRepositoryTestCase(APITestCase):
             product=prod_id,
             content_type=u'docker',
             name=u'busybox',
+            docker_upstream_name=u'busybox',
             url=DOCKER_REGISTRY_HUB
         ).create()['id']
 
