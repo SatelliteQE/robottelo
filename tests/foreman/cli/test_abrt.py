@@ -1,6 +1,22 @@
 from robottelo.test import CLITestCase
+from ddt import ddt
+from fauxfactory import gen_string
+from robottelo.common.decorators import data
 
 
+def positive_create_data_1():
+    """Random data for positive creation"""
+
+    return (
+        {'hostname': gen_string("latin1")},
+        {'hostname': gen_string("utf8")},
+        {'hostname': gen_string("alpha")},
+        {'hostname': gen_string("alphanumeric")},
+        {'hostname': gen_string("numeric")},
+    )
+
+
+@ddt
 class TestAbrt(CLITestCase):
     """Test class for generating abrt report in CLI."""
 
@@ -58,7 +74,8 @@ class TestAbrt(CLITestCase):
 
         """
 
-    def test_abrt_4(self):
+    @data(*positive_create_data_1())
+    def test_abrt_positive_4(self):
         """@test: Identifying the hostnames
 
         @Feature: Abrt
@@ -75,7 +92,28 @@ class TestAbrt(CLITestCase):
 
         """
 
-    def test_abrt_5(self):
+    @data({'hostname': ''},
+          {'hostname': 'space {0}'.format(gen_string('alpha', 10))},
+          {'hostname': gen_string('alpha', 101)},
+          {'hostname': gen_string('html', 10)})
+    def test_abrt_negative_5(self):
+        """@test: Identifying the hostnames
+
+        @Feature: Abrt
+
+        @Setup: abrt
+
+        @Steps:
+
+        1. UI => Settings => Abrt tab => edit hostnames
+
+        @Assert: Assertion of hostnames is possible
+
+        @Status: Manual
+
+        """
+
+    def test_abrt_6(self):
         """@test: Able to retrieve reports in CLI
 
         @Feature: Abrt
