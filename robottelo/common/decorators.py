@@ -136,15 +136,9 @@ def run_only_on(project):
             .format(project, allowed_project_modes)
         )
 
-    # Validate `robottelo_mode`. Step 1: Did the user supply a value?
-    robottelo_mode = conf.properties.get('main.project')
-    if robottelo_mode is None:
-        raise ProjectModeError(
-            'Please specify "main.project" in robottelo.properties file'
-        )
+    # If robottelo.properties not present or does not specify a project use sat
+    robottelo_mode = conf.properties.get('main.project', 'sat').lower()
 
-    # Step 2: Is the value sane?
-    robottelo_mode = robottelo_mode.lower()
     if robottelo_mode not in allowed_project_modes:
         raise ProjectModeError(
             '"{0}" is not an acceptable "main.project" value in '
