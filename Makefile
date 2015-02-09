@@ -40,7 +40,7 @@ test-docstrings:
 	testimony validate_docstring tests/foreman/ui
 
 test-robottelo:
-	$(NOSETESTS) $(ROBOTTELO_TESTS_PATH)
+	$$(which nosetests) $(ROBOTTELO_TESTS_PATH)
 
 test-foreman-api:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_API_TESTS_PATH)
