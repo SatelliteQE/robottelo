@@ -181,7 +181,7 @@ class OpenScap(UITestCase):
 
         """
 
-    def test_deashboard_Views(self):
+    def test_dashboard_views(self):
         """@Test: Dashboard views that can tell Audited/Un-Audited,
         Compliant/Non-Compliant and trends.
 

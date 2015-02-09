@@ -19,7 +19,7 @@ class GetServerURLTestCase(unittest.TestCase):
     that particular test.
 
     """
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         """Back up and customize ``conf.properties``."""
         self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
@@ -28,7 +28,7 @@ class GetServerURLTestCase(unittest.TestCase):
         if 'main.server.port' in conf.properties:
             del conf.properties['main.server.port']
 
-    def tearDown(self):  # pylint:disable=C0103
+    def tearDown(self):  # noqa pylint:disable=C0103
         """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
 
@@ -83,13 +83,13 @@ class GetServerURLTestCase(unittest.TestCase):
 
 class GetServerCredentialsTestCase(unittest.TestCase):
     """Tests for method ``get_server_credentials``."""
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         """Back up and customize ``conf.properties``."""
         self.conf_properties = conf.properties.copy()
         conf.properties['foreman.admin.username'] = 'alice'
         conf.properties['foreman.admin.password'] = 'hackme'
 
-    def tearDown(self):  # pylint:disable=C0103
+    def tearDown(self):  # noqa pylint:disable=C0103
         """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
 

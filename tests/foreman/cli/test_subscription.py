@@ -17,7 +17,7 @@ class TestSubscription(CLITestCase):
     signing_key = None
     fake_manifest = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for content-view via Hammer CLI"""
 
         super(TestSubscription, self).setUp()

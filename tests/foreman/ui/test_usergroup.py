@@ -18,7 +18,7 @@ class UserGroup(UITestCase):
     """Implements UserGroup tests from UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         cls.org_name = entities.Organization().create()
 
         super(UserGroup, cls).setUpClass()

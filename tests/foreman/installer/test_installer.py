@@ -51,7 +51,8 @@ class InstallerTestCase(unittest.TestCase):
 
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-        for service, status, server_response in izip(*[iter(result.stdout)]*3):
+        for service, status, server_response in izip(
+                *[iter(result.stdout)] * 3):
             service = service.replace(':', '').strip()
             status = status.split(':')[1].strip().lower()
             server_response = server_response.split(':', 1)[1].strip()

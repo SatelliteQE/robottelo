@@ -17,7 +17,7 @@ class TestSyncPlan(CLITestCase):
 
     org = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for Sync Plans via Hammer CLI"""
 
         super(TestSyncPlan, self).setUp()

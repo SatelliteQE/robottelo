@@ -1,12 +1,6 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Activation key UI"""
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 
 from ddt import ddt
 from fauxfactory import gen_string
@@ -15,9 +9,9 @@ from robottelo import entities
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
-    ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, NOT_IMPLEMENTED,
-    REPO_TYPE)
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+    ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, REPO_TYPE)
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
     valid_names_list, invalid_names_list,
     valid_data_list, get_server_credentials)
@@ -43,7 +37,7 @@ class ActivationKey(UITestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         org_attrs = entities.Organization().create()
         # org label is required for subcription-manager cmd.
         cls.org_label = org_attrs['label']
@@ -1042,7 +1036,7 @@ class ActivationKey(UITestCase):
             vm1.destroy()
             vm2.destroy()
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_associate_host(self):
         """@Test: Test that hosts can be associated to Activation Keys
 
@@ -1225,7 +1219,7 @@ class ActivationKey(UITestCase):
                                  (common_locators["alert.success"]))
 
     @skip_if_bug_open('bugzilla', 1078676)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
 
@@ -1243,7 +1237,6 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        pass
 
     @run_only_on('sat')
     def test_multiple_activation_keys_to_system(self):
@@ -1336,7 +1329,7 @@ class ActivationKey(UITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1078676)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_end_to_end_activation_key(self):
         """@Test: Create Activation key and provision content-host with it
 

@@ -8,9 +8,9 @@ import logging
 import os
 import signal
 import sys
-if sys.hexversion >= 0x2070000:
+try:
     import unittest
-else:
+except ImportError:
     import unittest2 as unittest
 
 from automation_tools import product_install
@@ -63,7 +63,7 @@ class TestCase(unittest.TestCase):
     """Robottelo test case"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         super(TestCase, cls).setUpClass()
         cls.logger = logging.getLogger('robottelo')
         # NOTE: longMessage defaults to True in Python 3.1 and above
@@ -80,7 +80,7 @@ class CLITestCase(TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(CLITestCase, cls).setUpClass()
         cls.hostname = conf.properties['main.server.hostname']
@@ -91,7 +91,7 @@ class CLITestCase(TestCase):
         cls.locale = conf.properties['main.locale']
         cls.verbosity = int(conf.properties['main.verbosity'])
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Log test class and method name before each test."""
         self.logger.debug(
             "Running test %s/%s", type(self).__name__, self._testMethodName)
@@ -109,7 +109,7 @@ class UITestCase(TestCase):
     """Test case for UI tests."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(UITestCase, cls).setUpClass()
         cls.katello_user = conf.properties['foreman.admin.username']
@@ -155,7 +155,7 @@ class UITestCase(TestCase):
         else:
             cls.display = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
         if not self.remote:
             if self.driver_name.lower() == 'firefox':
@@ -168,7 +168,7 @@ class UITestCase(TestCase):
                 service_args = ['--ignore-ssl-errors=true']
                 self.browser = webdriver.PhantomJS(
                     service_args=service_args
-                    )
+                )
             else:
                 self.browser = webdriver.Remote()
         else:
@@ -250,7 +250,7 @@ class UITestCase(TestCase):
         )
         self.browser.save_screenshot(os.path.join(dir_structure, filename))
 
-    def tearDown(self):
+    def tearDown(self):  # noqa
         """Make sure to close the browser after each test."""
         if sys.exc_info()[0] is not None:
             self.take_screenshot(self._testMethodName)
@@ -258,7 +258,7 @@ class UITestCase(TestCase):
         self.browser = None
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls):  # noqa
         if cls.display is not None:
             if (cls.window_manager is not None and
                     cls.window_manager.is_started):
@@ -294,7 +294,7 @@ class InstallerTestCase(TestCase):
     vm_os = 'rhel7'
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         super(InstallerTestCase, cls).setUpClass()
         cls.vm = VirtualMachine(cls.vm_cpu, cls.vm_ram, cls.vm_os)
         cls.vm.create()
@@ -307,6 +307,6 @@ class InstallerTestCase(TestCase):
             )
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls):  # noqa
         super(InstallerTestCase, cls).tearDownClass()
         cls.vm.destroy()

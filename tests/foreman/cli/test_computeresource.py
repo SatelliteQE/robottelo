@@ -35,7 +35,7 @@ class TestComputeResource(CLITestCase):
     """ComputeResource CLI tests."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         CLITestCase.setUpClass()
         cls.compute_res_updates = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],

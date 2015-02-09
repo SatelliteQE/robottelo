@@ -132,7 +132,7 @@ def _permission_name(entity, which_perm):
 class UserRoleTestCase(APITestCase):
     """Give a user various permissions and see if they are enforced."""
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Create a set of credentials and a user."""
         self.auth = (gen_alphanumeric(), gen_alphanumeric())  # login, password
         self.user = entities.User(

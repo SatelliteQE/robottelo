@@ -203,7 +203,7 @@ class OrganizationUpdateTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create an organization."""
         cls.organization = entities.Organization(
             id=entities.Organization().create_json()['id']

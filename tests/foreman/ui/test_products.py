@@ -16,7 +16,7 @@ class Products(UITestCase):
     """Implements Product tests in UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         cls.org_name = entities.Organization().create()['name']
         cls.loc_name = entities.Location().create()['name']
 

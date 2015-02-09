@@ -18,8 +18,8 @@ if ROBOTTELO_PATH not in sys.path:
     sys.path.append(ROBOTTELO_PATH)
 
 # Proceed with normal imports.
-from robottelo import entities, orm
-import inspect
+import inspect  # noqa
+from robottelo import entities, orm  # noqa
 
 
 def graph():

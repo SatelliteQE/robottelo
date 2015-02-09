@@ -168,7 +168,7 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
         stdout = u"".join(stdout).split("\n")
         output = [
             regex.sub('', line) for line in stdout if not line.startswith("[")
-            ]
+        ]
     else:
         output = []
 

@@ -61,7 +61,7 @@ class EntityWithRead(orm.Entity, orm.EntityReadMixin):
 
 class EntityTestCase(unittest.TestCase):
     """Tests for :class:`robottelo.orm.Entity`."""
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         """
         Back up and configure ``conf.properties``, and set ``self.base_path``.
         """
@@ -72,7 +72,7 @@ class EntityTestCase(unittest.TestCase):
             SampleEntity.Meta.api_path
         )
 
-    def tearDown(self):  # pylint:disable=C0103
+    def tearDown(self):  # noqa pylint:disable=C0103
         """Restore ``conf.properties``."""
         conf.properties = self.conf_properties
 
@@ -97,7 +97,7 @@ class EntityTestCase(unittest.TestCase):
 
 class EntityDeleteMixinTestCase(unittest.TestCase):
     """Tests for entity mixin classes."""
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         """Back up several objects so they can be safely modified.
 
         Also generate a number suitable for use as an entity ID.
@@ -113,7 +113,7 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         # e.g. SomeEntity(id=self.entity_id)
         self.entity_id = gen_integer(min_value=1)
 
-    def tearDown(self):  # pylint:disable=C0103
+    def tearDown(self):  # noqa pylint:disable=C0103
         """Restore backed-up objects."""
         client.delete = self.client_delete
         client.get = self.client_get

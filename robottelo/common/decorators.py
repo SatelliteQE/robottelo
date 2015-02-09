@@ -1,26 +1,19 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
-"""
-Implements various decorators
-"""
+"""Implements various decorators"""
 
 import bugzilla
 import logging
 import random
 import requests
-from functools import wraps
-
-import sys
-if sys.hexversion >= 0x2070000:
+try:
     import unittest
-else:
+except ImportError:
     import unittest2 as unittest
 
-
 from ddt import data as ddt_data
-from robottelo.common.constants import NOT_IMPLEMENTED
+from functools import wraps
 from robottelo.common import conf
+from robottelo.common.constants import NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
 
@@ -166,7 +159,7 @@ def run_only_on(project):
         'only on "{1}" mode.'.format(robottelo_mode, project))
 
 
-def skipRemote(func):
+def skipRemote(func):  # noqa
     """Decorator to skip tests based on whether server is remote,
     Remote in the sense whether it is Sauce Labs"""
 
@@ -324,7 +317,7 @@ class BugTypeError(Exception):
     """Indicates that an incorrect bug type was specified."""
 
 
-class skip_if_bug_open(object):  # pylint:disable=C0103,R0903
+class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
     """A decorator that can be used to skip a unit test."""
 
     def __init__(self, bug_type, bug_id):

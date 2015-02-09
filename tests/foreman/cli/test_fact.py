@@ -2,18 +2,11 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Fact  CLI"""
 
-import sys
-
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.fact import Fact
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, stubbed
 from robottelo.test import CLITestCase
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 
 
 @run_only_on('sat')
@@ -21,7 +14,7 @@ else:
 class TestFact(CLITestCase):
     """Fact related tests."""
 
-    @unittest.skip("Need to create facts before we can check them.")
+    @stubbed('Need to create facts before we can check them.')
     @data(
         'uptime', 'uptime_days', 'uptime_seconds', 'memoryfree', 'ipaddress',
     )

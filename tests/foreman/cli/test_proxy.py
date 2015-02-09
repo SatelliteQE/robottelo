@@ -15,7 +15,7 @@ import random
 @ddt
 class TestProxy(CLITestCase):
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Skipping tests until we can create ssh tunnels"""
         self.skipTest('Skipping tests until we can create ssh tunnels')
 

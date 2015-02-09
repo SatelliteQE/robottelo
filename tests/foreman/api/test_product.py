@@ -85,7 +85,7 @@ class ProductUpdateTestCase(APITestCase):
     """Tests for updating a product."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create a product."""
         cls.product_n = entities.Product(
             id=entities.Product().create()['id']

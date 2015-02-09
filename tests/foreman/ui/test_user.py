@@ -2,19 +2,13 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Users UI"""
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
 from ddt import ddt
 from fauxfactory import gen_string
 from selenium.webdriver.support.select import Select
 from robottelo import entities
-from robottelo.common.constants import LANGUAGES, NOT_IMPLEMENTED
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.constants import LANGUAGES
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import invalid_names_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
@@ -193,7 +187,7 @@ class User(UITestCase):
                 ).get_attribute('value')
             )
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_4(self):
         """@Test: Create User for all variations of Email Address
 
@@ -208,7 +202,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @data(*LANGUAGES)
     def test_positive_create_user_5(self, language):
@@ -236,7 +229,7 @@ class User(UITestCase):
                 ).get_attribute('value')
             )
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_6(self):
         """@Test: Create User by choosing Authorized by - INTERNAL
 
@@ -251,7 +244,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @data(
         u'foo@!#$^&*( ) {0}'.format(gen_string("alpha", 2)),
@@ -276,7 +268,7 @@ class User(UITestCase):
                       password2=password)
             self.assertIsNotNone(self.user.search(name, search_key))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_8(self):
         """@Test: Create an Admin user
 
@@ -287,7 +279,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     def test_positive_create_user_9(self):
         """@Test: Create User with one role
@@ -341,7 +332,7 @@ class User(UITestCase):
                                                         value % role))
                 self.assertIsNotNone(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_11(self):
         """@Test: Create User and assign all available roles to it
 
@@ -355,9 +346,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_12(self):
         """@Test: Create User with one owned host
 
@@ -371,9 +361,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_13(self):
         """@Test: Create User with mutiple owned hosts
 
@@ -387,9 +376,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_14(self):
         """@Test: Create User with all owned hosts
 
@@ -403,10 +391,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_15(self):
         """@Test: Create User with one Domain host
 
@@ -420,10 +407,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_16(self):
         """@Test: Create User with mutiple Domain hosts
 
@@ -437,10 +423,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_17(self):
         """@Test: Create User with all Domain hosts
 
@@ -454,10 +439,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_18(self):
         """@Test: Create User with one Compute Resource
 
@@ -471,10 +455,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_19(self):
         """@Test: Create User with mutiple Compute Resources
 
@@ -488,10 +471,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_20(self):
         """@Test: Create User with all Compute Resources
 
@@ -505,10 +487,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_21(self):
         """@Test: Create User with one Host group
 
@@ -522,10 +503,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_22(self):
         """@Test: Create User with multiple Host groups
 
@@ -539,10 +519,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_23(self):
         """@Test: Create User with all Host groups
 
@@ -556,7 +535,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     def test_positive_create_user_24(self):
         """@Test: Create User associated to one Org
@@ -606,7 +584,7 @@ class User(UITestCase):
                                                         value % org_name))
                 self.assertIsNotNone(element)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_26(self):
         """@Test: Create User associated to all available Orgs
 
@@ -617,10 +595,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_27(self):
         """@Test: Create User with a new Fact filter
 
@@ -634,9 +611,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_user_28(self):
         """@Test: Create User in supported ldap modes
 
@@ -651,7 +627,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     def test_positive_create_user_29(self):
         """@Test: Create User and associate a default Org
@@ -707,7 +682,7 @@ class User(UITestCase):
             option = Select(loc_element).first_selected_option
             self.assertEqual(loc_name, option.text)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_user_1(self):
         """@Test:[UI ONLY] Enter all User creation details and Cancel
 
@@ -723,7 +698,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @data(*invalid_names_list())
     def test_negative_create_user_2(self, user_name):
@@ -781,7 +755,7 @@ class User(UITestCase):
             error = self.user.wait_until_element(common_locators["haserror"])
             self.assertIsNotNone(error)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_user_5(self):
         """@Test: Create User with invalid Email Address
 
@@ -796,7 +770,6 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     def test_negative_create_user_6(self):
         """@Test: Create User with blank Authorized by
@@ -866,7 +839,7 @@ class User(UITestCase):
             self.login.login(new_username, password)
             self.assertTrue(self.login.is_logged())
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_2(self):
         """@Test: Update Firstname in User
 
@@ -881,9 +854,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_3(self):
         """@Test: Update Surname in User
 
@@ -898,9 +870,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_4(self):
         """@Test: Update Email Address in User
 
@@ -915,9 +886,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_5(self):
         """@Test: Update Language in User
 
@@ -932,9 +902,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_6(self):
         """@Test: Update Password/Verify fields in User
 
@@ -949,9 +918,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_7(self):
         """@Test: Convert an user from an admin user to non-admin user
 
@@ -966,9 +934,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_8(self):
         """@Test: Convert a user to an admin user
 
@@ -983,9 +950,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_9(self):
         """@Test: Update User with one role
 
@@ -1000,9 +966,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_10(self):
         """@Test: Update User with multiple roles
 
@@ -1017,9 +982,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_11(self):
         """@Test: Update User with all roles
 
@@ -1034,9 +998,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_12(self):
         """@Test: Update User with one owned host
 
@@ -1051,9 +1014,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_13(self):
         """@Test: Update User with multiple owned hosts
 
@@ -1068,9 +1030,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_14(self):
         """@Test: Update User with all owned hosts
 
@@ -1085,10 +1046,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_15(self):
         """@Test: Update User with one Domain host
 
@@ -1103,10 +1063,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_16(self):
         """@Test: Update User with multiple Domain hosts
 
@@ -1121,10 +1080,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_17(self):
         """@Test: Update User with all Domain hosts
 
@@ -1139,10 +1097,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_18(self):
         """@Test: Update User with one Compute Resource
 
@@ -1157,10 +1114,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_19(self):
         """@Test: Update User with multiple Compute Resources
 
@@ -1175,10 +1131,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_20(self):
         """@Test: Update User with all Compute Resources
 
@@ -1193,10 +1148,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_21(self):
         """@Test: Update User with one Host group
 
@@ -1211,10 +1165,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_22(self):
         """@Test: Update User with multiple Host groups
 
@@ -1229,10 +1182,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_23(self):
         """@Test: Update User with all Host groups
 
@@ -1247,9 +1199,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_24(self):
         """@Test: Assign a User to an Org
 
@@ -1264,9 +1215,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_25(self):
         """@Test: Assign a User to multiple Orgs
 
@@ -1281,9 +1231,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_26(self):
         """@Test: Assign a User to all available Orgs
 
@@ -1298,10 +1247,9 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_user_28(self):
         """@Test: Update User with a new Fact filter
 
@@ -1316,9 +1264,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_user_1(self):
         """@Test: Update invalid Username in an User
 
@@ -1333,9 +1280,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_user_2(self):
         """@Test: Update invalid Firstname in an User
 
@@ -1350,9 +1296,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_user_3(self):
         """@Test: Update invalid Surname in an User
 
@@ -1367,9 +1312,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_user_4(self):
         """@Test: Update invalid Email Address in an User
 
@@ -1384,9 +1328,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_user_5(self):
         """@Test: Update different values in Password and verify fields
 
@@ -1402,9 +1345,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_user_6(self):
         """@Test: [UI ONLY] Attempt to update User info and Cancel
 
@@ -1420,9 +1362,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_user_1(self):
         """@Test: Delete a user
 
@@ -1437,9 +1378,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_delete_user_2(self):
         """@Test: Delete an admin user
 
@@ -1454,9 +1394,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_delete_user_1(self):
         """@Test: [UI ONLY] Attempt to delete an User and cancel
 
@@ -1471,9 +1410,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_delete_user_2(self):
         """@Test: Attempt to delete the last remaining admin user
 
@@ -1489,9 +1427,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_user_1(self):
         """@Test: List User for all variations of Username
 
@@ -1507,9 +1444,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_user_2(self):
         """@Test: List User for all variations of Firstname
 
@@ -1525,9 +1461,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_user_3(self):
         """@Test: List User for all variations of Surname
 
@@ -1543,9 +1478,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_user_4(self):
         """@Test: List User for all variations of Email Address
 
@@ -1561,9 +1495,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_list_user_5(self):
         """@Test: List User for all variations of Language
 
@@ -1579,9 +1512,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_user_1(self):
         """@Test: Search User for all variations of Username
 
@@ -1597,9 +1529,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_user_2(self):
         """@Test: Search User for all variations of Firstname
 
@@ -1615,9 +1546,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_user_3(self):
         """@Test: Search User for all variations of Surname
 
@@ -1633,9 +1563,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_user_4(self):
         """@Test: Search User for all variations of Email Address
 
@@ -1651,9 +1580,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_search_user_5(self):
         """@Test: Search User for all variations of Language
 
@@ -1669,9 +1597,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_user_1(self):
         """@Test: Get User info for all variations of Username
 
@@ -1687,9 +1614,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_user_2(self):
         """@Test: Search User for all variations of Firstname
 
@@ -1705,9 +1631,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_user_3(self):
         """@Test: Search User for all variations of Surname
 
@@ -1723,9 +1648,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_user_4(self):
         """@Test: Search User for all variations of Email Address
 
@@ -1741,9 +1665,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_info_user_5(self):
         """@Test: Search User for all variations of Language
 
@@ -1759,9 +1682,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_end_to_end_user_1(self):
         """@Test: Create User and perform different operations
 
@@ -1781,9 +1703,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_end_to_end_user_2(self):
         """@Test: Create User with no Org assigned and attempt different
         operations
@@ -1803,9 +1724,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_bookmark_1(self):
         """@Test: Create a bookmark with default values
 
@@ -1820,9 +1740,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_bookmark_2(self):
         """@Test: Create a bookmark by altering the default values
 
@@ -1837,9 +1756,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_bookmark_3(self):
         """@Test: Create a bookmark in public mode
 
@@ -1855,9 +1773,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_create_bookmark_4(self):
         """@Test: Create a bookmark in private mode
 
@@ -1873,9 +1790,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_bookmark_1(self):
         """@Test: Create a bookmark with a blank bookmark name
 
@@ -1890,9 +1806,8 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_create_bookmark_2(self):
         """@Test: Create a bookmark with a blank bookmark query
 
@@ -1907,4 +1822,3 @@ class User(UITestCase):
         @Status: Manual
 
         """
-        pass

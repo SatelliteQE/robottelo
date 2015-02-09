@@ -1,14 +1,8 @@
 # -*- encoding: utf-8 -*-
 # vim: ts=4 sw=4 expandtab ai
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 from fauxfactory import gen_string
-from robottelo.common.decorators import run_only_on
+from robottelo.common.decorators import run_only_on, stubbed
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
 
@@ -16,7 +10,7 @@ from robottelo.ui.locators import common_locators
 @run_only_on('sat')
 class Host(UITestCase):
 
-    @unittest.skip("Test needs to create other required stuff")
+    @stubbed('Test needs to create other required stuff')
     def test_create_host(self):
         """@Test: Create a new Host
 
@@ -41,7 +35,7 @@ class Host(UITestCase):
         search = self.hosts.search(name)
         self.assertIsNotNone(search)
 
-    @unittest.skip("Test needs to create other required stuff")
+    @stubbed('Test needs to create other required stuff')
     def test_create_delete(self):
         """@Test: Delete a Host
 

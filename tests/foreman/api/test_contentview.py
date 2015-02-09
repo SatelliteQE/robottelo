@@ -194,7 +194,7 @@ class CVPublishPromoteTestCase(APITestCase):
     """Tests for publishing and promoting content views."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Set up organization, product and repositories for tests."""
         super(CVPublishPromoteTestCase, cls).setUpClass()
 
@@ -432,7 +432,7 @@ class ContentViewUpdateTestCase(APITestCase):
     """Tests for updating content views."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create a content view."""
         cls.content_view = entities.ContentView(
             id=entities.ContentView().create()['id']

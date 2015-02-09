@@ -4,16 +4,10 @@
 # pylint: disable=R0904
 """Test class for Organization UI"""
 
-import sys
 from ddt import ddt
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 from fauxfactory import gen_string, gen_ipaddr
 from robottelo import entities
 from robottelo.common import conf
-
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common.decorators import (data, run_only_on, stubbed,
                                          skip_if_bug_open, bz_bug_is_open)
@@ -69,7 +63,7 @@ class Org(UITestCase):
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
-    @unittest.skip("parent_org feature is disabled currently")
+    @stubbed('parent_org feature is disabled currently')
     @data({'label': gen_string('alpha'),
            'name': gen_string('alpha'),
            'desc': gen_string('alpha')},

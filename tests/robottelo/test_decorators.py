@@ -8,7 +8,7 @@ from unittest import TestCase
 
 class DataTestCase(TestCase):
     """Tests for :func:`robottelo.common.decorators.data`."""
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         self.test_data = ('one', 'two', 'three')
 
         def function():
@@ -35,12 +35,12 @@ class DataTestCase(TestCase):
 class BzBugIsOpenTestCase(TestCase):
     """Tests for :func:`robottelo.common.decorators.bz_bug_is_open`."""
     # (protected-access) pylint:disable=W0212
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         """Back up objects and generate common values."""
         self.backup = decorators._get_bugzilla_bug
         self.bug_id = gen_integer()
 
-    def tearDown(self):  # pylint:disable=C0103
+    def tearDown(self):  # noqa pylint:disable=C0103
         """Restore backed-up objects."""
         decorators._get_bugzilla_bug = self.backup
 
@@ -78,14 +78,14 @@ class BzBugIsOpenTestCase(TestCase):
 class RmBugIsOpenTestCase(TestCase):
     """Tests for :func:`robottelo.common.decorators.rm_bug_is_open`."""
     # (protected-access) pylint:disable=W0212
-    def setUp(self):  # pylint:disable=C0103
+    def setUp(self):  # noqa pylint:disable=C0103
         """Back up objects and generate common values."""
         self.rm_backup = decorators._get_redmine_bug_status_id
         self.stat_backup = decorators._redmine_closed_issue_statuses
         decorators._redmine_closed_issue_statuses = lambda: [1, 2]
         self.bug_id = gen_integer()
 
-    def tearDown(self):  # pylint:disable=C0103
+    def tearDown(self):  # noqa pylint:disable=C0103
         """Restore backed-up objects."""
         decorators._get_redmine_bug_status_id = self.rm_backup
         decorators._redmine_closed_issue_statuses = self.stat_backup
@@ -115,11 +115,11 @@ class RmBugIsOpenTestCase(TestCase):
 
 class RunOnlyOnTestCase(TestCase):
     """Tests for :func:`robottelo.common.decorators.run_only_on`."""
-    def setUp(self):
+    def setUp(self):  # noqa
         """Backup object."""
         self.project_backup = conf.properties.get('main.project')
 
-    def tearDown(self):
+    def tearDown(self):  # noqa
         """Restore backed-up object."""
         conf.properties['main.project'] = self.project_backup
 

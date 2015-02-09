@@ -31,7 +31,7 @@ class TestActivationKey(CLITestCase):
     env1 = None
     env2 = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for activation keys via Hammer CLI"""
         super(TestActivationKey, self).setUp()
 

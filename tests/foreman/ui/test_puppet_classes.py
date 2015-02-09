@@ -1,13 +1,9 @@
 """Test class for Puppet Classes UI"""
 
-import sys
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_puppetclasses
@@ -15,7 +11,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@unittest.skip("Now Puppet Classes can only be created via API's")
+@stubbed("Now Puppet Classes can only be created via API's")
 @run_only_on('sat')
 @ddt
 class PuppetClasses(UITestCase):

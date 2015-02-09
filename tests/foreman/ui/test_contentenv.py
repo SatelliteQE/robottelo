@@ -16,9 +16,8 @@ class ContentEnvironment(UITestCase):
     """Implements Life cycle content environment tests in UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         cls.org_name = entities.Organization().create()['name']
-
         super(ContentEnvironment, cls).setUpClass()
 
     def test_positive_create_content_environment_1(self):

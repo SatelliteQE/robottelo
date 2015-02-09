@@ -129,7 +129,7 @@ class TestContentView(CLITestCase):
             TestContentView.rhel_content_org = None
             self.fail("Couldn't synchronize repo")
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for content-view via Hammer CLI"""
 
         super(TestContentView, self).setUp()

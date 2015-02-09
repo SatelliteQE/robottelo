@@ -56,7 +56,7 @@ class TestGPGKey(CLITestCase):
     search_key = 'name'
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create a shared organization for all tests to avoid generating
         hundreds of organizations
 

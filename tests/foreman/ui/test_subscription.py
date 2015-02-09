@@ -15,7 +15,7 @@ class SubscriptionTestCase(UITestCase):
     """Implements subscriptions/manifests tests in UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         cls.org_name = entities.Organization().create()['name']
 
         super(SubscriptionTestCase, cls).setUpClass()

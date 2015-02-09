@@ -7,7 +7,7 @@ Implements Locations UI
 
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
-from robottelo.ui.navigator import Navigator as nav
+from robottelo.ui.navigator import Navigator
 from robottelo.common.constants import FILTER
 from selenium.webdriver.support.select import Select
 
@@ -110,7 +110,7 @@ class Location(Base):
 
     def search(self, name):
         """Searches existing location from UI."""
-        nav(self.browser).go_to_loc()
+        Navigator(self.browser).go_to_loc()
         self.wait_for_ajax()
         element = self.search_entity(name, locators["location.select_name"])
         return element
