@@ -315,6 +315,10 @@ PERMISSIONS = {
         'edit_filters',
         'destroy_filters',
     ),
+    'ForemanTasks::Task': (
+        u'edit_foreman_tasks',
+        u'view_foreman_tasks',
+    ),
     'CommonParameter': (
         'view_globals',
         'create_globals',
