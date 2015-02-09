@@ -107,7 +107,7 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        name = entities.Repository.name.get_value()
+        name = entities.Repository.name.gen_value()
         repo1_attrs = entities.Repository(
             name=name,
             product=self.prod_id

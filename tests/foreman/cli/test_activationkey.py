@@ -787,7 +787,7 @@ class TestActivationKey(CLITestCase):
 
         1. Create Activation key
         2. Update Content View for all variations in [1] and include both
-        RH and custom products
+           RH and custom products
 
         @Assert: Activation key is updated
 

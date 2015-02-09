@@ -14,18 +14,29 @@ useful to :class:`robottelo.orm.EntityCreateMixin`.
 """
 from datetime import datetime
 from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
-from nailgun import client
+from nailgun import client, entity_fields
 from robottelo.common.constants import (
-    FAKE_1_YUM_REPO, OPERATING_SYSTEMS, VALID_GPG_KEY_FILE)
+    FAKE_1_YUM_REPO,
+    OPERATING_SYSTEMS,
+    VALID_GPG_KEY_FILE,
+)
 from robottelo.common.decorators import bz_bug_is_open, rm_bug_is_open
 from robottelo.common.helpers import (
-    get_data_file, get_server_credentials, escape_search)
+    escape_search,
+    get_data_file,
+    get_server_credentials,
+)
 from robottelo import orm
 from time import sleep
 import httplib
 import random
 # (too-few-public-methods) pylint:disable=R0903
 # (too-many-lines) pylint:disable=C0302
+
+
+# This has the same effect as passing `module='robottelo.entities'` to every
+# single OneToOneField and OneToManyField.
+entity_fields.ENTITIES_MODULE = 'robottelo.entities'
 
 
 class APIResponseError(Exception):
@@ -36,15 +47,15 @@ class ActivationKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Activtion Key entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    name = orm.StringField(required=True)
-    description = orm.StringField()
-    environment = orm.OneToOneField('Environment')
-    content_view = orm.OneToOneField('ContentView')
-    unlimited_content_hosts = orm.BooleanField()
-    max_content_hosts = orm.IntegerField()
-    host_collection = orm.OneToManyField('HostCollection')
-    auto_attach = orm.BooleanField()
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    name = entity_fields.StringField(required=True)
+    description = entity_fields.StringField()
+    environment = entity_fields.OneToOneField('Environment')
+    content_view = entity_fields.OneToOneField('ContentView')
+    unlimited_content_hosts = entity_fields.BooleanField()
+    max_content_hosts = entity_fields.IntegerField()
+    host_collection = entity_fields.OneToManyField('HostCollection')
+    auto_attach = entity_fields.BooleanField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -117,8 +128,8 @@ class Architecture(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Architecture entity."""
-    name = orm.StringField(required=True)
-    operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
+    name = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -167,21 +178,21 @@ class AuthSourceLDAP(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a AuthSourceLDAP entity."""
-    account = orm.StringField(null=True)
-    attr_photo = orm.StringField(null=True)
-    base_dn = orm.StringField(null=True)
-    host = orm.StringField(required=True, len=(1, 60))
-    name = orm.StringField(required=True, len=(1, 60))
-    onthefly_register = orm.BooleanField(null=True)
-    port = orm.IntegerField(null=True)  # default: 389
-    tls = orm.BooleanField(null=True)
+    account = entity_fields.StringField(null=True)
+    attr_photo = entity_fields.StringField(null=True)
+    base_dn = entity_fields.StringField(null=True)
+    host = entity_fields.StringField(required=True, length=(1, 60))
+    name = entity_fields.StringField(required=True, length=(1, 60))
+    onthefly_register = entity_fields.BooleanField(null=True)
+    port = entity_fields.IntegerField(null=True)  # default: 389
+    tls = entity_fields.BooleanField(null=True)
 
     # required if onthefly_register is true
-    account_password = orm.StringField(null=True)
-    attr_firstname = orm.StringField(null=True)
-    attr_lastname = orm.StringField(null=True)
-    attr_login = orm.StringField(null=True)
-    attr_mail = orm.EmailField(null=True)
+    account_password = entity_fields.StringField(null=True)
+    attr_firstname = entity_fields.StringField(null=True)
+    attr_lastname = entity_fields.StringField(null=True)
+    attr_login = entity_fields.StringField(null=True)
+    attr_mail = entity_fields.EmailField(null=True)
 
     def create_missing(self, auth=None):
         """Possibly set several extra instance attributes.
@@ -199,11 +210,11 @@ class AuthSourceLDAP(
         super(AuthSourceLDAP, self).create_missing(auth)
         cls = type(self)
         if vars(self).get('onthefly_register', False) is True:
-            self.account_password = cls.account_password.get_value()
-            self.attr_firstname = cls.attr_firstname.get_value()
-            self.attr_lastname = cls.attr_lastname.get_value()
-            self.attr_login = cls.attr_login.get_value()
-            self.attr_mail = cls.attr_mail.get_value()
+            self.account_password = cls.account_password.gen_value()
+            self.attr_firstname = cls.attr_firstname.gen_value()
+            self.attr_lastname = cls.attr_lastname.gen_value()
+            self.attr_login = cls.attr_login.gen_value()
+            self.attr_mail = cls.attr_mail.gen_value()
 
     def read(
             self,
@@ -222,10 +233,10 @@ class AuthSourceLDAP(
 
 class Bookmark(orm.Entity):
     """A representation of a Bookmark entity."""
-    name = orm.StringField(required=True)
-    controller = orm.StringField(required=True)
-    query = orm.StringField(required=True)
-    public = orm.BooleanField(null=True)
+    name = entity_fields.StringField(required=True)
+    controller = entity_fields.StringField(required=True)
+    query = entity_fields.StringField(required=True)
+    public = entity_fields.BooleanField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -235,8 +246,8 @@ class Bookmark(orm.Entity):
 
 class CommonParameter(orm.Entity):
     """A representation of a Common Parameter entity."""
-    name = orm.StringField(required=True)
-    value = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
+    value = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -246,8 +257,8 @@ class CommonParameter(orm.Entity):
 
 class ComputeAttribute(orm.Entity):
     """A representation of a Compute Attribute entity."""
-    compute_profile = orm.OneToOneField('ComputeProfile', required=True)
-    compute_resource = orm.OneToOneField('ComputeResource', required=True)
+    compute_profile = entity_fields.OneToOneField('ComputeProfile', required=True)
+    compute_resource = entity_fields.OneToOneField('ComputeResource', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -271,7 +282,7 @@ class ComputeProfile(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Compute Profile entity."""
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -283,22 +294,22 @@ class ComputeResource(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Compute Resource entity."""
-    description = orm.StringField(null=True)
+    description = entity_fields.StringField(null=True)
     # `name` cannot contain whitespace. Thus, the chosen string types.
-    name = orm.StringField(null=True, str_type=('alphanumeric', 'cjk'))
-    password = orm.StringField(null=True)
-    provider = orm.StringField(
+    name = entity_fields.StringField(null=True, str_type=('alphanumeric', 'cjk'))
+    password = entity_fields.StringField(null=True)
+    provider = entity_fields.StringField(
         null=True,
         required=True,
         choices=('EC2', 'GCE', 'Libvirt', 'Openstack', 'Ovirt', 'Rackspace',
                  'Vmware')
     )
-    region = orm.StringField(null=True)
-    server = orm.StringField(null=True)
-    tenant = orm.StringField(null=True)
-    url = orm.URLField(required=True)
-    user = orm.StringField(null=True)
-    uuid = orm.StringField(null=True)
+    region = entity_fields.StringField(null=True)
+    server = entity_fields.StringField(null=True)
+    tenant = entity_fields.StringField(null=True)
+    url = entity_fields.URLField(required=True)
+    user = entity_fields.StringField(null=True)
+    uuid = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -321,13 +332,13 @@ class ComputeResource(
         if provider == 'EC2' or provider == 'Ovirt' or provider == 'Openstack':
             for field in ('name', 'password', 'user'):
                 if field not in vars(self):
-                    setattr(self, field, getattr(cls, field).get_value())
+                    setattr(self, field, getattr(cls, field).gen_value())
         elif provider == 'GCE':
             if 'name' not in vars(self):
-                self.name = cls.name.get_value()
-            # self.email = cls.email.get_value()
-            # self.key_path = cls.key_path.get_value()
-            # self.project = cls.project.get_value()
+                self.name = cls.name.gen_value()
+            # self.email = cls.email.gen_value()
+            # self.key_path = cls.key_path.gen_value()
+            # self.project = cls.project.gen_value()
             #
             # FIXME: These three pieces of data are required. However, the API
             # docs don't even mention their existence!
@@ -337,7 +348,7 @@ class ComputeResource(
             # 3. File an issue on bugzilla asking for the docs to be expanded.
         elif provider == 'Libvirt':
             if 'name' not in vars(self):
-                self.name = cls.name.get_value()
+                self.name = cls.name.gen_value()
         elif provider == 'Rackspace':
             # FIXME: Foreman always returns this error:
             #
@@ -349,12 +360,12 @@ class ComputeResource(
         elif provider == 'Vmware':
             for field in ('name', 'password', 'user', 'uuid'):
                 if field not in vars(self):
-                    setattr(self, field, getattr(cls, field).get_value())
+                    setattr(self, field, getattr(cls, field).gen_value())
 
 
 class ConfigGroup(orm.Entity):
     """A representation of a Config Group entity."""
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -366,15 +377,15 @@ class ConfigTemplate(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Config Template entity."""
-    audit_comment = orm.StringField(null=True)
-    locked = orm.BooleanField(null=True)
-    name = orm.StringField(required=True)
-    operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
-    snippet = orm.BooleanField(null=True, required=True)
+    audit_comment = entity_fields.StringField(null=True)
+    locked = entity_fields.BooleanField(null=True)
+    name = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
+    snippet = entity_fields.BooleanField(null=True, required=True)
     # "Array of template combinations (hostgroup_id, environment_id)"
-    template_combinations = orm.ListField(null=True)  # flake8:noqa pylint:disable=C0103
-    template_kind = orm.OneToOneField('TemplateKind', null=True)
-    template = orm.StringField(required=True)
+    template_combinations = entity_fields.ListField(null=True)  # flake8:noqa pylint:disable=C0103
+    template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
+    template = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -410,7 +421,7 @@ class ConfigTemplate(
 
 class ContentUpload(orm.Entity):
     """A representation of a Content Upload entity."""
-    repository = orm.OneToOneField('Repository', required=True)
+    repository = entity_fields.OneToOneField('Repository', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -474,23 +485,23 @@ class ContentViewVersion(orm.Entity, orm.EntityReadMixin):
 
 class ContentViewFilterRule(orm.Entity):
     """A representation of a Content View Filter Rule entity."""
-    content_view_filter = orm.OneToOneField('ContentViewFilter', required=True)
+    content_view_filter = entity_fields.OneToOneField('ContentViewFilter', required=True)
     # package or package group: name
-    name = orm.StringField()
+    name = entity_fields.StringField()
     # package: version
-    version = orm.StringField()
+    version = entity_fields.StringField()
     # package: minimum version
-    min_version = orm.StringField()
+    min_version = entity_fields.StringField()
     # package: maximum version
-    max_version = orm.StringField()
+    max_version = entity_fields.StringField()
     # erratum: id
-    errata = orm.OneToOneField('Errata')
+    errata = entity_fields.OneToOneField('Errata')
     # erratum: start date (YYYY-MM-DD)
-    start_date = orm.DateField()
+    start_date = entity_fields.DateField()
     # erratum: end date (YYYY-MM-DD)
-    end_date = orm.DateField()
+    end_date = entity_fields.DateField()
     # erratum: types (enhancement, bugfix, security)
-    types = orm.ListField()
+    types = entity_fields.ListField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -501,16 +512,16 @@ class ContentViewFilterRule(orm.Entity):
 
 class ContentViewFilter(orm.Entity):
     """A representation of a Content View Filter entity."""
-    content_view = orm.OneToOneField('ContentView', required=True)
-    name = orm.StringField(required=True)
+    content_view = entity_fields.OneToOneField('ContentView', required=True)
+    name = entity_fields.StringField(required=True)
     # type of filter (e.g. rpm, package_group, erratum)
-    filter_type = orm.StringField(required=True)
+    filter_type = entity_fields.StringField(required=True)
     # Add all packages without Errata to the included/excluded list. (Package
     # Filter only)
-    original_packages = orm.BooleanField()
+    original_packages = entity_fields.BooleanField()
     # specifies if content should be included or excluded, default: false
-    inclusion = orm.BooleanField()
-    repositories = orm.OneToManyField('Repository')
+    inclusion = entity_fields.BooleanField()
+    repositories = entity_fields.OneToManyField('Repository')
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -524,10 +535,10 @@ class ContentViewFilter(orm.Entity):
 
 class ContentViewPuppetModule(orm.Entity):
     """A representation of a Content View Puppet Module entity."""
-    content_view = orm.OneToOneField('ContentView', required=True)
-    name = orm.StringField()
-    author = orm.StringField()
-    uuid = orm.StringField()
+    content_view = entity_fields.OneToOneField('ContentView', required=True)
+    name = entity_fields.StringField()
+    author = entity_fields.StringField()
+    uuid = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -540,14 +551,14 @@ class ContentView(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Content View entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    name = orm.StringField(required=True)
-    label = orm.StringField()
-    composite = orm.BooleanField()
-    description = orm.StringField()
-    repository = orm.OneToManyField('Repository')
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    name = entity_fields.StringField(required=True)
+    label = entity_fields.StringField()
+    composite = entity_fields.BooleanField()
+    description = entity_fields.StringField()
+    repository = entity_fields.OneToManyField('Repository')
     # List of component content view version ids for composite views
-    component = orm.OneToManyField('ContentView')
+    component = entity_fields.OneToManyField('ContentView')
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -650,12 +661,12 @@ class ContentView(
 class CustomInfo(orm.Entity):
     """A representation of a Custom Info entity."""
     # name of the resource
-    informable_type = orm.StringField(required=True)
+    informable_type = entity_fields.StringField(required=True)
     # resource identifier
     # FIXME figure out related resource
-    # informable = orm.OneToOneField(required=True)
-    keyname = orm.StringField(required=True)
-    value = orm.StringField(required=True)
+    # informable = entity_fields.OneToOneField(required=True)
+    keyname = entity_fields.StringField(required=True)
+    value = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -668,19 +679,19 @@ class Domain(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Domain entity."""
-    domain_parameters_attributes = orm.ListField(null=True)
-    fullname = orm.StringField(null=True)
-    location = orm.OneToManyField('Location', null=True)
-    name = orm.StringField(required=True)
-    organization = orm.OneToManyField('Organization', null=True)
+    domain_parameters_attributes = entity_fields.ListField(null=True)
+    fullname = entity_fields.StringField(null=True)
+    location = entity_fields.OneToManyField('Location', null=True)
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToManyField('Organization', null=True)
     # DNS Proxy to use within this domain
     # FIXME figure out related resource
-    # dns = orm.OneToOneField(null=True)
+    # dns = entity_fields.OneToOneField(null=True)
 
     def create_missing(self, auth=None):
         """Customize the process of auto-generating instance attributes.
 
-        By default, :meth:`robottelo.orm.URLField.get_value` does not return
+        By default, entity_fields.:meth:`robottelo.URLField.gen_value` does not return
         especially unique values. This is problematic, as all domain names must
         be unique.
 
@@ -704,7 +715,7 @@ class Environment(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Environment entity."""
-    name = orm.StringField(
+    name = entity_fields.StringField(
         required=True,
         str_type=('alpha', 'numeric', 'alphanumeric'),
     )
@@ -729,11 +740,11 @@ class Filter(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Filter entity."""
-    role = orm.OneToOneField('Role', required=True)
-    search = orm.StringField(null=True)
-    permission = orm.OneToManyField('Permission', null=True)
-    organization = orm.OneToManyField('Organization', null=True)
-    location = orm.OneToManyField('Location', null=True)
+    role = entity_fields.OneToOneField('Role', required=True)
+    search = entity_fields.StringField(null=True)
+    permission = entity_fields.OneToManyField('Permission', null=True)
+    organization = entity_fields.OneToManyField('Organization', null=True)
+    location = entity_fields.OneToManyField('Location', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -814,14 +825,14 @@ class GPGKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a GPG Key entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    location = orm.OneToOneField('Location', null=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    location = entity_fields.OneToOneField('Location', null=True)
     # identifier of the gpg key
     # validator: string from 2 to 128 characters containting only alphanumeric
     # characters, space, '_', '-' with no leading or trailing space.
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
     # public key block in DER encoding
-    content = orm.StringField(required=True, default=_gpgkey_content())
+    content = entity_fields.StringField(required=True, default=_gpgkey_content())
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -831,8 +842,8 @@ class GPGKey(
 
 class HostClasses(orm.Entity):
     """A representation of a Host Class entity."""
-    host = orm.OneToOneField('Host', required=True)
-    puppetclass = orm.OneToOneField('PuppetClass', required=True)
+    host = entity_fields.OneToOneField('Host', required=True)
+    puppetclass = entity_fields.OneToOneField('PuppetClass', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -842,7 +853,7 @@ class HostClasses(orm.Entity):
 
 class HostCollectionErrata(orm.Entity):
     """A representation of a Host Collection Errata entity."""
-    errata = orm.OneToManyField('Errata', required=True)
+    errata = entity_fields.OneToManyField('Errata', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -853,8 +864,8 @@ class HostCollectionErrata(orm.Entity):
 
 class HostCollectionPackage(orm.Entity):
     """A representation of a Host Collection Package entity."""
-    packages = orm.ListField()
-    groups = orm.ListField()
+    packages = entity_fields.ListField()
+    groups = entity_fields.ListField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -867,11 +878,11 @@ class HostCollection(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Host Collection entity."""
-    description = orm.StringField()
-    max_content_hosts = orm.IntegerField()
-    name = orm.StringField(required=True)
-    organization = orm.OneToOneField('Organization', required=True)
-    system = orm.OneToManyField('System')
+    description = entity_fields.StringField()
+    max_content_hosts = entity_fields.IntegerField()
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    system = entity_fields.OneToManyField('System')
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -884,8 +895,8 @@ class HostCollection(
 
 class HostGroupClasses(orm.Entity):
     """A representation of a Host Group Classes entity."""
-    hostgroup = orm.OneToOneField('HostGroup', required=True)
-    puppetclass = orm.OneToOneField('PuppetClass', required=True)
+    hostgroup = entity_fields.OneToOneField('HostGroup', required=True)
+    puppetclass = entity_fields.OneToOneField('PuppetClass', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -895,20 +906,20 @@ class HostGroupClasses(orm.Entity):
 
 class HostGroup(orm.Entity, orm.EntityCreateMixin):
     """A representation of a Host Group entity."""
-    name = orm.StringField(required=True)
-    parent = orm.OneToOneField('HostGroup', null=True)
-    environment = orm.OneToOneField('Environment', null=True)
-    operatingsystem = orm.OneToOneField('OperatingSystem', null=True)
-    architecture = orm.OneToOneField('Architecture', null=True)
-    medium = orm.OneToOneField('Media', null=True)
-    ptable = orm.OneToOneField('PartitionTable', null=True)
+    name = entity_fields.StringField(required=True)
+    parent = entity_fields.OneToOneField('HostGroup', null=True)
+    environment = entity_fields.OneToOneField('Environment', null=True)
+    operatingsystem = entity_fields.OneToOneField('OperatingSystem', null=True)
+    architecture = entity_fields.OneToOneField('Architecture', null=True)
+    medium = entity_fields.OneToOneField('Media', null=True)
+    ptable = entity_fields.OneToOneField('PartitionTable', null=True)
     # FIXME figure out related resource
-    # puppet_ca_proxy = orm.OneToOneField(null=True)
-    subnet = orm.OneToOneField('Subnet', null=True)
-    domain = orm.OneToOneField('Domain', null=True)
-    realm = orm.OneToOneField('Realm', null=True)
+    # puppet_ca_proxy = entity_fields.OneToOneField(null=True)
+    subnet = entity_fields.OneToOneField('Subnet', null=True)
+    domain = entity_fields.OneToOneField('Domain', null=True)
+    realm = entity_fields.OneToOneField('Realm', null=True)
     # FIXME figure out related resource
-    # puppet_proxy = orm.OneToOneField(null=True)
+    # puppet_proxy = entity_fields.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -920,43 +931,43 @@ class Host(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Host entity."""
-    architecture = orm.OneToOneField('Architecture', null=True, required=True)
-    build_ = orm.BooleanField(null=True)
-    capabilities = orm.StringField(null=True)
-    compute_profile = orm.OneToOneField('ComputeProfile', null=True)
-    compute_resource = orm.OneToOneField('ComputeResource', null=True)
-    domain = orm.OneToOneField('Domain', null=True, required=True)
-    enabled = orm.BooleanField(null=True)
-    environment = orm.OneToOneField('Environment', null=True, required=True)
-    hostgroup = orm.OneToOneField('HostGroup', null=True)
-    host_parameters_attributes = orm.ListField(null=True)
-    image = orm.OneToOneField('Image', null=True)
-    ip = orm.StringField(null=True)  # (invalid-name) pylint:disable=C0103
-    location = orm.OneToOneField('Location', required=True)
-    mac = orm.MACAddressField(null=True, required=True)
-    managed = orm.BooleanField(null=True)
-    medium = orm.OneToOneField('Media', null=True)
-    model = orm.OneToOneField('Model', null=True)
-    name = orm.StringField(required=True, str_type=('alpha',))
-    operatingsystem = orm.OneToOneField(
+    architecture = entity_fields.OneToOneField('Architecture', null=True, required=True)
+    build_ = entity_fields.BooleanField(null=True)
+    capabilities = entity_fields.StringField(null=True)
+    compute_profile = entity_fields.OneToOneField('ComputeProfile', null=True)
+    compute_resource = entity_fields.OneToOneField('ComputeResource', null=True)
+    domain = entity_fields.OneToOneField('Domain', null=True, required=True)
+    enabled = entity_fields.BooleanField(null=True)
+    environment = entity_fields.OneToOneField('Environment', null=True, required=True)
+    hostgroup = entity_fields.OneToOneField('HostGroup', null=True)
+    host_parameters_attributes = entity_fields.ListField(null=True)
+    image = entity_fields.OneToOneField('Image', null=True)
+    ip = entity_fields.StringField(null=True)  # (invalid-name) pylint:disable=C0103
+    location = entity_fields.OneToOneField('Location', required=True)
+    mac = entity_fields.MACAddressField(null=True, required=True)
+    managed = entity_fields.BooleanField(null=True)
+    medium = entity_fields.OneToOneField('Media', null=True)
+    model = entity_fields.OneToOneField('Model', null=True)
+    name = entity_fields.StringField(required=True, str_type='alpha')
+    operatingsystem = entity_fields.OneToOneField(
         'OperatingSystem',
         null=True,
         required=True
     )
-    organization = orm.OneToOneField('Organization', required=True)
-    owner = orm.OneToOneField('User', null=True)
-    provision_method = orm.StringField(null=True)
-    ptable = orm.OneToOneField('PartitionTable', null=True)
-    puppet_classes = orm.OneToManyField('PuppetClass', null=True)
-    puppet_proxy = orm.OneToOneField('SmartProxy', null=True, required=True)
-    realm = orm.OneToOneField('Realm', null=True)
-    root_pass = orm.StringField(len=(8, 30), required=True)
-    sp_subnet = orm.OneToOneField('Subnet', null=True)
-    subnet = orm.OneToOneField('Subnet', null=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    owner = entity_fields.OneToOneField('User', null=True)
+    provision_method = entity_fields.StringField(null=True)
+    ptable = entity_fields.OneToOneField('PartitionTable', null=True)
+    puppet_classes = entity_fields.OneToManyField('PuppetClass', null=True)
+    puppet_proxy = entity_fields.OneToOneField('SmartProxy', null=True, required=True)
+    realm = entity_fields.OneToOneField('Realm', null=True)
+    root_pass = entity_fields.StringField(length=(8, 30), required=True)
+    sp_subnet = entity_fields.OneToOneField('Subnet', null=True)
+    subnet = entity_fields.OneToOneField('Subnet', null=True)
 
     # FIXME figure out these related resources
-    # progress_report = orm.OneToOneField(null=True)
-    # puppet_ca_proxy = orm.OneToOneField(null=True)
+    # progress_report = entity_fields.OneToOneField(null=True)
+    # puppet_ca_proxy = entity_fields.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1018,12 +1029,12 @@ class Host(
 
 class Image(orm.Entity):
     """A representation of a Image entity."""
-    compute_resource = orm.OneToOneField('ComputeResource', required=True)
-    name = orm.StringField(required=True)
-    username = orm.StringField(required=True)
-    uuid = orm.StringField(required=True)
-    architecture = orm.OneToOneField('Architecture', required=True)
-    operatingsystem = orm.OneToOneField('OperatingSystem', required=True)
+    compute_resource = entity_fields.OneToOneField('ComputeResource', required=True)
+    name = entity_fields.StringField(required=True)
+    username = entity_fields.StringField(required=True)
+    uuid = entity_fields.StringField(required=True)
+    architecture = entity_fields.OneToOneField('Architecture', required=True)
+    operatingsystem = entity_fields.OneToOneField('OperatingSystem', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1033,18 +1044,18 @@ class Image(orm.Entity):
 
 class Interface(orm.Entity):
     """A representation of a Interface entity."""
-    host = orm.OneToOneField('Host', required=True)
-    mac = orm.MACAddressField(required=True)
-    ip = orm.IPAddressField(required=True)  # pylint:disable=C0103
+    host = entity_fields.OneToOneField('Host', required=True)
+    mac = entity_fields.MACAddressField(required=True)
+    ip = entity_fields.IPAddressField(required=True)  # pylint:disable=C0103
     # Interface type, i.e: Nic::BMC
-    interface_type = orm.StringField(required=True)
-    name = orm.StringField(required=True)
-    subnet = orm.OneToOneField('Subnet', null=True)
-    domain = orm.OneToOneField('Domain', null=True)
-    username = orm.StringField(null=True)
-    password = orm.StringField(null=True)
+    interface_type = entity_fields.StringField(required=True)
+    name = entity_fields.StringField(required=True)
+    subnet = entity_fields.OneToOneField('Subnet', null=True)
+    domain = entity_fields.OneToOneField('Domain', null=True)
+    username = entity_fields.StringField(null=True)
+    password = entity_fields.StringField(null=True)
     # Interface provider, i.e: IPMI
-    provider = orm.StringField(null=True)
+    provider = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1057,10 +1068,10 @@ class LifecycleEnvironment(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Lifecycle Environment entity."""
-    description = orm.StringField()
-    name = orm.StringField(required=True)
-    organization = orm.OneToOneField('Organization', required=True)
-    prior = orm.OneToOneField('LifecycleEnvironment')
+    description = entity_fields.StringField()
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    prior = entity_fields.OneToOneField('LifecycleEnvironment')
     # NOTE: The "prior" field is unusual. See the `create_missing` docstring.
 
     def create_payload(self):
@@ -1126,7 +1137,7 @@ class LifecycleEnvironment(
 
 class Location(orm.Entity, orm.EntityCreateMixin):
     """A representation of a Location entity."""
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1138,10 +1149,10 @@ class Media(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Media entity."""
-    media_path = orm.URLField(required=True)
-    name = orm.StringField(required=True)
-    operatingsystem = orm.OneToManyField('OperatingSystem', null=True)
-    os_family = orm.StringField(choices=(
+    media_path = entity_fields.URLField(required=True)
+    name = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
+    os_family = entity_fields.StringField(choices=(
         'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos', 'Redhat',
         'Solaris', 'Suse', 'Windows',
     ), null=True)
@@ -1149,7 +1160,7 @@ class Media(
     def create_missing(self, auth=None):
         """Give the 'media_path' instance attribute a value if it is unset.
 
-        By default, :meth:`robottelo.orm.URLField.get_value` does not return
+        By default, entity_fields.:meth:`robottelo.URLField.gen_value` does not return
         especially unique values. This is problematic, as all media must have a
         unique path.
 
@@ -1206,10 +1217,10 @@ class Model(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Model entity."""
-    name = orm.StringField(required=True)
-    info = orm.StringField(null=True)
-    vendor_class = orm.StringField(null=True)
-    hardware_model = orm.StringField(null=True)
+    name = entity_fields.StringField(required=True)
+    info = entity_fields.StringField(null=True)
+    vendor_class = entity_fields.StringField(null=True)
+    hardware_model = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1233,15 +1244,15 @@ class OperatingSystem(
     * ptable
 
     """
-    architecture = orm.OneToManyField('Architecture')
-    description = orm.StringField(null=True)
-    family = orm.StringField(null=True, choices=OPERATING_SYSTEMS)
-    major = orm.StringField(required=True, str_type=('numeric',), len=(1, 5))
-    media = orm.OneToManyField('Media')
-    minor = orm.StringField(null=True)
-    name = orm.StringField(required=True)
-    ptable = orm.OneToManyField('PartitionTable')
-    release_name = orm.StringField(null=True)
+    architecture = entity_fields.OneToManyField('Architecture')
+    description = entity_fields.StringField(null=True)
+    family = entity_fields.StringField(null=True, choices=OPERATING_SYSTEMS)
+    major = entity_fields.StringField(required=True, str_type='numeric', length=(1, 5))
+    media = entity_fields.OneToManyField('Media')
+    minor = entity_fields.StringField(null=True)
+    name = entity_fields.StringField(required=True)
+    ptable = entity_fields.OneToManyField('PartitionTable')
+    release_name = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1265,8 +1276,8 @@ class OperatingSystemParameter(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a parameter for an operating system."""
-    name = orm.StringField(required=True)
-    value = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
+    value = entity_fields.StringField(required=True)
 
     def __init__(self, os_id, **kwargs):
         """Record ``os_id`` and set ``self.Meta.api_path``."""
@@ -1296,15 +1307,15 @@ class OperatingSystemParameter(
 class OrganizationDefaultInfo(orm.Entity):
     """A representation of a Organization Default Info entity."""
     # name of the resource
-    informable_type = orm.StringField(required=True)
+    informable_type = entity_fields.StringField(required=True)
     # resource identifier
     # FIXME figure out related resource
-    # informable = orm.OneToOneField(required=True)
-    keyname = orm.StringField(required=True)
-    name = orm.StringField(required=True)
-    info = orm.StringField()
-    vendor_class = orm.StringField()
-    hardware_model = orm.StringField()
+    # informable = entity_fields.OneToOneField(required=True)
+    keyname = entity_fields.StringField(required=True)
+    name = entity_fields.StringField(required=True)
+    info = entity_fields.StringField()
+    vendor_class = entity_fields.StringField()
+    hardware_model = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1317,9 +1328,9 @@ class Organization(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of an Organization entity."""
-    name = orm.StringField(required=True)
-    label = orm.StringField(str_type=('alpha',))
-    description = orm.StringField()
+    name = entity_fields.StringField(required=True)
+    label = entity_fields.StringField(str_type='alpha')
+    description = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1512,9 +1523,9 @@ class Organization(
 
 class OSDefaultTemplate(orm.Entity):
     """A representation of a OS Default Template entity."""
-    operatingsystem = orm.OneToOneField('OperatingSystem')
-    template_kind = orm.OneToOneField('TemplateKind', null=True)
-    config_template = orm.OneToOneField('ConfigTemplate', null=True)
+    operatingsystem = entity_fields.OneToOneField('OperatingSystem')
+    template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
+    config_template = entity_fields.OneToOneField('ConfigTemplate', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1525,9 +1536,9 @@ class OSDefaultTemplate(orm.Entity):
 
 class OverrideValue(orm.Entity):
     """A representation of a Override Value entity."""
-    smart_variable = orm.OneToOneField('SmartVariable')
-    match = orm.StringField(null=True)
-    value = orm.StringField(null=True)
+    smart_variable = entity_fields.OneToOneField('SmartVariable')
+    match = entity_fields.StringField(null=True)
+    value = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1544,8 +1555,8 @@ class OverrideValue(orm.Entity):
 
 class Permission(orm.Entity, orm.EntityReadMixin):
     """A representation of a Permission entity."""
-    name = orm.StringField(required=True)
-    resource_type = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
+    resource_type = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1605,13 +1616,13 @@ class Product(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Product entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    location = orm.OneToOneField('Location', null=True)
-    description = orm.StringField()
-    gpg_key = orm.OneToOneField('GPGKey')
-    sync_plan = orm.OneToOneField('SyncPlan', null=True)
-    name = orm.StringField(required=True)
-    label = orm.StringField()
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    location = entity_fields.OneToOneField('Location', null=True)
+    description = entity_fields.StringField()
+    gpg_key = entity_fields.OneToOneField('GPGKey')
+    sync_plan = entity_fields.OneToOneField('SyncPlan', null=True)
+    name = entity_fields.StringField(required=True)
+    label = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1774,9 +1785,9 @@ class PartitionTable(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Partition Table entity."""
-    name = orm.StringField(required=True)
-    layout = orm.StringField(required=True)
-    os_family = orm.StringField(null=True, choices=OPERATING_SYSTEMS)
+    name = entity_fields.StringField(required=True)
+    layout = entity_fields.StringField(required=True)
+    os_family = entity_fields.StringField(null=True, choices=OPERATING_SYSTEMS)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1786,7 +1797,7 @@ class PartitionTable(
 
 class PuppetClass(orm.Entity):
     """A representation of a Puppet Class entity."""
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1797,12 +1808,12 @@ class PuppetClass(orm.Entity):
 class Realm(orm.Entity):
     """A representation of a Realm entity."""
     # The realm name, e.g. EXAMPLE.COM
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
     # Proxy to use for this realm
     # FIXME figure out related resource
-    # realm_proxy = orm.OneToOneField(null=True)
+    # realm_proxy = entity_fields.OneToOneField(null=True)
     # Realm type, e.g. Red Hat Identity Management or Active Directory
-    realm_type = orm.StringField(required=True)
+    realm_type = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1813,11 +1824,11 @@ class Realm(orm.Entity):
 class Report(orm.Entity):
     """A representation of a Report entity."""
     # Hostname or certname
-    host = orm.StringField(required=True)
+    host = entity_fields.StringField(required=True)
     # UTC time of report
-    reported_at = orm.DateTimeField(required=True)
+    reported_at = entity_fields.DateTimeField(required=True)
     # Optional array of log hashes
-    logs = orm.ListField(null=True)
+    logs = entity_fields.ListField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1829,19 +1840,19 @@ class Repository(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Repository entity."""
-    checksum_type = orm.StringField(choices=('sha1', 'sha256'))
-    content_type = orm.StringField(
+    checksum_type = entity_fields.StringField(choices=('sha1', 'sha256'))
+    content_type = entity_fields.StringField(
         choices=('puppet', 'yum', 'file', 'docker'),
         default='yum',
         required=True,
     )
-    gpg_key = orm.OneToOneField('GPGKey')
-    label = orm.StringField()
-    name = orm.StringField(required=True)
-    docker_upstream_name = orm.StringField()
-    product = orm.OneToOneField('Product', required=True)
-    unprotected = orm.BooleanField()
-    url = orm.URLField(required=True, default=FAKE_1_YUM_REPO)
+    gpg_key = entity_fields.OneToOneField('GPGKey')
+    label = entity_fields.StringField()
+    name = entity_fields.StringField(required=True)
+    docker_upstream_name = entity_fields.StringField()
+    product = entity_fields.OneToOneField('Product', required=True)
+    unprotected = entity_fields.BooleanField()
+    url = entity_fields.URLField(required=True, default=FAKE_1_YUM_REPO)
 
     def path(self, which=None):
         """Extend the default implementation of
@@ -1956,7 +1967,7 @@ class Repository(
 
 class RoleLDAPGroups(orm.Entity):
     """A representation of a Role LDAP Groups entity."""
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1969,10 +1980,10 @@ class Role(
         orm.EntityCreateMixin):
     """A representation of a Role entity."""
     # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
-    name = orm.StringField(
+    name = entity_fields.StringField(
         required=True,
-        str_type=('alphanumeric',),
-        len=(2, 30),  # min length is 2 and max length is arbitrary
+        str_type='alphanumeric',
+        length=(2, 30),  # min length is 2 and max length is arbitrary
     )
 
     class Meta(object):
@@ -1983,8 +1994,8 @@ class Role(
 
 class SmartProxy(orm.Entity):
     """A representation of a Smart Proxy entity."""
-    name = orm.StringField(required=True)
-    url = orm.URLField(required=True)
+    name = entity_fields.StringField(required=True)
+    url = entity_fields.URLField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1994,14 +2005,14 @@ class SmartProxy(orm.Entity):
 
 class SmartVariable(orm.Entity):
     """A representation of a Smart Variable entity."""
-    variable = orm.StringField(required=True)
-    puppetclass = orm.OneToOneField('PuppetClass', null=True)
-    default_value = orm.StringField(null=True)
-    override_value_order = orm.StringField(null=True)
-    description = orm.StringField(null=True)
-    validator_type = orm.StringField(null=True)
-    validator_rule = orm.StringField(null=True)
-    variable_type = orm.StringField(null=True)
+    variable = entity_fields.StringField(required=True)
+    puppetclass = entity_fields.OneToOneField('PuppetClass', null=True)
+    default_value = entity_fields.StringField(null=True)
+    override_value_order = entity_fields.StringField(null=True)
+    description = entity_fields.StringField(null=True)
+    validator_type = entity_fields.StringField(null=True)
+    validator_rule = entity_fields.StringField(null=True)
+    variable_type = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2022,21 +2033,21 @@ class Subnet(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Subnet entity."""
-    dns_primary = orm.IPAddressField(null=True)
-    dns_secondary = orm.IPAddressField(null=True)
-    domain = orm.OneToManyField('Domain', null=True)
-    from_ = orm.IPAddressField(null=True)
-    gateway = orm.StringField(null=True)
-    mask = orm.NetmaskField(required=True)
-    name = orm.StringField(required=True)
-    network = orm.IPAddressField(required=True)
-    to = orm.IPAddressField(null=True)  # (invalid-name) pylint:disable=C0103
-    vlanid = orm.StringField(null=True)
+    dns_primary = entity_fields.IPAddressField(null=True)
+    dns_secondary = entity_fields.IPAddressField(null=True)
+    domain = entity_fields.OneToManyField('Domain', null=True)
+    from_ = entity_fields.IPAddressField(null=True)
+    gateway = entity_fields.StringField(null=True)
+    mask = entity_fields.NetmaskField(required=True)
+    name = entity_fields.StringField(required=True)
+    network = entity_fields.IPAddressField(required=True)
+    to = entity_fields.IPAddressField(null=True)  # (invalid-name) pylint:disable=C0103
+    vlanid = entity_fields.StringField(null=True)
 
     # FIXME: Figure out what these IDs correspond to.
-    # dhcp = orm.OneToOneField(null=True)
-    # dns = orm.OneToOneField(null=True)
-    # tftp = orm.OneToOneField(null=True)
+    # dhcp = entity_fields.OneToOneField(null=True)
+    # dns = entity_fields.OneToOneField(null=True)
+    # tftp = entity_fields.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2048,13 +2059,13 @@ class Subnet(
 class Subscription(orm.Entity):
     """A representation of a Subscription entity."""
     # Subscription Pool uuid
-    pool_uuid = orm.StringField()
+    pool_uuid = entity_fields.StringField()
     # UUID of the system
-    system = orm.OneToOneField('System')
-    activation_key = orm.OneToOneField('ActivationKey')
+    system = entity_fields.OneToOneField('System')
+    activation_key = entity_fields.OneToOneField('ActivationKey')
     # Quantity of this subscriptions to add
-    quantity = orm.IntegerField()
-    subscriptions = orm.OneToManyField('Subscription')
+    quantity = entity_fields.IntegerField()
+    subscriptions = entity_fields.OneToManyField('Subscription')
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2069,17 +2080,17 @@ class Subscription(orm.Entity):
 
 class SyncPlan(orm.Entity):
     """A representation of a Sync Plan entity."""
-    organization = orm.OneToOneField('Organization', required=True)
-    name = orm.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    name = entity_fields.StringField(required=True)
     # how often synchronization should run must be one of: none, hourly, daily,
     # weekly.
-    interval = orm.StringField(
+    interval = entity_fields.StringField(
         choices=('none', 'hourly', 'daily', 'weekly'),
         required=True,
     )
     # start datetime of synchronization
-    sync_date = orm.DateTimeField(required=True)
-    description = orm.StringField()
+    sync_date = entity_fields.DateTimeField(required=True)
+    description = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2089,11 +2100,11 @@ class SyncPlan(orm.Entity):
 
 class SystemPackage(orm.Entity):
     """A representation of a System Package entity."""
-    system = orm.OneToOneField('System', required=True)
+    system = entity_fields.OneToOneField('System', required=True)
     # List of package names
-    packages = orm.ListField()
+    packages = entity_fields.ListField()
     # List of package group names
-    groups = orm.ListField()
+    groups = entity_fields.ListField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2105,29 +2116,29 @@ class System(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a System entity."""
-    content_view = orm.OneToOneField('ContentView')
-    description = orm.StringField()
-    environment = orm.OneToOneField('Environment')
-    facts = orm.DictField(
+    content_view = entity_fields.OneToOneField('ContentView')
+    description = entity_fields.StringField()
+    environment = entity_fields.OneToOneField('Environment')
+    facts = entity_fields.DictField(
         default={u'uname.machine': u'unknown'},
         null=True,
         required=True,
     )
-    # guest = orm.OneToManyField()  # FIXME What does this field point to?
-    host_collection = orm.OneToOneField('HostCollection')
-    installed_products = orm.ListField(null=True)
-    last_checkin = orm.DateTimeField()
-    location = orm.StringField()
-    name = orm.StringField(required=True)
-    organization = orm.OneToOneField('Organization', required=True)
-    release_ver = orm.StringField()
-    service_level = orm.StringField(null=True)
-    uuid = orm.StringField()
+    # guest = entity_fields.OneToManyField()  # FIXME What does this field point to?
+    host_collection = entity_fields.OneToOneField('HostCollection')
+    installed_products = entity_fields.ListField(null=True)
+    last_checkin = entity_fields.DateTimeField()
+    location = entity_fields.StringField()
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    release_ver = entity_fields.StringField()
+    service_level = entity_fields.StringField(null=True)
+    uuid = entity_fields.StringField()
 
     # The type() builtin is still available within instance methods, class
     # methods, static methods, inner classes, and so on. However, type() is
     # *not* available at the current level of lexical scoping after this point.
-    type = orm.StringField(default='system', required=True)
+    type = entity_fields.StringField(default='system', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2162,9 +2173,9 @@ class System(
 
 class TemplateCombination(orm.Entity):
     """A representation of a Template Combination entity."""
-    config_template = orm.OneToOneField('ConfigTemplate', required=True)
-    environment = orm.OneToOneField('Environment', null=True)
-    hostgroup = orm.OneToOneField('HostGroup', null=True)
+    config_template = entity_fields.OneToOneField('ConfigTemplate', required=True)
+    environment = entity_fields.OneToOneField('Environment', null=True)
+    hostgroup = entity_fields.OneToOneField('HostGroup', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2187,7 +2198,7 @@ class TemplateKind(orm.Entity, orm.EntityReadMixin):
 
 class UserGroup(orm.Entity):
     """A representation of a User Group entity."""
-    name = orm.StringField(required=True)
+    name = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2208,19 +2219,21 @@ class User(
     """
     # Passing UTF8 characters for {first,last}name or login yields errors. See
     # bugzilla bug 1144162.
-    login = orm.StringField(
-        len=(1, 100),
+    login = entity_fields.StringField(
+        length=(1, 100),
         required=True,
         str_type=('alpha', 'alphanumeric', 'cjk', 'latin1'),
     )
-    admin = orm.BooleanField(null=True)
-    auth_source = orm.OneToOneField('AuthSourceLDAP', default=1, required=True)
-    default_location = orm.OneToOneField('Location', null=True)
-    default_organization = orm.OneToOneField('Organization', null=True)
-    firstname = orm.StringField(null=True, len=(1, 50))
-    lastname = orm.StringField(null=True, len=(1, 50))
-    mail = orm.EmailField(required=True)
-    password = orm.StringField(required=True)
+    admin = entity_fields.BooleanField(null=True)
+    auth_source = entity_fields.OneToOneField(
+        'AuthSourceLDAP', default=1, required=True
+    )
+    default_location = entity_fields.OneToOneField('Location', null=True)
+    default_organization = entity_fields.OneToOneField('Organization', null=True)
+    firstname = entity_fields.StringField(null=True, length=(1, 50))
+    lastname = entity_fields.StringField(null=True, length=(1, 50))
+    mail = entity_fields.EmailField(required=True)
+    password = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
