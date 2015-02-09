@@ -2,15 +2,8 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for SSO (CLI)"""
 
-import sys
-
-from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import stubbed
 from robottelo.test import CLITestCase
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 
 
 class TestSSOCLI(CLITestCase):
@@ -25,7 +18,7 @@ class TestSSOCLI(CLITestCase):
     # possibly other LDAP types. These (in particular, the LDAP variations)
     # can be easily added later.
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_sso_kerberos_cli(self):
         """@test: kerberos user can login to CLI
 
@@ -40,7 +33,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_sso_ipa_cli(self):
         """@test: IPA user can login to CLI
 
@@ -55,7 +48,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_sso_openldap_cli(self):
         """@test: OpenLDAP user can login to CLI
 

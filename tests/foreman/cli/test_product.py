@@ -17,7 +17,7 @@ class TestProduct(CLITestCase):
 
     org = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for Lifecycle Environment via Hammer CLI"""
 
         super(TestProduct, self).setUp()

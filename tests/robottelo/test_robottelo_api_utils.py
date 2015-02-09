@@ -13,7 +13,7 @@ class MockResponse(object):
 
 class StatusCodeErrorTestCase(TestCase):
     """Tests fore :func:`robottelo.api.utils.status_code_error`."""
-    def setUp(self):
+    def setUp(self):  # noqa
         self.path = gen_string(
             'utf8',
             gen_integer(min_value=1, max_value=100)

@@ -28,7 +28,7 @@ class TestContentHost(CLITestCase):
     LIBRARY = None
     DEFAULT_CV = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for Content Host via Hammer CLI"""
 
         super(TestContentHost, self).setUp()

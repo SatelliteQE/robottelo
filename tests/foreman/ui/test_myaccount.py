@@ -2,14 +2,7 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for Users UI"""
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
-from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.common.decorators import stubbed
 from robottelo.test import UITestCase
 
 
@@ -25,7 +18,7 @@ class MyAccount(UITestCase):
 
     """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_my_account_1(self):
         """@Test: Update Firstname in My Account
 
@@ -41,7 +34,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_my_account_2(self):
         """@Test: Update Surname in My Account
 
@@ -57,7 +50,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_my_account_3(self):
         """@Test: Update Email Address in My Account
 
@@ -73,7 +66,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_my_account_4(self):
         """@Test: Update Language in My Account
 
@@ -89,7 +82,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_positive_update_my_account_5(self):
         """@Test: Update Password/Verify fields in My Account
 
@@ -105,7 +98,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_my_account_1(self):
         """@Test: Update My Account with invalid FirstName
 
@@ -121,7 +114,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_my_account_2(self):
         """@Test: Update My Account with invalid Surname
 
@@ -137,7 +130,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_my_account_3(self):
         """@Test: Update My Account with invalid Email Address
 
@@ -153,7 +146,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_my_account_4(self):
         """@Test: Update My Account with invalid Password/Verify fields
 
@@ -170,7 +163,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_my_account_5(self):
         """@Test: Update My Account with non-matching values in Password and
         verify fields
@@ -188,7 +181,7 @@ class MyAccount(UITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_negative_update_my_account_6(self):
         """@Test: [UI ONLY] Attempt to update all info in My Accounts page and
         Cancel

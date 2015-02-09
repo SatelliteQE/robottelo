@@ -14,7 +14,7 @@ from robottelo.test import CLITestCase
 class TestReport(CLITestCase):
     """Test class for Reports CLI. """
 
-    def setUp(self):
+    def setUp(self):  # noqa
         super(TestReport, self).setUp()
         self.run_puppet_agent()
 

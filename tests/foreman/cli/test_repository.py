@@ -44,7 +44,7 @@ class TestRepository(CLITestCase):
     org = None
     product = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for Repositiry via Hammer CLI"""
 
         super(TestRepository, self).setUp()

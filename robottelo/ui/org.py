@@ -1,14 +1,10 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
+"""Implements Org UI"""
 
-"""
-Implements Org UI
-"""
-
+from robottelo.common.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
-from robottelo.ui.navigator import Navigator as nav
-from robottelo.common.constants import FILTER
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -113,7 +109,7 @@ class Org(Base):
 
     def search(self, name):
         """Searches existing Organization from UI."""
-        nav(self.browser).go_to_org()
+        Navigator(self.browser).go_to_org()
         self.wait_for_ajax()
         element = self.search_entity(name, locators["org.org_name"])
         return element

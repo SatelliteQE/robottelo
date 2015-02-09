@@ -28,7 +28,7 @@ class Repos(UITestCase):
     """Implements Repos tests in UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         org_attrs = entities.Organization().create()
         loc_attrs = entities.Location().create()
         cls.org_name = org_attrs['name']

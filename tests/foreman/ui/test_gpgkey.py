@@ -2,25 +2,18 @@
 # vim: ts=4 sw=4 expandtab ai
 """Test class for GPG Key UI"""
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
-    NOT_IMPLEMENTED,
     REPO_DISCOVERY_URL,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
     get_data_file, read_data_file, valid_names_list, invalid_names_list,
     generate_strings_list)
@@ -36,7 +29,7 @@ class GPGKey(UITestCase):
     """Implements tests for GPG Keys via UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
@@ -364,7 +357,7 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(new_name))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -388,7 +381,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -412,7 +405,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -436,7 +429,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -459,7 +452,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -482,7 +475,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -512,7 +505,7 @@ class GPGKeyProductAssociate(UITestCase):
     """Implements Product Association tests for GPG Keys via UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
@@ -766,7 +759,7 @@ class GPGKeyProductAssociate(UITestCase):
                                  (name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085924)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1090,7 +1083,7 @@ class GPGKeyProductAssociate(UITestCase):
                                  (new_name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085924)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1406,7 +1399,7 @@ class GPGKeyProductAssociate(UITestCase):
                               (name, product_name, repository_1_name))
 
     @skip_if_bug_open('bugzilla', 1085924)
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric

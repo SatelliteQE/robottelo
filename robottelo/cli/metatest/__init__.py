@@ -1,14 +1,10 @@
-"""
-Meta class for all CLI tests
-"""
+"""Meta class for all CLI tests"""
 
-import default_data
 import itertools
-import template_methods
 import types
 
 from ddt import ddt
-
+from robottelo.cli.metatest import default_data, template_methods
 from robottelo.common.decorators import data
 
 
@@ -26,7 +22,7 @@ class MetaCLITest(type):
     factory = None
     test_class = None
 
-    def __new__(mcs, name, bases, attributes):
+    def __new__(cls, name, bases, attributes):
         """
         Adds a create method for the specific class.
 
@@ -38,7 +34,7 @@ class MetaCLITest(type):
         """
 
         _klass = super(
-            MetaCLITest, mcs).__new__(mcs, name, bases, attributes)
+            MetaCLITest, cls).__new__(cls, name, bases, attributes)
 
         # When loading test classes for a test run, the Nose class
         # loader "transplants" any class that inherits from unittest.TestCase

@@ -46,7 +46,7 @@ class RepositoryTestCase(APITestCase):
     """Tests for ``katello/api/v2/repositories``."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
         cls.org_id = entities.Organization().create()['id']
         cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
@@ -217,7 +217,7 @@ class RepositoryUpdateTestCase(APITestCase):
     """Tests for updating repositories."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create a repository which can be repeatedly updated."""
         cls.repository = entities.Repository(
             id=entities.Repository().create()['id']
@@ -292,7 +292,7 @@ class DockerRepositoryTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
         cls.org_id = entities.Organization().create()['id']
 

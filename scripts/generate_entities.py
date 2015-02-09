@@ -14,8 +14,8 @@ ROBOTTELO_PATH = os.path.realpath(
 if ROBOTTELO_PATH not in sys.path:
     sys.path.append(ROBOTTELO_PATH)
 
-from robottelo.api import inspect
-from StringIO import StringIO
+from robottelo.api import inspect  # noqa
+from StringIO import StringIO  # noqa
 
 
 TAG_RE = re.compile(r'<[^>]+>')

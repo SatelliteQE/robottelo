@@ -1,16 +1,6 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
-import sys
-
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import run_only_on
+from robottelo.common.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
 
 
 @run_only_on('sat')
@@ -21,7 +11,7 @@ class TestSSOCLI(CLITestCase):
     # that can parse logs? It would be better (and possibly less
     # error-prone) than simply grepping for ERROR/FATAL
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_check_services(self):
         # devnote:
         # maybe `hammer ping` command might be useful here to check
@@ -39,7 +29,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_logfile_check(self):
         """@test: Look for ERROR or FATAL references in logfiles
 
@@ -57,7 +47,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_check_progress_meter(self):
         """@test:  Assure progress indicator/meter "works"
 
@@ -71,7 +61,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_from_iso(self):
         """@test:  Can install product from ISO
 
@@ -84,7 +74,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_server_install(self):
         """@test:  Can install main satellite instance successfully via RPM
 
@@ -97,7 +87,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_node_install(self):
         """@test:  Can install node successfully via RPM
 
@@ -110,7 +100,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_smartproxy_install(self):
         """@test:  Can install smart-proxy successfully via RPM
 
@@ -123,7 +113,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_disconnected_util_install(self):
         """@test:  Can install  satellite disconnected utility successfully
         via RPM
@@ -137,7 +127,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_smartproxy_registers(self):
         """@test: Upon installation, smart-proxy instance self-registers
         itself to parent instance
@@ -152,7 +142,7 @@ class TestSSOCLI(CLITestCase):
         """
         pass
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_installer_clear_data(self):
         """@test:  User can run installer to clear existing data
 

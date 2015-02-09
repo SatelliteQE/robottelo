@@ -12,13 +12,13 @@ class CLIClass(Base):
 
 class BaseCliTestCase(unittest.TestCase):
     """Tests for the Base cli class"""
-    def setUp(self):
+    def setUp(self):  # noqa
         super(BaseCliTestCase, self).setUp()
         self.old_properties = conf.properties.copy()
         conf.properties['foreman.admin.username'] = 'configusername'
         conf.properties['foreman.admin.password'] = 'configpassword'
 
-    def tearDown(self):
+    def tearDown(self):  # noqa
         super(BaseCliTestCase, self).tearDown()
         conf.properties = self.old_properties
 

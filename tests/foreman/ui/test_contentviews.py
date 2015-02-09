@@ -6,13 +6,6 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 """
 
-import sys
-
-if sys.hexversion >= 0x2070000:
-    import unittest
-else:
-    import unittest2 as unittest
-
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo import entities
@@ -20,8 +13,9 @@ from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
     FILTER_CONTENT_TYPE, FILTER_TYPE, REPO_TYPE, FAKE_1_YUM_REPO,
-    FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED)
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+    FAKE_0_PUPPET_REPO)
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import invalid_names_list, valid_names_list
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
@@ -35,7 +29,7 @@ class TestContentViewsUI(UITestCase):
     """Implement tests for content view via UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
@@ -416,7 +410,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.error"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_edit_rh_custom_spin(self):
         # Variations might be:
         #   * A filter on errata date (only content that matches date
@@ -565,7 +559,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_associate_view_rh_custom_spin(self):
         # Variations might be:
         #   * A filter on errata date (only content that matches date
@@ -685,7 +679,7 @@ class TestContentViewsUI(UITestCase):
                              "Couldn't find repo '%s'"
                              "to add into CV" % repo_name)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@test: attempt to associate duplicate puppet module(s) within a
         content view
@@ -744,7 +738,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_promote_rh_custom_spin(self):
         """@test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
@@ -793,7 +787,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_promote_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -813,7 +807,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_promote_default_negative(self):
         """@test: attempt to promote a the default content views
 
@@ -860,7 +854,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_publish_rh_custom_spin(self):
         """@test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -906,7 +900,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_publish_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -924,7 +918,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_publish_version_changes_in_target_env(self):
         # Dev notes:
         # If Dev has version x, then when I promote version y into
@@ -948,7 +942,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_publish_version_changes_in_source_env(self):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
@@ -971,7 +965,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -985,7 +979,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -999,7 +993,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
         """@test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
@@ -1012,7 +1006,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_subscribe_system(self):
         # Notes:
         # this should be limited to only those content views
@@ -1034,7 +1028,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_dynflow_restart_promote(self):
         """@test: attempt to restart a promotion
 
@@ -1050,7 +1044,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_dynflow_restart_publish(self):
         """@test: attempt to restart a publish
 
@@ -1069,7 +1063,7 @@ class TestContentViewsUI(UITestCase):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_roles_admin_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1092,7 +1086,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_roles_readonly_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1116,7 +1110,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_roles_admin_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1139,7 +1133,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_roles_readonly_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user

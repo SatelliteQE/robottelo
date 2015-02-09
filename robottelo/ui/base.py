@@ -1,17 +1,15 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
+"""Base class for all UI operations"""
 
-"""
-Base class for all UI operations
-"""
 import logging
+
+from robottelo.common.helpers import escape_search
 from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
-from robottelo.common.helpers import escape_search
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 
 class UINoSuchElementError(Exception):
@@ -196,7 +194,7 @@ class Base(object):
         try:
             element = WebDriverWait(
                 self.browser, timeout, poll_frequency
-            ).until(EC.visibility_of_element_located(locator))
+            ).until(expected_conditions.visibility_of_element_located(locator))
             self.wait_for_ajax(poll_frequency=poll_frequency)
             return element
         except TimeoutException as e:

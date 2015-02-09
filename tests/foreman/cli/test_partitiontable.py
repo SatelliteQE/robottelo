@@ -14,16 +14,13 @@ from robottelo.common.decorators import run_only_on
 class TestPartitionTableUpdateCreate(CLITestCase):
     """Test case for CLI tests."""
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Set up file"""
         super(TestPartitionTableUpdateCreate, self).setUp()
         self.content = "Fake ptable"
         self.name = gen_alphanumeric(6)
         self.args = {'name': self.name,
                      'content': self.content}
-
-    def tearDown(self):
-        """Remove the file"""
 
     def test_create_ptable(self):
         """@Test: Check if Partition Table can be created

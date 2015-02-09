@@ -94,8 +94,8 @@ epub_copyright = u'2012, Og Maciel <omaciel@redhat.com>'
 #
 # As a result, the API documentation is much more concise.
 
-import ddt
-import robottelo.common.decorators  # pylint:disable=import-error
+import ddt  # noqa
+import robottelo.common.decorators  # noqa pylint:disable=import-error
 # robttelo.common.decorators can only be imported if the `sys.path.insert` at
 # the top of this document is executed. pylint tries to be a static code
 # analyzer, so that does not happen, and it therefore cannot find this module.

@@ -26,7 +26,7 @@ class TestHostCollection(CLITestCase):
     library = None
     default_cv = None
 
-    def setUp(self):
+    def setUp(self):  # noqa
         """Tests for Host Collections via Hammer CLI"""
 
         super(TestHostCollection, self).setUp()

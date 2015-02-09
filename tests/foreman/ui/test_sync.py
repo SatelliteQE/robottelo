@@ -26,7 +26,7 @@ class Sync(UITestCase):
     """Implements Custom Sync tests in UI"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # noqa
         org_attrs = entities.Organization().create()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
