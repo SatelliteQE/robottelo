@@ -1,4 +1,7 @@
 # Travis runs tests and checks code quality using these modules.
+# flake8 depends on pep8. Use pep8 version 1.5.7 to avoid warnings about things
+# like mis-ordered imports.
+pep8==1.5.7
 flake8
 mock
 nose
