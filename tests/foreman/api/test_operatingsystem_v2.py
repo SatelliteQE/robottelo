@@ -4,6 +4,7 @@ A reference for the relevant paths can be found here:
 http://theforeman.org/api/apidoc/v2/parameters.html
 
 """
+from httplib import NOT_FOUND
 from robottelo import entities
 from unittest import TestCase
 # (too many public methods) pylint: disable=R0904
@@ -17,10 +18,10 @@ class OSParameterTestCase(TestCase):
         @Assert: A parameter is created and can be read afterwards.
 
         """
-        # Check whether OS 1 exists. Do not catch
-        # requests.exceptions.HTTPError, as doing so destroys useful stack
-        # trace information.
-        entities.OperatingSystem(id=1).read()
+        if entities.OperatingSystem(id=1).read_raw().status_code == NOT_FOUND:
+            self.skipTest(
+                'Bug 1114640 cannot be checked because OS 1 does not exist.'
+            )
 
         # Create a param for OS 1 and read the param back.
         osp_attrs = entities.OperatingSystemParameter(1).create()

@@ -475,14 +475,15 @@ class DoubleCheckTestCase(TestCase):
         logger.info('test_delete_and_get path: {0}'.format(entity_n.path()))
         entity_n.delete()
 
+        # An HTTP 404 response code should always be returned, but this bug is
+        # unlikely to be fixed in a z-stream release due to how minor it is.
+        status_codes = [httplib.NOT_FOUND]
+        if entity == entities.Repository:
+            status_codes.append(httplib.BAD_REQUEST)
+
         # Get the now non-existent entity.
         response = entity_n.read_raw()
-        status_code = httplib.NOT_FOUND
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(entity_n.path(), status_code, response),
-        )
+        self.assertIn(response.status_code, status_codes, response.text)
 
 
 @ddt
