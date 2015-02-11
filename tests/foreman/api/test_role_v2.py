@@ -4,6 +4,7 @@ Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
 can be found here: http://theforeman.org/api/apidoc/v2/roles.html
 
 """
+from fauxfactory import gen_string
 from robottelo.api import client
 from robottelo.api.utils import status_code_error
 from robottelo.common.helpers import get_server_credentials
@@ -34,9 +35,9 @@ class RoleTestCase(TestCase):
         self.assertEqual(response['name'], name)
 
     @ddt.data(
-        orm.StringField(str_type=('alphanumeric',)).get_value(),
-        orm.StringField(str_type=('alpha',)).get_value(),
-        orm.StringField(str_type=('numeric',)).get_value(),
+        gen_string('alphanumeric'),
+        gen_string('alpha'),
+        gen_string('numeric'),
     )
     def test_positive_create_1(self, name):
         """@Test: Create a role with a name containing alphanumeric chars.
@@ -109,12 +110,10 @@ class RoleTestCase(TestCase):
         )
 
     @ddt.data(
-        {u'name': orm.StringField(str_type=('alphanumeric',)).get_value(),
-         u'new_name': orm.StringField(str_type=('alphanumeric',)).get_value()},
-        {u'name': orm.StringField(str_type=('numeric',)).get_value(),
-         u'new_name': orm.StringField(str_type=('numeric',)).get_value()},
-        {u'name': orm.StringField(str_type=('alpha',)).get_value(),
-         u'new_name': orm.StringField(str_type=('alpha',)).get_value()}
+        {u'name': gen_string('alphanumeric'),
+         u'new_name': gen_string('alphanumeric')},
+        {u'name': gen_string('alpha'), u'new_name': gen_string('alpha')},
+        {u'name': gen_string('numeric'), u'new_name': gen_string('numeric')},
     )
     def test_positive_update_1(self, test_data):
         """@Test: Create a role and update its name
