@@ -1611,7 +1611,7 @@ class User(CLITestCase):
             self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
-            'search': 'login = {0}'.format(test_data['login']),
+            u'search': u'login = {0}'.format(test_data['login']),
         })
         self.assertEqual(len(result.stdout), 1)
         self.assertEqual(len(result.stderr), 0)
@@ -1658,7 +1658,7 @@ class User(CLITestCase):
             self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
-            'search': 'firstname = {0}'.format(test_data['firstname']),
+            u'search': u'firstname = {0}'.format(test_data['firstname']),
         })
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
@@ -1704,7 +1704,7 @@ class User(CLITestCase):
             self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
-            'search': 'lastname = {0}'.format(test_data['lastname']),
+            u'search': u'lastname = {0}'.format(test_data['lastname']),
         })
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
@@ -1743,7 +1743,7 @@ class User(CLITestCase):
             self.fail(err)
         self.__assert_exists(user)
         result = UserObj.list({
-            'search': 'mail = {0}'.format(test_data['mail']),
+            u'search': u'mail = {0}'.format(test_data['mail']),
         })
         self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
