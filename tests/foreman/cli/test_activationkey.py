@@ -217,7 +217,7 @@ class TestActivationKey(CLITestCase):
         # ContentView should match passed data
         self.assertEqual(new_ackey['content-view'], test_data['content-view'])
 
-    @stubbed
+    @stubbed()
     def test_positive_create_activation_key_5(self):
         """@Test: Create Activation key for all variations of System Groups
 
@@ -235,7 +235,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_create_activation_key_6(self):
         """@Test: Create Activation key with default Usage limit (Unlimited)
 
@@ -253,7 +253,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_create_activation_key_7(self):
         """@Test: Create Activation key with finite Usage limit
 
@@ -271,7 +271,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_create_activation_key_8(self):
         """@Test: Create Activation key with minimal input parameters
 
@@ -316,7 +316,7 @@ class TestActivationKey(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-    @stubbed
+    @stubbed()
     def test_negative_create_activation_key_1(self):
         """@Test: Create Activation key with invalid Name
 
@@ -334,7 +334,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_negative_create_activation_key_2(self):
         """@Test: Create Activation key with invalid Description
 
@@ -352,7 +352,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_negative_create_activation_key_3(self):
         """@Test: Create Activation key with invalid Usage Limit
 
@@ -462,7 +462,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, 'Output should be blank')
 
-    @stubbed
+    @stubbed()
     def test_positive_delete_activation_key_3(self):
         """@Test: Create Activation key and delete it for all variations of
         Environment
@@ -482,7 +482,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_delete_activation_key_4(self):
         """@Test: Create Activation key and delete it for all variations of
         Content Views
@@ -502,7 +502,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_delete_activation_key_5(self):
         """@Test: Delete an Activation key which has registered systems
 
@@ -521,7 +521,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_delete_activation_key_6(self):
         """@Test: Delete a Content View associated to an Activation Key deletes
         the Activation Key
@@ -540,7 +540,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_negative_delete_activation_key_1(self):
         """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
 
@@ -706,7 +706,7 @@ class TestActivationKey(CLITestCase):
             'Activation key description was not updated')
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_update_activation_key_4(self):
         """@Test: Update Environment in an Activation key
 
@@ -780,7 +780,7 @@ class TestActivationKey(CLITestCase):
             result.stdout['content-view'], content_view,
             'Activation key content-view was not updated')
 
-    @stubbed
+    @stubbed()
     def test_positive_update_activation_key_6(self):
         """@Test: Update Usage limit from Unlimited to a finite number
 
@@ -798,7 +798,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_positive_update_activation_key_7(self):
         """@Test: Update Usage limit from definite number to Unlimited
 
@@ -816,7 +816,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_negative_update_activation_key_1(self):
         """@Test: Update invalid name in an activation key
 
@@ -834,7 +834,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_negative_update_activation_key_2(self):
         """@Test: Update invalid Description in an activation key
 
@@ -852,7 +852,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_negative_update_activation_key_3(self):
         """@Test: Update invalid Usage Limit in an activation key
 
@@ -870,7 +870,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_usage_limit(self):
         """@Test: Test that Usage limit actually limits usage
 
@@ -951,7 +951,7 @@ class TestActivationKey(CLITestCase):
             result.stdout['host-collection'], host_col,
             'Activation key host-collection added')
 
-    @stubbed
+    @stubbed()
     def test_associate_product_1(self):
         """@Test: Test that RH product can be associated to Activation Keys
 
@@ -970,7 +970,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_associate_product_2(self):
         """@Test: Test that custom product can be associated to Activation Keys
 
@@ -989,7 +989,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_associate_product_3(self):
         """@Test: Test if RH/Custom product can be associated to Activation key
 
@@ -1008,7 +1008,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
 
@@ -1027,7 +1027,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_multiple_activation_keys_to_system(self):
         """@Test: Check if multiple Activation keys can be attached to a system
 
@@ -1045,7 +1045,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_list_activation_keys_1(self):
         """@Test: List Activation key for all variations of Activation key name
 
@@ -1064,7 +1064,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_list_activation_keys_2(self):
         """@Test: List Activation key for all variations of Description
 
@@ -1082,7 +1082,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_search_activation_keys_1(self):
         """@Test: Search Activation key for all variations of
             Activation key name
@@ -1102,7 +1102,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_search_activation_keys_2(self):
         """@Test: Search Activation key for all variations of Description
 
@@ -1120,7 +1120,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_info_activation_keys_1(self):
         """@Test: Get Activation key info for all variations of Activation key
         name
@@ -1140,7 +1140,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_info_activation_keys_2(self):
         """@Test: Get Activation key info for all variations of Description
 
@@ -1159,7 +1159,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_end_to_end(self):
         """@Test: Create Activation key and provision systems with it
 

@@ -1036,7 +1036,7 @@ class ActivationKey(UITestCase):
             vm1.destroy()
             vm2.destroy()
 
-    @stubbed
+    @stubbed()
     def test_associate_host(self):
         """@Test: Test that hosts can be associated to Activation Keys
 
@@ -1219,7 +1219,7 @@ class ActivationKey(UITestCase):
                                  (common_locators["alert.success"]))
 
     @skip_if_bug_open('bugzilla', 1078676)
-    @stubbed
+    @stubbed()
     def test_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
 
@@ -1329,7 +1329,7 @@ class ActivationKey(UITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1078676)
-    @stubbed
+    @stubbed()
     def test_end_to_end_activation_key(self):
         """@Test: Create Activation key and provision content-host with it
 

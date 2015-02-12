@@ -18,7 +18,7 @@ class TestHostSystemUnificationCLI(CLITestCase):
     # (the link/join will) "Most likely an internal UUID, not something
     # fuzzy like hostname"
 
-    @stubbed
+    @stubbed()
     def test_all_hosts_appear_in_foreman(self):
         """@test: Hosts registered to Katello via rhsm appear in foreman
 
@@ -36,7 +36,7 @@ class TestHostSystemUnificationCLI(CLITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def all_hosts_appear_in_katello(self):
         """@test: Hosts provisioned in foreman via appear in katello
 

@@ -760,7 +760,7 @@ class TestOrg(CLITestCase):
                          compute_res['name'])
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_remove_computeresource(self):
         """@Test: Check if a ComputeResource can be removed from an Org
 
@@ -1409,7 +1409,7 @@ class TestOrg(CLITestCase):
 
     # Miscelaneous
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
         name, label and description are is numeric
@@ -1431,7 +1431,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
         name, label and description are is numeric
@@ -1453,7 +1453,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name, label and description are is alpha
         name, label and description are is numeric
@@ -1478,7 +1478,7 @@ class TestOrg(CLITestCase):
 
     # Associations
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1501,7 +1501,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1524,7 +1524,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1547,7 +1547,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1570,7 +1570,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -1593,7 +1593,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -1616,7 +1616,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         user name is alpha and admin
         user name is numeric and admin
@@ -1640,7 +1640,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -1664,7 +1664,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -1688,7 +1688,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -1712,7 +1712,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -1736,7 +1736,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1759,7 +1759,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1782,7 +1782,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1805,7 +1805,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -1860,7 +1860,7 @@ class TestOrg(CLITestCase):
         self.assertIn(name, result.stdout['subnets'][0])
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1883,7 +1883,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1906,7 +1906,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -1929,7 +1929,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         domain name is alpha
         domain name is numeric
@@ -1951,7 +1951,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -1974,7 +1974,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         user name is alpha
         user name is numeric
@@ -1997,7 +1997,7 @@ class TestOrg(CLITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         user name is alpha and an admin
         user name is numeric and an admin
@@ -2020,7 +2020,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -2044,7 +2044,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -2068,7 +2068,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -2092,7 +2092,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         hostgroup name is alpha
         hostgroup name is numeric
@@ -2116,7 +2116,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2140,7 +2140,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2164,7 +2164,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2188,7 +2188,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2212,7 +2212,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2235,7 +2235,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2258,7 +2258,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2281,7 +2281,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2304,7 +2304,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -2327,7 +2327,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2351,7 +2351,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2375,7 +2375,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2399,7 +2399,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2423,7 +2423,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -2446,7 +2446,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -2469,7 +2469,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -2492,7 +2492,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -2515,7 +2515,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2539,7 +2539,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2563,7 +2563,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2587,7 +2587,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         computeresource is alpha
         computeresource is numeric
@@ -2611,7 +2611,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2634,7 +2634,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2657,7 +2657,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2680,7 +2680,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         medium name is alpha
         medium name is numeric
@@ -2703,7 +2703,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -2727,7 +2727,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -2751,7 +2751,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -2775,7 +2775,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         configtemplate name is alpha
         configtemplate name is numeric
@@ -2799,7 +2799,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2822,7 +2822,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2845,7 +2845,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2868,7 +2868,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         environment name is alpha
         environment name is numeric
@@ -2891,7 +2891,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -2914,7 +2914,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -2937,7 +2937,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric
@@ -2960,7 +2960,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         subnet name is alpha
         subnet name is numeric

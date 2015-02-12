@@ -6,7 +6,7 @@ from robottelo.common.decorators import stubbed
 class SystemRegistrationTestCase(UITestCase):
     """Tests for System Registration UI"""
 
-    @stubbed
+    @stubbed()
     def test_registered_system_get_pushed_content(self):
         # variations: content types - RH rpms/errata; custom content rpms;
         # puppet modules
@@ -20,7 +20,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_registered_system_can_be_listed_ui(self):
         """@test: perform a system list for a given org
 
@@ -32,7 +32,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_system_deregister_ui(self):
         """@test: delete system via Systems UI
 
@@ -44,7 +44,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_compliance_green(self):
         """@test: system with appropriate entitlements for subscriptions
 
@@ -56,7 +56,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_compliance_red(self):
         """@test: system without appropriate entitlements for subscriptions
 
@@ -68,7 +68,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_compliance_yellow(self):
         """@test: system with some, but not all, appropriate entitlements for
         subscriptions

@@ -9,7 +9,7 @@ from robottelo.test import APITestCase
 class ErrataTestCase(APITestCase):
     """API Tests for the errata management feature"""
 
-    @stubbed
+    @stubbed()
     def test_hc_errata_install_1(self):
         """@Test: Install errata in a host-collection
 
@@ -27,7 +27,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_list_1(self):
         """@Test: View all errata specific to an Org
 
@@ -45,7 +45,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_list_2(self):
         """@Test: View all errata in an Org sorted by Updated
 
@@ -63,7 +63,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_list_3(self):
         """@Test: Filter errata by CVE
 
@@ -81,7 +81,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_systems_list_1(self):
         """@Test: View a list of affected content hosts for an erratum
 
@@ -100,7 +100,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_systems_list_2(self):
         """@Test: Filter errata list based on affected content hosts
 
@@ -118,7 +118,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_sort_1(self):
         """@Test: Filter errata by issued date
 
@@ -136,7 +136,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_host_1(self):
         """@Test: Filter applicable errata for a content host by current and
         Library environments
@@ -159,7 +159,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_host_2(self):
         """@Test: Available errata count when retrieving Content host
 
@@ -180,7 +180,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_view_1(self):
         """@Test: Generate a difference in errata between a set of enviroments
         for a content view
@@ -203,7 +203,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_incremental_update_1(self):
         """@Test: Select multiple errata and apply them to multiple content
         views in multiple environments
@@ -226,7 +226,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_incremental_update_2(self):
         """@Test: Query a subset of environments or content views to push new
         errata
@@ -248,7 +248,7 @@ class ErrataTestCase(APITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_incremental_update_3(self):
         """@Test: Select multiple packages and apply them to multiple content
         views in multiple environments

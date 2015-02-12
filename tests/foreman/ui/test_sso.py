@@ -17,7 +17,7 @@ class TestSSOUI(UITestCase):
     # possibly other LDAP types. These (in particular, the LDAP variations)
     # can be easily added later.
 
-    @stubbed
+    @stubbed()
     def test_sso_kerberos_basic_no_roles(self):
         """@test: SSO - kerberos login (basic) that has no rights
 
@@ -35,7 +35,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_kerberos_basic_roles(self):
         """@test: SSO - kerberos login (basic) that has rights assigned
 
@@ -53,7 +53,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_kerberos_user_disabled(self):
         """@test: Kerberos user activity when kerb account has been deleted or
         deactivated
@@ -71,7 +71,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_ipa_basic_no_roles(self):
         """@test: Login with LDAP - IPA for user with no roles/rights
 
@@ -89,7 +89,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_ipa_basic_roles(self):
         """@test: Login with LDAP - IPA for user with roles/rights
 
@@ -107,7 +107,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_ipa_user_disabled(self):
         """@test: LDAP - IPA user activity when IPA account has been deleted
         or deactivated
@@ -125,7 +125,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_openldap_basic_no_roles(self):
         """@test: Login with LDAP - OpenLDAP that has no roles / rights
 
@@ -143,7 +143,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_openldap_basic_roles(self):
         """@test: Login with LDAP - OpenLDAP for user with roles/rights assigned
 
@@ -161,7 +161,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_openldap_user_disabled(self):
         """@test: LDAP - OpenLDAP user activity when OpenLDAP account has been
         deleted or deactivated
@@ -179,7 +179,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_multiple_ldap_backends(self):
         """@test: SSO - multiple LDAP servers kafo instance
 
@@ -199,7 +199,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_multiple_ldap_namespace_collision(self):
         # devnote:
         # users have auth_source which could distinguish them, but validation
@@ -222,7 +222,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_ldap_user_named_admin(self):
         # devnote:
         # shouldn't be a problem since admin from internal DB will be used at
@@ -243,7 +243,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_ldap_server_down_before_session(self):
         """@test: SSO - what happens when we have an ldap server that goes down
         before logging in?
@@ -260,7 +260,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_ldap_server_down_during_session(self):
         """@test: SSO - what happens when we have an ldap server that goes down
         after login?
@@ -278,7 +278,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_usergroup_roles_read(self):
         """@test: Usergroups: group roles get pushed down to user
 
@@ -297,7 +297,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_usergroup_roles_update(self):
         """@test: Usergroups: added usergroup roles get pushed down to user
 
@@ -316,7 +316,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_usergroup_roles_delete(self):
         """@test: Usergroups: deleted usergroup roles get pushed down to user
 
@@ -335,7 +335,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_usergroup_additional_user_roles(self):
         """@test: Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
@@ -358,7 +358,7 @@ class TestSSOUI(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_sso_usergroup_user_add(self):
         """@test: Usergroups: new user added to usegroup inherits roles
 

@@ -496,7 +496,7 @@ class ContentViewTestCaseStub(APITestCase):
     # implemented. In the meantime, let's not worry about bad names.
     # (invalid-name) pylint:disable=C0103
 
-    @stubbed
+    @stubbed()
     def test_cv_edit_rh_custom_spin(self):
         """
         @test: edit content views for a custom rh spin.  For example,
@@ -520,7 +520,7 @@ class ContentViewTestCaseStub(APITestCase):
     # katello content definition add_repo --label=MyView
     #   --repo=repo1 --org=ACME
 
-    @stubbed
+    @stubbed()
     def test_associate_view_rh(self):
         """
         @test: associate Red Hat content in a view
@@ -530,7 +530,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_associate_view_rh_custom_spin(self):
         """
         @test: associate Red Hat content in a view
@@ -546,7 +546,7 @@ class ContentViewTestCaseStub(APITestCase):
         #   * A filter on severity (only content of specific errata
         # severity.
 
-    @stubbed
+    @stubbed()
     def test_associate_view_custom_content(self):
         """
         @test: associate Red Hat content in a view
@@ -556,7 +556,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_associate_puppet_repo_negative(self):
         """
         @test: attempt to associate puppet repos within a custom
@@ -567,7 +567,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_associate_components_composite_negative(self):
         """
         @test: attempt to associate components n a non-composite
@@ -577,7 +577,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_associate_composite_dupe_repos_negative(self):
         """
         @test: attempt to associate the same repo multiple times within a
@@ -587,7 +587,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_associate_composite_dupe_modules_negative(self):
         """
         @test: attempt to associate duplicate puppet module(s) within a
@@ -601,7 +601,7 @@ class ContentViewTestCaseStub(APITestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
-    @stubbed
+    @stubbed()
     def test_cv_promote_rh(self):
         """
         @test: attempt to promote a content view containing RH content
@@ -611,7 +611,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_promote_rh_custom_spin(self):
         """
         @test: attempt to promote a content view containing a custom RH
@@ -622,7 +622,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_promote_custom_content(self):
         """
         @test: attempt to promote a content view containing custom content
@@ -631,7 +631,7 @@ class ContentViewTestCaseStub(APITestCase):
         @assert: Content view can be promoted
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_promote_composite(self):
         """
         @test: attempt to promote a content view containing custom content
@@ -646,7 +646,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
 
-    @stubbed
+    @stubbed()
     def test_cv_promote_badid_negative(self):
         """
         @test: attempt to promote a content view using an invalid id
@@ -666,7 +666,7 @@ class ContentViewTestCaseStub(APITestCase):
     # Content Views: publish
     # katello content definition publish --label=MyView
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_rh(self):
         """
         @test: attempt to publish a content view containing RH content
@@ -676,7 +676,7 @@ class ContentViewTestCaseStub(APITestCase):
         """
         # See method test_subscribe_system_to_cv in module test_contentview_v2
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_rh_custom_spin(self):
         """
         @test: attempt to publish  a content view containing a custom RH
@@ -687,7 +687,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_custom_content(self):
         """
         @test: attempt to publish a content view containing custom content
@@ -697,7 +697,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_composite(self):
         """
         @test: attempt to publish  a content view containing custom content
@@ -711,7 +711,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_badlabel_negative(self):
         """
         @test: attempt to publish a content view containing invalid strings
@@ -725,7 +725,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations might be:
         # zero length, too long, symbols, etc.
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_version_changes_in_target_env(self):
         """
         @test: when publishing new version to environment, version
@@ -744,7 +744,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
 
-    @stubbed
+    @stubbed()
     def test_cv_publish_version_changes_in_source_env(self):
         """
         @test: when publishing new version to environment, version
@@ -762,7 +762,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
 
-    @stubbed
+    @stubbed()
     def test_cv_clone_within_same_env(self):
         """
         @test: attempt to create new content view based on existing
@@ -773,7 +773,7 @@ class ContentViewTestCaseStub(APITestCase):
         """
         # Dev note: "not implemented yet"
 
-    @stubbed
+    @stubbed()
     def test_cv_clone_within_diff_env(self):
         """
         @test: attempt to create new content view based on existing
@@ -784,7 +784,7 @@ class ContentViewTestCaseStub(APITestCase):
         """
         # Dev note: "not implemented yet"
 
-    @stubbed
+    @stubbed()
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
         """
         @test: attempt to refresh errata in a new view, based on
@@ -794,7 +794,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
@@ -813,7 +813,7 @@ class ContentViewTestCaseStub(APITestCase):
         # * composite
         # * CVs with puppet modules
 
-    @stubbed
+    @stubbed()
     def test_custom_cv_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
@@ -823,7 +823,7 @@ class ContentViewTestCaseStub(APITestCase):
         # This test is implemented in tests/foreman/smoke/test_api_smoke.py.
         # See the end of method TestSmoke.test_smoke.
 
-    @stubbed
+    @stubbed()
     def test_cv_dynflow_restart_promote(self):
         """
         @test: attempt to restart a promotion
@@ -835,7 +835,7 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_dynflow_restart_publish(self):
         """
         @test: attempt to restart a publish
@@ -850,7 +850,7 @@ class ContentViewTestCaseStub(APITestCase):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
-    @stubbed
+    @stubbed()
     def test_cv_roles_admin_user(self):
         """
         @test: attempt to view content views
@@ -869,7 +869,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
 
-    @stubbed
+    @stubbed()
     def test_cv_roles_readonly_user(self):
         """
         @test: attempt to view content views
@@ -889,7 +889,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
 
-    @stubbed
+    @stubbed()
     def test_cv_roles_admin_user_negative(self):
         """
         @test: attempt to view content views
@@ -908,7 +908,7 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
 
-    @stubbed
+    @stubbed()
     def test_cv_roles_readonly_user_negative(self):
         """
         @test: attempt to view content views

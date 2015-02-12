@@ -497,7 +497,7 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric
@@ -812,7 +812,7 @@ class Org(UITestCase):
             self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         smartproxy name is alpha
         smartproxy name is numeric

@@ -16,7 +16,7 @@ class TestHostSystemUnificationUI(UITestCase):
     # (the link/join will) "Most likely an internal UUID, not something
     # fuzzy like hostname"
 
-    @stubbed
+    @stubbed()
     def test_katello_host_in_foreman(self):
         """@test: Hosts registered to Katello via rhsm appear in foreman
 
@@ -34,7 +34,7 @@ class TestHostSystemUnificationUI(UITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_foreman_host_in_katello(self):
         """@test: Hosts provisioned in foreman via appear in katello
 
@@ -52,7 +52,7 @@ class TestHostSystemUnificationUI(UITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_renamed_host_foreman(self):
         """@test: Hosts renamed in foreman appear in katello
 
@@ -70,7 +70,7 @@ class TestHostSystemUnificationUI(UITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_renamed_host_katello(self):
         """@test: Hosts renamed in katello via appear in foreman
 
@@ -88,7 +88,7 @@ class TestHostSystemUnificationUI(UITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_deleted_host_foreman(self):
         """@test: Hosts delete in foreman disappear from both sides of UI
 
@@ -106,7 +106,7 @@ class TestHostSystemUnificationUI(UITestCase):
         """
         pass
 
-    @stubbed
+    @stubbed()
     def test_deleted_host_katello(self):
         """@test: Hosts delete in katello disappear from both sides of UI
 

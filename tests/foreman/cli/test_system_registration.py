@@ -6,7 +6,7 @@ from robottelo.common.decorators import stubbed
 class SystemRegistrationTestCase(CLITestCase):
     """Tests for System Registration CLI"""
 
-    @stubbed
+    @stubbed()
     def test_rpm_install(self):
         """@test: rpm can be retrieved
 
@@ -21,7 +21,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_register_no_activation_key(self):
         """@test: register system to sat without activation key
 
@@ -33,7 +33,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_register_with_activation_key(self):
         """@test: register system with activation key
 
@@ -46,7 +46,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_cannot_register_twice_negative(self):
         """@test: Attempt to register a system twice to an instance
 
@@ -58,7 +58,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_registered_systems_pull_content(self):
         # variations:  RH rpms/errata; custom content repos
         """@test: assure RH RPM content can be installed
@@ -71,7 +71,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_registered_system_can_be_listed_cli(self):
         """@test: perform a system list for a given org
 
@@ -83,7 +83,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_system_deregister_cli(self):
         """@test: deregister/delete system via RHSM
 
@@ -96,7 +96,7 @@ class SystemRegistrationTestCase(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_deregistered_system_cannot_pull_content(self):
         """@test: try and retrieve content (via yum, etc.) after system has
         been removed from sat
