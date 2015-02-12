@@ -7,7 +7,7 @@ from robottelo.test import UITestCase
 class ErrataTestCase(UITestCase):
     """UI Tests for the errata management feature"""
 
-    @stubbed
+    @stubbed()
     def test_errata_sort(self):
         """@Test: Sort the columns of Errata page
 
@@ -26,7 +26,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_list(self):
         """@Test: View all errata in an Org
 
@@ -45,7 +45,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_list_permission(self):
         """@Test: Show errata only if the User has permissions to view them
 
@@ -68,7 +68,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_apply_errata_1(self):
         """@Test: Apply an erratum for selected content hosts
 
@@ -88,7 +88,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_apply_errata_2(self):
         """@Test: Apply an erratum for all content hosts
 
@@ -107,7 +107,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_view_errata_1(self):
         """@Test: View erratum similar to RH Customer portal
 
@@ -126,7 +126,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_view_errata_2(self):
         """@Test: View erratum details similar to RH Customer portal
 
@@ -146,7 +146,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_view_errata_3(self):
         """@Test: View a list of products/repositories for an erratum
 
@@ -164,7 +164,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_view_errata_4(self):
         """@Test: View CVE number(s) in Errata Details page
 
@@ -186,7 +186,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_view_errata_5(self):
         """@Test: Filter Content hosts by environment
 
@@ -205,7 +205,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_search_errata_1(self):
         """@Test: Check if autocomplete works in search field of Errata page
 
@@ -223,7 +223,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_search_errata_2(self):
         """@Test: Check if all the errata searches are redirected to the new
         errata page
@@ -251,7 +251,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_host_1(self):
         """@Test: Check if the applicable errata are available from the content
         host's previous environment
@@ -274,7 +274,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_host_2(self):
         """@Test: Check if the applicable errata are available from the content
         host's Library
@@ -297,7 +297,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_host_3(self):
         """@Test: Available errata count displayed in Content hosts page
 
@@ -325,7 +325,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_errata_content_host_4(self):
         """@Test: Errata count on Content host Details page
 
@@ -351,7 +351,7 @@ class ErrataTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_incremental_update_1(self):
         """@Test: Update composite content views and environments with new
         point releases

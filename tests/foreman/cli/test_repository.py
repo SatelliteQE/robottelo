@@ -548,7 +548,7 @@ class TestRepository(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_update_2(self, test_data):
         """@Test: Update the original gpg key
 
@@ -561,7 +561,7 @@ class TestRepository(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_update_3(self, test_data):
         """@Test: Update the original publishing method
 

@@ -7,7 +7,7 @@ from robottelo.test import UITestCase
 class EmailTestCase(UITestCase):
     """UI Tests for the email notification feature"""
 
-    @stubbed
+    @stubbed()
     def test_email_preference(self):
         """@Test: Manage user email notification preferences
 
@@ -27,7 +27,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_sync_1(self):
         """@Test: Receive email after every sync operation
 
@@ -45,7 +45,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_sync_2(self):
         """@Test: Do not receive email after every sync operation
 
@@ -63,7 +63,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_promote_1(self):
         """@Test: Receive email after every promote operation
 
@@ -81,7 +81,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_promote_2(self):
         """@Test: Do not receive email after every promote operation
 
@@ -99,7 +99,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_host_1(self):
         """@Test: Receive daily email with host advisory information
 
@@ -117,7 +117,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_host_2(self):
         """@Test: Receive weekly email with host advisory information
 
@@ -135,7 +135,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_host_3(self):
         """@Test: Receive monthly email with host advisory information
 
@@ -153,7 +153,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_host_4(self):
         """@Test: Receive no email with host advisory information
 
@@ -171,7 +171,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_puppet_error_1(self):
         """@Test: Receive email after puppet error
 
@@ -189,7 +189,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_puppet_error_2(self):
         """@Test: Do not receive email after puppet error
 
@@ -207,7 +207,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_permission_1(self):
         """@Test: Receive 'Katello Sync Errata' notifications - only for
         repositories and content views that the user has view access to
@@ -233,7 +233,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_permission_2(self):
         """@Test: Receive 'Katello Promote Errata' notifications - only for
         repositories and content views that the user has view access to
@@ -259,7 +259,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_permission_3(self):
         """@Test: Receive 'Katello Host Advisory' notifications - only for
         repositories and content views that the user has view access to
@@ -284,7 +284,7 @@ class EmailTestCase(UITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_email_permission_4(self):
         """@Test: Receive 'Katello Host Advisory' notifications - only for
         content hosts that the user has view access to

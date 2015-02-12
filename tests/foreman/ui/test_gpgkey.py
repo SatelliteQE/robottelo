@@ -357,7 +357,7 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(new_name))
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -381,7 +381,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -405,7 +405,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -429,7 +429,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -452,7 +452,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -475,7 +475,7 @@ class GPGKey(UITestCase):
 
         pass
 
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -759,7 +759,7 @@ class GPGKeyProductAssociate(UITestCase):
                                  (name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085924)
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1083,7 +1083,7 @@ class GPGKeyProductAssociate(UITestCase):
                                  (new_name, product=False))
 
     @skip_if_bug_open('bugzilla', 1085924)
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric
@@ -1399,7 +1399,7 @@ class GPGKeyProductAssociate(UITestCase):
                               (name, product_name, repository_1_name))
 
     @skip_if_bug_open('bugzilla', 1085924)
-    @stubbed
+    @stubbed()
     @data("""DATADRIVENGOESHERE
         name is alpha
         name is numeric

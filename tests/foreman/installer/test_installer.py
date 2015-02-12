@@ -91,7 +91,7 @@ class InstallerTestCase(unittest.TestCase):
                                                          logfile['path'],
                                                          ''.join(result)))
 
-    @stubbed
+    @stubbed()
     def test_installer_check_progress_meter(self):
         """
         @test:  Assure progress indicator/meter "works"
@@ -101,7 +101,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_from_iso(self):
         """
         @test:  Can install product from ISO
@@ -110,7 +110,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_server_install(self):
         """
         @test:  Can install main satellite instance successfully via RPM
@@ -119,7 +119,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_node_install(self):
         """
         @test:  Can install node successfully via RPM
@@ -128,7 +128,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_capsule_install(self):
         """
         @test:  Can install capsule successfully via RPM
@@ -137,7 +137,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_disconnected_util_install(self):
         """
         @test: Can install  satellite disconnected utility successfully via
@@ -147,7 +147,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_capsule_registers(self):
         """
         @test: Upon installation, capsule instance self-registers itself to
@@ -158,7 +158,7 @@ class InstallerTestCase(unittest.TestCase):
         @status: Manual
         """
 
-    @stubbed
+    @stubbed()
     def test_installer_clear_data(self):
         """
         @test:  User can run installer to clear existing data

@@ -1882,7 +1882,7 @@ class TestContentView(CLITestCase):
             len(result.stderr), 0,
             "There should have been an exception here")
 
-    @stubbed
+    @stubbed()
     def test_cv_roles_readonly_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1906,7 +1906,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @stubbed
+    @stubbed()
     def test_cv_roles_readonly_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user

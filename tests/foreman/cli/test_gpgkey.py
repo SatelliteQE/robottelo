@@ -373,7 +373,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_positive_delete_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then delete it
@@ -397,7 +397,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key text is valid text from a valid gpg key file
     """
-    @stubbed
+    @stubbed()
     def test_positive_delete_2(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
@@ -425,7 +425,7 @@ class TestGPGKey(CLITestCase):
         delete using a negative gpg key ID
         delete using a random string as the gpg key ID
     """
-    @stubbed
+    @stubbed()
     def test_negative_delete_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then fail to delete it
@@ -451,7 +451,7 @@ class TestGPGKey(CLITestCase):
         delete using a negative gpg key ID
         delete using a random string as the gpg key ID
     """
-    @stubbed
+    @stubbed()
     def test_negative_delete_2(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then fail to delete it
@@ -477,7 +477,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_positive_update_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its name
@@ -501,7 +501,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_positive_update_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
@@ -525,7 +525,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key text is valid text from a valid gpg key file
     """
-    @stubbed
+    @stubbed()
     def test_positive_update_3(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its name
@@ -549,7 +549,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key text is valid text from a valid gpg key file
     """
-    @stubbed
+    @stubbed()
     def test_positive_update_4(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
@@ -576,7 +576,7 @@ class TestGPGKey(CLITestCase):
         update name is html 300 characters long
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_negative_update_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
@@ -601,7 +601,7 @@ class TestGPGKey(CLITestCase):
         update name is html 300 characters long
         gpg key text is valid text from a valid gpg key file
     """
-    @stubbed
+    @stubbed()
     def test_negative_update_2(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then fail to update its name
@@ -627,7 +627,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
@@ -651,7 +651,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -675,7 +675,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_3(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
@@ -700,7 +700,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_4(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
@@ -725,7 +725,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_5(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -750,7 +750,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_6(self):
         """@test: Create gpg key via file import and associate with custom repo
 
@@ -777,7 +777,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_7(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repos from custom product using Repo
@@ -802,7 +802,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_8(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product then
@@ -827,7 +827,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_9(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -853,7 +853,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_10(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
@@ -879,7 +879,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_11(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
@@ -905,7 +905,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_12(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -931,7 +931,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_13(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -957,7 +957,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_14(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repos from custom product using Repo
@@ -983,7 +983,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_15(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
@@ -1009,7 +1009,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_16(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -1035,7 +1035,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_17(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
@@ -1061,7 +1061,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_18(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
@@ -1087,7 +1087,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_19(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -1113,7 +1113,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_20(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -1139,7 +1139,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_21(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repos from custom product using Repo
@@ -1166,7 +1166,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_22(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with empty (no repos)
@@ -1191,7 +1191,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_23(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
@@ -1216,7 +1216,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_24(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
@@ -1241,7 +1241,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_25(self):
         """@test: Create gpg key with valid name and valid gpg key via text via
         cut and paste/string then associate it with custom product using
@@ -1266,7 +1266,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_26(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
@@ -1291,7 +1291,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_27(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
@@ -1316,7 +1316,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_28(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repos from custom product
@@ -1341,7 +1341,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_29(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with empty (no repos)
@@ -1366,7 +1366,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_30(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
@@ -1392,7 +1392,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_31(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
@@ -1418,7 +1418,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_32(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product using
@@ -1444,7 +1444,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_33(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
@@ -1470,7 +1470,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_34(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
@@ -1496,7 +1496,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_35(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repos from custom product
@@ -1522,7 +1522,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_36(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with empty (no repos) custom
@@ -1548,7 +1548,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_37(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
@@ -1574,7 +1574,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_38(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product that has
@@ -1600,7 +1600,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_39(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it with custom product using
@@ -1626,7 +1626,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_40(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
@@ -1652,7 +1652,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_41(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repository from custom
@@ -1678,7 +1678,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_key_associate_42(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then associate it to repos from custom product
@@ -1707,7 +1707,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_consume_content_1(self):
         """@test: Hosts can install packages using gpg key associated with
         single custom repository
@@ -1731,7 +1731,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_consume_content_2(self):
         """@test: Hosts can install packages using gpg key associated with
         multiple custom repositories
@@ -1755,7 +1755,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_consume_content_3(self):
         """@test:Hosts can install packages using different gpg keys associated
         with multiple custom repositories
@@ -1781,7 +1781,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_list_key_1(self):
         """@test: Create gpg key and list it
 
@@ -1804,7 +1804,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_search_key_1(self):
         """@test: Create gpg key and search/find it
 
@@ -1827,7 +1827,7 @@ class TestGPGKey(CLITestCase):
         name is html
         gpg key file is valid always
     """
-    @stubbed
+    @stubbed()
     def test_info_key_1(self):
         """@test: Create single gpg key and get its info
 

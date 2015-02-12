@@ -22,7 +22,7 @@ class MediaTestCase(APITestCase):
 
     """
 
-    @stubbed
+    @stubbed()
     def test_remove_medium_1(self, test_data):
         """
         @feature: Organizations
@@ -31,7 +31,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_remove_medium_2(self, test_data):
         """
         @feature: Organizations
@@ -40,7 +40,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_remove_medium_3(self, test_data):
         """
         @feature: Organizations
@@ -49,7 +49,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_remove_medium_4(self, test_data):
         """
         @feature: Organizations
@@ -58,7 +58,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_add_medium_1(self, test_data):
         """
         @feature: Organizations
@@ -67,7 +67,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_add_medium_2(self, test_data):
         """
         @feature: Organizations
@@ -76,7 +76,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_add_medium_3(self, test_data):
         """
         @feature: Organizations
@@ -85,7 +85,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
-    @stubbed
+    @stubbed()
     def test_add_medium_4(self, test_data):
         """
         @feature: Organizations
