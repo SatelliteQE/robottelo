@@ -66,22 +66,7 @@ class TestActivationKey(CLITestCase):
             options['organization-id'] = self.org['id']
 
         # Create activation key
-        ackey = make_activation_key(options)
-
-        # Fetch it
-        result = ActivationKey.info({'id': ackey['id']})
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            'Activation key was not found: {0}'.format(result.stderr))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            'No error was expected {0}'.format(result.stderr))
-
-        # Return the activation key dictionary
-        return ackey
+        return make_activation_key(options)
 
     @data(
         gen_string('alpha'),
@@ -106,11 +91,7 @@ class TestActivationKey(CLITestCase):
         """
         new_ackey_name = self._make_activation_key({u'name': name})['name']
         # Name should match passed data
-        self.assertEqual(
-            new_ackey_name,
-            name,
-            'Names don\'t match: "{0}" != "{1}"'.format(new_ackey_name, name)
-        )
+        self.assertEqual(new_ackey_name, name)
 
     @data(
         gen_string('alpha'),
@@ -135,12 +116,7 @@ class TestActivationKey(CLITestCase):
         new_ackey_description = self._make_activation_key(
             {u'description': description})['description']
         # Description should match passed data
-        self.assertEqual(
-            new_ackey_description,
-            description,
-            'Descriptions don\'t match: "{0}" != "{1}"'.format(
-                new_ackey_description, description)
-        )
+        self.assertEqual(new_ackey_description, description)
 
     @run_only_on('sat')
     @data(
@@ -168,12 +144,7 @@ class TestActivationKey(CLITestCase):
              u'lifecycle-environment-id': self.library['id']}
         )['lifecycle-environment']
         # Description should match passed data
-        self.assertEqual(
-            new_ackey_env,
-            self.library['name'],
-            'Environments don\'t match: "{0}" != "{1}"'.format(
-                new_ackey_env, self.library['name'])
-        )
+        self.assertEqual(new_ackey_env, self.library['name'])
 
     @run_only_on('sat')
     @data(
@@ -201,12 +172,7 @@ class TestActivationKey(CLITestCase):
             u'lifecycle-environment-id': self.env1['id']
         })['lifecycle-environment']
         # Description should match passed data
-        self.assertEqual(
-            new_ackey_env,
-            self.env1['name'],
-            'Environments don\'t match: "{0}" != "{1}"'.format(
-                new_ackey_env, self.env1['name'])
-        )
+        self.assertEqual(new_ackey_env, self.env1['name'])
 
     @data(
         {'name': gen_string('alpha'),
@@ -247,19 +213,9 @@ class TestActivationKey(CLITestCase):
             self.fail(err)
 
         # Name should match passed data
-        self.assertEqual(
-            new_ackey['name'],
-            test_data['name'],
-            'Names don\'t match: "{0}" != "{1}"'.format(
-                new_ackey['name'], test_data['name'])
-        )
+        self.assertEqual(new_ackey['name'], test_data['name'])
         # ContentView should match passed data
-        self.assertEqual(
-            new_ackey['content-view'],
-            test_data['content-view'],
-            'Content Views don\'t match: "{0}" != "{1}"'.format(
-                new_ackey['content-view'], test_data['content-view'])
-        )
+        self.assertEqual(new_ackey['content-view'], test_data['content-view'])
 
     @stubbed
     def test_positive_create_activation_key_5(self):
@@ -1274,8 +1230,9 @@ class TestActivationKey(CLITestCase):
             })
         except CLIFactoryError as err:
             self.fail(
-                'Failed to create an activation key with a previous name of'
-                'another activation key: {0}'.format(err))
+                u'Failed to create an activation key with a previous name of'
+                'another activation key: {0}'.format(err)
+            )
 
         result = ActivationKey.info({
             u'id': new_activation_key['id'],
@@ -1288,12 +1245,7 @@ class TestActivationKey(CLITestCase):
             len(result.stderr), 0,
             'There should not be an error here'
         )
-        self.assertEqual(
-            result.stdout['name'], name,
-            u'Activation key names don\'t not match {0} != {1}'.format(
-                result.stdout['name'], name
-            )
-        )
+        self.assertEqual(result.stdout['name'], name)
 
     @data(
         gen_string('alpha'),
@@ -1415,13 +1367,9 @@ class TestActivationKey(CLITestCase):
             u'id': activation_key_id,
             u'subscription-id': subs_id.stdout[0]['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         'return code must be 0, instead got {0}'
-                         .format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
-        self.assertIn('Subscription added to activation key',
-                      result.stdout)
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0, result.stderr)
+        self.assertIn('Subscription added to activation key', result.stdout)
 
     @data(
         gen_string('alpha'),
@@ -1552,9 +1500,11 @@ class TestActivationKey(CLITestCase):
             u'id': parent_id,
             u'subscription-id': subscription_result.stdout[0]['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         'Test failed during setup. Return code: {0}'
-                         ', expected 0'.format(result.return_code))
+        self.assertEqual(
+            result.return_code, 0,
+            'Test failed during setup. Return code: {0}, expected 0'
+            .format(result.return_code)
+        )
         # End test setup
 
         new_name = gen_string('utf8')
