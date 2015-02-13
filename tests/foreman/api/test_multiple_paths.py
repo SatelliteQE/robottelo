@@ -416,8 +416,8 @@ class DoubleCheckTestCase(TestCase):
         @Assert: The created entity has the correct attributes.
 
         """
-        if entity in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
-            self.skipTest("Bugzilla bug 1151240 is open.""")
+        if entity in BZ_1151240_ENTITIES:
+            self.skipTest("Bugzilla bug 1151240 affects the 6.0.x branch.")
         # Generate some attributes and use them to create an entity.
         gen_attrs = entity().build()
         response = client.post(
