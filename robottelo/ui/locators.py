@@ -417,7 +417,9 @@ tab_locators = {
         By.XPATH,
         "//a[contains(@ui-sref, 'repositories.yum.available')]"),
     "contentviews.tab_repo_remove": (
-        By.XPATH, "//a[contains(@ui-sref, 'repositories.list')]"),
+        By.XPATH,
+        ("//a[contains(@ui-sref, 'repositories.yum.list')]"
+         "/span[@class='ng-scope' and contains(., 'List/Remove')]")),
     "contentviews.tab_cv_add": (
         By.XPATH,
         "//a[contains(@ui-sref, 'content-views.available')]"),
@@ -555,7 +557,7 @@ common_locators = {
         "//div[@class='fields']/span[@class='help-block']"),
 
     "cv_filter": (
-        By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
+        By.XPATH, "//input[@ng-model='filterTerm']"),
     "search": (By.ID, "search"),
     "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),

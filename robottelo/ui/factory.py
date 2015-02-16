@@ -103,7 +103,7 @@ def set_context(session, org=None, loc=None, force_context=False):
             session.nav.go_to_select_loc(loc)
 
 
-def make_org(session, force_context=False, **kwargs):
+def make_org(session, **kwargs):
     """Creates an organization"""
 
     create_args = {
@@ -124,11 +124,11 @@ def make_org(session, force_context=False, **kwargs):
         u'select': True,
     }
     page = session.nav.go_to_org
-    core_factory(create_args, kwargs, session, page, force_context=False)
+    core_factory(create_args, kwargs, session, page)
     Org(session.browser).create(**create_args)
 
 
-def make_loc(session, force_context=False, **kwargs):
+def make_loc(session, **kwargs):
     """Creates a location"""
 
     create_args = {
@@ -147,13 +147,12 @@ def make_loc(session, force_context=False, **kwargs):
         u'select': True,
     }
     page = session.nav.go_to_loc
-    core_factory(create_args, kwargs, session, page,
-                 force_context=force_context)
+    core_factory(create_args, kwargs, session, page)
     Location(session.browser).create(**create_args)
 
 
 def make_lifecycle_environment(session, org=None, loc=None,
-                               force_context=False, **kwargs):
+                               force_context=True, **kwargs):
     """Creates Life-cycle Environment"""
 
     create_args = {
@@ -168,7 +167,7 @@ def make_lifecycle_environment(session, org=None, loc=None,
 
 
 def make_activationkey(session, org=None, loc=None,
-                       force_context=False, **kwargs):
+                       force_context=True, **kwargs):
     """Creates Activation Key"""
 
     create_args = {
@@ -184,7 +183,7 @@ def make_activationkey(session, org=None, loc=None,
     ActivationKey(session.browser).create(**create_args)
 
 
-def make_product(session, org=None, loc=None, force_context=False, **kwargs):
+def make_product(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a product"""
 
     create_args = {
@@ -203,7 +202,7 @@ def make_product(session, org=None, loc=None, force_context=False, **kwargs):
 
 
 def make_repository(session, org=None, loc=None,
-                    force_context=False, **kwargs):
+                    force_context=True, **kwargs):
     """Creates a repository"""
 
     create_args = {
@@ -222,7 +221,7 @@ def make_repository(session, org=None, loc=None,
 
 
 def make_contentview(session, org=None, loc=None,
-                     force_context=False, **kwargs):
+                     force_context=True, **kwargs):
     """Creates a content-view"""
 
     create_args = {
@@ -237,7 +236,7 @@ def make_contentview(session, org=None, loc=None,
     ContentViews(session.browser).create(**create_args)
 
 
-def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
+def make_gpgkey(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a gpgkey"""
 
     create_args = {
@@ -252,7 +251,7 @@ def make_gpgkey(session, org=None, loc=None, force_context=False, **kwargs):
     GPGKey(session.browser).create(**create_args)
 
 
-def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
+def make_subnet(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a subnet"""
 
     create_args = {
@@ -272,7 +271,7 @@ def make_subnet(session, org=None, loc=None, force_context=False, **kwargs):
     Subnet(session.browser).create(**create_args)
 
 
-def make_domain(session, org=None, loc=None, force_context=False, **kwargs):
+def make_domain(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a domain"""
 
     create_args = {
@@ -286,7 +285,7 @@ def make_domain(session, org=None, loc=None, force_context=False, **kwargs):
     Domain(session.browser).create(**create_args)
 
 
-def make_user(session, org=None, loc=None, force_context=False, **kwargs):
+def make_user(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a user"""
 
     password = gen_string("alpha", 6)
@@ -314,7 +313,7 @@ def make_user(session, org=None, loc=None, force_context=False, **kwargs):
     User(session.browser).create(**create_args)
 
 
-def make_usergroup(session, org=None, loc=None, force_context=False, **kwargs):
+def make_usergroup(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a usergroup
 
     :param session: For browser session.
@@ -338,7 +337,7 @@ def make_usergroup(session, org=None, loc=None, force_context=False, **kwargs):
     UserGroup(session.browser).create(**create_args)
 
 
-def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
+def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a host_group"""
 
     create_args = {
@@ -352,7 +351,7 @@ def make_hostgroup(session, org=None, loc=None, force_context=False, **kwargs):
     Hostgroup(session.browser).create(**create_args)
 
 
-def make_env(session, org=None, loc=None, force_context=False, **kwargs):
+def make_env(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates an Environment"""
 
     create_args = {
@@ -366,7 +365,7 @@ def make_env(session, org=None, loc=None, force_context=False, **kwargs):
     Environment(session.browser).create(**create_args)
 
 
-def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
+def make_resource(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a compute resource"""
 
     create_args = {
@@ -389,7 +388,7 @@ def make_resource(session, org=None, loc=None, force_context=False, **kwargs):
     ComputeResource(session.browser).create(**create_args)
 
 
-def make_media(session, org=None, loc=None, force_context=False, **kwargs):
+def make_media(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates an installation media"""
 
     create_args = {
@@ -403,7 +402,7 @@ def make_media(session, org=None, loc=None, force_context=False, **kwargs):
     Medium(session.browser).create(**create_args)
 
 
-def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
+def make_templates(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a provisioning template"""
 
     create_args = {
@@ -421,7 +420,7 @@ def make_templates(session, org=None, loc=None, force_context=False, **kwargs):
     Template(session.browser).create(**create_args)
 
 
-def make_os(session, org=None, loc=None, **kwargs):
+def make_os(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates an Operating system"""
 
     create_args = {
@@ -438,11 +437,11 @@ def make_os(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_operating_systems
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     OperatingSys(session.browser).create(**create_args)
 
 
-def make_arch(session, org=None, loc=None, **kwargs):
+def make_arch(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates new architecture from webUI"""
 
     create_args = {
@@ -451,11 +450,12 @@ def make_arch(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_architectures
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Architecture(session.browser).create(**create_args)
 
 
-def make_partitiontable(session, org=None, loc=None, **kwargs):
+def make_partitiontable(session, org=None, loc=None, force_context=True,
+                        **kwargs):
     """Creates new Partition table from webUI"""
 
     create_args = {
@@ -465,11 +465,12 @@ def make_partitiontable(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_partition_tables
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     PartitionTable(session.browser).create(**create_args)
 
 
-def make_puppetclasses(session, org=None, loc=None, **kwargs):
+def make_puppetclasses(session, org=None, loc=None, force_context=True,
+                       **kwargs):
     """Creates new Puppet Classes from webUI"""
 
     create_args = {
@@ -478,21 +479,22 @@ def make_puppetclasses(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_puppet_classes
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     PuppetClasses(session.browser).create(**create_args)
 
 
-def make_config_groups(session, org=None, loc=None, **kwargs):
+def make_config_groups(session, org=None, loc=None, force_context=True,
+                       **kwargs):
     """Creates new Config Groups from webUI"""
 
     create_args = {u'name': None}
     page = session.nav.go_to_config_groups
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     ConfigGroups(session.browser).create(**create_args)
 
 
-def edit_param(session, org=None, loc=None, **kwargs):
+def edit_param(session, org=None, loc=None,  force_context=True, **kwargs):
     """Updates selected parameter value under settings"""
 
     update_args = {
@@ -503,11 +505,11 @@ def edit_param(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_settings
     core_factory(update_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Settings(session.browser).update(**update_args)
 
 
-def make_hw_model(session, org=None, loc=None, **kwargs):
+def make_hw_model(session, org=None, loc=None,  force_context=True, **kwargs):
     """Creates new Hardware Models from webUI"""
 
     create_args = {
@@ -518,21 +520,21 @@ def make_hw_model(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_hardware_models
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     HardwareModel(session.browser).create(**create_args)
 
 
-def make_role(session, org=None, loc=None, **kwargs):
+def make_role(session, org=None, loc=None,  force_context=True, **kwargs):
     """Creates new role"""
 
     create_args = {u'name': None}
     page = session.nav.go_to_roles
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Role(session.browser).create(**create_args)
 
 
-def make_syncplan(session, org=None, loc=None, **kwargs):
+def make_syncplan(session, org=None, loc=None,  force_context=True, **kwargs):
     """Create new Sync Plan"""
 
     create_args = {
@@ -546,5 +548,5 @@ def make_syncplan(session, org=None, loc=None, **kwargs):
     }
     page = session.nav.go_to_sync_plans
     core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc)
+                 org=org, loc=loc, force_context=force_context)
     Syncplan(session.browser).create(**create_args)

@@ -4,6 +4,7 @@
 Implements Content Views UI
 """
 
+import time
 from robottelo.common.helpers import escape_search
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
@@ -26,11 +27,11 @@ class ContentViews(Base):
             element.click()
             self.wait_for_ajax()
             self.find_element(tab_locators["contentviews.tab_content"]).click()
-            self.wait_until_element(locators
-                                    ["contentviews.content_filters"]).click()
+            self.wait_until_element(
+                locators["contentviews.content_filters"]
+            ).click()
             self.wait_for_ajax()
-            self.text_field_update(locators
-                                   ["contentviews.search_filters"],
+            self.text_field_update(locators["contentviews.search_filters"],
                                    filter_name)
             self.wait_for_ajax()
             self.find_element(locators["contentviews.search_button"]).click()
@@ -233,16 +234,17 @@ class ContentViews(Base):
             self.find_element(tab_locators["contentviews.tab_content"]).click()
             self.find_element(locators["contentviews.content_repo"]).click()
             self.wait_for_ajax()
-            if add_repo:
-                self.find_element(tab_locators
-                                  ["contentviews.tab_repo_add"]).click()
-            else:
-                self.find_element(tab_locators
-                                  ["contentviews.tab_repo_remove"]).click()
             strategy, value = locators["contentviews.select_repo"]
             for repo_name in repo_names:
-                self.text_field_update(locators
-                                       ["contentviews.repo_search"],
+                if add_repo:
+                    self.find_element(
+                        tab_locators["contentviews.tab_repo_add"]
+                    ).click()
+                else:
+                    self.find_element(
+                        tab_locators["contentviews.tab_repo_remove"]
+                    ).click()
+                self.text_field_update(locators["contentviews.repo_search"],
                                        repo_name)
                 element = self.wait_until_element((strategy,
                                                    value % repo_name))
@@ -250,14 +252,31 @@ class ContentViews(Base):
                     element.click()
                     self.wait_for_ajax()
                     if add_repo:
-                        self.wait_until_element(locators
-                                                ["contentviews.add_repo"]
-                                                ).click()
+                        self.wait_until_element(
+                            locators["contentviews.add_repo"]
+                        ).click()
+                        self.wait_until_element(
+                            tab_locators["contentviews.tab_repo_remove"]
+                        ).click()
+                        element = self.wait_until_element((strategy,
+                                                           value % repo_name))
+                        if element is None:
+                            raise UINoSuchElementError("Adding repo {0} failed"
+                                                       .format(repo_name))
                     else:
-                        self.wait_until_element(locators
-                                                ["contentviews.remove_repo"]
-                                                ).click()
-                    self.wait_for_ajax()
+                        self.wait_until_element(
+                            locators["contentviews.remove_repo"]
+                        ).click()
+                        self.wait_for_ajax()
+                        self.find_element(
+                            tab_locators["contentviews.tab_repo_add"]
+                        ).click()
+                        self.wait_for_ajax()
+                        element = self.wait_until_element((strategy,
+                                                           value % repo_name))
+                        if element is None:
+                            raise UINoSuchElementError(
+                                "Removing repo {0} fails".format(repo_name))
                 else:
                     raise Exception(
                         "Couldn't find repo '%s'"
@@ -271,13 +290,14 @@ class ContentViews(Base):
         Checks the status of progress bar while publishing and
         promoting the CV to next environment
         """
+        timer = time.time() + 60 * 10
         strategy, value = locators["contentviews.publish_progress"]
         check_progress = self.wait_until_element(
             (strategy, value % version),
             timeout=6,
             poll_frequency=2,
         )
-        while check_progress:
+        while check_progress and time.time() <= timer:
             check_progress = self.wait_until_element(
                 (strategy, value % version),
                 timeout=6,
@@ -337,9 +357,11 @@ class ContentViews(Base):
                 env_element = self.wait_until_element((strategy, value % env))
                 if env_element:
                     env_element.click()
+                    self.wait_for_ajax()
                     self.wait_until_element(locators
                                             ["contentviews.promote_version"]
                                             ).click()
+                    self.wait_for_ajax()
                     self.check_progress_bar_status(version)
                 else:
                     raise Exception(

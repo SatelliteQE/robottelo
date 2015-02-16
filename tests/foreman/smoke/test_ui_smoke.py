@@ -7,6 +7,7 @@ from robottelo.common import manifests
 from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO, REPO_TYPE, FOREMAN_PROVIDERS,
     DOMAIN, DEFAULT_ORG, DEFAULT_LOC, RHVA_REPO_TREE, REPOSET)
+from robottelo.common.decorators import bz_bug_is_open
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (make_user, make_org,
@@ -166,29 +167,34 @@ class TestSmoke(UITestCase):
 
             # Add YUM repository to content-view
             self.content_views.add_remove_repos(cv_name, [yum_repository_name])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
             # Add puppet-module to content-view
             self.content_views.add_puppet_module(cv_name, puppet_module,
                                                  filter_term=module_ver)
 
             # Publish content-view
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
             # Promote content-view to life-cycle environment 1
             self.content_views.promote(cv_name, version="Version 1",
                                        env=env_1_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
             # Promote content-view to life-cycle environment 2
             self.content_views.promote(cv_name, version="Version 1",
                                        env=env_2_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
             # Create a new libvirt compute resource
             make_resource(session, org=org_name, name=compute_resource_name,
                           provider_type=provider_type, url=url)
@@ -266,21 +272,24 @@ class TestSmoke(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add YUM repository to content-view
             self.content_views.add_remove_repos(cv_name, repo_names)
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators["alert.success"]))
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
             # Publish content-view
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators["alert.success"]))
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
 
             # Promote content-view to life-cycle environment 1
             self.content_views.promote(cv_name, version="Version 1",
                                        env=env_name)
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators["alert.success"]))
+            if not bz_bug_is_open(1191422):
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators["alert.success"]))
             # Create Activation-Key
             make_activationkey(
                 session, org=org_name, name=activation_key_name, env=env_name,
@@ -290,11 +299,12 @@ class TestSmoke(UITestCase):
             )
             self.activationkey.enable_repos(activation_key_name,
                                             [REPOSET['rhva6']])
-            self.assertIsNotNone(
-                self.activationkey.wait_until_element(
-                    common_locators["alert.success"]))
+            if not bz_bug_is_open(1191541):
+                self.assertIsNotNone(
+                    self.activationkey.wait_until_element(
+                        common_locators["alert.success"]))
             # Create VM
-            with VirtualMachine(distro='rhel65') as vm:
+            with VirtualMachine(distro='rhel66') as vm:
                 # Download and Install rpm
                 result = vm.run(
                     "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' "
@@ -322,18 +332,6 @@ class TestSmoke(UITestCase):
                 self.assertEqual(
                     result.return_code, 0,
                     "failed to register client:: {0} and return code: {1}"
-                    .format(result.stderr, result.return_code)
-                )
-                # FIXME:- Required for rhel65 clients as sub-man < 1.10
-                # The below block needs to be removed when rhel65 testing stops
-                # Enable Red Hat Enterprise Virtualization Agents repo via cli
-                result = vm.run(
-                    'subscription-manager repos --enable '
-                    'rhel-6-server-rhev-agent-rpms'
-                )
-                self.assertEqual(
-                    result.return_code, 0,
-                    "Enabling repo failed: {0} and return code: {1}"
                     .format(result.stderr, result.return_code)
                 )
                 # Install contents from sat6 server
