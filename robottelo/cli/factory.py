@@ -138,10 +138,10 @@ def make_activation_key(options=None):
     """
     # Organization Name, Label or ID is a required field.
     if (
-            not options
-            or not options.get('organization', None)
-            and not options.get('organization-label', None)
-            and not options.get('organization-id', None)):
+            not options or
+            not options.get('organization', None) and
+            not options.get('organization-label', None) and
+            not options.get('organization-id', None)):
         raise CLIFactoryError('Please provide a valid Organization.')
 
     args = {
