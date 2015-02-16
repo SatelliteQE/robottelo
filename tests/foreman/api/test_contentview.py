@@ -44,8 +44,8 @@ def _check_bz_1186432(humanized_errors):
         r'\[RestClient::NotAcceptable\]: 406 Not Acceptable'
     )
     for error in humanized_errors:
-        if (re.search(bz_1186432_re, error) is not None
-                and bz_bug_is_open(1186432)):
+        if (re.search(bz_1186432_re, error) is not None and
+                bz_bug_is_open(1186432)):
             raise SkipTest('BZ 1186432 is open: {0}'.format(error))
 
 
