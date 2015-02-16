@@ -922,9 +922,7 @@ class TestOrg(CLITestCase):
         # Create a lifecycle environment.
         org_id = make_org()['id']
         lc_env_name = make_lifecycle_environment(
-            {'organization-id': org_id},
-            cached=True,
-        )['name']
+            {'organization-id': org_id})['name']
 
         # Read back information about the lifecycle environment. Verify the
         # sanity of that information.
@@ -947,9 +945,7 @@ class TestOrg(CLITestCase):
         # Create a lifecycle environment.
         org_id = make_org()['id']
         lc_env_name = make_lifecycle_environment(
-            {'organization-id': org_id},
-            cached=True,
-        )['name']
+            {'organization-id': org_id})['name']
         lc_env_attrs = {
             'name': lc_env_name,
             'organization-id': org_id,
