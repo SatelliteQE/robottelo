@@ -39,7 +39,7 @@ class HostTestCase(CLITestCase):
             os = make_os({
                 u'architecture-ids': architecture['id'],
                 u'medium-ids': medium['id'],
-                u'ptable-ids': ptable['id'],
+                u'partition-table-ids': ptable['id'],
             })
 
             host = make_host({
