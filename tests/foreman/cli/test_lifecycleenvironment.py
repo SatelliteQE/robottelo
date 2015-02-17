@@ -411,21 +411,20 @@ class TestLifeCycleEnvironment(CLITestCase):
         """
         try:
             org = make_org(cached=True)
-            payload = {
+            test_env = make_lifecycle_environment({
                 'organization-id': org['id'],
-            }
-            test_env = make_lifecycle_environment(payload)
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
         # Add paths to lifecycle environments
-        result = LifecycleEnvironment.paths({'organization-id': org['id'],
-                                            'permission-type': 'readable'})
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}".
-                         format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an error here.")
-        self.assertIn(u'Library >> {0}'.format(test_env['name']),
-                      result.stdout)
+        result = LifecycleEnvironment.paths({
+            'organization-id': org['id'],
+            'permission-type': 'readable',
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertIn(
+            u'Library >> {0}'.format(test_env['name']),
+            u''.join(result.stdout)
+        )
