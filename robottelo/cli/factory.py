@@ -1122,21 +1122,34 @@ def make_os(options=None):
 
     Options::
 
-        --architecture-ids ARCH_IDS   set associated architectures
-                                      Comma separated list of values.
-        --config-template-ids CONFIG_TPL_IDS set associated templates
-                                             Comma separated list of values.
+        --architecture-ids ARCHITECTURE_IDS       IDs of associated
+                                                  architectures. Comma
+                                                  separated list of values.
+        --architectures ARCHITECTURE_NAMES        Comma separated list of
+                                                  values.
+        --config-template-ids CONFIG_TEMPLATE_IDS IDs of associated
+                                                  provisioning templates. Comma
+                                                  separated list of values.
+        --config-templates CONFIG_TEMPLATE_NAMES  Comma separated list of
+                                                  values.
         --description DESCRIPTION
         --family FAMILY
         --major MAJOR
-        --medium-ids MEDIUM_IDS       set associated installation media
-                                      Comma separated list of values.
+        --media MEDIUM_NAMES                      Comma separated list of
+                                                  values.
+        --medium-ids MEDIUM_IDS                   IDs of associated media.
+                                                  Comma separated list of
+                                                  values.
         --minor MINOR
         --name NAME
-        --password-hash PASSWORD_HASH Root password hash function to use,
-                                      one of MD5, SHA256, SHA512
-        --ptable-ids PTABLE_IDS       set associated partition tables
-                                      Comma separated list of values.
+        --partition-table-ids PARTITION_TABLE_IDS IDs of associated partition
+                                                  tables. Comma separated list
+                                                  of values.
+        --partition-tables PARTITION_TABLE_NAMES  Comma separated list of
+                                                  values.
+        --password-hash PASSWORD_HASH             Root password hash function
+                                                  to use, one of MD5, SHA256,
+                                                  SHA512
         --release-name RELEASE_NAME
         -h, --help                    print help
 
@@ -1144,15 +1157,19 @@ def make_os(options=None):
     # Assigning default values for attributes
     args = {
         u'architecture-ids': None,
+        u'architectures': None,
         u'config-template-ids': None,
+        u'config-templates': None,
         u'description': None,
         u'family': None,
         u'major': random.randint(0, 10),
+        u'media': None,
         u'medium-ids': None,
         u'minor': random.randint(0, 10),
         u'name': gen_alphanumeric(6),
+        u'partition-table-ids': None,
+        u'partition-tables': None,
         u'password-hash': None,
-        u'ptable-ids': None,
         u'release-name': None,
     }
 
