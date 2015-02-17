@@ -13,8 +13,7 @@ from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.factory import CLIFactoryError, make_user, make_role
 from robottelo.cli.user import User as UserObj
-from robottelo.common.decorators import (
-    bz_bug_is_open, data, stubbed)
+from robottelo.common.decorators import data, stubbed
 from robottelo.test import CLITestCase
 
 
@@ -106,10 +105,7 @@ class User(CLITestCase):
 
     @data(
         {'login': gen_string("latin1", 10)},
-        {
-            'login': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'login': gen_string("utf8", 10)},
         {'login': gen_string("alpha", 10)},
         {'login': gen_string("alphanumeric", 10)},
         {'login': gen_string("numeric", 10)},
@@ -126,13 +122,7 @@ class User(CLITestCase):
 
         @Assert: User is created
 
-        @BZ: 1144162
-
         """
-        bug_id = data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             args = make_user(data)
         except CLIFactoryError as err:
@@ -141,10 +131,7 @@ class User(CLITestCase):
 
     @data(
         {'firstname': gen_string("latin1", 10)},
-        {
-            'firstname': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'firstname': gen_string("utf8", 10)},
         {'firstname': gen_string("alpha", 10)},
         {'firstname': gen_string("alphanumeric", 10)},
         {'firstname': gen_string("numeric", 10)},
@@ -161,13 +148,7 @@ class User(CLITestCase):
 
         @Assert: User is created
 
-        @BZ: 1144162
-
         """
-        bug_id = data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             args = make_user(data)
         except CLIFactoryError as err:
@@ -176,10 +157,7 @@ class User(CLITestCase):
 
     @data(
         {'lastname': gen_string("latin1", 10)},
-        {
-            'lastname': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'lastname': gen_string("utf8", 10)},
         {'lastname': gen_string("alpha", 10)},
         {'lastname': gen_string("alphanumeric", 10)},
         {'lastname': gen_string("numeric", 10)},
@@ -196,13 +174,7 @@ class User(CLITestCase):
 
         @Assert: User is created
 
-        @BZ: 1144162
-
         """
-        bug_id = data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             args = make_user(data)
         except CLIFactoryError as err:
@@ -749,10 +721,7 @@ class User(CLITestCase):
 
     @data(
         {'firstname': gen_string("latin1", 10)},
-        {
-            'firstname': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'firstname': gen_string("utf8", 10)},
         {'firstname': gen_string("alpha", 10)},
         {'firstname': gen_string("alphanumeric", 10)},
         {'firstname': gen_string("numeric", 10)},
@@ -768,13 +737,7 @@ class User(CLITestCase):
 
         @Assert: User is updated
 
-        @BZ: 1144162
-
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             new_obj = make_user()
         except CLIFactoryError as err:
@@ -805,10 +768,7 @@ class User(CLITestCase):
 
     @data(
         {'login': gen_string("latin1", 10)},
-        {
-            'login': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'login': gen_string("utf8", 10)},
         {'login': gen_string("alpha", 10)},
         {'login': gen_string("alphanumeric", 10)},
         {'login': gen_string("numeric", 10)},
@@ -825,13 +785,7 @@ class User(CLITestCase):
 
         @Assert: User login is updated
 
-        @BZ: 1144162
-
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             new_obj = make_user()
         except CLIFactoryError as err:
@@ -861,10 +815,7 @@ class User(CLITestCase):
 
     @data(
         {'lastname': gen_string("latin1", 10)},
-        {
-            'lastname': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'lastname': gen_string("utf8", 10)},
         {'lastname': gen_string("alpha", 10)},
         {'lastname': gen_string("alphanumeric", 10)},
         {'lastname': gen_string("numeric", 10)},
@@ -880,13 +831,7 @@ class User(CLITestCase):
 
         @Assert: User is updated
 
-        @BZ: 1144162
-
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             new_obj = make_user()
         except CLIFactoryError as err:
@@ -1467,10 +1412,7 @@ class User(CLITestCase):
 
     @data(
         {'login': gen_string("latin1", 10)},
-        {
-            'login': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'login': gen_string("utf8", 10)},
         {'login': gen_string("alpha", 10)},
         {'login': gen_string("alphanumeric", 10)},
         {'login': gen_string("numeric", 10)},
@@ -1488,10 +1430,6 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             user = make_user(test_data)
         except CLIFactoryError as err:
@@ -1507,10 +1445,7 @@ class User(CLITestCase):
 
     @data(
         {'login': gen_string("latin1", 10)},
-        {
-            'login': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'login': gen_string("utf8", 10)},
         {'login': gen_string("alpha", 10)},
         {'login': gen_string("alphanumeric", 10)},
         {'login': gen_string("numeric", 10)},
@@ -1528,10 +1463,6 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         test_data.update({'admin': 'true'})
         try:
             user = make_user(test_data)
@@ -1580,10 +1511,7 @@ class User(CLITestCase):
         {'login': gen_string("alphanumeric", 10)},
         {'login': gen_string("numeric", 10)},
         {'login': gen_string("latin1", 10)},
-        {
-            'login': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'login': gen_string("utf8", 10)},
         {'login': gen_string("alphanumeric", 100)}
     )
     def test_list_user_1(self, test_data):
@@ -1598,13 +1526,7 @@ class User(CLITestCase):
 
         @Assert: User is listed
 
-        @BZ: 1144162
-
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             user = make_user(test_data)
         except CLIFactoryError as err:
@@ -1624,10 +1546,7 @@ class User(CLITestCase):
 
     @data(
         {'firstname': gen_string("latin1", 10)},
-        {
-            'firstname': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'firstname': gen_string("utf8", 10)},
         {'firstname': gen_string("alpha", 10)},
         {'firstname': gen_string("alphanumeric", 10)},
         {'firstname': gen_string("numeric", 10)},
@@ -1645,13 +1564,7 @@ class User(CLITestCase):
 
         @Assert: User is listed
 
-        @BZ: 1144162
-
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             user = make_user(test_data)
         except CLIFactoryError as err:
@@ -1670,10 +1583,7 @@ class User(CLITestCase):
 
     @data(
         {'lastname': gen_string("latin1", 10)},
-        {
-            'lastname': gen_string("utf8", 10),
-            'bugzilla': 1144162,
-        },
+        {'lastname': gen_string("utf8", 10)},
         {'lastname': gen_string("alpha", 10)},
         {'lastname': gen_string("alphanumeric", 10)},
         {'lastname': gen_string("numeric", 10)},
@@ -1691,13 +1601,7 @@ class User(CLITestCase):
 
         @Assert: User is listed
 
-        @BZ: 1144162
-
         """
-        bug_id = test_data.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         try:
             user = make_user(test_data)
         except CLIFactoryError as err:
