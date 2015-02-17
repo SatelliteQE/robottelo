@@ -2217,12 +2217,10 @@ class User(
     authentication than to spawn LDAP authentication servers for each new user.
 
     """
-    # Passing UTF8 characters for {first,last}name or login yields errors. See
-    # bugzilla bug 1144162.
     login = entity_fields.StringField(
         length=(1, 100),
         required=True,
-        str_type=('alpha', 'alphanumeric', 'cjk', 'latin1'),
+        str_type=('alpha', 'alphanumeric', 'cjk', 'latin1', 'utf8'),
     )
     admin = entity_fields.BooleanField(null=True)
     auth_source = entity_fields.OneToOneField(
