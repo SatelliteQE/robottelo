@@ -34,14 +34,6 @@ from robottelo.test import CLITestCase
 class TestComputeResource(CLITestCase):
     """ComputeResource CLI tests."""
 
-    @classmethod
-    def setUpClass(cls):  # noqa
-        CLITestCase.setUpClass()
-        cls.compute_res_updates = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" %
-            conf.properties['main.server.hostname']})['name']
-
     def test_create(self):
         """@Test: Create Compute Resource
 
@@ -106,33 +98,6 @@ class TestComputeResource(CLITestCase):
             stdout,
             "ComputeResource list - exists name")
 
-    @data(
-        {'description': "updated: compute resource"},
-        {'url': "qemu+tcp://localhost:16509/system"},
-        {
-            'provider': FOREMAN_PROVIDERS['ovirt'],
-            'description': 'updated to Ovirt',
-            'url': "https://localhost:443/api",
-            'user': 'admin@internal',
-            'password': "secret"
-        }
-    )
-    def test_update(self, option_dict):
-        """@Test: Test Compute Resource Update
-
-        @Feature: Compute Resource - Update
-
-        @Assert: Compute resource List is updated
-
-        """
-        options = {}
-        options['name'] = self.compute_res_updates
-        for option in option_dict:
-            options[option] = option_dict[option]
-        result_update = ComputeResource.update(options)
-        self.assertEquals(result_update.return_code, 0,
-                          "ComputeResource update - exit code")
-
     def test_delete(self):
         """@Test: Test Compute Resource delete
 
@@ -161,22 +126,22 @@ class TestComputeResource(CLITestCase):
     # Positive create
 
     @data(
-        {u'name': gen_string(str_type='numeric'),
-         u'description': gen_string(str_type='numeric')},
+        {u'name': gen_string('numeric'),
+         u'description': gen_string('numeric')},
         {u'name': gen_string('alphanumeric', 255),
-         u'description': gen_string(str_type='alphanumeric')},
-        {u'name': gen_string(str_type='alphanumeric'),
+         u'description': gen_string('alphanumeric')},
+        {u'name': gen_string('alphanumeric'),
          u'description': gen_string('alphanumeric', 255)},
-        {u'name': gen_string(str_type='utf8'),
-         u'description': gen_string(str_type='utf8')},
-        {u'name': '<html>%s</html>' %
-                  gen_string(str_type='alpha'),
-         u'description': '<html>%s</html>' %
-                         gen_string(str_type='alpha')},
-        {u'name': "%s[]@#$%%^&*(),./?\"{}><|''" %
-                  gen_string(str_type='utf8'),
-         u'description': "%s[]@#$%%^&*(),./?\"{}><|''" %
-                         gen_string(str_type='alpha')},
+        {u'name': gen_string('utf8'),
+         u'description': gen_string('utf8')},
+        {u'name': u'<html>{0}</html>'.format(
+            gen_string('alpha')),
+         u'description': u'<html>{0}</html>'.format(
+             gen_string('alpha'))},
+        {u'name': u"{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(
+            gen_string('utf8')),
+         u'description': u"{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(
+             gen_string('alpha'))},
     )
     def test_create_positive_libvirt(self, options):
         """@Test: Test Compute Resource create
@@ -190,7 +155,7 @@ class TestComputeResource(CLITestCase):
             u'name': options['name'],
             u'url': gen_url(),
             u'provider': FOREMAN_PROVIDERS['libvirt'],
-            u'description': options['description']
+            u'description': options['description'],
         })
 
         self.assertEqual(result.return_code, 0)
@@ -249,10 +214,11 @@ class TestComputeResource(CLITestCase):
 
     @data(
         {u'new-name': gen_string('utf8', 255)},
-        {u'new-name': gen_string(str_type='alphanumeric')},
+        {u'new-name': gen_string('alphanumeric')},
         {u'description': gen_string('utf8', 255)},
-        {u'description': gen_string(str_type='alphanumeric')},
+        {u'description': gen_string('alphanumeric')},
         {u'url': gen_url()},
+        {u'url': 'qemu+tcp://localhost:16509/system'},
     )
     def test_update_positive(self, options):
         """@Test: Compute Resource positive update
@@ -263,24 +229,33 @@ class TestComputeResource(CLITestCase):
 
         """
         comp_res = make_compute_resource()
+        options.update({
+            'name': comp_res['name'],
+        })
 
         # update Compute Resource
-        result = ComputeResource.update(
-            dict({'name': comp_res['name']}, **options))
+        result = ComputeResource.update(options)
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
 
-        comp_res['name'] = options.get('new-name', comp_res['name'])
-        comp_res.update(options)
         # check updated values
         result = ComputeResource.info({'id': comp_res['id']})
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['description'],
-                         comp_res['description'])
-        self.assertEqual(result.stdout['name'], comp_res['name'])
-        self.assertEqual(result.stdout['provider'].lower(),
-                         comp_res['provider'].lower())
-        self.assertEqual(result.stdout['url'], comp_res['url'])
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(
+            result.stdout['description'],
+            options.get('description', comp_res['description'])
+        )
+        self.assertEqual(
+            result.stdout['name'],
+            options.get('new-name', comp_res['name'])
+        )
+        self.assertEqual(
+            result.stdout['url'],
+            options.get('url', comp_res['url'])
+        )
+        self.assertEqual(
+            result.stdout['provider'].lower(), comp_res['provider'].lower())
 
     # Update Negative
 
