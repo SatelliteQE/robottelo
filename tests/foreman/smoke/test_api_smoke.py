@@ -1131,7 +1131,7 @@ class TestSmoke(TestCase):
 
         # Create VM
         package_name = "python-kitchen"
-        with VirtualMachine(distro='rhel65') as vm:
+        with VirtualMachine(distro='rhel66') as vm:
             # Download and Install rpm
             result = vm.run(
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
@@ -1159,6 +1159,17 @@ class TestSmoke(TestCase):
             self.assertEqual(
                 result.return_code, 0,
                 "failed to register client:: {0} and return code: {1}"
+                .format(result.stderr, result.return_code)
+            )
+            # Enable Red Hat Enterprise Virtualization Agents repo via cli
+            # As the below repo is disabled by default under ak's prd-content
+            result = vm.run(
+                'subscription-manager repos --enable '
+                'rhel-6-server-rhev-agent-rpms'
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                "Enabling repo failed: {0} and return code: {1}"
                 .format(result.stderr, result.return_code)
             )
             # Install contents from sat6 server
