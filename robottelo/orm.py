@@ -20,7 +20,7 @@ import urlparse
 #: Default for ``poll_rate`` argument to :func:`robottelo.orm._poll_task`.
 TASK_POLL_RATE = 5
 #: Default for ``timeout`` argument to :func:`robottelo.orm._poll_task`.
-TASK_TIMEOUT = 180
+TASK_TIMEOUT = 300
 
 
 class TaskTimeout(Exception):
